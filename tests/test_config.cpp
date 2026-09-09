@@ -2,7 +2,6 @@
 #include "config/Config.h"
 #include "config/ScenarioConfig.h"
 #include <fstream>
-#include <sstream>
 #include <filesystem>
 
 TEST(ConfigTest, GetDouble) {
@@ -184,7 +183,7 @@ TEST(ConfigTest, LoadFile) {
     const std::string temp_path = "/tmp/test_config.json";
     std::ofstream file(temp_path);
     if (!file.is_open()) {
-        GTEST_FAIL_() << "Failed to create temp config file";
+        ASSERT_TRUE(false) << "Failed to create temp config file";
     }
     
     file << R"({
