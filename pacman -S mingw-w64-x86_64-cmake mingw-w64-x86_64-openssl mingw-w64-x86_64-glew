@@ -1,25 +1,5 @@
 
-## Building the Project
+## Building
 
-1. Create a build directory:
-   ```bash
-   mkdir build && cd build
-   ```
-
-2. Configure with CMake:
-   ```bash
-   cmake ..
-   ```
-
-3. Build:
-   ```bash
-   make
-   ```
-
-4. Run:
-   ```bash
-   ./PlanetSimulation
-   ```
-
-## Project Structure
-
+### Build Directory Setup
+Create a build directory and configure the project:
