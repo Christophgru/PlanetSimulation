@@ -5,3 +5,4 @@ build/
 *.a
 compile_commands.json
 .aider*
+build-agent/
