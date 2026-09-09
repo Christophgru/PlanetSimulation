@@ -4,3 +4,4 @@ build/
 *.so
 *.a
 compile_commands.json
+.aider*
