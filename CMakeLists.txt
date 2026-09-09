@@ -4,12 +4,13 @@ project(PlanetSimulation VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Fetch nlohmann_json automatically if not present
+# Fetch nlohmann_json from git repository (header-only library)
 include(FetchContent)
 FetchContent_Declare(
     nlohmann_json
-    URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.hpp
-    DOWNLOAD_DIR ${CMAKE_BINARY_DIR}/vendor
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG v3.11.3
+    GIT_SHALLOW ON
 )
 FetchContent_MakeAvailable(nlohmann_json)
 
@@ -27,7 +28,7 @@ target_link_libraries(PlanetSimulation PRIVATE nlohmann_json::nlohmann_json Open
 # Include directories
 target_include_directories(PlanetSimulation PRIVATE 
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_BINARY_DIR}/vendor/nlohmann_json/include
+    ${nlohmann_json_SOURCE_DIR}/include
 )
 
 # Tests (optional)
