@@ -4,38 +4,35 @@ project(PlanetSimulation VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(OpenGL REQUIRED)
-find_package(GLEW REQUIRED)
-find_package(glfw3 REQUIRED)
+# Fetch nlohmann_json automatically if not present
+include(FetchContent)
+FetchContent_Declare(
+    nlohmann_json
+    URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.hpp
+    DOWNLOAD_DIR ${CMAKE_BINARY_DIR}/vendor
+)
+FetchContent_MakeAvailable(nlohmann_json)
 
-# nlohmann/json is header-only, include it directly
-add_subdirectory(${CMAKE_SOURCE_DIR}/vendor/nlohmann_json nlohmann_json)
+# Add source directories
+add_subdirectory(src/config)
+add_subdirectory(src/math)
+add_subdirectory(src/coordinate_systems)
 
-add_executable(${PROJECT_NAME}
-    src/main.cpp
+# Main executable
+add_executable(PlanetSimulation src/main.cpp)
+
+# Link required libraries
+target_link_libraries(PlanetSimulation PRIVATE nlohmann_json::nlohmann_json OpenGL::GL glfw GLEW::GLEW)
+
+# Include directories
+target_include_directories(PlanetSimulation PRIVATE 
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_BINARY_DIR}/vendor/nlohmann_json/include
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/src)
-target_link_libraries(${PROJECT_NAME} PRIVATE OpenGL::GL GLEW::GLEW glfw nlohmann_json::nlohmann_json)
-
-# Enable testing
+# Tests (optional)
 option(BUILD_TESTING "Build tests" OFF)
-
 if(BUILD_TESTING)
     enable_testing()
-    
-    # Find GoogleTest
-    find_package(GTest REQUIRED)
-    
-    add_executable(${PROJECT_NAME}_tests
-        tests/test_main.cpp
-    )
-    
-    target_include_directories(${PROJECT_NAME}_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
-    target_link_libraries(${PROJECT_NAME}_tests PRIVATE GTest::GTest GTest::Main OpenGL::GL GLEW::GLEW glfw nlohmann_json::nlohmann_json)
-    
-    add_test(NAME ${PROJECT_NAME}Tests COMMAND ${PROJECT_NAME}_tests)
+    add_subdirectory(tests)
 endif()
-
-# Install config files
-install(DIRECTORY configs/scenarios DESTINATION ${CMAKE_INSTALL_PREFIX}/configs/scenarios)
