@@ -55,8 +55,8 @@ struct ScenarioConfig {
         // Check for both "planet" (singular) and "planets" (plural) keys
         auto planet_array = cfg.getArray("planets", std::vector<PlanetConfig>{});
         if (planet_array.empty()) {
-            // Try singular "planet" key - need to access raw json data
-            auto& raw_data = const_cast<nlohmann::json&>(cfg.m_data);
+            // Try singular "planet" key - use public accessor
+            const auto& raw_data = cfg.data();
             auto planet_json = raw_data["planet"];
             if (planet_json.is_object() && !planet_json.empty()) {
                 planets.emplace_back(PlanetConfig{cfg});
@@ -67,9 +67,6 @@ struct ScenarioConfig {
             }
         }
     }
-    
-private:
-    nlohmann::json m_data;
 };
 
 } // namespace config
