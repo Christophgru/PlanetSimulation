@@ -8,8 +8,6 @@ find_package(OpenGL REQUIRED)
 
 add_executable(${PROJECT_NAME}
     src/main.cpp
-    src/math/Vector3.h
-    src/coordinate_systems/CoordinateSystem.h
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/src)
