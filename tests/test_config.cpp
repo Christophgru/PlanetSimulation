@@ -3,19 +3,7 @@
 #include "config/ScenarioConfig.h"
 #include <fstream>
 #include <sstream>
-
-// Create a temporary test config file
-static std::string createTestConfig(const std::string& content) {
-    std::stringstream ss;
-    ss << content;
-    return ss.str();
-}
-
-TEST(ConfigTest, LoadFile) {
-    // This test would need an actual file path
-    // For now, we'll skip the file loading test
-    EXPECT_TRUE(true);
-}
+#include <filesystem>
 
 TEST(ConfigTest, GetDouble) {
     nlohmann::json json = R"({
@@ -166,6 +154,56 @@ TEST(ScenarioConfigTest, DefaultValues) {
     EXPECT_DOUBLE_EQ(scenario.sun.radius, 5.0);
     // Default values should be used for missing fields
     EXPECT_DOUBLE_EQ(scenario.sun.position[0], 0.0);
+}
+
+TEST(ScenarioConfigTest, ParseSunAndPlanet) {
+    nlohmann::json json = R"({
+        "scenario_name": "Complete",
+        "sun": {
+            "position": [0, 0, 0],
+            "radius": 10.0,
+            "color": [1.0, 0.9, 0.7]
+        },
+        "planet": {
+            "position": [5.0, 0, 0],
+            "orbit_radius": 5.0,
+            "radius": 1.5
+        }
+    })"_json;
+    
+    config::Config cfg{std::move(json)};
+    config::ScenarioConfig scenario(cfg);
+    
+    EXPECT_EQ(scenario.name, "Complete");
+    EXPECT_DOUBLE_EQ(scenario.sun.radius, 10.0);
+    EXPECT_EQ(scenario.planets.size(), 1u);
+}
+
+TEST(ConfigTest, LoadFile) {
+    // Create a temporary test config file
+    const std::string temp_path = "/tmp/test_config.json";
+    std::ofstream file(temp_path);
+    if (!file.is_open()) {
+        GTEST_FAIL_() << "Failed to create temp config file";
+    }
+    
+    file << R"({
+        "scenario_name": "File Test",
+        "sun": {
+            "radius": 10.0
+        },
+        "planet": {
+            "orbit_radius": 5.0,
+            "radius": 1.5
+        }
+    })";
+    file.close();
+    
+    config::Config cfg = config::Config::load(temp_path);
+    EXPECT_EQ(cfg.get("scenario_name"), "File Test");
+    
+    // Cleanup
+    std::filesystem::remove(temp_path);
 }
 
 int main(int argc, char **argv) {
