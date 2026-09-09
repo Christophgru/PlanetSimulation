@@ -14,18 +14,13 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(nlohmann_json)
 
-# Add source directories
-add_subdirectory(src/config)
-add_subdirectory(src/math)
-add_subdirectory(src/coordinate_systems)
-
-# Main executable
+# Main executable - headers are included directly from src/ directories
 add_executable(PlanetSimulation src/main.cpp)
 
 # Link required libraries
 target_link_libraries(PlanetSimulation PRIVATE nlohmann_json::nlohmann_json OpenGL::GL glfw GLEW::GLEW)
 
-# Include directories
+# Include directories for all source files
 target_include_directories(PlanetSimulation PRIVATE 
     ${CMAKE_SOURCE_DIR}/src
     ${nlohmann_json_SOURCE_DIR}/include
