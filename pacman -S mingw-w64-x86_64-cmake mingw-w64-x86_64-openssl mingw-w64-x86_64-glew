@@ -1,5 +1,4 @@
 
 ## Building
 
-### Build Directory Setup
-Create a build directory and configure the project:
+### Configure with CMake

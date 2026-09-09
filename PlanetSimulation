@@ -1,4 +1,6 @@
 
-## Testing (Optional)
+## Configuration
 
-To enable tests, add `-DBUILD_TESTING=ON` when configuring:
+The simulation uses JSON configuration files in `configs/scenarios/`.
+
+### Example Scenario File (solar_system.json)

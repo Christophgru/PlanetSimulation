@@ -166,9 +166,11 @@ int main() {
         config::Config cfg = config::Config::load(configPath);
         config::ScenarioConfig scenario(cfg);
         
-        // Setup camera
+        // Setup camera - position behind a planet to see both sun and planets
         Camera camera;
-        camera.update(scenario.camera);
+        camera.position = Vector3{15.0, 2.0, 8.0};  // Position in front of the scene
+        camera.target = Vector3{0.0, 0.0, 0.0};     // Look at the sun (center)
+        camera.fov = 60.0;
         
         // Generate sphere mesh
         g_sphere.generateMesh();
@@ -197,8 +199,8 @@ int main() {
             // Setup view matrix
             Matrix4 view = camera.getViewMatrix();
             
-            // Clear framebuffer with non-black color (light blue)
-            glClearColor(0.5f, 0.7f, 0.9f, 1.0f);
+            // Clear framebuffer with dark background
+            glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             // Render sun
@@ -221,7 +223,7 @@ int main() {
                     sunPos.z
                 };
                 
-                // Draw planet as a sphere at calculated position
+                // Draw planet at calculated position (no transformation needed for now)
                 glBindVertexArray(g_sphere.vao);
                 glDrawArrays(GL_TRIANGLES, 0, g_sphere.segments * (g_sphere.segments + 1));
                 glBindVertexArray(0);

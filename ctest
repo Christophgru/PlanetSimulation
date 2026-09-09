@@ -1,7 +1,3 @@
 
-## Project Structure
+## Running
 
-- `src/` - Source files
-- `shaders/` - OpenGL shader files
-- `tests/` - Test files (when enabled)
-- `CMakeLists.txt` - Build configuration

@@ -1,0 +1,27 @@
+
+## Project Structure
+
+- `src/` - Source files
+  - `main.cpp` - Entry point
+  - `config/` - Configuration classes (Config.h, ScenarioConfig.h)
+  - `coordinate_systems/` - Coordinate system implementations
+  - `math/` - Math utilities (Vector3.h, Matrix4.h)
+- `configs/scenarios/` - JSON scenario configurations
+- `shaders/` - GLSL shaders
+- `tests/` - Unit tests
+
+## Troubleshooting
+
+### Blue Window / Nothing Visible
+If you see only a blue window:
+1. Check that the config file path is correct in `main.cpp`
+2. Verify camera position is set to view the scene (default: `[15.0, 2.0, 8.0]`)
+3. Ensure shaders are compiled correctly
+
+### Build Errors
+- Make sure all dependencies are installed
+- Check CMake cache for stale configurations
+
+## License
+
+MIT License
