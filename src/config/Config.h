@@ -22,4 +22,61 @@ private:
     nlohmann::json m_data;
 };
 
+inline Config Config::load(const std::string& path) {
+    std::ifstream file(path);
+    if (!file.is_open()) {
+        throw std::runtime_error("Failed to open config file: " + path);
+    }
+    
+    nlohmann::json json;
+    file >> json;
+    return Config{std::move(json)};
+}
+
+inline const std::string& Config::get(const std::string& key) const {
+    auto it = m_data.find(key);
+    if (it != m_data.end()) {
+        return it.value();
+    }
+    static const std::string empty;
+    return empty;
+}
+
+inline double Config::getDouble(const std::string& key, double defaultVal) const {
+    auto it = m_data.find(key);
+    if (it != m_data.end()) {
+        return it.value<double>();
+    }
+    return defaultVal;
+}
+
+inline int Config::getInt(const std::string& key, int defaultVal) const {
+    auto it = m_data.find(key);
+    if (it != m_data.end()) {
+        return it.value<int>();
+    }
+    return defaultVal;
+}
+
+inline bool Config::getBool(const std::string& key, bool defaultVal) const {
+    auto it = m_data.find(key);
+    if (it != m_data.end()) {
+        return it.value<bool>();
+    }
+    return defaultVal;
+}
+
+inline std::vector<double> Config::getArray(const std::string& key, std::vector<double> defaultVal) const {
+    auto it = m_data.find(key);
+    if (it != m_data.end()) {
+        auto arr = it.value();
+        std::vector<double> result;
+        for (const auto& val : arr) {
+            result.push_back(val.get<double>());
+        }
+        return result;
+    }
+    return defaultVal;
+}
+
 } // namespace config

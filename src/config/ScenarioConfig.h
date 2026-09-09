@@ -52,11 +52,23 @@ struct ScenarioConfig {
         name = cfg.get("scenario_name", name);
         sun = SunConfig(cfg);
         
+        // Check for both "planet" (singular) and "planets" (plural) keys
         auto planet_array = cfg.getArray("planets", std::vector<PlanetConfig>{});
-        for (const auto& p : planet_array) {
-            planets.emplace_back(p);
+        if (planet_array.empty()) {
+            // Try singular "planet" key
+            auto planet_json = cfg.m_data["planet"];
+            if (planet_json.is_object()) {
+                planets.emplace_back(PlanetConfig{cfg});
+            }
+        } else {
+            for (const auto& p : planet_array) {
+                planets.emplace_back(p);
+            }
         }
     }
+    
+private:
+    nlohmann::json m_data;
 };
 
 } // namespace config
