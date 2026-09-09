@@ -13,7 +13,7 @@ add_executable(${PROJECT_NAME}
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/src)
-target_link_libraries(${PROJECT_NAME} PRIVATE OpenGL::GL GLEW::GLEW glfw3)
+target_link_libraries(${PROJECT_NAME} PRIVATE OpenGL::GL GLEW::GLEW glfw)
 
 # Enable testing
 option(BUILD_TESTING "Build tests" OFF)
@@ -29,7 +29,7 @@ if(BUILD_TESTING)
     )
     
     target_include_directories(${PROJECT_NAME}_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
-    target_link_libraries(${PROJECT_NAME}_tests PRIVATE GTest::GTest GTest::Main OpenGL::GL GLEW::GLEW glfw3)
+    target_link_libraries(${PROJECT_NAME}_tests PRIVATE GTest::GTest GTest::Main OpenGL::GL GLEW::GLEW glfw)
     
     add_test(NAME ${PROJECT_NAME}Tests COMMAND ${PROJECT_NAME}_tests)
 endif()
