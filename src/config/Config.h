@@ -1,25 +1,25 @@
 #pragma once
 
 #include <string>
-#include <vector>
 #include <fstream>
-#include <sstream>
+#include <vector>
 #include <nlohmann/json.hpp>
 
 namespace config {
 
 class Config {
 public:
+    Config() = default;
+    explicit Config(nlohmann::json&& json) : m_data(std::move(json)) {}
+    
     static Config load(const std::string& path);
     
     const std::string& get(const std::string& key) const;
     double getDouble(const std::string& key, double defaultVal = 0.0) const;
     int getInt(const std::string& key, int defaultVal = 0) const;
     bool getBool(const std::string& key, bool defaultVal = false) const;
-    std::vector<double> getArray(const std::string& key, std::vector<double> defaultVal = {}) const;
+    std::vector<double> getArray(const std::string& key, std::vector<double> defaultVal = {}) const
     
-    // Access raw json data for advanced use cases
-    nlohmann::json& data() { return m_data; }
     const nlohmann::json& data() const { return m_data; }
 
 private:
@@ -49,7 +49,7 @@ inline const std::string& Config::get(const std::string& key) const {
 inline double Config::getDouble(const std::string& key, double defaultVal) const {
     auto it = m_data.find(key);
     if (it != m_data.end()) {
-        return it.value<double>();
+        return it.value<double>(defaultVal);
     }
     return defaultVal;
 }
@@ -57,7 +57,7 @@ inline double Config::getDouble(const std::string& key, double defaultVal) const
 inline int Config::getInt(const std::string& key, int defaultVal) const {
     auto it = m_data.find(key);
     if (it != m_data.end()) {
-        return it.value<int>();
+        return it.value<int>(defaultVal);
     }
     return defaultVal;
 }
@@ -65,7 +65,7 @@ inline int Config::getInt(const std::string& key, int defaultVal) const {
 inline bool Config::getBool(const std::string& key, bool defaultVal) const {
     auto it = m_data.find(key);
     if (it != m_data.end()) {
-        return it.value<bool>();
+        return it.value<bool>(defaultVal);
     }
     return defaultVal;
 }

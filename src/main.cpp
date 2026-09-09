@@ -8,7 +8,6 @@
 #include <filesystem>
 
 #include "math/Vector3.h"
-#include "coordinate_systems/CoordinateSystem.h"
 #include "config/Config.h"
 #include "config/ScenarioConfig.h"
 
@@ -55,10 +54,11 @@ public:
     
     Camera() : position({0, 0, 0}), target({0, 0, 0}), fov(60.0) {}
     
-    void update(const config::CameraConfig& cfg) {
-        position = Vector3{cfg.position[0], cfg.position[1], cfg.position[2]};
-        target = Vector3{cfg.target[0], cfg.target[1], cfg.target[2]};
-        fov = cfg.fov;
+    void update(const config::ScenarioConfig& scenario) {
+        // Use default camera position for now
+        position = Vector3{15.0, 2.0, 8.0};
+        target = Vector3{0.0, 0.0, 0.0};
+        fov = 60.0;
     }
     
     // Simple view matrix (looking at target from position)
@@ -106,6 +106,9 @@ public:
         
         glBindVertexArray(0);
     }
+    
+    GLuint getVao() const { return vao; }
+    int getVertexCount() const { return segments * (segments + 1) * 2; }
     
 private:
     GLuint vao = 0;
@@ -156,7 +159,7 @@ int main() {
             glfwPollEvents();
             glClearColor(0.5f, 0.7f, 0.9f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            glfwSwapBuffers();
+            glfwSwapBuffers(window);
             std::this_thread::sleep_for(std::chrono::milliseconds(16));
         }
         return 0;
@@ -168,9 +171,7 @@ int main() {
         
         // Setup camera - position behind a planet to see both sun and planets
         Camera camera;
-        camera.position = Vector3{15.0, 2.0, 8.0};  // Position in front of the scene
-        camera.target = Vector3{0.0, 0.0, 0.0};     // Look at the sun (center)
-        camera.fov = 60.0;
+        camera.update(scenario);
         
         // Generate sphere mesh
         g_sphere.generateMesh();
@@ -190,9 +191,9 @@ int main() {
             glfwPollEvents();
 
             // Setup projection matrix
-            int width = glfwGetFramebufferSize(window).width;
-            int height = glfwGetFramebufferSize(window).height;
-            Matrix4 proj = Matrix4::perspective(scenario.camera.fov, 
+            int width = 0, height = 0;
+            glfwGetFramebufferSize(window, &width, &height);
+            Matrix4 proj = Matrix4::perspective(camera.fov, 
                                                 (double)width / (double)height,
                                                 0.1f, 1000.0f);
             
@@ -205,8 +206,8 @@ int main() {
 
             // Render sun
             {
-                glBindVertexArray(g_sphere.vao);
-                glDrawArrays(GL_TRIANGLES, 0, g_sphere.segments * (g_sphere.segments + 1));
+                glBindVertexArray(g_sphere.getVao());
+                glDrawArrays(GL_TRIANGLES, 0, g_sphere.getVertexCount());
                 glBindVertexArray(0);
             }
 
@@ -216,7 +217,9 @@ int main() {
                 double time = glfwGetTime();
                 double angle = time * planet.orbit_speed;
                 
-                Vector3 sunPos = scenario.sun.position;
+                Vector3 sunPos = Vector3{scenario.sun.position[0], 
+                                         scenario.sun.position[1], 
+                                         scenario.sun.position[2]};
                 Vector3 planetPos = Vector3{
                     sunPos.x + cos(angle) * planet.orbit_radius,
                     sunPos.y + sin(angle) * planet.orbit_radius,
@@ -224,13 +227,13 @@ int main() {
                 };
                 
                 // Draw planet at calculated position (no transformation needed for now)
-                glBindVertexArray(g_sphere.vao);
-                glDrawArrays(GL_TRIANGLES, 0, g_sphere.segments * (g_sphere.segments + 1));
+                glBindVertexArray(g_sphere.getVao());
+                glDrawArrays(GL_TRIANGLES, 0, g_sphere.getVertexCount());
                 glBindVertexArray(0);
             }
 
             // Swap buffers
-            glfwSwapBuffers();
+            glfwSwapBuffers(window);
 
             // Sleep to control frame rate (optional)
             std::this_thread::sleep_for(std::chrono::milliseconds(16));

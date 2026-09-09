@@ -1,8 +1,8 @@
 #pragma once
 
-#include "config/Config.h"
 #include <string>
 #include <vector>
+#include "config/Config.h"
 
 namespace config {
 
@@ -52,18 +52,20 @@ struct ScenarioConfig {
         name = cfg.get("scenario_name", name);
         sun = SunConfig(cfg);
         
-        // Check for both "planet" (singular) and "planets" (plural) keys
-        auto planet_array = cfg.getArray("planets", std::vector<PlanetConfig>{});
-        if (planet_array.empty()) {
-            // Try singular "planet" key - use public accessor
-            const auto& raw_data = cfg.data();
-            auto planet_json = raw_data["planet"];
-            if (planet_json.is_object() && !planet_json.empty()) {
+        // Check for "planets" array first, then fall back to single "planet" object
+        auto planet_array = cfg.getArray("planets", std::vector<double>{});
+        if (!planet_array.empty()) {
+            // Convert double array to PlanetConfig objects (will use defaults)
+            for (const auto& p : planet_array) {
                 planets.emplace_back(PlanetConfig{cfg});
             }
         } else {
-            for (const auto& p : planet_array) {
-                planets.emplace_back(p);
+            // Try singular "planet" key
+            const auto& raw_data = cfg.data();
+            auto planet_json = raw_data["planet"];
+            if (planet_json.is_object() && !planet_json.empty()) {
+                config::Config planet_cfg{std::move(planet_json)};
+                planets.emplace_back(planet_cfg);
             }
         }
     }
