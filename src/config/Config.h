@@ -17,6 +17,10 @@ public:
     int getInt(const std::string& key, int defaultVal = 0) const;
     bool getBool(const std::string& key, bool defaultVal = false) const;
     std::vector<double> getArray(const std::string& key, std::vector<double> defaultVal = {}) const;
+    
+    // Access raw json data for advanced use cases
+    nlohmann::json& data() { return m_data; }
+    const nlohmann::json& data() const { return m_data; }
 
 private:
     nlohmann::json m_data;
