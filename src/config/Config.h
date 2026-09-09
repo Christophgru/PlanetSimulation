@@ -18,7 +18,7 @@ public:
     double getDouble(const std::string& key, double defaultVal = 0.0) const;
     int getInt(const std::string& key, int defaultVal = 0) const;
     bool getBool(const std::string& key, bool defaultVal = false) const;
-    std::vector<double> getArray(const std::string& key, std::vector<double> defaultVal = {}) const
+    std::vector<double> getArray(const std::string& key, std::vector<double> defaultVal = {}) const;
     
     const nlohmann::json& data() const { return m_data; }
 

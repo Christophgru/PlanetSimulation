@@ -13,9 +13,15 @@ struct SunConfig {
     
     SunConfig() = default;
     SunConfig(const config::Config& cfg) {
-        position = cfg.getArray("position", position);
+        auto pos_array = cfg.getArray("position", position);
+        if (pos_array.size() >= 3) {
+            position = {pos_array[0], pos_array[1], pos_array[2]};
+        }
         radius = cfg.getDouble("radius", radius);
-        color = cfg.getArray("color", color);
+        auto col_array = cfg.getArray("color", color);
+        if (col_array.size() >= 3) {
+            color = {col_array[0], col_array[1], col_array[2]};
+        }
     }
 };
 
@@ -31,11 +37,17 @@ struct PlanetConfig {
     
     PlanetConfig() = default;
     PlanetConfig(const config::Config& cfg) {
-        position = cfg.getArray("position", position);
+        auto pos_array = cfg.getArray("position", position);
+        if (pos_array.size() >= 3) {
+            position = {pos_array[0], pos_array[1], pos_array[2]};
+        }
         orbit_radius = cfg.getDouble("orbit_radius", orbit_radius);
         orbit_speed = cfg.getDouble("orbit_speed", orbit_speed);
         radius = cfg.getDouble("radius", radius);
-        color = cfg.getArray("color", color);
+        auto col_array = cfg.getArray("color", color);
+        if (col_array.size() >= 3) {
+            color = {col_array[0], col_array[1], col_array[2]};
+        }
         noise_seed = cfg.getInt("noise_seed", noise_seed);
         atmosphere_enabled = cfg.getBool("atmosphere_enabled", atmosphere_enabled);
         atmosphere_height = cfg.getDouble("atmosphere_height", atmosphere_height);
