@@ -73,12 +73,14 @@ inline bool Config::getBool(const std::string& key, bool defaultVal) const {
 inline std::vector<double> Config::getArray(const std::string& key, std::vector<double> defaultVal) const {
     auto it = m_data.find(key);
     if (it != m_data.end()) {
-        auto arr = it.value();
-        std::vector<double> result;
-        for (const auto& val : arr) {
-            result.push_back(val.get<double>());
+        // Check if the value is actually an array
+        if (it.value().is_array()) {
+            std::vector<double> result;
+            for (const auto& val : it.value()) {
+                result.push_back(val.get<double>());
+            }
+            return result;
         }
-        return result;
     }
     return defaultVal;
 }
