@@ -1,6 +1,7 @@
 #include <iostream>
 #include <GL/glew.h>
 #include <GL/gl.h>
+#include <GLFW/glfw3.h>
 #include <thread>
 #include <chrono>
 
