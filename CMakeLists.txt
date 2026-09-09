@@ -7,7 +7,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(glfw3 REQUIRED)
-find_package(nlohmann_json REQUIRED)
+
+# nlohmann/json is header-only, include it directly
+add_subdirectory(${CMAKE_SOURCE_DIR}/vendor/nlohmann_json nlohmann_json)
 
 add_executable(${PROJECT_NAME}
     src/main.cpp
