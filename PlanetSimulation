@@ -1,0 +1,4 @@
+
+## Testing (Optional)
+
+To enable tests, add `-DBUILD_TESTING=ON` when configuring:

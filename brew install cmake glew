@@ -1,2 +1,5 @@
 
-### Windows (MSYS2/MinGW)
+## Building
+
+### Build Directory Setup
+Create a build directory and configure the project:
