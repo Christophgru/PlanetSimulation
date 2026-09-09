@@ -4,6 +4,9 @@ project(PlanetSimulation VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Find OpenGL before using its imported targets
+find_package(OpenGL REQUIRED)
+
 # Fetch nlohmann_json from git repository (header-only library)
 include(FetchContent)
 FetchContent_Declare(
@@ -14,11 +17,20 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(nlohmann_json)
 
+# Find GLFW and GLEW
+find_package(glfw3 REQUIRED)
+find_package(GLEW REQUIRED)
+
 # Main executable - headers are included directly from src/ directories
 add_executable(PlanetSimulation src/main.cpp)
 
 # Link required libraries
-target_link_libraries(PlanetSimulation PRIVATE nlohmann_json::nlohmann_json OpenGL::GL glfw GLEW::GLEW)
+target_link_libraries(PlanetSimulation PRIVATE 
+    nlohmann_json::nlohmann_json
+    OpenGL::GL
+    glfw
+    GLEW::GLEW
+)
 
 # Include directories for all source files
 target_include_directories(PlanetSimulation PRIVATE 
