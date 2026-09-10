@@ -61,7 +61,7 @@ struct ScenarioConfig {
     
     ScenarioConfig() = default;
     ScenarioConfig(const config::Config& cfg) {
-        name = cfg.get("scenario_name", name);
+        name = cfg.get(cfg.data().value<std::string>("scenario_name", name));
         sun = SunConfig(cfg);
         
         // Check for "planets" array first, then fall back to single "planet" object
