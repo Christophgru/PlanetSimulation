@@ -111,7 +111,7 @@ public:
     int getVertexCount() const { return segments * (segments + 1) * 2; }
     GLuint getVbo() const { return vbo; }
     
-private:
+public:
     GLuint vao = 0;
     GLuint vbo = 0;
 };
