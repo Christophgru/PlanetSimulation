@@ -155,15 +155,7 @@ int main() {
     const std::string configPath = "configs/scenarios/solar_system.json";
     if (!fs::exists(configPath)) {
         std::cerr << "Config file not found: " << configPath << "\n";
-        std::cout << "Press Escape to exit...\n";
-        while (!glfwWindowShouldClose(window)) {
-            glfwPollEvents();
-            glClearColor(0.5f, 0.7f, 0.9f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            glfwSwapBuffers(window);
-            std::this_thread::sleep_for(std::chrono::milliseconds(16));
-        }
-        return 0;
+        std::exit(1);
     }
 
     try {
