@@ -64,7 +64,7 @@ inline int Config::getInt(std::string key, int defaultVal) const {
 
 inline bool Config::getBool(std::string key, bool defaultVal) const {
     auto it = m_data.find(key);
-    if (it != m_data.end()) {
+    if (it != m_data.end() && it->is_boolean()) {
         return it->get<bool>();
     }
     return defaultVal;

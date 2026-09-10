@@ -61,8 +61,18 @@ struct ScenarioConfig {
     
     ScenarioConfig() = default;
     ScenarioConfig(const config::Config& cfg) {
-        name = cfg.get(cfg.data().value<std::string>("scenario_name", name));
-        sun = SunConfig(cfg);
+        auto scenario_name = cfg.get("scenario_name", name);
+        if (!scenario_name.empty()) {
+            name = scenario_name;
+        }
+        
+        // Only parse sun if it exists in the config
+        const auto& raw_data = cfg.data();
+        auto sun_json = raw_data["sun"];
+        if (sun_json.is_object() && !sun_json.empty()) {
+            config::Config sun_cfg{std::move(sun_json)};
+            sun = SunConfig(sun_cfg);
+        }
         
         // Check for "planets" array first, then fall back to single "planet" object
         auto planet_array = cfg.getArray("planets", std::vector<double>{});
