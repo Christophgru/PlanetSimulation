@@ -49,7 +49,7 @@ inline std::string Config::get(std::string key) const {
 inline double Config::getDouble(std::string key, double defaultVal) const {
     auto it = m_data.find(key);
     if (it != m_data.end()) {
-        return it.value<double>(defaultVal);
+        return it.value<double>();
     }
     return defaultVal;
 }
@@ -57,7 +57,7 @@ inline double Config::getDouble(std::string key, double defaultVal) const {
 inline int Config::getInt(std::string key, int defaultVal) const {
     auto it = m_data.find(key);
     if (it != m_data.end()) {
-        return it.value<int>(defaultVal);
+        return it.value<int>();
     }
     return defaultVal;
 }
@@ -65,7 +65,7 @@ inline int Config::getInt(std::string key, int defaultVal) const {
 inline bool Config::getBool(std::string key, bool defaultVal) const {
     auto it = m_data.find(key);
     if (it != m_data.end()) {
-        return it.value<bool>(defaultVal);
+        return it.value<bool>();
     }
     return defaultVal;
 }
