@@ -1,7 +1,16 @@
 cmake_minimum_required(VERSION 3.14)
 project(ConfigTests LANGUAGES CXX)
 
-find_package(GTest REQUIRED)
+include(FetchContent)
+
+FetchContent_Declare(
+    googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG v1.15.2
+    GIT_SHALLOW ON
+)
+
+FetchContent_MakeAvailable(googletest)
 find_package(nlohmann_json REQUIRED)
 
 add_executable(config_tests test_config.cpp)
