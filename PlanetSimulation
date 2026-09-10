@@ -1,6 +1,0 @@
-
-## Configuration
-
-The simulation uses JSON configuration files in `configs/scenarios/`.
-
-### Example Scenario File (solar_system.json)
