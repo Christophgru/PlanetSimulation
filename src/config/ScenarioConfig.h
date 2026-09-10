@@ -65,9 +65,9 @@ struct ScenarioConfig {
         
         // Only parse sun if it exists in the config
         const auto& raw_data = cfg.data();
-        auto sun_json = raw_data["sun"];
-        if (sun_json.is_object() && !sun_json.empty()) {
-            config::Config sun_cfg{std::move(sun_json)};
+        auto sun_it = raw_data.find("sun");
+        if (sun_it != raw_data.end() && sun_it->is_object()) {
+            config::Config sun_cfg{std::move(sun_it.value())};
             sun = SunConfig(sun_cfg);
         }
         
@@ -81,9 +81,9 @@ struct ScenarioConfig {
         } else {
             // Try singular "planet" key
             const auto& raw_data = cfg.data();
-            auto planet_json = raw_data["planet"];
-            if (planet_json.is_object() && !planet_json.empty()) {
-                config::Config planet_cfg{std::move(planet_json)};
+            auto planet_it = raw_data.find("planet");
+            if (planet_it != raw_data.end() && planet_it->is_object()) {
+                config::Config planet_cfg{std::move(planet_it.value())};
                 planets.emplace_back(planet_cfg);
             }
         }
