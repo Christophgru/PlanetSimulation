@@ -39,7 +39,7 @@ TEST(ConfigTest, GetBool) {
     
     EXPECT_TRUE(cfg.getBool("enabled"));
     EXPECT_FALSE(cfg.getBool("debug"));
-    EXPECT_FALSE(cfg.getBool("missing", true));
+    EXPECT_TRUE(cfg.getBool("missing", true));
 }
 
 TEST(ConfigTest, GetArray) {
