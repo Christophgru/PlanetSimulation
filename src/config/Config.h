@@ -12,13 +12,13 @@ public:
     Config() = default;
     explicit Config(nlohmann::json&& json) : m_data(std::move(json)) {}
     
-    static Config load(const std::string& path);
+    static Config load(cost std::string& path);
     
-    const std::string& get(const std::string& key) const;
-    double getDouble(const std::string& key, double defaultVal = 0.0) const;
-    int getInt(const std::string& key, int defaultVal = 0) const;
-    bool getBool(const std::string& key, bool defaultVal = false) const;
-    std::vector<double> getArray(const std::string& key, std::vector<double> defaultVal = {}) const;
+     std::string& get( std::string& key) const;
+    double getDouble( std::string& key, double defaultVal = 0.0) const;
+    int getInt( std::string& key, int defaultVal = 0) const;
+    bool getBool( std::string& key, bool defaultVal = false) const;
+    std::vector<double> getArray( std::string& key, std::vector<double> defaultVal = {}) const;
     
     const nlohmann::json& data() const { return m_data; }
 
@@ -26,7 +26,7 @@ private:
     nlohmann::json m_data;
 };
 
-inline Config Config::load(const std::string& path) {
+inline Config Config::load( std::string& path) {
     std::ifstream file(path);
     if (!file.is_open()) {
         throw std::runtime_error("Failed to open config file: " + path);
@@ -37,7 +37,7 @@ inline Config Config::load(const std::string& path) {
     return Config{std::move(json)};
 }
 
-inline const std::string& Config::get(const std::string& key) const {
+inline  std::string& Config::get( std::string& key) const {
     auto it = m_data.find(key);
     if (it != m_data.end()) {
         return it.value();
@@ -46,10 +46,10 @@ inline const std::string& Config::get(const std::string& key) const {
     return empty;
 }
 
-inline double Config::getDouble(const std::string& key, double defaultVal) const {
+inline double Config::getDouble( std::string& key, double defaultVal) const {
     auto it = m_data.find(key);
     if (it != m_data.end()) {
-        return it.value<double>(defaultVal);
+        return data.value(key, defaultVal);
     }
     return defaultVal;
 }
@@ -70,7 +70,7 @@ inline bool Config::getBool(const std::string& key, bool defaultVal) const {
     return defaultVal;
 }
 
-inline std::vector<double> Config::getArray(const std::string& key, std::vector<double> defaultVal) const {
+inline std::vector<double> Config::getArray(std::string& key, std::vector<double> defaultVal) const {
     auto it = m_data.find(key);
     if (it != m_data.end()) {
         // Check if the value is actually an array
