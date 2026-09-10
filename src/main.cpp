@@ -109,8 +109,6 @@ public:
     
     GLuint getVao() const { return vao; }
     int getVertexCount() const { return segments * (segments + 1) * 2; }
-    
-    GLuint getVao() const { return vao; }
     GLuint getVbo() const { return vbo; }
     
 private:
@@ -243,8 +241,8 @@ int main() {
         }
 
         // Cleanup
-        glDeleteVertexArrays(1, &g_sphere.getVao());
-        glDeleteBuffers(1, &g_sphere.getVbo());
+        glDeleteVertexArrays(1, &g_sphere.vao);
+        glDeleteBuffers(1, &g_sphere.vbo);
         
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << "\n";
