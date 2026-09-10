@@ -15,6 +15,7 @@ public:
     static Config load(const std::string& path);
 
     std::string get(std::string key) const;
+    std::string get(std::string key, std::string defaultVal) const;
     double getDouble(std::string key, double defaultVal = 0.0) const;
     int getInt(std::string key, int defaultVal = 0) const;
     bool getBool(std::string key, bool defaultVal = false) const;
@@ -44,6 +45,14 @@ inline std::string Config::get(std::string key) const {
     }
     static const std::string empty;
     return empty;
+}
+
+inline std::string Config::get(std::string key, std::string defaultVal) const {
+    auto it = m_data.find(key);
+    if (it != m_data.end()) {
+        return it->get<std::string>();
+    }
+    return defaultVal;
 }
 
 inline double Config::getDouble(std::string key, double defaultVal) const {

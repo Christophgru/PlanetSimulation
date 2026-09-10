@@ -61,10 +61,7 @@ struct ScenarioConfig {
     
     ScenarioConfig() = default;
     ScenarioConfig(const config::Config& cfg) {
-        auto scenario_name = cfg.get("scenario_name", name);
-        if (!scenario_name.empty()) {
-            name = scenario_name;
-        }
+        name = cfg.get("scenario_name", name);
         
         // Only parse sun if it exists in the config
         const auto& raw_data = cfg.data();
