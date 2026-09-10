@@ -72,11 +72,13 @@ struct ScenarioConfig {
         }
         
         // Check for "planets" array first, then fall back to single "planet" object
-        auto planet_array = cfg.getArray("planets", std::vector<double>{});
-        if (!planet_array.empty()) {
-            // Convert double array to PlanetConfig objects (will use defaults)
-            for (const auto& p : planet_array) {
-                planets.emplace_back(PlanetConfig{cfg});
+        const auto& raw_data = cfg.data();
+        auto planets_it = raw_data.find("planets");
+        if (planets_it != raw_data.end() && planets_it->is_array()) {
+            // Iterate over each planet object in the array
+            for (const auto& planet_json : planets_it.value()) {
+                config::Config planet_cfg{std::move(planet_json)};
+                planets.emplace_back(PlanetConfig{planet_cfg});
             }
         } else {
             // Try singular "planet" key
