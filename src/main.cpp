@@ -241,8 +241,8 @@ int main() {
         }
 
         // Cleanup
-        glDeleteVertexArrays(1, &g_sphere.getVao());
-        glDeleteBuffers(1, &g_sphere.getVbo());
+        glDeleteVertexArrays(1, &g_sphere.vao);
+        glDeleteBuffers(1, &g_sphere.vbo);
         
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << "\n";
