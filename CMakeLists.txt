@@ -35,7 +35,6 @@ target_link_libraries(PlanetSimulation PRIVATE
 # Include directories for all source files
 target_include_directories(PlanetSimulation PRIVATE 
     ${CMAKE_SOURCE_DIR}/src
-    ${nlohmann_json_SOURCE_DIR}/include
 )
 
 # Tests (optional)
