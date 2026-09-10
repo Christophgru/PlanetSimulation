@@ -67,7 +67,8 @@ struct ScenarioConfig {
         const auto& raw_data = cfg.data();
         auto sun_it = raw_data.find("sun");
         if (sun_it != raw_data.end() && sun_it->is_object()) {
-            config::Config sun_cfg{std::move(*sun_it)};
+            // Copy the json value first, then move it to Config constructor
+            config::Config sun_cfg{std::move(nlohmann::json(*sun_it))};
             sun = SunConfig(sun_cfg);
         }
         
@@ -76,14 +77,16 @@ struct ScenarioConfig {
         if (planets_it != raw_data.end() && planets_it->is_array()) {
             // Iterate over each planet object in the array
             for (const auto& planet_json : planets_it.value()) {
-                config::Config planet_cfg{std::move(*planet_json)};
+                // Copy the json value first, then move it to Config constructor
+                config::Config planet_cfg{std::move(nlohmann::json(planet_json))};
                 planets.emplace_back(PlanetConfig{planet_cfg});
             }
         } else {
             // Try singular "planet" key
             auto planet_it = raw_data.find("planet");
             if (planet_it != raw_data.end() && planet_it->is_object()) {
-                config::Config planet_cfg{std::move(*planet_it)};
+                // Copy the json value first, then move it to Config constructor
+                config::Config planet_cfg{std::move(nlohmann::json(*planet_it))};
                 planets.emplace_back(planet_cfg);
             }
         }
