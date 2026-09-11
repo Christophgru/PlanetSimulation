@@ -43,8 +43,8 @@ public:
         Vector3 forward = target - eye;
         forward.normalize();
         
-        // Right vector: cross(forward, up), then normalize
-        Vector3 right = forward.cross(up);
+        // Right vector: cross(up, forward), then normalize
+        Vector3 right = up.cross(forward);
         right.normalize();
         
         // Corrected up vector: cross(right, forward), then normalize
