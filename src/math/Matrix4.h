@@ -43,15 +43,15 @@ public:
         Vector3 forward = target - eye;
         forward.normalize();
         
-        // Right vector: cross(forward, up), then normalize
-        Vector3 right = forward.cross(up);
+        // Right vector: cross(up, forward), then normalize
+        Vector3 right = up.cross(forward);
         right.normalize();
         
-        // Corrected up vector: cross(right, forward), then normalize
-        Vector3 correctedUp = right.cross(forward);
+        // Corrected up vector: cross(forward, right), then normalize
+        Vector3 correctedUp = forward.cross(right);
         correctedUp.normalize();
         
-        // Column-major storage: right, correctedUp, -forward, translation
+        // Column-major storage: right (col 0), correctedUp (col 1), -forward (col 2), translation (col 3)
         m.data[0] = static_cast<float>(right.x);
         m.data[1] = static_cast<float>(correctedUp.x);
         m.data[2] = static_cast<float>(-forward.x);
@@ -117,11 +117,11 @@ public:
     // Matrix multiplication (column-major: result_col_j = sum_i(a_row_i * b_col_i))
     static Matrix4 multiply(const Matrix4& a, const Matrix4& b) {
         Matrix4 result;
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < 4; j++) {
+        for (int j = 0; j < 4; j++) {
+            for (int i = 0; i < 4; i++) {
                 float sum = 0.0f;
                 for (int k = 0; k < 4; k++) {
-                    sum += a.data[i + k*4] * b.data[k + j*4];
+                    sum += a.data[k + i*4] * b.data[k + j*4];
                 }
                 result.data[i + j*4] = sum;
             }
