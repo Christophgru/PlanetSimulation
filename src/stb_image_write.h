@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
 static void stbi__write_png(FILE* f, const unsigned char* data, int x, int y, int comp) {
     // PNG signature

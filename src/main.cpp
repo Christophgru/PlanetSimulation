@@ -7,6 +7,7 @@
 #include <cmath>
 #include <filesystem>
 #include <cstdlib>
+#include <vector>
 
 #include "math/Vector3.h"
 #include "config/Config.h"
