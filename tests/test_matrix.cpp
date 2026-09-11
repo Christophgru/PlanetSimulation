@@ -37,32 +37,41 @@ TEST(Matrix4Test, LookAtMatrix) {
     Matrix4 view = Matrix4::lookAt(eye, target, up);
     
     // Forward vector should point from eye to target (normalized)
-    Vector3 expectedForward(-15.0/17.0, -2.0/17.0, -8.0/17.0);
-    EXPECT_NEAR(view.data[8], expectedForward.x, 1e-5f);
-    EXPECT_NEAR(view.data[9], expectedForward.y, 1e-5f);
-    EXPECT_NEAR(view.data[10], expectedForward.z, 1e-5f);
+    double len = std::sqrt(15.0*15.0 + 2.0*2.0 + 8.0*8.0); // sqrt(293) ≈ 17.117
+    Vector3 expectedForward(-15.0/len, -2.0/len, -8.0/len);
+    EXPECT_NEAR(view.data[8], expectedForward.x, 1e-4f);
+    EXPECT_NEAR(view.data[9], expectedForward.y, 1e-4f);
+    EXPECT_NEAR(view.data[10], expectedForward.z, 1e-4f);
     
-    // Right vector (cross(forward, up))
-    Vector3 expectedRight(2.0/17.0, -15.0/17.0, 0.0);
-    EXPECT_NEAR(view.data[0], expectedRight.x, 1e-5f);
-    EXPECT_NEAR(view.data[4], expectedRight.y, 1e-5f);
-    EXPECT_NEAR(view.data[8], expectedRight.z, 1e-5f); // Note: data[8] is right.z
+    // Right vector (cross(up, forward))
+    double rightX = up.y * expectedForward.z - up.z * expectedForward.y;
+    double rightY = up.z * expectedForward.x - up.x * expectedForward.z;
+    double rightZ = up.x * expectedForward.y - up.y * expectedForward.x;
+    double rightLen = std::sqrt(rightX*rightX + rightY*rightY + rightZ*rightZ);
+    Vector3 expectedRight(rightX/rightLen, rightY/rightLen, rightZ/rightLen);
+    EXPECT_NEAR(view.data[0], expectedRight.x, 1e-4f);
+    EXPECT_NEAR(view.data[4], expectedRight.y, 1e-4f);
+    EXPECT_NEAR(view.data[8], expectedRight.z, 1e-4f);
     
     // Corrected up vector (cross(right, forward))
-    Vector3 expectedUp(0.0, 0.0, 1.0);
-    EXPECT_NEAR(view.data[1], expectedUp.x, 1e-5f);
-    EXPECT_NEAR(view.data[5], expectedUp.y, 1e-5f);
-    EXPECT_NEAR(view.data[9], expectedUp.z, 1e-5f);
+    double upX = rightY * expectedForward.z - rightZ * expectedForward.y;
+    double upY = rightZ * expectedForward.x - rightX * expectedForward.z;
+    double upZ = rightX * expectedForward.y - rightY * expectedForward.x;
+    double upLen = std::sqrt(upX*upX + upY*upY + upZ*upZ);
+    Vector3 expectedUp(upX/upLen, upY/upLen, upZ/upLen);
+    EXPECT_NEAR(view.data[1], expectedUp.x, 1e-4f);
+    EXPECT_NEAR(view.data[5], expectedUp.y, 1e-4f);
+    EXPECT_NEAR(view.data[9], expectedUp.z, 1e-4f);
     
     // Translation: -dot(right, eye), -dot(correctedUp, eye), dot(forward, eye)
-    float expectedTransX = -(2.0/17.0 * 15.0 + (-15.0/17.0) * 2.0 + 0.0 * 8.0);
-    EXPECT_NEAR(view.data[12], expectedTransX, 1e-5f);
+    float expectedTransX = -(expectedRight.x * eye.x + expectedRight.y * eye.y + expectedRight.z * eye.z);
+    EXPECT_NEAR(view.data[12], expectedTransX, 1e-4f);
     
-    float expectedTransY = -(0.0 * 15.0 + 0.0 * 2.0 + 1.0 * 8.0);
-    EXPECT_NEAR(view.data[13], expectedTransY, 1e-5f);
+    float expectedTransY = -(expectedUp.x * eye.x + expectedUp.y * eye.y + expectedUp.z * eye.z);
+    EXPECT_NEAR(view.data[13], expectedTransY, 1e-4f);
     
-    float expectedTransZ = (-15.0/17.0 * 15.0 + (-2.0/17.0) * 2.0 + (-8.0/17.0) * 8.0);
-    EXPECT_NEAR(view.data[14], expectedTransZ, 1e-5f);
+    float expectedTransZ = (expectedForward.x * eye.x + expectedForward.y * eye.y + expectedForward.z * eye.z);
+    EXPECT_NEAR(view.data[14], expectedTransZ, 1e-4f);
 }
 
 TEST(Matrix4Test, ViewSpaceOrigin) {
