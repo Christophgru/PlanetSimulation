@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <cstring>
+#include "Vector3.h"
 
 class Matrix4 {
 public:
