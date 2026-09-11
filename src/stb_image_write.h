@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <zlib.h>
 
 static void stbi__write_png(FILE* f, const unsigned char* data, int x, int y, int comp) {
     // PNG signature
@@ -31,17 +32,25 @@ static void stbi__write_png(FILE* f, const unsigned char* data, int x, int y, in
     
     fwrite(ihdr, 1, 13, f);
     
-    // IDAT chunk - raw image data with filter bytes
-    for (int row = 0; row < y; row++) {
-        unsigned char filter = 0; // no filter
-        fwrite(&filter, 1, 1, f);
-        
-        for (int col = 0; col < x; col++) {
-            int idx = (row * x + col) * comp;
-            unsigned char c = data[idx];
-            fwrite(&c, 1, 1, f);
-        }
-    }
+    // IDAT chunk - compressed image data with filter bytes
+    unsigned char* idat = NULL;
+    size_t idat_size = 0;
+    
+    // Compress image data using zlib
+    uLong compressed_size = compress2(&idat, &idat_size, 
+                                      (const Bytef*)data, x * y * comp, Z_DEFAULT_COMPRESSION);
+    
+    // Write IDAT chunk
+    unsigned char idat_header[4];
+    idat_header[0] = 0x49; // 'I'
+    idat_header[1] = 0x44; // 'D'
+    idat_header[2] = (compressed_size & 0xFF000000) >> 24;
+    idat_header[3] = (compressed_size & 0xFF0000) >> 16;
+    
+    fwrite(idat_header, 1, 4, f);
+    fwrite(&idat_size, 1, 4, f);
+    fwrite(idat, 1, compressed_size, f);
+    free(idat);
     
     // IEND chunk
     unsigned char iend[4] = { 0x00, 0x00, 0x00, 0x00 };
