@@ -5,39 +5,6 @@
 #define STB_IMAGE_WRITE_H
 
 #include <stdio.h>
-
-static void stbi__write_png(FILE* f, const unsigned char* data, int x, int y, int comp, void (*rowfun)(void*,int,int,int, int (stb__skip)));
-static void stbi__write_png_row(void *user, int stride, int comp, int row, int height);
-
-#endif
-// stb_image_write - v1.16 - public domain image loader
-// By Steve Halliday (haloidsteve@gmail.com) - http://nothings.org/
-
-#ifndef STB_IMAGE_WRITE_H
-#define STB_IMAGE_WRITE_H
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-
-typedef struct {
-    unsigned char* data;
-    int width, height, channels;
-} stbi__write_data;
-
-static void stbi__write_png_row(void *user, int stride, int comp, int row, int height) {
-    // Placeholder - actual implementation needed
-}
-
-#endif
-// stb_image_write - v1.16 - public domain image loader
-// By Steve Halliday (haloidsteve@gmail.com) - http://nothings.org/
-
-#ifndef STB_IMAGE_WRITE_H
-#define STB_IMAGE_WRITE_H
-
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -57,7 +24,7 @@ static void stbi__write_png(FILE* f, const unsigned char* data, int x, int y, in
     ihdr[5] = x & 0xFF; // width low
     ihdr[6] = (y & 0xFF00) >> 8; // height high
     ihdr[7] = y & 0xFF; // height low
-    ihdr[8] = 0; // color type (0=grayscale, 2=RGB)
+    ihdr[8] = 2; // color type (2=RGB)
     ihdr[9] = 0; // interlace
     ihdr[10] = 0; // sort key
     ihdr[11] = 0; // compression level
@@ -65,17 +32,13 @@ static void stbi__write_png(FILE* f, const unsigned char* data, int x, int y, in
     
     fwrite(ihdr, 1, 13, f);
     
-    // IDAT chunk - compressed image data
-    unsigned char* compressed = NULL;
-    size_t compressed_size = 0;
-    
-    // Simple zlib compression (simplified)
-    for (int y = 0; y < y; y++) {
+    // IDAT chunk - raw image data with filter bytes
+    for (int row = 0; row < y; row++) {
         unsigned char filter = 0; // no filter
         fwrite(&filter, 1, 1, f);
         
-        for (int x = 0; x < x; x++) {
-            int idx = (y * x + x) * comp;
+        for (int col = 0; col < x; col++) {
+            int idx = (row * x + col) * comp;
             unsigned char c = data[idx];
             fwrite(&c, 1, 1, f);
         }
