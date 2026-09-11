@@ -337,8 +337,7 @@ int main(int argc, char** argv) {
                 
                 // Write PNG using stb_image_write
                 #include "stb_image_write.h"
-                if (stbi_write_png(outputImagePath.c_str(), width, height, 4, 
-                                   flippedPixels.data(), width * 4) == 0) {
+                if (stbi__write_png(outputImagePath.c_str(), flippedPixels.data(), width, height, 4) == 0) {
                     std::cerr << "Failed to write PNG: " << outputImagePath << "\n";
                     std::exit(1);
                 }
