@@ -43,10 +43,10 @@ TEST(Matrix4Test, LookAtMatrix) {
     EXPECT_NEAR(view.data[9], expectedForward.y, 1e-4f);
     EXPECT_NEAR(view.data[10], expectedForward.z, 1e-4f);
     
-    // Right vector (cross(up, forward))
-    double rightX = up.y * expectedForward.z - up.z * expectedForward.y;
-    double rightY = up.z * expectedForward.x - up.x * expectedForward.z;
-    double rightZ = up.x * expectedForward.y - up.y * expectedForward.x;
+    // Right vector (cross(forward, up)) - matches Matrix4 implementation
+    double rightX = expectedForward.y * up.z - expectedForward.z * up.y;
+    double rightY = expectedForward.z * up.x - expectedForward.x * up.z;
+    double rightZ = expectedForward.x * up.y - expectedForward.y * up.x;
     double rightLen = std::sqrt(rightX*rightX + rightY*rightY + rightZ*rightZ);
     Vector3 expectedRight(rightX/rightLen, rightY/rightLen, rightZ/rightLen);
     EXPECT_NEAR(view.data[0], expectedRight.x, 1e-4f);
