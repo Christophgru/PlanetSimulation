@@ -5,24 +5,21 @@
 
 class Mesh {
 public:
-    GLuint vao, vbo, ebo;
+    GLuint vao = 0;
+    GLuint vbo = 0;
+    GLuint ebo = 0;
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
     
-    Mesh() : vao(0), vbo(0), ebo(0) {}
+    Mesh() = default;
     
-    void addVertex(float x, float y, float z, float nx, float ny, float nz, 
-                   float tx, float ty, float tz = 0.0f, unsigned int texCoord = 0) {
+    void addVertex(float x, float y, float z, float nx, float ny, float nz) {
         vertices.push_back(x);
         vertices.push_back(y);
         vertices.push_back(z);
         vertices.push_back(nx);
         vertices.push_back(ny);
         vertices.push_back(nz);
-        vertices.push_back(tx);
-        vertices.push_back(ty);
-        vertices.push_back(tz);
-        vertices.push_back(texCoord);
     }
     
     void addTriangle(unsigned int idx0, unsigned int idx1, unsigned int idx2) {
@@ -34,9 +31,6 @@ public:
     void generateSphere(int segments) {
         vertices.clear();
         indices.clear();
-        
-        float vCount = (segments + 1) * (segments + 1);
-        std::vector<float> tempVertices(vCount * 3);
         
         for (int lat = 0; lat <= segments; lat++) {
             for (int lon = 0; lon <= segments; lon++) {
@@ -52,31 +46,22 @@ public:
                 float ny = y;
                 float nz = z;
                 
-                addVertex(x, y, z, nx, ny, nz, 0.0f, 0.0f, 0.0f, 0);
+                addVertex(x, y, z, nx, ny, nz);
             }
         }
         
-        // Generate indices for sphere triangles
-        for (int lat = 0; lat <= segments; lat++) {
-            for (int lon = 0; lon <= segments; lon++) {
+        // Generate indices for sphere triangles (proper triangle list)
+        for (int lat = 0; lat < segments; lat++) {
+            for (int lon = 0; lon < segments; lon++) {
                 unsigned int first = (lat * (segments + 1) + lon);
                 unsigned int second = first + segments + 1;
                 
-                if (lon < segments && lat < segments) {
-                    addTriangle(first, second, first + 1);
-                    addTriangle(second, second + 1, first + 1);
-                } else if (lon < segments) {
-                    addTriangle(first, second, first + 1);
-                } else if (lat < segments) {
-                    addTriangle(first, second, first + 1);
-                    addTriangle(second, second + 1, first + 1);
-                }
+                addTriangle(first, second, first + 1);
+                addTriangle(second, second + 1, first + 1);
             }
         }
         
-        vertices.resize(vertices.size());
-        indices.resize(indices.size());
-        
+        // Upload to GPU
         glGenVertexArrays(1, &vao);
         glGenBuffers(1, &vbo);
         glGenBuffers(1, &ebo);
@@ -91,26 +76,23 @@ public:
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int),
                      indices.data(), GL_STATIC_DRAW);
         
-        // Position attribute
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 10 * sizeof(float), (void*)0);
+        // Position attribute (location 0)
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(0);
         
-        // Normal attribute
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 10 * sizeof(float), 
+        // Normal attribute (location 1)
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 
                              (void*)(3 * sizeof(float)));
         glEnableVertexAttribArray(1);
-        
-        // TexCoord attribute
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 10 * sizeof(float),
-                             (void*)(6 * sizeof(float)));
-        glEnableVertexAttribArray(2);
         
         glBindVertexArray(0);
     }
     
     void draw() const {
+        if (vao == 0 || indices.empty()) return;
+        
         glBindVertexArray(vao);
-        glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
     }
 };
