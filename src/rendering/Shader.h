@@ -25,11 +25,15 @@ public:
         }
         
         // Read shaders into strings
-        vertexStream >> std::noskipws >> vertexCode;
-        fragmentStream >> std::noskipws >> fragmentCode;
+        vertexStream.seekg(0, std::ios::end);
+        vertexCode.resize(vertexStream.tellg());
+        vertexStream.seekg(0, std::ios::beg);
+        vertexStream.read(&vertexCode[0], vertexCode.size());
         
-        vertexStream.close();
-        fragmentStream.close();
+        fragmentStream.seekg(0, std::ios::end);
+        fragmentCode.resize(fragmentStream.tellg());
+        fragmentStream.seekg(0, std::ios::beg);
+        fragmentStream.read(&fragmentCode[0], fragmentCode.size());
         
         // Compile vertex shader
         GLuint vertex = glCreateShader(GL_VERTEX_SHADER);
