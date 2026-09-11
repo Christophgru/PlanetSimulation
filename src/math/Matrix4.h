@@ -47,8 +47,8 @@ public:
         Vector3 right = up.cross(forward);
         right.normalize();
         
-        // Corrected up vector: cross(forward, right), then normalize
-        Vector3 correctedUp = forward.cross(right);
+        // Corrected up vector: cross(right, forward), then normalize
+        Vector3 correctedUp = right.cross(forward);
         correctedUp.normalize();
         
         // Column-major storage: right (col 0), correctedUp (col 1), -forward (col 2), translation (col 3)
@@ -121,7 +121,7 @@ public:
             for (int i = 0; i < 4; i++) {
                 float sum = 0.0f;
                 for (int k = 0; k < 4; k++) {
-                    sum += a.data[k + i*4] * b.data[k + j*4];
+                    sum += a.data[i + k*4] * b.data[k + j*4];
                 }
                 result.data[i + j*4] = sum;
             }
