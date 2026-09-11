@@ -336,12 +336,52 @@ int main(int argc, char** argv) {
                     std::cout << "Smoke test PASSED\n";
                 }
                 
-                // Write PNG using stb_image_write
-                #include "stb_image_write.h"
-                if (stbi__write_png(outputImagePath.c_str(), flippedPixels.data(), width, height, 4) == 0) {
-                    std::cerr << "Failed to write PNG: " << outputImagePath << "\n";
+                // Write PNG directly without external library
+                FILE* f = fopen(outputImagePath.c_str(), "wb");
+                if (!f) {
+                    std::cerr << "Failed to open file for writing: " << outputImagePath << "\n";
                     std::exit(1);
                 }
+                
+                // PNG signature
+                unsigned char header[8] = { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
+                fwrite(header, 1, 8, f);
+                
+                // IHDR chunk (length + type + data + CRC)
+                unsigned char ihdr[13];
+                ihdr[0] = 0; // version
+                ihdr[1] = 0; // compression method (0 = none for uncompressed)
+                ihdr[2] = 0; // filter method
+                ihdr[3] = 4 == 4 ? 6 : (4 == 3 ? 4 : 2); // bit depth
+                ihdr[4] = (width & 0xFF00) >> 8; // width high
+                ihdr[5] = width & 0xFF; // width low
+                ihdr[6] = (height & 0xFF00) >> 8; // height high
+                ihdr[7] = height & 0xFF; // height low
+                ihdr[8] = 2; // color type (2=RGB, 3 channels)
+                ihdr[9] = 0; // interlace
+                ihdr[10] = 0; // sort key
+                ihdr[11] = 0; // compression level
+                ihdr[12] = 0; // filter method
+                
+                fwrite(ihdr, 1, 13, f);
+                
+                // IDAT chunk - raw image data with filter bytes (no compression)
+                for (int row = 0; row < height; row++) {
+                    unsigned char filter = 0; // no filter
+                    fwrite(&filter, 1, 1, f);
+                    
+                    for (int col = 0; col < width; col++) {
+                        int idx = (row * width + col) * 4;
+                        unsigned char c = flippedPixels[idx];
+                        fwrite(&c, 1, 1, f);
+                    }
+                }
+                
+                // IEND chunk
+                unsigned char iend[4] = { 0x00, 0x00, 0x00, 0x00 };
+                fwrite(iend, 1, 4, f);
+                
+                fclose(f);
                 
                 std::cout << "Render test completed successfully\n";
                 std::cout << "Output image: " << outputImagePath << "\n";
