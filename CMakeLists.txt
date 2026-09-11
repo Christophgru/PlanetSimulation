@@ -37,6 +37,9 @@ target_include_directories(PlanetSimulation PRIVATE
     ${CMAKE_SOURCE_DIR}/src
 )
 
+# Copy shaders to build directory (for shader loading)
+file(COPY shaders DESTINATION ${CMAKE_BINARY_DIR})
+
 # Tests (optional)
 option(BUILD_TESTING "Build tests" OFF)
 if(BUILD_TESTING)
