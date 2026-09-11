@@ -37,7 +37,7 @@ public:
     
     static Matrix4 perspective(double fov, double aspect, double near, double far) {
         Matrix4 m;
-        double f = 1.0 / tan(fov * M_PI / 180.0); // Fixed: degrees to radians
+        double f = 1.0 / tan(fov * M_PI / 360.0); // Fixed: half-angle for perspective
         m.data[0] = static_cast<float>(f);
         m.data[5] = static_cast<float>(f);
         m.data[10] = static_cast<float>(-(far + near) / (far - near));
@@ -161,6 +161,18 @@ int main() {
         // Generate sphere mesh (will be used for sun)
         g_mesh.generateSphere(32);
         
+        // Upload vertex data to VBO
+        glGenBuffers(1, &g_mesh.vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, g_mesh.vbo);
+        glBufferData(GL_ARRAY_BUFFER, g_mesh.vertices.size() * sizeof(float), 
+                     g_mesh.vertices.data(), GL_STATIC_DRAW);
+        
+        // Upload index data to EBO
+        glGenBuffers(1, &g_mesh.ebo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_mesh.ebo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, g_mesh.indices.size() * sizeof(unsigned int), 
+                     g_mesh.indices.data(), GL_STATIC_DRAW);
+        
         std::cout << "PlanetSimulation v0.1 initialized\n";
         std::cout << "Scenario: " << scenario.name << "\n";
         std::cout << "Sun radius: " << scenario.sun.radius << "\n";
@@ -210,7 +222,7 @@ int main() {
             shader.setMat4("view", viewData);
             
             // Sun color (convert double to float)
-            shader.setFloat3("color", 
+            shader.setFloat3("uSunColor", 
                 static_cast<float>(scenario.sun.color[0]),
                 static_cast<float>(scenario.sun.color[1]),
                 static_cast<float>(scenario.sun.color[2]));
@@ -233,9 +245,9 @@ int main() {
         }
 
         // Cleanup
-        glDeleteVertexArrays(1, &g_mesh.vao);
-        glDeleteBuffers(1, &g_mesh.vbo);
-        glDeleteBuffers(1, &g_mesh.ebo);
+        if (g_mesh.vao != 0) glDeleteVertexArrays(1, &g_mesh.vao);
+        if (g_mesh.vbo != 0) glDeleteBuffers(1, &g_mesh.vbo);
+        if (g_mesh.ebo != 0) glDeleteBuffers(1, &g_mesh.ebo);
         
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << "\n";

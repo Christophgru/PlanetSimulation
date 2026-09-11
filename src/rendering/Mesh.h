@@ -32,6 +32,7 @@ public:
         vertices.clear();
         indices.clear();
         
+        // Generate sphere with proper triangle indices
         for (int lat = 0; lat <= segments; lat++) {
             for (int lon = 0; lon <= segments; lon++) {
                 float theta = M_PI * 2.0f * lon / segments;
@@ -50,14 +51,19 @@ public:
             }
         }
         
-        // Generate indices for sphere triangles (proper triangle list)
+        // Generate indices for triangle list
         for (int lat = 0; lat < segments; lat++) {
             for (int lon = 0; lon < segments; lon++) {
                 unsigned int first = (lat * (segments + 1) + lon);
                 unsigned int second = first + segments + 1;
                 
-                addTriangle(first, second, first + 1);
-                addTriangle(second, second + 1, first + 1);
+                indices.push_back(first);
+                indices.push_back(second);
+                indices.push_back(first + 1);
+                
+                indices.push_back(second);
+                indices.push_back(second + 1);
+                indices.push_back(first + 1);
             }
         }
         
@@ -89,10 +95,24 @@ public:
     }
     
     void draw() const {
-        if (vao == 0 || indices.empty()) return;
+        if (vao == 0 || vbo == 0 || ebo == 0) {
+            std::cerr << "Mesh not initialized\n";
+            return;
+        }
         
         glBindVertexArray(vao);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+        
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(0);
+        
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 
+                             (void*)(3 * sizeof(float)));
+        glEnableVertexAttribArray(1);
+        
         glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, 0);
+        
         glBindVertexArray(0);
     }
 };

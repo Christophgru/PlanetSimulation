@@ -16,30 +16,26 @@ public:
         
         // Read shaders from files
         std::ifstream vertexStream(vertexPath);
-        std::ifstream fragmentStream(fragmentPath);
-        
         if (!vertexStream.is_open()) {
-            std::cerr << "Failed to open vertex shader file: " << vertexPath << "\n";
-            return;
+            throw std::runtime_error("Failed to open vertex shader: " + std::string(vertexPath));
         }
+        std::ifstream fragmentStream(fragmentPath);
         if (!fragmentStream.is_open()) {
-            std::cerr << "Failed to open fragment shader file: " << fragmentPath << "\n";
-            return;
+            throw std::runtime_error("Failed to open fragment shader: " + std::string(fragmentPath));
         }
         
-        std::stringstream vertexBuffer, fragmentBuffer;
-        vertexBuffer << vertexStream.rdbuf();
-        fragmentBuffer << fragmentStream.rdbuf();
+        // Read shaders into strings
+        vertexStream >> std::noskipws >> vertexCode;
+        fragmentStream >> std::noskipws >> fragmentCode;
         
-        vertexCode = vertexBuffer.str();
-        fragmentCode = fragmentBuffer.str();
+        vertexStream.close();
+        fragmentStream.close();
         
         // Compile vertex shader
         GLuint vertex = glCreateShader(GL_VERTEX_SHADER);
         const char* vertexSource = vertexCode.c_str();
         glShaderSource(vertex, 1, &vertexSource, nullptr);
         glCompileShader(vertex);
-        
         checkCompileErrors(vertex, "VERTEX");
         
         // Compile fragment shader
@@ -47,19 +43,13 @@ public:
         const char* fragmentSource = fragmentCode.c_str();
         glShaderSource(fragment, 1, &fragmentSource, nullptr);
         glCompileShader(fragment);
-        
         checkCompileErrors(fragment, "FRAGMENT");
         
-        // Link shaders
+        // Create shader program
         id = glCreateProgram();
         glAttachShader(id, vertex);
         glAttachShader(id, fragment);
         glLinkProgram(id);
-        
-        // Cleanup shaders after linking
-        glDeleteShader(vertex);
-        glDeleteShader(fragment);
-        
         checkLinkErrors(id);
     }
     
@@ -95,6 +85,7 @@ private:
         if (!success) {
             glGetShaderInfoLog(shader, 512, nullptr, infoLog);
             std::cerr << "Shader compilation error (" << type << "):\n" << infoLog << "\n";
+            glDeleteShader(shader);
         }
     }
     
@@ -105,6 +96,7 @@ private:
         if (!success) {
             glGetProgramInfoLog(program, 512, nullptr, infoLog);
             std::cerr << "Shader linking error:\n" << infoLog << "\n";
+            glDeleteProgram(program);
         }
     }
 };
