@@ -190,8 +190,9 @@ int main() {
         glEnable(GL_DEPTH_TEST);
         
         // Set viewport
-        glfwGetFramebufferSize(window, nullptr, nullptr);
-        glViewport(0, 0, 1280, 720);
+        int width = 0, height = 0;
+        glfwGetFramebufferSize(window, &width, &height);
+        glViewport(0, 0, width, height);
 
         while (!glfwWindowShouldClose(window)) {
             // Process events
