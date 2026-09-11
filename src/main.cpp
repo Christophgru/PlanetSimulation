@@ -10,83 +10,13 @@
 #include <vector>
 
 #include "math/Vector3.h"
+#include "math/Matrix4.h"
 #include "config/Config.h"
 #include "config/ScenarioConfig.h"
 #include "rendering/Mesh.h"
 #include "rendering/Shader.h"
 
 namespace fs = std::filesystem;
-
-// Simple 4x4 matrix class for transformations (column-major order for OpenGL)
-class Matrix4 {
-public:
-    float data[16];
-    
-    Matrix4() {
-        memset(data, 0, sizeof(data));
-        // Identity matrix
-        data[0] = data[5] = data[10] = data[15] = 1.0f;
-    }
-    
-    static Matrix4 translate(float x, float y, float z) {
-        Matrix4 m;
-        m.data[0] = m.data[5] = m.data[10] = m.data[15] = 1.0f;
-        m.data[12] = x;
-        m.data[13] = y;
-        m.data[14] = z;
-        return m;
-    }
-    
-    static Matrix4 perspective(double fov, double aspect, double near, double far) {
-        Matrix4 m;
-        double f = 1.0 / tan(fov * M_PI / 360.0); // Fixed: half-angle for perspective
-        m.data[0] = static_cast<float>(f);
-        m.data[5] = static_cast<float>(f);
-        m.data[10] = static_cast<float>(-(far + near) / (far - near));
-        m.data[11] = static_cast<float>(-1.0);
-        m.data[14] = 0.0f;
-        return m;
-    }
-    
-    static Matrix4 lookAt(const Vector3& eye, const Vector3& target, const Vector3& up) {
-        Matrix4 m;
-        
-        // Forward vector
-        Vector3 forward = target - eye;
-        forward.normalize();
-        
-        // Right vector (orthogonal to forward and up)
-        Vector3 right = forward.cross(up);
-        right.normalize();
-        
-        // Up vector (orthogonal to forward and right)
-        Vector3 upVec = right.cross(forward);
-        upVec.normalize();
-        
-        // Build view matrix (rotation + translation)
-        m.data[0] = static_cast<float>(right.x);
-        m.data[1] = static_cast<float>(right.y);
-        m.data[2] = static_cast<float>(right.z);
-        m.data[3] = 0.0f;
-        
-        m.data[4] = static_cast<float>(upVec.x);
-        m.data[5] = static_cast<float>(upVec.y);
-        m.data[6] = static_cast<float>(upVec.z);
-        m.data[7] = 0.0f;
-        
-        m.data[8] = static_cast<float>(forward.x);
-        m.data[9] = static_cast<float>(forward.y);
-        m.data[10] = static_cast<float>(forward.z);
-        m.data[11] = 0.0f;
-        
-        m.data[12] = static_cast<float>(-right.dot(eye));
-        m.data[13] = static_cast<float>(-upVec.dot(eye));
-        m.data[14] = static_cast<float>(-forward.dot(eye));
-        m.data[15] = 1.0f;
-        
-        return m;
-    }
-};
 
 // Simple camera class for view matrix calculation
 class Camera {
