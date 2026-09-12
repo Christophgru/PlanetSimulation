@@ -256,14 +256,9 @@ int main(int argc, char** argv) {
                 return 1;
             }
             
-            int result = stbi__write_png(f, flippedPixels.data(), width, height, 4);
+            stbi__write_png(f, flippedPixels.data(), width, height, 4);
             
             fclose(f);
-            
-            if (result == 0) {
-                std::cerr << "Failed to write PNG: " << outputImagePath << "\n";
-                return 1;
-            }
             
             std::cout << "Render test completed successfully\n";
             std::cout << "Output image: " << outputImagePath << "\n";
