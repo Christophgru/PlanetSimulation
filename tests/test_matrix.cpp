@@ -69,9 +69,9 @@ TEST(MatrixTest, Perspective) {
     Matrix4 m = Matrix4::perspective(60.0, 16.0 / 9.0, 0.1, 100.0);
     
     // Check that the matrix was created with reasonable non-zero values
-    EXPECT_DOUBLE_EQ(m.data[0], > 0.0f);
-    EXPECT_DOUBLE_EQ(m.data[5], > 0.0f);
-    EXPECT_DOUBLE_EQ(m.data[14], -1.0f);
+    EXPECT_GT(m.data[0], 0.0f);
+    EXPECT_GT(m.data[5], 0.0f);
+    EXPECT_LT(m.data[14], -1.0f);
 }
 
 TEST(MatrixTest, LookAt) {
