@@ -250,7 +250,7 @@ int main(int argc, char** argv) {
             }
 
             // Write PNG using stb_image_write.h
-            int result = stbi_write_png(outputImagePath.c_str(), width, height, 4, 
+            int result = stbi__write_png(outputImagePath.c_str(), width, height, 4, 
                                        flippedPixels.data(), width * 4);
             
             if (result == 0) {
