@@ -9,17 +9,15 @@
 #include <cstdlib>
 #include <vector>
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+
 #include "math/Vector3.h"
 #include "math/Matrix4.h"
 #include "config/Config.h"
 #include "config/ScenarioConfig.h"
 #include "rendering/Mesh.h"
 #include "rendering/Shader.h"
-#include "stb_image_write.h"
-
-// Define implementation before including stb_image_write.h
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include <stb_image_write.h>
 
 namespace fs = std::filesystem;
 
