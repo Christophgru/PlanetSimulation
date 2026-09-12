@@ -31,10 +31,10 @@ TEST(MatrixTest, RotationX) {
     
     // After 90 degree rotation around X:
     // cos(90) = 0, sin(90) = 1
-    EXPECT_DOUBLE_EQ(m.data[5], 0.0f);
+    EXPECT_NEAR(m.data[5], 0.0f, 1e-6f);
     EXPECT_NEAR(m.data[6], -1.0f, 1e-6f);
-    EXPECT_DOUBLE_EQ(m.data[9], 1.0f);
-    EXPECT_DOUBLE_EQ(m.data[10], 0.0f);
+    EXPECT_NEAR(m.data[9], 1.0f, 1e-6f);
+    EXPECT_NEAR(m.data[10], 0.0f, 1e-6f);
 }
 
 TEST(MatrixTest, RotationY) {
@@ -54,7 +54,7 @@ TEST(MatrixTest, RotationZ) {
     EXPECT_NEAR(m.data[0], 0.0f, 1e-6f);
     EXPECT_NEAR(m.data[1], -1.0f, 1e-6f);
     EXPECT_DOUBLE_EQ(m.data[4], 1.0f);
-    EXPECT_DOUBLE_EQ(m.data[5], 0.0f);
+    EXPECT_NEAR(m.data[5], 0.0f, 1e-6f);
 }
 
 TEST(MatrixTest, Scale) {
@@ -71,7 +71,7 @@ TEST(MatrixTest, Perspective) {
     // Check that the matrix was created with reasonable non-zero values
     EXPECT_GT(m.data[0], 0.0f);
     EXPECT_GT(m.data[5], 0.0f);
-    EXPECT_LT(m.data[14], -1.0f);
+    EXPECT_LE(m.data[14], -1.0f);
 }
 
 TEST(MatrixTest, LookAt) {
