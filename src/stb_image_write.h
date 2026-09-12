@@ -52,21 +52,19 @@
 #endif
 
 #ifdef __cplusplus
-namespace stbi {
 extern "C" {
 #endif
 
 typedef struct stbi__context stbi__context;
 
-static int stbi_write_png(const char* filename, int width, int height, int comp, const void* data, int stride_bytes);
-static int stbi_write_bmp(const char* filename, int w, int h, int comp, const void* data);
-static int stbi_write_jpg(const char* filename, int quality, int width, int height, int comp, const void* data);
-static int stbi_write_tga(const char* filename, int width, int height, int comp, const void* data);
-static int stbi_write_hdr(const char* filename, int width, int height, int comp, const float* data);
-static int stbi_write_psd(const char* filename, int width, int height, int comp, const void* data);
+int stbi_write_png(const char* filename, int width, int height, int comp, const void* data, int stride_bytes);
+int stbi_write_bmp(const char* filename, int w, int h, int comp, const void* data);
+int stbi_write_jpg(const char* filename, int quality, int width, int height, int comp, const void* data);
+int stbi_write_tga(const char* filename, int width, int height, int comp, const void* data);
+int stbi_write_hdr(const char* filename, int width, int height, int comp, const float* data);
+int stbi_write_psd(const char* filename, int width, int height, int comp, const void* data);
 
 #ifdef __cplusplus
-}
 }
 #endif
 
