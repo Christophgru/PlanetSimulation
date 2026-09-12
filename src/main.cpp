@@ -250,8 +250,15 @@ int main(int argc, char** argv) {
             }
 
             // Write PNG using stb_image_write.h
-            int result = stbi__write_png(outputImagePath.c_str(), width, height, 4, 
-                                       flippedPixels.data(), width * 4);
+            FILE* f = fopen(outputImagePath.c_str(), "wb");
+            if (!f) {
+                std::cerr << "Failed to open file for writing: " << outputImagePath << "\n";
+                return 1;
+            }
+            
+            int result = stbi__write_png(f, flippedPixels.data(), width, height, 4);
+            
+            fclose(f);
             
             if (result == 0) {
                 std::cerr << "Failed to write PNG: " << outputImagePath << "\n";
