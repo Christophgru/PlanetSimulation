@@ -17,6 +17,10 @@
 #include "rendering/Shader.h"
 #include "stb_image_write.h"
 
+// Define implementation before including stb_image_write.h
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <stb_image_write.h>
+
 namespace fs = std::filesystem;
 
 // Simple camera class for view matrix calculation
@@ -214,9 +218,9 @@ int main(int argc, char** argv) {
             }
 
             // Check for smoke test - fail if essentially all pixels are background (>95%)
-            const unsigned char clearR = 0x1A; // 0.1f * 255 ≈ 26
-            const unsigned char clearG = 0x1A; // 0.1f * 255 ≈ 26
-            const unsigned char clearB = 0x26; // 0.15f * 255 ≈ 38
+            const unsigned char clearR = 0x1A; // 26
+            const unsigned char clearG = 0x1A; // 26
+            const unsigned char clearB = 0x26; // 38
             
             int differingPixels = 0;
             for (int y = 0; y < height; y++) {
@@ -254,8 +258,8 @@ int main(int argc, char** argv) {
                 return 1;
             }
 
-            // Write PNG using official stb_image_write API
-            int result = stbi_write_png(outputImagePath.c_str(), width, height, 4, flippedPixels.data());
+            // Write PNG using official stb_image_write API with stride parameter
+            int result = stbi_write_png(outputImagePath.c_str(), width, height, 4, flippedPixels.data(), width * 4);
             
             if (result == 0) {
                 std::cerr << "Failed to write PNG: " << outputImagePath << "\n";
