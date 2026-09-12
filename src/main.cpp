@@ -213,10 +213,11 @@ int main(int argc, char** argv) {
                 }
             }
 
-            // Check for smoke test - fail if framebuffer is uniform background
-            const unsigned char clearR = 0x1F; // 0.1f * 255 ≈ 26
-            const unsigned char clearG = 0x1F;
-            const unsigned char clearB = 0x23; // 0.15f * 255 ≈ 38
+            // Check for smoke test - fail if essentially all pixels are background (>95%)
+            const unsigned char clearR = 0x1A; // 0.1f * 255 ≈ 26
+            const unsigned char clearG = 0x1A; // 0.1f * 255 ≈ 26
+            const unsigned char clearB = 0x26; // 0.15f * 255 ≈ 38
+            
             int differingPixels = 0;
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
@@ -244,21 +245,22 @@ int main(int argc, char** argv) {
             
             std::cout << "Differing pixels from background: " << differingPixels << "\n";
 
-            if (differingPixels == 0) {
+            // Fail if essentially all pixels are background (>95%)
+            int totalPixels = width * height;
+            int threshold = static_cast<int>(totalPixels * 0.95);
+            
+            if (differingPixels <= threshold) {
                 std::cerr << "Smoke test FAILED: Framebuffer is uniform background\n";
                 return 1;
             }
 
-            // Write PNG using stb_image_write.h
-            FILE* f = fopen(outputImagePath.c_str(), "wb");
-            if (!f) {
-                std::cerr << "Failed to open file for writing: " << outputImagePath << "\n";
+            // Write PNG using official stb_image_write API
+            int result = stbi_write_png(outputImagePath.c_str(), width, height, 4, flippedPixels.data());
+            
+            if (result == 0) {
+                std::cerr << "Failed to write PNG: " << outputImagePath << "\n";
                 return 1;
             }
-            
-            stbi__write_png(f, flippedPixels.data(), width, height, 4);
-            
-            fclose(f);
             
             std::cout << "Render test completed successfully\n";
             std::cout << "Output image: " << outputImagePath << "\n";
