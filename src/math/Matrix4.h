@@ -88,6 +88,11 @@ public:
         float c = std::cos(angle);
         float s = std::sin(angle);
         Matrix4 m;
+        // Rotation around X axis:
+        // | 1   0     0      0 |
+        // | 0   c    -s      0 |
+        // | 0   s     c      0 |
+        // | 0   0     0      1 |
         m.data[0] = 1.0f; m.data[5] = c; m.data[6] = -s; m.data[9] = s; m.data[10] = c;
         return m;
     }
@@ -96,7 +101,12 @@ public:
         float c = std::cos(angle);
         float s = std::sin(angle);
         Matrix4 m;
-        m.data[0] = c; m.data[1] = s; m.data[2] = 0.0f; m.data[5] = -s; m.data[8] = 1.0f; m.data[9] = 0.0f; m.data[10] = c;
+        // Rotation around Y axis:
+        // | c   0     s      0 |
+        // | 0   1     0      0 |
+        // |-s   0     c      0 |
+        // | 0   0     0      1 |
+        m.data[0] = c; m.data[8] = 1.0f; m.data[10] = c; m.data[2] = -s; m.data[5] = s;
         return m;
     }
     
@@ -104,7 +114,12 @@ public:
         float c = std::cos(angle);
         float s = std::sin(angle);
         Matrix4 m;
-        m.data[0] = c; m.data[1] = -s; m.data[4] = s; m.data[5] = c;
+        // Rotation around Z axis:
+        // | c   -s    0      0 |
+        // | s    c    0      0 |
+        // | 0   0     1      0 |
+        // | 0   0     0      1 |
+        m.data[0] = c; m.data[1] = -s; m.data[4] = s; m.data[5] = c; m.data[10] = 1.0f;
         return m;
     }
     
