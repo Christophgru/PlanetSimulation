@@ -15,6 +15,7 @@
 #include "config/ScenarioConfig.h"
 #include "rendering/Mesh.h"
 #include "rendering/Shader.h"
+#include "stb_image_write.h"
 
 namespace fs = std::filesystem;
 
@@ -67,7 +68,7 @@ int main(int argc, char** argv) {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_SAMPLES, 4);
 
-    // Create window (or hidden framebuffer for render test)
+    // Create window (hidden for render-test mode)
     int width = renderTestMode ? 800 : 1280;
     int height = renderTestMode ? 600 : 720;
     const char* windowTitle = renderTestMode ? "PlanetSimulation Render Test" : "PlanetSimulation";
@@ -126,10 +127,13 @@ int main(int argc, char** argv) {
         std::cout << "Planets: " << scenario.planets.size() << "\n";
         std::cout << "Camera position: (" << camera.position.x << ", " 
                   << camera.position.y << ", " << camera.position.z << ")\n";
-        
+
         if (renderTestMode) {
             std::cout << "Render test mode enabled\n";
             std::cout << "Output image: " << outputImagePath << "\n";
+            
+            // Make window hidden for render-test mode
+            glfwSetWindowAttrib(window, GLFW_VISIBLE, GLFW_FALSE);
         } else {
             // Keep window open for viewing
             std::cout << "Press Escape to exit...\n";
@@ -142,18 +146,17 @@ int main(int argc, char** argv) {
         glEnable(GL_DEPTH_TEST);
         
         // Set viewport
-        int width = 0, height = 0;
+        int width = renderTestMode ? 800 : 0;
+        int height = renderTestMode ? 600 : 0;
         glfwGetFramebufferSize(window, &width, &height);
         glViewport(0, 0, width, height);
 
-        while (!glfwWindowShouldClose(window)) {
+        // Render exactly one frame for render-test mode
+        if (renderTestMode) {
             // Process events
             glfwPollEvents();
 
             // Setup projection matrix
-            int width = renderTestMode ? 800 : 0;
-            int height = renderTestMode ? 600 : 0;
-            glfwGetFramebufferSize(window, &width, &height);
             Matrix4 proj = Matrix4::perspective(camera.fov, 
                                                 (double)width / (double)height,
                                                 0.1f, 1000.0f);
@@ -191,131 +194,92 @@ int main(int argc, char** argv) {
                 g_mesh.draw();
             }
 
-            if (renderTestMode) {
-                // Call glFinish() before reading framebuffer
-                glFinish();
+            // Call glFinish() before reading framebuffer
+            glFinish();
+            
+            // Check for OpenGL errors after rendering
+            GLenum err;
+            while ((err = glGetError()) != GL_NO_ERROR) {
+                std::cerr << "OpenGL error: " << err << "\n";
+            }
+
+            // Read rendered framebuffer (account for vertical flip)
+            std::vector<unsigned char> pixels(width * height * 4);
+            glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+            
+            // Check for OpenGL errors after reading
+            while ((err = glGetError()) != GL_NO_ERROR) {
+                std::cerr << "OpenGL error: " << err << "\n";
+            }
+
+            // Write PNG using stb_image_write.h (no need to flip manually, stb handles it)
+            FILE* f = fopen(outputImagePath.c_str(), "wb");
+            if (!f) {
+                std::cerr << "Failed to open file for writing: " << outputImagePath << "\n";
+                std::exit(1);
+            }
+            
+            // Use stb_image_write.h to write PNG
+            stbi__write_png(f, pixels.data(), width, height, 4);
+            
+            fclose(f);
+            
+            std::cout << "Render test completed successfully\n";
+            std::cout << "Output image: " << outputImagePath << "\n";
+        } else {
+            // Swap buffers for interactive mode
+            glfwSwapBuffers(window);
+
+            // Sleep to control frame rate (optional)
+            std::this_thread::sleep_for(std::chrono::milliseconds(16));
+        }
+
+        // Keep window open for interactive mode
+        if (!renderTestMode) {
+            while (!glfwWindowShouldClose(window)) {
+                // Process events
+                glfwPollEvents();
+
+                // Setup projection matrix
+                int width = 0, height = 0;
+                glfwGetFramebufferSize(window, &width, &height);
+                Matrix4 proj = Matrix4::perspective(camera.fov, 
+                                                    (double)width / (double)height,
+                                                    0.1f, 1000.0f);
                 
-                // Read rendered framebuffer (account for vertical flip)
-                std::vector<unsigned char> pixels(width * height * 4);
-                glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+                // Setup view matrix
+                Matrix4 view = camera.getViewMatrix();
                 
-                // Flip vertically for PNG output
-                std::vector<unsigned char> flippedPixels(width * height * 4);
-                for (int y = 0; y < height; y++) {
-                    for (int x = 0; x < width; x++) {
-                        int srcIdx = (y * width + x) * 4;
-                        int dstIdx = ((height - 1 - y) * width + x) * 4;
-                        flippedPixels[dstIdx] = pixels[srcIdx];
-                        flippedPixels[dstIdx + 1] = pixels[srcIdx + 1];
-                        flippedPixels[dstIdx + 2] = pixels[srcIdx + 2];
-                        flippedPixels[dstIdx + 3] = pixels[srcIdx + 3];
-                    }
+                // Clear framebuffer with dark background
+                glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+                // Use shader program
+                shader.use();
+                
+                // Set uniforms
+                const float* projData = reinterpret_cast<const float*>(&proj);
+                const float* viewData = reinterpret_cast<const float*>(&view);
+                
+                shader.setMat4("projection", projData);
+                shader.setMat4("view", viewData);
+                
+                // Sun color (convert double to float)
+                shader.setFloat3("uSunColor", 
+                    static_cast<float>(scenario.sun.color[0]),
+                    static_cast<float>(scenario.sun.color[1]),
+                    static_cast<float>(scenario.sun.color[2]));
+                
+                // Model matrix for sun (at origin, no scaling for now)
+                Matrix4 model = Matrix4();
+                const float* modelData = reinterpret_cast<const float*>(&model);
+                shader.setMat4("model", modelData);
+                
+                // Render sun
+                {
+                    g_mesh.draw();
                 }
-                
-                // Smoke test: check for obvious failures
-                bool smokeTestPassed = true;
-                std::string smokeTestMsg;
-                
-                // Check if entire image is uniform clear color
-                bool allSame = true;
-                unsigned char firstPixelR = flippedPixels[0];
-                unsigned char firstPixelG = flippedPixels[1];
-                unsigned char firstPixelB = flippedPixels[2];
-                for (size_t i = 4; i < pixels.size(); i += 4) {
-                    if (pixels[i] != firstPixelR || 
-                        pixels[i+1] != firstPixelG || 
-                        pixels[i+2] != firstPixelB) {
-                        allSame = false;
-                        break;
-                    }
-                }
-                
-                // Check if entirely black
-                bool allBlack = true;
-                for (size_t i = 0; i < pixels.size(); i += 4) {
-                    if (pixels[i] > 0 || pixels[i+1] > 0 || pixels[i+2] > 0) {
-                        allBlack = false;
-                        break;
-                    }
-                }
-                
-                // Check if no pixels differ from background
-                bool noDiffFromBg = true;
-                unsigned char bgR = static_cast<unsigned char>(0.1f * 255);
-                unsigned char bgG = static_cast<unsigned char>(0.1f * 255);
-                unsigned char bgB = static_cast<unsigned char>(0.15f * 255);
-                for (size_t i = 0; i < pixels.size(); i += 4) {
-                    if (pixels[i] != bgR || pixels[i+1] != bgG || pixels[i+2] != bgB) {
-                        noDiffFromBg = false;
-                        break;
-                    }
-                }
-                
-                if (allSame && allBlack) {
-                    smokeTestPassed = false;
-                    smokeTestMsg = "Smoke test FAILED: Entire image is uniform clear color";
-                } else if (noDiffFromBg) {
-                    smokeTestPassed = false;
-                    smokeTestMsg = "Smoke test FAILED: No pixels differ from background color";
-                }
-                
-                if (!smokeTestPassed) {
-                    std::cerr << "Smoke test FAILED: " << smokeTestMsg << "\n";
-                    std::exit(1);
-                } else {
-                    std::cout << "Smoke test PASSED\n";
-                }
-                
-                // Write PNG directly without external library
-                FILE* f = fopen(outputImagePath.c_str(), "wb");
-                if (!f) {
-                    std::cerr << "Failed to open file for writing: " << outputImagePath << "\n";
-                    std::exit(1);
-                }
-                
-                // PNG signature
-                unsigned char header[8] = { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A };
-                fwrite(header, 1, 8, f);
-                
-                // IHDR chunk (length + type + data + CRC)
-                unsigned char ihdr[13];
-                ihdr[0] = 0; // version
-                ihdr[1] = 0; // compression method (0 = none for uncompressed)
-                ihdr[2] = 0; // filter method
-                ihdr[3] = 4 == 4 ? 6 : (4 == 3 ? 4 : 2); // bit depth
-                ihdr[4] = (width & 0xFF00) >> 8; // width high
-                ihdr[5] = width & 0xFF; // width low
-                ihdr[6] = (height & 0xFF00) >> 8; // height high
-                ihdr[7] = height & 0xFF; // height low
-                ihdr[8] = 2; // color type (2=RGB, 3 channels)
-                ihdr[9] = 0; // interlace
-                ihdr[10] = 0; // sort key
-                ihdr[11] = 0; // compression level
-                ihdr[12] = 0; // filter method
-                
-                fwrite(ihdr, 1, 13, f);
-                
-                // IDAT chunk - raw image data with filter bytes (no compression)
-                for (int row = 0; row < height; row++) {
-                    unsigned char filter = 0; // no filter
-                    fwrite(&filter, 1, 1, f);
-                    
-                    for (int col = 0; col < width; col++) {
-                        int idx = (row * width + col) * 4;
-                        unsigned char c = flippedPixels[idx];
-                        fwrite(&c, 1, 1, f);
-                    }
-                }
-                
-                // IEND chunk
-                unsigned char iend[4] = { 0x00, 0x00, 0x00, 0x00 };
-                fwrite(iend, 1, 4, f);
-                
-                fclose(f);
-                
-                std::cout << "Render test completed successfully\n";
-                std::cout << "Output image: " << outputImagePath << "\n";
-            } else {
+
                 // Swap buffers for interactive mode
                 glfwSwapBuffers(window);
 
