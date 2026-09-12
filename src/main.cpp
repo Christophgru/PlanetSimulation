@@ -259,7 +259,7 @@ int main(int argc, char** argv) {
             }
 
             // Write PNG using official stb_image_write API with stride parameter
-            int result = stbi::stbi_write_png(outputImagePath.c_str(), width, height, 4, flippedPixels.data(), width * 4);
+            int result = stbi_write_png(outputImagePath.c_str(), width, height, 4, flippedPixels.data(), width * 4);
             
             if (result == 0) {
                 std::cerr << "Failed to write PNG: " << outputImagePath << "\n";
