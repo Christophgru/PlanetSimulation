@@ -168,11 +168,17 @@ int main(int argc, char** argv) {
             shader.setMat4("projection", projData);
             shader.setMat4("view", viewData);
             
-            // Render sun with proper scaling
+            // Render sun with proper scaling and color
             {
                 Matrix4 model = Matrix4::scale(scenario.sun.radius, scenario.sun.radius, scenario.sun.radius);
                 const float* modelData = reinterpret_cast<const float*>(&model);
                 shader.setMat4("model", modelData);
+                
+                // Set sun color (convert double to float)
+                shader.setFloat3("uColor", 
+                    static_cast<float>(scenario.sun.color[0]),
+                    static_cast<float>(scenario.sun.color[1]),
+                    static_cast<float>(scenario.sun.color[2]));
                 
                 g_mesh.draw();
             }
@@ -190,7 +196,7 @@ int main(int argc, char** argv) {
                 shader.setMat4("model", modelData);
                 
                 // Set planet color
-                shader.setFloat3("uSunColor", 
+                shader.setFloat3("uColor", 
                     static_cast<float>(planet.color[0]),
                     static_cast<float>(planet.color[1]),
                     static_cast<float>(planet.color[2]));
@@ -318,11 +324,17 @@ int main(int argc, char** argv) {
                 shader.setMat4("projection", projData);
                 shader.setMat4("view", viewData);
                 
-                // Render sun with proper scaling
+                // Render sun with proper scaling and color
                 {
                     Matrix4 model = Matrix4::scale(scenario.sun.radius, scenario.sun.radius, scenario.sun.radius);
                     const float* modelData = reinterpret_cast<const float*>(&model);
                     shader.setMat4("model", modelData);
+                    
+                    // Set sun color (convert double to float)
+                    shader.setFloat3("uColor", 
+                        static_cast<float>(scenario.sun.color[0]),
+                        static_cast<float>(scenario.sun.color[1]),
+                        static_cast<float>(scenario.sun.color[2]));
                     
                     g_mesh.draw();
                 }
@@ -340,7 +352,7 @@ int main(int argc, char** argv) {
                     shader.setMat4("model", modelData);
                     
                     // Set planet color
-                    shader.setFloat3("uSunColor", 
+                    shader.setFloat3("uColor", 
                         static_cast<float>(planet.color[0]),
                         static_cast<float>(planet.color[1]),
                         static_cast<float>(planet.color[2]));
