@@ -185,6 +185,11 @@ int main(int argc, char** argv) {
 
             // Render each planet with its own position and scale
             for (const auto& planet : scenario.planets) {
+                std::cout << "Rendering planet at position: (" 
+                          << planet.position[0] << ", "
+                          << planet.position[1] << ", "
+                          << planet.position[2] << "), radius: " << planet.radius << "\n";
+                
                 // Create model matrix: translate to planet position, scale by radius
                 Matrix4 model = Matrix4::translation(planet.position[0], planet.position[1], planet.position[2]);
                 
@@ -341,6 +346,11 @@ int main(int argc, char** argv) {
 
                 // Render each planet with its own position and scale
                 for (const auto& planet : scenario.planets) {
+                    std::cout << "Rendering planet at position: (" 
+                              << planet.position[0] << ", "
+                              << planet.position[1] << ", "
+                              << planet.position[2] << "), radius: " << planet.radius << "\n";
+                    
                     // Create model matrix: translate to planet position, scale by radius
                     Matrix4 model = Matrix4::translation(planet.position[0], planet.position[1], planet.position[2]);
                     
