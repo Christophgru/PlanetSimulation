@@ -107,7 +107,7 @@ public:
         // | 0   1     0      0 |
         // |-s   0     c      0 |
         // | 0   0     0      1 |
-        m.data[0] = c; m.data[8] = 1.0f; m.data[10] = c; m.data[2] = s; m.data[5] = -s;
+        m.data[0] = c; m.data[2] = s; m.data[8] = -s; m.data[10] = c; m.data[5] = 1.0f;
         return m;
     }
     
