@@ -43,8 +43,9 @@ public:
         Vector3 forward = target - eye;
         forward.normalize();
         
-        // Right vector: cross(up, forward), then normalize
-        Vector3 right = up.cross(forward);
+        // Right-handed coordinate system:
+        // right = cross(forward, up) for RH OpenGL
+        Vector3 right = forward.cross(up);
         right.normalize();
         
         // Corrected up vector: cross(forward, right), then normalize
@@ -142,6 +143,32 @@ public:
             }
         }
         return result;
+    }
+    
+    // Transform a point by this matrix (for testing)
+    Vector3 transformPoint(const Vector3& p) const {
+        float px = static_cast<float>(p.x);
+        float py = static_cast<float>(p.y);
+        float pz = static_cast<float>(p.z);
+        
+        float w = data[15] * px + data[14] * py + data[13] * pz + data[12];
+        if (w == 0.0f) return Vector3(0, 0, 0);
+        
+        float invW = 1.0f / w;
+        return Vector3(
+            (data[0] * px + data[4] * py + data[8] * pz + data[12]) * invW,
+            (data[1] * px + data[5] * py + data[9] * pz + data[13]) * invW,
+            (data[2] * px + data[6] * py + data[10] * pz + data[14]) * invW
+        );
+    }
+    
+    // Transform a vector by this matrix (no translation)
+    Vector3 transformVector(const Vector3& v) const {
+        return Vector3(
+            static_cast<float>(v.x) * data[0] + static_cast<float>(v.y) * data[1] + static_cast<float>(v.z) * data[2],
+            static_cast<float>(v.x) * data[4] + static_cast<float>(v.y) * data[5] + static_cast<float>(v.z) * data[6],
+            static_cast<float>(v.x) * data[8] + static_cast<float>(v.y) * data[9] + static_cast<float>(v.z) * data[10]
+        );
     }
 };
 
