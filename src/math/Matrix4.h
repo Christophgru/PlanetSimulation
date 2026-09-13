@@ -133,11 +133,11 @@ public:
     // Matrix multiplication (column-major: result_col_j = sum_i(a_row_i * b_col_i))
     static Matrix4 multiply(const Matrix4& a, const Matrix4& b) {
         Matrix4 result;
-        for (int j = 0; j < 4; j++) {
-            for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
                 float sum = 0.0f;
                 for (int k = 0; k < 4; k++) {
-                    sum += a.data[k + i*4] * b.data[k + j*4];
+                    sum += a.data[i + k*4] * b.data[k + j*4];
                 }
                 result.data[i + j*4] = sum;
             }
