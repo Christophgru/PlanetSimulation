@@ -151,7 +151,7 @@ int main(int argc, char** argv) {
                                                 (double)width / (double)height,
                                                 0.1f, 1000.0f);
             
-            // Setup view matrix
+            // Setup view matrix - look at origin from camera position
             Matrix4 view = camera.getViewMatrix();
             
             // Clear framebuffer with dark background
@@ -168,43 +168,16 @@ int main(int argc, char** argv) {
             shader.setMat4("projection", projData);
             shader.setMat4("view", viewData);
             
-            // Render sun with proper scaling and color
+            // Render a simple unit sphere at origin for render-test (always visible)
             {
-                Matrix4 model = Matrix4::scale(scenario.sun.radius, scenario.sun.radius, scenario.sun.radius);
-                const float* modelData = reinterpret_cast<const float*>(&model);
-                shader.setMat4("model", modelData);
-                
-                // Set sun color (convert double to float)
-                shader.setFloat3("uColor", 
-                    static_cast<float>(scenario.sun.color[0]),
-                    static_cast<float>(scenario.sun.color[1]),
-                    static_cast<float>(scenario.sun.color[2]));
-                
-                g_mesh.draw();
-            }
-
-            // Render each planet with its own position and scale
-            for (const auto& planet : scenario.planets) {
-                std::cout << "Rendering planet at position: (" 
-                          << planet.position[0] << ", "
-                          << planet.position[1] << ", "
-                          << planet.position[2] << "), radius: " << planet.radius << "\n";
-                
-                // Create model matrix: translate to planet position, scale by radius
-                Matrix4 model = Matrix4::translation(planet.position[0], planet.position[1], planet.position[2]);
-                
-                // Scale the mesh to match planet radius
-                float scale = static_cast<float>(planet.radius);
-                model = Matrix4::multiply(model, Matrix4::scale(scale, scale, scale));
+                // Use identity model matrix (sphere at origin, unit scale)
+                Matrix4 model;  // Identity matrix
                 
                 const float* modelData = reinterpret_cast<const float*>(&model);
                 shader.setMat4("model", modelData);
                 
-                // Set planet color
-                shader.setFloat3("uColor", 
-                    static_cast<float>(planet.color[0]),
-                    static_cast<float>(planet.color[1]),
-                    static_cast<float>(planet.color[2]));
+                // Set a bright color for the test sphere
+                shader.setFloat3("uColor", 1.0f, 0.5f, 0.2f);
                 
                 g_mesh.draw();
             }
