@@ -44,12 +44,12 @@ public:
         forward.normalize();
         
         // Right-handed coordinate system:
-        // right = cross(forward, up) for RH OpenGL
-        Vector3 right = forward.cross(up);
+        // right = cross(up, forward) for RH OpenGL
+        Vector3 right = up.cross(forward);
         right.normalize();
         
-        // Corrected up vector: cross(forward, right), then normalize
-        Vector3 correctedUp = forward.cross(right);
+        // Corrected up vector: cross(right, forward), then normalize
+        Vector3 correctedUp = right.cross(forward);
         correctedUp.normalize();
         
         // Column-major storage: right (col 0), correctedUp (col 1), -forward (col 2), translation (col 3)
@@ -94,7 +94,7 @@ public:
         // | 0   c    -s      0 |
         // | 0   s     c      0 |
         // | 0   0     0      1 |
-        m.data[0] = 1.0f; m.data[5] = c; m.data[6] = -s; m.data[9] = s; m.data[10] = c;
+        m.data[5] = c; m.data[6] = -s; m.data[9] = s; m.data[10] = c;
         return m;
     }
     
@@ -107,7 +107,7 @@ public:
         // | 0   1     0      0 |
         // |-s   0     c      0 |
         // | 0   0     0      1 |
-        m.data[0] = c; m.data[8] = 1.0f; m.data[10] = c; m.data[2] = -s; m.data[5] = s;
+        m.data[0] = c; m.data[8] = 1.0f; m.data[10] = c; m.data[2] = s; m.data[5] = -s;
         return m;
     }
     
