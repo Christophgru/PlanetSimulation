@@ -112,7 +112,7 @@ public:
         // | 0   0     0      1 |
         m.data[0] = static_cast<float>(c);
         m.data[5] = static_cast<float>(1.0f);
-        m.data[8] = static_cast<float>(-s);
+        m.data[8] = static_cast<float>(s);
         m.data[10] = static_cast<float>(c);
         return m;
     }
