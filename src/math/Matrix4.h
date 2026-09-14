@@ -94,7 +94,10 @@ public:
         // | 0   c    -s      0 |
         // | 0   s     c      0 |
         // | 0   0     0      1 |
-        m.data[5] = c; m.data[6] = -s; m.data[9] = s; m.data[10] = c;
+        m.data[5] = static_cast<float>(c);
+        m.data[6] = static_cast<float>(-s);
+        m.data[9] = static_cast<float>(s);
+        m.data[10] = static_cast<float>(c);
         return m;
     }
     
@@ -107,7 +110,9 @@ public:
         // | 0   1     0      0 |
         // |-s   0     c      0 |
         // | 0   0     0      1 |
-        m.data[0] = c; m.data[2] = s; m.data[8] = -s; m.data[10] = c; m.data[5] = 1.0f;
+        m.data[0] = static_cast<float>(c);
+        m.data[8] = static_cast<float>(-s);
+        m.data[10] = static_cast<float>(c);
         return m;
     }
     
@@ -120,7 +125,10 @@ public:
         // | s    c    0      0 |
         // | 0   0     1      0 |
         // | 0   0     0      1 |
-        m.data[0] = c; m.data[1] = -s; m.data[4] = s; m.data[5] = c; m.data[10] = 1.0f;
+        m.data[0] = static_cast<float>(c);
+        m.data[1] = static_cast<float>(-s);
+        m.data[4] = static_cast<float>(s);
+        m.data[5] = static_cast<float>(c);
         return m;
     }
     
