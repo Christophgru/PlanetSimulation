@@ -5,8 +5,11 @@
 #include <thread>
 #include <chrono>
 #include <cmath>
+#include <algorithm>
+#include <array>
 #include <filesystem>
 #include <cstdlib>
+#include <limits>
 #include <vector>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -45,6 +48,73 @@ public:
 
 // Global mesh for sun/planets
 Mesh g_mesh;
+
+void renderScene(const config::ScenarioConfig& scenario, const Camera& camera,
+                 const Shader& shader, const Mesh& mesh, int width, int height) {
+    glViewport(0, 0, width, height);
+    glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    Matrix4 projection = Matrix4::perspective(camera.fov,
+                                               static_cast<double>(width) / height,
+                                               0.1, 1000.0);
+    Matrix4 view = camera.getViewMatrix();
+
+    shader.use();
+    shader.setMat4("projection", projection.data);
+    shader.setMat4("view", view.data);
+
+    const auto& sun = scenario.sun;
+    Matrix4 sunModel = Matrix4::multiply(
+        Matrix4::translation(sun.position[0], sun.position[1], sun.position[2]),
+        Matrix4::scale(static_cast<float>(sun.radius),
+                       static_cast<float>(sun.radius),
+                       static_cast<float>(sun.radius)));
+    shader.setMat4("model", sunModel.data);
+    shader.setFloat3("uColor", static_cast<float>(sun.color[0]),
+                     static_cast<float>(sun.color[1]),
+                     static_cast<float>(sun.color[2]));
+    mesh.draw();
+
+    for (const auto& planet : scenario.planets) {
+        const float radius = static_cast<float>(planet.radius);
+        Matrix4 model = Matrix4::multiply(
+            Matrix4::translation(planet.position[0], planet.position[1], planet.position[2]),
+            Matrix4::scale(radius, radius, radius));
+        shader.setMat4("model", model.data);
+        shader.setFloat3("uColor", static_cast<float>(planet.color[0]),
+                         static_cast<float>(planet.color[1]),
+                         static_cast<float>(planet.color[2]));
+        mesh.draw();
+    }
+}
+
+struct PixelBounds {
+    int count = 0;
+    int minX = std::numeric_limits<int>::max();
+    int minY = std::numeric_limits<int>::max();
+    int maxX = -1;
+    int maxY = -1;
+
+    void include(int x, int y) {
+        ++count;
+        minX = std::min(minX, x);
+        minY = std::min(minY, y);
+        maxX = std::max(maxX, x);
+        maxY = std::max(maxY, y);
+    }
+};
+
+bool matchesColor(const std::vector<unsigned char>& pixels, int index,
+                  const std::vector<double>& color) {
+    for (int channel = 0; channel < 3; ++channel) {
+        const int expected = static_cast<int>(std::lround(color[channel] * 255.0));
+        if (std::abs(static_cast<int>(pixels[index + channel]) - expected) > 8) {
+            return false;
+        }
+    }
+    return true;
+}
 
 int main(int argc, char** argv) {
     bool renderTestMode = false;
@@ -135,52 +205,17 @@ int main(int argc, char** argv) {
         // Enable depth testing
         glEnable(GL_DEPTH_TEST);
         
-        // Set viewport
-        int width = renderTestMode ? 800 : 0;
-        int height = renderTestMode ? 600 : 0;
-        glfwGetFramebufferSize(window, &width, &height);
-        glViewport(0, 0, width, height);
-
         // Render exactly one frame for render-test mode
         if (renderTestMode) {
-            // Process events
             glfwPollEvents();
-
-            // Setup projection matrix
-            Matrix4 proj = Matrix4::perspective(camera.fov, 
-                                                (double)width / (double)height,
-                                                0.1f, 1000.0f);
-            
-            // Setup view matrix - look at origin from camera position
-            Matrix4 view = camera.getViewMatrix();
-            
-            // Clear framebuffer with dark background
-            glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-            // Use shader program
-            shader.use();
-            
-            // Set uniforms
-            const float* projData = reinterpret_cast<const float*>(&proj);
-            const float* viewData = reinterpret_cast<const float*>(&view);
-            
-            shader.setMat4("projection", projData);
-            shader.setMat4("view", viewData);
-            
-            // Render a simple unit sphere at origin for render-test (always visible)
-            {
-                // Use identity model matrix (sphere at origin, unit scale)
-                Matrix4 model;  // Identity matrix
-                
-                const float* modelData = reinterpret_cast<const float*>(&model);
-                shader.setMat4("model", modelData);
-                
-                // Set a bright color for the test sphere
-                shader.setFloat3("uColor", 1.0f, 0.5f, 0.2f);
-                
-                g_mesh.draw();
+            int width = 0;
+            int height = 0;
+            glfwGetFramebufferSize(window, &width, &height);
+            if (width <= 0 || height <= 0) {
+                std::cerr << "Render test framebuffer has invalid dimensions\n";
+                return 1;
             }
+            renderScene(scenario, camera, shader, g_mesh, width, height);
 
             // Call glFinish() before reading framebuffer
             glFinish();
@@ -213,46 +248,51 @@ int main(int argc, char** argv) {
                 }
             }
 
-            // Check for smoke test - fail if essentially all pixels are background (>95%)
-            const unsigned char clearR = 0x1A; // 26
-            const unsigned char clearG = 0x1A; // 26
-            const unsigned char clearB = 0x26; // 38
-            
-            int differingPixels = 0;
+            if (scenario.planets.empty()) {
+                std::cerr << "Render test FAILED: No planet is configured\n";
+                return 1;
+            }
+
+            // Use the rendered corner pixel as the framebuffer's clear color.
+            const std::array<unsigned char, 3> background = {
+                flippedPixels[0], flippedPixels[1], flippedPixels[2]
+            };
+            PixelBounds drawnBounds;
+            PixelBounds sunBounds;
+            PixelBounds planetBounds;
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
                     int idx = (y * width + x) * 4;
-                    if (flippedPixels[idx] != clearR || 
-                        flippedPixels[idx + 1] != clearG || 
-                        flippedPixels[idx + 2] != clearB) {
-                        differingPixels++;
+                    if (flippedPixels[idx] != background[0] ||
+                        flippedPixels[idx + 1] != background[1] ||
+                        flippedPixels[idx + 2] != background[2]) {
+                        drawnBounds.include(x, y);
+                        if (matchesColor(flippedPixels, idx, scenario.sun.color)) {
+                            sunBounds.include(x, y);
+                        }
+                        if (matchesColor(flippedPixels, idx, scenario.planets[0].color)) {
+                            planetBounds.include(x, y);
+                        }
                     }
                 }
             }
 
-            // Print debug info
             std::cout << "Image size: " << width << "x" << height << "\n";
-            
-            // Get center pixel (approximate for even dimensions)
-            int centerX = width / 2;
-            int centerY = height / 2;
-            int centerIdx = (centerY * width + centerX) * 4;
-            std::cout << "Center pixel: (" 
-                      << flippedPixels[centerIdx] << ", "
-                      << flippedPixels[centerIdx + 1] << ", "
-                      << flippedPixels[centerIdx + 2] << ", "
-                      << flippedPixels[centerIdx + 3] << ")\n";
-            
-            std::cout << "Differing pixels from background: " << differingPixels << "\n";
-
-            // Fail if essentially all pixels are background (>95%)
-            int totalPixels = width * height;
-            int threshold = static_cast<int>(totalPixels * 0.95);
-            
-            if (differingPixels <= threshold) {
-                std::cerr << "Smoke test FAILED: Framebuffer is uniform background\n";
-                return 1;
-            }
+            std::cout << "Background pixel: (" << static_cast<int>(background[0])
+                      << ", " << static_cast<int>(background[1]) << ", "
+                      << static_cast<int>(background[2]) << ")\n";
+            auto printBounds = [](const char* label, const PixelBounds& bounds) {
+                std::cout << label << ": " << bounds.count;
+                if (bounds.count > 0) {
+                    std::cout << ", bounding box: (" << bounds.minX << ", "
+                              << bounds.minY << ")-(" << bounds.maxX << ", "
+                              << bounds.maxY << ")";
+                }
+                std::cout << "\n";
+            };
+            printBounds("Non-background pixels", drawnBounds);
+            printBounds("Sun-colored pixels", sunBounds);
+            printBounds("Planet-colored pixels", planetBounds);
 
             // Write PNG using official stb_image_write API with stride parameter
             int result = stbi_write_png(outputImagePath.c_str(), width, height, 4, flippedPixels.data(), width * 4);
@@ -261,92 +301,32 @@ int main(int argc, char** argv) {
                 std::cerr << "Failed to write PNG: " << outputImagePath << "\n";
                 return 1;
             }
-            
+
+            if (drawnBounds.count == 0 || sunBounds.count == 0 || planetBounds.count == 0) {
+                std::cerr << "Render test FAILED: Sun or planet is not visible\n";
+                return 1;
+            }
+            const bool separate = sunBounds.maxX < planetBounds.minX ||
+                                  planetBounds.maxX < sunBounds.minX ||
+                                  sunBounds.maxY < planetBounds.minY ||
+                                  planetBounds.maxY < sunBounds.minY;
+            if (!separate) {
+                std::cerr << "Render test FAILED: Sun and planet overlap in the image\n";
+                return 1;
+            }
+
             std::cout << "Render test completed successfully\n";
             std::cout << "Output image: " << outputImagePath << "\n";
         } else {
-            // Swap buffers for interactive mode
-            glfwSwapBuffers(window);
-
-            // Sleep to control frame rate (optional)
-            std::this_thread::sleep_for(std::chrono::milliseconds(16));
-        }
-
-        // Keep window open for interactive mode
-        if (!renderTestMode) {
             while (!glfwWindowShouldClose(window)) {
-                // Process events
                 glfwPollEvents();
-
-                // Setup projection matrix
-                int width = 0, height = 0;
+                int width = 0;
+                int height = 0;
                 glfwGetFramebufferSize(window, &width, &height);
-                Matrix4 proj = Matrix4::perspective(camera.fov, 
-                                                    (double)width / (double)height,
-                                                    0.1f, 1000.0f);
-                
-                // Setup view matrix
-                Matrix4 view = camera.getViewMatrix();
-                
-                // Clear framebuffer with dark background
-                glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-                // Use shader program
-                shader.use();
-                
-                // Set uniforms
-                const float* projData = reinterpret_cast<const float*>(&proj);
-                const float* viewData = reinterpret_cast<const float*>(&view);
-                
-                shader.setMat4("projection", projData);
-                shader.setMat4("view", viewData);
-                
-                // Render sun with proper scaling and color
-                {
-                    Matrix4 model = Matrix4::scale(scenario.sun.radius, scenario.sun.radius, scenario.sun.radius);
-                    const float* modelData = reinterpret_cast<const float*>(&model);
-                    shader.setMat4("model", modelData);
-                    
-                    // Set sun color (convert double to float)
-                    shader.setFloat3("uColor", 
-                        static_cast<float>(scenario.sun.color[0]),
-                        static_cast<float>(scenario.sun.color[1]),
-                        static_cast<float>(scenario.sun.color[2]));
-                    
-                    g_mesh.draw();
+                if (width > 0 && height > 0) {
+                    renderScene(scenario, camera, shader, g_mesh, width, height);
+                    glfwSwapBuffers(window);
                 }
-
-                // Render each planet with its own position and scale
-                for (const auto& planet : scenario.planets) {
-                    std::cout << "Rendering planet at position: (" 
-                              << planet.position[0] << ", "
-                              << planet.position[1] << ", "
-                              << planet.position[2] << "), radius: " << planet.radius << "\n";
-                    
-                    // Create model matrix: translate to planet position, scale by radius
-                    Matrix4 model = Matrix4::translation(planet.position[0], planet.position[1], planet.position[2]);
-                    
-                    // Scale the mesh to match planet radius
-                    float scale = static_cast<float>(planet.radius);
-                    model = Matrix4::multiply(model, Matrix4::scale(scale, scale, scale));
-                    
-                    const float* modelData = reinterpret_cast<const float*>(&model);
-                    shader.setMat4("model", modelData);
-                    
-                    // Set planet color
-                    shader.setFloat3("uColor", 
-                        static_cast<float>(planet.color[0]),
-                        static_cast<float>(planet.color[1]),
-                        static_cast<float>(planet.color[2]));
-                    
-                    g_mesh.draw();
-                }
-
-                // Swap buffers for interactive mode
-                glfwSwapBuffers(window);
-
-                // Sleep to control frame rate (optional)
                 std::this_thread::sleep_for(std::chrono::milliseconds(16));
             }
         }
