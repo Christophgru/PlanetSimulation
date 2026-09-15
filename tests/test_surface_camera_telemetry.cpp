@@ -146,9 +146,10 @@ TEST(SurfaceCameraTelemetryTest, ConfigSnippetRestoresWalkedAndTurnedCamera) {
 }
 
 TEST(SurfaceCameraTelemetryTest, TerrainSnapshotReportsSphereAltitudeAndTwoMeterClearance) {
-    config::PlanetConfig::SurfaceNoise noise;
+    config::PlanetConfig::SurfaceNoiseFunction noise;
     noise.amplitude_m = 1.0;
-    rendering::TerrainSurface terrain(noise, 0.025, 1000.0);
+    rendering::TerrainSurface terrain({noise}, config::PlanetConfig::TerrainLod{},
+                                      0.025, 1000.0);
     PlanetSurfaceCamera camera({{10.0, 0.0, 0.0}, 0.025},
                                {-22.4, 67.26, 0.002}, {0.0, 0.0, 0.0},
                                60.0, 0.002);

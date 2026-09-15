@@ -194,9 +194,16 @@ TEST(PlanetSurfaceCameraTest, TwoMeterPerSecondWalkOnFiftyMeterPlanet) {
 }
 
 TEST(PlanetSurfaceCameraTest, TerrainMountAndWalkingKeepTwoMetersAboveSampledGround) {
-    config::PlanetConfig::SurfaceNoise noise;
-    noise.amplitude_m = 1.0;
-    rendering::TerrainSurface terrain(noise, 0.025, 1000.0);
+    config::PlanetConfig::SurfaceNoiseFunction hills;
+    hills.amplitude_m = 0.8;
+    config::PlanetConfig::SurfaceNoiseFunction ridges;
+    ridges.type = "ridged_fbm";
+    ridges.amplitude_m = 0.35;
+    ridges.frequency = 18.0;
+    ridges.seed = 771;
+    rendering::TerrainSurface terrain({hills, ridges},
+                                      config::PlanetConfig::TerrainLod{},
+                                      0.025, 1000.0);
     PlanetSurfaceCamera camera({{10.0, 0.0, 0.0}, 0.025},
                                {-22.4, 67.26, 0.002}, {0.0, 0.0, 0.0},
                                60.0, 0.002);
@@ -213,9 +220,10 @@ TEST(PlanetSurfaceCameraTest, TerrainMountAndWalkingKeepTwoMetersAboveSampledGro
 }
 
 TEST(PlanetSurfaceCameraTest, EnteringSurfaceModeSnapsToTerrainClearance) {
-    config::PlanetConfig::SurfaceNoise noise;
+    config::PlanetConfig::SurfaceNoiseFunction noise;
     noise.amplitude_m = 1.0;
-    rendering::TerrainSurface terrain(noise, 0.025, 1000.0);
+    rendering::TerrainSurface terrain({noise}, config::PlanetConfig::TerrainLod{},
+                                      0.025, 1000.0);
     PlanetSurfaceCamera camera({{10.0, 0.0, 0.0}, 0.025},
                                {0.0, 180.0, 0.002}, {0.0, 0.0, 0.0},
                                60.0, 0.002);

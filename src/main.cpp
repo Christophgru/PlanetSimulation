@@ -178,7 +178,8 @@ int main(int argc, char** argv) {
         std::vector<rendering::TerrainSurface> terrainSurfaces;
         terrainSurfaces.reserve(scenario.planets.size());
         for (const auto& planet : scenario.planets) {
-            terrainSurfaces.emplace_back(planet.surface_noise, planet.radius,
+            terrainSurfaces.emplace_back(planet.surface_noise, planet.terrain_lod,
+                                         planet.radius,
                                          scenario.metersPerWorldUnit());
         }
         std::vector<Mesh> planetMeshes(scenario.planets.size());

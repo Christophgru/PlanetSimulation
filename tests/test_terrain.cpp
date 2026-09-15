@@ -6,10 +6,10 @@
 
 namespace {
 rendering::TerrainSurface makeTerrain(int seed = 42) {
-    config::PlanetConfig::SurfaceNoise noise;
+    config::PlanetConfig::SurfaceNoiseFunction noise;
     noise.amplitude_m = 1.0;
     noise.seed = seed;
-    return {noise, 0.025, 1000.0};
+    return {{noise}, config::PlanetConfig::TerrainLod{}, 0.025, 1000.0};
 }
 
 glm::dvec3 vertex(const rendering::TerrainGeometry& geometry, int index) {
@@ -38,25 +38,84 @@ TEST(TerrainTest, NoiseIsDeterministicContinuousAndBoundedByAmplitude) {
     EXPECT_THROW(a.heightAt(glm::dvec3(0)), std::invalid_argument);
 }
 
-TEST(TerrainTest, CappedSubdivisionsIncreaseTriangleCountByFour) {
+TEST(TerrainTest, OverlappingFunctionsAddTheirIndependentHeightFields) {
+    config::PlanetConfig::SurfaceNoiseFunction hills;
+    hills.amplitude_m = 0.8;
+    hills.frequency = 3.0;
+    config::PlanetConfig::SurfaceNoiseFunction ridges;
+    ridges.type = "ridged_fbm";
+    ridges.amplitude_m = 0.35;
+    ridges.frequency = 18.0;
+    ridges.seed = 771;
+    const config::PlanetConfig::TerrainLod lod;
+    const rendering::TerrainSurface hillOnly({hills}, lod, 0.025, 1000.0);
+    const rendering::TerrainSurface ridgeOnly({ridges}, lod, 0.025, 1000.0);
+    const rendering::TerrainSurface combined({hills, ridges}, lod, 0.025, 1000.0);
+    for (const glm::dvec3& point : {glm::dvec3(1, 0, 0),
+                                    glm::dvec3(0.2, -0.4, 0.9),
+                                    glm::dvec3(-0.8, 0.2, -0.6)}) {
+        EXPECT_NEAR(combined.heightAt(point),
+                    hillOnly.heightAt(point) + ridgeOnly.heightAt(point), 1e-15);
+        EXPECT_LE(std::abs(combined.heightAt(point)), 0.00115);
+    }
+    EXPECT_NE(hillOnly.heightAt(glm::dvec3(0.2, -0.4, 0.9)),
+              ridgeOnly.heightAt(glm::dvec3(0.2, -0.4, 0.9)));
+}
+
+TEST(TerrainTest, RejectsInvalidDirectNoiseAndLodSettings) {
+    config::PlanetConfig::SurfaceNoiseFunction function;
+    function.amplitude_m = -1.0;
+    EXPECT_THROW(rendering::TerrainSurface({function},
+                 config::PlanetConfig::TerrainLod{}, 0.025, 1000.0),
+                 std::invalid_argument);
+    function.amplitude_m = 1.0;
+    function.octaves = 0;
+    EXPECT_THROW(rendering::TerrainSurface({function},
+                 config::PlanetConfig::TerrainLod{}, 0.025, 1000.0),
+                 std::invalid_argument);
+    function.octaves = 4;
+    config::PlanetConfig::TerrainLod lod;
+    lod.max_edge_segments = 17;
+    EXPECT_THROW(rendering::TerrainSurface({function}, lod, 0.025, 1000.0),
+                 std::invalid_argument);
+}
+
+TEST(TerrainTest, EdgeSegmentsGiveFineDensityStepsWithAHardTriangleCap) {
     const auto terrain = makeTerrain();
-    const auto coarse = terrain.buildGeometry(2);
-    const auto near = terrain.buildGeometry(5);
+    const auto coarse = terrain.buildGeometry(1);
+    const auto three = terrain.buildGeometry(3);
+    const auto four = terrain.buildGeometry(4);
+    const auto near = terrain.buildGeometry(16);
     EXPECT_EQ(coarse.triangleCount(), 320);
-    EXPECT_EQ(near.triangleCount(), 20480);
+    EXPECT_EQ(three.triangleCount(), 2880);
+    EXPECT_EQ(four.triangleCount(), 5120);
+    EXPECT_LT(static_cast<double>(four.triangleCount()) / three.triangleCount(), 2.0);
+    EXPECT_EQ(near.triangleCount(), 81920);
     EXPECT_EQ(near.vertices.size(), static_cast<std::size_t>(near.triangleCount()) * 27);
     EXPECT_EQ(near.indices.size(), static_cast<std::size_t>(near.triangleCount()) * 3);
-    EXPECT_THROW(terrain.buildGeometry(6), std::invalid_argument);
+    EXPECT_THROW(terrain.buildGeometry(17), std::invalid_argument);
 }
 
 TEST(TerrainTest, LodGetsDenserNearCameraAndRemainsCapped) {
     const auto terrain = makeTerrain();
-    EXPECT_EQ(terrain.lodLevel(1.0), 2);      // Farther than eight diameters.
-    EXPECT_EQ(terrain.lodLevel(0.45), 2);
+    EXPECT_EQ(terrain.lodLevel(1.0), 1);      // Farther than eight diameters.
+    EXPECT_EQ(terrain.lodLevel(0.45), 1);
     EXPECT_GT(terrain.lodLevel(0.15), terrain.lodLevel(0.45));
-    EXPECT_EQ(terrain.lodLevel(0.025), 5);    // On the 50 m planet.
-    EXPECT_EQ(terrain.lodLevel(0.0), 5);
+    EXPECT_EQ(terrain.lodLevel(0.025), 16);    // On the 50 m planet.
+    EXPECT_EQ(terrain.lodLevel(0.0), 16);
     EXPECT_THROW(terrain.lodLevel(-1.0), std::invalid_argument);
+    int last = terrain.lodLevel(0.4);
+    std::array<bool, 17> observed{};
+    observed[last] = true;
+    for (int step = 1; step <= 600; ++step) {
+        const double distance = (8.0 - 0.01 * step) * 0.05;
+        const int level = terrain.lodLevel(distance);
+        EXPECT_GE(level, last);
+        EXPECT_LE(level - last, 1);
+        observed[level] = true;
+        last = level;
+    }
+    for (int level = 1; level <= 16; ++level) EXPECT_TRUE(observed[level]);
 }
 
 TEST(TerrainTest, TrianglesCarrySampledHeightsOutwardNormalsAndFlatElevationTint) {

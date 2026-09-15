@@ -147,8 +147,13 @@ TEST(ScenarioConfigTest, DevelopmentSceneUsesPlanetListAndTerrainSettings) {
     config::ScenarioConfig scenario(raw);
     ASSERT_EQ(scenario.planets.size(), 1u);
     EXPECT_EQ(scenario.surface_camera.planet_index, 0);
-    EXPECT_DOUBLE_EQ(scenario.planets[0].surface_noise.amplitude_m, 1.0);
-    EXPECT_EQ(scenario.planets[0].surface_noise.max_subdivisions, 5);
+    ASSERT_EQ(scenario.planets[0].surface_noise.size(), 2u);
+    EXPECT_EQ(scenario.planets[0].surface_noise[0].type, "value_fbm");
+    EXPECT_EQ(scenario.planets[0].surface_noise[1].type, "ridged_fbm");
+    EXPECT_DOUBLE_EQ(scenario.planets[0].surface_noise[0].amplitude_m, 0.8);
+    EXPECT_DOUBLE_EQ(scenario.planets[0].surface_noise[1].amplitude_m, 0.35);
+    EXPECT_EQ(scenario.planets[0].terrain_lod.base_edge_segments, 3);
+    EXPECT_EQ(scenario.planets[0].terrain_lod.max_edge_segments, 16);
     EXPECT_DOUBLE_EQ(scenario.surface_camera.altitude *
                      scenario.metersPerWorldUnit(), 2.0);
 }
@@ -171,31 +176,47 @@ TEST(ScenarioConfigTest, SurfaceCameraCanSelectSecondPlanetFromList) {
 TEST(ScenarioConfigTest, RejectsUnboundedOrPhysicallyInvalidTerrainSettings) {
     auto raw = R"({
         "distance_unit":"km",
-        "planets":[{"radius":0.025,"surface_noise":{"amplitude_m":1.0}}]
+        "planets":[{"radius":0.025,
+                    "surface_noise":[{"amplitude_m":1.0}],
+                    "terrain_lod":{"max_edge_segments":16}}]
     })"_json;
     auto parse = [&] {
         config::Config cfg{nlohmann::json(raw)};
         config::ScenarioConfig scenario(cfg);
     };
-    raw["planets"][0]["surface_noise"]["max_subdivisions"] = 6;
+    raw["planets"][0]["terrain_lod"]["max_edge_segments"] = 17;
     EXPECT_THROW(parse(), std::invalid_argument);
-    raw["planets"][0]["surface_noise"]["max_subdivisions"] = 5;
-    raw["planets"][0]["surface_noise"]["frequency"] = 0.0;
+    raw["planets"][0]["terrain_lod"]["max_edge_segments"] = 16;
+    raw["planets"][0]["surface_noise"][0]["frequency"] = 0.0;
     EXPECT_THROW(parse(), std::invalid_argument);
-    raw["planets"][0]["surface_noise"]["frequency"] = 4.0;
-    raw["planets"][0]["surface_noise"]["amplitude_m"] = 25.0;
+    raw["planets"][0]["surface_noise"][0]["frequency"] = 4.0;
+    raw["planets"][0]["surface_noise"][0]["type"] = "unknown";
     EXPECT_THROW(parse(), std::invalid_argument);
+    raw["planets"][0]["surface_noise"][0]["type"] = "value_fbm";
+    raw["planets"][0]["surface_noise"][0]["amplitude_m"] = 25.0;
+    EXPECT_THROW(parse(), std::invalid_argument);
+    raw["planets"][0]["surface_noise"] = nlohmann::json::object();
+    EXPECT_THROW(parse(), std::invalid_argument);
+    raw["planets"][0]["surface_noise"] = nlohmann::json::array();
+    for (int i = 0; i < 9; ++i)
+        raw["planets"][0]["surface_noise"].push_back({{"amplitude_m", 0.1}});
+    EXPECT_THROW(parse(), std::invalid_argument);
+    raw["planets"][0]["surface_noise"] =
+        nlohmann::json::array({{{"amplitude_m", 13.0}},
+                               {{"amplitude_m", 13.0}}});
+    EXPECT_THROW(parse(), std::invalid_argument); // Additive height exceeds radius.
 }
 
-TEST(ScenarioConfigTest, NestedTerrainKeepsLegacySeedWhenSeedIsOmitted) {
+TEST(ScenarioConfigTest, NoiseListKeepsLegacySeedWhenSeedIsOmitted) {
     auto raw = R"({
         "planets":[{"radius":1.0,"noise_seed":123,
-                    "surface_noise":{"amplitude_m":0.1}}]
+                    "surface_noise":[{"amplitude_m":0.1}]}]
     })"_json;
     config::Config cfg{std::move(raw)};
     config::ScenarioConfig scenario(cfg);
     ASSERT_EQ(scenario.planets.size(), 1u);
-    EXPECT_EQ(scenario.planets[0].surface_noise.seed, 123);
+    ASSERT_EQ(scenario.planets[0].surface_noise.size(), 1u);
+    EXPECT_EQ(scenario.planets[0].surface_noise[0].seed, 123);
 }
 
 TEST(ScenarioConfigTest, DefaultValues) {
@@ -359,7 +380,7 @@ TEST(ScenarioConfigTest, LoadsTheDevelopmentSunAndPlanetFromDisk) {
     EXPECT_DOUBLE_EQ(scenario.sun.radius * 2.0, 1.0); // 1 km diameter.
     ASSERT_EQ(scenario.planets.size(), 1u);
     EXPECT_DOUBLE_EQ(scenario.planets[0].radius * 2.0 *
-                     scenario.metersPerWorldUnit(), 50.0);
+                     scenario.metersPerWorldUnit(), 200.0);
     EXPECT_DOUBLE_EQ(scenario.planets[0].orbit_radius, 10.0);
     EXPECT_DOUBLE_EQ(scenario.planets[0].position[0] - scenario.sun.position[0], 10.0);
     EXPECT_DOUBLE_EQ(scenario.surface_camera.altitude *

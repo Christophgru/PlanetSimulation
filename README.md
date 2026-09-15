@@ -4,7 +4,7 @@ A C++20/OpenGL project that currently renders a static Sun and a configured plan
 `configs/scenarios/solar_system.json`.
 
 The development scene uses kilometers for world coordinates: the Sun is 1 km
-across, the planet center is 10 km from the Sun, and the planet is 50 m across.
+across, the planet center is 10 km from the Sun, and the planet is 200 m across.
 Its surface camera starts 2 m above sampled terrain and walks at 2 m/s.
 The development config stores planets in a `planets` array; the surface
 camera's `planet_index` selects an entry in that array.
@@ -98,15 +98,21 @@ in the configured world distance unit (`0.002` km is 2 m in the development
 scene). The printed LLA altitude varies with terrain height, while the reusable
 config snippet keeps the requested clearance.
 
-Each planet can configure `surface_noise` with `seed`, `amplitude_m`,
-`frequency`, `octaves`, `persistence`, and `lacunarity`. The development planet
-uses 1 m maximum elevation magnitude. Its triangles are tinted darker at lower
+Each planet can configure `surface_noise` as a list of overlapping functions.
+Each function has a `type` (`value_fbm` for smooth hills or `ridged_fbm` for
+ridges), `seed`, `amplitude_m`, `frequency`, `octaves`, `persistence`, and
+`lacunarity`. The function heights add together. The development planet combines
+0.8 m smooth hills and 0.35 m ridges. Its triangles are tinted darker at lower
 elevations and lighter at higher elevations; this is a color effect without
-lighting. Mesh detail rises as the camera approaches the planet. The JSON
-`base_subdivisions`, `max_subdivisions`, `lod_near_diameters`, and
-`lod_far_diameters` set the density range and camera-distance thresholds.
-Subdivision is capped at level 5 (20,480 triangles), and the mesh is rebuilt
-only when a threshold is crossed.
+lighting.
+
+Mesh detail rises as the camera approaches the planet. `terrain_lod` configures
+`base_edge_segments`, `max_edge_segments`, `lod_near_diameters`, and
+`lod_far_diameters`. The development scene uses 3 to 16 edge segments, advancing
+one at a time; the schema permits a base setting as low as 1. This gives
+smaller density steps than the old fourfold subdivision jumps. The hard
+cap is 81,920 triangles per planet; the mesh is rebuilt only when its selected
+density changes.
 
 Render the same configured scene to a PNG and print background, Sun, and planet
 pixel counts and bounding boxes:
@@ -130,8 +136,8 @@ Its `planet_spherical_ned` reference frame follows the selected planet's center:
 latitude is measured from its equator toward +Z, longitude from +X toward +Y,
 and LLA altitude outward from its spherical reference radius. North, East,
 and Down form the local orientation frame. The development start view is saved
-with latitude, longitude, clearance, `direction_ned`, and `up_ned` in that
-config file. Latitude and longitude determine local vertical, but they do not
+with latitude, longitude, clearance, and `direction_ned` in that config file.
+Latitude and longitude determine local vertical, but they do not
 determine camera roll. `up_ned` remains optional and lets a saved view preserve
 its roll, especially when looking almost straight up or down.
 

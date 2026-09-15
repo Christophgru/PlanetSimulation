@@ -12,15 +12,29 @@
         "orbit_speed": 2,
         "radius": 0.1,
         "color": [0.2, 0.4, 1.0],
-        "surface_noise": {
-            "seed": 42,
-            "amplitude_m": 1.0,
-            "frequency": 4.0,
-            "octaves": 4,
-            "persistence": 0.5,
-            "lacunarity": 2.0,
-            "base_subdivisions": 2,
-            "max_subdivisions": 5,
+        "surface_noise": [
+            {
+                "type": "value_fbm",
+                "seed": 42,
+                "amplitude_m": 0.8,
+                "frequency": 3.0,
+                "octaves": 4,
+                "persistence": 0.5,
+                "lacunarity": 2.0
+            },
+            {
+                "type": "ridged_fbm",
+                "seed": 771,
+                "amplitude_m": 0.35,
+                "frequency": 18.0,
+                "octaves": 3,
+                "persistence": 0.45,
+                "lacunarity": 2.0
+            }
+        ],
+        "terrain_lod": {
+            "base_edge_segments": 3,
+            "max_edge_segments": 16,
             "lod_near_diameters": 2.0,
             "lod_far_diameters": 8.0
         },

@@ -30,44 +30,64 @@ struct SunConfig {
 };
 
 struct PlanetConfig {
-    struct SurfaceNoise {
+    struct SurfaceNoiseFunction {
+        std::string type = "value_fbm";
         double amplitude_m = 0.0;
         double frequency = 4.0;
         int octaves = 4;
         double persistence = 0.5;
         double lacunarity = 2.0;
         int seed = 42;
-        int base_subdivisions = 2;
-        int max_subdivisions = 5;
-        double lod_near_diameters = 2.0;
-        double lod_far_diameters = 8.0;
 
-        explicit SurfaceNoise(const config::Config& cfg, int defaultSeed = 42)
+        explicit SurfaceNoiseFunction(const config::Config& cfg, int defaultSeed = 42)
             : seed(defaultSeed) {
+            type = cfg.get("type", type);
             amplitude_m = cfg.getDouble("amplitude_m", amplitude_m);
             frequency = cfg.getDouble("frequency", frequency);
             octaves = cfg.getInt("octaves", octaves);
             persistence = cfg.getDouble("persistence", persistence);
             lacunarity = cfg.getDouble("lacunarity", lacunarity);
             seed = cfg.getInt("seed", seed);
-            base_subdivisions = cfg.getInt("base_subdivisions", base_subdivisions);
-            max_subdivisions = cfg.getInt("max_subdivisions", max_subdivisions);
-            lod_near_diameters = cfg.getDouble("lod_near_diameters", lod_near_diameters);
-            lod_far_diameters = cfg.getDouble("lod_far_diameters", lod_far_diameters);
-            if (!std::isfinite(amplitude_m) || amplitude_m < 0.0 ||
+            validate();
+        }
+        SurfaceNoiseFunction() = default;
+
+        void validate() const {
+            if ((type != "value_fbm" && type != "ridged_fbm") ||
+                !std::isfinite(amplitude_m) || amplitude_m < 0.0 ||
                 !std::isfinite(frequency) || frequency <= 0.0 || frequency > 64.0 ||
                 octaves < 1 || octaves > 6 ||
                 !std::isfinite(persistence) || persistence <= 0.0 || persistence > 1.0 ||
-                !std::isfinite(lacunarity) || lacunarity < 1.0 || lacunarity > 4.0 ||
-                base_subdivisions < 0 || max_subdivisions < base_subdivisions ||
-                max_subdivisions > 5 ||
+                !std::isfinite(lacunarity) || lacunarity < 1.0 || lacunarity > 4.0) {
+                throw std::invalid_argument("Invalid planet.surface_noise function");
+            }
+        }
+    };
+
+    struct TerrainLod {
+        int base_edge_segments = 1;
+        int max_edge_segments = 16;
+        double lod_near_diameters = 2.0;
+        double lod_far_diameters = 8.0;
+
+        explicit TerrainLod(const config::Config& cfg) {
+            base_edge_segments = cfg.getInt("base_edge_segments", base_edge_segments);
+            max_edge_segments = cfg.getInt("max_edge_segments", max_edge_segments);
+            lod_near_diameters = cfg.getDouble("lod_near_diameters", lod_near_diameters);
+            lod_far_diameters = cfg.getDouble("lod_far_diameters", lod_far_diameters);
+            validate();
+        }
+        TerrainLod() = default;
+
+        void validate() const {
+            if (base_edge_segments < 1 || max_edge_segments < base_edge_segments ||
+                max_edge_segments > 16 ||
                 !std::isfinite(lod_near_diameters) || lod_near_diameters <= 0.0 ||
                 !std::isfinite(lod_far_diameters) ||
                 lod_far_diameters <= lod_near_diameters) {
-                throw std::invalid_argument("Invalid planet.surface_noise parameters");
+                throw std::invalid_argument("Invalid planet.terrain_lod parameters");
             }
         }
-        SurfaceNoise() = default;
     };
 
     std::vector<double> position = {0.0, 0.0, 0.0};
@@ -76,7 +96,8 @@ struct PlanetConfig {
     double radius = 1.5;
     std::vector<double> color = {0.3, 0.6, 0.9};
     int noise_seed = 42;
-    SurfaceNoise surface_noise;
+    std::vector<SurfaceNoiseFunction> surface_noise;
+    TerrainLod terrain_lod;
     bool atmosphere_enabled = false;
     double atmosphere_height = 0.3;
     
@@ -94,14 +115,25 @@ struct PlanetConfig {
             color = {col_array[0], col_array[1], col_array[2]};
         }
         noise_seed = cfg.getInt("noise_seed", noise_seed);
-        surface_noise.seed = noise_seed;
         if (cfg.data().contains("surface_noise")) {
             const auto& raw = cfg.data().at("surface_noise");
-            if (!raw.is_object()) {
-                throw std::invalid_argument("planet.surface_noise must be an object");
+            if (!raw.is_array() || raw.size() > 8) {
+                throw std::invalid_argument("planet.surface_noise must be an array of at most eight functions");
             }
-            surface_noise = SurfaceNoise(config::Config{nlohmann::json(raw)},
-                                         noise_seed);
+            for (std::size_t i = 0; i < raw.size(); ++i) {
+                if (!raw[i].is_object()) {
+                    throw std::invalid_argument("planet.surface_noise entries must be objects");
+                }
+                surface_noise.emplace_back(config::Config{nlohmann::json(raw[i])},
+                                           noise_seed);
+            }
+        }
+        if (cfg.data().contains("terrain_lod")) {
+            const auto& raw = cfg.data().at("terrain_lod");
+            if (!raw.is_object()) {
+                throw std::invalid_argument("planet.terrain_lod must be an object");
+            }
+            terrain_lod = TerrainLod(config::Config{nlohmann::json(raw)});
         }
         if (!std::isfinite(radius) || radius <= 0.0) {
             throw std::invalid_argument("Planet radius must be positive and finite");
@@ -217,8 +249,11 @@ struct ScenarioConfig {
         }
 
         for (const auto& planet : planets) {
-            if (planet.surface_noise.amplitude_m >=
-                planet.radius * metersPerWorldUnit()) {
+            double totalAmplitudeMeters = 0.0;
+            for (const auto& function : planet.surface_noise)
+                totalAmplitudeMeters += function.amplitude_m;
+            if (!std::isfinite(totalAmplitudeMeters) ||
+                totalAmplitudeMeters >= planet.radius * metersPerWorldUnit()) {
                 throw std::invalid_argument("Planet radius must exceed terrain height");
             }
         }

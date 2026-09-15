@@ -22,12 +22,21 @@ struct TerrainGeometry {
 
 class TerrainSurface {
 public:
-    TerrainSurface(const config::PlanetConfig::SurfaceNoise& settings,
+    TerrainSurface(const std::vector<config::PlanetConfig::SurfaceNoiseFunction>& functions,
+                   const config::PlanetConfig::TerrainLod& lod,
                    double radiusWorld, double metersPerWorldUnit)
-        : settings_(settings), radius_(radiusWorld), metersPerUnit_(metersPerWorldUnit) {
+        : functions_(functions), lod_(lod), radius_(radiusWorld),
+          metersPerUnit_(metersPerWorldUnit) {
+        lod_.validate();
+        for (const auto& function : functions_) {
+            function.validate();
+            totalAmplitudeMeters_ += function.amplitude_m;
+        }
         if (!std::isfinite(radius_) || radius_ <= 0.0 ||
             !std::isfinite(metersPerUnit_) || metersPerUnit_ <= 0.0 ||
-            settings_.amplitude_m >= radius_ * metersPerUnit_) {
+            !std::isfinite(totalAmplitudeMeters_) ||
+            totalAmplitudeMeters_ >= radius_ * metersPerUnit_ ||
+            functions_.size() > 8) {
             throw std::invalid_argument("Invalid terrain radius or amplitude");
         }
     }
@@ -37,19 +46,28 @@ public:
         if (!std::isfinite(length) || length <= 0.0) {
             throw std::invalid_argument("Terrain height needs a finite radial direction");
         }
-        if (settings_.amplitude_m == 0.0) return 0.0;
+        if (totalAmplitudeMeters_ == 0.0) return 0.0;
         const glm::dvec3 direction = radial / length;
-        double frequency = settings_.frequency;
-        double weight = 1.0;
-        double total = 0.0;
-        double weightSum = 0.0;
-        for (int octave = 0; octave < settings_.octaves; ++octave) {
-            total += weight * (2.0 * valueNoise(direction * frequency) - 1.0);
-            weightSum += weight;
-            frequency *= settings_.lacunarity;
-            weight *= settings_.persistence;
+        double heightMeters = 0.0;
+        for (const auto& function : functions_) {
+            if (function.amplitude_m == 0.0) continue;
+            double frequency = function.frequency;
+            double weight = 1.0;
+            double total = 0.0;
+            double weightSum = 0.0;
+            for (int octave = 0; octave < function.octaves; ++octave) {
+                const double signedValue =
+                    2.0 * valueNoise(direction * frequency, function.seed) - 1.0;
+                const double sample = function.type == "ridged_fbm" ?
+                    1.0 - 2.0 * std::abs(signedValue) : signedValue;
+                total += weight * sample;
+                weightSum += weight;
+                frequency *= function.lacunarity;
+                weight *= function.persistence;
+            }
+            heightMeters += function.amplitude_m * total / weightSum;
         }
-        return settings_.amplitude_m / metersPerUnit_ * total / weightSum;
+        return heightMeters / metersPerUnit_;
     }
 
     int lodLevel(double cameraDistanceWorld) const {
@@ -57,24 +75,23 @@ public:
             throw std::invalid_argument("Invalid camera distance for terrain LOD");
         }
         const double distanceDiameters = cameraDistanceWorld / (2.0 * radius_);
-        if (distanceDiameters <= settings_.lod_near_diameters)
-            return settings_.max_subdivisions;
-        if (distanceDiameters >= settings_.lod_far_diameters)
-            return settings_.base_subdivisions;
-        const double portion = (settings_.lod_far_diameters - distanceDiameters) /
-            (settings_.lod_far_diameters - settings_.lod_near_diameters);
-        const int steps = settings_.max_subdivisions - settings_.base_subdivisions;
-        return settings_.base_subdivisions +
-               std::min(steps, static_cast<int>(portion * (steps + 1)));
+        if (distanceDiameters <= lod_.lod_near_diameters)
+            return lod_.max_edge_segments;
+        if (distanceDiameters >= lod_.lod_far_diameters)
+            return lod_.base_edge_segments;
+        const double portion = (lod_.lod_far_diameters - distanceDiameters) /
+            (lod_.lod_far_diameters - lod_.lod_near_diameters);
+        const int steps = lod_.max_edge_segments - lod_.base_edge_segments;
+        return lod_.base_edge_segments +
+               static_cast<int>(std::lround(portion * steps));
     }
 
-    TerrainGeometry buildGeometry(int subdivisions) const {
-        if (subdivisions < 0 || subdivisions > settings_.max_subdivisions) {
-            throw std::invalid_argument("Terrain subdivision exceeds configured cap");
+    TerrainGeometry buildGeometry(int edgeSegments) const {
+        if (edgeSegments < 1 || edgeSegments > lod_.max_edge_segments) {
+            throw std::invalid_argument("Terrain edge segments exceed configured cap");
         }
         TerrainGeometry geometry;
-        int triangles = 20;
-        for (int i = 0; i < subdivisions; ++i) triangles *= 4;
+        const int triangles = 320 * edgeSegments * edgeSegments;
         geometry.vertices.reserve(static_cast<std::size_t>(triangles) * 3 * 9);
         geometry.indices.reserve(static_cast<std::size_t>(triangles) * 3);
 
@@ -96,12 +113,15 @@ public:
             glm::dvec3 c = glm::normalize(raw[face[2]]);
             if (glm::dot(glm::cross(b - a, c - a), a + b + c) < 0.0)
                 std::swap(b, c);
-            subdivide(a, b, c, subdivisions, geometry);
+            subdivideBase(a, b, c, 2, edgeSegments, geometry);
         }
         return geometry;
     }
 
-    const config::PlanetConfig::SurfaceNoise& settings() const { return settings_; }
+    const std::vector<config::PlanetConfig::SurfaceNoiseFunction>& functions() const {
+        return functions_;
+    }
+    const config::PlanetConfig::TerrainLod& lodSettings() const { return lod_; }
 
 private:
     static std::uint32_t hash(int x, int y, int z, int seed) {
@@ -117,7 +137,7 @@ private:
         return h;
     }
 
-    double valueNoise(const glm::dvec3& point) const {
+    double valueNoise(const glm::dvec3& point, int seed) const {
         const int ix = static_cast<int>(std::floor(point.x));
         const int iy = static_cast<int>(std::floor(point.y));
         const int iz = static_cast<int>(std::floor(point.z));
@@ -129,7 +149,7 @@ private:
             for (int y = 0; y <= 1; ++y) {
                 for (int x = 0; x <= 1; ++x) {
                     const double value = hash(ix + x, iy + y, iz + z,
-                                              settings_.seed) / 4294967295.0;
+                                              seed) / 4294967295.0;
                     result += value * (x ? f.x : 1.0 - f.x) *
                                       (y ? f.y : 1.0 - f.y) *
                                       (z ? f.z : 1.0 - f.z);
@@ -139,33 +159,60 @@ private:
         return result;
     }
 
-    void subdivide(const glm::dvec3& a, const glm::dvec3& b,
-                   const glm::dvec3& c, int remaining,
-                   TerrainGeometry& geometry) const {
+    struct GridSample {
+        glm::dvec3 position;
+        double height;
+    };
+
+    void subdivideBase(const glm::dvec3& a, const glm::dvec3& b,
+                       const glm::dvec3& c, int remaining,
+                       int edgeSegments, TerrainGeometry& geometry) const {
         if (remaining == 0) {
-            emitFace(a, b, c, geometry);
+            emitGrid(a, b, c, edgeSegments, geometry);
             return;
         }
         const glm::dvec3 ab = glm::normalize(a + b);
         const glm::dvec3 bc = glm::normalize(b + c);
         const glm::dvec3 ca = glm::normalize(c + a);
-        subdivide(a, ab, ca, remaining - 1, geometry);
-        subdivide(b, bc, ab, remaining - 1, geometry);
-        subdivide(c, ca, bc, remaining - 1, geometry);
-        subdivide(ab, bc, ca, remaining - 1, geometry);
+        subdivideBase(a, ab, ca, remaining - 1, edgeSegments, geometry);
+        subdivideBase(b, bc, ab, remaining - 1, edgeSegments, geometry);
+        subdivideBase(c, ca, bc, remaining - 1, edgeSegments, geometry);
+        subdivideBase(ab, bc, ca, remaining - 1, edgeSegments, geometry);
     }
 
-    void emitFace(const glm::dvec3& a, const glm::dvec3& b,
-                  const glm::dvec3& c, TerrainGeometry& geometry) const {
-        const double ha = heightAt(a);
-        const double hb = heightAt(b);
-        const double hc = heightAt(c);
-        const glm::dvec3 pa = a * (1.0 + ha / radius_);
-        const glm::dvec3 pb = b * (1.0 + hb / radius_);
-        const glm::dvec3 pc = c * (1.0 + hc / radius_);
+    void emitGrid(const glm::dvec3& a, const glm::dvec3& b,
+                  const glm::dvec3& c, int segments,
+                  TerrainGeometry& geometry) const {
+        std::vector<std::vector<GridSample>> grid(segments + 1);
+        for (int i = 0; i <= segments; ++i) {
+            for (int j = 0; i + j <= segments; ++j) {
+                const glm::dvec3 radial = glm::normalize(
+                    static_cast<double>(segments - i - j) * a +
+                    static_cast<double>(i) * b + static_cast<double>(j) * c);
+                const double height = heightAt(radial);
+                grid[i].push_back({radial * (1.0 + height / radius_), height});
+            }
+        }
+        for (int i = 0; i < segments; ++i) {
+            for (int j = 0; i + j < segments; ++j) {
+                emitFace(grid[i][j], grid[i + 1][j], grid[i][j + 1], geometry);
+                if (i + j + 1 < segments) {
+                    emitFace(grid[i + 1][j], grid[i + 1][j + 1],
+                             grid[i][j + 1], geometry);
+                }
+            }
+        }
+    }
+
+    void emitFace(const GridSample& a, const GridSample& b,
+                  const GridSample& c, TerrainGeometry& geometry) const {
+        const glm::dvec3& pa = a.position;
+        const glm::dvec3& pb = b.position;
+        const glm::dvec3& pc = c.position;
         const glm::dvec3 normal = glm::normalize(glm::cross(pb - pa, pc - pa));
-        const double normalizedHeight = settings_.amplitude_m == 0.0 ? 0.0 :
-            (ha + hb + hc) / (3.0 * settings_.amplitude_m / metersPerUnit_);
+        const double normalizedHeight = totalAmplitudeMeters_ == 0.0 ? 0.0 :
+            (a.height + b.height + c.height) /
+            (3.0 * totalAmplitudeMeters_ / metersPerUnit_);
         const float tint = static_cast<float>(0.72 + 0.45 * normalizedHeight);
         const unsigned int start = static_cast<unsigned int>(geometry.indices.size());
         for (const glm::dvec3& position : {pa, pb, pc}) {
@@ -179,9 +226,11 @@ private:
         geometry.indices.insert(geometry.indices.end(), {start, start + 1, start + 2});
     }
 
-    config::PlanetConfig::SurfaceNoise settings_;
+    std::vector<config::PlanetConfig::SurfaceNoiseFunction> functions_;
+    config::PlanetConfig::TerrainLod lod_;
     double radius_;
     double metersPerUnit_;
+    double totalAmplitudeMeters_ = 0.0;
 };
 
 } // namespace rendering
