@@ -150,7 +150,7 @@ TEST(ScenarioConfigTest, DevelopmentSceneUsesPlanetListAndTerrainSettings) {
     ASSERT_EQ(scenario.planets[0].surface_noise.size(), 2u);
     EXPECT_EQ(scenario.planets[0].surface_noise[0].type, "value_fbm");
     EXPECT_EQ(scenario.planets[0].surface_noise[1].type, "ridged_fbm");
-    EXPECT_DOUBLE_EQ(scenario.planets[0].surface_noise[0].amplitude_m, 0.8);
+    EXPECT_DOUBLE_EQ(scenario.planets[0].surface_noise[0].amplitude_m, 6.8);
     EXPECT_DOUBLE_EQ(scenario.planets[0].surface_noise[1].amplitude_m, 0.35);
     EXPECT_EQ(scenario.planets[0].terrain_lod.base_edge_segments, 3);
     EXPECT_EQ(scenario.planets[0].terrain_lod.max_edge_segments, 16);

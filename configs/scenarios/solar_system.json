@@ -18,7 +18,7 @@
                 "type": "value_fbm",
                 "seed": 2,
                 "amplitude_m": 6.8,
-                "frequency": 3.0,
+                "frequency": 5.0,
                 "octaves": 4,
                 "persistence": 0.5,
                 "lacunarity": 2.0

@@ -286,6 +286,35 @@ TEST(TerrainTest, LocalZonesAreDenserWatertightAndStayWithinBudget) {
         EXPECT_EQ(occurrences, 2) << "Open or overlapping terrain edge";
 }
 
+TEST(TerrainTest, ZoneHysteresisRetainsDetailWhenEyeCrossesABoundary) {
+    const auto scenario = config::ScenarioConfig(config::Config::load(
+        std::string(PLANET_SOURCE_DIR) + "/configs/scenarios/solar_system.json"));
+    const auto& planet = scenario.planets[0];
+    const rendering::TerrainSurface terrain(planet.surface_noise, planet.terrain_lod,
+        planet.radius, scenario.metersPerWorldUnit(), planet.terrain_landscape);
+    const glm::dvec3 center(planet.position[0], planet.position[1], planet.position[2]);
+    const glm::dvec3 startEye = center + glm::dvec3(0.102, 0.0, 0.0);
+    const glm::dvec3 movedEye = center + 0.102 *
+        glm::dvec3(std::cos(0.1), std::sin(0.1), 0.0); // about 10 m along the surface
+    const auto first = terrain.buildGeometryForEye(startEye, center);
+    const auto withoutHysteresis = terrain.buildGeometryForEye(movedEye, center);
+    const auto protectedMesh = terrain.buildGeometryForEye(
+        movedEye, center, &first.faceZones, 20.0);
+    ASSERT_EQ(first.faceZones.size(), 320u);
+    ASSERT_EQ(protectedMesh.faceZones.size(), first.faceZones.size());
+    int retainedNearFaces = 0;
+    for (std::size_t i = 0; i < first.faceZones.size(); ++i) {
+        if (first.faceZones[i] >= 1)
+            EXPECT_GE(protectedMesh.faceZones[i], first.faceZones[i]) << i;
+        if (first.faceZones[i] == 2 && withoutHysteresis.faceZones[i] < 2 &&
+            protectedMesh.faceZones[i] == 2) ++retainedNearFaces;
+    }
+    EXPECT_GT(retainedNearFaces, 0);
+    EXPECT_LE(protectedMesh.triangleCount(), planet.terrain_lod.max_triangle_budget);
+    EXPECT_THROW(terrain.buildGeometryForEye(movedEye, center,
+        &first.faceZones, -1.0), std::invalid_argument);
+}
+
 TEST(TerrainTest, TriangleBudgetDowngradesDistantFineFaces) {
     config::PlanetConfig::TerrainLod lod;
     lod.base_edge_segments = 3;

@@ -332,7 +332,9 @@ int main(int argc, char** argv) {
         std::vector<Mesh> planetMeshes(scenario.planets.size());
         std::vector<Mesh> waterMeshes(scenario.planets.size());
         std::vector<bool> meshReady(scenario.planets.size(), false);
+        std::vector<bool> waterMeshReady(scenario.planets.size(), false);
         std::vector<int> lastLocalMask(scenario.planets.size(), 0);
+        std::vector<std::vector<int>> lastFaceZones(scenario.planets.size());
         std::vector<glm::dvec3> lastEyeRadial(scenario.planets.size(), glm::dvec3(0.0));
         std::vector<std::array<int, 3>> meshZoneFaces(scenario.planets.size());
         std::vector<int> meshTriangles(scenario.planets.size(), 0);
@@ -348,22 +350,30 @@ int main(int argc, char** argv) {
                 const glm::dvec3 radial = offset / distance;
                 const double seaRadius = planet.radius +
                     planet.water.level_m / scenario.metersPerWorldUnit();
-                const int localMask = (distance < 3.0 * planet.radius ? 1 : 0) |
-                    (planet.water.enabled && distance < 3.0 * seaRadius ? 2 : 0);
-                const double movedMeters = meshReady[i] ? std::max(planet.radius, seaRadius) *
+                if (planet.water.enabled && !waterMeshReady[i]) {
+                    // Water has no height noise. A fixed shell avoids the ocean
+                    // changing tessellation every time the eye moves.
+                    const rendering::TerrainSurface seaSurface(
+                        {}, planet.terrain_lod, seaRadius, scenario.metersPerWorldUnit());
+                    const int budgetSegments = static_cast<int>(std::floor(std::sqrt(
+                        planet.terrain_lod.max_triangle_budget / 320.0)));
+                    waterMeshes[i].loadTerrain(seaSurface.buildGeometry(
+                        std::max(1, std::min({8, planet.terrain_lod.max_edge_segments,
+                                              budgetSegments}))));
+                    waterMeshReady[i] = true;
+                }
+                const int localMask = distance < 3.0 * planet.radius ? 1 : 0;
+                const double movedMeters = meshReady[i] ? planet.radius *
                     scenario.metersPerWorldUnit() * std::acos(std::clamp(
                         glm::dot(radial, lastEyeRadial[i]), -1.0, 1.0)) : 0.0;
                 if (meshReady[i] && localMask == lastLocalMask[i] &&
                     (localMask == 0 || movedMeters < 10.0)) continue;
-                auto geometry = terrainSurfaces[i].buildGeometryForEye(eye, center);
+                auto geometry = terrainSurfaces[i].buildGeometryForEye(
+                    eye, center, meshReady[i] ? &lastFaceZones[i] : nullptr, 20.0);
                 meshZoneFaces[i] = geometry.zoneFaces;
                 meshTriangles[i] = geometry.triangleCount();
+                lastFaceZones[i] = geometry.faceZones;
                 planetMeshes[i].loadTerrain(std::move(geometry));
-                if (planet.water.enabled) {
-                    const rendering::TerrainSurface seaSurface(
-                        {}, planet.terrain_lod, seaRadius, scenario.metersPerWorldUnit());
-                    waterMeshes[i].loadTerrain(seaSurface.buildGeometryForEye(eye, center));
-                }
                 meshReady[i] = true;
                 lastLocalMask[i] = localMask;
                 lastEyeRadial[i] = radial;
@@ -438,8 +448,9 @@ int main(int argc, char** argv) {
                           << scenario.surface_camera.walk_speed_mps << " m/s)";
             }
             if (planetOrbitCamera) std::cout << ", 3 for planet orbit";
-            std::cout << ". Press R to reload " << configPath
-                      << "; close the window to exit.\n";
+            std::cout << ". " << configPath
+                      << " reloads on save; press R to reload manually."
+                      << " Close the window to exit.\n";
         }
 
         // Create shader program
@@ -578,10 +589,40 @@ int main(int argc, char** argv) {
             CameraMode cursorMode = CameraMode::Orbit;
             SurfaceCameraTelemetry telemetry;
             double previousFrameTime = glfwGetTime();
+            std::error_code watchError;
+            const auto initialConfigTime = fs::last_write_time(configPath, watchError);
+            std::optional<fs::file_time_type> observedConfigTime =
+                watchError ? std::nullopt :
+                             std::optional<fs::file_time_type>(initialConfigTime);
+            bool configChangePending = false;
+            double configChangedAt = 0.0;
+            double nextConfigCheckAt = previousFrameTime;
             while (!glfwWindowShouldClose(window)) {
                 glfwPollEvents();
+                const double watchTime = glfwGetTime();
+                if (watchTime >= nextConfigCheckAt) {
+                    nextConfigCheckAt = watchTime + 0.05;
+                    watchError.clear();
+                    const auto currentTime = fs::last_write_time(configPath, watchError);
+                    const std::optional<fs::file_time_type> currentConfigTime =
+                        watchError ? std::nullopt :
+                                     std::optional<fs::file_time_type>(currentTime);
+                    if (currentConfigTime != observedConfigTime) {
+                        observedConfigTime = currentConfigTime;
+                        configChangedAt = watchTime;
+                        configChangePending = true;
+                    } else if (configChangePending && watchTime - configChangedAt >= 0.1) {
+                        configChangePending = false;
+                        inputContext.reloadRequested = true;
+                    }
+                }
                 if (inputContext.reloadRequested) {
                     inputContext.reloadRequested = false;
+                    configChangePending = false;
+                    watchError.clear();
+                    const auto reloadTime = fs::last_write_time(configPath, watchError);
+                    observedConfigTime = watchError ? std::nullopt :
+                        std::optional<fs::file_time_type>(reloadTime);
                     try {
                         // Build every CPU-side replacement before touching the live scene.
                         PreparedScene staged(config::ScenarioConfig(
@@ -590,7 +631,9 @@ int main(int argc, char** argv) {
                         std::vector<Mesh> nextPlanetMeshes(count);
                         std::vector<Mesh> nextWaterMeshes(count);
                         std::vector<bool> nextMeshReady(count, false);
+                        std::vector<bool> nextWaterMeshReady(count, false);
                         std::vector<int> nextLocalMask(count, 0);
+                        std::vector<std::vector<int>> nextFaceZones(count);
                         std::vector<glm::dvec3> nextEyeRadial(count, glm::dvec3(0.0));
                         std::vector<std::array<int, 3>> nextZoneFaces(count);
                         std::vector<int> nextTriangles(count, 0);
@@ -609,7 +652,9 @@ int main(int argc, char** argv) {
                         planetMeshes.swap(nextPlanetMeshes);
                         waterMeshes.swap(nextWaterMeshes);
                         meshReady.swap(nextMeshReady);
+                        waterMeshReady.swap(nextWaterMeshReady);
                         lastLocalMask.swap(nextLocalMask);
+                        lastFaceZones.swap(nextFaceZones);
                         lastEyeRadial.swap(nextEyeRadial);
                         meshZoneFaces.swap(nextZoneFaces);
                         meshTriangles.swap(nextTriangles);

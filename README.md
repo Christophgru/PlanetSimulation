@@ -1,5 +1,12 @@
 # PlanetSimulation
 
+| Solar view | Planet surface | Planet orbit |
+|:--:|:--:|:--:|
+| <a href="docs/screenshots/solar-view.png"><img src="docs/screenshots/solar-view.png" width="220" alt="Sun and planet render test"></a> | <a href="docs/screenshots/surface-view.png"><img src="docs/screenshots/surface-view.png" width="220" alt="Planet surface render test"></a> | <a href="docs/screenshots/planet-orbit.png"><img src="docs/screenshots/planet-orbit.png" width="220" alt="Planet orbit render test"></a> |
+
+These [render-test screenshots](docs/screenshots/) are captured from the
+configured development scene; click an image to view it at full size.
+
 A C++20/OpenGL project that currently renders a static Sun and a configured planet from
 `configs/scenarios/solar_system.json`.
 
@@ -88,8 +95,9 @@ The cursor is captured in surface mode; press `1`, `3`, or `Esc` to return to an
 orbit view and release it. Surface controls also activate automatically when
 either orbit camera comes within `1.1 × planet diameter` of the planet center.
 Local Down then points radially toward the planet. Close the window to exit.
-Press `R` after editing `configs/scenarios/solar_system.json` to reload the
-Sun, planets, terrain, water, and camera starting values without restarting.
+Saving `configs/scenarios/solar_system.json` reloads the Sun, planets, terrain,
+water, and camera starting values automatically after the file settles for
+about 0.1 s. Press `R` to request a manual reload at any time.
 The active view stays selected when it is still configured, and its position
 resets to the edited start value. An invalid or partly written JSON file is
 reported on stderr and leaves the current scene running; press `R` again
@@ -118,7 +126,7 @@ Each planet can configure `surface_noise` as a list of overlapping functions.
 Each function has a `type` (`value_fbm` for smooth hills or `ridged_fbm` for
 ridges), `seed`, `amplitude_m`, `frequency`, `octaves`, `persistence`, and
 `lacunarity`. The function heights add together. The development planet combines
-0.8 m smooth hills and 0.35 m ridges. `noise_seed` is only the fallback for
+6.8 m smooth hills and 0.35 m ridges. `noise_seed` is only the fallback for
 `surface_noise` functions that omit `seed`; the development scene specifies a
 seed on each function. `terrain_landscape` adds a broad continental height
 field, low-roughness plain regions, and ridge-weighted cliffs. Its own `seed`
@@ -146,6 +154,9 @@ from rebuilding it too often. The configurable
 planet. The older `lod_near_diameters` and `lod_far_diameters` remain in the
 config for compatibility with earlier distance tests; the renderer uses the
 surface-distance zones.
+Faces retain their current detail level for another 20 m while the camera
+moves away from a zone boundary, so walking back and forth does not repeatedly
+switch their tessellation.
 
 `water` sets `enabled`, `level_m`, `color`, `opacity`, and
 `reflection_fraction` for a translucent spherical sea. The development level
@@ -153,7 +164,8 @@ is 0 m, with 50% opacity and a 50% mix of water color and reflected sky/Sun
 light. Opaque terrain hides water above its level and remains visible through
 water below it. The reflection currently samples sky colors and Sun direction;
 it does not reflect terrain or refract the scene. The water shell uses the same
-bounded mesh zones as the land.
+triangle budget as the land, but its uniformly subdivided geometry stays fixed
+while the camera moves because the sea has no height noise.
 
 The terrain choice follows NVIDIA's guidance on [broad and fine procedural
 noise](https://developer.nvidia.com/gpugems/gpugems3/part-i-geometry/chapter-1-generating-complex-procedural-terrains-using-gpu)

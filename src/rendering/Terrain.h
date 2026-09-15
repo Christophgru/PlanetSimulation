@@ -21,6 +21,7 @@ struct TerrainGeometry {
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
     std::array<int, 3> zoneFaces{}; // far, middle, near
+    std::vector<int> faceZones; // one zone per fixed base face, for LOD hysteresis
     int coarseNoiseSamples = 0;
     int fineNoiseSamples = 0;
     int triangleCount() const { return static_cast<int>(indices.size() / 3); }
@@ -193,7 +194,9 @@ public:
     // use those identical boundary samples. Concentric interior rings fill
     // unequal edge segment counts without T junctions or cracks.
     TerrainGeometry buildGeometryForEye(const glm::dvec3& eyeWorld,
-                                        const glm::dvec3& planetCenter) const {
+                                        const glm::dvec3& planetCenter,
+                                        const std::vector<int>* previousFaceZones = nullptr,
+                                        double zoneHysteresisMeters = 0.0) const {
         const glm::dvec3 offset = eyeWorld - planetCenter;
         const double cameraDistance = glm::length(offset);
         if (!std::isfinite(cameraDistance) || cameraDistance <= 0.0)
@@ -202,7 +205,11 @@ public:
         const glm::dvec3 eyeRadial = offset / cameraDistance;
 
         std::vector<BaseFace> faces = baseFaces();
-        for (auto& face : faces) {
+        if (!std::isfinite(zoneHysteresisMeters) || zoneHysteresisMeters < 0.0 ||
+            (previousFaceZones && previousFaceZones->size() != faces.size()))
+            throw std::invalid_argument("Invalid previous terrain zones or hysteresis");
+        for (std::size_t index = 0; index < faces.size(); ++index) {
+            auto& face = faces[index];
             face.distanceMeters = radius_ * metersPerUnit_ * std::acos(
                 std::clamp(glm::dot(face.center, eyeRadial), -1.0, 1.0));
             const double faceReach = radius_ * metersPerUnit_ * std::max({
@@ -212,6 +219,19 @@ public:
             const double closest = std::max(0.0, face.distanceMeters - faceReach);
             face.zone = !localView || closest >= lod_.mid_surface_distance_m ? 0 :
                         closest >= lod_.near_surface_distance_m ? 1 : 2;
+            if (localView && previousFaceZones) {
+                const int previous = (*previousFaceZones)[index];
+                if (previous < 0 || previous > 2)
+                    throw std::invalid_argument("Previous terrain zone must be 0, 1 or 2");
+                // Upgrade detail immediately; retain it while moving away
+                // so a face cannot toggle near a distance boundary.
+                if (previous == 2 && closest <
+                    lod_.near_surface_distance_m + zoneHysteresisMeters)
+                    face.zone = 2;
+                else if (previous >= 1 && closest <
+                    lod_.mid_surface_distance_m + zoneHysteresisMeters)
+                    face.zone = std::max(face.zone, 1);
+            }
             face.segments = face.zone == 2 ? lod_.max_edge_segments :
                             face.zone == 1 ? lod_.medium_edge_segments :
                                              lod_.base_edge_segments;
@@ -263,6 +283,8 @@ public:
         }
 
         TerrainGeometry geometry;
+        geometry.faceZones.reserve(faces.size());
+        for (const auto& face : faces) geometry.faceZones.push_back(face.zone);
         const int predicted = estimate(edges);
         geometry.vertices.reserve(static_cast<std::size_t>(predicted) * 27);
         geometry.indices.reserve(static_cast<std::size_t>(predicted) * 3);
