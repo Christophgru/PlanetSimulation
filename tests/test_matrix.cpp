@@ -9,13 +9,13 @@ struct Vec4 {
     Vec4(double x = 0, double y = 0, double z = 0, double w = 1) : x(x), y(y), z(z), w(w) {}
     
     Vec4 operator*(const Matrix4& m) const {
-        return Vec4(
-            m.data[0] * x + m.data[1] * y + m.data[2] * z + m.data[3] * w,
-            m.data[4] * x + m.data[5] * y + m.data[6] * z + m.data[7] * w,
-            m.data[8] * x + m.data[9] * y + m.data[10] * z + m.data[11] * w,
-            m.data[12] * x + m.data[13] * y + m.data[14] * z + m.data[15] * w
-        );
-    }
+    return Vec4(
+        m.data[0] * x + m.data[4] * y + m.data[8]  * z + m.data[12] * w,
+        m.data[1] * x + m.data[5] * y + m.data[9]  * z + m.data[13] * w,
+        m.data[2] * x + m.data[6] * y + m.data[10] * z + m.data[14] * w,
+        m.data[3] * x + m.data[7] * y + m.data[11] * z + m.data[15] * w
+    );
+}
 };
 
 TEST(MatrixTest, IdentityTransformsVec) {
@@ -196,7 +196,7 @@ TEST(MatrixTest, IdentityMatrixValues) {
     EXPECT_DOUBLE_EQ(identity.data[15], 1.0f);
     
     for (int i = 0; i < 16; i++) {
-        if (i % 4 == 0) continue; // Skip diagonal
+        if (i % 5 == 0) continue; // Diagonal indices are 0, 5, 10, and 15
         EXPECT_DOUBLE_EQ(identity.data[i], 0.0f);
     }
 }
@@ -389,18 +389,17 @@ TEST(MatrixTest, CameraAt15_2_8LookingAtOriginEyeMapsToOrigin) {
     
     Matrix4 combined = Matrix4::multiply(proj, view);
     
-    // Eye position in world space should map to origin in clip space
+    // The eye maps to the view-space origin. Perspective projection has w = -z,
+    // so the eye itself has clip-space w = 0 and cannot be divided into NDC.
     Vec4 eyeVec(15.0, 2.0, 8.0, 1.0);
-    Vec4 result = eyeVec * combined;
-    
-    double ndcX = result.x / result.w;
-    double ndcY = result.y / result.w;
-    double ndcZ = result.z / result.w;
-    
-    // Eye should be at origin in view space (0,0,0) after perspective divide
-    EXPECT_NEAR(ndcX, 0.0, 1e-6);
-    EXPECT_NEAR(ndcY, 0.0, 1e-6);
-    EXPECT_NEAR(ndcZ, 0.0, 1e-6);
+    Vec4 viewEye = eyeVec * view;
+    EXPECT_NEAR(viewEye.x, 0.0, 1e-6);
+    EXPECT_NEAR(viewEye.y, 0.0, 1e-6);
+    EXPECT_NEAR(viewEye.z, 0.0, 1e-6);
+    EXPECT_DOUBLE_EQ(viewEye.w, 1.0);
+
+    Vec4 clipEye = eyeVec * combined;
+    EXPECT_NEAR(clipEye.w, 0.0, 1e-6);
 }
 
 TEST(MatrixTest, PerspectiveNearFarPlane) {
@@ -427,19 +426,17 @@ TEST(MatrixTest, PerspectiveNearFarPlane) {
     EXPECT_LE(ndcZFar, 1.0);
 }
 
-TEST(MatrixTest, PerspectivePointAtInfinity) {
+TEST(MatrixTest, PerspectiveBeyondFarPlaneIsClipped) {
     Matrix4 m = Matrix4::perspective(90.0f, 1.0f, 1.0f, 10.0f);
     
-    // Point at (0,0,-1000,1) should still be valid
+    // A point at z = -1000 is beyond the far plane at z = -10.
     Vec4 input(0.0, 0.0, -1000.0, 1.0);
     Vec4 result = input * m;
     
     EXPECT_GT(result.w, 0.0);
     
     double ndcZ = result.z / result.w;
-    // Should be inside clip volume
-    EXPECT_GE(ndcZ, -1.0);
-    EXPECT_LE(ndcZ, 1.0);
+    EXPECT_GT(ndcZ, 1.0);
 }
 
 TEST(MatrixTest, ScaleUniform) {
