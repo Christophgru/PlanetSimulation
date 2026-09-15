@@ -294,13 +294,25 @@ TEST(ScenarioConfigTest, LoadsTheDevelopmentSunAndPlanetFromDisk) {
                              "/configs/scenarios/solar_system.json";
     config::ScenarioConfig scenario(config::Config::load(path));
     EXPECT_EQ(scenario.name, "Solar System");
-    EXPECT_DOUBLE_EQ(scenario.sun.radius, 1.0);
+    EXPECT_EQ(scenario.distance_unit, "km");
+    EXPECT_DOUBLE_EQ(scenario.metersPerWorldUnit(), 1000.0);
+    EXPECT_DOUBLE_EQ(scenario.sun.radius * 2.0, 1.0); // 1 km diameter.
     ASSERT_EQ(scenario.planets.size(), 1u);
-    EXPECT_DOUBLE_EQ(scenario.planets[0].radius, 0.5);
-    EXPECT_DOUBLE_EQ(scenario.planets[0].orbit_radius, 5.0);
-    EXPECT_DOUBLE_EQ(scenario.planets[0].position[0], 5.0);
+    EXPECT_DOUBLE_EQ(scenario.planets[0].radius * 2.0 *
+                     scenario.metersPerWorldUnit(), 50.0);
+    EXPECT_DOUBLE_EQ(scenario.planets[0].orbit_radius, 10.0);
+    EXPECT_DOUBLE_EQ(scenario.planets[0].position[0] - scenario.sun.position[0], 10.0);
+    EXPECT_DOUBLE_EQ(scenario.surface_camera.altitude *
+                     scenario.metersPerWorldUnit(), 2.0);
     EXPECT_GT(scenario.sun.color[0], scenario.sun.color[2]);
     EXPECT_GT(scenario.planets[0].color[2], scenario.planets[0].color[0]);
+}
+
+TEST(ScenarioConfigTest, DistanceUnitAcceptsMetersAndRejectsUnknownUnits) {
+    config::Config meters{nlohmann::json::parse(R"({"distance_unit":"m"})")};
+    EXPECT_DOUBLE_EQ(config::ScenarioConfig(meters).metersPerWorldUnit(), 1.0);
+    config::Config unknown{nlohmann::json::parse(R"({"distance_unit":"mile"})")};
+    EXPECT_THROW(config::ScenarioConfig{unknown}, std::invalid_argument);
 }
 
 TEST(ScenarioConfigTest, ParsesPlanetMountedSurfaceReferenceFrame) {

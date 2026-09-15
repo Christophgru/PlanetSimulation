@@ -13,11 +13,14 @@ class PlanetSurfaceCamera {
 public:
     PlanetSurfaceCamera(const coordinates::PlanetLocalFrame& planetFrame,
                         const coordinates::LatLonAlt& location,
-                        const glm::dvec3& sunPosition, double fieldOfViewDeg)
+                        const glm::dvec3& sunPosition, double fieldOfViewDeg,
+                        double walkSpeedWorldUnitsPerSecond = 0.4)
         : frame_(planetFrame), location_(location), position_(frame_.toWorld(location)),
-          sunPosition_(sunPosition), fov_(static_cast<float>(fieldOfViewDeg)) {
+          sunPosition_(sunPosition), walkSpeed_(walkSpeedWorldUnitsPerSecond),
+          fov_(static_cast<float>(fieldOfViewDeg)) {
         if (!finite(sunPosition_) || !std::isfinite(fieldOfViewDeg) ||
-            fieldOfViewDeg <= 0.0 || fieldOfViewDeg >= 180.0) {
+            fieldOfViewDeg <= 0.0 || fieldOfViewDeg >= 180.0 ||
+            !std::isfinite(walkSpeed_) || walkSpeed_ <= 0.0) {
             throw std::invalid_argument("Surface camera requires a valid Sun target and field of view");
         }
         aimAt(sunPosition_);
@@ -99,7 +102,7 @@ public:
             static_cast<double>(forwardAxis) * tangentForward +
             static_cast<double>(rightAxis) * tangentRight);
         const double distance = frame_.radius() + location_.altitude;
-        const double angle = kWalkSpeed * elapsedSeconds / distance;
+        const double angle = walkSpeed_ * elapsedSeconds / distance;
         const glm::dvec3 radial = glm::normalize(position_ - frame_.center());
         const glm::dvec3 nextRadial =
             glm::normalize(std::cos(angle) * radial + std::sin(angle) * tangent);
@@ -136,10 +139,10 @@ public:
     const glm::dvec3& up() const { return up_; }
     glm::dvec3 down() const { return frame_.nedAt(location_).down; }
     float fov() const { return fov_; }
+    double walkSpeed() const { return walkSpeed_; }
 
 private:
     static constexpr double kMouseRadiansPerPixel = 0.005;
-    static constexpr double kWalkSpeed = 0.4;
     static constexpr double kMinimumEyeHeightFraction = 0.02;
 
     static bool finite(const glm::dvec3& vector) {
@@ -206,5 +209,6 @@ private:
     glm::dvec3 up_;
     double heading_ = 0.0;
     double pitch_ = 0.0;
+    double walkSpeed_;
     float fov_;
 };

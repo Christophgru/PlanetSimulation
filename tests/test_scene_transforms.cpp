@@ -31,11 +31,11 @@ TEST(SceneTransformsTest, ProjectionMapsNearAndFarPlanesToOpenGLDepthRange) {
 }
 
 TEST(SceneTransformsTest, CurrentSunAndPlanetCentersAreVisibleAndSeparate) {
-    OrbitCamera camera(glm::vec3(0.0f), glm::vec3(15.0f, 2.0f, 8.0f));
+    OrbitCamera camera(glm::vec3(0.0f), glm::vec3(12.0f, 0.0f, 0.5f));
     const glm::mat4 viewProjection =
         rendering::perspectiveProjection(camera.fov, 4.0f / 3.0f) * camera.getViewMatrix();
     const glm::vec4 sunClip = viewProjection * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-    const glm::vec4 planetClip = viewProjection * glm::vec4(5.0f, 0.0f, 0.0f, 1.0f);
+    const glm::vec4 planetClip = viewProjection * glm::vec4(10.0f, 0.0f, 0.0f, 1.0f);
     const glm::vec3 sunNdc = glm::vec3(sunClip) / sunClip.w;
     const glm::vec3 planetNdc = glm::vec3(planetClip) / planetClip.w;
 
@@ -46,4 +46,16 @@ TEST(SceneTransformsTest, CurrentSunAndPlanetCentersAreVisibleAndSeparate) {
     EXPECT_LT(glm::abs(planetNdc.x), 1.0f);
     EXPECT_LT(glm::abs(planetNdc.y), 1.0f);
     EXPECT_GT(glm::abs(planetNdc.x - sunNdc.x), 0.1f);
+}
+
+TEST(SceneTransformsTest, SurfaceProjectionKeepsOneMeterNearAndSunFar) {
+    const rendering::ClipPlanes clip = rendering::surfaceClipPlanes(0.002, 10.0, 0.5);
+    EXPECT_FLOAT_EQ(clip.nearPlane, 0.001f);
+    EXPECT_FLOAT_EQ(clip.farPlane, 21.0f);
+    const glm::mat4 projection = rendering::perspectiveProjection(60.0f, 4.0f / 3.0f, clip);
+    const glm::vec4 nearClip = projection * glm::vec4(0.0f, 0.0f, -0.001f, 1.0f);
+    const glm::vec4 farClip = projection * glm::vec4(0.0f, 0.0f, -21.0f, 1.0f);
+    EXPECT_NEAR(nearClip.z / nearClip.w, -1.0f, 1e-3f);
+    EXPECT_NEAR(farClip.z / farClip.w, 1.0f, 1e-3f);
+    EXPECT_THROW(rendering::surfaceClipPlanes(-0.1, 10.0, 0.5), std::invalid_argument);
 }

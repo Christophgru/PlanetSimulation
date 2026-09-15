@@ -4,10 +4,10 @@
 #include "rendering/OrbitCamera.h"
 
 TEST(OrbitCameraTest, StartsAtTheExistingView) {
-    OrbitCamera camera(glm::vec3(0.0f), glm::vec3(15.0f, 2.0f, 8.0f));
-    EXPECT_FLOAT_EQ(camera.position.x, 15.0f);
-    EXPECT_FLOAT_EQ(camera.position.y, 2.0f);
-    EXPECT_FLOAT_EQ(camera.position.z, 8.0f);
+    OrbitCamera camera(glm::vec3(0.0f), glm::vec3(12.0f, 0.0f, 0.5f));
+    EXPECT_FLOAT_EQ(camera.position.x, 12.0f);
+    EXPECT_FLOAT_EQ(camera.position.y, 0.0f);
+    EXPECT_FLOAT_EQ(camera.position.z, 0.5f);
 
     const glm::vec4 eyeInView = camera.getViewMatrix() * glm::vec4(camera.position, 1.0f);
     EXPECT_NEAR(eyeInView.x, 0.0f, 1e-5f);

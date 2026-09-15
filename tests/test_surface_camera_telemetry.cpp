@@ -75,8 +75,8 @@ TEST(SurfaceCameraTelemetryTest, PrintedPositionAndDirectionAreValidJsonNumbers)
     const auto snapshot = telemetry.sample(true, 0.0, camera, settings);
     ASSERT_TRUE(snapshot);
     const std::string output = snapshot->format();
-    const auto position = valueAfter(output, "Surface camera position (world): ");
-    const auto direction = valueAfter(output, "Surface camera direction (world): ");
+    const auto position = valueAfter(output, "Surface camera position (world, km): ");
+    const auto direction = valueAfter(output, "Surface camera direction (world, unit vector): ");
     const auto config = valueAfter(output, "surface_camera start value: ");
     ASSERT_TRUE(position.is_array());
     ASSERT_TRUE(direction.is_array());
@@ -91,6 +91,22 @@ TEST(SurfaceCameraTelemetryTest, PrintedPositionAndDirectionAreValidJsonNumbers)
     EXPECT_DOUBLE_EQ(direction[2].get<double>(), camera.direction().z);
     EXPECT_EQ(config, snapshot->startConfig);
     EXPECT_TRUE(config.contains("up_ned"));
+}
+
+TEST(SurfaceCameraTelemetryTest, LabelsPlanetPositionInDegreesAndMeters) {
+    PlanetSurfaceCamera camera({{10.0, 0.0, 0.0}, 0.025},
+        {-55.409888069265286, 0.26311950013215024, 0.002},
+        {0.0, 0.0, 0.0}, 60.0, 0.002);
+    config::SurfaceCameraConfig settings;
+    SurfaceCameraTelemetry telemetry;
+    const auto snapshot = telemetry.sample(true, 0.0, camera, settings, 1000.0, "km");
+    ASSERT_TRUE(snapshot);
+    const std::string output = snapshot->format();
+    EXPECT_NE(output.find("Surface camera position (world, km): "), std::string::npos);
+    EXPECT_NE(output.find("latitude=-55.409888069265286 deg"), std::string::npos);
+    EXPECT_NE(output.find("longitude=0.26311950013215024 deg"), std::string::npos);
+    EXPECT_NE(output.find("altitude=2.0 m"), std::string::npos);
+    EXPECT_DOUBLE_EQ(snapshot->startConfig.at("altitude").get<double>(), 0.002);
 }
 
 TEST(SurfaceCameraTelemetryTest, ConfigSnippetRestoresWalkedAndTurnedCamera) {

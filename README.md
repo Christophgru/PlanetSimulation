@@ -3,6 +3,10 @@
 A C++20/OpenGL project that currently renders a static Sun and one planet from
 `configs/scenarios/solar_system.json`.
 
+The development scene uses kilometers for world coordinates: the Sun is 1 km
+across, the planet center is 10 km from the Sun, and the planet is 50 m across.
+Its surface camera starts 2 m above the spherical surface and walks at 2 m/s.
+
 ## Prerequisites
 
 - CMake 3.16 or newer, Git, and a C++20 compiler
@@ -78,13 +82,16 @@ to exit.
 
 When planet mode starts, and every five seconds while it stays active, stdout
 prints the camera's world position and look direction, followed by a
+planet-local position labeled latitude and longitude in degrees and altitude
+in meters, then a
 `surface_camera start value` JSON object. Replace the existing `surface_camera`
 object in `configs/scenarios/solar_system.json` with that printed object to
 start at the saved position and view. The `direction_ned` array is ordered
 North, East, Down in the selected planet's local frame. The printed `up_ned`
 array preserves image orientation when looking nearly straight up or down.
 Both are optional; without `direction_ned`, the surface camera starts aimed at
-the Sun.
+the Sun. The JSON `altitude` remains in the configured world distance unit
+(`0.002` km is 2 m in the development scene).
 
 Render the same configured scene to a PNG and print background, Sun, and planet
 pixel counts and bounding boxes:
@@ -93,11 +100,16 @@ pixel counts and bounding boxes:
 ./build/PlanetSimulation --render-test build/render-test.png
 ~~~
 
-Capture the configured surface camera view and confirm Sun-colored pixels exist:
+Capture the configured surface camera view and confirm a configured body is visible:
 
 ~~~bash
 ./build/PlanetSimulation --surface-render-test build/surface-render-test.png
 ~~~
+
+The saved surface view looks down at the planet. At its 2 m eye height, the
+planet blocks the Sun; the surface render test therefore checks for a visible
+Sun or planet. The orbit render test still checks that both bodies are visible
+and separate.
 
 The surface camera is configured in `configs/scenarios/solar_system.json`.
 Its `planet_spherical_ned` reference frame follows the selected planet's center:

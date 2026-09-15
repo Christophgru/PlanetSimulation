@@ -121,13 +121,19 @@ struct SurfaceCameraConfig {
 
 struct ScenarioConfig {
     std::string name = "Unnamed";
+    std::string distance_unit = "km";
     SunConfig sun;
     std::vector<PlanetConfig> planets;
     SurfaceCameraConfig surface_camera;
     
     ScenarioConfig() = default;
+    double metersPerWorldUnit() const { return distance_unit == "km" ? 1000.0 : 1.0; }
     ScenarioConfig(const config::Config& cfg) {
         name = cfg.get("scenario_name", name);
+        distance_unit = cfg.get("distance_unit", distance_unit);
+        if (distance_unit != "km" && distance_unit != "m") {
+            throw std::invalid_argument("distance_unit must be km or m");
+        }
         
         // Only parse sun if it exists in the config
         const auto& raw_data = cfg.data();

@@ -177,3 +177,18 @@ TEST(PlanetSurfaceCameraTest, SavedUpRestoresRollAtAVerticalView) {
         }
     }
 }
+
+TEST(PlanetSurfaceCameraTest, TwoMeterPerSecondWalkOnFiftyMeterPlanet) {
+    PlanetSurfaceCamera camera({{10.0, 0.0, 0.0}, 0.025},
+                               {0.0, 180.0, 0.002}, {0.0, 0.0, 0.0},
+                               60.0, 0.002);
+    const glm::dvec3 radialBefore = glm::normalize(
+        camera.position() - camera.frame().center());
+    camera.walk(1, 0, 1.0);
+    const glm::dvec3 radialAfter = glm::normalize(
+        camera.position() - camera.frame().center());
+    EXPECT_NEAR(std::acos(glm::dot(radialBefore, radialAfter)),
+                0.002 / 0.027, 1e-10);
+    EXPECT_NEAR(camera.location().altitude * 1000.0, 2.0, 1e-10);
+    EXPECT_DOUBLE_EQ(camera.walkSpeed() * 1000.0, 2.0);
+}

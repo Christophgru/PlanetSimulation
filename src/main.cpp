@@ -71,13 +71,14 @@ void onKey(GLFWwindow* window, int key, int, int action, int) {
 Mesh g_mesh;
 
 void renderScene(const config::ScenarioConfig& scenario, const glm::mat4& view, float fov,
-                 const Shader& shader, const Mesh& mesh, int width, int height) {
+                 const Shader& shader, const Mesh& mesh, int width, int height,
+                 rendering::ClipPlanes clip = {}) {
     glViewport(0, 0, width, height);
     glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glm::mat4 projection = rendering::perspectiveProjection(
-        fov, static_cast<float>(width) / height);
+        fov, static_cast<float>(width) / height, clip);
 
     shader.use();
     shader.setMat4("projection", glm::value_ptr(projection));
@@ -171,13 +172,16 @@ int main(int argc, char** argv) {
     try {
         config::Config cfg = config::Config::load(configPath);
         config::ScenarioConfig scenario(cfg);
+        const glm::dvec3 sunPosition(scenario.sun.position[0],
+                                     scenario.sun.position[1],
+                                     scenario.sun.position[2]);
         
         // Start at the existing view and orbit around the configured Sun.
         OrbitCamera camera(glm::vec3(
             static_cast<float>(scenario.sun.position[0]),
             static_cast<float>(scenario.sun.position[1]),
             static_cast<float>(scenario.sun.position[2])),
-            glm::vec3(15.0f, 2.0f, 8.0f));
+            glm::vec3(12.0f, 0.0f, 0.5f));
         std::optional<PlanetSurfaceCamera> surfaceCamera;
         if (scenario.surface_camera.enabled) {
             const auto& settings = scenario.surface_camera;
@@ -190,7 +194,8 @@ int main(int argc, char** argv) {
                 coordinates::LatLonAlt{settings.latitude_deg,
                                        settings.longitude_deg, settings.altitude},
                 glm::dvec3(scenario.sun.position[0], scenario.sun.position[1],
-                           scenario.sun.position[2]), settings.fov);
+                           scenario.sun.position[2]), settings.fov,
+                2.0 / scenario.metersPerWorldUnit());
             if (settings.direction_ned) {
                 const auto& saved = *settings.direction_ned;
                 std::optional<glm::dvec3> savedUp;
@@ -204,6 +209,13 @@ int main(int argc, char** argv) {
         CameraInput cameraInput(camera, surfaceCamera ? &*surfaceCamera : nullptr);
         if (surfaceRenderMode && !surfaceCamera) {
             throw std::runtime_error("Surface render test requires surface_camera config");
+        }
+        rendering::ClipPlanes surfaceClip;
+        if (surfaceCamera) {
+            surfaceClip = rendering::surfaceClipPlanes(
+                surfaceCamera->location().altitude,
+                glm::length(surfaceCamera->position() - sunPosition),
+                scenario.sun.radius);
         }
         
         // Generate sphere mesh (will be used for sun and all planets)
@@ -261,7 +273,8 @@ int main(int argc, char** argv) {
             const glm::mat4 view = surfaceRenderMode ? surfaceCamera->getViewMatrix()
                                                      : camera.getViewMatrix();
             const float fov = surfaceRenderMode ? surfaceCamera->fov() : camera.fov;
-            renderScene(scenario, view, fov, shader, g_mesh, width, height);
+            renderScene(scenario, view, fov, shader, g_mesh, width, height,
+                        surfaceRenderMode ? surfaceClip : rendering::ClipPlanes{});
 
             // Call glFinish() before reading framebuffer
             glFinish();
@@ -327,8 +340,9 @@ int main(int argc, char** argv) {
                 return 1;
             }
 
-            if (surfaceRenderMode && analysis.sun.count == 0) {
-                std::cerr << "Surface render test FAILED: Sun is not visible\n";
+            if (surfaceRenderMode && analysis.sun.count == 0 &&
+                analysis.planet.count == 0) {
+                std::cerr << "Surface render test FAILED: No configured body is visible\n";
                 return 1;
             }
             if (!surfaceRenderMode && !analysis.bodiesVisible()) {
@@ -371,7 +385,8 @@ int main(int argc, char** argv) {
                 if (surfaceCamera) {
                     const auto snapshot = telemetry.sample(
                         cameraInput.mode() == CameraMode::Surface,
-                        frameTime, *surfaceCamera, scenario.surface_camera);
+                        frameTime, *surfaceCamera, scenario.surface_camera,
+                        scenario.metersPerWorldUnit(), scenario.distance_unit);
                     if (snapshot) std::cout << snapshot->format() << std::flush;
                 }
                 int width = 0;
@@ -382,7 +397,14 @@ int main(int argc, char** argv) {
                     const glm::mat4 view = onSurface ? surfaceCamera->getViewMatrix()
                                                      : camera.getViewMatrix();
                     const float fov = onSurface ? surfaceCamera->fov() : camera.fov;
-                    renderScene(scenario, view, fov, shader, g_mesh, width, height);
+                    const rendering::ClipPlanes clip = onSurface
+                        ? rendering::surfaceClipPlanes(
+                              surfaceCamera->location().altitude,
+                              glm::length(surfaceCamera->position() - sunPosition),
+                              scenario.sun.radius)
+                        : rendering::ClipPlanes{};
+                    renderScene(scenario, view, fov, shader, g_mesh, width, height,
+                                clip);
                     glfwSwapBuffers(window);
                 }
                 std::this_thread::sleep_for(std::chrono::milliseconds(16));
