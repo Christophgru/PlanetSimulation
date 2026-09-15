@@ -1,11 +1,13 @@
 # PlanetSimulation
 
-A C++20/OpenGL project that currently renders a static Sun and one planet from
+A C++20/OpenGL project that currently renders a static Sun and a configured planet from
 `configs/scenarios/solar_system.json`.
 
 The development scene uses kilometers for world coordinates: the Sun is 1 km
 across, the planet center is 10 km from the Sun, and the planet is 50 m across.
-Its surface camera starts 2 m above the spherical surface and walks at 2 m/s.
+Its surface camera starts 2 m above sampled terrain and walks at 2 m/s.
+The development config stores planets in a `planets` array; the surface
+camera's `planet_index` selects an entry in that array.
 
 ## Prerequisites
 
@@ -69,7 +71,8 @@ Run from the repository root because the executable loads `configs/` and
 to orbit around the Sun: dragging right moves the camera left, and dragging up
 moves it down. Use the scroll wheel to zoom. Press `1` for the orbit view or `2`
 for the planet surface view. In planet mode, the mouse looks around without a
-button and `W`, `A`, `S`, `D` walk along the sphere at the current altitude.
+button and `W`, `A`, `S`, `D` walk along the planet while maintaining ground
+clearance.
 The cursor is captured in planet mode; press `1` or `Esc` to return to orbit
 and release it. Planet controls also activate automatically when the orbit
 camera comes within `1.1 × planet diameter` of the planet center. Local Down
@@ -83,15 +86,27 @@ to exit.
 When planet mode starts, and every five seconds while it stays active, stdout
 prints the camera's world position and look direction, followed by a
 planet-local position labeled latitude and longitude in degrees and altitude
-in meters, then a
+above the spherical reference radius in meters, plus ground clearance, then a
 `surface_camera start value` JSON object. Replace the existing `surface_camera`
 object in `configs/scenarios/solar_system.json` with that printed object to
 start at the saved position and view. The `direction_ned` array is ordered
 North, East, Down in the selected planet's local frame. The printed `up_ned`
 array preserves image orientation when looking nearly straight up or down.
 Both are optional; without `direction_ned`, the surface camera starts aimed at
-the Sun. The JSON `altitude` remains in the configured world distance unit
-(`0.002` km is 2 m in the development scene).
+the Sun. The JSON `altitude` is the requested clearance above sampled terrain
+in the configured world distance unit (`0.002` km is 2 m in the development
+scene). The printed LLA altitude varies with terrain height, while the reusable
+config snippet keeps the requested clearance.
+
+Each planet can configure `surface_noise` with `seed`, `amplitude_m`,
+`frequency`, `octaves`, `persistence`, and `lacunarity`. The development planet
+uses 1 m maximum elevation magnitude. Its triangles are tinted darker at lower
+elevations and lighter at higher elevations; this is a color effect without
+lighting. Mesh detail rises as the camera approaches the planet. The JSON
+`base_subdivisions`, `max_subdivisions`, `lod_near_diameters`, and
+`lod_far_diameters` set the density range and camera-distance thresholds.
+Subdivision is capped at level 5 (20,480 triangles), and the mesh is rebuilt
+only when a threshold is crossed.
 
 Render the same configured scene to a PNG and print background, Sun, and planet
 pixel counts and bounding boxes:
@@ -106,17 +121,19 @@ Capture the configured surface camera view and confirm a configured body is visi
 ./build/PlanetSimulation --surface-render-test build/surface-render-test.png
 ~~~
 
-The saved surface view looks down at the planet. At its 2 m eye height, the
-planet blocks the Sun; the surface render test therefore checks for a visible
-Sun or planet. The orbit render test still checks that both bodies are visible
-and separate.
+The saved surface view looks across the faceted planet with the Sun above its
+horizon. The surface render test checks for a visible configured body. The orbit
+render test checks that both bodies are visible and separate.
 
 The surface camera is configured in `configs/scenarios/solar_system.json`.
 Its `planet_spherical_ned` reference frame follows the selected planet's center:
 latitude is measured from its equator toward +Z, longitude from +X toward +Y,
-and altitude outward from its spherical radius. North, East, and Down form the
-local orientation frame. The development start view is saved with latitude,
-longitude, altitude, `direction_ned`, and `up_ned` in that config file.
+and LLA altitude outward from its spherical reference radius. North, East,
+and Down form the local orientation frame. The development start view is saved
+with latitude, longitude, clearance, `direction_ned`, and `up_ned` in that
+config file. Latitude and longitude determine local vertical, but they do not
+determine camera roll. `up_ned` remains optional and lets a saved view preserve
+its roll, especially when looking almost straight up or down.
 
 The render test hides its GLFW window but still needs a display. On a Linux
 machine without one, install `xvfb` and run:

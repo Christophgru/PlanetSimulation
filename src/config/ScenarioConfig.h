@@ -42,7 +42,8 @@ struct PlanetConfig {
         double lod_near_diameters = 2.0;
         double lod_far_diameters = 8.0;
 
-        explicit SurfaceNoise(const config::Config& cfg) {
+        explicit SurfaceNoise(const config::Config& cfg, int defaultSeed = 42)
+            : seed(defaultSeed) {
             amplitude_m = cfg.getDouble("amplitude_m", amplitude_m);
             frequency = cfg.getDouble("frequency", frequency);
             octaves = cfg.getInt("octaves", octaves);
@@ -99,7 +100,8 @@ struct PlanetConfig {
             if (!raw.is_object()) {
                 throw std::invalid_argument("planet.surface_noise must be an object");
             }
-            surface_noise = SurfaceNoise(config::Config{nlohmann::json(raw)});
+            surface_noise = SurfaceNoise(config::Config{nlohmann::json(raw)},
+                                         noise_seed);
         }
         if (!std::isfinite(radius) || radius <= 0.0) {
             throw std::invalid_argument("Planet radius must be positive and finite");

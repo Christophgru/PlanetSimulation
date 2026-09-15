@@ -153,6 +153,21 @@ TEST(ScenarioConfigTest, DevelopmentSceneUsesPlanetListAndTerrainSettings) {
                      scenario.metersPerWorldUnit(), 2.0);
 }
 
+TEST(ScenarioConfigTest, SurfaceCameraCanSelectSecondPlanetFromList) {
+    auto raw = R"({
+        "planets":[{"position":[5,0,0],"radius":0.025},
+                   {"position":[10,0,0],"radius":0.05}],
+        "surface_camera":{"planet_index":1,"altitude":0.002}
+    })"_json;
+    config::Config cfg{std::move(raw)};
+    config::ScenarioConfig scenario(cfg);
+    ASSERT_EQ(scenario.planets.size(), 2u);
+    EXPECT_EQ(scenario.surface_camera.planet_index, 1);
+    const auto& selected = scenario.planets[scenario.surface_camera.planet_index];
+    EXPECT_DOUBLE_EQ(selected.position[0], 10.0);
+    EXPECT_DOUBLE_EQ(selected.radius, 0.05);
+}
+
 TEST(ScenarioConfigTest, RejectsUnboundedOrPhysicallyInvalidTerrainSettings) {
     auto raw = R"({
         "distance_unit":"km",
@@ -170,6 +185,17 @@ TEST(ScenarioConfigTest, RejectsUnboundedOrPhysicallyInvalidTerrainSettings) {
     raw["planets"][0]["surface_noise"]["frequency"] = 4.0;
     raw["planets"][0]["surface_noise"]["amplitude_m"] = 25.0;
     EXPECT_THROW(parse(), std::invalid_argument);
+}
+
+TEST(ScenarioConfigTest, NestedTerrainKeepsLegacySeedWhenSeedIsOmitted) {
+    auto raw = R"({
+        "planets":[{"radius":1.0,"noise_seed":123,
+                    "surface_noise":{"amplitude_m":0.1}}]
+    })"_json;
+    config::Config cfg{std::move(raw)};
+    config::ScenarioConfig scenario(cfg);
+    ASSERT_EQ(scenario.planets.size(), 1u);
+    EXPECT_EQ(scenario.planets[0].surface_noise.seed, 123);
 }
 
 TEST(ScenarioConfigTest, DefaultValues) {

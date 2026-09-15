@@ -66,8 +66,7 @@ public:
                     {"planet_index", settings.planet_index},
                     {"latitude_deg", location.latitudeDeg},
                     {"longitude_deg", location.longitudeDeg},
-                    {"altitude", camera.hasTerrain() ? camera.groundClearance()
-                                                      : location.altitude},
+                    {"altitude", camera.configuredClearance()},
                     {"direction_ned", nlohmann::json::array(
                         {nedDirection.x, nedDirection.y, nedDirection.z})},
                     {"up_ned", nlohmann::json::array(

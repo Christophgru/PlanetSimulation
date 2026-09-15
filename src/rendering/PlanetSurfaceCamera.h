@@ -155,6 +155,9 @@ public:
         return location_.altitude - terrain_->heightAt(
             glm::normalize(position_ - frame_.center()));
     }
+    double configuredClearance() const {
+        return terrain_ ? clearance_ : location_.altitude;
+    }
 
     const coordinates::PlanetLocalFrame& frame() const { return frame_; }
     const coordinates::LatLonAlt& location() const { return location_; }
