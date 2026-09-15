@@ -1,7 +1,10 @@
 #pragma once
 
+#include <cmath>
+#include <iostream>
+#include <stdexcept>
 #include <vector>
-#include <GL/gl.h>
+#include <GL/glew.h>
 
 class Mesh {
 public:
@@ -28,7 +31,8 @@ public:
         indices.push_back(idx2);
     }
     
-    void generateSphere(int segments) {
+    void buildSphereGeometry(int segments) {
+        if (segments < 3) throw std::invalid_argument("Sphere needs at least 3 segments");
         vertices.clear();
         indices.clear();
         
@@ -66,7 +70,11 @@ public:
                 indices.push_back(first + 1);
             }
         }
-        
+    }
+
+    void generateSphere(int segments) {
+        buildSphereGeometry(segments);
+
         // Upload to GPU
         glGenVertexArrays(1, &vao);
         glGenBuffers(1, &vbo);

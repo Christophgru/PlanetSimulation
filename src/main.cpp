@@ -1,15 +1,13 @@
 #include <iostream>
+#include <algorithm>
 #include <GL/glew.h>
 #include <GL/gl.h>
 #include <GLFW/glfw3.h>
 #include <thread>
 #include <chrono>
-#include <cmath>
-#include <algorithm>
-#include <array>
 #include <filesystem>
 #include <cstdlib>
-#include <limits>
+#include <optional>
 #include <vector>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -21,58 +19,76 @@
 #include "config/Config.h"
 #include "config/ScenarioConfig.h"
 #include "rendering/Mesh.h"
+#include "rendering/CameraInput.h"
+#include "rendering/OrbitCamera.h"
+#include "rendering/PlanetSurfaceCamera.h"
+#include "rendering/RenderDiagnostics.h"
+#include "rendering/SceneTransforms.h"
 #include "rendering/Shader.h"
+#include "rendering/SurfaceCameraTelemetry.h"
 
 namespace fs = std::filesystem;
 
-// Simple camera class for view matrix calculation
-class Camera {
-public:
-    glm::vec3 position;
-    glm::vec3 target;
-    float fov;
-    
-    Camera() : position(0.0f), target(0.0f), fov(60.0f) {}
-    
-    void update(const config::ScenarioConfig& scenario) {
-        // Use default camera position for now
-        position = glm::vec3(15.0f, 2.0f, 8.0f);
-        target = glm::vec3(0.0f);
-        fov = 60.0f;
+void onMouseButton(GLFWwindow* window, int button, int action, int) {
+    if (button != GLFW_MOUSE_BUTTON_LEFT) return;
+    auto* input = static_cast<CameraInput*>(glfwGetWindowUserPointer(window));
+    if (!input) return;
+
+    if (action == GLFW_PRESS) {
+        double x = 0.0;
+        double y = 0.0;
+        glfwGetCursorPos(window, &x, &y);
+        input->beginDrag(x, y);
+    } else if (action == GLFW_RELEASE) {
+        input->endDrag();
     }
-    
-    // View matrix (looking at target from position)
-    glm::mat4 getViewMatrix() const {
-        return glm::lookAt(position, target, glm::vec3(0.0f, 1.0f, 0.0f));
+}
+
+void onCursorPosition(GLFWwindow* window, double x, double y) {
+    auto* input = static_cast<CameraInput*>(glfwGetWindowUserPointer(window));
+    if (input) input->moveCursor(x, y);
+}
+
+void onScroll(GLFWwindow* window, double, double yOffset) {
+    auto* input = static_cast<CameraInput*>(glfwGetWindowUserPointer(window));
+    if (input) input->scroll(yOffset);
+}
+
+void onKey(GLFWwindow* window, int key, int, int action, int) {
+    if (action != GLFW_PRESS) return;
+    auto* input = static_cast<CameraInput*>(glfwGetWindowUserPointer(window));
+    if (!input) return;
+    if (key == GLFW_KEY_1) {
+        input->selectOrbit();
+    } else if (key == GLFW_KEY_2) {
+        input->selectSurface();
+    } else if (key == GLFW_KEY_ESCAPE) {
+        input->selectOrbit();
     }
-};
+}
 
 // Global mesh for sun/planets
 Mesh g_mesh;
 
-void renderScene(const config::ScenarioConfig& scenario, const Camera& camera,
+void renderScene(const config::ScenarioConfig& scenario, const glm::mat4& view, float fov,
                  const Shader& shader, const Mesh& mesh, int width, int height) {
     glViewport(0, 0, width, height);
     glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glm::mat4 projection = glm::perspective(
-        glm::radians(camera.fov), static_cast<float>(width) / height,
-        0.1f, 1000.0f);
-    glm::mat4 view = camera.getViewMatrix();
+    glm::mat4 projection = rendering::perspectiveProjection(
+        fov, static_cast<float>(width) / height);
 
     shader.use();
     shader.setMat4("projection", glm::value_ptr(projection));
     shader.setMat4("view", glm::value_ptr(view));
 
     const auto& sun = scenario.sun;
-    glm::mat4 sunModel(1.0f);
-    sunModel = glm::translate(sunModel, glm::vec3(
+    const float sunRadius = static_cast<float>(sun.radius);
+    glm::mat4 sunModel = rendering::sphereModel(glm::vec3(
         static_cast<float>(sun.position[0]),
         static_cast<float>(sun.position[1]),
-        static_cast<float>(sun.position[2])));
-    const float sunRadius = static_cast<float>(sun.radius);
-    sunModel = glm::scale(sunModel, glm::vec3(sunRadius));
+        static_cast<float>(sun.position[2])), sunRadius);
     shader.setMat4("model", glm::value_ptr(sunModel));
     shader.setFloat3("uColor", static_cast<float>(sun.color[0]),
                      static_cast<float>(sun.color[1]),
@@ -81,12 +97,10 @@ void renderScene(const config::ScenarioConfig& scenario, const Camera& camera,
 
     for (const auto& planet : scenario.planets) {
         const float radius = static_cast<float>(planet.radius);
-        glm::mat4 model(1.0f);
-        model = glm::translate(model, glm::vec3(
+        glm::mat4 model = rendering::sphereModel(glm::vec3(
             static_cast<float>(planet.position[0]),
             static_cast<float>(planet.position[1]),
-            static_cast<float>(planet.position[2])));
-        model = glm::scale(model, glm::vec3(radius));
+            static_cast<float>(planet.position[2])), radius);
         shader.setMat4("model", glm::value_ptr(model));
         shader.setFloat3("uColor", static_cast<float>(planet.color[0]),
                          static_cast<float>(planet.color[1]),
@@ -95,41 +109,19 @@ void renderScene(const config::ScenarioConfig& scenario, const Camera& camera,
     }
 }
 
-struct PixelBounds {
-    int count = 0;
-    int minX = std::numeric_limits<int>::max();
-    int minY = std::numeric_limits<int>::max();
-    int maxX = -1;
-    int maxY = -1;
-
-    void include(int x, int y) {
-        ++count;
-        minX = std::min(minX, x);
-        minY = std::min(minY, y);
-        maxX = std::max(maxX, x);
-        maxY = std::max(maxY, y);
-    }
-};
-
-bool matchesColor(const std::vector<unsigned char>& pixels, int index,
-                  const std::vector<double>& color) {
-    for (int channel = 0; channel < 3; ++channel) {
-        const int expected = static_cast<int>(std::lround(color[channel] * 255.0));
-        if (std::abs(static_cast<int>(pixels[index + channel]) - expected) > 8) {
-            return false;
-        }
-    }
-    return true;
-}
-
 int main(int argc, char** argv) {
     bool renderTestMode = false;
+    bool surfaceRenderMode = false;
     std::string outputImagePath;
     
     // Parse command-line arguments
     for (int i = 1; i < argc; i++) {
         if (std::string(argv[i]) == "--render-test" && i + 1 < argc) {
             renderTestMode = true;
+            outputImagePath = argv[++i];
+        } else if (std::string(argv[i]) == "--surface-render-test" && i + 1 < argc) {
+            renderTestMode = true;
+            surfaceRenderMode = true;
             outputImagePath = argv[++i];
         }
     }
@@ -180,9 +172,39 @@ int main(int argc, char** argv) {
         config::Config cfg = config::Config::load(configPath);
         config::ScenarioConfig scenario(cfg);
         
-        // Setup camera - position behind a planet to see both sun and planets
-        Camera camera;
-        camera.update(scenario);
+        // Start at the existing view and orbit around the configured Sun.
+        OrbitCamera camera(glm::vec3(
+            static_cast<float>(scenario.sun.position[0]),
+            static_cast<float>(scenario.sun.position[1]),
+            static_cast<float>(scenario.sun.position[2])),
+            glm::vec3(15.0f, 2.0f, 8.0f));
+        std::optional<PlanetSurfaceCamera> surfaceCamera;
+        if (scenario.surface_camera.enabled) {
+            const auto& settings = scenario.surface_camera;
+            const auto& planet = scenario.planets[settings.planet_index];
+            coordinates::PlanetLocalFrame planetFrame(
+                {planet.position[0], planet.position[1], planet.position[2]},
+                planet.radius);
+            surfaceCamera.emplace(
+                planetFrame,
+                coordinates::LatLonAlt{settings.latitude_deg,
+                                       settings.longitude_deg, settings.altitude},
+                glm::dvec3(scenario.sun.position[0], scenario.sun.position[1],
+                           scenario.sun.position[2]), settings.fov);
+            if (settings.direction_ned) {
+                const auto& saved = *settings.direction_ned;
+                std::optional<glm::dvec3> savedUp;
+                if (settings.up_ned) {
+                    const auto& up = *settings.up_ned;
+                    savedUp = glm::dvec3(up[0], up[1], up[2]);
+                }
+                surfaceCamera->setDirectionNed({saved[0], saved[1], saved[2]}, savedUp);
+            }
+        }
+        CameraInput cameraInput(camera, surfaceCamera ? &*surfaceCamera : nullptr);
+        if (surfaceRenderMode && !surfaceCamera) {
+            throw std::runtime_error("Surface render test requires surface_camera config");
+        }
         
         // Generate sphere mesh (will be used for sun and all planets)
         g_mesh.generateSphere(32);
@@ -191,18 +213,33 @@ int main(int argc, char** argv) {
         std::cout << "Scenario: " << scenario.name << "\n";
         std::cout << "Sun radius: " << scenario.sun.radius << "\n";
         std::cout << "Planets: " << scenario.planets.size() << "\n";
-        std::cout << "Camera position: (" << camera.position.x << ", " 
-                  << camera.position.y << ", " << camera.position.z << ")\n";
+        if (surfaceRenderMode) {
+            const auto& position = surfaceCamera->position();
+            std::cout << "Surface camera position: (" << position.x << ", "
+                      << position.y << ", " << position.z << ")\n";
+        } else {
+            std::cout << "Camera position: (" << camera.position.x << ", "
+                      << camera.position.y << ", " << camera.position.z << ")\n";
+        }
 
         if (renderTestMode) {
-            std::cout << "Render test mode enabled\n";
+            std::cout << (surfaceRenderMode ? "Surface render test mode enabled\n"
+                                            : "Render test mode enabled\n");
             std::cout << "Output image: " << outputImagePath << "\n";
             
             // Make window hidden for render-test mode
             glfwSetWindowAttrib(window, GLFW_VISIBLE, GLFW_FALSE);
         } else {
-            // Keep window open for viewing
-            std::cout << "Close the window to exit...\n";
+            glfwSetWindowUserPointer(window, &cameraInput);
+            glfwSetMouseButtonCallback(window, onMouseButton);
+            glfwSetCursorPosCallback(window, onCursorPosition);
+            glfwSetScrollCallback(window, onScroll);
+            glfwSetKeyCallback(window, onKey);
+            std::cout << "Left-drag to orbit the Sun; scroll to zoom. Press 1 for orbit";
+            if (surfaceCamera) {
+                std::cout << ", 2 for the planet surface view (free mouse look and WASD)";
+            }
+            std::cout << ". Close the window to exit.\n";
         }
 
         // Create shader program
@@ -221,7 +258,10 @@ int main(int argc, char** argv) {
                 std::cerr << "Render test framebuffer has invalid dimensions\n";
                 return 1;
             }
-            renderScene(scenario, camera, shader, g_mesh, width, height);
+            const glm::mat4 view = surfaceRenderMode ? surfaceCamera->getViewMatrix()
+                                                     : camera.getViewMatrix();
+            const float fov = surfaceRenderMode ? surfaceCamera->fov() : camera.fov;
+            renderScene(scenario, view, fov, shader, g_mesh, width, height);
 
             // Call glFinish() before reading framebuffer
             glFinish();
@@ -259,35 +299,14 @@ int main(int argc, char** argv) {
                 return 1;
             }
 
-            // Use the rendered corner pixel as the framebuffer's clear color.
-            const std::array<unsigned char, 3> background = {
-                flippedPixels[0], flippedPixels[1], flippedPixels[2]
-            };
-            PixelBounds drawnBounds;
-            PixelBounds sunBounds;
-            PixelBounds planetBounds;
-            for (int y = 0; y < height; y++) {
-                for (int x = 0; x < width; x++) {
-                    int idx = (y * width + x) * 4;
-                    if (flippedPixels[idx] != background[0] ||
-                        flippedPixels[idx + 1] != background[1] ||
-                        flippedPixels[idx + 2] != background[2]) {
-                        drawnBounds.include(x, y);
-                        if (matchesColor(flippedPixels, idx, scenario.sun.color)) {
-                            sunBounds.include(x, y);
-                        }
-                        if (matchesColor(flippedPixels, idx, scenario.planets[0].color)) {
-                            planetBounds.include(x, y);
-                        }
-                    }
-                }
-            }
+            const rendering::FrameAnalysis analysis = rendering::analyzeFrame(
+                flippedPixels, width, height, scenario.sun.color, scenario.planets[0].color);
 
             std::cout << "Image size: " << width << "x" << height << "\n";
-            std::cout << "Background pixel: (" << static_cast<int>(background[0])
-                      << ", " << static_cast<int>(background[1]) << ", "
-                      << static_cast<int>(background[2]) << ")\n";
-            auto printBounds = [](const char* label, const PixelBounds& bounds) {
+            std::cout << "Background pixel: (" << static_cast<int>(analysis.background[0])
+                      << ", " << static_cast<int>(analysis.background[1]) << ", "
+                      << static_cast<int>(analysis.background[2]) << ")\n";
+            auto printBounds = [](const char* label, const rendering::PixelBounds& bounds) {
                 std::cout << label << ": " << bounds.count;
                 if (bounds.count > 0) {
                     std::cout << ", bounding box: (" << bounds.minX << ", "
@@ -296,9 +315,9 @@ int main(int argc, char** argv) {
                 }
                 std::cout << "\n";
             };
-            printBounds("Non-background pixels", drawnBounds);
-            printBounds("Sun-colored pixels", sunBounds);
-            printBounds("Planet-colored pixels", planetBounds);
+            printBounds("Non-background pixels", analysis.drawn);
+            printBounds("Sun-colored pixels", analysis.sun);
+            printBounds("Planet-colored pixels", analysis.planet);
 
             // Write PNG using official stb_image_write API with stride parameter
             int result = stbi_write_png(outputImagePath.c_str(), width, height, 4, flippedPixels.data(), width * 4);
@@ -308,15 +327,15 @@ int main(int argc, char** argv) {
                 return 1;
             }
 
-            if (drawnBounds.count == 0 || sunBounds.count == 0 || planetBounds.count == 0) {
+            if (surfaceRenderMode && analysis.sun.count == 0) {
+                std::cerr << "Surface render test FAILED: Sun is not visible\n";
+                return 1;
+            }
+            if (!surfaceRenderMode && !analysis.bodiesVisible()) {
                 std::cerr << "Render test FAILED: Sun or planet is not visible\n";
                 return 1;
             }
-            const bool separate = sunBounds.maxX < planetBounds.minX ||
-                                  planetBounds.maxX < sunBounds.minX ||
-                                  sunBounds.maxY < planetBounds.minY ||
-                                  planetBounds.maxY < sunBounds.minY;
-            if (!separate) {
+            if (!surfaceRenderMode && !analysis.bodiesSeparate()) {
                 std::cerr << "Render test FAILED: Sun and planet overlap in the image\n";
                 return 1;
             }
@@ -324,13 +343,46 @@ int main(int argc, char** argv) {
             std::cout << "Render test completed successfully\n";
             std::cout << "Output image: " << outputImagePath << "\n";
         } else {
+            CameraMode cursorMode = CameraMode::Orbit;
+            SurfaceCameraTelemetry telemetry;
+            double previousFrameTime = glfwGetTime();
             while (!glfwWindowShouldClose(window)) {
                 glfwPollEvents();
+                const double frameTime = glfwGetTime();
+                const double elapsedSeconds = std::clamp(frameTime - previousFrameTime,
+                                                         0.0, 0.05);
+                previousFrameTime = frameTime;
+                WalkKeys keys{
+                    glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS,
+                    glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS,
+                    glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS,
+                    glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS
+                };
+                cameraInput.update(keys, elapsedSeconds);
+                if (cameraInput.mode() != cursorMode) {
+                    cursorMode = cameraInput.mode();
+                    glfwSetInputMode(window, GLFW_CURSOR,
+                        cursorMode == CameraMode::Surface ? GLFW_CURSOR_DISABLED
+                                                          : GLFW_CURSOR_NORMAL);
+                    if (cameraInput.autoActivated()) {
+                        std::cout << "Planet walking controls activated near the surface\n";
+                    }
+                }
+                if (surfaceCamera) {
+                    const auto snapshot = telemetry.sample(
+                        cameraInput.mode() == CameraMode::Surface,
+                        frameTime, *surfaceCamera, scenario.surface_camera);
+                    if (snapshot) std::cout << snapshot->format() << std::flush;
+                }
                 int width = 0;
                 int height = 0;
                 glfwGetFramebufferSize(window, &width, &height);
                 if (width > 0 && height > 0) {
-                    renderScene(scenario, camera, shader, g_mesh, width, height);
+                    const bool onSurface = cameraInput.mode() == CameraMode::Surface && surfaceCamera;
+                    const glm::mat4 view = onSurface ? surfaceCamera->getViewMatrix()
+                                                     : camera.getViewMatrix();
+                    const float fov = onSurface ? surfaceCamera->fov() : camera.fov;
+                    renderScene(scenario, view, fov, shader, g_mesh, width, height);
                     glfwSwapBuffers(window);
                 }
                 std::this_thread::sleep_for(std::chrono::milliseconds(16));
@@ -344,6 +396,9 @@ int main(int argc, char** argv) {
         
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << "\n";
+        glfwDestroyWindow(window);
+        glfwTerminate();
+        return 1;
     }
 
     // Cleanup

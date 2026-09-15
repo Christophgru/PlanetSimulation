@@ -19,5 +19,13 @@
         "position": [15.0, 2.0, 8.0],
         "target": [0.0, 0.0, 0.0],
         "fov": 60.0
+    },
+    "surface_camera": {
+        "reference_frame": "planet_spherical_ned",
+        "planet_index": 0,
+        "latitude_deg": 0.0,
+        "longitude_deg": 180.0,
+        "altitude": 0.2,
+        "fov": 60.0
     }
 }

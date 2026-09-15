@@ -1,0 +1,179 @@
+#include <gtest/gtest.h>
+#include <limits>
+#include <glm/gtc/matrix_transform.hpp>
+#include "rendering/PlanetSurfaceCamera.h"
+#include "rendering/SceneTransforms.h"
+
+TEST(PlanetSurfaceCameraTest, MountedPositionLooksAtTheSunWithNorthUp) {
+    coordinates::PlanetLocalFrame frame({5.0, 0.0, 0.0}, 0.5);
+    PlanetSurfaceCamera camera(frame, {0.0, 180.0, 0.2}, {0.0, 0.0, 0.0}, 60.0);
+    EXPECT_NEAR(camera.position().x, 4.3, 1e-10);
+    EXPECT_NEAR(camera.position().y, 0.0, 1e-10);
+    EXPECT_NEAR(camera.up().z, 1.0, 1e-10);
+
+    const glm::vec4 eyeInView = camera.getViewMatrix() * glm::vec4(camera.position(), 1.0);
+    const glm::vec4 sunInView = camera.getViewMatrix() * glm::vec4(camera.target(), 1.0);
+    EXPECT_NEAR(eyeInView.x, 0.0, 1e-5);
+    EXPECT_NEAR(eyeInView.y, 0.0, 1e-5);
+    EXPECT_NEAR(eyeInView.z, 0.0, 1e-5);
+    EXPECT_NEAR(sunInView.x, 0.0, 1e-5);
+    EXPECT_NEAR(sunInView.y, 0.0, 1e-5);
+    EXPECT_LT(sunInView.z, -4.0);
+
+    const glm::mat4 clip = rendering::perspectiveProjection(camera.fov(), 4.0f / 3.0f) *
+                           camera.getViewMatrix();
+    const glm::vec4 sunClip = clip * glm::vec4(camera.target(), 1.0);
+    EXPECT_NEAR(sunClip.x / sunClip.w, 0.0, 1e-5);
+    EXPECT_NEAR(sunClip.y / sunClip.w, 0.0, 1e-5);
+}
+
+TEST(PlanetSurfaceCameraTest, MovingThePlanetMovesTheMountedCamera) {
+    PlanetSurfaceCamera original({{5.0, 0.0, 0.0}, 0.5},
+                                 {0.0, 180.0, 0.2}, {0.0, 0.0, 0.0}, 60.0);
+    PlanetSurfaceCamera moved({{7.0, 1.0, 0.0}, 0.5},
+                              {0.0, 180.0, 0.2}, {0.0, 0.0, 0.0}, 60.0);
+    EXPECT_NEAR(moved.position().x - original.position().x, 2.0, 1e-10);
+    EXPECT_NEAR(moved.position().y - original.position().y, 1.0, 1e-10);
+}
+
+TEST(PlanetSurfaceCameraTest, LookingAlongNorthKeepsRadialUpAndFiniteView) {
+    coordinates::PlanetLocalFrame frame({0.0, 0.0, 0.0}, 1.0);
+    PlanetSurfaceCamera camera(frame, {0.0, 0.0, 0.1}, {1.1, 0.0, 10.0}, 60.0);
+    EXPECT_NEAR(camera.up().x, 1.0, 1e-10);
+    EXPECT_NEAR(camera.up().y, 0.0, 1e-10);
+    const glm::mat4 view = camera.getViewMatrix();
+    for (int column = 0; column < 4; ++column) {
+        for (int row = 0; row < 4; ++row) {
+            EXPECT_TRUE(std::isfinite(view[column][row]));
+        }
+    }
+}
+
+TEST(PlanetSurfaceCameraTest, SunAndCameraCannotCoincide) {
+    coordinates::PlanetLocalFrame frame({5.0, 0.0, 0.0}, 0.5);
+    EXPECT_THROW(PlanetSurfaceCamera(frame, {0.0, 180.0, 0.2},
+                                     {4.3, 0.0, 0.0}, 60.0), std::invalid_argument);
+    EXPECT_THROW(PlanetSurfaceCamera(frame, {0.0, 180.0, 0.2},
+                                     {0.0, 0.0, 0.0}, 180.0), std::invalid_argument);
+}
+
+TEST(PlanetSurfaceCameraTest, MouseLookMovesImmediatelyFromSunFacingVerticalView) {
+    PlanetSurfaceCamera camera({{5.0, 0.0, 0.0}, 0.5},
+                               {0.0, 180.0, 0.2}, {0.0, 0.0, 0.0}, 60.0);
+    const glm::dvec3 initial = camera.direction();
+    camera.look(100.0, 0.0);
+    EXPECT_GT(glm::length(camera.direction() - initial), 0.3);
+    EXPECT_NEAR(glm::length(camera.direction()), 1.0, 1e-10);
+    EXPECT_NEAR(glm::dot(camera.direction(), camera.up()), 0.0, 1e-10);
+    camera.look(0.0, 200.0);
+    EXPECT_GT(glm::dot(camera.up(), -camera.down()), 0.1);
+}
+
+TEST(PlanetSurfaceCameraTest, LookingDownEventuallyFacesThePlanetWithoutEnteringIt) {
+    PlanetSurfaceCamera camera({{5.0, 0.0, 0.0}, 0.5},
+                               {0.0, 180.0, 0.2}, {0.0, 0.0, 0.0}, 60.0);
+    for (int step = 0; step < 4; ++step) camera.look(0.0, 200.0);
+    EXPECT_GT(glm::dot(camera.direction(), camera.down()), 0.1);
+    EXPECT_GT(glm::length(camera.position() - camera.frame().center()),
+              camera.frame().radius());
+    const glm::mat4 view = camera.getViewMatrix();
+    for (int column = 0; column < 4; ++column) {
+        for (int row = 0; row < 4; ++row) {
+            EXPECT_TRUE(std::isfinite(view[column][row]));
+        }
+    }
+}
+
+TEST(PlanetSurfaceCameraTest, WalkingFollowsTheSphereAndKeepsAltitudeAndLocalDown) {
+    PlanetSurfaceCamera camera({{5.0, 0.0, 0.0}, 0.5},
+                               {0.0, 180.0, 0.2}, {0.0, 0.0, 0.0}, 60.0);
+    camera.walk(1, 0, 1.0);
+    EXPECT_GT(camera.location().latitudeDeg, 0.0);
+    EXPECT_NEAR(camera.location().altitude, 0.2, 1e-10);
+    EXPECT_NEAR(glm::length(camera.position() - camera.frame().center()),
+                0.7, 1e-10);
+    EXPECT_NEAR(glm::dot(camera.down(),
+                         glm::normalize(camera.frame().center() - camera.position())),
+                1.0, 1e-10);
+    camera.walk(-1, 0, 1.0);
+    EXPECT_NEAR(camera.position().x, 4.3, 1e-10);
+    EXPECT_NEAR(camera.position().z, 0.0, 1e-10);
+}
+
+TEST(PlanetSurfaceCameraTest, WalkingRightAndDiagonalUseTangentDirections) {
+    PlanetSurfaceCamera camera({{5.0, 0.0, 0.0}, 0.5},
+                               {0.0, 180.0, 0.2}, {0.0, 0.0, 0.0}, 60.0);
+    const glm::dvec3 initialRadial = glm::normalize(camera.position() -
+                                                    camera.frame().center());
+    camera.walk(0, 1, 1.0);
+    EXPECT_LT(camera.position().y, 0.0); // East at longitude 180 degrees.
+    camera.walk(0, -1, 1.0);
+    EXPECT_NEAR(camera.position().y, 0.0, 1e-10);
+    camera.walk(1, 1, 1.0);
+    const glm::dvec3 movedRadial = glm::normalize(camera.position() -
+                                                  camera.frame().center());
+    EXPECT_NEAR(std::acos(glm::dot(initialRadial, movedRadial)),
+                0.4 / 0.7, 1e-10); // Diagonal speed is normalized.
+}
+
+TEST(PlanetSurfaceCameraTest, AutomaticEntryClampsAnInsidePositionAboveTheSphere) {
+    PlanetSurfaceCamera camera({{5.0, 0.0, 0.0}, 0.5},
+                               {0.0, 180.0, 0.2}, {0.0, 0.0, 0.0}, 60.0);
+    camera.enterFromWorld({5.1, 0.0, 0.0}, {0.0, 0.0, 0.0});
+    EXPECT_NEAR(glm::length(camera.position() - camera.frame().center()),
+                0.51, 1e-10);
+    EXPECT_NEAR(camera.location().altitude, 0.01, 1e-10);
+    EXPECT_GT(glm::dot(camera.direction(), camera.down()), 0.0); // Sun is inward here.
+}
+
+TEST(PlanetSurfaceCameraTest, SavedNedDirectionRestoresAViewAwayFromTheSun) {
+    PlanetSurfaceCamera camera({{5.0, 0.0, 0.0}, 0.5},
+                               {20.0, 110.0, 0.2}, {0.0, 0.0, 0.0}, 60.0);
+    const glm::dvec3 sunDirection = camera.direction();
+    const glm::dvec3 saved{1.0, 2.0, -0.5};
+    camera.setDirectionNed(saved);
+    EXPECT_GT(glm::length(camera.direction() - sunDirection), 0.1);
+    EXPECT_NEAR(glm::length(camera.directionNed() - glm::normalize(saved)),
+                0.0, 1e-10);
+    camera.walk(1, 0, 0.3);
+    EXPECT_NEAR(glm::length(camera.directionNed() - glm::normalize(saved)),
+                0.0, 1e-10);
+}
+
+TEST(PlanetSurfaceCameraTest, RejectsInvalidSavedViewDirection) {
+    PlanetSurfaceCamera camera({{5.0, 0.0, 0.0}, 0.5},
+                               {0.0, 180.0, 0.2}, {0.0, 0.0, 0.0}, 60.0);
+    EXPECT_THROW(camera.setDirectionNed({0.0, 0.0, 0.0}), std::invalid_argument);
+    EXPECT_THROW(camera.setDirectionNed(
+        {std::numeric_limits<double>::quiet_NaN(), 0.0, 1.0}),
+        std::invalid_argument);
+    const glm::dvec3 before = camera.direction();
+    EXPECT_THROW(camera.setDirectionNed({1.0, 0.0, 0.0},
+                                        glm::dvec3(1.0, 0.0, 0.0)),
+                 std::invalid_argument);
+    EXPECT_EQ(camera.direction(), before);
+    camera.setDirectionNed({1e308, 0.0, 0.0});
+    EXPECT_NEAR(glm::length(camera.directionNed() - glm::dvec3(1.0, 0.0, 0.0)),
+                0.0, 1e-10);
+}
+
+TEST(PlanetSurfaceCameraTest, SavedUpRestoresRollAtAVerticalView) {
+    coordinates::PlanetLocalFrame frame({5.0, 0.0, 0.0}, 0.5);
+    PlanetSurfaceCamera original(frame, {0.0, 180.0, 0.2},
+                                 {0.0, 0.0, 0.0}, 60.0);
+    original.setDirectionNed({0.0, 0.0, -1.0},
+                             glm::dvec3(0.0, 1.0, 0.0));
+    PlanetSurfaceCamera restored(frame, {0.0, 180.0, 0.2},
+                                 {0.0, 0.0, 0.0}, 60.0);
+    restored.setDirectionNed(original.directionNed(), original.upNed());
+    EXPECT_NEAR(glm::length(restored.direction() - original.direction()),
+                0.0, 1e-10);
+    EXPECT_NEAR(glm::length(restored.up() - original.up()), 0.0, 1e-10);
+    const glm::mat4 originalView = original.getViewMatrix();
+    const glm::mat4 restoredView = restored.getViewMatrix();
+    for (int column = 0; column < 4; ++column) {
+        for (int row = 0; row < 4; ++row) {
+            EXPECT_NEAR(restoredView[column][row], originalView[column][row], 1e-5);
+        }
+    }
+}
