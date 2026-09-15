@@ -186,6 +186,53 @@ TEST(CameraInputTest, SurfaceMouseLookNeedsNoDragButton) {
     EXPECT_EQ(surface.direction(), stoppedDirection);
 }
 
+TEST(CameraInputTest, EscapeReleasesSurfaceCursorWithoutChangingViewOrWalking) {
+    OrbitCamera camera(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 10.0f));
+    PlanetSurfaceCamera surface({{5.0, 0.0, 0.0}, 0.5},
+                                {0.0, 180.0, 0.2}, {0.0, 0.0, 0.0}, 60.0);
+    CameraInput input(camera, &surface);
+    input.selectSurface();
+    ASSERT_TRUE(input.surfacePointerCaptured());
+    input.moveCursor(100.0, 100.0);
+    input.moveCursor(120.0, 100.0);
+    const glm::dvec3 direction = surface.direction();
+    const glm::dvec3 position = surface.position();
+
+    input.releaseCursor();
+    EXPECT_EQ(input.mode(), CameraMode::Surface);
+    EXPECT_FALSE(input.surfacePointerCaptured());
+    input.moveCursor(500.0, 300.0);
+    EXPECT_EQ(surface.direction(), direction);
+    input.update(WalkKeys{.forward = true}, 0.25);
+    EXPECT_NE(surface.position(), position);
+    const glm::dvec3 directionAfterWalk = surface.direction();
+
+    input.selectSurface();
+    EXPECT_TRUE(input.surfacePointerCaptured());
+    input.moveCursor(500.0, 300.0); // Capture establishes a fresh pointer baseline.
+    EXPECT_EQ(surface.direction(), directionAfterWalk);
+    input.moveCursor(520.0, 300.0);
+    EXPECT_NE(surface.direction(), directionAfterWalk);
+}
+
+TEST(CameraInputTest, SurfaceCursorReleaseSurvivesReloadAndEscapeKeepsPlanetOrbit) {
+    OrbitCamera sun(glm::vec3(0.0f), glm::vec3(0, 0, 10));
+    OrbitCamera planet(glm::vec3(5, 0, 0), glm::vec3(0, 0, 2));
+    PlanetSurfaceCamera oldSurface({{5.0, 0.0, 0.0}, 0.5},
+                                   {0.0, 180.0, 0.2}, {0.0, 0.0, 0.0}, 60.0);
+    PlanetSurfaceCamera newSurface({{6.0, 0.0, 0.0}, 0.5},
+                                   {0.0, 180.0, 0.2}, {0.0, 0.0, 0.0}, 60.0);
+    CameraInput input(sun, &oldSurface, &planet);
+    input.selectSurface();
+    input.releaseCursor();
+    input.rebind(&newSurface, &planet);
+    EXPECT_EQ(input.mode(), CameraMode::Surface);
+    EXPECT_FALSE(input.surfacePointerCaptured());
+    input.selectPlanetOrbit();
+    input.releaseCursor();
+    EXPECT_EQ(input.mode(), CameraMode::PlanetOrbit);
+}
+
 TEST(CameraInputTest, WalkingKeysAreActiveOnlyInSurfaceMode) {
     OrbitCamera camera(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 10.0f));
     PlanetSurfaceCamera surface({{5.0, 0.0, 0.0}, 0.5},

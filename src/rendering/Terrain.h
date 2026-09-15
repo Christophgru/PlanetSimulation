@@ -60,25 +60,6 @@ public:
         return heightMeters(direction, 1.0) / metersPerUnit_;
     }
 
-    // A distant vertex evaluates only broad noise. The omitted octaves are
-    // blended in across the middle zone so neighboring zones meet exactly.
-    double heightForView(const glm::dvec3& radial, const glm::dvec3& eyeRadial,
-                         bool localView) const {
-        const double radialLength = glm::length(radial);
-        const double eyeLength = glm::length(eyeRadial);
-        if (!std::isfinite(radialLength) || radialLength <= 0.0 ||
-            !std::isfinite(eyeLength) || eyeLength <= 0.0)
-            throw std::invalid_argument("Terrain view sample needs finite directions");
-        const glm::dvec3 direction = radial / radialLength;
-        if (!localView) return heightMeters(direction, 0.0) / metersPerUnit_;
-        const glm::dvec3 eyeDirection = eyeRadial / eyeLength;
-        const double arcMeters = radius_ * metersPerUnit_ * std::acos(
-            std::clamp(glm::dot(direction, eyeDirection), -1.0, 1.0));
-        const double weight = 1.0 - smoothstep(lod_.near_surface_distance_m,
-                                             lod_.mid_surface_distance_m, arcMeters);
-        return heightMeters(direction, weight) / metersPerUnit_;
-    }
-
     double regionPlainWeight(const glm::dvec3& radial) const {
         if (!landscape_.enabled) return 0.0;
         const double sample = valueNoise(glm::normalize(radial) * 2.7, landscape_.seed + 1);
@@ -289,7 +270,10 @@ public:
         geometry.vertices.reserve(static_cast<std::size_t>(predicted) * 27);
         geometry.indices.reserve(static_cast<std::size_t>(predicted) * 3);
         auto sampleAt = [&](const glm::dvec3& radial) {
-            const double height = heightForView(radial, eyeRadial, localView);
+            // A vertex's elevation belongs to the planet, not to the eye.
+            // Camera-relative detail weights made the same ground rise and
+            // fall every time the walking camera triggered a mesh rebuild.
+            const double height = heightAt(radial);
             const double arcMeters = radius_ * metersPerUnit_ * std::acos(
                 std::clamp(glm::dot(radial, eyeRadial), -1.0, 1.0));
             if (localView && arcMeters < lod_.mid_surface_distance_m)

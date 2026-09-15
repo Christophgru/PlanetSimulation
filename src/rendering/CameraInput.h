@@ -21,6 +21,14 @@ public:
     CameraMode mode() const { return mode_; }
     bool dragging() const { return dragging_; }
     bool autoActivated() const { return autoActivated_; }
+    bool surfacePointerCaptured() const { return surfacePointerCaptured_; }
+
+    void releaseCursor() {
+        if (mode_ == CameraMode::Surface) {
+            surfacePointerCaptured_ = false;
+            pointerKnown_ = false;
+        }
+    }
 
     // The Sun orbit camera keeps its address; scene reload replaces the two
     // optional cameras and may remove either mode.
@@ -30,6 +38,7 @@ public:
         if ((mode_ == CameraMode::Surface && !surface_) ||
             (mode_ == CameraMode::PlanetOrbit && !planetOrbit_))
             mode_ = CameraMode::Orbit;
+        if (mode_ != CameraMode::Surface) surfacePointerCaptured_ = false;
         dragging_ = false;
         pointerKnown_ = false;
         autoActivated_ = false;
@@ -38,6 +47,7 @@ public:
 
     void selectOrbit() {
         mode_ = CameraMode::Orbit;
+        surfacePointerCaptured_ = false;
         dragging_ = false;
         pointerKnown_ = false;
         autoActivated_ = false;
@@ -52,6 +62,7 @@ public:
             planetOrbit_->alignRadial(glm::vec3(
                 surface_->position() - surface_->frame().center()));
         mode_ = CameraMode::PlanetOrbit;
+        surfacePointerCaptured_ = false;
         dragging_ = false;
         pointerKnown_ = false;
         autoActivated_ = false;
@@ -61,6 +72,7 @@ public:
     void selectSurface() {
         if (surface_) {
             mode_ = CameraMode::Surface;
+            surfacePointerCaptured_ = true;
             dragging_ = false;
             pointerKnown_ = false;
             autoActivated_ = false;
@@ -77,7 +89,7 @@ public:
     void endDrag() { dragging_ = false; }
 
     void moveCursor(double x, double y) {
-        if (mode_ == CameraMode::Surface && surface_) {
+        if (mode_ == CameraMode::Surface && surface_ && surfacePointerCaptured_) {
             if (pointerKnown_) surface_->look(x - lastX_, y - lastY_);
             pointerKnown_ = true;
         } else if (dragging_) {
@@ -107,6 +119,7 @@ public:
                 surface_->enterFromWorld(glm::dvec3(orbit->position),
                                          surface_->target());
                 mode_ = CameraMode::Surface;
+                surfacePointerCaptured_ = true;
                 dragging_ = false;
                 pointerKnown_ = false;
                 autoActivated_ = true;
@@ -141,6 +154,7 @@ private:
     bool pointerKnown_ = false;
     bool suppressAuto_ = false;
     bool autoActivated_ = false;
+    bool surfacePointerCaptured_ = false;
     double lastX_ = 0.0;
     double lastY_ = 0.0;
 };

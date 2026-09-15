@@ -151,7 +151,7 @@ TEST(ScenarioConfigTest, DevelopmentSceneUsesPlanetListAndTerrainSettings) {
     EXPECT_EQ(scenario.planets[0].surface_noise[0].type, "value_fbm");
     EXPECT_EQ(scenario.planets[0].surface_noise[1].type, "ridged_fbm");
     EXPECT_DOUBLE_EQ(scenario.planets[0].surface_noise[0].amplitude_m, 6.8);
-    EXPECT_DOUBLE_EQ(scenario.planets[0].surface_noise[1].amplitude_m, 0.35);
+    EXPECT_DOUBLE_EQ(scenario.planets[0].surface_noise[1].amplitude_m, 4.0);
     EXPECT_EQ(scenario.planets[0].terrain_lod.base_edge_segments, 3);
     EXPECT_EQ(scenario.planets[0].terrain_lod.max_edge_segments, 16);
     EXPECT_EQ(scenario.planets[0].terrain_lod.medium_edge_segments, 8);
@@ -162,7 +162,8 @@ TEST(ScenarioConfigTest, DevelopmentSceneUsesPlanetListAndTerrainSettings) {
     EXPECT_LT(scenario.planets[0].terrain_landscape.elevation_offset_m, 0.0);
     EXPECT_GT(scenario.planets[0].terrain_landscape.cliff_amplitude_m, 0.0);
     EXPECT_TRUE(scenario.planets[0].water.enabled);
-    EXPECT_DOUBLE_EQ(scenario.planets[0].water.level_m, 0.0);
+    EXPECT_DOUBLE_EQ(scenario.planets[0].water.level_m,
+        raw.data().at("planets").at(0).at("water").at("level_m").get<double>());
     EXPECT_DOUBLE_EQ(scenario.planets[0].water.opacity, 0.5);
     EXPECT_DOUBLE_EQ(scenario.planets[0].water.reflection_fraction, 0.5);
     EXPECT_DOUBLE_EQ(scenario.surface_camera.altitude *
@@ -229,6 +230,20 @@ TEST(ScenarioConfigTest, NoiseListKeepsLegacySeedWhenSeedIsOmitted) {
     ASSERT_EQ(scenario.planets.size(), 1u);
     ASSERT_EQ(scenario.planets[0].surface_noise.size(), 1u);
     EXPECT_EQ(scenario.planets[0].surface_noise[0].seed, 123);
+}
+
+TEST(ScenarioConfigTest, ExplicitRidgedSeedOverridesPlanetFallback) {
+    auto raw = R"({
+        "planets":[{"radius":0.1,"noise_seed":123,
+                    "surface_noise":[{"type":"ridged_fbm","amplitude_m":4.0,
+                                      "seed":75,"frequency":8.0}]}]
+    })"_json;
+    config::ScenarioConfig scenario(config::Config{std::move(raw)});
+    ASSERT_EQ(scenario.planets.size(), 1u);
+    ASSERT_EQ(scenario.planets[0].surface_noise.size(), 1u);
+    EXPECT_EQ(scenario.planets[0].surface_noise[0].type, "ridged_fbm");
+    EXPECT_EQ(scenario.planets[0].surface_noise[0].seed, 75);
+    EXPECT_DOUBLE_EQ(scenario.planets[0].surface_noise[0].amplitude_m, 4.0);
 }
 
 TEST(ScenarioConfigTest, RejectsInvalidLandscapeZonesAndWater) {

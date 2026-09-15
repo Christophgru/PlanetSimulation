@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <optional>
 #include <array>
+#include <future>
 #include <stdexcept>
 #include <vector>
 
@@ -84,7 +85,7 @@ void onKey(GLFWwindow* window, int key, int, int action, int) {
     } else if (key == GLFW_KEY_3) {
         input->selectPlanetOrbit();
     } else if (key == GLFW_KEY_ESCAPE) {
-        input->selectOrbit();
+        input->releaseCursor();
     }
 }
 
@@ -266,6 +267,8 @@ int main(int argc, char** argv) {
     bool surfaceRenderMode = false;
     bool planetRenderMode = false;
     std::string outputImagePath;
+    int renderTestWidth = 800;
+    int renderTestHeight = 600;
     
     // Parse command-line arguments
     for (int i = 1; i < argc; i++) {
@@ -280,6 +283,19 @@ int main(int argc, char** argv) {
             renderTestMode = true;
             planetRenderMode = true;
             outputImagePath = argv[++i];
+        } else if (std::string(argv[i]) == "--render-size" && i + 2 < argc) {
+            try {
+                renderTestWidth = std::stoi(argv[++i]);
+                renderTestHeight = std::stoi(argv[++i]);
+            } catch (const std::exception&) {
+                std::cerr << "--render-size needs integer width and height\n";
+                return 1;
+            }
+            if (renderTestWidth < 64 || renderTestHeight < 64 ||
+                renderTestWidth > 8192 || renderTestHeight > 8192) {
+                std::cerr << "--render-size must be between 64 and 8192 pixels\n";
+                return 1;
+            }
         }
     }
 
@@ -296,8 +312,8 @@ int main(int argc, char** argv) {
     glfwWindowHint(GLFW_SAMPLES, 4);
 
     // Create window (hidden for render-test mode)
-    int width = renderTestMode ? 800 : 1280;
-    int height = renderTestMode ? 600 : 720;
+    int width = renderTestMode ? renderTestWidth : 1280;
+    int height = renderTestMode ? renderTestHeight : 720;
     const char* windowTitle = renderTestMode ? "PlanetSimulation Render Test" : "PlanetSimulation";
     
     auto window = glfwCreateWindow(width, height, windowTitle, nullptr, nullptr);
@@ -338,7 +354,23 @@ int main(int argc, char** argv) {
         std::vector<glm::dvec3> lastEyeRadial(scenario.planets.size(), glm::dvec3(0.0));
         std::vector<std::array<int, 3>> meshZoneFaces(scenario.planets.size());
         std::vector<int> meshTriangles(scenario.planets.size(), 0);
-        auto preparePlanetMeshes = [&](const glm::dvec3& eye) {
+        struct PendingTerrainBuild {
+            std::future<rendering::TerrainGeometry> geometry;
+            glm::dvec3 eyeRadial{0.0};
+            int localMask = 0;
+        };
+        std::vector<PendingTerrainBuild> pendingTerrain(scenario.planets.size());
+        auto installLandMesh = [&](std::size_t index, rendering::TerrainGeometry geometry,
+                                   const glm::dvec3& radial, int localMask) {
+            meshZoneFaces[index] = geometry.zoneFaces;
+            meshTriangles[index] = geometry.triangleCount();
+            lastFaceZones[index] = geometry.faceZones;
+            planetMeshes[index].loadTerrain(std::move(geometry));
+            meshReady[index] = true;
+            lastLocalMask[index] = localMask;
+            lastEyeRadial[index] = radial;
+        };
+        auto preparePlanetMeshes = [&](const glm::dvec3& eye, bool asyncWalking = false) {
             for (std::size_t i = 0; i < scenario.planets.size(); ++i) {
                 const auto& planet = scenario.planets[i];
                 const glm::dvec3 center(planet.position[0], planet.position[1],
@@ -363,20 +395,36 @@ int main(int argc, char** argv) {
                     waterMeshReady[i] = true;
                 }
                 const int localMask = distance < 3.0 * planet.radius ? 1 : 0;
+                if (pendingTerrain[i].geometry.valid()) {
+                    if (pendingTerrain[i].geometry.wait_for(std::chrono::seconds(0)) !=
+                        std::future_status::ready) continue;
+                    installLandMesh(i, pendingTerrain[i].geometry.get(),
+                                    pendingTerrain[i].eyeRadial,
+                                    pendingTerrain[i].localMask);
+                }
                 const double movedMeters = meshReady[i] ? planet.radius *
                     scenario.metersPerWorldUnit() * std::acos(std::clamp(
                         glm::dot(radial, lastEyeRadial[i]), -1.0, 1.0)) : 0.0;
                 if (meshReady[i] && localMask == lastLocalMask[i] &&
                     (localMask == 0 || movedMeters < 10.0)) continue;
+                if (asyncWalking && meshReady[i] && localMask == lastLocalMask[i]) {
+                    // CPU noise/tessellation can take hundreds of milliseconds.
+                    // Keep drawing the current mesh while an immutable copy of
+                    // the terrain builds the next geometry off the render loop.
+                    auto surface = terrainSurfaces[i];
+                    auto zones = lastFaceZones[i];
+                    pendingTerrain[i].eyeRadial = radial;
+                    pendingTerrain[i].localMask = localMask;
+                    pendingTerrain[i].geometry = std::async(std::launch::async,
+                        [surface = std::move(surface), zones = std::move(zones),
+                         eye, center]() mutable {
+                            return surface.buildGeometryForEye(eye, center, &zones, 20.0);
+                        });
+                    continue;
+                }
                 auto geometry = terrainSurfaces[i].buildGeometryForEye(
                     eye, center, meshReady[i] ? &lastFaceZones[i] : nullptr, 20.0);
-                meshZoneFaces[i] = geometry.zoneFaces;
-                meshTriangles[i] = geometry.triangleCount();
-                lastFaceZones[i] = geometry.faceZones;
-                planetMeshes[i].loadTerrain(std::move(geometry));
-                meshReady[i] = true;
-                lastLocalMask[i] = localMask;
-                lastEyeRadial[i] = radial;
+                installLandMesh(i, std::move(geometry), radial, localMask);
             }
         };
         glm::dvec3 sunPosition = initial.sunPosition;
@@ -448,7 +496,7 @@ int main(int argc, char** argv) {
                           << scenario.surface_camera.walk_speed_mps << " m/s)";
             }
             if (planetOrbitCamera) std::cout << ", 3 for planet orbit";
-            std::cout << ". " << configPath
+            std::cout << ". Press Esc to release the surface cursor and 2 to capture it again. " << configPath
                       << " reloads on save; press R to reload manually."
                       << " Close the window to exit.\n";
         }
@@ -478,7 +526,9 @@ int main(int argc, char** argv) {
             const glm::dvec3 eyeWorld = surfaceRenderMode ? surfaceCamera->position() :
                                          planetRenderMode ? glm::dvec3(planetOrbitCamera->position) :
                                                             glm::dvec3(camera.position);
+            const auto meshStart = std::chrono::steady_clock::now();
             preparePlanetMeshes(eyeWorld);
+            const auto meshEnd = std::chrono::steady_clock::now();
             renderScene(scenario, view, fov, eyeWorld, shader, waterShader, g_mesh,
                         planetMeshes, waterMeshes, width, height,
                         surfaceRenderMode ? surfaceClip :
@@ -493,6 +543,12 @@ int main(int argc, char** argv) {
 
             // Call glFinish() before reading framebuffer
             glFinish();
+            const auto renderEnd = std::chrono::steady_clock::now();
+            std::cout << "Mesh preparation: "
+                      << std::chrono::duration<double, std::milli>(meshEnd - meshStart).count()
+                      << " ms; GPU-complete render: "
+                      << std::chrono::duration<double, std::milli>(renderEnd - meshEnd).count()
+                      << " ms\n";
             
             // Configure pixel packing for read
             glPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -586,7 +642,7 @@ int main(int argc, char** argv) {
             std::cout << "Render test completed successfully\n";
             std::cout << "Output image: " << outputImagePath << "\n";
         } else {
-            CameraMode cursorMode = CameraMode::Orbit;
+            bool cursorCaptured = false;
             SurfaceCameraTelemetry telemetry;
             double previousFrameTime = glfwGetTime();
             std::error_code watchError;
@@ -637,6 +693,7 @@ int main(int argc, char** argv) {
                         std::vector<glm::dvec3> nextEyeRadial(count, glm::dvec3(0.0));
                         std::vector<std::array<int, 3>> nextZoneFaces(count);
                         std::vector<int> nextTriangles(count, 0);
+                        std::vector<PendingTerrainBuild> nextPendingTerrain(count);
 
                         for (auto& mesh : planetMeshes) mesh.destroy();
                         for (auto& mesh : waterMeshes) mesh.destroy();
@@ -658,6 +715,7 @@ int main(int argc, char** argv) {
                         lastEyeRadial.swap(nextEyeRadial);
                         meshZoneFaces.swap(nextZoneFaces);
                         meshTriangles.swap(nextTriangles);
+                        pendingTerrain.swap(nextPendingTerrain);
                         cameraInput.rebind(surfaceCamera ? &*surfaceCamera : nullptr,
                                            planetOrbitCamera ? &*planetOrbitCamera : nullptr);
                         telemetry = SurfaceCameraTelemetry{};
@@ -679,11 +737,12 @@ int main(int argc, char** argv) {
                     glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS
                 };
                 cameraInput.update(keys, elapsedSeconds);
-                if (cameraInput.mode() != cursorMode) {
-                    cursorMode = cameraInput.mode();
+                const bool wantsCursorCapture = cameraInput.mode() == CameraMode::Surface &&
+                                                cameraInput.surfacePointerCaptured();
+                if (wantsCursorCapture != cursorCaptured) {
+                    cursorCaptured = wantsCursorCapture;
                     glfwSetInputMode(window, GLFW_CURSOR,
-                        cursorMode == CameraMode::Surface ? GLFW_CURSOR_DISABLED
-                                                          : GLFW_CURSOR_NORMAL);
+                        cursorCaptured ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
                     if (cameraInput.autoActivated()) {
                         std::cout << "Planet walking controls activated near the surface\n";
                     }
@@ -716,7 +775,7 @@ int main(int argc, char** argv) {
                               glm::length(surfaceCamera->position() - sunPosition),
                               scenario.sun.radius)
                         : onPlanetOrbit ? planetOrbitClip(eyeWorld) : rendering::ClipPlanes{};
-                    preparePlanetMeshes(eyeWorld);
+                    preparePlanetMeshes(eyeWorld, true);
                     renderScene(scenario, view, fov, eyeWorld, shader, waterShader,
                                 g_mesh, planetMeshes, waterMeshes,
                                 width, height,

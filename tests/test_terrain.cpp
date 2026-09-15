@@ -87,6 +87,47 @@ TEST(TerrainTest, OverlappingFunctionsAddTheirIndependentHeightFields) {
               ridgeOnly.heightAt(glm::dvec3(0.2, -0.4, 0.9)));
 }
 
+TEST(TerrainTest, RidgedSeedChangesTerrainElevationAndMeshPositions) {
+    config::PlanetConfig::SurfaceNoiseFunction ridges;
+    ridges.type = "ridged_fbm";
+    ridges.seed = 74;
+    ridges.amplitude_m = 4.0;
+    ridges.frequency = 8.0;
+    ridges.octaves = 3;
+    config::PlanetConfig::TerrainLod lod;
+    lod.max_edge_segments = 16;
+    const rendering::TerrainSurface first({ridges}, lod, 0.1, 1000.0);
+    ridges.seed = 75;
+    const rendering::TerrainSurface second({ridges}, lod, 0.1, 1000.0);
+
+    double largestHeightDifferenceMeters = 0.0;
+    for (int latitude = -80; latitude <= 80; latitude += 20)
+        for (int longitude = 0; longitude < 360; longitude += 30) {
+            const double lat = glm::radians(static_cast<double>(latitude));
+            const double lon = glm::radians(static_cast<double>(longitude));
+            const glm::dvec3 radial(std::cos(lat) * std::cos(lon),
+                                    std::cos(lat) * std::sin(lon), std::sin(lat));
+            largestHeightDifferenceMeters = std::max(largestHeightDifferenceMeters,
+                1000.0 * std::abs(first.heightAt(radial) - second.heightAt(radial)));
+        }
+    EXPECT_GT(largestHeightDifferenceMeters, 1.0);
+
+    const auto firstMesh = first.buildGeometry(3);
+    const auto secondMesh = second.buildGeometry(3);
+    ASSERT_EQ(firstMesh.indices, secondMesh.indices);
+    ASSERT_EQ(firstMesh.vertices.size(), secondMesh.vertices.size());
+    double largestVertexDifferenceMeters = 0.0;
+    for (std::size_t i = 0; i < firstMesh.vertices.size(); i += 9) {
+        const glm::dvec3 a(firstMesh.vertices[i], firstMesh.vertices[i + 1],
+                           firstMesh.vertices[i + 2]);
+        const glm::dvec3 b(secondMesh.vertices[i], secondMesh.vertices[i + 1],
+                           secondMesh.vertices[i + 2]);
+        largestVertexDifferenceMeters = std::max(largestVertexDifferenceMeters,
+                                                 1000.0 * glm::length(a - b));
+    }
+    EXPECT_GT(largestVertexDifferenceMeters, 1.0);
+}
+
 TEST(TerrainTest, RejectsInvalidDirectNoiseAndLodSettings) {
     config::PlanetConfig::SurfaceNoiseFunction function;
     function.amplitude_m = -1.0;
@@ -313,6 +354,24 @@ TEST(TerrainTest, ZoneHysteresisRetainsDetailWhenEyeCrossesABoundary) {
     EXPECT_LE(protectedMesh.triangleCount(), planet.terrain_lod.max_triangle_budget);
     EXPECT_THROW(terrain.buildGeometryForEye(movedEye, center,
         &first.faceZones, -1.0), std::invalid_argument);
+}
+
+TEST(TerrainTest, TerrainVerticesStayFixedWhenWalkingWithinTheSameZones) {
+    const auto scenario = config::ScenarioConfig(config::Config::load(
+        std::string(PLANET_SOURCE_DIR) + "/configs/scenarios/solar_system.json"));
+    const auto& planet = scenario.planets[0];
+    const rendering::TerrainSurface terrain(planet.surface_noise, planet.terrain_lod,
+        planet.radius, scenario.metersPerWorldUnit(), planet.terrain_landscape);
+    const glm::dvec3 center(planet.position[0], planet.position[1], planet.position[2]);
+    const glm::dvec3 eye = center + glm::dvec3(0.102, 0.0, 0.0);
+    const auto first = terrain.buildGeometryForEye(eye, center);
+    const auto moved = terrain.buildGeometryForEye(
+        eye + glm::dvec3(0.0, 0.00001, 0.0), center, &first.faceZones, 20.0);
+    ASSERT_EQ(first.faceZones, moved.faceZones);
+    ASSERT_EQ(first.indices, moved.indices);
+    ASSERT_EQ(first.vertices.size(), moved.vertices.size());
+    for (std::size_t i = 0; i < first.vertices.size(); ++i)
+        ASSERT_EQ(first.vertices[i], moved.vertices[i]) << "vertex component " << i;
 }
 
 TEST(TerrainTest, TriangleBudgetDowngradesDistantFineFaces) {

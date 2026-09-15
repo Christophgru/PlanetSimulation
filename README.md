@@ -91,15 +91,18 @@ button and `W`, `A`, `S`, `D` walk along the planet while maintaining clearance
 above ground or water at the configured `walk_speed_mps` (8 m/s in the
 development scene). Returning to planet orbit from the surface keeps the
 camera on the same side of the planet.
-The cursor is captured in surface mode; press `1`, `3`, or `Esc` to return to an
-orbit view and release it. Surface controls also activate automatically when
-either orbit camera comes within `1.1 × planet diameter` of the planet center.
+The cursor is captured in surface mode. Press `Esc` to release it while staying
+in mode `2`, so the config can be edited; press `2` again to resume mouse look.
+Press `1` or `3` to switch to an orbit view. Surface controls also activate
+automatically when either orbit camera comes within `1.1 × planet diameter`
+of the planet center.
 Local Down then points radially toward the planet. Close the window to exit.
 Saving `configs/scenarios/solar_system.json` reloads the Sun, planets, terrain,
 water, and camera starting values automatically after the file settles for
 about 0.1 s. Press `R` to request a manual reload at any time.
 The active view stays selected when it is still configured, and its position
-resets to the edited start value. An invalid or partly written JSON file is
+resets to the edited start value. A released surface cursor remains free after
+reload until `2` is pressed again. An invalid or partly written JSON file is
 reported on stderr and leaves the current scene running; press `R` again
 after fixing it. Shader files still require an application restart.
 
@@ -126,12 +129,14 @@ Each planet can configure `surface_noise` as a list of overlapping functions.
 Each function has a `type` (`value_fbm` for smooth hills or `ridged_fbm` for
 ridges), `seed`, `amplitude_m`, `frequency`, `octaves`, `persistence`, and
 `lacunarity`. The function heights add together. The development planet combines
-6.8 m smooth hills and 0.35 m ridges. `noise_seed` is only the fallback for
-`surface_noise` functions that omit `seed`; the development scene specifies a
+6.8 m smooth hills and 4 m ridged relief. Smaller amplitudes can be hard to
+see beside the 10–18 m broad terrain features and water. `noise_seed` is only
+the fallback for `surface_noise` functions that omit `seed`; the development scene specifies a
 seed on each function. `terrain_landscape` adds a broad continental height
 field, low-roughness plain regions, and ridge-weighted cliffs. Its own `seed`
-controls those large-scale shapes. Change `terrain_landscape.seed` for a
-noticeably different broad landscape, then press `R` to rebuild its mesh. The
+controls those large-scale shapes, including the broad cliff regions. Change
+`terrain_landscape.seed` for a noticeably different broad landscape; saving
+the config rebuilds the mesh automatically. The
 optional `enabled` switch, `elevation_offset_m`, `continent_amplitude_m`, `continent_frequency`,
 `plain_threshold`, `cliff_threshold`, `cliff_amplitude_m`, `cliff_frequency`,
 and `seed` control that shape. Areas below the water level form ocean basins.
@@ -144,12 +149,15 @@ zones. Its `near_surface_distance_m` and `mid_surface_distance_m` are distances
 along the planet from the camera's radial position. The development scene uses
 16 edge segments near the camera, 8 in the middle, and 3 far away;
 `max_edge_segments`, `medium_edge_segments`, and `base_edge_segments` configure
-those densities. Only the first, broad octave of each surface-noise function is
-evaluated far away. Finer octaves fade in through the middle zone and are fully
-evaluated nearby. Adjacent faces share the same boundary samples even when
-their densities differ, so the shell stays closed. The terrain mesh is rebuilt
+those densities. All vertices sample the same planet-fixed height function;
+nearby faces have more vertices and therefore resolve finer noise, while far
+faces sample it sparsely. The ground no longer changes height when the camera
+moves and the mesh is rebuilt. Adjacent faces share the same boundary samples
+even when their densities differ, so the shell stays closed. The terrain mesh is rebuilt
 after about 10 m of camera movement on the surface, keeping the faster walk
-from rebuilding it too often. The configurable
+from rebuilding it too often. Walking rebuilds the CPU geometry in the
+background and uploads it on the main thread when ready, so camera input and
+rendering continue during noise evaluation. The configurable
 `max_triangle_budget` caps the development terrain at 60,000 triangles per
 planet. The older `lod_near_diameters` and `lod_far_diameters` remain in the
 config for compatibility with earlier distance tests; the renderer uses the
@@ -159,8 +167,8 @@ moves away from a zone boundary, so walking back and forth does not repeatedly
 switch their tessellation.
 
 `water` sets `enabled`, `level_m`, `color`, `opacity`, and
-`reflection_fraction` for a translucent spherical sea. The development level
-is 0 m, with 50% opacity and a 50% mix of water color and reflected sky/Sun
+`reflection_fraction` for a translucent spherical sea. The development scene
+uses 50% opacity and a 50% mix of water color and reflected sky/Sun
 light. Opaque terrain hides water above its level and remains visible through
 water below it. The reflection currently samples sky colors and Sun direction;
 it does not reflect terrain or refract the scene. The water shell uses the same
@@ -192,6 +200,11 @@ Capture the initial planet-orbit view and confirm that the planet is visible:
 ~~~bash
 ./build/PlanetSimulation --planet-render-test build/planet-render-test.png
 ~~~
+
+For resolution diagnostics, append `--render-size WIDTH HEIGHT` to any render
+test command. The output reports mesh preparation and GPU-complete render time;
+the actual framebuffer dimensions are printed because a window manager may
+resize the hidden window.
 
 The saved surface view looks across water toward flatter land and cliffs. The
 surface render test checks for a visible configured body. The orbit

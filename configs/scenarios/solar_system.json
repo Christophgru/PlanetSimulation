@@ -16,18 +16,18 @@
             {
                 "description":"low freq noise responsible for continents",
                 "type": "value_fbm",
-                "seed": 2,
+                "seed": 90,
                 "amplitude_m": 6.8,
-                "frequency": 5.0,
+                "frequency": 3.0,
                 "octaves": 4,
                 "persistence": 0.5,
                 "lacunarity": 2.0
             },
             {
-                "description":"high freq noise responsible for mountain chains",
+                "description":"fine ridge relief; broad cliff regions use terrain_landscape.seed",
                 "type": "ridged_fbm",
-                "seed": 771,
-                "amplitude_m": 0.35,
+                "seed": 74,
+                "amplitude_m": 4.0,
                 "frequency": 8.0,
                 "octaves": 3,
                 "persistence": 0.45,
@@ -37,7 +37,7 @@
         "terrain_lod": {
             "base_edge_segments": 3,
             "medium_edge_segments": 8,
-            "max_edge_segments": 16,
+            "max_edge_segments": 18,
             "near_surface_distance_m": 30.0,
             "mid_surface_distance_m": 100.0,
             "max_triangle_budget": 60000,
@@ -46,7 +46,7 @@
         },
         "terrain_landscape": {
             "elevation_offset_m": -1.5,
-            "continent_amplitude_m": 12.0,
+            "continent_amplitude_m": 10.0,
             "continent_frequency": 1.6,
             "plain_threshold": 0.48,
             "cliff_threshold": 0.62,
@@ -56,7 +56,7 @@
         },
         "water": {
             "enabled": true,
-            "level_m": 0.0,
+            "level_m": -0.5,
             "opacity": 0.5,
             "reflection_fraction": 0.5,
             "color": [0.06, 0.31, 0.56]
