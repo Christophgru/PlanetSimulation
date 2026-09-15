@@ -102,9 +102,9 @@ Each planet can configure `surface_noise` as a list of overlapping functions.
 Each function has a `type` (`value_fbm` for smooth hills or `ridged_fbm` for
 ridges), `seed`, `amplitude_m`, `frequency`, `octaves`, `persistence`, and
 `lacunarity`. The function heights add together. The development planet combines
-0.8 m smooth hills and 0.35 m ridges. Its triangles are tinted darker at lower
-elevations and lighter at higher elevations; this is a color effect without
-lighting.
+0.8 m smooth hills and 0.35 m ridges. Lower elevations are darker and higher
+ones lighter. Color is sampled at mesh vertices and blended across triangles,
+so triangle outlines do not appear; this is a color effect without lighting.
 
 Mesh detail rises as the camera approaches the planet. `terrain_lod` configures
 `base_edge_segments`, `max_edge_segments`, `lod_near_diameters`, and
@@ -127,7 +127,7 @@ Capture the configured surface camera view and confirm a configured body is visi
 ./build/PlanetSimulation --surface-render-test build/surface-render-test.png
 ~~~
 
-The saved surface view looks across the faceted planet with the Sun above its
+The saved surface view looks across the smoothly colored planet with the Sun above its
 horizon. The surface render test checks for a visible configured body. The orbit
 render test checks that both bodies are visible and separate.
 

@@ -13,7 +13,8 @@
 namespace rendering {
 
 // Positions and colors are interleaved as position, face normal, color factor.
-// Each face owns its three vertices so its height tint is constant across it.
+// Faces own vertices, but shared corners receive the same sampled height tint;
+// the shader interpolates those tints across the triangle boundaries.
 struct TerrainGeometry {
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
@@ -210,13 +211,13 @@ private:
         const glm::dvec3& pb = b.position;
         const glm::dvec3& pc = c.position;
         const glm::dvec3 normal = glm::normalize(glm::cross(pb - pa, pc - pa));
-        const double normalizedHeight = totalAmplitudeMeters_ == 0.0 ? 0.0 :
-            (a.height + b.height + c.height) /
-            (3.0 * totalAmplitudeMeters_ / metersPerUnit_);
-        const float tint = static_cast<float>(0.72 + 0.45 * normalizedHeight);
         const unsigned int start = static_cast<unsigned int>(geometry.indices.size());
-        for (const glm::dvec3& position : {pa, pb, pc}) {
-            for (double component : {position.x, position.y, position.z})
+        for (const GridSample* sample : {&a, &b, &c}) {
+            const double normalizedHeight = totalAmplitudeMeters_ == 0.0 ? 0.0 :
+                sample->height / (totalAmplitudeMeters_ / metersPerUnit_);
+            const float tint = static_cast<float>(0.72 + 0.45 * normalizedHeight);
+            for (double component : {sample->position.x, sample->position.y,
+                                     sample->position.z})
                 geometry.vertices.push_back(static_cast<float>(component));
             for (double component : {normal.x, normal.y, normal.z})
                 geometry.vertices.push_back(static_cast<float>(component));

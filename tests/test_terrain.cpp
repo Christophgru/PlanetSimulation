@@ -118,13 +118,14 @@ TEST(TerrainTest, LodGetsDenserNearCameraAndRemainsCapped) {
     for (int level = 1; level <= 16; ++level) EXPECT_TRUE(observed[level]);
 }
 
-TEST(TerrainTest, TrianglesCarrySampledHeightsOutwardNormalsAndFlatElevationTint) {
+TEST(TerrainTest, TrianglesCarrySampledHeightsAndSmoothSharedCornerTint) {
     const auto terrain = makeTerrain();
     const auto geometry = terrain.buildGeometry(3);
     double lowest = 1e9;
     double highest = -1e9;
     float lowTint = 0.0f;
     float highTint = 0.0f;
+    int gradientFaces = 0;
     for (int face = 0; face < geometry.triangleCount(); ++face) {
         const int first = face * 3;
         const glm::dvec3 a = vertex(geometry, first);
@@ -132,7 +133,8 @@ TEST(TerrainTest, TrianglesCarrySampledHeightsOutwardNormalsAndFlatElevationTint
         const glm::dvec3 c = vertex(geometry, first + 2);
         const glm::dvec3 normal = glm::normalize(glm::cross(b - a, c - a));
         EXPECT_GT(glm::dot(normal, a + b + c), 0.0);
-        double elevation = 0.0;
+        float firstTint = 0.0f;
+        float greatestTintDifference = 0.0f;
         for (int corner = 0; corner < 3; ++corner) {
             const int index = first + corner;
             const auto point = vertex(geometry, index);
@@ -146,15 +148,22 @@ TEST(TerrainTest, TrianglesCarrySampledHeightsOutwardNormalsAndFlatElevationTint
             for (int channel = 7; channel <= 8; ++channel)
                 EXPECT_FLOAT_EQ(geometry.vertices[offset + channel],
                                 geometry.vertices[offset + 6]);
-            EXPECT_FLOAT_EQ(geometry.vertices[offset + 6],
-                            geometry.vertices[static_cast<std::size_t>(first) * 9 + 6]);
-            elevation += sampled;
+            const float tint = geometry.vertices[offset + 6];
+            EXPECT_NEAR(tint, 0.72 + 0.45 * sampled / 0.001, 1e-5);
+            if (corner == 0) firstTint = tint;
+            else greatestTintDifference = std::max(greatestTintDifference,
+                                                   std::abs(tint - firstTint));
+            if (sampled < lowest) { lowest = sampled; lowTint = tint; }
+            if (sampled > highest) { highest = sampled; highTint = tint; }
         }
-        elevation /= 3.0;
-        const float tint = geometry.vertices[static_cast<std::size_t>(first) * 9 + 6];
-        if (elevation < lowest) { lowest = elevation; lowTint = tint; }
-        if (elevation > highest) { highest = elevation; highTint = tint; }
+        if (greatestTintDifference > 1e-5f) ++gradientFaces;
     }
+    EXPECT_GT(gradientFaces, 0);
+    // Neighboring faces duplicate vertices, but their shared-edge tints agree.
+    EXPECT_NEAR(glm::length(vertex(geometry, 1) - vertex(geometry, 3)), 0.0, 1e-12);
+    EXPECT_NEAR(glm::length(vertex(geometry, 2) - vertex(geometry, 5)), 0.0, 1e-12);
+    EXPECT_FLOAT_EQ(geometry.vertices[1 * 9 + 6], geometry.vertices[3 * 9 + 6]);
+    EXPECT_FLOAT_EQ(geometry.vertices[2 * 9 + 6], geometry.vertices[5 * 9 + 6]);
     EXPECT_LT(lowest, highest);
     EXPECT_LT(lowTint, highTint);
     EXPECT_LT(lowTint, 0.72f);
