@@ -27,6 +27,42 @@ struct SunConfig {
         if (col_array.size() >= 3) {
             color = {col_array[0], col_array[1], col_array[2]};
         }
+        if (position.size() != 3 ||
+            !std::all_of(position.begin(), position.end(), [](double v) { return std::isfinite(v); }) ||
+            !std::isfinite(radius) || radius <= 0.0 || color.size() != 3 ||
+            !std::all_of(color.begin(), color.end(), [](double v) {
+                return std::isfinite(v) && v >= 0.0 && v <= 1.0;
+            }))
+            throw std::invalid_argument("Invalid Sun position, radius or color");
+    }
+};
+
+struct OrbitViewConfig {
+    std::array<double, 3> position{12.0, 0.0, 0.5};
+    std::array<double, 3> target{0.0, 0.0, 0.0};
+    double fov = 60.0;
+
+    OrbitViewConfig() = default;
+    explicit OrbitViewConfig(const config::Config& cfg) {
+        auto readVector = [&cfg](const char* key, std::array<double, 3>& value) {
+            if (!cfg.data().contains(key)) return;
+            const auto& raw = cfg.data().at(key);
+            if (!raw.is_array() || raw.size() != 3 ||
+                !std::all_of(raw.begin(), raw.end(), [](const auto& element) {
+                    return element.is_number() && std::isfinite(element.template get<double>());
+                })) {
+                throw std::invalid_argument(std::string("camera.") + key +
+                                            " must be a finite 3-vector");
+            }
+            for (int i = 0; i < 3; ++i) value[i] = raw[i].get<double>();
+        };
+        readVector("position", position);
+        readVector("target", target);
+        fov = cfg.getDouble("fov", fov);
+        if (!std::isfinite(fov) || fov <= 0.0 || fov >= 180.0 ||
+            std::hypot(position[0] - target[0], position[1] - target[1],
+                       position[2] - target[2]) <= 1e-12)
+            throw std::invalid_argument("Invalid camera position, target or field of view");
     }
 };
 
@@ -78,7 +114,8 @@ struct PlanetConfig {
         explicit TerrainLod(const config::Config& cfg) {
             base_edge_segments = cfg.getInt("base_edge_segments", base_edge_segments);
             max_edge_segments = cfg.getInt("max_edge_segments", max_edge_segments);
-            medium_edge_segments = cfg.getInt("medium_edge_segments", medium_edge_segments);
+            medium_edge_segments = cfg.getInt("medium_edge_segments",
+                std::max(base_edge_segments, std::min(medium_edge_segments, max_edge_segments)));
             near_surface_distance_m = cfg.getDouble("near_surface_distance_m", near_surface_distance_m);
             mid_surface_distance_m = cfg.getDouble("mid_surface_distance_m", mid_surface_distance_m);
             max_triangle_budget = cfg.getInt("max_triangle_budget", max_triangle_budget);
@@ -120,7 +157,7 @@ struct PlanetConfig {
 
         TerrainLandscape() = default;
         explicit TerrainLandscape(const config::Config& cfg) {
-            enabled = true;
+            enabled = cfg.getBool("enabled", true);
             elevation_offset_m = cfg.getDouble("elevation_offset_m", elevation_offset_m);
             continent_amplitude_m = cfg.getDouble("continent_amplitude_m", continent_amplitude_m);
             continent_frequency = cfg.getDouble("continent_frequency", continent_frequency);
@@ -230,9 +267,13 @@ struct PlanetConfig {
             if (!raw.is_object()) throw std::invalid_argument("planet.water must be an object");
             water = Water(config::Config{nlohmann::json(raw)});
         }
-        if (!std::isfinite(radius) || radius <= 0.0) {
-            throw std::invalid_argument("Planet radius must be positive and finite");
-        }
+        if (position.size() != 3 ||
+            !std::all_of(position.begin(), position.end(), [](double v) { return std::isfinite(v); }) ||
+            !std::isfinite(radius) || radius <= 0.0 || color.size() != 3 ||
+            !std::all_of(color.begin(), color.end(), [](double v) {
+                return std::isfinite(v) && v >= 0.0 && v <= 1.0;
+            }))
+            throw std::invalid_argument("Invalid planet position, radius or color");
         atmosphere_enabled = cfg.getBool("atmosphere_enabled", atmosphere_enabled);
         atmosphere_height = cfg.getDouble("atmosphere_height", atmosphere_height);
     }
@@ -246,6 +287,7 @@ struct SurfaceCameraConfig {
     double longitude_deg = 180.0;
     double altitude = 0.2;
     double fov = 60.0;
+    double walk_speed_mps = 8.0;
     std::optional<std::array<double, 3>> direction_ned;
     std::optional<std::array<double, 3>> up_ned;
 
@@ -258,6 +300,7 @@ struct SurfaceCameraConfig {
         longitude_deg = cfg.getDouble("longitude_deg", longitude_deg);
         altitude = cfg.getDouble("altitude", altitude);
         fov = cfg.getDouble("fov", fov);
+        walk_speed_mps = cfg.getDouble("walk_speed_mps", walk_speed_mps);
         auto parseNedVector = [&cfg](const char* key) {
             const auto& raw = cfg.data().at(key);
             if (!raw.is_array() || raw.size() != 3 ||
@@ -303,6 +346,7 @@ struct ScenarioConfig {
     std::string name = "Unnamed";
     std::string distance_unit = "km";
     SunConfig sun;
+    OrbitViewConfig camera;
     std::vector<PlanetConfig> planets;
     SurfaceCameraConfig surface_camera;
     
@@ -322,6 +366,17 @@ struct ScenarioConfig {
             // Copy the json value first, then move it to Config constructor
             config::Config sun_cfg{std::move(nlohmann::json(*sun_it))};
             sun = SunConfig(sun_cfg);
+        }
+
+        for (int i = 0; i < 3; ++i) {
+            camera.position[i] += sun.position[i];
+            camera.target[i] = sun.position[i];
+        }
+        auto camera_it = raw_data.find("camera");
+        if (camera_it != raw_data.end()) {
+            if (!camera_it->is_object())
+                throw std::invalid_argument("camera must be an object");
+            camera = OrbitViewConfig(config::Config{nlohmann::json(*camera_it)});
         }
         
         // Check for "planets" array first, then fall back to single "planet" object
@@ -372,7 +427,10 @@ struct ScenarioConfig {
                 !std::isfinite(surface_camera.longitude_deg) ||
                 !std::isfinite(surface_camera.altitude) || surface_camera.altitude < 0.0 ||
                 !std::isfinite(surface_camera.fov) ||
-                surface_camera.fov <= 0.0 || surface_camera.fov >= 180.0) {
+                surface_camera.fov <= 0.0 || surface_camera.fov >= 180.0 ||
+                !std::isfinite(surface_camera.walk_speed_mps) ||
+                surface_camera.walk_speed_mps <= 0.0 ||
+                surface_camera.walk_speed_mps > 100.0) {
                 throw std::invalid_argument("Invalid surface_camera reference frame or coordinates");
             }
         }

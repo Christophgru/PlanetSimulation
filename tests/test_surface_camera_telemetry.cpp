@@ -91,6 +91,7 @@ TEST(SurfaceCameraTelemetryTest, PrintedPositionAndDirectionAreValidJsonNumbers)
     EXPECT_DOUBLE_EQ(direction[2].get<double>(), camera.direction().z);
     EXPECT_EQ(config, snapshot->startConfig);
     EXPECT_TRUE(config.contains("up_ned"));
+    EXPECT_DOUBLE_EQ(config.at("walk_speed_mps").get<double>(), settings.walk_speed_mps);
 }
 
 TEST(SurfaceCameraTelemetryTest, LabelsPlanetPositionInDegreesAndMeters) {
@@ -132,6 +133,7 @@ TEST(SurfaceCameraTelemetryTest, ConfigSnippetRestoresWalkedAndTurnedCamera) {
     ASSERT_TRUE(restoredConfig.surface_camera.direction_ned);
     ASSERT_TRUE(restoredConfig.surface_camera.up_ned);
     const auto& start = restoredConfig.surface_camera;
+    EXPECT_DOUBLE_EQ(start.walk_speed_mps, settings.walk_speed_mps);
     PlanetSurfaceCamera restored(frame,
         {start.latitude_deg, start.longitude_deg, start.altitude},
         {0.0, 0.0, 0.0}, start.fov);

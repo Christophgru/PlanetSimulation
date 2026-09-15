@@ -15,7 +15,7 @@
         "surface_noise": [
             {
                 "type": "value_fbm",
-                "seed": 42,
+                "seed": 0,
                 "amplitude_m": 0.8,
                 "frequency": 3.0,
                 "octaves": 4,
@@ -73,6 +73,7 @@
         "latitude_deg": -21.409888069265286,
         "longitude_deg": 82.26311950013215024,
         "altitude": 0.002,
+        "walk_speed_mps": 8.0,
         "direction_ned": [0.0595365512313363,0.9937565852932968,0.09435702546013867],
         "fov": 80.0
     }

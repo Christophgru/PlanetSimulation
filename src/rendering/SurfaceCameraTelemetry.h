@@ -67,6 +67,7 @@ public:
                     {"latitude_deg", location.latitudeDeg},
                     {"longitude_deg", location.longitudeDeg},
                     {"altitude", camera.configuredClearance()},
+                    {"walk_speed_mps", settings.walk_speed_mps},
                     {"direction_ned", nlohmann::json::array(
                         {nedDirection.x, nedDirection.y, nedDirection.z})},
                     {"up_ned", nlohmann::json::array(

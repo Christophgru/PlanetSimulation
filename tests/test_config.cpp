@@ -167,6 +167,7 @@ TEST(ScenarioConfigTest, DevelopmentSceneUsesPlanetListAndTerrainSettings) {
     EXPECT_DOUBLE_EQ(scenario.planets[0].water.reflection_fraction, 0.5);
     EXPECT_DOUBLE_EQ(scenario.surface_camera.altitude *
                      scenario.metersPerWorldUnit(), 2.0);
+    EXPECT_DOUBLE_EQ(scenario.surface_camera.walk_speed_mps, 8.0);
 }
 
 TEST(ScenarioConfigTest, SurfaceCameraCanSelectSecondPlanetFromList) {
@@ -428,6 +429,27 @@ TEST(ScenarioConfigTest, LoadsTheDevelopmentSunAndPlanetFromDisk) {
                      scenario.metersPerWorldUnit(), 2.0);
     EXPECT_GT(scenario.sun.color[0], scenario.sun.color[2]);
     EXPECT_GT(scenario.planets[0].color[2], scenario.planets[0].color[0]);
+    EXPECT_EQ(scenario.camera.position, (std::array<double, 3>{12.0, 0.0, 0.5}));
+    EXPECT_EQ(scenario.camera.target, (std::array<double, 3>{0.0, 0.0, 0.0}));
+    EXPECT_DOUBLE_EQ(scenario.camera.fov, 60.0);
+}
+
+TEST(ScenarioConfigTest, ReloadableOrbitViewReadsCameraEditsAndRejectsBadValues) {
+    nlohmann::json raw = nlohmann::json::parse(R"({
+        "sun":{"position":[1,2,3]},
+        "camera":{"position":[15,2,3],"target":[1,2,3],"fov":75}
+    })");
+    const config::ScenarioConfig changed(config::Config{nlohmann::json(raw)});
+    EXPECT_EQ(changed.camera.position, (std::array<double, 3>{15, 2, 3}));
+    EXPECT_EQ(changed.camera.target, (std::array<double, 3>{1, 2, 3}));
+    EXPECT_DOUBLE_EQ(changed.camera.fov, 75.0);
+    raw["camera"]["position"] = {1, 2, 3};
+    EXPECT_THROW(config::ScenarioConfig(config::Config{nlohmann::json(raw)}),
+                 std::invalid_argument);
+    raw["camera"]["position"] = {15, 2, 3};
+    raw["camera"]["fov"] = 180;
+    EXPECT_THROW(config::ScenarioConfig(config::Config{nlohmann::json(raw)}),
+                 std::invalid_argument);
 }
 
 TEST(ScenarioConfigTest, DistanceUnitAcceptsMetersAndRejectsUnknownUnits) {
@@ -470,6 +492,8 @@ TEST(ScenarioConfigTest, RejectsUnknownOrUnattachedSurfaceFrames) {
              R"({"planet_index":1})",
              R"({"latitude_deg":91})",
              R"({"altitude":-1})",
+             R"({"walk_speed_mps":0})",
+             R"({"walk_speed_mps":101})",
              R"({"fov":180})"}) {
         nlohmann::json raw = nlohmann::json::parse(R"({"planet":{"radius":0.5}})");
         raw["surface_camera"] = nlohmann::json::parse(surface);

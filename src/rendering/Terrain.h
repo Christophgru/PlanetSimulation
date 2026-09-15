@@ -63,10 +63,16 @@ public:
     // blended in across the middle zone so neighboring zones meet exactly.
     double heightForView(const glm::dvec3& radial, const glm::dvec3& eyeRadial,
                          bool localView) const {
-        const glm::dvec3 direction = glm::normalize(radial);
+        const double radialLength = glm::length(radial);
+        const double eyeLength = glm::length(eyeRadial);
+        if (!std::isfinite(radialLength) || radialLength <= 0.0 ||
+            !std::isfinite(eyeLength) || eyeLength <= 0.0)
+            throw std::invalid_argument("Terrain view sample needs finite directions");
+        const glm::dvec3 direction = radial / radialLength;
         if (!localView) return heightMeters(direction, 0.0) / metersPerUnit_;
+        const glm::dvec3 eyeDirection = eyeRadial / eyeLength;
         const double arcMeters = radius_ * metersPerUnit_ * std::acos(
-            std::clamp(glm::dot(direction, eyeRadial), -1.0, 1.0));
+            std::clamp(glm::dot(direction, eyeDirection), -1.0, 1.0));
         const double weight = 1.0 - smoothstep(lod_.near_surface_distance_m,
                                              lod_.mid_surface_distance_m, arcMeters);
         return heightMeters(direction, weight) / metersPerUnit_;
@@ -192,7 +198,7 @@ public:
         const double cameraDistance = glm::length(offset);
         if (!std::isfinite(cameraDistance) || cameraDistance <= 0.0)
             throw std::invalid_argument("Terrain eye must be outside the planet center");
-        const bool localView = cameraDistance < 1.5 * radius_;
+        const bool localView = cameraDistance < 3.0 * radius_;
         const glm::dvec3 eyeRadial = offset / cameraDistance;
 
         std::vector<BaseFace> faces = baseFaces();

@@ -71,3 +71,5 @@ add_test(NAME RenderSceneIntegration COMMAND PlanetSimulation --render-test ${CM
 set_tests_properties(RenderSceneIntegration PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 add_test(NAME SurfaceRenderIntegration COMMAND PlanetSimulation --surface-render-test ${CMAKE_BINARY_DIR}/surface-render-test.png)
 set_tests_properties(SurfaceRenderIntegration PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+add_test(NAME PlanetOrbitRenderIntegration COMMAND PlanetSimulation --planet-render-test ${CMAKE_BINARY_DIR}/planet-render-test.png)
+set_tests_properties(PlanetOrbitRenderIntegration PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})

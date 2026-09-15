@@ -40,6 +40,29 @@ TEST(TerrainTest, NoiseIsDeterministicContinuousAndBoundedByAmplitude) {
     EXPECT_THROW(a.heightAt(glm::dvec3(0)), std::invalid_argument);
 }
 
+TEST(TerrainTest, LandscapeSeedChangesBroadTerrainEvenWithFixedSurfaceNoiseSeeds) {
+    config::PlanetConfig::TerrainLandscape first;
+    first.enabled = true;
+    first.continent_amplitude_m = 12.0;
+    first.cliff_amplitude_m = 18.0;
+    first.seed = 1001;
+    auto second = first;
+    second.seed = 2002;
+    config::PlanetConfig::SurfaceNoiseFunction detail;
+    detail.amplitude_m = 0.8;
+    detail.seed = 771;
+    const config::PlanetConfig::TerrainLod lod;
+    const rendering::TerrainSurface a({detail}, lod, 0.1, 1000.0, first);
+    const rendering::TerrainSurface b({detail}, lod, 0.1, 1000.0, second);
+    double largestDifferenceMeters = 0.0;
+    for (const auto& radial : {glm::dvec3(1, 0, 0), glm::dvec3(0.2, 0.8, 0.5),
+                               glm::dvec3(-0.6, 0.1, 0.7)}) {
+        largestDifferenceMeters = std::max(largestDifferenceMeters,
+            1000.0 * std::abs(a.heightAt(radial) - b.heightAt(radial)));
+    }
+    EXPECT_GT(largestDifferenceMeters, 1.0);
+}
+
 TEST(TerrainTest, OverlappingFunctionsAddTheirIndependentHeightFields) {
     config::PlanetConfig::SurfaceNoiseFunction hills;
     hills.amplitude_m = 0.8;
@@ -222,9 +245,13 @@ TEST(TerrainTest, LocalZonesAreDenserWatertightAndStayWithinBudget) {
         planet.radius, scenario.metersPerWorldUnit(), planet.terrain_landscape);
     const glm::dvec3 center(planet.position[0], planet.position[1], planet.position[2]);
     const auto distant = terrain.buildGeometryForEye(center + glm::dvec3(2, 0, 0), center);
+    const auto orbit = terrain.buildGeometryForEye(center + glm::dvec3(0.28, 0, 0), center);
     const auto nearby = terrain.buildGeometryForEye(center + glm::dvec3(0.102, 0, 0), center);
     EXPECT_EQ(distant.zoneFaces, (std::array<int, 3>{320, 0, 0}));
     EXPECT_EQ(distant.fineNoiseSamples, 0);
+    EXPECT_GT(orbit.zoneFaces[2], 0);
+    EXPECT_GT(orbit.fineNoiseSamples, 0);
+    EXPECT_LE(orbit.triangleCount(), planet.terrain_lod.max_triangle_budget);
     EXPECT_GT(nearby.zoneFaces[1], 0);
     EXPECT_GT(nearby.zoneFaces[2], 0);
     EXPECT_GT(nearby.fineNoiseSamples, 0);
@@ -245,6 +272,10 @@ TEST(TerrainTest, LocalZonesAreDenserWatertightAndStayWithinBudget) {
         const Position corners[3] = {position(nearby.indices[i]),
                                      position(nearby.indices[i + 1]),
                                      position(nearby.indices[i + 2])};
+        const glm::dvec3 a = vertex(nearby, nearby.indices[i]);
+        const glm::dvec3 b = vertex(nearby, nearby.indices[i + 1]);
+        const glm::dvec3 c = vertex(nearby, nearby.indices[i + 2]);
+        EXPECT_GT(glm::dot(glm::cross(b - a, c - a), a + b + c), 0.0);
         for (int side = 0; side < 3; ++side) {
             const auto& a = corners[side];
             const auto& b = corners[(side + 1) % 3];
@@ -253,4 +284,70 @@ TEST(TerrainTest, LocalZonesAreDenserWatertightAndStayWithinBudget) {
     }
     for (const auto& [edge, occurrences] : edges)
         EXPECT_EQ(occurrences, 2) << "Open or overlapping terrain edge";
+}
+
+TEST(TerrainTest, TriangleBudgetDowngradesDistantFineFaces) {
+    config::PlanetConfig::TerrainLod lod;
+    lod.base_edge_segments = 3;
+    lod.medium_edge_segments = 8;
+    lod.max_edge_segments = 16;
+    lod.near_surface_distance_m = 1000.0;
+    lod.mid_surface_distance_m = 1100.0;
+    lod.max_triangle_budget = 10000;
+    const rendering::TerrainSurface terrain({}, lod, 0.1, 1000.0);
+    const auto geometry = terrain.buildGeometryForEye(
+        glm::dvec3(10.102, 0, 0), glm::dvec3(10, 0, 0));
+    EXPECT_LE(geometry.triangleCount(), 10000);
+    EXPECT_GT(geometry.zoneFaces[0], 0);
+    EXPECT_GT(geometry.zoneFaces[2], 0);
+    EXPECT_EQ(geometry.zoneFaces[0] + geometry.zoneFaces[1] +
+              geometry.zoneFaces[2], 320);
+}
+
+TEST(TerrainTest, SteepNearbyMeshDoesNotRiseThroughTwoMeterEyeAtFaceCenters) {
+    const auto scenario = config::ScenarioConfig(config::Config::load(
+        std::string(PLANET_SOURCE_DIR) + "/configs/scenarios/solar_system.json"));
+    const auto& planet = scenario.planets[0];
+    const rendering::TerrainSurface terrain(planet.surface_noise, planet.terrain_lod,
+        planet.radius, scenario.metersPerWorldUnit(), planet.terrain_landscape);
+    glm::dvec3 cliffRadial(0.0);
+    for (int latitude = -75; latitude <= 75 && glm::length(cliffRadial) == 0.0;
+         latitude += 10) {
+        for (int longitude = 0; longitude < 360; longitude += 10) {
+            const double lat = glm::radians(static_cast<double>(latitude));
+            const double lon = glm::radians(static_cast<double>(longitude));
+            const glm::dvec3 radial(std::cos(lat) * std::cos(lon),
+                                    std::cos(lat) * std::sin(lon), std::sin(lat));
+            if (terrain.regionCliffWeight(radial) > 0.8 &&
+                terrain.heightAt(radial) > 0.005) {
+                cliffRadial = radial;
+                break;
+            }
+        }
+    }
+    ASSERT_GT(glm::length(cliffRadial), 0.0);
+    const glm::dvec3 center(planet.position[0], planet.position[1], planet.position[2]);
+    const glm::dvec3 eye = center +
+        (planet.radius + terrain.heightAt(cliffRadial) + 0.002) * cliffRadial;
+    const auto geometry = terrain.buildGeometryForEye(eye, center);
+    double maximumMeshExcessMeters = -1e9;
+    int closeFaces = 0;
+    for (std::size_t i = 0; i < geometry.indices.size(); i += 3) {
+        const glm::dvec3 midpoint = (vertex(geometry, geometry.indices[i]) +
+                                     vertex(geometry, geometry.indices[i + 1]) +
+                                     vertex(geometry, geometry.indices[i + 2])) / 3.0;
+        const glm::dvec3 radial = glm::normalize(midpoint);
+        const double arcMeters = planet.radius * scenario.metersPerWorldUnit() *
+            std::acos(std::clamp(glm::dot(radial, cliffRadial), -1.0, 1.0));
+        if (arcMeters > 10.0) continue;
+        ++closeFaces;
+        const double meshHeightMeters = (glm::length(midpoint) - 1.0) *
+            planet.radius * scenario.metersPerWorldUnit();
+        const double sampledHeightMeters = terrain.heightAt(radial) *
+            scenario.metersPerWorldUnit();
+        maximumMeshExcessMeters = std::max(maximumMeshExcessMeters,
+            meshHeightMeters - sampledHeightMeters);
+    }
+    ASSERT_GT(closeFaces, 0);
+    EXPECT_LE(maximumMeshExcessMeters, 2.0);
 }

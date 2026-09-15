@@ -48,12 +48,12 @@ TEST(SceneTransformsTest, CurrentSunAndPlanetCentersAreVisibleAndSeparate) {
     EXPECT_GT(glm::abs(planetNdc.x - sunNdc.x), 0.1f);
 }
 
-TEST(SceneTransformsTest, SurfaceProjectionKeepsOneMeterNearAndSunFar) {
+TEST(SceneTransformsTest, SurfaceProjectionUsesLocalClearanceForNearAndKeepsSunFar) {
     const rendering::ClipPlanes clip = rendering::surfaceClipPlanes(0.002, 10.0, 0.5);
-    EXPECT_FLOAT_EQ(clip.nearPlane, 0.001f);
+    EXPECT_FLOAT_EQ(clip.nearPlane, 0.0002f);
     EXPECT_FLOAT_EQ(clip.farPlane, 21.0f);
     const glm::mat4 projection = rendering::perspectiveProjection(60.0f, 4.0f / 3.0f, clip);
-    const glm::vec4 nearClip = projection * glm::vec4(0.0f, 0.0f, -0.001f, 1.0f);
+    const glm::vec4 nearClip = projection * glm::vec4(0.0f, 0.0f, -clip.nearPlane, 1.0f);
     const glm::vec4 farClip = projection * glm::vec4(0.0f, 0.0f, -21.0f, 1.0f);
     EXPECT_NEAR(nearClip.z / nearClip.w, -1.0f, 1e-3f);
     EXPECT_NEAR(farClip.z / farClip.w, 1.0f, 1e-3f);

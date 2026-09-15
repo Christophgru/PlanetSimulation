@@ -4,6 +4,22 @@
 #include "rendering/PlanetSurfaceCamera.h"
 #include "rendering/SceneTransforms.h"
 
+TEST(PlanetSurfaceCameraTest, ElevatedGroundUsesTwoMeterClearanceForClipping) {
+    config::PlanetConfig::TerrainLandscape landscape;
+    landscape.enabled = true;
+    landscape.elevation_offset_m = 12.0;
+    config::PlanetConfig::TerrainLod lod;
+    const rendering::TerrainSurface terrain({}, lod, 0.1, 1000.0, landscape);
+    PlanetSurfaceCamera camera({{10.0, 0.0, 0.0}, 0.1},
+                               {0.0, 180.0, 0.002}, {0.0, 0.0, 0.0}, 60.0);
+    camera.mountTerrain(terrain, 0.002);
+    ASSERT_NEAR(camera.location().altitude, 0.014, 1e-10);
+    EXPECT_NEAR(camera.groundClearance(), 0.002, 1e-10);
+    const auto clip = rendering::surfaceClipPlanes(
+        camera.configuredClearance(), glm::length(camera.position()), 0.5);
+    EXPECT_FLOAT_EQ(clip.nearPlane, 0.0002f); // 0.2 m, not 1.4 m from sphere altitude.
+}
+
 TEST(PlanetSurfaceCameraTest, MountedPositionLooksAtTheSunWithNorthUp) {
     coordinates::PlanetLocalFrame frame({5.0, 0.0, 0.0}, 0.5);
     PlanetSurfaceCamera camera(frame, {0.0, 180.0, 0.2}, {0.0, 0.0, 0.0}, 60.0);
