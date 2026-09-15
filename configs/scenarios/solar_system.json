@@ -8,7 +8,7 @@
     "planet": {
         "position": [5.0, 0, 0],
         "orbit_radius": 5.0,
-        "orbit_speed": 0.02,
+        "orbit_speed": 2,
         "radius": 0.5,
         "color": [0.2, 0.4, 1.0],
         "noise_seed": 42,
@@ -23,9 +23,11 @@
     "surface_camera": {
         "reference_frame": "planet_spherical_ned",
         "planet_index": 0,
-        "latitude_deg": 0.0,
-        "longitude_deg": 180.0,
+        "latitude_deg": -55.409888069265286,
+        "longitude_deg": 0.26311950013215024,
         "altitude": 0.2,
+        "direction_ned": [-0.6495635178288472, 0.10826727994651274, 0.752559255074839],
+        "up_ned": [-0.7423186360379745, 0.12372742214043676, -0.658524538344019],
         "fov": 60.0
     }
 }

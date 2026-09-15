@@ -103,8 +103,8 @@ The surface camera is configured in `configs/scenarios/solar_system.json`.
 Its `planet_spherical_ned` reference frame follows the selected planet's center:
 latitude is measured from its equator toward +Z, longitude from +X toward +Y,
 and altitude outward from its spherical radius. North, East, and Down form the
-local orientation frame. The current development coordinates (latitude 0°,
-longitude 180°, altitude 0.2) place the camera on the Sun-facing side.
+local orientation frame. The development start view is saved with latitude,
+longitude, altitude, `direction_ned`, and `up_ned` in that config file.
 
 The render test hides its GLFW window but still needs a display. On a Linux
 machine without one, install `xvfb` and run:
