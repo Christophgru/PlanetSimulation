@@ -144,3 +144,24 @@ TEST(SurfaceCameraTelemetryTest, ConfigSnippetRestoresWalkedAndTurnedCamera) {
     EXPECT_NEAR(glm::length(restored.up() - original.up()), 0.0, 1e-10);
     EXPECT_FLOAT_EQ(restored.fov(), original.fov());
 }
+
+TEST(SurfaceCameraTelemetryTest, TerrainSnapshotReportsSphereAltitudeAndTwoMeterClearance) {
+    config::PlanetConfig::SurfaceNoise noise;
+    noise.amplitude_m = 1.0;
+    rendering::TerrainSurface terrain(noise, 0.025, 1000.0);
+    PlanetSurfaceCamera camera({{10.0, 0.0, 0.0}, 0.025},
+                               {-22.4, 67.26, 0.002}, {0.0, 0.0, 0.0},
+                               60.0, 0.002);
+    camera.mountTerrain(terrain, 0.002);
+    config::SurfaceCameraConfig settings;
+    SurfaceCameraTelemetry telemetry;
+    const auto snapshot = telemetry.sample(true, 0.0, camera, settings);
+    ASSERT_TRUE(snapshot);
+    EXPECT_NEAR(snapshot->planetPosition.altitude,
+                terrain.heightAt(-camera.down()) + 0.002, 1e-10);
+    EXPECT_DOUBLE_EQ(snapshot->startConfig.at("altitude").get<double>(), 0.002);
+    const auto output = snapshot->format();
+    EXPECT_NE(output.find("above reference sphere"), std::string::npos);
+    EXPECT_NE(output.find("Surface camera ground clearance: 2.0 m"),
+              std::string::npos);
+}

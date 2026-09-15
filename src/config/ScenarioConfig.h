@@ -30,12 +30,52 @@ struct SunConfig {
 };
 
 struct PlanetConfig {
+    struct SurfaceNoise {
+        double amplitude_m = 0.0;
+        double frequency = 4.0;
+        int octaves = 4;
+        double persistence = 0.5;
+        double lacunarity = 2.0;
+        int seed = 42;
+        int base_subdivisions = 2;
+        int max_subdivisions = 5;
+        double lod_near_diameters = 2.0;
+        double lod_far_diameters = 8.0;
+
+        explicit SurfaceNoise(const config::Config& cfg) {
+            amplitude_m = cfg.getDouble("amplitude_m", amplitude_m);
+            frequency = cfg.getDouble("frequency", frequency);
+            octaves = cfg.getInt("octaves", octaves);
+            persistence = cfg.getDouble("persistence", persistence);
+            lacunarity = cfg.getDouble("lacunarity", lacunarity);
+            seed = cfg.getInt("seed", seed);
+            base_subdivisions = cfg.getInt("base_subdivisions", base_subdivisions);
+            max_subdivisions = cfg.getInt("max_subdivisions", max_subdivisions);
+            lod_near_diameters = cfg.getDouble("lod_near_diameters", lod_near_diameters);
+            lod_far_diameters = cfg.getDouble("lod_far_diameters", lod_far_diameters);
+            if (!std::isfinite(amplitude_m) || amplitude_m < 0.0 ||
+                !std::isfinite(frequency) || frequency <= 0.0 || frequency > 64.0 ||
+                octaves < 1 || octaves > 6 ||
+                !std::isfinite(persistence) || persistence <= 0.0 || persistence > 1.0 ||
+                !std::isfinite(lacunarity) || lacunarity < 1.0 || lacunarity > 4.0 ||
+                base_subdivisions < 0 || max_subdivisions < base_subdivisions ||
+                max_subdivisions > 5 ||
+                !std::isfinite(lod_near_diameters) || lod_near_diameters <= 0.0 ||
+                !std::isfinite(lod_far_diameters) ||
+                lod_far_diameters <= lod_near_diameters) {
+                throw std::invalid_argument("Invalid planet.surface_noise parameters");
+            }
+        }
+        SurfaceNoise() = default;
+    };
+
     std::vector<double> position = {0.0, 0.0, 0.0};
     double orbit_radius = 5.0;
     double orbit_speed = 0.02;
     double radius = 1.5;
     std::vector<double> color = {0.3, 0.6, 0.9};
     int noise_seed = 42;
+    SurfaceNoise surface_noise;
     bool atmosphere_enabled = false;
     double atmosphere_height = 0.3;
     
@@ -53,6 +93,17 @@ struct PlanetConfig {
             color = {col_array[0], col_array[1], col_array[2]};
         }
         noise_seed = cfg.getInt("noise_seed", noise_seed);
+        surface_noise.seed = noise_seed;
+        if (cfg.data().contains("surface_noise")) {
+            const auto& raw = cfg.data().at("surface_noise");
+            if (!raw.is_object()) {
+                throw std::invalid_argument("planet.surface_noise must be an object");
+            }
+            surface_noise = SurfaceNoise(config::Config{nlohmann::json(raw)});
+        }
+        if (!std::isfinite(radius) || radius <= 0.0) {
+            throw std::invalid_argument("Planet radius must be positive and finite");
+        }
         atmosphere_enabled = cfg.getBool("atmosphere_enabled", atmosphere_enabled);
         atmosphere_height = cfg.getDouble("atmosphere_height", atmosphere_height);
     }
@@ -160,6 +211,13 @@ struct ScenarioConfig {
                 // Copy the json value first, then move it to Config constructor
                 config::Config planet_cfg{std::move(nlohmann::json(*planet_it))};
                 planets.emplace_back(planet_cfg);
+            }
+        }
+
+        for (const auto& planet : planets) {
+            if (planet.surface_noise.amplitude_m >=
+                planet.radius * metersPerWorldUnit()) {
+                throw std::invalid_argument("Planet radius must exceed terrain height");
             }
         }
 

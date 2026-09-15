@@ -19,6 +19,7 @@
 #include "config/Config.h"
 #include "config/ScenarioConfig.h"
 #include "rendering/Mesh.h"
+#include "rendering/Terrain.h"
 #include "rendering/CameraInput.h"
 #include "rendering/OrbitCamera.h"
 #include "rendering/PlanetSurfaceCamera.h"
@@ -67,11 +68,12 @@ void onKey(GLFWwindow* window, int key, int, int action, int) {
     }
 }
 
-// Global mesh for sun/planets
+// The Sun retains its existing sphere mesh; planets use terrain triangles.
 Mesh g_mesh;
 
 void renderScene(const config::ScenarioConfig& scenario, const glm::mat4& view, float fov,
-                 const Shader& shader, const Mesh& mesh, int width, int height,
+                 const Shader& shader, const Mesh& sunMesh,
+                 const std::vector<Mesh>& planetMeshes, int width, int height,
                  rendering::ClipPlanes clip = {}) {
     glViewport(0, 0, width, height);
     glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
@@ -94,9 +96,10 @@ void renderScene(const config::ScenarioConfig& scenario, const glm::mat4& view, 
     shader.setFloat3("uColor", static_cast<float>(sun.color[0]),
                      static_cast<float>(sun.color[1]),
                      static_cast<float>(sun.color[2]));
-    mesh.draw();
+    sunMesh.draw();
 
-    for (const auto& planet : scenario.planets) {
+    for (std::size_t i = 0; i < scenario.planets.size(); ++i) {
+        const auto& planet = scenario.planets[i];
         const float radius = static_cast<float>(planet.radius);
         glm::mat4 model = rendering::sphereModel(glm::vec3(
             static_cast<float>(planet.position[0]),
@@ -106,7 +109,7 @@ void renderScene(const config::ScenarioConfig& scenario, const glm::mat4& view, 
         shader.setFloat3("uColor", static_cast<float>(planet.color[0]),
                          static_cast<float>(planet.color[1]),
                          static_cast<float>(planet.color[2]));
-        mesh.draw();
+        planetMeshes[i].draw();
     }
 }
 
@@ -172,6 +175,26 @@ int main(int argc, char** argv) {
     try {
         config::Config cfg = config::Config::load(configPath);
         config::ScenarioConfig scenario(cfg);
+        std::vector<rendering::TerrainSurface> terrainSurfaces;
+        terrainSurfaces.reserve(scenario.planets.size());
+        for (const auto& planet : scenario.planets) {
+            terrainSurfaces.emplace_back(planet.surface_noise, planet.radius,
+                                         scenario.metersPerWorldUnit());
+        }
+        std::vector<Mesh> planetMeshes(scenario.planets.size());
+        std::vector<int> planetMeshLevels(scenario.planets.size(), -1);
+        auto preparePlanetMeshes = [&](const glm::dvec3& eye) {
+            for (std::size_t i = 0; i < scenario.planets.size(); ++i) {
+                const auto& planet = scenario.planets[i];
+                const glm::dvec3 center(planet.position[0], planet.position[1],
+                                        planet.position[2]);
+                const int level = terrainSurfaces[i].lodLevel(glm::length(eye - center));
+                if (level != planetMeshLevels[i]) {
+                    planetMeshes[i].loadTerrain(terrainSurfaces[i].buildGeometry(level));
+                    planetMeshLevels[i] = level;
+                }
+            }
+        };
         const glm::dvec3 sunPosition(scenario.sun.position[0],
                                      scenario.sun.position[1],
                                      scenario.sun.position[2]);
@@ -196,6 +219,8 @@ int main(int argc, char** argv) {
                 glm::dvec3(scenario.sun.position[0], scenario.sun.position[1],
                            scenario.sun.position[2]), settings.fov,
                 2.0 / scenario.metersPerWorldUnit());
+            surfaceCamera->mountTerrain(terrainSurfaces[settings.planet_index],
+                                        settings.altitude);
             if (settings.direction_ned) {
                 const auto& saved = *settings.direction_ned;
                 std::optional<glm::dvec3> savedUp;
@@ -218,7 +243,7 @@ int main(int argc, char** argv) {
                 scenario.sun.radius);
         }
         
-        // Generate sphere mesh (will be used for sun and all planets)
+        // Keep the working Sun sphere geometry.
         g_mesh.generateSphere(32);
         
         std::cout << "PlanetSimulation v0.1 initialized\n";
@@ -273,7 +298,9 @@ int main(int argc, char** argv) {
             const glm::mat4 view = surfaceRenderMode ? surfaceCamera->getViewMatrix()
                                                      : camera.getViewMatrix();
             const float fov = surfaceRenderMode ? surfaceCamera->fov() : camera.fov;
-            renderScene(scenario, view, fov, shader, g_mesh, width, height,
+            preparePlanetMeshes(surfaceRenderMode ? surfaceCamera->position()
+                                                  : glm::dvec3(camera.position));
+            renderScene(scenario, view, fov, shader, g_mesh, planetMeshes, width, height,
                         surfaceRenderMode ? surfaceClip : rendering::ClipPlanes{});
 
             // Call glFinish() before reading framebuffer
@@ -403,7 +430,10 @@ int main(int argc, char** argv) {
                               glm::length(surfaceCamera->position() - sunPosition),
                               scenario.sun.radius)
                         : rendering::ClipPlanes{};
-                    renderScene(scenario, view, fov, shader, g_mesh, width, height,
+                    preparePlanetMeshes(onSurface ? surfaceCamera->position()
+                                                  : glm::dvec3(camera.position));
+                    renderScene(scenario, view, fov, shader, g_mesh, planetMeshes,
+                                width, height,
                                 clip);
                     glfwSwapBuffers(window);
                 }
@@ -412,9 +442,8 @@ int main(int argc, char** argv) {
         }
 
         // Cleanup
-        if (g_mesh.vao != 0) glDeleteVertexArrays(1, &g_mesh.vao);
-        if (g_mesh.vbo != 0) glDeleteBuffers(1, &g_mesh.vbo);
-        if (g_mesh.ebo != 0) glDeleteBuffers(1, &g_mesh.ebo);
+        g_mesh.destroy();
+        for (auto& planetMesh : planetMeshes) planetMesh.destroy();
         
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << "\n";

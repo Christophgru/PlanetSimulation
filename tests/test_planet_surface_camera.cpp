@@ -192,3 +192,36 @@ TEST(PlanetSurfaceCameraTest, TwoMeterPerSecondWalkOnFiftyMeterPlanet) {
     EXPECT_NEAR(camera.location().altitude * 1000.0, 2.0, 1e-10);
     EXPECT_DOUBLE_EQ(camera.walkSpeed() * 1000.0, 2.0);
 }
+
+TEST(PlanetSurfaceCameraTest, TerrainMountAndWalkingKeepTwoMetersAboveSampledGround) {
+    config::PlanetConfig::SurfaceNoise noise;
+    noise.amplitude_m = 1.0;
+    rendering::TerrainSurface terrain(noise, 0.025, 1000.0);
+    PlanetSurfaceCamera camera({{10.0, 0.0, 0.0}, 0.025},
+                               {-22.4, 67.26, 0.002}, {0.0, 0.0, 0.0},
+                               60.0, 0.002);
+    camera.mountTerrain(terrain, 0.002);
+    const double firstAltitude = camera.location().altitude;
+    EXPECT_NEAR(camera.groundClearance() * 1000.0, 2.0, 1e-9);
+    EXPECT_NEAR(glm::length(camera.position() - camera.frame().center()),
+                0.025 + firstAltitude, 1e-10);
+    camera.walk(1, 0, 1.0);
+    EXPECT_NE(camera.location().altitude, firstAltitude);
+    EXPECT_NEAR(camera.groundClearance() * 1000.0, 2.0, 1e-9);
+    EXPECT_NEAR(camera.location().altitude,
+                terrain.heightAt(-camera.down()) + 0.002, 1e-10);
+}
+
+TEST(PlanetSurfaceCameraTest, EnteringSurfaceModeSnapsToTerrainClearance) {
+    config::PlanetConfig::SurfaceNoise noise;
+    noise.amplitude_m = 1.0;
+    rendering::TerrainSurface terrain(noise, 0.025, 1000.0);
+    PlanetSurfaceCamera camera({{10.0, 0.0, 0.0}, 0.025},
+                               {0.0, 180.0, 0.002}, {0.0, 0.0, 0.0},
+                               60.0, 0.002);
+    camera.mountTerrain(terrain, 0.002);
+    camera.enterFromWorld({10.0, 0.0, 0.01}, {0.0, 0.0, 0.0});
+    EXPECT_NEAR(camera.location().latitudeDeg, 90.0, 1e-10);
+    EXPECT_NEAR(camera.groundClearance() * 1000.0, 2.0, 1e-9);
+    EXPECT_GT(glm::length(camera.position() - camera.frame().center()), 0.025);
+}

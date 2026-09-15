@@ -30,7 +30,10 @@ struct SurfaceCameraSnapshot {
                nlohmann::json(planetPosition.longitudeDeg).dump() +
                " deg, altitude=" +
                nlohmann::json(planetPosition.altitude * metersPerWorldUnit).dump() +
-               " m\n" +
+               " m above reference sphere\n" +
+               "Surface camera ground clearance: " +
+               nlohmann::json(startConfig.at("altitude").get<double>() *
+                              metersPerWorldUnit).dump() + " m\n" +
                "surface_camera start value: " + startConfig.dump() + "\n";
     }
 };
@@ -63,7 +66,8 @@ public:
                     {"planet_index", settings.planet_index},
                     {"latitude_deg", location.latitudeDeg},
                     {"longitude_deg", location.longitudeDeg},
-                    {"altitude", location.altitude},
+                    {"altitude", camera.hasTerrain() ? camera.groundClearance()
+                                                      : location.altitude},
                     {"direction_ned", nlohmann::json::array(
                         {nedDirection.x, nedDirection.y, nedDirection.z})},
                     {"up_ned", nlohmann::json::array(

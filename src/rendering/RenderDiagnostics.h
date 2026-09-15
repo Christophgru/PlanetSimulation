@@ -55,6 +55,23 @@ inline bool matchesColor(const std::vector<unsigned char>& pixels, std::size_t i
     return true;
 }
 
+inline bool matchesTerrainTint(const std::vector<unsigned char>& pixels,
+                               std::size_t index,
+                               const std::vector<double>& color) {
+    if (color.size() < 3 || color[2] <= 0.0 || color[1] <= 0.0) return false;
+    const double factor = pixels[index + 2] < 250 ?
+        pixels[index + 2] / (255.0 * color[2]) :
+        pixels[index + 1] / (255.0 * color[1]);
+    if (factor < 0.2 || factor > 1.3) return false;
+    for (int channel = 0; channel < 3; ++channel) {
+        const int expected = static_cast<int>(std::lround(
+            std::clamp(color[channel] * factor, 0.0, 1.0) * 255.0));
+        if (std::abs(static_cast<int>(pixels[index + channel]) - expected) > 8)
+            return false;
+    }
+    return true;
+}
+
 inline FrameAnalysis analyzeFrame(const std::vector<unsigned char>& rgba,
                                   int width, int height,
                                   const std::vector<double>& sunColor,
@@ -75,7 +92,8 @@ inline FrameAnalysis analyzeFrame(const std::vector<unsigned char>& rgba,
 
             analysis.drawn.include(x, y);
             if (matchesColor(rgba, index, sunColor)) analysis.sun.include(x, y);
-            if (matchesColor(rgba, index, planetColor)) analysis.planet.include(x, y);
+            if (matchesColor(rgba, index, planetColor) ||
+                matchesTerrainTint(rgba, index, planetColor)) analysis.planet.include(x, y);
         }
     }
     return analysis;

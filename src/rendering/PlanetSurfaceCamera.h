@@ -8,6 +8,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "coordinates/PlanetLocalFrame.h"
+#include "rendering/Terrain.h"
 
 class PlanetSurfaceCamera {
 public:
@@ -89,7 +90,7 @@ public:
         updateUp(up_);
     }
 
-    // WASD moves along a spherical arc and keeps the current altitude.
+    // WASD follows the sphere and resamples terrain at the new location.
     void walk(int forwardAxis, int rightAxis, double elapsedSeconds) {
         if (!std::isfinite(elapsedSeconds) || elapsedSeconds <= 0.0 ||
             (forwardAxis == 0 && rightAxis == 0)) return;
@@ -109,7 +110,8 @@ public:
         const double altitude = location_.altitude;
         location_ = frame_.fromWorld(frame_.center() + distance * nextRadial);
         location_.altitude = altitude;
-        position_ = frame_.toWorld(location_);
+        if (terrain_) resampleTerrainHeight();
+        else position_ = frame_.toWorld(location_);
         updateDirectionFromAngles();
         updateUp(up_);
     }
@@ -124,11 +126,34 @@ public:
         const glm::dvec3 offset = worldPosition - frame_.center();
         if (glm::length(offset) > 1e-12) {
             location_ = frame_.fromWorld(worldPosition);
-            location_.altitude = std::max(location_.altitude,
-                                          frame_.radius() * kMinimumEyeHeightFraction);
-            position_ = frame_.toWorld(location_);
+            if (terrain_) resampleTerrainHeight();
+            else {
+                location_.altitude = std::max(location_.altitude,
+                                              frame_.radius() * kMinimumEyeHeightFraction);
+                position_ = frame_.toWorld(location_);
+            }
         }
         aimAt(lookTarget);
+    }
+
+    // The configured altitude becomes clearance above the sampled terrain
+    // when terrain is mounted. LLA altitude remains relative to the sphere.
+    void mountTerrain(const rendering::TerrainSurface& terrain,
+                      double clearanceWorld) {
+        if (!std::isfinite(clearanceWorld) || clearanceWorld <= 0.0) {
+            throw std::invalid_argument("Surface camera clearance must be positive");
+        }
+        terrain_ = terrain;
+        clearance_ = clearanceWorld;
+        resampleTerrainHeight();
+        aimAt(sunPosition_);
+    }
+
+    bool hasTerrain() const { return terrain_.has_value(); }
+    double groundClearance() const {
+        if (!terrain_) return location_.altitude;
+        return location_.altitude - terrain_->heightAt(
+            glm::normalize(position_ - frame_.center()));
     }
 
     const coordinates::PlanetLocalFrame& frame() const { return frame_; }
@@ -158,6 +183,12 @@ private:
         direction_ = glm::normalize(offset);
         updateAnglesFromDirection();
         updateUp(frame_.nedAt(location_).north);
+    }
+
+    void resampleTerrainHeight() {
+        const glm::dvec3 radial = -frame_.nedAt(location_).down;
+        location_.altitude = terrain_->heightAt(radial) + clearance_;
+        position_ = frame_.toWorld(location_);
     }
 
     void updateAnglesFromDirection() {
@@ -211,4 +242,6 @@ private:
     double pitch_ = 0.0;
     double walkSpeed_;
     float fov_;
+    std::optional<rendering::TerrainSurface> terrain_;
+    double clearance_ = 0.0;
 };

@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <vector>
 #include <GL/glew.h>
+#include "rendering/Terrain.h"
 
 class Mesh {
 public:
@@ -13,6 +14,7 @@ public:
     GLuint ebo = 0;
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
+    bool hasVertexColors = false;
     
     Mesh() = default;
     
@@ -35,6 +37,7 @@ public:
         if (segments < 3) throw std::invalid_argument("Sphere needs at least 3 segments");
         vertices.clear();
         indices.clear();
+        hasVertexColors = false;
         
         // Generate sphere with proper triangle indices
         for (int lat = 0; lat <= segments; lat++) {
@@ -74,11 +77,22 @@ public:
 
     void generateSphere(int segments) {
         buildSphereGeometry(segments);
+        upload();
+    }
 
-        // Upload to GPU
-        glGenVertexArrays(1, &vao);
-        glGenBuffers(1, &vbo);
-        glGenBuffers(1, &ebo);
+    void loadTerrain(rendering::TerrainGeometry geometry) {
+        vertices = std::move(geometry.vertices);
+        indices = std::move(geometry.indices);
+        hasVertexColors = true;
+        upload();
+    }
+
+    void upload() {
+        if (vao == 0) glGenVertexArrays(1, &vao);
+        if (vbo == 0) glGenBuffers(1, &vbo);
+        if (ebo == 0) glGenBuffers(1, &ebo);
+
+        const int stride = hasVertexColors ? 9 : 6;
         
         glBindVertexArray(vao);
         
@@ -91,13 +105,21 @@ public:
                      indices.data(), GL_STATIC_DRAW);
         
         // Position attribute (location 0)
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)0);
         glEnableVertexAttribArray(0);
         
         // Normal attribute (location 1)
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), 
                              (void*)(3 * sizeof(float)));
         glEnableVertexAttribArray(1);
+
+        if (hasVertexColors) {
+            glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float),
+                                  (void*)(6 * sizeof(float)));
+            glEnableVertexAttribArray(2);
+        } else {
+            glDisableVertexAttribArray(2);
+        }
         
         glBindVertexArray(0);
     }
@@ -109,18 +131,17 @@ public:
         }
         
         glBindVertexArray(vao);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-        
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-        glEnableVertexAttribArray(0);
-        
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 
-                             (void*)(3 * sizeof(float)));
-        glEnableVertexAttribArray(1);
+        if (!hasVertexColors) glVertexAttrib3f(2, 1.0f, 1.0f, 1.0f);
         
         glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, 0);
         
         glBindVertexArray(0);
+    }
+
+    void destroy() {
+        if (vao != 0) glDeleteVertexArrays(1, &vao);
+        if (vbo != 0) glDeleteBuffers(1, &vbo);
+        if (ebo != 0) glDeleteBuffers(1, &ebo);
+        vao = vbo = ebo = 0;
     }
 };

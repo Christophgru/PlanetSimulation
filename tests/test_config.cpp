@@ -138,6 +138,40 @@ TEST(ScenarioConfigTest, ParseMultiplePlanets) {
     EXPECT_EQ(scenario.planets.size(), 2u);
 }
 
+TEST(ScenarioConfigTest, DevelopmentSceneUsesPlanetListAndTerrainSettings) {
+    const auto path = std::string(PLANET_SOURCE_DIR) +
+                      "/configs/scenarios/solar_system.json";
+    const auto raw = config::Config::load(path);
+    EXPECT_TRUE(raw.data().contains("planets"));
+    EXPECT_FALSE(raw.data().contains("planet"));
+    config::ScenarioConfig scenario(raw);
+    ASSERT_EQ(scenario.planets.size(), 1u);
+    EXPECT_EQ(scenario.surface_camera.planet_index, 0);
+    EXPECT_DOUBLE_EQ(scenario.planets[0].surface_noise.amplitude_m, 1.0);
+    EXPECT_EQ(scenario.planets[0].surface_noise.max_subdivisions, 5);
+    EXPECT_DOUBLE_EQ(scenario.surface_camera.altitude *
+                     scenario.metersPerWorldUnit(), 2.0);
+}
+
+TEST(ScenarioConfigTest, RejectsUnboundedOrPhysicallyInvalidTerrainSettings) {
+    auto raw = R"({
+        "distance_unit":"km",
+        "planets":[{"radius":0.025,"surface_noise":{"amplitude_m":1.0}}]
+    })"_json;
+    auto parse = [&] {
+        config::Config cfg{nlohmann::json(raw)};
+        config::ScenarioConfig scenario(cfg);
+    };
+    raw["planets"][0]["surface_noise"]["max_subdivisions"] = 6;
+    EXPECT_THROW(parse(), std::invalid_argument);
+    raw["planets"][0]["surface_noise"]["max_subdivisions"] = 5;
+    raw["planets"][0]["surface_noise"]["frequency"] = 0.0;
+    EXPECT_THROW(parse(), std::invalid_argument);
+    raw["planets"][0]["surface_noise"]["frequency"] = 4.0;
+    raw["planets"][0]["surface_noise"]["amplitude_m"] = 25.0;
+    EXPECT_THROW(parse(), std::invalid_argument);
+}
+
 TEST(ScenarioConfigTest, DefaultValues) {
     nlohmann::json json = R"({
         "scenario_name": "Minimal",

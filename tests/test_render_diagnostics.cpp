@@ -95,3 +95,14 @@ TEST(RenderDiagnosticsTest, ShortColorArrayCannotBeMistakenForABody) {
     EXPECT_EQ(result.drawn.count, 1);
     EXPECT_EQ(result.sun.count, 0);
 }
+
+TEST(RenderDiagnosticsTest, DetectsDarkAndLightTerrainPixelsAsPlanetColored) {
+    auto rgba = backgroundFrame();
+    paint(rgba, 1, 1, 26, 51, 128);   // Half-strength blue terrain.
+    paint(rgba, 2, 1, 61, 122, 255);  // Light terrain, blue clamped to 255.
+    paint(rgba, 3, 1, 100, 100, 100); // Unrelated gray.
+    const auto result = rendering::analyzeFrame(rgba, kWidth, kHeight,
+                                                kSunColor, kPlanetColor);
+    EXPECT_EQ(result.planet.count, 2);
+    EXPECT_EQ(result.sun.count, 0);
+}
