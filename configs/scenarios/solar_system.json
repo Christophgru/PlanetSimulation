@@ -14,19 +14,21 @@
         "color": [0.2, 0.4, 1.0],
         "surface_noise": [
             {
+                "description":"low freq noise responsible for continents",
                 "type": "value_fbm",
-                "seed": 0,
-                "amplitude_m": 0.8,
+                "seed": 2,
+                "amplitude_m": 6.8,
                 "frequency": 3.0,
                 "octaves": 4,
                 "persistence": 0.5,
                 "lacunarity": 2.0
             },
             {
+                "description":"high freq noise responsible for mountain chains",
                 "type": "ridged_fbm",
                 "seed": 771,
                 "amplitude_m": 0.35,
-                "frequency": 18.0,
+                "frequency": 8.0,
                 "octaves": 3,
                 "persistence": 0.45,
                 "lacunarity": 2.0
