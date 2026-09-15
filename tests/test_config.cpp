@@ -154,6 +154,17 @@ TEST(ScenarioConfigTest, DevelopmentSceneUsesPlanetListAndTerrainSettings) {
     EXPECT_DOUBLE_EQ(scenario.planets[0].surface_noise[1].amplitude_m, 0.35);
     EXPECT_EQ(scenario.planets[0].terrain_lod.base_edge_segments, 3);
     EXPECT_EQ(scenario.planets[0].terrain_lod.max_edge_segments, 16);
+    EXPECT_EQ(scenario.planets[0].terrain_lod.medium_edge_segments, 8);
+    EXPECT_DOUBLE_EQ(scenario.planets[0].terrain_lod.near_surface_distance_m, 30.0);
+    EXPECT_DOUBLE_EQ(scenario.planets[0].terrain_lod.mid_surface_distance_m, 100.0);
+    EXPECT_EQ(scenario.planets[0].terrain_lod.max_triangle_budget, 60000);
+    EXPECT_TRUE(scenario.planets[0].terrain_landscape.enabled);
+    EXPECT_LT(scenario.planets[0].terrain_landscape.elevation_offset_m, 0.0);
+    EXPECT_GT(scenario.planets[0].terrain_landscape.cliff_amplitude_m, 0.0);
+    EXPECT_TRUE(scenario.planets[0].water.enabled);
+    EXPECT_DOUBLE_EQ(scenario.planets[0].water.level_m, 0.0);
+    EXPECT_DOUBLE_EQ(scenario.planets[0].water.opacity, 0.5);
+    EXPECT_DOUBLE_EQ(scenario.planets[0].water.reflection_fraction, 0.5);
     EXPECT_DOUBLE_EQ(scenario.surface_camera.altitude *
                      scenario.metersPerWorldUnit(), 2.0);
 }
@@ -217,6 +228,36 @@ TEST(ScenarioConfigTest, NoiseListKeepsLegacySeedWhenSeedIsOmitted) {
     ASSERT_EQ(scenario.planets.size(), 1u);
     ASSERT_EQ(scenario.planets[0].surface_noise.size(), 1u);
     EXPECT_EQ(scenario.planets[0].surface_noise[0].seed, 123);
+}
+
+TEST(ScenarioConfigTest, RejectsInvalidLandscapeZonesAndWater) {
+    auto raw = R"({"planet":{"radius":0.1,
+        "terrain_lod":{"base_edge_segments":3,"medium_edge_segments":8,
+                       "near_surface_distance_m":30,"mid_surface_distance_m":100},
+        "terrain_landscape":{"continent_amplitude_m":12,"cliff_amplitude_m":18},
+        "water":{"level_m":0,"opacity":0.5,"reflection_fraction":0.5}}})"_json;
+    auto parse = [&] { return config::ScenarioConfig(config::Config{nlohmann::json(raw)}); };
+    EXPECT_NO_THROW(parse());
+    raw["planet"]["terrain_lod"]["mid_surface_distance_m"] = 20;
+    EXPECT_THROW(parse(), std::invalid_argument);
+    raw["planet"]["terrain_lod"]["mid_surface_distance_m"] = 100;
+    raw["planet"]["terrain_lod"]["max_triangle_budget"] = 1000;
+    EXPECT_THROW(parse(), std::invalid_argument);
+    raw["planet"]["terrain_lod"]["max_triangle_budget"] = 60000;
+    raw["planet"]["terrain_landscape"]["cliff_threshold"] = 0.3;
+    EXPECT_THROW(parse(), std::invalid_argument);
+    raw["planet"]["terrain_landscape"]["cliff_threshold"] = 0.62;
+    raw["planet"]["terrain_landscape"]["cliff_amplitude_m"] = 100;
+    EXPECT_THROW(parse(), std::invalid_argument);
+    raw["planet"]["terrain_landscape"]["cliff_amplitude_m"] = 18;
+    raw["planet"]["water"]["opacity"] = 1.1;
+    EXPECT_THROW(parse(), std::invalid_argument);
+    raw["planet"]["water"]["opacity"] = 0.5;
+    raw["planet"]["water"]["level_m"] = -100;
+    EXPECT_THROW(parse(), std::invalid_argument);
+    raw["planet"]["water"]["level_m"] = 0;
+    raw["planet"]["water"]["color"] = nlohmann::json::array({1, 2, 0});
+    EXPECT_THROW(parse(), std::invalid_argument);
 }
 
 TEST(ScenarioConfigTest, DefaultValues) {

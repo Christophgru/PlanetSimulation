@@ -233,3 +233,19 @@ TEST(PlanetSurfaceCameraTest, EnteringSurfaceModeSnapsToTerrainClearance) {
     EXPECT_NEAR(camera.groundClearance() * 1000.0, 2.0, 1e-9);
     EXPECT_GT(glm::length(camera.position() - camera.frame().center()), 0.025);
 }
+
+TEST(PlanetSurfaceCameraTest, WaterSupportsEyeWhenTerrainIsSubmerged) {
+    config::PlanetConfig::SurfaceNoiseFunction noise;
+    noise.amplitude_m = 1.0;
+    const rendering::TerrainSurface terrain({noise}, config::PlanetConfig::TerrainLod{},
+                                             0.025, 1000.0);
+    PlanetSurfaceCamera camera({{10.0, 0.0, 0.0}, 0.025},
+                               {0.0, 180.0, 0.002}, {0.0, 0.0, 0.0},
+                               60.0, 0.002);
+    camera.mountTerrain(terrain, 0.002, 0.01);
+    EXPECT_NEAR(camera.location().altitude, 0.012, 1e-12);
+    EXPECT_NEAR(camera.groundClearance(), 0.002, 1e-12);
+    camera.walk(1, 0, 1.0);
+    EXPECT_NEAR(camera.location().altitude, 0.012, 1e-12);
+    EXPECT_NEAR(camera.groundClearance(), 0.002, 1e-12);
+}

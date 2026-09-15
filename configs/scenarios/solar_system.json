@@ -34,9 +34,30 @@
         ],
         "terrain_lod": {
             "base_edge_segments": 3,
+            "medium_edge_segments": 8,
             "max_edge_segments": 16,
+            "near_surface_distance_m": 30.0,
+            "mid_surface_distance_m": 100.0,
+            "max_triangle_budget": 60000,
             "lod_near_diameters": 2.0,
             "lod_far_diameters": 8.0
+        },
+        "terrain_landscape": {
+            "elevation_offset_m": -1.5,
+            "continent_amplitude_m": 12.0,
+            "continent_frequency": 1.6,
+            "plain_threshold": 0.48,
+            "cliff_threshold": 0.62,
+            "cliff_amplitude_m": 18.0,
+            "cliff_frequency": 7.0,
+            "seed": 1001
+        },
+        "water": {
+            "enabled": true,
+            "level_m": 0.0,
+            "opacity": 0.5,
+            "reflection_fraction": 0.5,
+            "color": [0.06, 0.31, 0.56]
         },
         "atmosphere_enabled": true,
         "atmosphere_height": 0.3

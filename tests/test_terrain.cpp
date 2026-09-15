@@ -2,6 +2,8 @@
 #include <algorithm>
 #include <cmath>
 #include <glm/glm.hpp>
+#include <map>
+#include <tuple>
 #include "rendering/Terrain.h"
 
 namespace {
@@ -168,4 +170,87 @@ TEST(TerrainTest, TrianglesCarrySampledHeightsAndSmoothSharedCornerTint) {
     EXPECT_LT(lowTint, highTint);
     EXPECT_LT(lowTint, 0.72f);
     EXPECT_GT(highTint, 0.72f);
+}
+
+TEST(TerrainTest, DevelopmentLandscapeHasPlainsCliffsLandAndOceanBasins) {
+    const auto scenario = config::ScenarioConfig(config::Config::load(
+        std::string(PLANET_SOURCE_DIR) + "/configs/scenarios/solar_system.json"));
+    const auto& planet = scenario.planets[0];
+    const rendering::TerrainSurface terrain(planet.surface_noise, planet.terrain_lod,
+        planet.radius, scenario.metersPerWorldUnit(), planet.terrain_landscape);
+    int ocean = 0, land = 0, plains = 0, cliffs = 0;
+    double plainSlope = 0.0, cliffSlope = 0.0;
+    int plainPairs = 0, cliffPairs = 0;
+    for (int latitude = -80; latitude <= 80; latitude += 5) {
+        for (int longitude = 0; longitude < 360; longitude += 5) {
+            const double lat = glm::radians(static_cast<double>(latitude));
+            const double lon = glm::radians(static_cast<double>(longitude));
+            const glm::dvec3 radial(std::cos(lat) * std::cos(lon),
+                                    std::cos(lat) * std::sin(lon), std::sin(lat));
+            const double height = terrain.heightAt(radial) * scenario.metersPerWorldUnit();
+            if (height < planet.water.level_m) ++ocean;
+            else ++land;
+            const glm::dvec3 nearby = glm::normalize(radial + glm::dvec3(0.002, 0.001, 0));
+            const double slope = std::abs(terrain.heightAt(nearby) *
+                scenario.metersPerWorldUnit() - height);
+            if (terrain.regionPlainWeight(radial) > 0.85 && height > 0.0) {
+                ++plains;
+                plainSlope += slope;
+                ++plainPairs;
+            }
+            if (terrain.regionCliffWeight(radial) > 0.75 && height > 0.0) {
+                ++cliffs;
+                cliffSlope += slope;
+                ++cliffPairs;
+            }
+        }
+    }
+    EXPECT_GT(ocean, 50);
+    EXPECT_GT(land, 50);
+    EXPECT_GT(plains, 10);
+    EXPECT_GT(cliffs, 10);
+    ASSERT_GT(plainPairs, 0);
+    ASSERT_GT(cliffPairs, 0);
+    EXPECT_GT(cliffSlope / cliffPairs, plainSlope / plainPairs);
+}
+
+TEST(TerrainTest, LocalZonesAreDenserWatertightAndStayWithinBudget) {
+    const auto scenario = config::ScenarioConfig(config::Config::load(
+        std::string(PLANET_SOURCE_DIR) + "/configs/scenarios/solar_system.json"));
+    const auto& planet = scenario.planets[0];
+    const rendering::TerrainSurface terrain(planet.surface_noise, planet.terrain_lod,
+        planet.radius, scenario.metersPerWorldUnit(), planet.terrain_landscape);
+    const glm::dvec3 center(planet.position[0], planet.position[1], planet.position[2]);
+    const auto distant = terrain.buildGeometryForEye(center + glm::dvec3(2, 0, 0), center);
+    const auto nearby = terrain.buildGeometryForEye(center + glm::dvec3(0.102, 0, 0), center);
+    EXPECT_EQ(distant.zoneFaces, (std::array<int, 3>{320, 0, 0}));
+    EXPECT_EQ(distant.fineNoiseSamples, 0);
+    EXPECT_GT(nearby.zoneFaces[1], 0);
+    EXPECT_GT(nearby.zoneFaces[2], 0);
+    EXPECT_GT(nearby.fineNoiseSamples, 0);
+    EXPECT_GT(nearby.triangleCount(), distant.triangleCount());
+    EXPECT_LE(nearby.triangleCount(), planet.terrain_lod.max_triangle_budget);
+    EXPECT_EQ(nearby.zoneFaces[0] + nearby.zoneFaces[1] + nearby.zoneFaces[2], 320);
+
+    using Position = std::array<int, 3>;
+    using Edge = std::pair<Position, Position>;
+    std::map<Edge, int> edges;
+    auto position = [&](unsigned int index) {
+        const auto offset = static_cast<std::size_t>(index) * 9;
+        return Position{static_cast<int>(std::lround(nearby.vertices[offset] * 1e6)),
+                        static_cast<int>(std::lround(nearby.vertices[offset + 1] * 1e6)),
+                        static_cast<int>(std::lround(nearby.vertices[offset + 2] * 1e6))};
+    };
+    for (std::size_t i = 0; i < nearby.indices.size(); i += 3) {
+        const Position corners[3] = {position(nearby.indices[i]),
+                                     position(nearby.indices[i + 1]),
+                                     position(nearby.indices[i + 2])};
+        for (int side = 0; side < 3; ++side) {
+            const auto& a = corners[side];
+            const auto& b = corners[(side + 1) % 3];
+            ++edges[a < b ? Edge{a, b} : Edge{b, a}];
+        }
+    }
+    for (const auto& [edge, occurrences] : edges)
+        EXPECT_EQ(occurrences, 2) << "Open or overlapping terrain edge";
 }

@@ -42,6 +42,7 @@ target_include_directories(mesh_geometry_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
 add_executable(terrain_tests test_terrain.cpp)
 target_link_libraries(terrain_tests PRIVATE GTest::gtest GTest::gtest_main glm::glm nlohmann_json::nlohmann_json)
 target_include_directories(terrain_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_compile_definitions(terrain_tests PRIVATE PLANET_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 
 add_executable(planet_local_frame_tests test_planet_local_frame.cpp)
 target_link_libraries(planet_local_frame_tests PRIVATE GTest::gtest GTest::gtest_main glm::glm)

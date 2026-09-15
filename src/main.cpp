@@ -72,8 +72,10 @@ void onKey(GLFWwindow* window, int key, int, int action, int) {
 Mesh g_mesh;
 
 void renderScene(const config::ScenarioConfig& scenario, const glm::mat4& view, float fov,
-                 const Shader& shader, const Mesh& sunMesh,
-                 const std::vector<Mesh>& planetMeshes, int width, int height,
+                 const glm::dvec3& eyeWorld, const Shader& shader,
+                 const Shader& waterShader, const Mesh& sunMesh,
+                 const std::vector<Mesh>& planetMeshes,
+                 const std::vector<Mesh>& waterMeshes, int width, int height,
                  rendering::ClipPlanes clip = {}) {
     glViewport(0, 0, width, height);
     glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
@@ -111,6 +113,41 @@ void renderScene(const config::ScenarioConfig& scenario, const glm::mat4& view, 
                          static_cast<float>(planet.color[2]));
         planetMeshes[i].draw();
     }
+
+    // The opaque terrain depth buffer masks this translucent, spherical sea.
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDepthMask(GL_FALSE);
+    waterShader.use();
+    waterShader.setMat4("projection", glm::value_ptr(projection));
+    waterShader.setMat4("view", glm::value_ptr(view));
+    waterShader.setFloat3("uCameraPosition", static_cast<float>(eyeWorld.x),
+                          static_cast<float>(eyeWorld.y), static_cast<float>(eyeWorld.z));
+    waterShader.setFloat3("uSunPosition", static_cast<float>(sun.position[0]),
+                          static_cast<float>(sun.position[1]), static_cast<float>(sun.position[2]));
+    waterShader.setFloat3("uSunColor", static_cast<float>(sun.color[0]),
+                          static_cast<float>(sun.color[1]), static_cast<float>(sun.color[2]));
+    for (std::size_t i = 0; i < scenario.planets.size(); ++i) {
+        const auto& planet = scenario.planets[i];
+        if (!planet.water.enabled) continue;
+        const glm::vec3 center(static_cast<float>(planet.position[0]),
+                               static_cast<float>(planet.position[1]),
+                               static_cast<float>(planet.position[2]));
+        const float radius = static_cast<float>(
+            planet.radius + planet.water.level_m / scenario.metersPerWorldUnit());
+        const glm::mat4 model = rendering::sphereModel(center, radius);
+        waterShader.setMat4("model", glm::value_ptr(model));
+        waterShader.setFloat3("uPlanetCenter", center.x, center.y, center.z);
+        waterShader.setFloat3("uWaterColor", static_cast<float>(planet.water.color[0]),
+                              static_cast<float>(planet.water.color[1]),
+                              static_cast<float>(planet.water.color[2]));
+        waterShader.setFloat("uOpacity", static_cast<float>(planet.water.opacity));
+        waterShader.setFloat("uReflectionFraction",
+                             static_cast<float>(planet.water.reflection_fraction));
+        waterMeshes[i].draw();
+    }
+    glDepthMask(GL_TRUE);
+    glDisable(GL_BLEND);
 }
 
 int main(int argc, char** argv) {
@@ -180,20 +217,44 @@ int main(int argc, char** argv) {
         for (const auto& planet : scenario.planets) {
             terrainSurfaces.emplace_back(planet.surface_noise, planet.terrain_lod,
                                          planet.radius,
-                                         scenario.metersPerWorldUnit());
+                                         scenario.metersPerWorldUnit(),
+                                         planet.terrain_landscape);
         }
         std::vector<Mesh> planetMeshes(scenario.planets.size());
-        std::vector<int> planetMeshLevels(scenario.planets.size(), -1);
+        std::vector<Mesh> waterMeshes(scenario.planets.size());
+        std::vector<bool> meshReady(scenario.planets.size(), false);
+        std::vector<bool> lastLocalView(scenario.planets.size(), false);
+        std::vector<glm::dvec3> lastEyeRadial(scenario.planets.size(), glm::dvec3(0.0));
+        std::vector<std::array<int, 3>> meshZoneFaces(scenario.planets.size());
+        std::vector<int> meshTriangles(scenario.planets.size(), 0);
         auto preparePlanetMeshes = [&](const glm::dvec3& eye) {
             for (std::size_t i = 0; i < scenario.planets.size(); ++i) {
                 const auto& planet = scenario.planets[i];
                 const glm::dvec3 center(planet.position[0], planet.position[1],
                                         planet.position[2]);
-                const int level = terrainSurfaces[i].lodLevel(glm::length(eye - center));
-                if (level != planetMeshLevels[i]) {
-                    planetMeshes[i].loadTerrain(terrainSurfaces[i].buildGeometry(level));
-                    planetMeshLevels[i] = level;
+                const glm::dvec3 offset = eye - center;
+                const double distance = glm::length(offset);
+                const glm::dvec3 radial = offset / distance;
+                const bool localView = distance < 1.5 * planet.radius;
+                const double movedMeters = meshReady[i] ? planet.radius *
+                    scenario.metersPerWorldUnit() * std::acos(std::clamp(
+                        glm::dot(radial, lastEyeRadial[i]), -1.0, 1.0)) : 0.0;
+                if (meshReady[i] && localView == lastLocalView[i] &&
+                    (!localView || movedMeters < 1.0)) continue;
+                auto geometry = terrainSurfaces[i].buildGeometryForEye(eye, center);
+                meshZoneFaces[i] = geometry.zoneFaces;
+                meshTriangles[i] = geometry.triangleCount();
+                planetMeshes[i].loadTerrain(std::move(geometry));
+                if (planet.water.enabled) {
+                    const double seaRadius = planet.radius +
+                        planet.water.level_m / scenario.metersPerWorldUnit();
+                    const rendering::TerrainSurface seaSurface(
+                        {}, planet.terrain_lod, seaRadius, scenario.metersPerWorldUnit());
+                    waterMeshes[i].loadTerrain(seaSurface.buildGeometryForEye(eye, center));
                 }
+                meshReady[i] = true;
+                lastLocalView[i] = localView;
+                lastEyeRadial[i] = radial;
             }
         };
         const glm::dvec3 sunPosition(scenario.sun.position[0],
@@ -221,7 +282,10 @@ int main(int argc, char** argv) {
                            scenario.sun.position[2]), settings.fov,
                 2.0 / scenario.metersPerWorldUnit());
             surfaceCamera->mountTerrain(terrainSurfaces[settings.planet_index],
-                                        settings.altitude);
+                                        settings.altitude,
+                                        planet.water.enabled ?
+                                            std::optional<double>(planet.water.level_m /
+                                                scenario.metersPerWorldUnit()) : std::nullopt);
             if (settings.direction_ned) {
                 const auto& saved = *settings.direction_ned;
                 std::optional<glm::dvec3> savedUp;
@@ -282,6 +346,7 @@ int main(int argc, char** argv) {
 
         // Create shader program
         Shader shader("shaders/basic.vert", "shaders/basic.frag");
+        Shader waterShader("shaders/water.vert", "shaders/water.frag");
         
         // Enable depth testing
         glEnable(GL_DEPTH_TEST);
@@ -299,10 +364,18 @@ int main(int argc, char** argv) {
             const glm::mat4 view = surfaceRenderMode ? surfaceCamera->getViewMatrix()
                                                      : camera.getViewMatrix();
             const float fov = surfaceRenderMode ? surfaceCamera->fov() : camera.fov;
-            preparePlanetMeshes(surfaceRenderMode ? surfaceCamera->position()
-                                                  : glm::dvec3(camera.position));
-            renderScene(scenario, view, fov, shader, g_mesh, planetMeshes, width, height,
+            const glm::dvec3 eyeWorld = surfaceRenderMode ? surfaceCamera->position()
+                                                           : glm::dvec3(camera.position);
+            preparePlanetMeshes(eyeWorld);
+            renderScene(scenario, view, fov, eyeWorld, shader, waterShader, g_mesh,
+                        planetMeshes, waterMeshes, width, height,
                         surfaceRenderMode ? surfaceClip : rendering::ClipPlanes{});
+            for (std::size_t i = 0; i < scenario.planets.size(); ++i)
+                std::cout << "Planet " << i << " terrain: " << meshTriangles[i]
+                          << " triangles; far/middle/near faces: " << meshZoneFaces[i][0]
+                          << "/" << meshZoneFaces[i][1] << "/" << meshZoneFaces[i][2]
+                          << " (budget " << scenario.planets[i].terrain_lod.max_triangle_budget
+                          << ")\n";
 
             // Call glFinish() before reading framebuffer
             glFinish();
@@ -341,7 +414,9 @@ int main(int argc, char** argv) {
             }
 
             const rendering::FrameAnalysis analysis = rendering::analyzeFrame(
-                flippedPixels, width, height, scenario.sun.color, scenario.planets[0].color);
+                flippedPixels, width, height, scenario.sun.color, scenario.planets[0].color,
+                scenario.planets[0].terrain_landscape.enabled ||
+                    scenario.planets[0].water.enabled);
 
             std::cout << "Image size: " << width << "x" << height << "\n";
             std::cout << "Background pixel: (" << static_cast<int>(analysis.background[0])
@@ -359,6 +434,8 @@ int main(int argc, char** argv) {
             printBounds("Non-background pixels", analysis.drawn);
             printBounds("Sun-colored pixels", analysis.sun);
             printBounds("Planet-colored pixels", analysis.planet);
+            if (scenario.planets[0].water.enabled)
+                printBounds("Blue water-like pixels", analysis.waterLike);
 
             // Write PNG using official stb_image_write API with stride parameter
             int result = stbi_write_png(outputImagePath.c_str(), width, height, 4, flippedPixels.data(), width * 4);
@@ -431,9 +508,11 @@ int main(int argc, char** argv) {
                               glm::length(surfaceCamera->position() - sunPosition),
                               scenario.sun.radius)
                         : rendering::ClipPlanes{};
-                    preparePlanetMeshes(onSurface ? surfaceCamera->position()
-                                                  : glm::dvec3(camera.position));
-                    renderScene(scenario, view, fov, shader, g_mesh, planetMeshes,
+                    const glm::dvec3 eyeWorld = onSurface ? surfaceCamera->position()
+                                                           : glm::dvec3(camera.position);
+                    preparePlanetMeshes(eyeWorld);
+                    renderScene(scenario, view, fov, eyeWorld, shader, waterShader,
+                                g_mesh, planetMeshes, waterMeshes,
                                 width, height,
                                 clip);
                     glfwSwapBuffers(window);
@@ -445,6 +524,7 @@ int main(int argc, char** argv) {
         // Cleanup
         g_mesh.destroy();
         for (auto& planetMesh : planetMeshes) planetMesh.destroy();
+        for (auto& waterMesh : waterMeshes) waterMesh.destroy();
         
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << "\n";

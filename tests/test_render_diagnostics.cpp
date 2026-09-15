@@ -106,3 +106,16 @@ TEST(RenderDiagnosticsTest, DetectsDarkAndLightTerrainPixelsAsPlanetColored) {
     EXPECT_EQ(result.planet.count, 2);
     EXPECT_EQ(result.sun.count, 0);
 }
+
+TEST(RenderDiagnosticsTest, RecognizesLandscapePaletteAndWaterLikePixels) {
+    auto rgba = backgroundFrame();
+    paint(rgba, 1, 1, 255, 127, 51);
+    paint(rgba, 3, 1, 88, 150, 66); // Green plain.
+    paint(rgba, 4, 1, 34, 69, 84);  // Blue water over dark ground.
+    const auto result = rendering::analyzeFrame(rgba, kWidth, kHeight,
+        kSunColor, kPlanetColor, true);
+    EXPECT_EQ(result.sun.count, 1);
+    EXPECT_EQ(result.planet.count, 2);
+    EXPECT_EQ(result.waterLike.count, 1);
+    EXPECT_TRUE(result.bodiesSeparate());
+}

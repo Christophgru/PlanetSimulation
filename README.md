@@ -3,9 +3,15 @@
 A C++20/OpenGL project that currently renders a static Sun and a configured planet from
 `configs/scenarios/solar_system.json`.
 
+The visual direction for later landscape and vegetation steps is the
+[Quick Grass live demo](https://simondevyoutube.github.io/Quick_Grass/) and its
+[GitHub source](https://github.com/simondevyoutube/Quick_Grass). This step
+implements broad terrain and water only.
+
 The development scene uses kilometers for world coordinates: the Sun is 1 km
 across, the planet center is 10 km from the Sun, and the planet is 200 m across.
-Its surface camera starts 2 m above sampled terrain and walks at 2 m/s.
+Its surface camera starts 2 m above sampled terrain or water, whichever is
+higher, and walks at 2 m/s.
 The development config stores planets in a `planets` array; the surface
 camera's `planet_index` selects an entry in that array.
 
@@ -71,8 +77,8 @@ Run from the repository root because the executable loads `configs/` and
 to orbit around the Sun: dragging right moves the camera left, and dragging up
 moves it down. Use the scroll wheel to zoom. Press `1` for the orbit view or `2`
 for the planet surface view. In planet mode, the mouse looks around without a
-button and `W`, `A`, `S`, `D` walk along the planet while maintaining ground
-clearance.
+button and `W`, `A`, `S`, `D` walk along the planet while maintaining clearance
+above ground or water.
 The cursor is captured in planet mode; press `1` or `Esc` to return to orbit
 and release it. Planet controls also activate automatically when the orbit
 camera comes within `1.1 × planet diameter` of the planet center. Local Down
@@ -93,29 +99,56 @@ start at the saved position and view. The `direction_ned` array is ordered
 North, East, Down in the selected planet's local frame. The printed `up_ned`
 array preserves image orientation when looking nearly straight up or down.
 Both are optional; without `direction_ned`, the surface camera starts aimed at
-the Sun. The JSON `altitude` is the requested clearance above sampled terrain
+the Sun. The JSON `altitude` is the requested clearance above sampled terrain or water
 in the configured world distance unit (`0.002` km is 2 m in the development
-scene). The printed LLA altitude varies with terrain height, while the reusable
+scene). The printed LLA altitude varies with terrain or water height, while the reusable
 config snippet keeps the requested clearance.
 
 Each planet can configure `surface_noise` as a list of overlapping functions.
 Each function has a `type` (`value_fbm` for smooth hills or `ridged_fbm` for
 ridges), `seed`, `amplitude_m`, `frequency`, `octaves`, `persistence`, and
 `lacunarity`. The function heights add together. The development planet combines
-0.8 m smooth hills and 0.35 m ridges. Lower elevations are darker and higher
-ones lighter. Color is sampled at mesh vertices and blended across triangles,
-so triangle outlines do not appear; this is a color effect without lighting.
+0.8 m smooth hills and 0.35 m ridges. `terrain_landscape` adds a broad continental
+height field, low-roughness plain regions, and ridge-weighted cliffs. Its
+`elevation_offset_m`, `continent_amplitude_m`, `continent_frequency`,
+`plain_threshold`, `cliff_threshold`, `cliff_amplitude_m`, `cliff_frequency`,
+and `seed` control that shape. Areas below the water level form ocean basins.
+Vertex colors interpolate green plains, pale cliffs, and dark seabed across
+triangles, without visible triangle outlines. Land lighting and textures are
+still future work.
 
-Mesh detail rises as the camera approaches the planet. `terrain_lod` configures
-`base_edge_segments`, `max_edge_segments`, `lod_near_diameters`, and
-`lod_far_diameters`. The development scene uses 3 to 16 edge segments, advancing
-one at a time; the schema permits a base setting as low as 1. This gives
-smaller density steps than the old fourfold subdivision jumps. The hard
-cap is 81,920 triangles per planet; the mesh is rebuilt only when its selected
-density changes.
+`terrain_lod` divides terrain into near, middle, and far surface-distance
+zones. Its `near_surface_distance_m` and `mid_surface_distance_m` are distances
+along the planet from the camera's radial position. The development scene uses
+16 edge segments near the camera, 8 in the middle, and 3 far away;
+`max_edge_segments`, `medium_edge_segments`, and `base_edge_segments` configure
+those densities. Only the first, broad octave of each surface-noise function is
+evaluated far away. Finer octaves fade in through the middle zone and are fully
+evaluated nearby. Adjacent faces share the same boundary samples even when
+their densities differ, so the shell stays closed. The terrain mesh is rebuilt
+after about 1 m of camera movement on the surface. The configurable
+`max_triangle_budget` caps the development terrain at 60,000 triangles per
+planet. The older `lod_near_diameters` and `lod_far_diameters` remain in the
+config for compatibility with earlier distance tests; the renderer uses the
+surface-distance zones.
 
-Render the same configured scene to a PNG and print background, Sun, and planet
-pixel counts and bounding boxes:
+`water` sets `enabled`, `level_m`, `color`, `opacity`, and
+`reflection_fraction` for a translucent spherical sea. The development level
+is 0 m, with 50% opacity and a 50% mix of water color and reflected sky/Sun
+light. Opaque terrain hides water above its level and remains visible through
+water below it. The reflection currently samples sky colors and Sun direction;
+it does not reflect terrain or refract the scene. The water shell uses the same
+bounded mesh zones as the land.
+
+The terrain choice follows NVIDIA's guidance on [broad and fine procedural
+noise](https://developer.nvidia.com/gpugems/gpugems3/part-i-geometry/chapter-1-generating-complex-procedural-terrains-using-gpu)
+and [camera-centered terrain detail](https://developer.nvidia.com/gpugems/gpugems2/part-i-geometric-complexity/chapter-2-terrain-rendering-using-gpu-based-geometry).
+The water blend is an early approximation of the techniques described in
+[Effective Water Simulation from Physical Models](https://developer.nvidia.com/gpugems/gpugems/part-i-natural-effects/chapter-1-effective-water-simulation-physical-models).
+
+Render the same configured scene to a PNG and print background, Sun, planet,
+and blue water-like pixel counts and bounding boxes, plus terrain triangle and
+zone-face counts:
 
 ~~~bash
 ./build/PlanetSimulation --render-test build/render-test.png
@@ -127,8 +160,8 @@ Capture the configured surface camera view and confirm a configured body is visi
 ./build/PlanetSimulation --surface-render-test build/surface-render-test.png
 ~~~
 
-The saved surface view looks across the smoothly colored planet with the Sun above its
-horizon. The surface render test checks for a visible configured body. The orbit
+The saved surface view looks across water toward flatter land and cliffs. The
+surface render test checks for a visible configured body. The orbit
 render test checks that both bodies are visible and separate.
 
 The surface camera is configured in `configs/scenarios/solar_system.json`.

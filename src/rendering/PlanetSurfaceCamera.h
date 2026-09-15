@@ -139,12 +139,16 @@ public:
     // The configured altitude becomes clearance above the sampled terrain
     // when terrain is mounted. LLA altitude remains relative to the sphere.
     void mountTerrain(const rendering::TerrainSurface& terrain,
-                      double clearanceWorld) {
+                      double clearanceWorld,
+                      std::optional<double> waterLevelWorld = std::nullopt) {
         if (!std::isfinite(clearanceWorld) || clearanceWorld <= 0.0) {
             throw std::invalid_argument("Surface camera clearance must be positive");
         }
+        if (waterLevelWorld && !std::isfinite(*waterLevelWorld))
+            throw std::invalid_argument("Water level must be finite");
         terrain_ = terrain;
         clearance_ = clearanceWorld;
+        waterLevel_ = waterLevelWorld;
         resampleTerrainHeight();
         aimAt(sunPosition_);
     }
@@ -152,8 +156,10 @@ public:
     bool hasTerrain() const { return terrain_.has_value(); }
     double groundClearance() const {
         if (!terrain_) return location_.altitude;
-        return location_.altitude - terrain_->heightAt(
+        const double terrainHeight = terrain_->heightAt(
             glm::normalize(position_ - frame_.center()));
+        return location_.altitude - (waterLevel_ ? std::max(terrainHeight, *waterLevel_)
+                                                 : terrainHeight);
     }
     double configuredClearance() const {
         return terrain_ ? clearance_ : location_.altitude;
@@ -190,7 +196,9 @@ private:
 
     void resampleTerrainHeight() {
         const glm::dvec3 radial = -frame_.nedAt(location_).down;
-        location_.altitude = terrain_->heightAt(radial) + clearance_;
+        const double terrainHeight = terrain_->heightAt(radial);
+        location_.altitude = (waterLevel_ ? std::max(terrainHeight, *waterLevel_)
+                                        : terrainHeight) + clearance_;
         position_ = frame_.toWorld(location_);
     }
 
@@ -246,5 +254,6 @@ private:
     double walkSpeed_;
     float fov_;
     std::optional<rendering::TerrainSurface> terrain_;
+    std::optional<double> waterLevel_;
     double clearance_ = 0.0;
 };

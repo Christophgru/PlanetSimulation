@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <optional>
@@ -67,12 +68,20 @@ struct PlanetConfig {
     struct TerrainLod {
         int base_edge_segments = 1;
         int max_edge_segments = 16;
+        int medium_edge_segments = 8;
+        double near_surface_distance_m = 35.0;
+        double mid_surface_distance_m = 110.0;
+        int max_triangle_budget = 60000;
         double lod_near_diameters = 2.0;
         double lod_far_diameters = 8.0;
 
         explicit TerrainLod(const config::Config& cfg) {
             base_edge_segments = cfg.getInt("base_edge_segments", base_edge_segments);
             max_edge_segments = cfg.getInt("max_edge_segments", max_edge_segments);
+            medium_edge_segments = cfg.getInt("medium_edge_segments", medium_edge_segments);
+            near_surface_distance_m = cfg.getDouble("near_surface_distance_m", near_surface_distance_m);
+            mid_surface_distance_m = cfg.getDouble("mid_surface_distance_m", mid_surface_distance_m);
+            max_triangle_budget = cfg.getInt("max_triangle_budget", max_triangle_budget);
             lod_near_diameters = cfg.getDouble("lod_near_diameters", lod_near_diameters);
             lod_far_diameters = cfg.getDouble("lod_far_diameters", lod_far_diameters);
             validate();
@@ -82,11 +91,85 @@ struct PlanetConfig {
         void validate() const {
             if (base_edge_segments < 1 || max_edge_segments < base_edge_segments ||
                 max_edge_segments > 16 ||
+                medium_edge_segments < base_edge_segments ||
+                medium_edge_segments > max_edge_segments ||
+                !std::isfinite(near_surface_distance_m) || near_surface_distance_m <= 0.0 ||
+                !std::isfinite(mid_surface_distance_m) ||
+                mid_surface_distance_m <= near_surface_distance_m ||
+                max_triangle_budget < 10000 || max_triangle_budget > 100000 ||
+                320 * 3 * base_edge_segments *
+                    (2 * std::max(1, (base_edge_segments + 1) / 2) - 1) > max_triangle_budget ||
                 !std::isfinite(lod_near_diameters) || lod_near_diameters <= 0.0 ||
                 !std::isfinite(lod_far_diameters) ||
                 lod_far_diameters <= lod_near_diameters) {
                 throw std::invalid_argument("Invalid planet.terrain_lod parameters");
             }
+        }
+    };
+
+    struct TerrainLandscape {
+        bool enabled = false;
+        double elevation_offset_m = 0.0;
+        double continent_amplitude_m = 0.0;
+        double continent_frequency = 1.5;
+        double plain_threshold = 0.45;
+        double cliff_threshold = 0.62;
+        double cliff_amplitude_m = 0.0;
+        double cliff_frequency = 7.0;
+        int seed = 1001;
+
+        TerrainLandscape() = default;
+        explicit TerrainLandscape(const config::Config& cfg) {
+            enabled = true;
+            elevation_offset_m = cfg.getDouble("elevation_offset_m", elevation_offset_m);
+            continent_amplitude_m = cfg.getDouble("continent_amplitude_m", continent_amplitude_m);
+            continent_frequency = cfg.getDouble("continent_frequency", continent_frequency);
+            plain_threshold = cfg.getDouble("plain_threshold", plain_threshold);
+            cliff_threshold = cfg.getDouble("cliff_threshold", cliff_threshold);
+            cliff_amplitude_m = cfg.getDouble("cliff_amplitude_m", cliff_amplitude_m);
+            cliff_frequency = cfg.getDouble("cliff_frequency", cliff_frequency);
+            seed = cfg.getInt("seed", seed);
+            validate();
+        }
+        void validate() const {
+            if (!std::isfinite(elevation_offset_m) ||
+                !std::isfinite(continent_amplitude_m) || continent_amplitude_m < 0.0 ||
+                !std::isfinite(continent_frequency) || continent_frequency <= 0.0 || continent_frequency > 16.0 ||
+                !std::isfinite(plain_threshold) || plain_threshold <= 0.0 || plain_threshold >= 1.0 ||
+                !std::isfinite(cliff_threshold) || cliff_threshold <= plain_threshold || cliff_threshold >= 1.0 ||
+                !std::isfinite(cliff_amplitude_m) || cliff_amplitude_m < 0.0 ||
+                !std::isfinite(cliff_frequency) || cliff_frequency <= 0.0 || cliff_frequency > 32.0)
+                throw std::invalid_argument("Invalid planet.terrain_landscape parameters");
+        }
+        double maximumAbsoluteHeightMeters() const {
+            return enabled ? std::abs(elevation_offset_m) + continent_amplitude_m + cliff_amplitude_m : 0.0;
+        }
+    };
+
+    struct Water {
+        bool enabled = false;
+        double level_m = 0.0;
+        double opacity = 0.5;
+        double reflection_fraction = 0.5;
+        std::vector<double> color = {0.05, 0.35, 0.6};
+
+        Water() = default;
+        explicit Water(const config::Config& cfg) {
+            enabled = cfg.getBool("enabled", true);
+            level_m = cfg.getDouble("level_m", level_m);
+            opacity = cfg.getDouble("opacity", opacity);
+            reflection_fraction = cfg.getDouble("reflection_fraction", reflection_fraction);
+            const auto parsedColor = cfg.getArray("color", color);
+            if (parsedColor.size() != 3) throw std::invalid_argument("planet.water.color must have three channels");
+            color = parsedColor;
+            validate();
+        }
+        void validate() const {
+            if (!std::isfinite(level_m) || !std::isfinite(opacity) || opacity < 0.0 || opacity > 1.0 ||
+                !std::isfinite(reflection_fraction) || reflection_fraction < 0.0 || reflection_fraction > 1.0 ||
+                color.size() != 3 ||
+                !std::all_of(color.begin(), color.end(), [](double c) { return std::isfinite(c) && c >= 0.0 && c <= 1.0; }))
+                throw std::invalid_argument("Invalid planet.water parameters");
         }
     };
 
@@ -98,6 +181,8 @@ struct PlanetConfig {
     int noise_seed = 42;
     std::vector<SurfaceNoiseFunction> surface_noise;
     TerrainLod terrain_lod;
+    TerrainLandscape terrain_landscape;
+    Water water;
     bool atmosphere_enabled = false;
     double atmosphere_height = 0.3;
     
@@ -134,6 +219,16 @@ struct PlanetConfig {
                 throw std::invalid_argument("planet.terrain_lod must be an object");
             }
             terrain_lod = TerrainLod(config::Config{nlohmann::json(raw)});
+        }
+        if (cfg.data().contains("terrain_landscape")) {
+            const auto& raw = cfg.data().at("terrain_landscape");
+            if (!raw.is_object()) throw std::invalid_argument("planet.terrain_landscape must be an object");
+            terrain_landscape = TerrainLandscape(config::Config{nlohmann::json(raw)});
+        }
+        if (cfg.data().contains("water")) {
+            const auto& raw = cfg.data().at("water");
+            if (!raw.is_object()) throw std::invalid_argument("planet.water must be an object");
+            water = Water(config::Config{nlohmann::json(raw)});
         }
         if (!std::isfinite(radius) || radius <= 0.0) {
             throw std::invalid_argument("Planet radius must be positive and finite");
@@ -252,10 +347,14 @@ struct ScenarioConfig {
             double totalAmplitudeMeters = 0.0;
             for (const auto& function : planet.surface_noise)
                 totalAmplitudeMeters += function.amplitude_m;
+            totalAmplitudeMeters += planet.terrain_landscape.maximumAbsoluteHeightMeters();
             if (!std::isfinite(totalAmplitudeMeters) ||
                 totalAmplitudeMeters >= planet.radius * metersPerWorldUnit()) {
                 throw std::invalid_argument("Planet radius must exceed terrain height");
             }
+            if (planet.water.enabled &&
+                std::abs(planet.water.level_m) >= planet.radius * metersPerWorldUnit())
+                throw std::invalid_argument("Water level must be within the planet radius");
         }
 
         auto surface_it = raw_data.find("surface_camera");

@@ -31,6 +31,7 @@ struct FrameAnalysis {
     PixelBounds drawn;
     PixelBounds sun;
     PixelBounds planet;
+    PixelBounds waterLike;
 
     bool bodiesVisible() const {
         return drawn.count > 0 && sun.count > 0 && planet.count > 0;
@@ -75,7 +76,8 @@ inline bool matchesTerrainTint(const std::vector<unsigned char>& pixels,
 inline FrameAnalysis analyzeFrame(const std::vector<unsigned char>& rgba,
                                   int width, int height,
                                   const std::vector<double>& sunColor,
-                                  const std::vector<double>& planetColor) {
+                                  const std::vector<double>& planetColor,
+                                  bool landscapePalette = false) {
     if (width <= 0 || height <= 0 ||
         rgba.size() != static_cast<std::size_t>(width) * height * 4) {
         throw std::invalid_argument("Invalid RGBA framebuffer dimensions");
@@ -93,7 +95,12 @@ inline FrameAnalysis analyzeFrame(const std::vector<unsigned char>& rgba,
             analysis.drawn.include(x, y);
             if (matchesColor(rgba, index, sunColor)) analysis.sun.include(x, y);
             if (matchesColor(rgba, index, planetColor) ||
-                matchesTerrainTint(rgba, index, planetColor)) analysis.planet.include(x, y);
+                matchesTerrainTint(rgba, index, planetColor) ||
+                (landscapePalette && rgba[index + 1] > rgba[index] + 6))
+                analysis.planet.include(x, y);
+            if (landscapePalette && rgba[index + 2] > rgba[index + 1] + 6 &&
+                rgba[index + 1] > rgba[index] + 6)
+                analysis.waterLike.include(x, y);
         }
     }
     return analysis;
