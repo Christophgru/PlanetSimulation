@@ -17,6 +17,14 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(nlohmann_json)
 
+FetchContent_Declare(
+    glm
+    GIT_REPOSITORY https://github.com/g-truc/glm.git
+    GIT_TAG 1.0.1
+    GIT_SHALLOW ON
+)
+FetchContent_MakeAvailable(glm)
+
 # Find GLFW and GLEW
 find_package(glfw3 REQUIRED)
 find_package(GLEW REQUIRED)

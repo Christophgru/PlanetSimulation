@@ -13,10 +13,9 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 
 add_executable(config_tests test_config.cpp)
-target_link_libraries(config_tests PRIVATE GTest::gtest GTest::gtest_main)
+target_link_libraries(config_tests PRIVATE GTest::gtest GTest::gtest_main nlohmann_json::nlohmann_json)
 target_include_directories(config_tests PRIVATE 
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/build-agent/_deps/nlohmann_json-src/include
 )
 
 add_executable(test_matrix test_matrix.cpp)

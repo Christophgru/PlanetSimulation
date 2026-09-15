@@ -196,7 +196,7 @@ int main(int argc, char** argv) {
             glfwSetWindowAttrib(window, GLFW_VISIBLE, GLFW_FALSE);
         } else {
             // Keep window open for viewing
-            std::cout << "Press Escape to exit...\n";
+            std::cout << "Close the window to exit...\n";
         }
 
         // Create shader program
