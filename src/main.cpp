@@ -15,8 +15,9 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
-#include "math/Vector3.h"
-#include "math/Matrix4.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include "config/Config.h"
 #include "config/ScenarioConfig.h"
 #include "rendering/Mesh.h"
@@ -27,22 +28,22 @@ namespace fs = std::filesystem;
 // Simple camera class for view matrix calculation
 class Camera {
 public:
-    Vector3 position;
-    Vector3 target;
-    double fov;
+    glm::vec3 position;
+    glm::vec3 target;
+    float fov;
     
-    Camera() : position({0, 0, 0}), target({0, 0, 0}), fov(60.0) {}
+    Camera() : position(0.0f), target(0.0f), fov(60.0f) {}
     
     void update(const config::ScenarioConfig& scenario) {
         // Use default camera position for now
-        position = Vector3{15.0, 2.0, 8.0};
-        target = Vector3{0.0, 0.0, 0.0};
-        fov = 60.0;
+        position = glm::vec3(15.0f, 2.0f, 8.0f);
+        target = glm::vec3(0.0f);
+        fov = 60.0f;
     }
     
     // View matrix (looking at target from position)
-    Matrix4 getViewMatrix() const {
-        return Matrix4::lookAt(position, target, Vector3{0.0f, 1.0f, 0.0f});
+    glm::mat4 getViewMatrix() const {
+        return glm::lookAt(position, target, glm::vec3(0.0f, 1.0f, 0.0f));
     }
 };
 
@@ -55,22 +56,24 @@ void renderScene(const config::ScenarioConfig& scenario, const Camera& camera,
     glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    Matrix4 projection = Matrix4::perspective(camera.fov,
-                                               static_cast<double>(width) / height,
-                                               0.1, 1000.0);
-    Matrix4 view = camera.getViewMatrix();
+    glm::mat4 projection = glm::perspective(
+        glm::radians(camera.fov), static_cast<float>(width) / height,
+        0.1f, 1000.0f);
+    glm::mat4 view = camera.getViewMatrix();
 
     shader.use();
-    shader.setMat4("projection", projection.data);
-    shader.setMat4("view", view.data);
+    shader.setMat4("projection", glm::value_ptr(projection));
+    shader.setMat4("view", glm::value_ptr(view));
 
     const auto& sun = scenario.sun;
-    Matrix4 sunModel = Matrix4::multiply(
-        Matrix4::translation(sun.position[0], sun.position[1], sun.position[2]),
-        Matrix4::scale(static_cast<float>(sun.radius),
-                       static_cast<float>(sun.radius),
-                       static_cast<float>(sun.radius)));
-    shader.setMat4("model", sunModel.data);
+    glm::mat4 sunModel(1.0f);
+    sunModel = glm::translate(sunModel, glm::vec3(
+        static_cast<float>(sun.position[0]),
+        static_cast<float>(sun.position[1]),
+        static_cast<float>(sun.position[2])));
+    const float sunRadius = static_cast<float>(sun.radius);
+    sunModel = glm::scale(sunModel, glm::vec3(sunRadius));
+    shader.setMat4("model", glm::value_ptr(sunModel));
     shader.setFloat3("uColor", static_cast<float>(sun.color[0]),
                      static_cast<float>(sun.color[1]),
                      static_cast<float>(sun.color[2]));
@@ -78,10 +81,13 @@ void renderScene(const config::ScenarioConfig& scenario, const Camera& camera,
 
     for (const auto& planet : scenario.planets) {
         const float radius = static_cast<float>(planet.radius);
-        Matrix4 model = Matrix4::multiply(
-            Matrix4::translation(planet.position[0], planet.position[1], planet.position[2]),
-            Matrix4::scale(radius, radius, radius));
-        shader.setMat4("model", model.data);
+        glm::mat4 model(1.0f);
+        model = glm::translate(model, glm::vec3(
+            static_cast<float>(planet.position[0]),
+            static_cast<float>(planet.position[1]),
+            static_cast<float>(planet.position[2])));
+        model = glm::scale(model, glm::vec3(radius));
+        shader.setMat4("model", glm::value_ptr(model));
         shader.setFloat3("uColor", static_cast<float>(planet.color[0]),
                          static_cast<float>(planet.color[1]),
                          static_cast<float>(planet.color[2]));

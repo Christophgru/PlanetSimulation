@@ -9,7 +9,7 @@ A C++20/OpenGL project that currently renders a static Sun and one planet from
 - OpenGL 3.3 support, GLFW 3, and GLEW development libraries
 - A graphical display for GLFW, including the hidden-window render test
 
-CMake fetches nlohmann/json and GoogleTest during the first configure, so that
+CMake fetches nlohmann/json, GLM, and GoogleTest during the first configure, so that
 step needs network access. On Ubuntu/Debian, install the local build dependencies
 with:
 
@@ -36,10 +36,9 @@ ctest --output-on-failure
 cd ..
 ~~~
 
-For a focused check, run either test executable from the repository root:
+For a focused check, run the config test executable from the repository root:
 
 ~~~bash
-./build/tests/test_matrix
 ./build/tests/config_tests
 ~~~
 

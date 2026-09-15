@@ -38,6 +38,7 @@ target_link_libraries(PlanetSimulation PRIVATE
     OpenGL::GL
     glfw
     GLEW::GLEW
+    glm::glm
 )
 
 # Include directories for all source files
