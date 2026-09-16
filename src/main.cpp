@@ -31,6 +31,7 @@
 #include "rendering/SceneTransforms.h"
 #include "rendering/Shader.h"
 #include "rendering/SurfaceCameraTelemetry.h"
+#include "rendering/WaterReflectionTarget.h"
 
 namespace fs = std::filesystem;
 
@@ -118,7 +119,10 @@ struct PreparedScene {
                 throw std::invalid_argument("Configured camera cannot start at a planet center");
             terrainSurfaces.emplace_back(planet.surface_noise, planet.terrain_lod,
                                          planet.radius, scenario.metersPerWorldUnit(),
-                                         planet.terrain_landscape);
+                                         planet.terrain_landscape,
+                                         planet.water.enabled ?
+                                             std::optional<double>(planet.water.level_m) :
+                                             std::nullopt);
         }
         if (scenario.surface_camera.enabled) {
             const auto& settings = scenario.surface_camera;
@@ -185,69 +189,110 @@ Mesh g_mesh;
 
 void renderScene(const config::ScenarioConfig& scenario, const glm::mat4& view, float fov,
                  const glm::dvec3& eyeWorld, const Shader& shader,
-                 const Shader& waterShader, const Mesh& sunMesh,
+                 const Shader& waterShader,
+                 rendering::WaterReflectionTarget& reflectionTarget,
+                 const Mesh& sunMesh,
                  const std::vector<Mesh>& planetMeshes,
                  const std::vector<Mesh>& waterMeshes, int width, int height,
                  rendering::ClipPlanes clip = {}) {
+    const glm::mat4 projection = rendering::perspectiveProjection(
+        fov, static_cast<float>(width) / height, clip);
+    const auto& sun = scenario.sun;
+
+    auto drawOpaqueScene = [&](const glm::mat4& passProjection,
+                               const glm::mat4& passView,
+                               const glm::vec3& clipCenter,
+                               float clipRadius) {
+        shader.use();
+        shader.setMat4("projection", glm::value_ptr(passProjection));
+        shader.setMat4("view", glm::value_ptr(passView));
+        shader.setFloat3("uClipCenter", clipCenter.x, clipCenter.y, clipCenter.z);
+        shader.setFloat("uClipRadius", clipRadius);
+
+        const glm::mat4 sunModel = rendering::sphereModel(glm::vec3(
+            static_cast<float>(sun.position[0]),
+            static_cast<float>(sun.position[1]),
+            static_cast<float>(sun.position[2])), static_cast<float>(sun.radius));
+        shader.setMat4("model", glm::value_ptr(sunModel));
+        shader.setFloat3("uColor", static_cast<float>(sun.color[0]),
+                         static_cast<float>(sun.color[1]),
+                         static_cast<float>(sun.color[2]));
+        sunMesh.draw();
+
+        for (std::size_t i = 0; i < scenario.planets.size(); ++i) {
+            const auto& planet = scenario.planets[i];
+            const glm::mat4 model = rendering::sphereModel(glm::vec3(
+                static_cast<float>(planet.position[0]),
+                static_cast<float>(planet.position[1]),
+                static_cast<float>(planet.position[2])),
+                static_cast<float>(planet.radius));
+            shader.setMat4("model", glm::value_ptr(model));
+            shader.setFloat3("uColor", static_cast<float>(planet.color[0]),
+                             static_cast<float>(planet.color[1]),
+                             static_cast<float>(planet.color[2]));
+            planetMeshes[i].draw();
+        }
+    };
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, width, height);
     glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    drawOpaqueScene(projection, view, glm::vec3(0.0f), -1.0f);
 
-    glm::mat4 projection = rendering::perspectiveProjection(
-        fov, static_cast<float>(width) / height, clip);
+    const bool hasWater = std::any_of(
+        scenario.planets.begin(), scenario.planets.end(),
+        [](const config::PlanetConfig& planet) { return planet.water.enabled; });
+    if (!hasWater) return;
+    reflectionTarget.ensure(width, height);
 
-    shader.use();
-    shader.setMat4("projection", glm::value_ptr(projection));
-    shader.setMat4("view", glm::value_ptr(view));
-
-    const auto& sun = scenario.sun;
-    const float sunRadius = static_cast<float>(sun.radius);
-    glm::mat4 sunModel = rendering::sphereModel(glm::vec3(
-        static_cast<float>(sun.position[0]),
-        static_cast<float>(sun.position[1]),
-        static_cast<float>(sun.position[2])), sunRadius);
-    shader.setMat4("model", glm::value_ptr(sunModel));
-    shader.setFloat3("uColor", static_cast<float>(sun.color[0]),
-                     static_cast<float>(sun.color[1]),
-                     static_cast<float>(sun.color[2]));
-    sunMesh.draw();
-
-    for (std::size_t i = 0; i < scenario.planets.size(); ++i) {
-        const auto& planet = scenario.planets[i];
-        const float radius = static_cast<float>(planet.radius);
-        glm::mat4 model = rendering::sphereModel(glm::vec3(
-            static_cast<float>(planet.position[0]),
-            static_cast<float>(planet.position[1]),
-            static_cast<float>(planet.position[2])), radius);
-        shader.setMat4("model", glm::value_ptr(model));
-        shader.setFloat3("uColor", static_cast<float>(planet.color[0]),
-                         static_cast<float>(planet.color[1]),
-                         static_cast<float>(planet.color[2]));
-        planetMeshes[i].draw();
-    }
-
-    // The opaque terrain depth buffer masks this translucent, spherical sea.
+    // The opaque main-scene depth buffer masks this translucent sea. Each
+    // planet reuses one bounded reflection target before drawing its water.
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthMask(GL_FALSE);
-    waterShader.use();
-    waterShader.setMat4("projection", glm::value_ptr(projection));
-    waterShader.setMat4("view", glm::value_ptr(view));
-    waterShader.setFloat3("uCameraPosition", static_cast<float>(eyeWorld.x),
-                          static_cast<float>(eyeWorld.y), static_cast<float>(eyeWorld.z));
-    waterShader.setFloat3("uSunPosition", static_cast<float>(sun.position[0]),
-                          static_cast<float>(sun.position[1]), static_cast<float>(sun.position[2]));
-    waterShader.setFloat3("uSunColor", static_cast<float>(sun.color[0]),
-                          static_cast<float>(sun.color[1]), static_cast<float>(sun.color[2]));
     for (std::size_t i = 0; i < scenario.planets.size(); ++i) {
         const auto& planet = scenario.planets[i];
         if (!planet.water.enabled) continue;
-        const glm::vec3 center(static_cast<float>(planet.position[0]),
-                               static_cast<float>(planet.position[1]),
-                               static_cast<float>(planet.position[2]));
-        const float radius = static_cast<float>(
-            planet.radius + planet.water.level_m / scenario.metersPerWorldUnit());
-        const glm::mat4 model = rendering::sphereModel(center, radius);
+        const glm::dvec3 centerWorld(planet.position[0], planet.position[1],
+                                     planet.position[2]);
+        const glm::vec3 center(centerWorld);
+        const double radiusWorld =
+            planet.radius + planet.water.level_m / scenario.metersPerWorldUnit();
+        const glm::mat4 reflectedView = rendering::waterReflectionView(
+            view, eyeWorld, centerWorld, radiusWorld);
+        const glm::mat4 reflectedProjection = rendering::perspectiveProjection(
+            fov, static_cast<float>(reflectionTarget.width()) /
+                     reflectionTarget.height(), clip);
+        const glm::mat4 reflectionViewProjection = reflectedProjection * reflectedView;
+
+        glDepthMask(GL_TRUE);
+        glDisable(GL_BLEND);
+        reflectionTarget.bind();
+        glViewport(0, 0, reflectionTarget.width(), reflectionTarget.height());
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        drawOpaqueScene(reflectedProjection, reflectedView, center,
+                        static_cast<float>(radiusWorld));
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport(0, 0, width, height);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glDepthMask(GL_FALSE);
+        waterShader.use();
+        waterShader.setMat4("projection", glm::value_ptr(projection));
+        waterShader.setMat4("view", glm::value_ptr(view));
+        waterShader.setMat4("uReflectionViewProjection",
+                            glm::value_ptr(reflectionViewProjection));
+        waterShader.setFloat3("uCameraPosition", static_cast<float>(eyeWorld.x),
+                              static_cast<float>(eyeWorld.y),
+                              static_cast<float>(eyeWorld.z));
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, reflectionTarget.colorTexture());
+        waterShader.setInt("uReflectionTexture", 0);
+
+        const glm::mat4 model = rendering::sphereModel(
+            center, static_cast<float>(radiusWorld));
         waterShader.setMat4("model", glm::value_ptr(model));
         waterShader.setFloat3("uPlanetCenter", center.x, center.y, center.z);
         waterShader.setFloat3("uWaterColor", static_cast<float>(planet.water.color[0]),
@@ -258,6 +303,7 @@ void renderScene(const config::ScenarioConfig& scenario, const glm::mat4& view, 
                              static_cast<float>(planet.water.reflection_fraction));
         waterMeshes[i].draw();
     }
+    glBindTexture(GL_TEXTURE_2D, 0);
     glDepthMask(GL_TRUE);
     glDisable(GL_BLEND);
 }
@@ -506,6 +552,7 @@ int main(int argc, char** argv) {
         // Create shader program
         Shader shader("shaders/basic.vert", "shaders/basic.frag");
         Shader waterShader("shaders/water.vert", "shaders/water.frag");
+        rendering::WaterReflectionTarget waterReflection;
         
         // Enable depth testing
         glEnable(GL_DEPTH_TEST);
@@ -531,7 +578,8 @@ int main(int argc, char** argv) {
             const auto meshStart = std::chrono::steady_clock::now();
             preparePlanetMeshes(eyeWorld);
             const auto meshEnd = std::chrono::steady_clock::now();
-            renderScene(scenario, view, fov, eyeWorld, shader, waterShader, g_mesh,
+            renderScene(scenario, view, fov, eyeWorld, shader, waterShader,
+                        waterReflection, g_mesh,
                         planetMeshes, waterMeshes, width, height,
                         surfaceRenderMode ? surfaceClip :
                         planetRenderMode ? planetOrbitClip(eyeWorld) :
@@ -782,7 +830,7 @@ int main(int argc, char** argv) {
                         : onPlanetOrbit ? planetOrbitClip(eyeWorld) : rendering::ClipPlanes{};
                     preparePlanetMeshes(eyeWorld, true);
                     renderScene(scenario, view, fov, eyeWorld, shader, waterShader,
-                                g_mesh, planetMeshes, waterMeshes,
+                                waterReflection, g_mesh, planetMeshes, waterMeshes,
                                 width, height,
                                 clip);
                     glfwSwapBuffers(window);

@@ -10,9 +10,11 @@ uniform mat4 projection;
 uniform vec3 uColor;
 
 out vec3 vColor;
+out vec3 vWorldPosition;
 
 void main() {
     vec4 worldPos = model * vec4(aPos, 1.0);
     gl_Position = projection * view * worldPos;
+    vWorldPosition = worldPos.xyz;
     vColor = uColor * aColor;
 }

@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstdint>
 #include <map>
+#include <optional>
 #include <stdexcept>
 #include <tuple>
 #include <vector>
@@ -33,9 +34,10 @@ public:
     TerrainSurface(const std::vector<config::PlanetConfig::SurfaceNoiseFunction>& functions,
                    const config::PlanetConfig::TerrainLod& lod,
                    double radiusWorld, double metersPerWorldUnit,
-                   const config::PlanetConfig::TerrainLandscape& landscape = {})
+                   const config::PlanetConfig::TerrainLandscape& landscape = {},
+                   std::optional<double> waterLevelMeters = std::nullopt)
         : functions_(functions), lod_(lod), landscape_(landscape), radius_(radiusWorld),
-          metersPerUnit_(metersPerWorldUnit) {
+          metersPerUnit_(metersPerWorldUnit), waterLevelMeters_(waterLevelMeters) {
         lod_.validate();
         landscape_.validate();
         for (const auto& function : functions_) {
@@ -50,6 +52,8 @@ public:
             functions_.size() > 8) {
             throw std::invalid_argument("Invalid terrain radius or amplitude");
         }
+        if (waterLevelMeters_ && !std::isfinite(*waterLevelMeters_))
+            throw std::invalid_argument("Invalid terrain water level");
     }
 
     double heightAt(const glm::dvec3& radial) const {
@@ -73,6 +77,40 @@ public:
         const double sample = valueNoise(glm::normalize(radial) * 2.4, landscape_.seed + 2);
         return smoothstep(landscape_.cliff_threshold - 0.06,
                           landscape_.cliff_threshold + 0.06, sample);
+    }
+
+    static glm::dvec3 landscapeColorFactors(double heightMeters, double slope,
+                                             double waterLevelMeters,
+                                             double maximumHeightMeters,
+                                             double steepSlopeThreshold) {
+        const glm::dvec3 seabed(0.30, 0.40, 0.19);
+        const glm::dvec3 beach(4.20, 1.90, 0.18);
+        const glm::dvec3 grass(1.10, 1.30, 0.18);
+        const glm::dvec3 snow(4.60, 2.30, 0.92);
+        const double beachTop = waterLevelMeters + 0.1;
+        const double usableRelief = std::max(1.0, maximumHeightMeters - waterLevelMeters);
+        const double snowStart = std::max(beachTop + 1.0,
+                                          waterLevelMeters + 0.55 * usableRelief);
+        const double snowEnd = std::max(snowStart + 1.0,
+                                        waterLevelMeters + 0.75 * usableRelief);
+
+        const double aboveWater = smoothstep(waterLevelMeters - 0.05,
+                                             waterLevelMeters + 0.02, heightMeters);
+        const double beachWeight = aboveWater *
+            (1.0 - smoothstep(beachTop, beachTop + 0.15, heightMeters));
+        const double snowWeight = smoothstep(snowStart, snowEnd, heightMeters);
+        glm::dvec3 land = glm::mix(grass, beach, beachWeight);
+        land = glm::mix(land, snow, snowWeight);
+
+        const double darkStart = std::max(0.05, steepSlopeThreshold);
+        const double darkEnd = std::max(darkStart + 0.2, 3.0 * darkStart);
+        const double steep = smoothstep(darkStart, darkEnd, slope);
+        land *= glm::mix(1.0, 0.32, steep);
+
+        const double submerged = 1.0 - smoothstep(waterLevelMeters - 0.5,
+                                                   waterLevelMeters + 0.02,
+                                                   heightMeters);
+        return glm::mix(land, seabed, submerged);
     }
 
 private:
@@ -512,6 +550,23 @@ private:
         return result;
     }
 
+    double slopeAt(const glm::dvec3& radial, double heightMeters) const {
+        const glm::dvec3 reference = std::abs(radial.z) < 0.8 ?
+            glm::dvec3(0.0, 0.0, 1.0) : glm::dvec3(0.0, 1.0, 0.0);
+        const glm::dvec3 tangentA = glm::normalize(glm::cross(reference, radial));
+        const glm::dvec3 tangentB = glm::normalize(glm::cross(radial, tangentA));
+        const double radiusMeters = radius_ * metersPerUnit_;
+        const double angle = std::clamp(0.25 / radiusMeters, 1e-5, 0.01);
+        const double distanceMeters = radiusMeters * angle;
+        const glm::dvec3 sampleA = glm::normalize(
+            std::cos(angle) * radial + std::sin(angle) * tangentA);
+        const glm::dvec3 sampleB = glm::normalize(
+            std::cos(angle) * radial + std::sin(angle) * tangentB);
+        const double riseA = heightAt(sampleA) * metersPerUnit_ - heightMeters;
+        const double riseB = heightAt(sampleB) * metersPerUnit_ - heightMeters;
+        return std::hypot(riseA, riseB) / distanceMeters;
+    }
+
     glm::dvec3 colorAt(const glm::dvec3& radial, double heightWorld) const {
         if (!landscape_.enabled) {
             const double normalizedHeight = totalAmplitudeMeters_ == 0.0 ? 0.0 :
@@ -520,15 +575,9 @@ private:
             return glm::dvec3(tint);
         }
         const double heightMeters = heightWorld * metersPerUnit_;
-        const double plain = regionPlainWeight(radial);
-        const double cliff = regionCliffWeight(radial);
-        const glm::dvec3 grass(1.70, 1.50, 0.26);
-        const glm::dvec3 rock(2.80, 1.48, 0.62);
-        const glm::dvec3 seabed(0.30, 0.40, 0.19);
-        const glm::dvec3 land = glm::mix(grass, rock,
-            std::clamp(cliff * (1.0 - 0.35 * plain), 0.0, 1.0));
-        const double submerged = 1.0 - smoothstep(-2.0, 0.5, heightMeters);
-        return glm::mix(land, seabed, submerged);
+        return landscapeColorFactors(heightMeters, slopeAt(radial, heightMeters),
+            waterLevelMeters_.value_or(0.0), totalAmplitudeMeters_,
+            lod_.steep_slope_threshold);
     }
 
     void subdivideBase(const glm::dvec3& a, const glm::dvec3& b,
@@ -603,6 +652,7 @@ private:
     double radius_;
     double metersPerUnit_;
     double totalAmplitudeMeters_ = 0.0;
+    std::optional<double> waterLevelMeters_;
 };
 
 } // namespace rendering

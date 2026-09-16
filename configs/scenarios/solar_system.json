@@ -3,21 +3,21 @@
     "distance_unit": "km",
     "sun": {
         "position": [0, 0, 0],
-        "radius": 0.5,
+        "radius": 2.5,
         "color": [1.0, 0.5, 0.2]
     },
     "planets": [{
         "position": [10.0, 0, 0],
         "orbit_radius": 10.0,
         "orbit_speed": 2,
-        "radius": 0.1,
+        "radius": 1,
         "color": [0.2, 0.4, 1.0],
         "surface_noise": [
             {
                 "description":"low freq noise responsible for continents",
                 "type": "value_fbm",
                 "seed": 90,
-                "amplitude_m": 6.8,
+                "amplitude_m": 68,
                 "frequency": 3.0,
                 "octaves": 4,
                 "persistence": 0.5,
@@ -27,7 +27,7 @@
                 "description":"fine ridge relief; broad cliff regions use terrain_landscape.seed",
                 "type": "ridged_fbm",
                 "seed": 35,
-                "amplitude_m": 4.0,
+                "amplitude_m": 40,
                 "frequency": 8.0,
                 "octaves": 3,
                 "persistence": 0.45,
@@ -40,8 +40,8 @@
             "max_edge_segments": 16,
             "steep_edge_segments": 32,
             "steep_slope_threshold": 0.3,
-            "near_surface_distance_m": 30.0,
-            "mid_surface_distance_m": 100.0,
+            "near_surface_distance_m": 300.0,
+            "mid_surface_distance_m": 1000.0,
             "max_triangle_budget": 100000,
             "lod_near_diameters": 2.0,
             "lod_far_diameters": 8.0
@@ -52,14 +52,14 @@
             "continent_frequency": 1.6,
             "plain_threshold": 0.48,
             "cliff_threshold": 0.62,
-            "cliff_amplitude_m": 12.0,
+            "cliff_amplitude_m": 120.0,
             "cliff_frequency": 7.0,
             "ridge_smoothing": 0.25,
             "seed": 1
         },
         "water": {
             "enabled": true,
-            "level_m": -0.45,
+            "level_m": 0,
             "opacity": 0.5,
             "reflection_fraction": 0.5,
             "color": [0.06, 0.31, 0.56]
@@ -77,8 +77,8 @@
         "planet_index": 0,
         "latitude_deg": -21.409888069265286,
         "longitude_deg": 82.26311950013215024,
-        "altitude": 0.002,
-        "walk_speed_mps": 8.0,
+        "altitude": 0.03,
+        "walk_speed_mps": 80.0,
         "direction_ned": [0.0595365512313363,0.9937565852932968,0.09435702546013867],
         "fov": 80.0
     }

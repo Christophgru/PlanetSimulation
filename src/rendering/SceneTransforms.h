@@ -39,4 +39,40 @@ inline glm::mat4 perspectiveProjection(float fovDegrees, float aspect,
                             clip.nearPlane, clip.farPlane);
 }
 
+inline glm::dvec3 reflectPointAcrossPlane(const glm::dvec3& point,
+                                          const glm::dvec3& planePoint,
+                                          const glm::dvec3& unitNormal) {
+    return point - 2.0 * glm::dot(point - planePoint, unitNormal) * unitNormal;
+}
+
+inline glm::dvec3 reflectVectorAcrossPlane(const glm::dvec3& vector,
+                                           const glm::dvec3& unitNormal) {
+    return vector - 2.0 * glm::dot(vector, unitNormal) * unitNormal;
+}
+
+// Approximate the spherical ocean by its tangent plane beneath the eye. The
+// reflection pass separately clips the terrain against the spherical sea.
+inline glm::mat4 waterReflectionView(const glm::mat4& view,
+                                     const glm::dvec3& eye,
+                                     const glm::dvec3& planetCenter,
+                                     double waterRadius) {
+    const glm::dvec3 offset = eye - planetCenter;
+    const double distance = glm::length(offset);
+    if (!std::isfinite(distance) || distance <= 1e-12 ||
+        !std::isfinite(waterRadius) || waterRadius <= 0.0) {
+        throw std::invalid_argument("Water reflection requires a valid eye and radius");
+    }
+    const glm::dvec3 normal = offset / distance;
+    const glm::dvec3 planePoint = planetCenter + waterRadius * normal;
+    const glm::mat4 inverseView = glm::inverse(view);
+    const glm::dvec3 forward = -glm::normalize(glm::dvec3(inverseView[2]));
+    const glm::dvec3 up = glm::normalize(glm::dvec3(inverseView[1]));
+    const glm::dvec3 reflectedEye = reflectPointAcrossPlane(eye, planePoint, normal);
+    const glm::dvec3 reflectedForward = reflectVectorAcrossPlane(forward, normal);
+    const glm::dvec3 reflectedUp = reflectVectorAcrossPlane(up, normal);
+    return glm::lookAt(glm::vec3(reflectedEye),
+                       glm::vec3(reflectedEye + reflectedForward),
+                       glm::vec3(reflectedUp));
+}
+
 } // namespace rendering

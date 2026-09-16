@@ -64,6 +64,10 @@ public:
     void setFloat(const char* name, float value) const {
         glUniform1f(glGetUniformLocation(id, name), value);
     }
+
+    void setInt(const char* name, int value) const {
+        glUniform1i(glGetUniformLocation(id, name), value);
+    }
     
     void setFloat2(const char* name, float x, float y) const {
         glUniform2f(glGetUniformLocation(id, name), x, y);

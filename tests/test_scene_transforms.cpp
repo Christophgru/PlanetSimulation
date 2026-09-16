@@ -59,3 +59,30 @@ TEST(SceneTransformsTest, SurfaceProjectionUsesLocalClearanceForNearAndKeepsSunF
     EXPECT_NEAR(farClip.z / farClip.w, 1.0f, 1e-3f);
     EXPECT_THROW(rendering::surfaceClipPlanes(-0.1, 10.0, 0.5), std::invalid_argument);
 }
+
+TEST(SceneTransformsTest, PlaneReflectionMirrorsPointsAndVectors) {
+    const glm::dvec3 normal(0.0, 0.0, 1.0);
+    const glm::dvec3 planePoint(0.0, 0.0, 1.0);
+    EXPECT_NEAR(glm::length(rendering::reflectPointAcrossPlane(
+                    {2.0, -3.0, 4.0}, planePoint, normal) -
+                glm::dvec3(2.0, -3.0, -2.0)), 0.0, 1e-12);
+    EXPECT_NEAR(glm::length(rendering::reflectVectorAcrossPlane(
+                    {0.0, 2.0, -3.0}, normal) -
+                glm::dvec3(0.0, 2.0, 3.0)), 0.0, 1e-12);
+}
+
+TEST(SceneTransformsTest, WaterReflectionViewMirrorsEyeAndDirectionAtTangentPlane) {
+    const glm::dvec3 eye(0.0, 0.0, 2.0);
+    const glm::mat4 view = glm::lookAt(glm::vec3(eye), glm::vec3(0.0f, 1.0f, 1.0f),
+                                      glm::vec3(0.0f, 0.0f, 1.0f));
+    const glm::mat4 reflected = rendering::waterReflectionView(
+        view, eye, glm::dvec3(0.0), 1.0);
+    const glm::mat4 inverse = glm::inverse(reflected);
+    const glm::dvec3 reflectedEye(inverse[3]);
+    const glm::dvec3 reflectedForward = -glm::normalize(glm::dvec3(inverse[2]));
+    EXPECT_NEAR(glm::length(reflectedEye - glm::dvec3(0.0)), 0.0, 1e-6);
+    EXPECT_GT(reflectedForward.y, 0.7);
+    EXPECT_GT(reflectedForward.z, 0.7);
+    EXPECT_THROW(rendering::waterReflectionView(view, eye, glm::dvec3(0.0), 0.0),
+                 std::invalid_argument);
+}

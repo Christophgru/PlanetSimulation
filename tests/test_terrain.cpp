@@ -92,6 +92,31 @@ TEST(TerrainTest, LandscapeRidgeSmoothingRoundsCrestsWithinConfiguredAmplitude) 
     EXPECT_GT(largestDifferenceMeters, 0.5);
 }
 
+TEST(TerrainTest, LandscapePaletteUsesWaterRelativeBeachGreenSnowAndDarkSlopes) {
+    const glm::dvec3 planetColor(0.2, 0.4, 1.0);
+    auto color = [&](double height, double slope, double water = 0.0) {
+        return planetColor * rendering::TerrainSurface::landscapeColorFactors(
+            height, slope, water, 40.0, 0.3);
+    };
+    const glm::dvec3 seabed = color(-1.0, 0.0);
+    const glm::dvec3 beach = color(0.06, 0.0);
+    const glm::dvec3 shiftedBeach = color(10.06, 0.0, 10.0);
+    const glm::dvec3 grass = color(5.0, 0.0);
+    const glm::dvec3 snow = color(35.0, 0.0);
+    const glm::dvec3 steepGrass = color(5.0, 2.0);
+
+    EXPECT_GT(seabed.z, seabed.x);
+    EXPECT_GT(beach.x, beach.z);
+    EXPECT_GT(beach.y, beach.z);
+    EXPECT_NEAR(glm::length(beach - shiftedBeach), 0.0, 1e-12);
+    EXPECT_GT(grass.y, grass.x);
+    EXPECT_GT(grass.y, grass.z);
+    EXPECT_LT(std::max({snow.x, snow.y, snow.z}) -
+              std::min({snow.x, snow.y, snow.z}), 0.01);
+    EXPECT_GT(snow.x, 0.9);
+    EXPECT_LT(glm::length(steepGrass), 0.5 * glm::length(grass));
+}
+
 TEST(TerrainTest, OverlappingFunctionsAddTheirIndependentHeightFields) {
     config::PlanetConfig::SurfaceNoiseFunction hills;
     hills.amplitude_m = 0.8;
