@@ -63,6 +63,35 @@ TEST(TerrainTest, LandscapeSeedChangesBroadTerrainEvenWithFixedSurfaceNoiseSeeds
     EXPECT_GT(largestDifferenceMeters, 1.0);
 }
 
+TEST(TerrainTest, LandscapeRidgeSmoothingRoundsCrestsWithinConfiguredAmplitude) {
+    config::PlanetConfig::TerrainLandscape sharp;
+    sharp.enabled = true;
+    sharp.cliff_amplitude_m = 18.0;
+    sharp.cliff_frequency = 7.0;
+    sharp.seed = 1;
+    auto rounded = sharp;
+    rounded.ridge_smoothing = 0.25;
+    const config::PlanetConfig::TerrainLod lod;
+    const rendering::TerrainSurface sharpTerrain({}, lod, 0.1, 1000.0, sharp);
+    const rendering::TerrainSurface roundedTerrain({}, lod, 0.1, 1000.0, rounded);
+    double largestDifferenceMeters = 0.0;
+    for (int latitude = -80; latitude <= 80; latitude += 5) {
+        for (int longitude = 0; longitude < 360; longitude += 5) {
+            const double lat = glm::radians(static_cast<double>(latitude));
+            const double lon = glm::radians(static_cast<double>(longitude));
+            const glm::dvec3 radial(std::cos(lat) * std::cos(lon),
+                                    std::cos(lat) * std::sin(lon), std::sin(lat));
+            const double sharpHeight = 1000.0 * sharpTerrain.heightAt(radial);
+            const double roundedHeight = 1000.0 * roundedTerrain.heightAt(radial);
+            EXPECT_GE(roundedHeight, 0.0);
+            EXPECT_LE(roundedHeight, rounded.cliff_amplitude_m);
+            largestDifferenceMeters = std::max(largestDifferenceMeters,
+                                                std::abs(sharpHeight - roundedHeight));
+        }
+    }
+    EXPECT_GT(largestDifferenceMeters, 0.5);
+}
+
 TEST(TerrainTest, OverlappingFunctionsAddTheirIndependentHeightFields) {
     config::PlanetConfig::SurfaceNoiseFunction hills;
     hills.amplitude_m = 0.8;
@@ -325,6 +354,28 @@ TEST(TerrainTest, LocalZonesAreDenserWatertightAndStayWithinBudget) {
     }
     for (const auto& [edge, occurrences] : edges)
         EXPECT_EQ(occurrences, 2) << "Open or overlapping terrain edge";
+}
+
+TEST(TerrainTest, SteepFacesUseSpareTriangleBudgetForExtraDetail) {
+    const auto scenario = config::ScenarioConfig(config::Config::load(
+        std::string(PLANET_SOURCE_DIR) + "/configs/scenarios/solar_system.json"));
+    const auto& planet = scenario.planets[0];
+    auto ordinaryLod = planet.terrain_lod;
+    ordinaryLod.steep_edge_segments = ordinaryLod.max_edge_segments;
+    const rendering::TerrainSurface ordinary(planet.surface_noise, ordinaryLod,
+        planet.radius, scenario.metersPerWorldUnit(), planet.terrain_landscape);
+    const rendering::TerrainSurface adaptive(planet.surface_noise, planet.terrain_lod,
+        planet.radius, scenario.metersPerWorldUnit(), planet.terrain_landscape);
+    const glm::dvec3 center(planet.position[0], planet.position[1], planet.position[2]);
+    const glm::dvec3 eye = center + glm::dvec3(0.102, 0.0, 0.0);
+    const auto ordinaryGeometry = ordinary.buildGeometryForEye(eye, center);
+    const auto adaptiveGeometry = adaptive.buildGeometryForEye(eye, center);
+
+    EXPECT_EQ(ordinaryGeometry.steepRefinedFaces, 0);
+    EXPECT_GT(adaptiveGeometry.steepRefinedFaces, 0);
+    EXPECT_GT(adaptiveGeometry.triangleCount(), ordinaryGeometry.triangleCount());
+    EXPECT_LE(adaptiveGeometry.triangleCount(), planet.terrain_lod.max_triangle_budget);
+    EXPECT_EQ(adaptiveGeometry.faceZones, ordinaryGeometry.faceZones);
 }
 
 TEST(TerrainTest, ZoneHysteresisRetainsDetailWhenEyeCrossesABoundary) {

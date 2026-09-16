@@ -124,6 +124,10 @@ the Sun. The JSON `altitude` is the requested clearance above sampled terrain or
 in the configured world distance unit (`0.002` km is 2 m in the development
 scene). The printed LLA altitude varies with terrain or water height, while the reusable
 config snippet keeps the requested clearance and walking speed.
+Surface mouse look keeps heading and pitch independent: horizontal mouse
+movement changes compass heading, while vertical movement changes only pitch.
+Pitch stops at 89.9 degrees above or below the local horizon so the view cannot
+cross the vertical pole and flip or begin to roll.
 
 Each planet can configure `surface_noise` as a list of overlapping functions.
 Each function has a `type` (`value_fbm` for smooth hills or `ridged_fbm` for
@@ -139,7 +143,10 @@ controls those large-scale shapes, including the broad cliff regions. Change
 the config rebuilds the mesh automatically. The
 optional `enabled` switch, `elevation_offset_m`, `continent_amplitude_m`, `continent_frequency`,
 `plain_threshold`, `cliff_threshold`, `cliff_amplitude_m`, `cliff_frequency`,
-and `seed` control that shape. Areas below the water level form ocean basins.
+`ridge_smoothing`, and `seed` control that shape. `ridge_smoothing` rounds the
+otherwise pointed absolute-noise crest; `0` preserves a sharp crest and the
+development value `0.25` softens high-angle ridge peaks. Areas below the water
+level form ocean basins.
 Vertex colors interpolate green plains, pale cliffs, and dark seabed across
 triangles, without visible triangle outlines. Land lighting and textures are
 still future work.
@@ -149,7 +156,12 @@ zones. Its `near_surface_distance_m` and `mid_surface_distance_m` are distances
 along the planet from the camera's radial position. The development scene uses
 16 edge segments near the camera, 8 in the middle, and 3 far away;
 `max_edge_segments`, `medium_edge_segments`, and `base_edge_segments` configure
-those densities. All vertices sample the same planet-fixed height function;
+those densities. Nearby middle/near faces whose sampled rise-over-run exceeds
+`steep_slope_threshold` can use `steep_edge_segments` instead. The development
+scene raises those faces from 16 to 32 segments. If `max_triangle_budget` would
+be exceeded, middle-zone refinements are removed before near-zone refinements;
+the choice within each zone is stable while the camera moves. All
+vertices sample the same planet-fixed height function;
 nearby faces have more vertices and therefore resolve finer noise, while far
 faces sample it sparsely. The ground no longer changes height when the camera
 moves and the mesh is rebuilt. Adjacent faces share the same boundary samples
@@ -158,7 +170,7 @@ after about 10 m of camera movement on the surface, keeping the faster walk
 from rebuilding it too often. Walking rebuilds the CPU geometry in the
 background and uploads it on the main thread when ready, so camera input and
 rendering continue during noise evaluation. The configurable
-`max_triangle_budget` caps the development terrain at 60,000 triangles per
+`max_triangle_budget` caps the development terrain at 100,000 triangles per
 planet. The older `lod_near_diameters` and `lod_far_diameters` remain in the
 config for compatibility with earlier distance tests; the renderer uses the
 surface-distance zones.

@@ -73,16 +73,54 @@ TEST(PlanetSurfaceCameraTest, SunAndCameraCannotCoincide) {
                                      {0.0, 0.0, 0.0}, 180.0), std::invalid_argument);
 }
 
-TEST(PlanetSurfaceCameraTest, MouseLookMovesImmediatelyFromSunFacingVerticalView) {
+TEST(PlanetSurfaceCameraTest, MouseLookUsesIndependentHeadingAndPitch) {
     PlanetSurfaceCamera camera({{5.0, 0.0, 0.0}, 0.5},
                                {0.0, 180.0, 0.2}, {0.0, 0.0, 0.0}, 60.0);
-    const glm::dvec3 initial = camera.direction();
+    camera.setDirectionNed({1.0, 1.0, 0.0});
+    const double initialHeading = std::atan2(camera.directionNed().y,
+                                             camera.directionNed().x);
+    camera.look(0.0, -500.0);
+    const glm::dvec3 afterVertical = camera.directionNed();
+    EXPECT_NEAR(std::atan2(afterVertical.y, afterVertical.x), initialHeading, 1e-10);
+
     camera.look(100.0, 0.0);
-    EXPECT_GT(glm::length(camera.direction() - initial), 0.3);
+    const glm::dvec3 afterHorizontal = camera.directionNed();
+    EXPECT_NEAR(std::remainder(std::atan2(afterHorizontal.y, afterHorizontal.x) -
+                               initialHeading, 2.0 * glm::pi<double>()),
+                0.5, 1e-10);
     EXPECT_NEAR(glm::length(camera.direction()), 1.0, 1e-10);
     EXPECT_NEAR(glm::dot(camera.direction(), camera.up()), 0.0, 1e-10);
-    camera.look(0.0, 200.0);
-    EXPECT_GT(glm::dot(camera.up(), -camera.down()), 0.1);
+}
+
+TEST(PlanetSurfaceCameraTest, VerticalLookStopsAtNinetyDegreesWithoutSpinning) {
+    PlanetSurfaceCamera camera({{5.0, 0.0, 0.0}, 0.5},
+                               {20.0, 110.0, 0.2}, {0.0, 0.0, 0.0}, 60.0);
+    camera.setDirectionNed({1.0, 0.5, 0.0});
+    const double heading = std::atan2(camera.directionNed().y,
+                                      camera.directionNed().x);
+    for (int step = 0; step < 20; ++step) camera.look(0.0, -500.0);
+    const glm::dvec3 atLimit = camera.directionNed();
+    const glm::dvec3 upAtLimit = camera.up();
+    EXPECT_NEAR(glm::degrees(std::asin(-atLimit.z)), 89.9, 1e-8);
+    EXPECT_NEAR(std::atan2(atLimit.y, atLimit.x), heading, 1e-10);
+
+    for (int step = 0; step < 20; ++step) camera.look(0.0, -500.0);
+    EXPECT_NEAR(glm::length(camera.directionNed() - atLimit), 0.0, 1e-12);
+    EXPECT_NEAR(glm::length(camera.up() - upAtLimit), 0.0, 1e-12);
+
+    for (int step = 0; step < 40; ++step) camera.look(0.0, 500.0);
+    const glm::dvec3 atLowerLimit = camera.directionNed();
+    const glm::dvec3 upAtLowerLimit = camera.up();
+    EXPECT_NEAR(glm::degrees(std::asin(-atLowerLimit.z)), -89.9, 1e-8);
+    EXPECT_NEAR(std::atan2(atLowerLimit.y, atLowerLimit.x), heading, 1e-10);
+    for (int step = 0; step < 20; ++step) camera.look(0.0, 500.0);
+    EXPECT_NEAR(glm::length(camera.directionNed() - atLowerLimit), 0.0, 1e-12);
+    EXPECT_NEAR(glm::length(camera.up() - upAtLowerLimit), 0.0, 1e-12);
+
+    const glm::mat4 view = camera.getViewMatrix();
+    for (int column = 0; column < 4; ++column)
+        for (int row = 0; row < 4; ++row)
+            EXPECT_TRUE(std::isfinite(view[column][row]));
 }
 
 TEST(PlanetSurfaceCameraTest, LookingDownEventuallyFacesThePlanetWithoutEnteringIt) {

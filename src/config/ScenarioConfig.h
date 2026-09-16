@@ -105,6 +105,8 @@ struct PlanetConfig {
         int base_edge_segments = 1;
         int max_edge_segments = 16;
         int medium_edge_segments = 8;
+        int steep_edge_segments = 16;
+        double steep_slope_threshold = 0.35;
         double near_surface_distance_m = 35.0;
         double mid_surface_distance_m = 110.0;
         int max_triangle_budget = 60000;
@@ -116,6 +118,9 @@ struct PlanetConfig {
             max_edge_segments = cfg.getInt("max_edge_segments", max_edge_segments);
             medium_edge_segments = cfg.getInt("medium_edge_segments",
                 std::max(base_edge_segments, std::min(medium_edge_segments, max_edge_segments)));
+            steep_edge_segments = cfg.getInt("steep_edge_segments", max_edge_segments);
+            steep_slope_threshold = cfg.getDouble("steep_slope_threshold",
+                                                  steep_slope_threshold);
             near_surface_distance_m = cfg.getDouble("near_surface_distance_m", near_surface_distance_m);
             mid_surface_distance_m = cfg.getDouble("mid_surface_distance_m", mid_surface_distance_m);
             max_triangle_budget = cfg.getInt("max_triangle_budget", max_triangle_budget);
@@ -127,9 +132,12 @@ struct PlanetConfig {
 
         void validate() const {
             if (base_edge_segments < 1 || max_edge_segments < base_edge_segments ||
-                max_edge_segments > 16 ||
+                max_edge_segments > 32 ||
                 medium_edge_segments < base_edge_segments ||
                 medium_edge_segments > max_edge_segments ||
+                steep_edge_segments < max_edge_segments || steep_edge_segments > 32 ||
+                !std::isfinite(steep_slope_threshold) ||
+                steep_slope_threshold <= 0.0 || steep_slope_threshold > 4.0 ||
                 !std::isfinite(near_surface_distance_m) || near_surface_distance_m <= 0.0 ||
                 !std::isfinite(mid_surface_distance_m) ||
                 mid_surface_distance_m <= near_surface_distance_m ||
@@ -153,6 +161,7 @@ struct PlanetConfig {
         double cliff_threshold = 0.62;
         double cliff_amplitude_m = 0.0;
         double cliff_frequency = 7.0;
+        double ridge_smoothing = 0.0;
         int seed = 1001;
 
         TerrainLandscape() = default;
@@ -165,6 +174,7 @@ struct PlanetConfig {
             cliff_threshold = cfg.getDouble("cliff_threshold", cliff_threshold);
             cliff_amplitude_m = cfg.getDouble("cliff_amplitude_m", cliff_amplitude_m);
             cliff_frequency = cfg.getDouble("cliff_frequency", cliff_frequency);
+            ridge_smoothing = cfg.getDouble("ridge_smoothing", ridge_smoothing);
             seed = cfg.getInt("seed", seed);
             validate();
         }
@@ -175,7 +185,9 @@ struct PlanetConfig {
                 !std::isfinite(plain_threshold) || plain_threshold <= 0.0 || plain_threshold >= 1.0 ||
                 !std::isfinite(cliff_threshold) || cliff_threshold <= plain_threshold || cliff_threshold >= 1.0 ||
                 !std::isfinite(cliff_amplitude_m) || cliff_amplitude_m < 0.0 ||
-                !std::isfinite(cliff_frequency) || cliff_frequency <= 0.0 || cliff_frequency > 32.0)
+                !std::isfinite(cliff_frequency) || cliff_frequency <= 0.0 || cliff_frequency > 32.0 ||
+                !std::isfinite(ridge_smoothing) || ridge_smoothing < 0.0 ||
+                ridge_smoothing > 0.5)
                 throw std::invalid_argument("Invalid planet.terrain_landscape parameters");
         }
         double maximumAbsoluteHeightMeters() const {

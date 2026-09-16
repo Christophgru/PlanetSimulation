@@ -76,18 +76,11 @@ public:
         if (!std::isfinite(deltaX) || !std::isfinite(deltaY)) return;
         deltaX = std::clamp(deltaX, -500.0, 500.0);
         deltaY = std::clamp(deltaY, -500.0, 500.0);
-        const glm::dvec3 right = glm::normalize(glm::cross(direction_, up_));
-        const glm::dvec3 candidate = direction_ +
-            kMouseRadiansPerPixel * (deltaX * right - deltaY * up_);
-        if (glm::length(candidate) <= 0.0) return;
-        direction_ = glm::normalize(candidate);
-        updateAnglesFromDirection();
-        const double pitchLimit = glm::radians(89.9);
-        if (std::abs(pitch_) > pitchLimit) {
-            pitch_ = std::clamp(pitch_, -pitchLimit, pitchLimit);
-            updateDirectionFromAngles();
-        }
-        updateUp(up_);
+        heading_ = std::remainder(heading_ + kMouseRadiansPerPixel * deltaX,
+                                  2.0 * glm::pi<double>());
+        pitch_ = std::clamp(pitch_ - kMouseRadiansPerPixel * deltaY,
+                            -kPitchLimitRadians, kPitchLimitRadians);
+        updateMouseViewFromAngles();
     }
 
     // WASD follows the sphere and resamples terrain at the new location.
@@ -177,6 +170,7 @@ public:
 
 private:
     static constexpr double kMouseRadiansPerPixel = 0.005;
+    static constexpr double kPitchLimitRadians = glm::radians(89.9);
     static constexpr double kMinimumEyeHeightFraction = 0.02;
 
     static bool finite(const glm::dvec3& vector) {
@@ -218,6 +212,17 @@ private:
             std::cos(heading_) * ned.north + std::sin(heading_) * ned.east;
         direction_ = glm::normalize(std::cos(pitch_) * tangent -
                                     std::sin(pitch_) * ned.down);
+    }
+
+    void updateMouseViewFromAngles() {
+        const auto ned = frame_.nedAt(location_);
+        const glm::dvec3 tangentForward =
+            std::cos(heading_) * ned.north + std::sin(heading_) * ned.east;
+        const glm::dvec3 tangentRight =
+            -std::sin(heading_) * ned.north + std::cos(heading_) * ned.east;
+        direction_ = glm::normalize(std::cos(pitch_) * tangentForward -
+                                    std::sin(pitch_) * ned.down);
+        up_ = glm::normalize(glm::cross(tangentRight, direction_));
     }
 
     void updateUp(const glm::dvec3& preferredUp) {

@@ -173,6 +173,7 @@ TEST(CameraInputTest, SurfaceMouseLookNeedsNoDragButton) {
     OrbitCamera camera(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 10.0f));
     PlanetSurfaceCamera surface({{5.0, 0.0, 0.0}, 0.5},
                                 {0.0, 180.0, 0.2}, {0.0, 0.0, 0.0}, 60.0);
+    surface.setDirectionNed({1.0, 0.0, 0.0});
     CameraInput input(camera, &surface);
     input.selectSurface();
     const glm::dvec3 initialDirection = surface.direction();

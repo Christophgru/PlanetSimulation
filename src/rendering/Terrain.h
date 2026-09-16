@@ -22,6 +22,7 @@ struct TerrainGeometry {
     std::vector<unsigned int> indices;
     std::array<int, 3> zoneFaces{}; // far, middle, near
     std::vector<int> faceZones; // one zone per fixed base face, for LOD hysteresis
+    int steepRefinedFaces = 0;
     int coarseNoiseSamples = 0;
     int fineNoiseSamples = 0;
     int triangleCount() const { return static_cast<int>(indices.size() / 3); }
@@ -90,8 +91,16 @@ private:
             const double cliff = regionCliffWeight(direction);
             height = landscape_.elevation_offset_m +
                      landscape_.continent_amplitude_m * continent * (1.0 - 0.8 * plain);
-            const double ridge = 1.0 - std::abs(2.0 * valueNoise(
-                direction * landscape_.cliff_frequency, landscape_.seed + 3) - 1.0);
+            const double ridgeSignal = 2.0 * valueNoise(
+                direction * landscape_.cliff_frequency, landscape_.seed + 3) - 1.0;
+            double ridgeDistance = std::abs(ridgeSignal);
+            if (landscape_.ridge_smoothing > 0.0) {
+                const double smoothing = landscape_.ridge_smoothing;
+                const double scale = std::sqrt(1.0 + smoothing * smoothing) - smoothing;
+                ridgeDistance = (std::sqrt(ridgeSignal * ridgeSignal +
+                                           smoothing * smoothing) - smoothing) / scale;
+            }
+            const double ridge = 1.0 - std::clamp(ridgeDistance, 0.0, 1.0);
             height += landscape_.cliff_amplitude_m * cliff * std::pow(ridge, 5.0);
             detailMask = 1.0 - 0.9 * plain;
         }
@@ -189,6 +198,10 @@ public:
         if (!std::isfinite(zoneHysteresisMeters) || zoneHysteresisMeters < 0.0 ||
             (previousFaceZones && previousFaceZones->size() != faces.size()))
             throw std::invalid_argument("Invalid previous terrain zones or hysteresis");
+        auto segmentsForZone = [&](int zone) {
+            return zone == 2 ? lod_.max_edge_segments :
+                   zone == 1 ? lod_.medium_edge_segments : lod_.base_edge_segments;
+        };
         for (std::size_t index = 0; index < faces.size(); ++index) {
             auto& face = faces[index];
             face.distanceMeters = radius_ * metersPerUnit_ * std::acos(
@@ -213,9 +226,13 @@ public:
                     lod_.mid_surface_distance_m + zoneHysteresisMeters)
                     face.zone = std::max(face.zone, 1);
             }
-            face.segments = face.zone == 2 ? lod_.max_edge_segments :
-                            face.zone == 1 ? lod_.medium_edge_segments :
-                                             lod_.base_edge_segments;
+            face.segments = segmentsForZone(face.zone);
+            if (localView && face.zone > 0 &&
+                lod_.steep_edge_segments > lod_.max_edge_segments &&
+                maximumSlope(face) >= lod_.steep_slope_threshold) {
+                face.steep = true;
+                face.segments = lod_.steep_edge_segments;
+            }
         }
 
         auto makeEdges = [&] {
@@ -250,22 +267,41 @@ public:
         auto edges = makeEdges();
         while (estimate(edges) > lod_.max_triangle_budget) {
             auto candidate = faces.end();
+            // Spend spare triangles on steep faces. Prefer near-zone crests
+            // over middle-zone crests, and use the fixed face order within a
+            // zone so small eye movements cannot swap tessellation between
+            // equally important faces and make the ground pop.
+            for (auto it = faces.begin(); it != faces.end(); ++it) {
+                if (it->segments <= segmentsForZone(it->zone)) continue;
+                if (candidate == faces.end() || it->zone < candidate->zone ||
+                    (it->zone == candidate->zone && it > candidate))
+                    candidate = it;
+            }
+            if (candidate != faces.end()) {
+                candidate->segments = segmentsForZone(candidate->zone);
+                edges = makeEdges();
+                continue;
+            }
             for (auto it = faces.begin(); it != faces.end(); ++it) {
                 if (it->zone == 0) continue;
-                if (candidate == faces.end() || it->distanceMeters > candidate->distanceMeters)
+                if (candidate == faces.end() || it->zone < candidate->zone ||
+                    (it->zone == candidate->zone && it > candidate))
                     candidate = it;
             }
             if (candidate == faces.end())
                 throw std::invalid_argument("Terrain base mesh exceeds triangle budget");
             --candidate->zone;
-            candidate->segments = candidate->zone == 1 ? lod_.medium_edge_segments :
-                                                        lod_.base_edge_segments;
+            candidate->segments = segmentsForZone(candidate->zone);
             edges = makeEdges();
         }
 
         TerrainGeometry geometry;
         geometry.faceZones.reserve(faces.size());
-        for (const auto& face : faces) geometry.faceZones.push_back(face.zone);
+        for (const auto& face : faces) {
+            geometry.faceZones.push_back(face.zone);
+            if (face.steep && face.segments > segmentsForZone(face.zone))
+                ++geometry.steepRefinedFaces;
+        }
         const int predicted = estimate(edges);
         geometry.vertices.reserve(static_cast<std::size_t>(predicted) * 27);
         geometry.indices.reserve(static_cast<std::size_t>(predicted) * 3);
@@ -354,6 +390,7 @@ private:
         double distanceMeters = 0.0;
         int zone = 0;
         int segments = 1;
+        bool steep = false;
     };
     struct EdgeInfo {
         glm::dvec3 a{0.0}, b{0.0};
@@ -369,6 +406,34 @@ private:
         return ak < bk ? EdgeKey{ak, bk} : EdgeKey{bk, ak};
     }
     static int ringCount(int segments) { return std::max(1, (segments + 1) / 2); }
+
+    double maximumSlope(const BaseFace& face) const {
+        std::vector<glm::dvec3> samples;
+        samples.reserve(10);
+        samples.push_back(face.center);
+        for (const auto& corner : face.corners) samples.push_back(corner);
+        for (int side = 0; side < 3; ++side) {
+            const auto& a = face.corners[side];
+            const auto& b = face.corners[(side + 1) % 3];
+            samples.push_back(glm::normalize(2.0 * a + b));
+            samples.push_back(glm::normalize(a + 2.0 * b));
+        }
+        std::vector<double> heights;
+        heights.reserve(samples.size());
+        for (const auto& sample : samples)
+            heights.push_back(heightAt(sample) * metersPerUnit_);
+        double maximum = 0.0;
+        for (std::size_t a = 0; a < samples.size(); ++a) {
+            for (std::size_t b = a + 1; b < samples.size(); ++b) {
+                const double distance = radius_ * metersPerUnit_ * std::acos(
+                    std::clamp(glm::dot(samples[a], samples[b]), -1.0, 1.0));
+                if (distance > 1e-9)
+                    maximum = std::max(maximum,
+                        std::abs(heights[a] - heights[b]) / distance);
+            }
+        }
+        return maximum;
+    }
 
     static void collectBase(const glm::dvec3& a, const glm::dvec3& b,
                             const glm::dvec3& c, int remaining,

@@ -354,6 +354,7 @@ int main(int argc, char** argv) {
         std::vector<glm::dvec3> lastEyeRadial(scenario.planets.size(), glm::dvec3(0.0));
         std::vector<std::array<int, 3>> meshZoneFaces(scenario.planets.size());
         std::vector<int> meshTriangles(scenario.planets.size(), 0);
+        std::vector<int> meshSteepRefinedFaces(scenario.planets.size(), 0);
         struct PendingTerrainBuild {
             std::future<rendering::TerrainGeometry> geometry;
             glm::dvec3 eyeRadial{0.0};
@@ -364,6 +365,7 @@ int main(int argc, char** argv) {
                                    const glm::dvec3& radial, int localMask) {
             meshZoneFaces[index] = geometry.zoneFaces;
             meshTriangles[index] = geometry.triangleCount();
+            meshSteepRefinedFaces[index] = geometry.steepRefinedFaces;
             lastFaceZones[index] = geometry.faceZones;
             planetMeshes[index].loadTerrain(std::move(geometry));
             meshReady[index] = true;
@@ -538,6 +540,7 @@ int main(int argc, char** argv) {
                 std::cout << "Planet " << i << " terrain: " << meshTriangles[i]
                           << " triangles; far/middle/near faces: " << meshZoneFaces[i][0]
                           << "/" << meshZoneFaces[i][1] << "/" << meshZoneFaces[i][2]
+                          << "; steep-refined faces: " << meshSteepRefinedFaces[i]
                           << " (budget " << scenario.planets[i].terrain_lod.max_triangle_budget
                           << ")\n";
 
@@ -693,6 +696,7 @@ int main(int argc, char** argv) {
                         std::vector<glm::dvec3> nextEyeRadial(count, glm::dvec3(0.0));
                         std::vector<std::array<int, 3>> nextZoneFaces(count);
                         std::vector<int> nextTriangles(count, 0);
+                        std::vector<int> nextSteepRefinedFaces(count, 0);
                         std::vector<PendingTerrainBuild> nextPendingTerrain(count);
 
                         for (auto& mesh : planetMeshes) mesh.destroy();
@@ -715,6 +719,7 @@ int main(int argc, char** argv) {
                         lastEyeRadial.swap(nextEyeRadial);
                         meshZoneFaces.swap(nextZoneFaces);
                         meshTriangles.swap(nextTriangles);
+                        meshSteepRefinedFaces.swap(nextSteepRefinedFaces);
                         pendingTerrain.swap(nextPendingTerrain);
                         cameraInput.rebind(surfaceCamera ? &*surfaceCamera : nullptr,
                                            planetOrbitCamera ? &*planetOrbitCamera : nullptr);
