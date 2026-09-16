@@ -150,15 +150,15 @@ TEST(ScenarioConfigTest, DevelopmentSceneUsesPlanetListAndTerrainSettings) {
     ASSERT_EQ(scenario.planets[0].surface_noise.size(), 2u);
     EXPECT_EQ(scenario.planets[0].surface_noise[0].type, "value_fbm");
     EXPECT_EQ(scenario.planets[0].surface_noise[1].type, "ridged_fbm");
-    EXPECT_DOUBLE_EQ(scenario.planets[0].surface_noise[0].amplitude_m, 6.8);
-    EXPECT_DOUBLE_EQ(scenario.planets[0].surface_noise[1].amplitude_m, 4.0);
+    EXPECT_DOUBLE_EQ(scenario.planets[0].surface_noise[0].amplitude_m, 68.0);
+    EXPECT_DOUBLE_EQ(scenario.planets[0].surface_noise[1].amplitude_m, 40.0);
     EXPECT_EQ(scenario.planets[0].terrain_lod.base_edge_segments, 3);
     EXPECT_EQ(scenario.planets[0].terrain_lod.max_edge_segments, 16);
     EXPECT_EQ(scenario.planets[0].terrain_lod.medium_edge_segments, 8);
     EXPECT_EQ(scenario.planets[0].terrain_lod.steep_edge_segments, 32);
     EXPECT_DOUBLE_EQ(scenario.planets[0].terrain_lod.steep_slope_threshold, 0.3);
-    EXPECT_DOUBLE_EQ(scenario.planets[0].terrain_lod.near_surface_distance_m, 30.0);
-    EXPECT_DOUBLE_EQ(scenario.planets[0].terrain_lod.mid_surface_distance_m, 100.0);
+    EXPECT_DOUBLE_EQ(scenario.planets[0].terrain_lod.near_surface_distance_m, 300.0);
+    EXPECT_DOUBLE_EQ(scenario.planets[0].terrain_lod.mid_surface_distance_m, 1000.0);
     EXPECT_EQ(scenario.planets[0].terrain_lod.max_triangle_budget, 100000);
     EXPECT_TRUE(scenario.planets[0].terrain_landscape.enabled);
     EXPECT_DOUBLE_EQ(scenario.planets[0].terrain_landscape.ridge_smoothing, 0.25);
@@ -170,8 +170,8 @@ TEST(ScenarioConfigTest, DevelopmentSceneUsesPlanetListAndTerrainSettings) {
     EXPECT_DOUBLE_EQ(scenario.planets[0].water.opacity, 0.5);
     EXPECT_DOUBLE_EQ(scenario.planets[0].water.reflection_fraction, 0.5);
     EXPECT_DOUBLE_EQ(scenario.surface_camera.altitude *
-                     scenario.metersPerWorldUnit(), 2.0);
-    EXPECT_DOUBLE_EQ(scenario.surface_camera.walk_speed_mps, 8.0);
+                     scenario.metersPerWorldUnit(), 30.0);
+    EXPECT_DOUBLE_EQ(scenario.surface_camera.walk_speed_mps, 80.0);
 }
 
 TEST(ScenarioConfigTest, SurfaceCameraCanSelectSecondPlanetFromList) {
@@ -446,18 +446,18 @@ TEST(ScenarioConfigTest, LoadsTheDevelopmentSunAndPlanetFromDisk) {
     EXPECT_EQ(scenario.name, "Solar System");
     EXPECT_EQ(scenario.distance_unit, "km");
     EXPECT_DOUBLE_EQ(scenario.metersPerWorldUnit(), 1000.0);
-    EXPECT_DOUBLE_EQ(scenario.sun.radius * 2.0, 1.0); // 1 km diameter.
+    EXPECT_DOUBLE_EQ(scenario.sun.radius * 2.0, 5.0); // 5 km diameter.
     ASSERT_EQ(scenario.planets.size(), 1u);
     EXPECT_DOUBLE_EQ(scenario.planets[0].radius * 2.0 *
-                     scenario.metersPerWorldUnit(), 200.0);
+                     scenario.metersPerWorldUnit(), 2000.0);
     EXPECT_DOUBLE_EQ(scenario.planets[0].orbit_radius, 10.0);
     EXPECT_DOUBLE_EQ(scenario.planets[0].position[0] - scenario.sun.position[0], 10.0);
     EXPECT_DOUBLE_EQ(scenario.surface_camera.altitude *
-                     scenario.metersPerWorldUnit(), 2.0);
+                     scenario.metersPerWorldUnit(), 30.0);
     EXPECT_GT(scenario.sun.color[0], scenario.sun.color[2]);
     EXPECT_GT(scenario.planets[0].color[2], scenario.planets[0].color[0]);
-    EXPECT_EQ(scenario.camera.position, (std::array<double, 3>{12.0, 0.0, 0.5}));
-    EXPECT_EQ(scenario.camera.target, (std::array<double, 3>{0.0, 0.0, 0.0}));
+    EXPECT_EQ(scenario.camera.position, (std::array<double, 3>{15.0, 15.0, 8.0}));
+    EXPECT_EQ(scenario.camera.target, (std::array<double, 3>{5.0, 0.0, 0.0}));
     EXPECT_DOUBLE_EQ(scenario.camera.fov, 60.0);
 }
 

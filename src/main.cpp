@@ -208,6 +208,9 @@ void renderScene(const config::ScenarioConfig& scenario, const glm::mat4& view, 
         shader.setMat4("view", glm::value_ptr(passView));
         shader.setFloat3("uClipCenter", clipCenter.x, clipCenter.y, clipCenter.z);
         shader.setFloat("uClipRadius", clipRadius);
+        shader.setFloat3("uSunPosition", static_cast<float>(sun.position[0]),
+                          static_cast<float>(sun.position[1]),
+                          static_cast<float>(sun.position[2]));
 
         const glm::mat4 sunModel = rendering::sphereModel(glm::vec3(
             static_cast<float>(sun.position[0]),
@@ -217,6 +220,7 @@ void renderScene(const config::ScenarioConfig& scenario, const glm::mat4& view, 
         shader.setFloat3("uColor", static_cast<float>(sun.color[0]),
                          static_cast<float>(sun.color[1]),
                          static_cast<float>(sun.color[2]));
+        shader.setFloat("uEmissive", 1.0f);
         sunMesh.draw();
 
         for (std::size_t i = 0; i < scenario.planets.size(); ++i) {
@@ -230,6 +234,7 @@ void renderScene(const config::ScenarioConfig& scenario, const glm::mat4& view, 
             shader.setFloat3("uColor", static_cast<float>(planet.color[0]),
                              static_cast<float>(planet.color[1]),
                              static_cast<float>(planet.color[2]));
+            shader.setFloat("uEmissive", 0.0f);
             planetMeshes[i].draw();
         }
     };

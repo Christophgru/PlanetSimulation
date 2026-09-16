@@ -31,7 +31,8 @@ TEST(SceneTransformsTest, ProjectionMapsNearAndFarPlanesToOpenGLDepthRange) {
 }
 
 TEST(SceneTransformsTest, CurrentSunAndPlanetCentersAreVisibleAndSeparate) {
-    OrbitCamera camera(glm::vec3(0.0f), glm::vec3(12.0f, 0.0f, 0.5f));
+    OrbitCamera camera(glm::vec3(5.0f, 0.0f, 0.0f),
+                       glm::vec3(10.0f, 15.0f, 8.0f));
     const glm::mat4 viewProjection =
         rendering::perspectiveProjection(camera.fov, 4.0f / 3.0f) * camera.getViewMatrix();
     const glm::vec4 sunClip = viewProjection * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -84,5 +85,18 @@ TEST(SceneTransformsTest, WaterReflectionViewMirrorsEyeAndDirectionAtTangentPlan
     EXPECT_GT(reflectedForward.y, 0.7);
     EXPECT_GT(reflectedForward.z, 0.7);
     EXPECT_THROW(rendering::waterReflectionView(view, eye, glm::dvec3(0.0), 0.0),
+                 std::invalid_argument);
+}
+
+TEST(SceneTransformsTest, DirectionalBrightnessFollowsTheSunWithAmbientBacklight) {
+    const glm::dvec3 position(0.0);
+    const glm::dvec3 sun(0.0, 0.0, 10.0);
+    EXPECT_DOUBLE_EQ(rendering::directionalBrightness({0.0, 0.0, 1.0}, position, sun),
+                     1.0);
+    EXPECT_DOUBLE_EQ(rendering::directionalBrightness({0.0, 0.0, -1.0}, position, sun),
+                     0.35);
+    EXPECT_DOUBLE_EQ(rendering::directionalBrightness({1.0, 0.0, 0.0}, position, sun),
+                     0.35);
+    EXPECT_THROW(rendering::directionalBrightness({0.0, 0.0, 0.0}, position, sun),
                  std::invalid_argument);
 }

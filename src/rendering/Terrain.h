@@ -81,23 +81,27 @@ public:
 
     static glm::dvec3 landscapeColorFactors(double heightMeters, double slope,
                                              double waterLevelMeters,
+                                             double beachWidthMeters,
                                              double maximumHeightMeters,
                                              double steepSlopeThreshold) {
         const glm::dvec3 seabed(0.30, 0.40, 0.19);
         const glm::dvec3 beach(4.20, 1.90, 0.18);
         const glm::dvec3 grass(1.10, 1.30, 0.18);
         const glm::dvec3 snow(4.60, 2.30, 0.92);
-        const double beachTop = waterLevelMeters + 0.1;
+        const double beachTop = waterLevelMeters + beachWidthMeters;
+        const double beachFade = std::max(0.15, 0.15 * beachWidthMeters);
         const double usableRelief = std::max(1.0, maximumHeightMeters - waterLevelMeters);
         const double snowStart = std::max(beachTop + 1.0,
-                                          waterLevelMeters + 0.55 * usableRelief);
+                                          waterLevelMeters + 0.25 * usableRelief);
         const double snowEnd = std::max(snowStart + 1.0,
-                                        waterLevelMeters + 0.75 * usableRelief);
+                                        waterLevelMeters + 0.40 * usableRelief);
 
-        const double aboveWater = smoothstep(waterLevelMeters - 0.05,
-                                             waterLevelMeters + 0.02, heightMeters);
+        const double aboveWater = smoothstep(
+            waterLevelMeters - std::max(0.05, 0.05 * beachWidthMeters),
+            waterLevelMeters + std::max(0.02, 0.02 * beachWidthMeters),
+            heightMeters);
         const double beachWeight = aboveWater *
-            (1.0 - smoothstep(beachTop, beachTop + 0.15, heightMeters));
+            (1.0 - smoothstep(beachTop, beachTop + beachFade, heightMeters));
         const double snowWeight = smoothstep(snowStart, snowEnd, heightMeters);
         glm::dvec3 land = glm::mix(grass, beach, beachWeight);
         land = glm::mix(land, snow, snowWeight);
@@ -105,11 +109,12 @@ public:
         const double darkStart = std::max(0.05, steepSlopeThreshold);
         const double darkEnd = std::max(darkStart + 0.2, 3.0 * darkStart);
         const double steep = smoothstep(darkStart, darkEnd, slope);
-        land *= glm::mix(1.0, 0.32, steep);
+        land *= glm::mix(1.0, 0.50, steep);
 
-        const double submerged = 1.0 - smoothstep(waterLevelMeters - 0.5,
-                                                   waterLevelMeters + 0.02,
-                                                   heightMeters);
+        const double submerged = 1.0 - smoothstep(
+            waterLevelMeters - std::max(0.5, 0.05 * beachWidthMeters),
+            waterLevelMeters + std::max(0.02, 0.02 * beachWidthMeters),
+            heightMeters);
         return glm::mix(land, seabed, submerged);
     }
 
@@ -353,8 +358,7 @@ public:
             if (localView && arcMeters < lod_.mid_surface_distance_m)
                 ++geometry.fineNoiseSamples;
             else ++geometry.coarseNoiseSamples;
-            return GridSample{radial * (1.0 + height / radius_), height,
-                              colorAt(radial, height)};
+            return makeGridSample(radial, height);
         };
         for (auto& [key, edge] : edges) {
             edge.samples.reserve(edge.segments + 1);
@@ -418,7 +422,12 @@ private:
     struct GridSample {
         glm::dvec3 position;
         double height;
+        glm::dvec3 normal;
         glm::dvec3 color;
+    };
+    struct SurfaceGradient {
+        double slope;
+        glm::dvec3 normal;
     };
     using VertexKey = std::array<std::int64_t, 3>;
     using EdgeKey = std::pair<VertexKey, VertexKey>;
@@ -550,7 +559,7 @@ private:
         return result;
     }
 
-    double slopeAt(const glm::dvec3& radial, double heightMeters) const {
+    SurfaceGradient gradientAt(const glm::dvec3& radial, double heightMeters) const {
         const glm::dvec3 reference = std::abs(radial.z) < 0.8 ?
             glm::dvec3(0.0, 0.0, 1.0) : glm::dvec3(0.0, 1.0, 0.0);
         const glm::dvec3 tangentA = glm::normalize(glm::cross(reference, radial));
@@ -562,12 +571,15 @@ private:
             std::cos(angle) * radial + std::sin(angle) * tangentA);
         const glm::dvec3 sampleB = glm::normalize(
             std::cos(angle) * radial + std::sin(angle) * tangentB);
-        const double riseA = heightAt(sampleA) * metersPerUnit_ - heightMeters;
-        const double riseB = heightAt(sampleB) * metersPerUnit_ - heightMeters;
-        return std::hypot(riseA, riseB) / distanceMeters;
+        const double gradientA =
+            (heightAt(sampleA) * metersPerUnit_ - heightMeters) / distanceMeters;
+        const double gradientB =
+            (heightAt(sampleB) * metersPerUnit_ - heightMeters) / distanceMeters;
+        return {std::hypot(gradientA, gradientB),
+                glm::normalize(radial - gradientA * tangentA - gradientB * tangentB)};
     }
 
-    glm::dvec3 colorAt(const glm::dvec3& radial, double heightWorld) const {
+    glm::dvec3 colorAt(double heightWorld, double slope) const {
         if (!landscape_.enabled) {
             const double normalizedHeight = totalAmplitudeMeters_ == 0.0 ? 0.0 :
                 heightWorld / (totalAmplitudeMeters_ / metersPerUnit_);
@@ -575,9 +587,17 @@ private:
             return glm::dvec3(tint);
         }
         const double heightMeters = heightWorld * metersPerUnit_;
-        return landscapeColorFactors(heightMeters, slopeAt(radial, heightMeters),
-            waterLevelMeters_.value_or(0.0), totalAmplitudeMeters_,
+        return landscapeColorFactors(heightMeters, slope,
+            waterLevelMeters_.value_or(0.0), 0.1,
+            totalAmplitudeMeters_,
             lod_.steep_slope_threshold);
+    }
+
+    GridSample makeGridSample(const glm::dvec3& radial, double heightWorld) const {
+        const SurfaceGradient gradient = gradientAt(
+            radial, heightWorld * metersPerUnit_);
+        return {radial * (1.0 + heightWorld / radius_), heightWorld,
+                gradient.normal, colorAt(heightWorld, gradient.slope)};
     }
 
     void subdivideBase(const glm::dvec3& a, const glm::dvec3& b,
@@ -606,8 +626,7 @@ private:
                     static_cast<double>(segments - i - j) * a +
                     static_cast<double>(i) * b + static_cast<double>(j) * c);
                 const double height = heightAt(radial);
-                grid[i].push_back({radial * (1.0 + height / radius_), height,
-                                   colorAt(radial, height)});
+                grid[i].push_back(makeGridSample(radial, height));
             }
         }
         for (int i = 0; i < segments; ++i) {
@@ -631,14 +650,13 @@ private:
         const glm::dvec3& pc = c.position;
         if (glm::dot(glm::cross(pb - pa, pc - pa), pa + pb + pc) < 0.0)
             std::swap(second, third);
-        const glm::dvec3 normal = glm::normalize(glm::cross(
-            second->position - first->position, third->position - first->position));
         const unsigned int start = static_cast<unsigned int>(geometry.indices.size());
         for (const GridSample* sample : {first, second, third}) {
             for (double component : {sample->position.x, sample->position.y,
                                      sample->position.z})
                 geometry.vertices.push_back(static_cast<float>(component));
-            for (double component : {normal.x, normal.y, normal.z})
+            for (double component : {sample->normal.x, sample->normal.y,
+                                     sample->normal.z})
                 geometry.vertices.push_back(static_cast<float>(component));
             for (double component : {sample->color.x, sample->color.y, sample->color.z})
                 geometry.vertices.push_back(static_cast<float>(component));

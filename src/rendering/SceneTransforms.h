@@ -75,4 +75,18 @@ inline glm::mat4 waterReflectionView(const glm::mat4& view,
                        glm::vec3(reflectedUp));
 }
 
+inline double directionalBrightness(const glm::dvec3& normal,
+                                    const glm::dvec3& worldPosition,
+                                    const glm::dvec3& sunPosition,
+                                    double ambient = 0.35) {
+    if (!std::isfinite(ambient) || ambient < 0.0 || ambient > 1.0 ||
+        glm::length(normal) <= 1e-12 ||
+        glm::length(sunPosition - worldPosition) <= 1e-12) {
+        throw std::invalid_argument("Directional brightness requires valid vectors");
+    }
+    const double diffuse = std::max(0.0, glm::dot(
+        glm::normalize(normal), glm::normalize(sunPosition - worldPosition)));
+    return ambient + (1.0 - ambient) * diffuse;
+}
+
 } // namespace rendering

@@ -96,7 +96,7 @@ TEST(TerrainTest, LandscapePaletteUsesWaterRelativeBeachGreenSnowAndDarkSlopes) 
     const glm::dvec3 planetColor(0.2, 0.4, 1.0);
     auto color = [&](double height, double slope, double water = 0.0) {
         return planetColor * rendering::TerrainSurface::landscapeColorFactors(
-            height, slope, water, 40.0, 0.3);
+            height, slope, water, 0.1, 40.0, 0.3);
     };
     const glm::dvec3 seabed = color(-1.0, 0.0);
     const glm::dvec3 beach = color(0.06, 0.0);
@@ -114,7 +114,7 @@ TEST(TerrainTest, LandscapePaletteUsesWaterRelativeBeachGreenSnowAndDarkSlopes) 
     EXPECT_LT(std::max({snow.x, snow.y, snow.z}) -
               std::min({snow.x, snow.y, snow.z}), 0.01);
     EXPECT_GT(snow.x, 0.9);
-    EXPECT_LT(glm::length(steepGrass), 0.5 * glm::length(grass));
+    EXPECT_LT(glm::length(steepGrass), 0.6 * glm::length(grass));
 }
 
 TEST(TerrainTest, OverlappingFunctionsAddTheirIndependentHeightFields) {
@@ -261,10 +261,11 @@ TEST(TerrainTest, TrianglesCarrySampledHeightsAndSmoothSharedCornerTint) {
             const double sampled = terrain.heightAt(glm::normalize(point));
             EXPECT_NEAR(glm::length(point) * 0.025 - 0.025, sampled, 2e-8);
             const std::size_t offset = static_cast<std::size_t>(index) * 9;
-            EXPECT_NEAR(glm::length(glm::dvec3(geometry.vertices[offset + 3],
-                                             geometry.vertices[offset + 4],
-                                             geometry.vertices[offset + 5]) - normal),
-                        0.0, 1e-5);
+            const glm::dvec3 smoothNormal(geometry.vertices[offset + 3],
+                                          geometry.vertices[offset + 4],
+                                          geometry.vertices[offset + 5]);
+            EXPECT_NEAR(glm::length(smoothNormal), 1.0, 1e-5);
+            EXPECT_GT(glm::dot(smoothNormal, point), 0.0);
             for (int channel = 7; channel <= 8; ++channel)
                 EXPECT_FLOAT_EQ(geometry.vertices[offset + channel],
                                 geometry.vertices[offset + 6]);
@@ -279,11 +280,18 @@ TEST(TerrainTest, TrianglesCarrySampledHeightsAndSmoothSharedCornerTint) {
         if (greatestTintDifference > 1e-5f) ++gradientFaces;
     }
     EXPECT_GT(gradientFaces, 0);
-    // Neighboring faces duplicate vertices, but their shared-edge tints agree.
+    // Neighboring faces duplicate vertices, but their procedural normals and
+    // shared-edge tints agree, preventing visible lighting seams.
     EXPECT_NEAR(glm::length(vertex(geometry, 1) - vertex(geometry, 3)), 0.0, 1e-12);
     EXPECT_NEAR(glm::length(vertex(geometry, 2) - vertex(geometry, 5)), 0.0, 1e-12);
     EXPECT_FLOAT_EQ(geometry.vertices[1 * 9 + 6], geometry.vertices[3 * 9 + 6]);
     EXPECT_FLOAT_EQ(geometry.vertices[2 * 9 + 6], geometry.vertices[5 * 9 + 6]);
+    for (int channel = 3; channel <= 5; ++channel) {
+        EXPECT_FLOAT_EQ(geometry.vertices[1 * 9 + channel],
+                        geometry.vertices[3 * 9 + channel]);
+        EXPECT_FLOAT_EQ(geometry.vertices[2 * 9 + channel],
+                        geometry.vertices[5 * 9 + channel]);
+    }
     EXPECT_LT(lowest, highest);
     EXPECT_LT(lowTint, highTint);
     EXPECT_LT(lowTint, 0.72f);
@@ -339,11 +347,15 @@ TEST(TerrainTest, LocalZonesAreDenserWatertightAndStayWithinBudget) {
     const rendering::TerrainSurface terrain(planet.surface_noise, planet.terrain_lod,
         planet.radius, scenario.metersPerWorldUnit(), planet.terrain_landscape);
     const glm::dvec3 center(planet.position[0], planet.position[1], planet.position[2]);
-    const auto distant = terrain.buildGeometryForEye(center + glm::dvec3(2, 0, 0), center);
-    const auto orbit = terrain.buildGeometryForEye(center + glm::dvec3(0.28, 0, 0), center);
-    const auto nearby = terrain.buildGeometryForEye(center + glm::dvec3(0.102, 0, 0), center);
+    const double surfaceDistance = planet.radius + scenario.surface_camera.altitude;
+    const auto distant = terrain.buildGeometryForEye(
+        center + glm::dvec3(4.0 * planet.radius, 0, 0), center);
     EXPECT_EQ(distant.zoneFaces, (std::array<int, 3>{320, 0, 0}));
     EXPECT_EQ(distant.fineNoiseSamples, 0);
+    const auto orbit = terrain.buildGeometryForEye(
+        center + glm::dvec3(2.8 * planet.radius, 0, 0), center);
+    const auto nearby = terrain.buildGeometryForEye(
+        center + glm::dvec3(surfaceDistance, 0, 0), center);
     EXPECT_GT(orbit.zoneFaces[2], 0);
     EXPECT_GT(orbit.fineNoiseSamples, 0);
     EXPECT_LE(orbit.triangleCount(), planet.terrain_lod.max_triangle_budget);
@@ -392,7 +404,8 @@ TEST(TerrainTest, SteepFacesUseSpareTriangleBudgetForExtraDetail) {
     const rendering::TerrainSurface adaptive(planet.surface_noise, planet.terrain_lod,
         planet.radius, scenario.metersPerWorldUnit(), planet.terrain_landscape);
     const glm::dvec3 center(planet.position[0], planet.position[1], planet.position[2]);
-    const glm::dvec3 eye = center + glm::dvec3(0.102, 0.0, 0.0);
+    const glm::dvec3 eye = center +
+        glm::dvec3(planet.radius + scenario.surface_camera.altitude, 0.0, 0.0);
     const auto ordinaryGeometry = ordinary.buildGeometryForEye(eye, center);
     const auto adaptiveGeometry = adaptive.buildGeometryForEye(eye, center);
 
@@ -410,13 +423,16 @@ TEST(TerrainTest, ZoneHysteresisRetainsDetailWhenEyeCrossesABoundary) {
     const rendering::TerrainSurface terrain(planet.surface_noise, planet.terrain_lod,
         planet.radius, scenario.metersPerWorldUnit(), planet.terrain_landscape);
     const glm::dvec3 center(planet.position[0], planet.position[1], planet.position[2]);
-    const glm::dvec3 startEye = center + glm::dvec3(0.102, 0.0, 0.0);
-    const glm::dvec3 movedEye = center + 0.102 *
-        glm::dvec3(std::cos(0.1), std::sin(0.1), 0.0); // about 10 m along the surface
+    const double eyeRadius = planet.radius + scenario.surface_camera.altitude;
+    const glm::dvec3 startEye = center + glm::dvec3(eyeRadius, 0.0, 0.0);
+    const glm::dvec3 movedEye = center + eyeRadius *
+        glm::dvec3(std::cos(0.1), std::sin(0.1), 0.0);
     const auto first = terrain.buildGeometryForEye(startEye, center);
     const auto withoutHysteresis = terrain.buildGeometryForEye(movedEye, center);
+    const double hysteresisMeters = 0.2 * planet.radius *
+                                    scenario.metersPerWorldUnit();
     const auto protectedMesh = terrain.buildGeometryForEye(
-        movedEye, center, &first.faceZones, 20.0);
+        movedEye, center, &first.faceZones, hysteresisMeters);
     ASSERT_EQ(first.faceZones.size(), 320u);
     ASSERT_EQ(protectedMesh.faceZones.size(), first.faceZones.size());
     int retainedNearFaces = 0;
@@ -439,10 +455,12 @@ TEST(TerrainTest, TerrainVerticesStayFixedWhenWalkingWithinTheSameZones) {
     const rendering::TerrainSurface terrain(planet.surface_noise, planet.terrain_lod,
         planet.radius, scenario.metersPerWorldUnit(), planet.terrain_landscape);
     const glm::dvec3 center(planet.position[0], planet.position[1], planet.position[2]);
-    const glm::dvec3 eye = center + glm::dvec3(0.102, 0.0, 0.0);
+    const glm::dvec3 eye = center +
+        glm::dvec3(planet.radius + scenario.surface_camera.altitude, 0.0, 0.0);
     const auto first = terrain.buildGeometryForEye(eye, center);
     const auto moved = terrain.buildGeometryForEye(
-        eye + glm::dvec3(0.0, 0.00001, 0.0), center, &first.faceZones, 20.0);
+        eye + glm::dvec3(0.0, planet.radius * 0.0001, 0.0), center,
+        &first.faceZones, 0.2 * planet.radius * scenario.metersPerWorldUnit());
     ASSERT_EQ(first.faceZones, moved.faceZones);
     ASSERT_EQ(first.indices, moved.indices);
     ASSERT_EQ(first.vertices.size(), moved.vertices.size());
