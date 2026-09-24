@@ -22,6 +22,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "config/Config.h"
 #include "config/ScenarioConfig.h"
+#include "config/SceneReplay.h"
 #include "simulation/OrbitalSystem.h"
 #include "rendering/Mesh.h"
 #include "rendering/Terrain.h"
@@ -31,6 +32,7 @@
 #include "rendering/RenderDiagnostics.h"
 #include "rendering/SceneTransforms.h"
 #include "rendering/CelestialLighting.h"
+#include "rendering/CameraExposure.h"
 #include "rendering/Shader.h"
 #include "rendering/SurfaceCameraTelemetry.h"
 #include "rendering/WaterReflectionTarget.h"
@@ -204,7 +206,7 @@ struct PreparedScene {
 // The Sun retains its existing sphere mesh; planets use terrain triangles.
 Mesh g_mesh;
 
-void renderScene(const config::ScenarioConfig& scenario,
+rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                  const std::vector<simulation::BodyState>& bodies,
                  const glm::mat4& view, float fov,
                  const glm::dvec3& eyeWorld, const Shader& shader,
@@ -214,11 +216,14 @@ void renderScene(const config::ScenarioConfig& scenario,
                  const Mesh& sunMesh, const Mesh& skyboxMesh,
                  const std::vector<Mesh>& planetMeshes,
                  const std::vector<Mesh>& waterMeshes, int width, int height,
-                 rendering::ClipPlanes clip = {}) {
+                 rendering::ClipPlanes clip = {},
+                 std::optional<std::size_t> meteredPlanet = std::nullopt,
+                 bool recordObjects = false) {
     const glm::mat4 projection = rendering::perspectiveProjection(
         fov, static_cast<float>(width) / height, clip);
     const auto& sun = scenario.sun;
     const auto lighting = rendering::calculateLighting(scenario, bodies);
+    const auto exposure = rendering::cameraExposure(scenario.lighting, lighting, bodies, eyeWorld, meteredPlanet);
     shadows.ensure(scenario.planets.size(), scenario.lighting.shadows);
     if (scenario.lighting.shadows.enabled) {
         for (std::size_t i = 0; i < scenario.planets.size(); ++i) {
@@ -243,7 +248,7 @@ void renderScene(const config::ScenarioConfig& scenario,
         setRgb(target, "uSunDirection", light.sunDirection);
         setRgb(target, "uSunlight", light.sunlight);
         setRgb(target, "uIndirectLight", light.reflectedLight + glm::dvec3(scenario.lighting.ambient_light));
-        target.setFloat("uExposure", static_cast<float>(scenario.lighting.exposure));
+        target.setFloat("uExposure", static_cast<float>(exposure.exposure));
         shadows.bindForShading(index, target, scenario.lighting.shadows, radiusScale);
     };
 
@@ -253,6 +258,7 @@ void renderScene(const config::ScenarioConfig& scenario,
         glDepthFunc(GL_LEQUAL);
         glDepthMask(GL_FALSE);
         skyboxShader.use();
+        skyboxShader.setFloat("uSkySensitivity", static_cast<float>(exposure.skySensitivity));
         skyboxShader.setMat4("projection", glm::value_ptr(passProjection));
         skyboxShader.setMat4("view", glm::value_ptr(passView));
         skyboxShader.setInt("uSeed", scenario.skybox.seed);
@@ -278,14 +284,21 @@ void renderScene(const config::ScenarioConfig& scenario,
     auto drawOpaqueScene = [&](const glm::mat4& passProjection,
                                const glm::mat4& passView,
                                const glm::vec3& clipCenter,
-                               float clipRadius) {
+                               float clipRadius, bool mainPass = false) {
+        const bool record = recordObjects && mainPass;
+        if (record) {
+            glEnable(GL_STENCIL_TEST);
+            glStencilMask(0xff);
+            glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+            glStencilFunc(GL_ALWAYS, 1, 0xff); // Sun.
+        }
         shader.use();
         shader.setMat4("projection", glm::value_ptr(passProjection));
         shader.setMat4("view", glm::value_ptr(passView));
         shader.setFloat3("uClipCenter", clipCenter.x, clipCenter.y, clipCenter.z);
         shader.setFloat("uClipRadius", clipRadius);
         setRgb(shader, "uEmission", lighting.sunEmission);
-        shader.setFloat("uExposure", static_cast<float>(scenario.lighting.exposure));
+        shader.setFloat("uExposure", static_cast<float>(exposure.exposure));
 
         const glm::mat4 sunModel = rendering::sphereModel(
             glm::vec3(bodies[0].position), static_cast<float>(sun.radius));
@@ -297,6 +310,7 @@ void renderScene(const config::ScenarioConfig& scenario,
         sunMesh.draw();
 
         for (std::size_t i = 0; i < scenario.planets.size(); ++i) {
+            if (record) glStencilFunc(GL_ALWAYS, i == meteredPlanet.value_or(0) ? 2 : 3, 0xff);
             const auto& planet = scenario.planets[i];
             const glm::mat4 model = rendering::sphereModel(
                 glm::vec3(bodies[i + 1].position), static_cast<float>(planet.radius),
@@ -309,21 +323,24 @@ void renderScene(const config::ScenarioConfig& scenario,
             setBodyLighting(shader, i);
             planetMeshes[i].draw();
         }
+        if (record) glDisable(GL_STENCIL_TEST);
     };
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, width, height);
-    glClearColor(static_cast<float>(scenario.skybox.background_color[0]),
-                 static_cast<float>(scenario.skybox.background_color[1]),
-                 static_cast<float>(scenario.skybox.background_color[2]), 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(static_cast<float>(scenario.skybox.background_color[0] * exposure.skySensitivity),
+                 static_cast<float>(scenario.skybox.background_color[1] * exposure.skySensitivity),
+                 static_cast<float>(scenario.skybox.background_color[2] * exposure.skySensitivity), 1.0f);
+    glStencilMask(0xff);
+    glClearStencil(0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | (recordObjects ? GL_STENCIL_BUFFER_BIT : 0));
     drawSkybox(projection, view);
-    drawOpaqueScene(projection, view, glm::vec3(0.0f), -1.0f);
+    drawOpaqueScene(projection, view, glm::vec3(0.0f), -1.0f, true);
 
     const bool hasWater = std::any_of(
         scenario.planets.begin(), scenario.planets.end(),
         [](const config::PlanetConfig& planet) { return planet.water.enabled; });
-    if (!hasWater) return;
+    if (!hasWater) return exposure;
     reflectionTarget.ensure(width, height);
 
     // The opaque main-scene depth buffer masks this translucent sea. Each
@@ -387,17 +404,22 @@ void renderScene(const config::ScenarioConfig& scenario,
     glBindTexture(GL_TEXTURE_2D, 0);
     glDepthMask(GL_TRUE);
     glDisable(GL_BLEND);
+    return exposure;
 }
 
 int main(int argc, char** argv) {
     bool renderTestMode = false;
     bool surfaceRenderMode = false;
     bool planetRenderMode = false;
+    bool captureOnly = false;
+    bool explicitRenderSize = false;
     std::string outputImagePath;
     int renderTestWidth = 800;
     int renderTestHeight = 600;
     double simulationTime = 0.0;
+    std::optional<double> commandLineTime;
     std::string configPath = "configs/scenarios/solar_system.json";
+    std::string replayPath;
     
     // Parse command-line arguments
     for (int i = 1; i < argc; i++) {
@@ -408,21 +430,29 @@ int main(int argc, char** argv) {
             renderTestMode = true;
             surfaceRenderMode = true;
             outputImagePath = argv[++i];
+        } else if (std::string(argv[i]) == "--surface-capture" && i + 1 < argc) {
+            renderTestMode = surfaceRenderMode = captureOnly = true;
+            outputImagePath = argv[++i];
         } else if (std::string(argv[i]) == "--planet-render-test" && i + 1 < argc) {
             renderTestMode = true;
             planetRenderMode = true;
             outputImagePath = argv[++i];
         } else if (std::string(argv[i]) == "--config" && i + 1 < argc) {
             configPath = argv[++i];
+        } else if (std::string(argv[i]) == "--replay" && i + 1 < argc) {
+            replayPath = argv[++i];
         } else if (std::string(argv[i]) == "--simulation-time" && i + 1 < argc) {
             try {
-                simulationTime = std::stod(argv[++i]);
-                if (!std::isfinite(simulationTime)) throw std::invalid_argument("time");
+                const std::string argument = argv[++i];
+                std::size_t consumed = 0;
+                commandLineTime = std::stod(argument, &consumed);
+                if (!std::isfinite(*commandLineTime) || consumed != argument.size()) throw std::invalid_argument("time");
             } catch (const std::exception&) {
                 std::cerr << "--simulation-time needs a finite number of seconds\n";
                 return 1;
             }
         } else if (std::string(argv[i]) == "--render-size" && i + 2 < argc) {
+            explicitRenderSize = true;
             try {
                 renderTestWidth = std::stoi(argv[++i]);
                 renderTestHeight = std::stoi(argv[++i]);
@@ -438,6 +468,33 @@ int main(int argc, char** argv) {
         }
     }
 
+    nlohmann::json scenarioDocument;
+    const std::string watchedScenePath = replayPath.empty() ? configPath : replayPath;
+    const auto loadScenarioDocument = [&]() {
+        // A full image sidecar is self-contained; a console snippet uses --config.
+        const nlohmann::json replay = replayPath.empty() ? nlohmann::json() : config::Config::load(replayPath).data();
+        auto document = replay.is_object() && replay.contains("scenario") ? replay.at("scenario") :
+                        config::Config::load(configPath).data();
+        if (!replayPath.empty()) document = config::applyCameraReplay(std::move(document), replay);
+        return document;
+    };
+    try {
+        scenarioDocument = loadScenarioDocument();
+        (void)config::ScenarioConfig(config::Config(nlohmann::json(scenarioDocument)));
+        if (!replayPath.empty() && !explicitRenderSize) {
+            const auto replay = config::Config::load(replayPath).data();
+            if (replay.contains("render")) {
+                renderTestWidth = replay.at("render").at("width").get<int>();
+                renderTestHeight = replay.at("render").at("height").get<int>();
+                if (renderTestWidth < 64 || renderTestWidth > 8192 || renderTestHeight < 64 || renderTestHeight > 8192)
+                    throw std::invalid_argument("Replay render dimensions must be in 64..8192");
+            }
+        }
+    } catch (const std::exception& error) {
+        std::cerr << "Invalid scenario or replay: " << error.what() << '\n';
+        return 1;
+    }
+
     // Initialize GLFW
     if (!glfwInit()) {
         std::cerr << "Failed to initialize GLFW\n";
@@ -449,6 +506,7 @@ int main(int argc, char** argv) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_SAMPLES, 4);
+    glfwWindowHint(GLFW_STENCIL_BITS, 8);
 
     // Create window (hidden for render-test mode)
     int width = renderTestMode ? renderTestWidth : 1280;
@@ -474,13 +532,8 @@ int main(int argc, char** argv) {
     }
 
     // Load scenario config
-    if (!fs::exists(configPath)) {
-        std::cerr << "Config file not found: " << configPath << "\n";
-        std::exit(1);
-    }
-
     try {
-        PreparedScene initial(config::ScenarioConfig(config::Config::load(configPath)));
+        PreparedScene initial{config::ScenarioConfig{config::Config{nlohmann::json(scenarioDocument)}}};
         config::ScenarioConfig scenario = std::move(initial.scenario);
         auto dynamics = std::move(initial.dynamics);
         auto bodies = std::move(initial.bodies);
@@ -594,10 +647,12 @@ int main(int argc, char** argv) {
                     bodies[index + 1].orientation), sunPosition);
             }
         };
+        simulationTime = config::replayStartTime(scenario, commandLineTime);
         updateSimulation(simulationTime);
         simulation::SimulationClock simulationClock(simulationTime, glfwGetTime());
         CameraInput cameraInput(camera, surfaceCamera ? &*surfaceCamera : nullptr,
                                 planetOrbitCamera ? &*planetOrbitCamera : nullptr);
+        if (!replayPath.empty() && surfaceCamera) cameraInput.selectSurface();
         InputContext inputContext{&cameraInput, &simulationClock, false};
         if (surfaceRenderMode && !surfaceCamera) {
             throw std::runtime_error("Surface render test requires surface_camera config");
@@ -625,6 +680,7 @@ int main(int argc, char** argv) {
         
         std::cout << "PlanetSimulation v0.1 initialized\n";
         std::cout << "Scenario: " << scenario.name << "\n";
+        std::cout << "Simulation time: " << nlohmann::json(simulationTime).dump() << " s\n";
         std::cout << "Sun radius: " << scenario.sun.radius << "\n";
         std::cout << "Planets: " << scenario.planets.size() << "\n";
         if (surfaceRenderMode) {
@@ -662,7 +718,7 @@ int main(int argc, char** argv) {
             if (planetOrbitCamera) std::cout << ", 3 for planet orbit";
             std::cout << ". Press T to pause/resume orbits and spin. "
                       << "Press Y to halve or U to double simulation speed. "
-                      << "Press Esc to release the surface cursor and 2 to capture it again. " << configPath
+                      << "Press Esc to release the surface cursor and 2 to capture it again. " << watchedScenePath
                       << " reloads on save; press R to reload manually."
                       << " Close the window to exit.\n";
         }
@@ -699,12 +755,13 @@ int main(int argc, char** argv) {
             const auto meshStart = std::chrono::steady_clock::now();
             preparePlanetMeshes(eyeWorld);
             const auto meshEnd = std::chrono::steady_clock::now();
-            renderScene(scenario, bodies, view, fov, eyeWorld, shader, waterShader,
+            const auto frameExposure = renderScene(scenario, bodies, view, fov, eyeWorld, shader, waterShader,
                         skyboxShader, waterReflection, shadowShader, terrainShadows, g_mesh, skyboxMesh,
                         planetMeshes, waterMeshes, width, height,
                         surfaceRenderMode ? surfaceClip :
                         planetRenderMode ? planetOrbitClip(eyeWorld) :
-                                           rendering::ClipPlanes{});
+                                           rendering::ClipPlanes{},
+                        (surfaceRenderMode || planetRenderMode) ? std::optional<std::size_t>(orbitPlanetIndex) : std::nullopt, true);
             for (std::size_t i = 0; i < scenario.planets.size(); ++i)
                 std::cout << "Planet " << i << " terrain: " << meshTriangles[i]
                           << " triangles; far/middle/near faces: " << meshZoneFaces[i][0]
@@ -731,16 +788,20 @@ int main(int argc, char** argv) {
             glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
             std::vector<float> depthPixels(width * height);
             glReadPixels(0, 0, width, height, GL_DEPTH_COMPONENT, GL_FLOAT, depthPixels.data());
+            std::vector<unsigned char> objectPixels(width * height);
+            glReadPixels(0, 0, width, height, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, objectPixels.data());
             
             // Check for OpenGL errors after reading
             GLenum err;
             while ((err = glGetError()) != GL_NO_ERROR) {
                 std::cerr << "OpenGL error: " << err << "\n";
+                throw std::runtime_error("OpenGL error during frame capture");
             }
 
             // Vertically flip the image data (GL_READ_PIXELS reads bottom-up)
             std::vector<unsigned char> flippedPixels(width * height * 4);
             std::vector<float> flippedDepth(width * height);
+            std::vector<unsigned char> flippedObjects(width * height);
             for (int y = 0; y < height; y++) {
                 int srcY = height - 1 - y;
                 for (int x = 0; x < width; x++) {
@@ -751,6 +812,7 @@ int main(int argc, char** argv) {
                     flippedPixels[idx + 2] = pixels[srcIdx + 2];
                     flippedPixels[idx + 3] = pixels[srcIdx + 3];
                     flippedDepth[idx / 4] = depthPixels[srcIdx / 4];
+                    flippedObjects[idx / 4] = objectPixels[srcIdx / 4];
                 }
             }
 
@@ -763,7 +825,7 @@ int main(int argc, char** argv) {
                 (surfaceRenderMode || planetRenderMode) ? orbitPlanetIndex : 0;
             const auto& diagnosticPlanet = scenario.planets[diagnosticPlanetIndex];
             const auto frameLighting = rendering::calculateLighting(scenario, bodies);
-            const auto sunDisplay = rendering::displayColor(frameLighting.sunEmission, scenario.lighting.exposure);
+            const auto sunDisplay = rendering::displayColor(frameLighting.sunEmission, frameExposure.exposure);
             const auto diagnosticClip = surfaceRenderMode ? surfaceClip :
                 planetRenderMode ? planetOrbitClip(eyeWorld) : rendering::ClipPlanes{};
             const auto sunBounds = rendering::spherePixelBounds(bodies[0].position, scenario.sun.radius,
@@ -775,12 +837,14 @@ int main(int argc, char** argv) {
                 diagnosticPlanet.radius + diagnosticHeight / scenario.metersPerWorldUnit(),
                 glm::dmat4(rendering::perspectiveProjection(fov, static_cast<float>(width) / height,
                                                            diagnosticClip) * view), width, height);
+            std::vector<double> skyBackground = scenario.skybox.background_color;
+            for (double& channel : skyBackground) channel *= frameExposure.skySensitivity;
             const rendering::FrameAnalysis analysis = rendering::analyzeFrame(
                 flippedPixels, width, height, {sunDisplay.r, sunDisplay.g, sunDisplay.b}, diagnosticPlanet.color,
                 diagnosticPlanet.terrain_landscape.enabled || diagnosticPlanet.water.enabled,
-                scenario.skybox.background_color,
+                skyBackground,
                 scenario.skybox.enabled ? scenario.skybox.star_color : std::vector<double>{},
-                sunBounds, flippedDepth, planetBounds);
+                sunBounds, flippedDepth, planetBounds, flippedObjects);
 
             for (std::size_t i = 0; i < frameLighting.planets.size(); ++i) {
                 const auto& light = frameLighting.planets[i];
@@ -806,6 +870,8 @@ int main(int argc, char** argv) {
             printBounds("Non-background pixels", analysis.drawn);
             printBounds("Sun-colored pixels", analysis.sun);
             printBounds("Planet pixels (color/depth)", analysis.planet);
+            std::cout << "Camera exposure: " << frameExposure.exposure
+                      << "; sky sensitivity: " << frameExposure.skySensitivity << '\n';
             if (scenario.skybox.enabled)
                 printBounds("Star-like pixels", analysis.starLike);
             if (diagnosticPlanet.water.enabled)
@@ -819,13 +885,42 @@ int main(int argc, char** argv) {
                 return 1;
             }
 
-            if (scenario.skybox.enabled && scenario.skybox.star_density > 0.0 &&
-                scenario.skybox.star_brightness > 0.0 && analysis.starLike.count == 0) {
+            if (surfaceRenderMode) {
+                const auto snapshot = SurfaceCameraTelemetry::capture(*surfaceCamera, scenario.surface_camera,
+                    scenario.metersPerWorldUnit(), scenario.distance_unit, simulationTime);
+                std::cout << snapshot.format();
+                const auto metrics = rendering::measureLightingFrame(flippedPixels, flippedDepth, width, height,
+                                                                     planetBounds, sunBounds, flippedObjects);
+                GLint samples = 0;
+                glGetIntegerv(GL_SAMPLES, &samples);
+                const nlohmann::json metadata{
+                    {"schema_version", 1}, {"scenario", scenarioDocument},
+                    {"surface_camera", snapshot.startConfig},
+                    {"render", {{"width", width}, {"height", height}, {"samples", samples},
+                        {"renderer", reinterpret_cast<const char*>(glGetString(GL_RENDERER))},
+                        {"exposure", frameExposure.exposure}, {"sky_sensitivity", frameExposure.skySensitivity},
+                        {"direct_illuminance", frameExposure.directIlluminance},
+                        {"reflected_illuminance", frameExposure.reflectedIlluminance},
+                        {"metered_illuminance", frameExposure.meteredIlluminance},
+                        {"terrain_pixels", metrics.terrainPixels}, {"sky_pixels", metrics.skyPixels},
+                        {"terrain_mean_display_luminance", metrics.terrainMeanLuminance},
+                        {"sky_mean_display_luminance", metrics.skyMeanLuminance},
+                        {"non_background_pixels", analysis.drawn.count}}}
+                };
+                std::ofstream sidecar(outputImagePath + ".json");
+                sidecar << metadata.dump(2) << '\n';
+                if (!sidecar) throw std::runtime_error("Failed to write capture metadata");
+                if (captureOnly && metrics.terrainPixels == 0)
+                    throw std::runtime_error("Surface capture has no terrain geometry in view");
+            }
+
+            if (!captureOnly && scenario.skybox.enabled && scenario.skybox.star_density > 0.0 &&
+                scenario.skybox.star_brightness * frameExposure.skySensitivity >= 0.1 && analysis.starLike.count == 0) {
                 std::cerr << "Render test FAILED: Procedural star sky is not visible\n";
                 return 1;
             }
 
-            if (surfaceRenderMode && analysis.sun.count == 0 &&
+            if (!captureOnly && surfaceRenderMode && analysis.sun.count == 0 &&
                 analysis.planet.count == 0) {
                 std::cerr << "Surface render test FAILED: No configured body is visible\n";
                 return 1;
@@ -853,8 +948,10 @@ int main(int argc, char** argv) {
             bool cursorCaptured = false;
             SurfaceCameraTelemetry telemetry;
             double previousFrameTime = glfwGetTime();
+            simulationClock.reset(simulationTime, previousFrameTime);
+            if (!replayPath.empty()) simulationClock.togglePause(previousFrameTime);
             std::error_code watchError;
-            const auto initialConfigTime = fs::last_write_time(configPath, watchError);
+            const auto initialConfigTime = fs::last_write_time(watchedScenePath, watchError);
             std::optional<fs::file_time_type> observedConfigTime =
                 watchError ? std::nullopt :
                              std::optional<fs::file_time_type>(initialConfigTime);
@@ -867,7 +964,7 @@ int main(int argc, char** argv) {
                 if (watchTime >= nextConfigCheckAt) {
                     nextConfigCheckAt = watchTime + 0.05;
                     watchError.clear();
-                    const auto currentTime = fs::last_write_time(configPath, watchError);
+                    const auto currentTime = fs::last_write_time(watchedScenePath, watchError);
                     const std::optional<fs::file_time_type> currentConfigTime =
                         watchError ? std::nullopt :
                                      std::optional<fs::file_time_type>(currentTime);
@@ -884,13 +981,13 @@ int main(int argc, char** argv) {
                     inputContext.reloadRequested = false;
                     configChangePending = false;
                     watchError.clear();
-                    const auto reloadTime = fs::last_write_time(configPath, watchError);
+                    const auto reloadTime = fs::last_write_time(watchedScenePath, watchError);
                     observedConfigTime = watchError ? std::nullopt :
                         std::optional<fs::file_time_type>(reloadTime);
                     try {
                         // Build every CPU-side replacement before touching the live scene.
-                        PreparedScene staged(config::ScenarioConfig(
-                            config::Config::load(configPath)));
+                        auto nextDocument = loadScenarioDocument();
+                        PreparedScene staged{config::ScenarioConfig{config::Config{nlohmann::json(nextDocument)}}};
                         const std::size_t count = staged.scenario.planets.size();
                         std::vector<Mesh> nextPlanetMeshes(count);
                         std::vector<Mesh> nextWaterMeshes(count);
@@ -907,10 +1004,12 @@ int main(int argc, char** argv) {
                         for (auto& mesh : planetMeshes) mesh.destroy();
                         for (auto& mesh : waterMeshes) mesh.destroy();
                         scenario = std::move(staged.scenario);
+                        scenarioDocument = std::move(nextDocument);
                         dynamics = std::move(staged.dynamics);
                         bodies = std::move(staged.bodies);
                         previousFrameTime = glfwGetTime();
-                        simulationClock.reset(0.0, previousFrameTime);
+                        simulationTime = config::replayStartTime(scenario, commandLineTime);
+                        simulationClock.reset(simulationTime, previousFrameTime);
                         terrainSurfaces = std::move(staged.terrainSurfaces);
                         camera = std::move(staged.sunCamera);
                         surfaceCamera = std::move(staged.surfaceCamera);
@@ -933,7 +1032,7 @@ int main(int argc, char** argv) {
                         cameraInput.rebind(surfaceCamera ? &*surfaceCamera : nullptr,
                                            planetOrbitCamera ? &*planetOrbitCamera : nullptr);
                         telemetry = SurfaceCameraTelemetry{};
-                        std::cout << "Reloaded " << configPath << ": " << scenario.name
+                        std::cout << "Reloaded " << watchedScenePath << ": " << scenario.name
                                   << ", " << scenario.planets.size() << " planet(s)\n";
                     } catch (const std::exception& error) {
                         std::cerr << "Config reload failed; current scene retained: "
@@ -968,7 +1067,7 @@ int main(int argc, char** argv) {
                     const auto snapshot = telemetry.sample(
                         cameraInput.mode() == CameraMode::Surface,
                         frameTime, *surfaceCamera, scenario.surface_camera,
-                        scenario.metersPerWorldUnit(), scenario.distance_unit);
+                        scenario.metersPerWorldUnit(), scenario.distance_unit, simulationClock.seconds());
                     if (snapshot) std::cout << snapshot->format() << std::flush;
                 }
                 int width = 0;
@@ -996,7 +1095,7 @@ int main(int argc, char** argv) {
                     renderScene(scenario, bodies, view, fov, eyeWorld, shader, waterShader,
                                 skyboxShader, waterReflection, shadowShader, terrainShadows, g_mesh, skyboxMesh,
                                 planetMeshes, waterMeshes, width, height,
-                                clip);
+                                clip, (onSurface || onPlanetOrbit) ? std::optional<std::size_t>(orbitPlanetIndex) : std::nullopt);
                     glfwSwapBuffers(window);
                 }
                 std::this_thread::sleep_for(std::chrono::milliseconds(16));

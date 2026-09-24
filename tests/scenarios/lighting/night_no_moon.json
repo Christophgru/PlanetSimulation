@@ -1,0 +1,13 @@
+{
+    "name": "night_no_moon",
+    "description": "The same t=120 s view with reflection disabled and zero ambient fill. Terrain must stay dark even at maximum sensitivity; stars remain visible.",
+    "simulation_time_seconds": 120.0,
+    "lighting": {"reflections_enabled": false},
+    "expected": {
+        "direct_illuminance": [0, 0],
+        "reflected_illuminance": [0, 0],
+        "exposure": [4096, 4096],
+        "sky_sensitivity": [1, 1],
+        "terrain_mean_display_luminance": [0, 0.005]
+    }
+}

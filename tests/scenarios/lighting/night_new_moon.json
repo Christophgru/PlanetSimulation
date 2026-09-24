@@ -1,0 +1,13 @@
+{
+    "name": "night_new_moon",
+    "description": "At t=0 s reflection is enabled but the Moon's phase sends no light to Earth. The camera faces terrain on the deep night side.",
+    "simulation_time_seconds": 0.0,
+    "surface_camera": {"latitude_deg": 0, "longitude_deg": 0},
+    "lighting": {"reflections_enabled": true},
+    "expected": {
+        "direct_illuminance": [0, 0],
+        "reflected_illuminance": [0, 0.000000000001],
+        "exposure": [4096, 4096],
+        "terrain_mean_display_luminance": [0, 0.005]
+    }
+}

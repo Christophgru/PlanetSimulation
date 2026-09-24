@@ -1,0 +1,13 @@
+{
+    "name": "daylight",
+    "description": "Sunlit terrain at t=20 s; sensitivity drops and stars fade.",
+    "simulation_time_seconds": 20.0,
+    "lighting": {"reflections_enabled": true},
+    "expected": {
+        "direct_illuminance": [0.1, 100],
+        "exposure": [0.02, 10],
+        "sky_sensitivity": [0, 0.1],
+        "terrain_mean_display_luminance": [0.1, 0.95]
+    },
+    "verify_replay": true
+}

@@ -21,7 +21,8 @@ struct SurfaceCameraSnapshot {
             {worldPosition.x, worldPosition.y, worldPosition.z});
         const auto direction = nlohmann::json::array(
             {worldDirection.x, worldDirection.y, worldDirection.z});
-        return "Surface camera position (world, " + distanceUnit + "): " +
+        return "Simulation time: " + startConfig.at("simulation_time_seconds").dump() + " s\n" +
+               "Surface camera position (world, " + distanceUnit + "): " +
                position.dump() + "\n" +
                "Surface camera direction (world, unit vector): " +
                direction.dump() + "\n" +
@@ -47,36 +48,44 @@ public:
         const PlanetSurfaceCamera& camera,
         const config::SurfaceCameraConfig& settings,
         double metersPerWorldUnit = 1000.0,
-        const std::string& distanceUnit = "km") {
-        if (!inSurfaceMode || !std::isfinite(currentTime)) {
+        const std::string& distanceUnit = "km", double simulationTime = 0.0) {
+        if (!inSurfaceMode || !std::isfinite(currentTime) || !std::isfinite(simulationTime)) {
             active_ = false;
             return std::nullopt;
         }
         if (!active_ || currentTime >= nextReportTime_) {
             active_ = true;
             nextReportTime_ = currentTime + kIntervalSeconds;
-            const auto location = camera.location();
-            const glm::dvec3 nedDirection = camera.directionNed();
-            const glm::dvec3 nedUp = camera.upNed();
-            return SurfaceCameraSnapshot{
-                camera.position(), camera.direction(), location,
-                distanceUnit, metersPerWorldUnit,
-                nlohmann::json{
-                    {"reference_frame", settings.reference_frame},
-                    {"planet_index", settings.planet_index},
-                    {"latitude_deg", location.latitudeDeg},
-                    {"longitude_deg", location.longitudeDeg},
-                    {"altitude", camera.configuredClearance()},
-                    {"walk_speed_mps", settings.walk_speed_mps},
-                    {"direction_ned", nlohmann::json::array(
-                        {nedDirection.x, nedDirection.y, nedDirection.z})},
-                    {"up_ned", nlohmann::json::array(
-                        {nedUp.x, nedUp.y, nedUp.z})},
-                    {"fov", static_cast<double>(camera.fov())}
-                }
-            };
+            return capture(camera, settings, metersPerWorldUnit, distanceUnit, simulationTime);
         }
         return std::nullopt;
+    }
+
+    static SurfaceCameraSnapshot capture(
+        const PlanetSurfaceCamera& camera, const config::SurfaceCameraConfig& settings,
+        double metersPerWorldUnit, const std::string& distanceUnit, double simulationTime) {
+        if (!std::isfinite(simulationTime)) throw std::invalid_argument("Snapshot time must be finite");
+        const auto location = camera.location();
+        const glm::dvec3 nedDirection = camera.directionNed();
+        const glm::dvec3 nedUp = camera.upNed();
+        return SurfaceCameraSnapshot{
+            camera.position(), camera.direction(), location,
+            distanceUnit, metersPerWorldUnit,
+            nlohmann::json{
+                {"simulation_time_seconds", simulationTime},
+                {"reference_frame", settings.reference_frame},
+                {"planet_index", settings.planet_index},
+                {"latitude_deg", location.latitudeDeg},
+                {"longitude_deg", location.longitudeDeg},
+                {"altitude", camera.configuredClearance()},
+                {"walk_speed_mps", settings.walk_speed_mps},
+                {"direction_ned", nlohmann::json::array(
+                    {nedDirection.x, nedDirection.y, nedDirection.z})},
+                {"up_ned", nlohmann::json::array(
+                    {nedUp.x, nedUp.y, nedUp.z})},
+                {"fov", static_cast<double>(camera.fov())}
+            }
+        };
     }
 
 private:

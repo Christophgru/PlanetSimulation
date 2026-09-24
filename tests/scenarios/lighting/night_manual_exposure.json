@@ -1,0 +1,12 @@
+{
+    "name": "night_manual_exposure",
+    "description": "Moonlit t=120 s control image with fixed exposure 1; automatic exposure must reveal substantially more terrain detail.",
+    "simulation_time_seconds": 120.0,
+    "lighting": {"reflections_enabled": true, "auto_exposure": {"enabled": false}},
+    "expected": {
+        "direct_illuminance": [0, 0],
+        "reflected_illuminance": [0.000001, 0.01],
+        "exposure": [1, 1],
+        "terrain_mean_display_luminance": [0, 0.08]
+    }
+}

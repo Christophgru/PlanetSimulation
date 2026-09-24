@@ -46,6 +46,48 @@ struct FrameAnalysis {
     }
 };
 
+struct LightingFrameMetrics {
+    int terrainPixels = 0;
+    int skyPixels = 0;
+    double terrainMeanLuminance = 0.0;
+    double skyMeanLuminance = 0.0;
+};
+
+// Include black terrain in the measurement: a moonless night is a valid image.
+// Geometry depth and projected bounds distinguish it from a missing render.
+inline LightingFrameMetrics measureLightingFrame(const std::vector<unsigned char>& rgba,
+                                                  const std::vector<float>& depth,
+                                                  int width, int height,
+                                                  const std::array<int, 4>& planetRegion,
+                                                  const std::array<int, 4>& sunRegion,
+                                                  const std::vector<unsigned char>& objectIds = {}) {
+    if (width <= 0 || height <= 0 || rgba.size() != static_cast<std::size_t>(width) * height * 4 ||
+        depth.size() != static_cast<std::size_t>(width) * height ||
+        (!objectIds.empty() && objectIds.size() != depth.size()))
+        throw std::invalid_argument("Invalid lighting measurement framebuffer");
+    LightingFrameMetrics result;
+    const auto contains = [](const std::array<int, 4>& bounds, int x, int y) {
+        return x >= bounds[0] && y >= bounds[1] && x <= bounds[2] && y <= bounds[3];
+    };
+    for (int y = 0; y < height; ++y) for (int x = 0; x < width; ++x) {
+        const auto index = static_cast<std::size_t>(y) * width + x;
+        const double value = (0.2126 * rgba[4 * index] + 0.7152 * rgba[4 * index + 1] +
+                              0.0722 * rgba[4 * index + 2]) / 255.0;
+        const bool selectedPlanet = objectIds.empty() ?
+            contains(planetRegion, x, y) && !contains(sunRegion, x, y) : objectIds[index] == 2;
+        if (depth[index] >= 0.0f && depth[index] < 1.0f && selectedPlanet) {
+            ++result.terrainPixels;
+            result.terrainMeanLuminance += value;
+        } else if (depth[index] == 1.0f) {
+            ++result.skyPixels;
+            result.skyMeanLuminance += value;
+        }
+    }
+    if (result.terrainPixels) result.terrainMeanLuminance /= result.terrainPixels;
+    if (result.skyPixels) result.skyMeanLuminance /= result.skyPixels;
+    return result;
+}
+
 inline bool matchesColor(const std::vector<unsigned char>& pixels, std::size_t index,
                          const std::vector<double>& color) {
     if (color.size() < 3) return false;
@@ -108,13 +150,16 @@ inline FrameAnalysis analyzeFrame(const std::vector<unsigned char>& rgba,
                                   const std::vector<double>& starColor = {},
                                   const std::optional<std::array<int, 4>>& sunPixelRegion = std::nullopt,
                                   const std::vector<float>& depth = {},
-                                  const std::optional<std::array<int, 4>>& planetPixelRegion = std::nullopt) {
+                                  const std::optional<std::array<int, 4>>& planetPixelRegion = std::nullopt,
+                                  const std::vector<unsigned char>& objectIds = {}) {
     if (width <= 0 || height <= 0 ||
         rgba.size() != static_cast<std::size_t>(width) * height * 4) {
         throw std::invalid_argument("Invalid RGBA framebuffer dimensions");
     }
     if (!depth.empty() && depth.size() != static_cast<std::size_t>(width) * height)
         throw std::invalid_argument("Invalid depth framebuffer dimensions");
+    if (!objectIds.empty() && objectIds.size() != static_cast<std::size_t>(width) * height)
+        throw std::invalid_argument("Invalid object framebuffer dimensions");
 
     FrameAnalysis analysis;
     if (backgroundColor.size() == 3) {
@@ -151,20 +196,21 @@ inline FrameAnalysis analyzeFrame(const std::vector<unsigned char>& rgba,
             const bool inSunRegion = !sunPixelRegion ||
                 (x >= (*sunPixelRegion)[0] && y >= (*sunPixelRegion)[1] &&
                  x <= (*sunPixelRegion)[2] && y <= (*sunPixelRegion)[3]);
-            const bool sunLike = inSunRegion && matchesColor(rgba, index, sunColor);
+            const bool sunLike = (objectIds.empty() ? inSunRegion : objectIds[index / 4] == 1) && matchesColor(rgba, index, sunColor);
             // Shadowed terrain may be below the color classifier's threshold.
             // Require actual opaque geometry within the projected planet bounds,
             // outside the Sun, and a nonblack pixel distinct from the background.
-            const bool planetGeometry = !depth.empty() && planetPixelRegion && sunPixelRegion &&
+            const bool selectedPlanet = !objectIds.empty() ? objectIds[index / 4] == 2 : planetPixelRegion && sunPixelRegion &&
                 !inSunRegion && x >= (*planetPixelRegion)[0] && y >= (*planetPixelRegion)[1] &&
-                x <= (*planetPixelRegion)[2] && y <= (*planetPixelRegion)[3] &&
+                x <= (*planetPixelRegion)[2] && y <= (*planetPixelRegion)[3];
+            const bool planetGeometry = !depth.empty() && selectedPlanet &&
                 depth[index / 4] >= 0.0f && depth[index / 4] < 1.0f &&
                 (rgba[index] != 0 || rgba[index + 1] != 0 || rgba[index + 2] != 0);
-            const bool starLike = !sunLike && !planetGeometry && matchesTintAboveBackground(
+            const bool starLike = !sunLike && !planetGeometry && (objectIds.empty() || objectIds[index / 4] == 0) && matchesTintAboveBackground(
                 rgba, index, analysis.background, starColor);
             if (starLike) analysis.starLike.include(x, y);
             if (sunLike) analysis.sun.include(x, y);
-            if (!starLike && !sunLike && (planetGeometry || matchesColor(rgba, index, planetColor) ||
+            if (!starLike && !sunLike && (objectIds.empty() || selectedPlanet) && (planetGeometry || matchesColor(rgba, index, planetColor) ||
                 matchesTerrainTint(rgba, index, planetColor) ||
                 (landscapePalette && rgba[index + 1] > rgba[index] + 6)))
                 analysis.planet.include(x, y);

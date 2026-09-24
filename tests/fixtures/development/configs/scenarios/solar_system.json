@@ -3,25 +3,10 @@
     "scenario_name": "Solar System",
     "distance_unit": "km",
     "lighting": {
-        "ambient_light": 0.000001,
+        "ambient_light": 0.002,
         "reference_distance": 10.0,
         "exposure": 1.0,
         "reflections_enabled": true,
-        "auto_exposure": {
-            "enabled": true,
-            "min_exposure": 0.02,
-            "max_exposure": 4096.0,
-            "target_luminance": 0.12,
-            "star_exposure": 64.0,
-            "description": "Deterministic incident-light metering for surface and planet cameras. Sensitivity rises on the night side to reveal moonlight; identical camera, scene and time give identical exposure without warm-up.",
-            "parameter_descriptions": {
-                "enabled": "Use automatic exposure for surface and planet orbit views. False uses lighting.exposure directly; the whole-system camera always uses manual exposure.",
-                "min_exposure": "Positive lower bound on effective exposure, used in bright sunlight.",
-                "max_exposure": "Upper sensitivity bound, at least min_exposure and at most 1000000. Prevents tiny ambient fill from making a moonless night look like daylight.",
-                "target_luminance": "Desired linear luminance of an 18 percent gray surface, greater than 0 and at most 1. The meter uses local solar incidence plus reflected and ambient light; terrain shadows do not affect metering.",
-                "star_exposure": "Positive exposure at which decorative stars reach full visibility. Stars and the sky background fade at lower sensitivity."
-            }
-        },
         "shadows": {
             "enabled": true,
             "resolution": 2048,
@@ -35,10 +20,9 @@
         },
         "description": "Direct sunlight retains surface-normal shading. Reflected sunlight is averaged over each receiving planet and reused for terrain and water.",
         "parameter_descriptions": {
-            "ambient_light": "Uniform linear RGB fill light, 0..1. Keep this near zero with automatic exposure so a night without moonlight remains dark.",
+            "ambient_light": "Uniform linear RGB fill light, 0..1. A low value lets moonlight visibly change the night side.",
             "reference_distance": "Display normalization distance in distance_unit. A nominal solar luminosity (M_bol about 4.74) gives unit irradiance here. This compensates for the miniature scene, independently of intrinsic luminosity.",
-            "exposure": "Positive display multiplier up to 100. In automatic mode this is exposure compensation before sensitivity limits; otherwise it is fixed exposure. Exponential tone mapping and sRGB encoding prevent hard clipping.",
-            "auto_exposure": "Camera sensitivity and star visibility, evaluated deterministically from the current surface location and light.",
+            "exposure": "Positive display multiplier up to 100, applied after adding direct, reflected and ambient light. Exponential tone mapping and sRGB encoding prevent hard highlight clipping.",
             "reflections_enabled": "Enable one bounce of sunlight from other bodies. Reflection depends on albedo, color, phase, radius and both light-path distances; this averaged indirect light has no eclipses or terrain occlusion.",
             "shadows": "Visibility of direct sunlight, tested per surface point against this planet's terrain."
         }
@@ -101,8 +85,8 @@
             "mass_kg": 6.338938161361669e+17,
             "orbit": {
                 "parent": "sun",
-                "semi_major_axis": 89.5,
-                "semi_minor_axis": 88.24744871391589,
+                "semi_major_axis": 12.5,
+                "semi_minor_axis": 12.24744871391589,
                 "mean_anomaly_deg": 0.0,
                 "inclination_deg": 0.0,
                 "ascending_node_deg": 0.0,
@@ -378,7 +362,6 @@
         }
     },
     "surface_camera": {
-        "simulation_time_seconds": 0.0,
         "reference_frame": "planet_spherical_ned",
         "planet_index": 0,
         "latitude_deg": -21.409888069265286,
@@ -394,7 +377,6 @@
         "description": "Planet-fixed spherical North-East-Down (NED) camera. The saved local position and view follow orbit, tilt and spin.",
         "parameter_descriptions": {
             "reference_frame": "Must be planet_spherical_ned.",
-            "simulation_time_seconds": "Finite simulation timestamp restored on startup and reload. Camera telemetry prints the current simulation time, including pause and Y/U speed changes. --simulation-time overrides this value.",
             "planet_index": "Zero-based index in planets for walking and planet orbit views.",
             "latitude_deg": "Latitude in degrees, -90..90; +Z of the body is north.",
             "longitude_deg": "Longitude in degrees, from body +X toward body +Y.",

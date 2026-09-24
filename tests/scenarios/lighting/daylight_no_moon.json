@@ -1,0 +1,11 @@
+{
+    "name": "daylight_no_moon",
+    "description": "The same daylight view without reflected moonlight.",
+    "simulation_time_seconds": 20.0,
+    "lighting": {"reflections_enabled": false},
+    "expected": {
+        "direct_illuminance": [0.1, 100],
+        "reflected_illuminance": [0, 0],
+        "terrain_mean_display_luminance": [0.1, 0.95]
+    }
+}

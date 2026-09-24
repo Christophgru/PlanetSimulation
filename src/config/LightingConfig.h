@@ -42,6 +42,34 @@ inline void validateAbsoluteMagnitude(double magnitude) {
         throw std::invalid_argument("sun.absolute_magnitude must be finite and between -30 and 30");
 }
 
+struct AutoExposureConfig {
+    bool enabled = false; // Legacy scenarios retain their fixed exposure.
+    double min_exposure = 0.02;
+    double max_exposure = 4096.0;
+    double target_luminance = 0.12;
+    double star_exposure = 64.0;
+
+    AutoExposureConfig() = default;
+    explicit AutoExposureConfig(const Config& cfg) {
+        if (!cfg.data().is_object()) throw std::invalid_argument("lighting.auto_exposure must be an object");
+        if (cfg.data().contains("enabled") && !cfg.data()["enabled"].is_boolean())
+            throw std::invalid_argument("lighting.auto_exposure.enabled must be a boolean");
+        enabled = cfg.getBool("enabled", enabled);
+        min_exposure = cfg.getDouble("min_exposure", min_exposure);
+        max_exposure = cfg.getDouble("max_exposure", max_exposure);
+        target_luminance = cfg.getDouble("target_luminance", target_luminance);
+        star_exposure = cfg.getDouble("star_exposure", star_exposure);
+        validate();
+    }
+    void validate() const {
+        if (!std::isfinite(min_exposure) || min_exposure <= 0.0 ||
+            !std::isfinite(max_exposure) || max_exposure < min_exposure || max_exposure > 1e6 ||
+            !std::isfinite(target_luminance) || target_luminance <= 0.0 || target_luminance > 1.0 ||
+            !std::isfinite(star_exposure) || star_exposure <= 0.0 || star_exposure > 1e6)
+            throw std::invalid_argument("Invalid automatic exposure limits, target luminance or star exposure");
+    }
+};
+
 struct LightingConfig {
     double ambient_light = 0.12;
     // Display normalization: one nominal solar luminosity has unit irradiance
@@ -50,6 +78,7 @@ struct LightingConfig {
     double exposure = 1.0;
     bool reflections_enabled = true;
     TerrainShadowConfig shadows;
+    AutoExposureConfig auto_exposure;
 
     LightingConfig() = default;
     explicit LightingConfig(const Config& cfg, double legacyAmbient = 0.12)
@@ -63,11 +92,14 @@ struct LightingConfig {
         reflections_enabled = cfg.getBool("reflections_enabled", reflections_enabled);
         if (cfg.data().contains("shadows"))
             shadows = TerrainShadowConfig(Config(nlohmann::json(cfg.data()["shadows"])));
+        if (cfg.data().contains("auto_exposure"))
+            auto_exposure = AutoExposureConfig(Config(nlohmann::json(cfg.data()["auto_exposure"])));
         validate();
     }
 
     void validate() const {
         shadows.validate();
+        auto_exposure.validate();
         if (!std::isfinite(ambient_light) || ambient_light < 0.0 || ambient_light > 1.0 ||
             !std::isfinite(reference_distance) || reference_distance <= 0.0 ||
             !std::isfinite(exposure) || exposure <= 0.0 || exposure > 100.0)

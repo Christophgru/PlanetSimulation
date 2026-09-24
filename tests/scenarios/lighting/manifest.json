@@ -1,0 +1,6 @@
+{
+    "description": "Repeatable daylight, moonlit and moonless camera captures. Case paths and the base config are relative to this manifest.",
+    "base_config": "base.json",
+    "render_size": [640, 480],
+    "cases": ["daylight.json", "daylight_no_moon.json", "night_moon.json", "night_no_moon.json", "night_new_moon.json", "night_manual_exposure.json"]
+}

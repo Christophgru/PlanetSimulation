@@ -379,6 +379,7 @@ struct SurfaceCameraConfig {
     double walk_speed_mps = 8.0;
     std::optional<std::array<double, 3>> direction_ned;
     std::optional<std::array<double, 3>> up_ned;
+    std::optional<double> simulation_time_seconds;
 
     SurfaceCameraConfig() = default;
     explicit SurfaceCameraConfig(const config::Config& cfg) {
@@ -390,6 +391,12 @@ struct SurfaceCameraConfig {
         altitude = cfg.getDouble("altitude", altitude);
         fov = cfg.getDouble("fov", fov);
         walk_speed_mps = cfg.getDouble("walk_speed_mps", walk_speed_mps);
+        if (cfg.data().contains("simulation_time_seconds")) {
+            const auto& time = cfg.data().at("simulation_time_seconds");
+            if (!time.is_number() || !std::isfinite(time.get<double>()))
+                throw std::invalid_argument("surface_camera.simulation_time_seconds must be finite seconds");
+            simulation_time_seconds = time.get<double>();
+        }
         auto parseNedVector = [&cfg](const char* key) {
             const auto& raw = cfg.data().at(key);
             if (!raw.is_array() || raw.size() != 3 ||

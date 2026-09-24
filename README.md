@@ -97,8 +97,8 @@ letting the surface turn beneath them.
 ## Sunlight, moonlight, and config descriptions
 
 `sun.absolute_magnitude` sets **bolometric absolute magnitude**, with a lower
-number giving more light. The example uses **3.5** and emission RGB
-`[1.0, 0.99, 0.97]` for a brighter, nearly white Sun. The
+number giving more light. A value of **3.5** and emission RGB
+`[1.0, 0.99, 0.97]` give a brighter, nearly white Sun. The
 [IAU magnitude scale](https://arxiv.org/abs/1510.06262) gives
 `L = 3.0128e28 × 10^(-0.4 M_bol)` watts; a magnitude difference of −5 means
 100 times the luminosity. The nominal Sun is about magnitude 4.74.
@@ -111,6 +111,22 @@ magnitude still determines the intrinsic luminosity. Direct light follows
 inverse-square distance falloff. `exposure` affects the final image after
 adding sunlight, reflected light, and ambient fill. An exponential tone curve
 and sRGB encoding keep the brighter Sun and terrain highlights displayable.
+
+The working scenario enables `lighting.auto_exposure` for surface and planet
+orbit cameras. The meter uses sunlight above the local horizon, moonlight,
+and ambient fill at the camera's planet-local position. It selects an exposure
+for an 18% gray surface using `target_luminance`, limited by `min_exposure` and
+`max_exposure`. `lighting.exposure` supplies exposure compensation. Sensitivity
+rises at night to reveal moonlit terrain. Very low ambient fill and the upper
+limit keep a moonless night dark. Setting `enabled` to false restores fixed
+exposure; the whole-system camera always uses fixed exposure.
+
+This meter is deterministic, with no adaptation history or warm-up frames.
+It approximates local lighting using the spherical horizon; individual ridges
+still cast shadows but do not change the meter. The same exposure is used for
+terrain, water, the Sun, and water reflection passes. Stars and the background
+fade below `auto_exposure.star_exposure` and reach full visibility at higher
+sensitivity, so stars can disappear during daylight.
 
 Each planet's `reflection.geometric_albedo` and `reflection.color` determine
 the strength and RGB tint of sunlight it sends to other bodies. The Moon uses
@@ -252,7 +268,12 @@ planet-local position labeled latitude and longitude in degrees and altitude
 above the spherical reference radius in meters, plus ground clearance, then a
 `surface_camera start value` JSON object. Replace the existing `surface_camera`
 object in `configs/scenarios/solar_system.json` with that printed object to
-start at the saved position and view. The `direction_ned` array is ordered
+start at the saved position, view, and simulation time. The printed
+`simulation_time_seconds` is the simulation clock, including pause and Y/U
+speed changes, rather than elapsed wall time. It restores the Sun, Earth,
+Moon, spin, shadows, and exposure together on startup or config reload.
+Older snippets without a time still start at zero. `--simulation-time` takes
+precedence over the saved timestamp. The `direction_ned` array is ordered
 North, East, Down in the selected planet's local frame. The printed `up_ned`
 array preserves image orientation when looking nearly straight up or down.
 Both are optional; without `direction_ned`, the surface camera starts aimed at
@@ -260,6 +281,31 @@ the Sun. The JSON `altitude` is the requested clearance above sampled terrain or
 in the configured world distance unit (`0.002` km is 2 m in the development
 scene). The printed LLA altitude varies with terrain or water height, while the reusable
 config snippet keeps the requested clearance and walking speed.
+
+Save the printed JSON object as `camera.json` to replay it directly:
+
+~~~bash
+./build/PlanetSimulation --config configs/scenarios/solar_system.json --replay camera.json
+./build/PlanetSimulation --config configs/scenarios/solar_system.json --replay camera.json --surface-capture build/replayed.png
+~~~
+
+Interactive replay starts in surface mode with simulation paused; `T` resumes
+it. Camera controls still work. Saving the replay file reloads it at the saved
+time; `R` also reloads the replay and its base config. `--surface-capture` accepts a completely
+dark surface, but requires terrain geometry to be present. Unlike the stricter
+`--surface-render-test`, it does not require visible stars or brightly colored
+terrain. It writes a PNG plus `replayed.png.json` containing the resolved scene,
+camera, timestamp, resolution, exposure, renderer, and measured lighting.
+Replaying that sidecar restores its full scene even if the working config has
+changed; the original config file is no longer needed:
+
+~~~bash
+./build/PlanetSimulation --replay build/replayed.png.json --surface-capture build/replayed-again.png
+~~~
+
+An explicit `--render-size` overrides the sidecar's resolution. Identical
+captures on the same build and graphics driver are checked byte for byte;
+different drivers can rasterize edges differently.
 Surface mouse look keeps heading and pitch independent: horizontal mouse
 movement changes compass heading, while vertical movement changes only pitch.
 Pitch stops at 89.9 degrees above or below the local horizon so the view cannot
@@ -361,6 +407,34 @@ and planet orbit views after 37 seconds. Orbital unit tests cover the requested
 periods, mass scaling, descendant masses, barycenters, momentum, elliptical
 energy and angular momentum, highly eccentric orbits, unit conversion, long
 runs, the 20° equatorial alignment, and cameras attached to rotating terrain.
+
+The tests use a frozen development config under `tests/fixtures/development`,
+so editing the interactive scenario cannot change their orbital, terrain, or
+camera assumptions. Existing unit assertions are retained.
+
+`tests/scenarios/lighting/manifest.json` defines independent daylight (20 s),
+moonlit night (120 s), moonless night (120 s), new-Moon night (0 s), and fixed
+exposure control cases. Each case shares a fixed base config and overrides
+only its time, camera, or lighting settings. Generate and validate all cases:
+
+~~~bash
+xvfb-run -a cmake --build build --target render_lighting_scenarios
+~~~
+
+Or select a case or an alternative manifest:
+
+~~~bash
+xvfb-run -a python3 tests/render_lighting_scenarios.py --binary build/PlanetSimulation --case night_moon --output-dir build/night-check
+xvfb-run -a python3 tests/render_lighting_scenarios.py --binary build/PlanetSimulation --manifest tests/scenarios/lighting/manifest.json --output-dir build/lighting-scenarios
+~~~
+
+Every case produces a resolved `.config.json`, PNG, replay `.png.json`, and
+capture log. `results.json` records image hashes and measurements. The tests
+check Sun and Moon illumination separately, exposure limits, terrain geometry,
+day/night brightness, and exact replay of daylight and moonlit images. Dark
+terrain is measured using depth and object identity, without counting the Sun,
+Moon, or stars as terrain. `LightingScenariosRenderIntegration` runs these same
+checks in CTest. Use an existing display instead of `xvfb-run` when available.
 
 The saved surface view looks across water toward flatter land and cliffs. The
 surface render test checks for a visible configured body. The orbit

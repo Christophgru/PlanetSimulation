@@ -1,0 +1,220 @@
+{
+    "scenario_name": "Deterministic camera lighting regression",
+    "distance_unit": "km",
+    "lighting": {
+        "ambient_light": 0.0,
+        "reference_distance": 10.0,
+        "exposure": 1.0,
+        "reflections_enabled": true,
+        "shadows": {
+            "enabled": true,
+            "resolution": 2048,
+            "bias_texels": 0.5
+        },
+        "auto_exposure": {
+            "enabled": true,
+            "min_exposure": 0.02,
+            "max_exposure": 4096,
+            "target_luminance": 0.12,
+            "star_exposure": 64
+        }
+    },
+    "skybox": {
+        "enabled": true,
+        "seed": 7429,
+        "star_density": 0.003,
+        "star_scale": 700.0,
+        "star_brightness": 1.4,
+        "background_color": [
+            0,
+            0,
+            0
+        ],
+        "star_color": [
+            0.82,
+            0.9,
+            1.0
+        ]
+    },
+    "sun": {
+        "name": "sun",
+        "mass_kg": 1.2194532287919512e+19,
+        "position": [
+            0,
+            0,
+            0
+        ],
+        "radius": 2.5,
+        "color": [
+            1.0,
+            0.99,
+            0.97
+        ],
+        "absolute_magnitude": 3.1
+    },
+    "planets": [
+        {
+            "name": "earth",
+            "mass_kg": 6.338938161361669e+17,
+            "orbit": {
+                "parent": "sun",
+                "semi_major_axis": 12.5,
+                "semi_minor_axis": 12.24744871391589,
+                "mean_anomaly_deg": 0.0,
+                "inclination_deg": 0.0,
+                "ascending_node_deg": 0.0,
+                "periapsis_deg": 0.0
+            },
+            "rotation": {
+                "period_seconds": 60.0,
+                "axial_tilt_deg": 20.0,
+                "phase_deg": 0.0
+            },
+            "radius": 1,
+            "color": [
+                0.2,
+                0.4,
+                1.0
+            ],
+            "surface_noise": [
+                {
+                    "type": "value_fbm",
+                    "seed": 90,
+                    "amplitude_m": 68,
+                    "frequency": 3.0,
+                    "octaves": 4,
+                    "persistence": 0.5,
+                    "lacunarity": 2.0
+                },
+                {
+                    "type": "ridged_fbm",
+                    "seed": 35,
+                    "amplitude_m": 40,
+                    "frequency": 8.0,
+                    "octaves": 3,
+                    "persistence": 0.45,
+                    "lacunarity": 2.0
+                }
+            ],
+            "terrain_lod": {
+                "base_edge_segments": 3,
+                "medium_edge_segments": 8,
+                "max_edge_segments": 16,
+                "steep_edge_segments": 32,
+                "steep_slope_threshold": 0.3,
+                "near_surface_distance_m": 300.0,
+                "mid_surface_distance_m": 1000.0,
+                "max_triangle_budget": 100000,
+                "lod_near_diameters": 2.0,
+                "lod_far_diameters": 8.0
+            },
+            "terrain_landscape": {
+                "elevation_offset_m": -1.5,
+                "continent_amplitude_m": 10.0,
+                "continent_frequency": 1.6,
+                "plain_threshold": 0.48,
+                "cliff_threshold": 0.62,
+                "cliff_amplitude_m": 120.0,
+                "cliff_frequency": 7.0,
+                "ridge_smoothing": 0.25,
+                "seed": 1
+            },
+            "water": {
+                "enabled": true,
+                "level_m": 0,
+                "opacity": 0.5,
+                "reflection_fraction": 0.5,
+                "color": [
+                    0.06,
+                    0.31,
+                    0.56
+                ]
+            },
+            "atmosphere_enabled": true,
+            "atmosphere_height": 0.3,
+            "reflection": {
+                "geometric_albedo": 0.3,
+                "color": [
+                    0.3,
+                    0.5,
+                    1.0
+                ]
+            }
+        },
+        {
+            "name": "moon",
+            "mass_kg": 7923672701702087.0,
+            "orbit": {
+                "parent": "earth",
+                "semi_major_axis": 2.5,
+                "semi_minor_axis": 2.45,
+                "mean_anomaly_deg": 180.0,
+                "inclination_deg": 20.0,
+                "ascending_node_deg": 0.0,
+                "periapsis_deg": 0.0
+            },
+            "rotation": {
+                "period_seconds": 60.0,
+                "axial_tilt_deg": 20.0,
+                "phase_deg": 0.0
+            },
+            "radius": 0.27,
+            "color": [
+                0.62,
+                0.6,
+                0.56
+            ],
+            "surface_noise": [
+                {
+                    "type": "ridged_fbm",
+                    "amplitude_m": 8.0,
+                    "frequency": 8.0,
+                    "octaves": 3,
+                    "seed": 71
+                }
+            ],
+            "reflection": {
+                "geometric_albedo": 0.12,
+                "color": [
+                    0.95,
+                    0.95,
+                    1.0
+                ]
+            }
+        }
+    ],
+    "camera": {
+        "position": [
+            15.0,
+            15.0,
+            8.0
+        ],
+        "target": [
+            5.0,
+            0.0,
+            0.0
+        ],
+        "fov": 60.0
+    },
+    "surface_camera": {
+        "reference_frame": "planet_spherical_ned",
+        "planet_index": 0,
+        "latitude_deg": -21.409888069265286,
+        "longitude_deg": 82.26311950013215,
+        "altitude": 0.03,
+        "walk_speed_mps": 80.0,
+        "direction_ned": [
+            -0.12335606307456787,
+            0.9804278199799195,
+            -0.15344240454374442
+        ],
+        "fov": 80.0,
+        "simulation_time_seconds": 0.0,
+        "up_ned": [
+            0.019154890948990685,
+            -0.1522421152799035,
+            -0.9881575929414461
+        ]
+    },
+    "description": "Fixed masses, seeds and terrain. Case files select time, moonlight and exposure; independent of the working scenario."
+}

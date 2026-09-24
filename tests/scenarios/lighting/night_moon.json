@@ -1,0 +1,14 @@
+{
+    "name": "night_moon",
+    "description": "Night-side surface at t=120 s with moonlight and automatic exposure.",
+    "simulation_time_seconds": 120.0,
+    "lighting": {"reflections_enabled": true},
+    "expected": {
+        "direct_illuminance": [0, 0],
+        "reflected_illuminance": [0.000001, 0.01],
+        "exposure": [64, 4096],
+        "sky_sensitivity": [1, 1],
+        "terrain_mean_display_luminance": [0.08, 0.95]
+    },
+    "verify_replay": true
+}

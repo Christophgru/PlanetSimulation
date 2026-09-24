@@ -8,6 +8,7 @@ uniform float uStarScale;
 uniform float uStarBrightness;
 uniform vec3 uBackgroundColor;
 uniform vec3 uStarColor;
+uniform float uSkySensitivity;
 
 out vec4 fColor;
 
@@ -37,5 +38,5 @@ void main() {
         hashUnit(starHash(cell, uint(uSeed) ^ 0xa511e9b3u)));
     vec3 color = uBackgroundColor +
                  visible * magnitude * uStarBrightness * uStarColor;
-    fColor = vec4(color, 1.0);
+    fColor = vec4(color * uSkySensitivity, 1.0);
 }

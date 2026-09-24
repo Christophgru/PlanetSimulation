@@ -183,3 +183,41 @@ TEST(RenderDiagnosticsTest, InvalidDepthDimensionsAreRejected) {
     EXPECT_THROW(rendering::analyzeFrame(backgroundFrame(), kWidth, kHeight, kSunColor, kPlanetColor,
         false, {}, {}, std::nullopt, std::vector<float>{0.5f}), std::invalid_argument);
 }
+
+TEST(RenderDiagnosticsTest, LightingMetricsIncludeBlackTerrainButExcludeSunMoonAndSky) {
+    std::vector<unsigned char> rgba(kWidth * kHeight * 4, 0);
+    std::vector<float> depth(kWidth * kHeight, 1);
+    std::vector<unsigned char> ids(kWidth * kHeight, 0);
+    paint(rgba, 1, 1, 255, 255, 255); // Sun.
+    paint(rgba, 2, 1, 0, 0, 0);       // Invisible but correctly drawn night-side Earth.
+    paint(rgba, 3, 1, 255, 255, 255); // Moon.
+    paint(rgba, 4, 1, 255, 255, 255); // Star, no geometry depth.
+    for (int x = 1; x <= 3; ++x) {
+        depth[kWidth + x] = 0.5;
+        ids[kWidth + x] = x;
+    }
+    const std::array<int, 4> wholeScreen{0, 0, kWidth - 1, kHeight - 1};
+    const auto metrics = rendering::measureLightingFrame(rgba, depth, kWidth, kHeight,
+        wholeScreen, wholeScreen, ids); // Projected Sun bounds deliberately overlap everything.
+    EXPECT_EQ(metrics.terrainPixels, 1);
+    EXPECT_DOUBLE_EQ(metrics.terrainMeanLuminance, 0);
+    EXPECT_EQ(metrics.skyPixels, kWidth * kHeight - 3);
+    EXPECT_NEAR(metrics.skyMeanLuminance, 1.0 / metrics.skyPixels, 1e-12);
+    paint(rgba, 2, 1, 3, 5, 2);
+    const auto visible = rendering::analyzeFrame(rgba, kWidth, kHeight, {1, 1, 1}, kPlanetColor,
+        false, {}, {1, 1, 1}, wholeScreen, depth, wholeScreen, ids);
+    EXPECT_EQ(visible.planet.count, 1);
+    EXPECT_EQ(visible.sun.count, 1);
+    EXPECT_EQ(visible.starLike.count, 1);
+}
+
+TEST(RenderDiagnosticsTest, LightingMetricsRejectMissingBuffersAndDoNotInventTerrain) {
+    auto rgba = backgroundFrame();
+    const std::array<int, 4> wholeScreen{0, 0, kWidth - 1, kHeight - 1};
+    std::vector<float> depth(kWidth * kHeight, 1);
+    EXPECT_THROW(rendering::measureLightingFrame(rgba, {}, kWidth, kHeight, wholeScreen, wholeScreen), std::invalid_argument);
+    EXPECT_THROW(rendering::measureLightingFrame(rgba, depth, kWidth, kHeight, wholeScreen, wholeScreen, {2}), std::invalid_argument);
+    const auto empty = rendering::measureLightingFrame(rgba, depth, kWidth, kHeight, wholeScreen, wholeScreen);
+    EXPECT_EQ(empty.terrainPixels, 0);
+    EXPECT_DOUBLE_EQ(empty.terrainMeanLuminance, 0);
+}
