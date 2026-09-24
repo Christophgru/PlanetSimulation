@@ -81,6 +81,31 @@ public:
         upload();
     }
 
+    void buildCubeGeometry() {
+        vertices.clear();
+        indices.clear();
+        hasVertexColors = false;
+        constexpr float corners[8][3] = {
+            {-1.0f, -1.0f, -1.0f}, { 1.0f, -1.0f, -1.0f},
+            { 1.0f,  1.0f, -1.0f}, {-1.0f,  1.0f, -1.0f},
+            {-1.0f, -1.0f,  1.0f}, { 1.0f, -1.0f,  1.0f},
+            { 1.0f,  1.0f,  1.0f}, {-1.0f,  1.0f,  1.0f}
+        };
+        for (const auto& corner : corners)
+            addVertex(corner[0], corner[1], corner[2], 0.0f, 0.0f, 0.0f);
+        constexpr unsigned int triangles[36] = {
+            0, 1, 2, 2, 3, 0, 1, 5, 6, 6, 2, 1,
+            5, 4, 7, 7, 6, 5, 4, 0, 3, 3, 7, 4,
+            3, 2, 6, 6, 7, 3, 4, 5, 1, 1, 0, 4
+        };
+        indices.assign(std::begin(triangles), std::end(triangles));
+    }
+
+    void generateCube() {
+        buildCubeGeometry();
+        upload();
+    }
+
     void loadTerrain(rendering::TerrainGeometry geometry) {
         vertices = std::move(geometry.vertices);
         indices = std::move(geometry.indices);

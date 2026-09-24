@@ -1,6 +1,16 @@
 {
     "scenario_name": "Solar System",
     "distance_unit": "km",
+    "skybox": {
+        "enabled": true,
+        "seed": 7429,
+        "star_density": 0.0003,
+        "star_scale": 700.0,
+        "star_brightness": 1.4,
+        "ambient_light": 0.12,
+        "background_color": [0.002, 0.004, 0.012],
+        "star_color": [0.82, 0.9, 1.0]
+    },
     "sun": {
         "position": [0, 0, 0],
         "radius": 2.5,

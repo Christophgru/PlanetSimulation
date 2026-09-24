@@ -94,9 +94,12 @@ TEST(SceneTransformsTest, DirectionalBrightnessFollowsTheSunWithAmbientBacklight
     EXPECT_DOUBLE_EQ(rendering::directionalBrightness({0.0, 0.0, 1.0}, position, sun),
                      1.0);
     EXPECT_DOUBLE_EQ(rendering::directionalBrightness({0.0, 0.0, -1.0}, position, sun),
-                     0.35);
+                     0.12);
     EXPECT_DOUBLE_EQ(rendering::directionalBrightness({1.0, 0.0, 0.0}, position, sun),
-                     0.35);
+                     0.12);
+    EXPECT_DOUBLE_EQ(rendering::directionalBrightness(
+                         {1.0, 0.0, 0.0}, position, sun, 0.2),
+                     0.2);
     EXPECT_THROW(rendering::directionalBrightness({0.0, 0.0, 0.0}, position, sun),
                  std::invalid_argument);
 }

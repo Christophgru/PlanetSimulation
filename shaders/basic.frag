@@ -8,6 +8,7 @@ uniform vec3 uClipCenter;
 uniform float uClipRadius;
 uniform vec3 uSunPosition;
 uniform float uEmissive;
+uniform float uAmbientLight;
 
 out vec4 fColor;
 
@@ -16,7 +17,7 @@ void main() {
         discard;
     vec3 toSun = normalize(uSunPosition - vWorldPosition);
     float diffuse = max(dot(normalize(vWorldNormal), toSun), 0.0);
-    float brightness = mix(0.35 + 0.65 * diffuse, 1.0,
+    float brightness = mix(uAmbientLight + (1.0 - uAmbientLight) * diffuse, 1.0,
                            clamp(uEmissive, 0.0, 1.0));
     fColor = vec4(vColor * brightness, 1.0);
 }

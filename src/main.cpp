@@ -189,15 +189,43 @@ Mesh g_mesh;
 
 void renderScene(const config::ScenarioConfig& scenario, const glm::mat4& view, float fov,
                  const glm::dvec3& eyeWorld, const Shader& shader,
-                 const Shader& waterShader,
+                 const Shader& waterShader, const Shader& skyboxShader,
                  rendering::WaterReflectionTarget& reflectionTarget,
-                 const Mesh& sunMesh,
+                 const Mesh& sunMesh, const Mesh& skyboxMesh,
                  const std::vector<Mesh>& planetMeshes,
                  const std::vector<Mesh>& waterMeshes, int width, int height,
                  rendering::ClipPlanes clip = {}) {
     const glm::mat4 projection = rendering::perspectiveProjection(
         fov, static_cast<float>(width) / height, clip);
     const auto& sun = scenario.sun;
+
+    auto drawSkybox = [&](const glm::mat4& passProjection,
+                          const glm::mat4& passView) {
+        if (!scenario.skybox.enabled) return;
+        glDepthFunc(GL_LEQUAL);
+        glDepthMask(GL_FALSE);
+        skyboxShader.use();
+        skyboxShader.setMat4("projection", glm::value_ptr(passProjection));
+        skyboxShader.setMat4("view", glm::value_ptr(passView));
+        skyboxShader.setInt("uSeed", scenario.skybox.seed);
+        skyboxShader.setFloat("uStarDensity",
+                              static_cast<float>(scenario.skybox.star_density));
+        skyboxShader.setFloat("uStarScale",
+                              static_cast<float>(scenario.skybox.star_scale));
+        skyboxShader.setFloat("uStarBrightness",
+                              static_cast<float>(scenario.skybox.star_brightness));
+        skyboxShader.setFloat3("uBackgroundColor",
+            static_cast<float>(scenario.skybox.background_color[0]),
+            static_cast<float>(scenario.skybox.background_color[1]),
+            static_cast<float>(scenario.skybox.background_color[2]));
+        skyboxShader.setFloat3("uStarColor",
+            static_cast<float>(scenario.skybox.star_color[0]),
+            static_cast<float>(scenario.skybox.star_color[1]),
+            static_cast<float>(scenario.skybox.star_color[2]));
+        skyboxMesh.draw();
+        glDepthMask(GL_TRUE);
+        glDepthFunc(GL_LESS);
+    };
 
     auto drawOpaqueScene = [&](const glm::mat4& passProjection,
                                const glm::mat4& passView,
@@ -211,6 +239,8 @@ void renderScene(const config::ScenarioConfig& scenario, const glm::mat4& view, 
         shader.setFloat3("uSunPosition", static_cast<float>(sun.position[0]),
                           static_cast<float>(sun.position[1]),
                           static_cast<float>(sun.position[2]));
+        shader.setFloat("uAmbientLight",
+                        static_cast<float>(scenario.skybox.ambient_light));
 
         const glm::mat4 sunModel = rendering::sphereModel(glm::vec3(
             static_cast<float>(sun.position[0]),
@@ -241,8 +271,11 @@ void renderScene(const config::ScenarioConfig& scenario, const glm::mat4& view, 
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, width, height);
-    glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
+    glClearColor(static_cast<float>(scenario.skybox.background_color[0]),
+                 static_cast<float>(scenario.skybox.background_color[1]),
+                 static_cast<float>(scenario.skybox.background_color[2]), 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    drawSkybox(projection, view);
     drawOpaqueScene(projection, view, glm::vec3(0.0f), -1.0f);
 
     const bool hasWater = std::any_of(
@@ -276,6 +309,7 @@ void renderScene(const config::ScenarioConfig& scenario, const glm::mat4& view, 
         reflectionTarget.bind();
         glViewport(0, 0, reflectionTarget.width(), reflectionTarget.height());
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        drawSkybox(reflectedProjection, reflectedView);
         drawOpaqueScene(reflectedProjection, reflectedView, center,
                         static_cast<float>(radiusWorld));
 
@@ -511,6 +545,8 @@ int main(int argc, char** argv) {
         
         // Keep the working Sun sphere geometry.
         g_mesh.generateSphere(32);
+        Mesh skyboxMesh;
+        skyboxMesh.generateCube();
         
         std::cout << "PlanetSimulation v0.1 initialized\n";
         std::cout << "Scenario: " << scenario.name << "\n";
@@ -557,6 +593,7 @@ int main(int argc, char** argv) {
         // Create shader program
         Shader shader("shaders/basic.vert", "shaders/basic.frag");
         Shader waterShader("shaders/water.vert", "shaders/water.frag");
+        Shader skyboxShader("shaders/skybox.vert", "shaders/skybox.frag");
         rendering::WaterReflectionTarget waterReflection;
         
         // Enable depth testing
@@ -584,7 +621,7 @@ int main(int argc, char** argv) {
             preparePlanetMeshes(eyeWorld);
             const auto meshEnd = std::chrono::steady_clock::now();
             renderScene(scenario, view, fov, eyeWorld, shader, waterShader,
-                        waterReflection, g_mesh,
+                        skyboxShader, waterReflection, g_mesh, skyboxMesh,
                         planetMeshes, waterMeshes, width, height,
                         surfaceRenderMode ? surfaceClip :
                         planetRenderMode ? planetOrbitClip(eyeWorld) :
@@ -644,7 +681,9 @@ int main(int argc, char** argv) {
             const auto& diagnosticPlanet = scenario.planets[diagnosticPlanetIndex];
             const rendering::FrameAnalysis analysis = rendering::analyzeFrame(
                 flippedPixels, width, height, scenario.sun.color, diagnosticPlanet.color,
-                diagnosticPlanet.terrain_landscape.enabled || diagnosticPlanet.water.enabled);
+                diagnosticPlanet.terrain_landscape.enabled || diagnosticPlanet.water.enabled,
+                scenario.skybox.background_color,
+                scenario.skybox.enabled ? scenario.skybox.star_color : std::vector<double>{});
 
             std::cout << "Image size: " << width << "x" << height << "\n";
             std::cout << "Background pixel: (" << static_cast<int>(analysis.background[0])
@@ -662,6 +701,8 @@ int main(int argc, char** argv) {
             printBounds("Non-background pixels", analysis.drawn);
             printBounds("Sun-colored pixels", analysis.sun);
             printBounds("Planet-colored pixels", analysis.planet);
+            if (scenario.skybox.enabled)
+                printBounds("Star-like pixels", analysis.starLike);
             if (diagnosticPlanet.water.enabled)
                 printBounds("Blue water-like pixels", analysis.waterLike);
 
@@ -670,6 +711,12 @@ int main(int argc, char** argv) {
             
             if (result == 0) {
                 std::cerr << "Failed to write PNG: " << outputImagePath << "\n";
+                return 1;
+            }
+
+            if (scenario.skybox.enabled && scenario.skybox.star_density > 0.0 &&
+                scenario.skybox.star_brightness > 0.0 && analysis.starLike.count == 0) {
+                std::cerr << "Render test FAILED: Procedural star sky is not visible\n";
                 return 1;
             }
 
@@ -835,8 +882,8 @@ int main(int argc, char** argv) {
                         : onPlanetOrbit ? planetOrbitClip(eyeWorld) : rendering::ClipPlanes{};
                     preparePlanetMeshes(eyeWorld, true);
                     renderScene(scenario, view, fov, eyeWorld, shader, waterShader,
-                                waterReflection, g_mesh, planetMeshes, waterMeshes,
-                                width, height,
+                                skyboxShader, waterReflection, g_mesh, skyboxMesh,
+                                planetMeshes, waterMeshes, width, height,
                                 clip);
                     glfwSwapBuffers(window);
                 }
@@ -846,6 +893,7 @@ int main(int argc, char** argv) {
 
         // Cleanup
         g_mesh.destroy();
+        skyboxMesh.destroy();
         for (auto& planetMesh : planetMeshes) planetMesh.destroy();
         for (auto& waterMesh : waterMeshes) waterMesh.destroy();
         

@@ -37,6 +37,48 @@ struct SunConfig {
     }
 };
 
+struct SkyboxConfig {
+    bool enabled = true;
+    int seed = 7429;
+    double star_density = 0.003;
+    double star_scale = 700.0;
+    double star_brightness = 1.4;
+    double ambient_light = 0.12;
+    std::vector<double> background_color = {0.002, 0.004, 0.012};
+    std::vector<double> star_color = {0.82, 0.9, 1.0};
+
+    SkyboxConfig() = default;
+    explicit SkyboxConfig(const config::Config& cfg) {
+        enabled = cfg.getBool("enabled", enabled);
+        seed = cfg.getInt("seed", seed);
+        star_density = cfg.getDouble("star_density", star_density);
+        star_scale = cfg.getDouble("star_scale", star_scale);
+        star_brightness = cfg.getDouble("star_brightness", star_brightness);
+        ambient_light = cfg.getDouble("ambient_light", ambient_light);
+        background_color = cfg.getArray("background_color", background_color);
+        star_color = cfg.getArray("star_color", star_color);
+        validate();
+    }
+
+    void validate() const {
+        const auto validColor = [](const std::vector<double>& color) {
+            return color.size() == 3 &&
+                   std::all_of(color.begin(), color.end(), [](double channel) {
+                       return std::isfinite(channel) && channel >= 0.0 && channel <= 1.0;
+                   });
+        };
+        if (!std::isfinite(star_density) || star_density < 0.0 ||
+            star_density > 0.25 || !std::isfinite(star_scale) ||
+            star_scale < 1.0 || star_scale > 10000.0 ||
+            !std::isfinite(star_brightness) || star_brightness < 0.0 ||
+            star_brightness > 20.0 || !std::isfinite(ambient_light) ||
+            ambient_light < 0.0 || ambient_light > 1.0 ||
+            !validColor(background_color) || !validColor(star_color)) {
+            throw std::invalid_argument("Invalid skybox parameters");
+        }
+    }
+};
+
 struct OrbitViewConfig {
     std::array<double, 3> position{12.0, 0.0, 0.5};
     std::array<double, 3> target{0.0, 0.0, 0.0};
@@ -358,6 +400,7 @@ struct ScenarioConfig {
     std::string name = "Unnamed";
     std::string distance_unit = "km";
     SunConfig sun;
+    SkyboxConfig skybox;
     OrbitViewConfig camera;
     std::vector<PlanetConfig> planets;
     SurfaceCameraConfig surface_camera;
@@ -373,6 +416,12 @@ struct ScenarioConfig {
         
         // Only parse sun if it exists in the config
         const auto& raw_data = cfg.data();
+        auto skybox_it = raw_data.find("skybox");
+        if (skybox_it != raw_data.end()) {
+            if (!skybox_it->is_object())
+                throw std::invalid_argument("skybox must be an object");
+            skybox = SkyboxConfig(config::Config{nlohmann::json(*skybox_it)});
+        }
         auto sun_it = raw_data.find("sun");
         if (sun_it != raw_data.end() && sun_it->is_object()) {
             // Copy the json value first, then move it to Config constructor

@@ -54,3 +54,15 @@ TEST(MeshGeometryTest, RebuildingReplacesOldGeometryAndRejectsTooFewSegments) {
     EXPECT_EQ(mesh.indices.size(), 4u * 4u * 6u);
     EXPECT_THROW(mesh.buildSphereGeometry(2), std::invalid_argument);
 }
+
+TEST(MeshGeometryTest, SkyboxCubeHasEightCornersAndTwelveTriangles) {
+    Mesh mesh;
+    mesh.buildCubeGeometry();
+    EXPECT_EQ(mesh.vertices.size(), 8u * 6u);
+    EXPECT_EQ(mesh.indices.size(), 12u * 3u);
+    for (unsigned int index : mesh.indices) EXPECT_LT(index, 8u);
+    for (std::size_t vertex = 0; vertex < 8; ++vertex) {
+        for (int axis = 0; axis < 3; ++axis)
+            EXPECT_FLOAT_EQ(std::abs(mesh.vertices[vertex * 6 + axis]), 1.0f);
+    }
+}

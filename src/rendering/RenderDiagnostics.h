@@ -32,6 +32,7 @@ struct FrameAnalysis {
     PixelBounds sun;
     PixelBounds planet;
     PixelBounds waterLike;
+    PixelBounds starLike;
 
     bool bodiesVisible() const {
         return drawn.count > 0 && sun.count > 0 && planet.count > 0;
@@ -73,18 +74,66 @@ inline bool matchesTerrainTint(const std::vector<unsigned char>& pixels,
     return true;
 }
 
+inline bool matchesTintAboveBackground(const std::vector<unsigned char>& pixels,
+                                       std::size_t index,
+                                       const std::array<unsigned char, 3>& background,
+                                       const std::vector<double>& color) {
+    if (color.size() != 3) return false;
+    int strongestDelta = 0;
+    double minimumFactor = 0.0;
+    double maximumFactor = std::numeric_limits<double>::infinity();
+    for (int channel = 0; channel < 3; ++channel) {
+        if (color[channel] <= 0.0) continue;
+        const int value = pixels[index + channel];
+        strongestDelta = std::max(strongestDelta,
+            value - static_cast<int>(background[channel]));
+        const double scale = 255.0 * color[channel];
+        minimumFactor = std::max(minimumFactor,
+            (value - 18.0 - background[channel]) / scale);
+        if (value < 237) {
+            maximumFactor = std::min(maximumFactor,
+                (value + 18.0 - background[channel]) / scale);
+        }
+    }
+    return strongestDelta >= 24 && minimumFactor <= maximumFactor;
+}
+
 inline FrameAnalysis analyzeFrame(const std::vector<unsigned char>& rgba,
                                   int width, int height,
                                   const std::vector<double>& sunColor,
                                   const std::vector<double>& planetColor,
-                                  bool landscapePalette = false) {
+                                  bool landscapePalette = false,
+                                  const std::vector<double>& backgroundColor = {},
+                                  const std::vector<double>& starColor = {}) {
     if (width <= 0 || height <= 0 ||
         rgba.size() != static_cast<std::size_t>(width) * height * 4) {
         throw std::invalid_argument("Invalid RGBA framebuffer dimensions");
     }
 
     FrameAnalysis analysis;
-    analysis.background = {rgba[0], rgba[1], rgba[2]};
+    if (backgroundColor.size() == 3) {
+        std::array<int, 3> expected{};
+        for (int channel = 0; channel < 3; ++channel) {
+            expected[channel] = static_cast<int>(std::lround(
+                std::clamp(backgroundColor[channel], 0.0, 1.0) * 255.0));
+        }
+        int bestDistance = std::numeric_limits<int>::max();
+        for (std::size_t index = 0; index < rgba.size(); index += 4) {
+            int distance = 0;
+            for (int channel = 0; channel < 3; ++channel) {
+                const int delta = static_cast<int>(rgba[index + channel]) -
+                                  expected[channel];
+                distance += delta * delta;
+            }
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                analysis.background = {rgba[index], rgba[index + 1], rgba[index + 2]};
+                if (distance == 0) break;
+            }
+        }
+    } else {
+        analysis.background = {rgba[0], rgba[1], rgba[2]};
+    }
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
             const std::size_t index = (static_cast<std::size_t>(y) * width + x) * 4;
@@ -93,12 +142,16 @@ inline FrameAnalysis analyzeFrame(const std::vector<unsigned char>& rgba,
                 rgba[index + 2] == analysis.background[2]) continue;
 
             analysis.drawn.include(x, y);
+            const bool starLike = matchesTintAboveBackground(
+                rgba, index, analysis.background, starColor);
+            if (starLike) analysis.starLike.include(x, y);
             if (matchesColor(rgba, index, sunColor)) analysis.sun.include(x, y);
-            if (matchesColor(rgba, index, planetColor) ||
+            if (!starLike && (matchesColor(rgba, index, planetColor) ||
                 matchesTerrainTint(rgba, index, planetColor) ||
-                (landscapePalette && rgba[index + 1] > rgba[index] + 6))
+                (landscapePalette && rgba[index + 1] > rgba[index] + 6)))
                 analysis.planet.include(x, y);
-            if (landscapePalette && rgba[index + 2] > rgba[index + 1] + 6 &&
+            if (!starLike && landscapePalette &&
+                rgba[index + 2] > rgba[index + 1] + 6 &&
                 rgba[index + 1] > rgba[index] + 6)
                 analysis.waterLike.include(x, y);
         }

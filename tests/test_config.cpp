@@ -303,6 +303,42 @@ TEST(ScenarioConfigTest, DefaultValues) {
     EXPECT_DOUBLE_EQ(scenario.sun.radius, 5.0);
     // Default values should be used for missing fields
     EXPECT_DOUBLE_EQ(scenario.sun.position[0], 0.0);
+    EXPECT_TRUE(scenario.skybox.enabled);
+    EXPECT_DOUBLE_EQ(scenario.skybox.ambient_light, 0.12);
+}
+
+TEST(ScenarioConfigTest, ParsesAndValidatesProceduralSkybox) {
+    auto raw = R"({"skybox":{"enabled":true,"seed":91,
+        "star_density":0.02,"star_scale":512,"star_brightness":2.5,
+        "ambient_light":0.08,"background_color":[0.01,0.02,0.03],
+        "star_color":[0.8,0.9,1.0]}})"_json;
+    const config::ScenarioConfig parsed(config::Config{nlohmann::json(raw)});
+    EXPECT_TRUE(parsed.skybox.enabled);
+    EXPECT_EQ(parsed.skybox.seed, 91);
+    EXPECT_DOUBLE_EQ(parsed.skybox.star_density, 0.02);
+    EXPECT_DOUBLE_EQ(parsed.skybox.star_scale, 512.0);
+    EXPECT_DOUBLE_EQ(parsed.skybox.star_brightness, 2.5);
+    EXPECT_DOUBLE_EQ(parsed.skybox.ambient_light, 0.08);
+    EXPECT_EQ(parsed.skybox.background_color,
+              (std::vector<double>{0.01, 0.02, 0.03}));
+
+    auto parse = [&] {
+        return config::ScenarioConfig(config::Config{nlohmann::json(raw)});
+    };
+    raw["skybox"]["star_density"] = 0.3;
+    EXPECT_THROW(parse(), std::invalid_argument);
+    raw["skybox"]["star_density"] = 0.02;
+    raw["skybox"]["star_scale"] = 0;
+    EXPECT_THROW(parse(), std::invalid_argument);
+    raw["skybox"]["star_scale"] = 512;
+    raw["skybox"]["star_brightness"] = -1;
+    EXPECT_THROW(parse(), std::invalid_argument);
+    raw["skybox"]["star_brightness"] = 2.5;
+    raw["skybox"]["ambient_light"] = 1.1;
+    EXPECT_THROW(parse(), std::invalid_argument);
+    raw["skybox"]["ambient_light"] = 0.08;
+    raw["skybox"]["star_color"] = {1.0, 0.5};
+    EXPECT_THROW(parse(), std::invalid_argument);
 }
 
 TEST(ScenarioConfigTest, ParseSunAndPlanet) {
@@ -446,6 +482,12 @@ TEST(ScenarioConfigTest, LoadsTheDevelopmentSunAndPlanetFromDisk) {
     EXPECT_EQ(scenario.name, "Solar System");
     EXPECT_EQ(scenario.distance_unit, "km");
     EXPECT_DOUBLE_EQ(scenario.metersPerWorldUnit(), 1000.0);
+    EXPECT_TRUE(scenario.skybox.enabled);
+    EXPECT_EQ(scenario.skybox.seed, 7429);
+    EXPECT_DOUBLE_EQ(scenario.skybox.star_density, 0.003);
+    EXPECT_DOUBLE_EQ(scenario.skybox.star_scale, 700.0);
+    EXPECT_DOUBLE_EQ(scenario.skybox.star_brightness, 1.4);
+    EXPECT_DOUBLE_EQ(scenario.skybox.ambient_light, 0.12);
     EXPECT_DOUBLE_EQ(scenario.sun.radius * 2.0, 5.0); // 5 km diameter.
     ASSERT_EQ(scenario.planets.size(), 1u);
     EXPECT_DOUBLE_EQ(scenario.planets[0].radius * 2.0 *

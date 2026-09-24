@@ -119,3 +119,17 @@ TEST(RenderDiagnosticsTest, RecognizesLandscapePaletteAndWaterLikePixels) {
     EXPECT_EQ(result.waterLike.count, 1);
     EXPECT_TRUE(result.bodiesSeparate());
 }
+
+TEST(RenderDiagnosticsTest, ConfiguredBackgroundAndStarsDoNotBecomePlanetPixels) {
+    auto rgba = backgroundFrame();
+    paint(rgba, 0, 0, 203, 220, 255);
+    paint(rgba, 3, 2, 88, 150, 66);
+    const auto result = rendering::analyzeFrame(
+        rgba, kWidth, kHeight, kSunColor, kPlanetColor, true,
+        {25.0 / 255.0, 25.0 / 255.0, 38.0 / 255.0}, {0.82, 0.9, 1.0});
+    EXPECT_EQ(result.background, (std::array<unsigned char, 3>{25, 25, 38}));
+    EXPECT_EQ(result.starLike.count, 1);
+    EXPECT_EQ(result.planet.count, 1);
+    EXPECT_EQ(result.planet.minX, 3);
+    EXPECT_EQ(result.planet.maxX, 3);
+}

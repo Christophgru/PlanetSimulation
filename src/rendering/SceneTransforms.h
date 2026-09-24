@@ -78,7 +78,7 @@ inline glm::mat4 waterReflectionView(const glm::mat4& view,
 inline double directionalBrightness(const glm::dvec3& normal,
                                     const glm::dvec3& worldPosition,
                                     const glm::dvec3& sunPosition,
-                                    double ambient = 0.35) {
+                                    double ambient = 0.12) {
     if (!std::isfinite(ambient) || ambient < 0.0 || ambient > 1.0 ||
         glm::length(normal) <= 1e-12 ||
         glm::length(sunPosition - worldPosition) <= 1e-12) {
