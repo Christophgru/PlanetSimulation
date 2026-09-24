@@ -31,6 +31,20 @@ public:
         return glm::mat4(glm::lookAt(position_, position_ + direction_, up_));
     }
 
+    // Transport the saved planet-fixed location and view with orbital motion
+    // and spin; terrain coordinates and ground clearance do not change.
+    void followPlanet(const coordinates::PlanetLocalFrame& frame,
+                      const glm::dvec3& sunPosition) {
+        if (!finite(sunPosition) || frame.radius() != frame_.radius())
+            throw std::invalid_argument("Camera pose update requires the same planet radius");
+        const glm::dmat3 transport = frame.orientation() * glm::transpose(frame_.orientation());
+        direction_ = glm::normalize(transport * direction_);
+        up_ = glm::normalize(transport * up_);
+        frame_ = frame;
+        sunPosition_ = sunPosition;
+        position_ = frame_.toWorld(location_);
+    }
+
     // A saved view direction is expressed in the planet's current NED frame.
     void setDirectionNed(const glm::dvec3& nedDirection,
                          const std::optional<glm::dvec3>& upNed = std::nullopt) {
@@ -150,7 +164,7 @@ public:
     double groundClearance() const {
         if (!terrain_) return location_.altitude;
         const double terrainHeight = terrain_->heightAt(
-            glm::normalize(position_ - frame_.center()));
+            frame_.toLocalVector(glm::normalize(position_ - frame_.center())));
         return location_.altitude - (waterLevel_ ? std::max(terrainHeight, *waterLevel_)
                                                  : terrainHeight);
     }
@@ -190,7 +204,7 @@ private:
 
     void resampleTerrainHeight() {
         const glm::dvec3 radial = -frame_.nedAt(location_).down;
-        const double terrainHeight = terrain_->heightAt(radial);
+        const double terrainHeight = terrain_->heightAt(frame_.toLocalVector(radial));
         location_.altitude = (waterLevel_ ? std::max(terrainHeight, *waterLevel_)
                                         : terrainHeight) + clearance_;
         position_ = frame_.toWorld(location_);

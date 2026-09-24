@@ -27,9 +27,11 @@ inline ClipPlanes surfaceClipPlanes(double surfaceClearance, double sunDistance,
             static_cast<float>(std::max(20.0, 2.0 * (sunDistance + sunRadius)))};
 }
 
-inline glm::mat4 sphereModel(const glm::vec3& position, float radius) {
+inline glm::mat4 sphereModel(const glm::vec3& position, float radius,
+                             const glm::mat3& orientation = glm::mat3(1.0f)) {
     glm::mat4 model(1.0f);
     model = glm::translate(model, position);
+    model *= glm::mat4(orientation);
     return glm::scale(model, glm::vec3(radius));
 }
 

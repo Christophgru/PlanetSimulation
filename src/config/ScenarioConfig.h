@@ -6,18 +6,27 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include "config/Config.h"
+#include "config/OrbitalConfig.h"
 
 namespace config {
 
 struct SunConfig {
+    std::string name = "sun";
+    double mass_kg = 1.0e19;
     std::vector<double> position = {0.0, 0.0, 0.0};
     double radius = 10.0;
     std::vector<double> color = {1.0, 0.9, 0.7};
     
     SunConfig() = default;
     SunConfig(const config::Config& cfg) {
+        name = cfg.get("name", name);
+        mass_kg = cfg.getDouble("mass_kg", mass_kg);
+        validateMass(mass_kg);
+        if (name.empty() || cfg.data().contains("orbit"))
+            throw std::invalid_argument("Sun must have a name and no parent orbit");
         auto pos_array = cfg.getArray("position", position);
         if (pos_array.size() >= 3) {
             position = {pos_array[0], pos_array[1], pos_array[2]};
@@ -265,6 +274,10 @@ struct PlanetConfig {
     };
 
     std::vector<double> position = {0.0, 0.0, 0.0};
+    std::string name;
+    double mass_kg = 1.0e16;
+    OrbitConfig orbit;
+    RotationConfig rotation;
     double orbit_radius = 5.0;
     double orbit_speed = 0.02;
     double radius = 1.5;
@@ -285,6 +298,21 @@ struct PlanetConfig {
         }
         orbit_radius = cfg.getDouble("orbit_radius", orbit_radius);
         orbit_speed = cfg.getDouble("orbit_speed", orbit_speed);
+        name = cfg.get("name", name);
+        if (cfg.data().contains("name") && name.empty())
+            throw std::invalid_argument("Planet name must not be empty");
+        mass_kg = cfg.getDouble("mass_kg", mass_kg);
+        validateMass(mass_kg);
+        if (cfg.data().contains("orbit")) {
+            orbit = OrbitConfig(Config{nlohmann::json(cfg.data().at("orbit"))});
+        } else {
+            // Legacy circular-orbit configs retain their radius. orbit_speed
+            // remains readable metadata; physics always derives the speed.
+            orbit.semi_major_axis = orbit.semi_minor_axis = orbit_radius;
+            orbit.validate();
+        }
+        if (cfg.data().contains("rotation"))
+            rotation = RotationConfig(Config{nlohmann::json(cfg.data().at("rotation"))});
         radius = cfg.getDouble("radius", radius);
         auto col_array = cfg.getArray("color", color);
         if (col_array.size() >= 3) {
@@ -407,6 +435,37 @@ struct ScenarioConfig {
     
     ScenarioConfig() = default;
     double metersPerWorldUnit() const { return distance_unit == "km" ? 1000.0 : 1.0; }
+
+    // Index zero is the Sun; subsequent indices match planets[index - 1].
+    // Validate the complete graph, allowing parents to appear after children.
+    std::vector<std::size_t> orbitalParents() const {
+        validateMass(sun.mass_kg);
+        if (sun.name.empty()) throw std::invalid_argument("Sun name must not be empty");
+        std::unordered_map<std::string, std::size_t> names{{sun.name, 0}};
+        for (std::size_t i = 0; i < planets.size(); ++i) {
+            const auto& planet = planets[i];
+            validateMass(planet.mass_kg);
+            planet.orbit.validate();
+            planet.rotation.validate();
+            if (planet.name.empty() || !names.emplace(planet.name, i + 1).second)
+                throw std::invalid_argument("Celestial body names must be nonempty and unique");
+        }
+        std::vector<std::size_t> parents(planets.size() + 1, 0);
+        std::vector<std::vector<std::size_t>> children(parents.size());
+        for (std::size_t i = 1; i < parents.size(); ++i) {
+            const auto parent = names.find(planets[i - 1].orbit.parent);
+            if (parent == names.end() || parent->second == i)
+                throw std::invalid_argument("Unknown or self-referencing orbit parent for " + planets[i - 1].name);
+            parents[i] = parent->second;
+            children[parents[i]].push_back(i);
+        }
+        std::vector<std::size_t> reached{0};
+        for (std::size_t i = 0; i < reached.size(); ++i)
+            for (auto child : children[reached[i]]) reached.push_back(child);
+        if (reached.size() != parents.size())
+            throw std::invalid_argument("Orbit parents contain a cycle disconnected from the Sun");
+        return parents;
+    }
     ScenarioConfig(const config::Config& cfg) {
         name = cfg.get("scenario_name", name);
         distance_unit = cfg.get("distance_unit", distance_unit);
@@ -458,6 +517,10 @@ struct ScenarioConfig {
                 planets.emplace_back(planet_cfg);
             }
         }
+
+        for (std::size_t i = 0; i < planets.size(); ++i)
+            if (planets[i].name.empty()) planets[i].name = "planet_" + std::to_string(i);
+        orbitalParents();
 
         for (const auto& planet : planets) {
             double totalAmplitudeMeters = 0.0;

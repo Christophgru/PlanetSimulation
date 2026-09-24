@@ -22,6 +22,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "config/Config.h"
 #include "config/ScenarioConfig.h"
+#include "simulation/OrbitalSystem.h"
 #include "rendering/Mesh.h"
 #include "rendering/Terrain.h"
 #include "rendering/CameraInput.h"
@@ -37,6 +38,7 @@ namespace fs = std::filesystem;
 
 struct InputContext {
     CameraInput* camera = nullptr;
+    simulation::SimulationClock* clock = nullptr;
     bool reloadRequested = false;
 };
 
@@ -73,6 +75,18 @@ void onScroll(GLFWwindow* window, double, double yOffset) {
 void onKey(GLFWwindow* window, int key, int, int action, int) {
     if (action != GLFW_PRESS) return;
     auto* context = static_cast<InputContext*>(glfwGetWindowUserPointer(window));
+    if (key == GLFW_KEY_T && context && context->clock) {
+        context->clock->togglePause(glfwGetTime());
+        std::cout << (context->clock->paused() ? "Simulation paused (T to resume)\n" :
+                                               "Simulation resumed (T to pause)\n");
+        return;
+    }
+    if ((key == GLFW_KEY_Y || key == GLFW_KEY_U) && context && context->clock) {
+        context->clock->scaleSpeed(key == GLFW_KEY_Y ? 0.5 : 2.0, glfwGetTime());
+        std::cout << "Simulation speed: " << context->clock->speed() << "x"
+                  << (context->clock->paused() ? " (paused)\n" : "\n");
+        return;
+    }
     if (key == GLFW_KEY_R && context) {
         context->reloadRequested = true;
         return;
@@ -92,6 +106,8 @@ void onKey(GLFWwindow* window, int key, int, int action, int) {
 
 struct PreparedScene {
     config::ScenarioConfig scenario;
+    simulation::OrbitalSystem dynamics;
+    std::vector<simulation::BodyState> bodies;
     std::vector<rendering::TerrainSurface> terrainSurfaces;
     OrbitCamera sunCamera;
     std::optional<PlanetSurfaceCamera> surfaceCamera;
@@ -103,18 +119,18 @@ struct PreparedScene {
 
     explicit PreparedScene(config::ScenarioConfig parsed)
         : scenario(std::move(parsed)),
+          dynamics(scenario), bodies(dynamics.at(0.0)),
           sunCamera(glm::vec3(scenario.camera.target[0], scenario.camera.target[1],
                               scenario.camera.target[2]),
                     glm::vec3(scenario.camera.position[0] - scenario.camera.target[0],
                               scenario.camera.position[1] - scenario.camera.target[1],
                               scenario.camera.position[2] - scenario.camera.target[2])),
-          sunPosition(scenario.sun.position[0], scenario.sun.position[1],
-                      scenario.sun.position[2]) {
+          sunPosition(bodies[0].position) {
         sunCamera.fov = static_cast<float>(scenario.camera.fov);
         terrainSurfaces.reserve(scenario.planets.size());
-        for (const auto& planet : scenario.planets) {
-            const glm::dvec3 center(planet.position[0], planet.position[1],
-                                    planet.position[2]);
+        for (std::size_t i = 0; i < scenario.planets.size(); ++i) {
+            const auto& planet = scenario.planets[i];
+            const glm::dvec3 center = bodies[i + 1].position;
             if (glm::length(glm::dvec3(sunCamera.position) - center) <= 1e-12)
                 throw std::invalid_argument("Configured camera cannot start at a planet center");
             terrainSurfaces.emplace_back(planet.surface_noise, planet.terrain_lod,
@@ -128,8 +144,8 @@ struct PreparedScene {
             const auto& settings = scenario.surface_camera;
             const auto& planet = scenario.planets[settings.planet_index];
             coordinates::PlanetLocalFrame planetFrame(
-                {planet.position[0], planet.position[1], planet.position[2]},
-                planet.radius);
+                bodies[settings.planet_index + 1].position, planet.radius,
+                bodies[settings.planet_index + 1].orientation);
             surfaceCamera.emplace(
                 planetFrame,
                 coordinates::LatLonAlt{settings.latitude_deg,
@@ -155,8 +171,7 @@ struct PreparedScene {
             orbitPlanetIndex = scenario.surface_camera.enabled ?
                 static_cast<std::size_t>(scenario.surface_camera.planet_index) : 0;
             const auto& planet = scenario.planets[orbitPlanetIndex];
-            planetOrbitCenter = {planet.position[0], planet.position[1],
-                                 planet.position[2]};
+            planetOrbitCenter = bodies[orbitPlanetIndex + 1].position;
             double maximumLandHeightMeters =
                 planet.terrain_landscape.maximumAbsoluteHeightMeters();
             for (const auto& function : planet.surface_noise)
@@ -187,7 +202,9 @@ struct PreparedScene {
 // The Sun retains its existing sphere mesh; planets use terrain triangles.
 Mesh g_mesh;
 
-void renderScene(const config::ScenarioConfig& scenario, const glm::mat4& view, float fov,
+void renderScene(const config::ScenarioConfig& scenario,
+                 const std::vector<simulation::BodyState>& bodies,
+                 const glm::mat4& view, float fov,
                  const glm::dvec3& eyeWorld, const Shader& shader,
                  const Shader& waterShader, const Shader& skyboxShader,
                  rendering::WaterReflectionTarget& reflectionTarget,
@@ -236,16 +253,14 @@ void renderScene(const config::ScenarioConfig& scenario, const glm::mat4& view, 
         shader.setMat4("view", glm::value_ptr(passView));
         shader.setFloat3("uClipCenter", clipCenter.x, clipCenter.y, clipCenter.z);
         shader.setFloat("uClipRadius", clipRadius);
-        shader.setFloat3("uSunPosition", static_cast<float>(sun.position[0]),
-                          static_cast<float>(sun.position[1]),
-                          static_cast<float>(sun.position[2]));
+        shader.setFloat3("uSunPosition", static_cast<float>(bodies[0].position.x),
+                          static_cast<float>(bodies[0].position.y),
+                          static_cast<float>(bodies[0].position.z));
         shader.setFloat("uAmbientLight",
                         static_cast<float>(scenario.skybox.ambient_light));
 
-        const glm::mat4 sunModel = rendering::sphereModel(glm::vec3(
-            static_cast<float>(sun.position[0]),
-            static_cast<float>(sun.position[1]),
-            static_cast<float>(sun.position[2])), static_cast<float>(sun.radius));
+        const glm::mat4 sunModel = rendering::sphereModel(
+            glm::vec3(bodies[0].position), static_cast<float>(sun.radius));
         shader.setMat4("model", glm::value_ptr(sunModel));
         shader.setFloat3("uColor", static_cast<float>(sun.color[0]),
                          static_cast<float>(sun.color[1]),
@@ -255,11 +270,9 @@ void renderScene(const config::ScenarioConfig& scenario, const glm::mat4& view, 
 
         for (std::size_t i = 0; i < scenario.planets.size(); ++i) {
             const auto& planet = scenario.planets[i];
-            const glm::mat4 model = rendering::sphereModel(glm::vec3(
-                static_cast<float>(planet.position[0]),
-                static_cast<float>(planet.position[1]),
-                static_cast<float>(planet.position[2])),
-                static_cast<float>(planet.radius));
+            const glm::mat4 model = rendering::sphereModel(
+                glm::vec3(bodies[i + 1].position), static_cast<float>(planet.radius),
+                glm::mat3(bodies[i + 1].orientation));
             shader.setMat4("model", glm::value_ptr(model));
             shader.setFloat3("uColor", static_cast<float>(planet.color[0]),
                              static_cast<float>(planet.color[1]),
@@ -292,8 +305,7 @@ void renderScene(const config::ScenarioConfig& scenario, const glm::mat4& view, 
     for (std::size_t i = 0; i < scenario.planets.size(); ++i) {
         const auto& planet = scenario.planets[i];
         if (!planet.water.enabled) continue;
-        const glm::dvec3 centerWorld(planet.position[0], planet.position[1],
-                                     planet.position[2]);
+        const glm::dvec3 centerWorld = bodies[i + 1].position;
         const glm::vec3 center(centerWorld);
         const double radiusWorld =
             planet.radius + planet.water.level_m / scenario.metersPerWorldUnit();
@@ -331,7 +343,7 @@ void renderScene(const config::ScenarioConfig& scenario, const glm::mat4& view, 
         waterShader.setInt("uReflectionTexture", 0);
 
         const glm::mat4 model = rendering::sphereModel(
-            center, static_cast<float>(radiusWorld));
+            center, static_cast<float>(radiusWorld), glm::mat3(bodies[i + 1].orientation));
         waterShader.setMat4("model", glm::value_ptr(model));
         waterShader.setFloat3("uPlanetCenter", center.x, center.y, center.z);
         waterShader.setFloat3("uWaterColor", static_cast<float>(planet.water.color[0]),
@@ -354,6 +366,7 @@ int main(int argc, char** argv) {
     std::string outputImagePath;
     int renderTestWidth = 800;
     int renderTestHeight = 600;
+    double simulationTime = 0.0;
     
     // Parse command-line arguments
     for (int i = 1; i < argc; i++) {
@@ -368,6 +381,14 @@ int main(int argc, char** argv) {
             renderTestMode = true;
             planetRenderMode = true;
             outputImagePath = argv[++i];
+        } else if (std::string(argv[i]) == "--simulation-time" && i + 1 < argc) {
+            try {
+                simulationTime = std::stod(argv[++i]);
+                if (!std::isfinite(simulationTime)) throw std::invalid_argument("time");
+            } catch (const std::exception&) {
+                std::cerr << "--simulation-time needs a finite number of seconds\n";
+                return 1;
+            }
         } else if (std::string(argv[i]) == "--render-size" && i + 2 < argc) {
             try {
                 renderTestWidth = std::stoi(argv[++i]);
@@ -429,6 +450,8 @@ int main(int argc, char** argv) {
     try {
         PreparedScene initial(config::ScenarioConfig(config::Config::load(configPath)));
         config::ScenarioConfig scenario = std::move(initial.scenario);
+        auto dynamics = std::move(initial.dynamics);
+        auto bodies = std::move(initial.bodies);
         auto terrainSurfaces = std::move(initial.terrainSurfaces);
         std::vector<Mesh> planetMeshes(scenario.planets.size());
         std::vector<Mesh> waterMeshes(scenario.planets.size());
@@ -460,9 +483,8 @@ int main(int argc, char** argv) {
         auto preparePlanetMeshes = [&](const glm::dvec3& eye, bool asyncWalking = false) {
             for (std::size_t i = 0; i < scenario.planets.size(); ++i) {
                 const auto& planet = scenario.planets[i];
-                const glm::dvec3 center(planet.position[0], planet.position[1],
-                                        planet.position[2]);
-                const glm::dvec3 offset = eye - center;
+                const glm::dvec3 localEye = bodies[i + 1].toLocalPoint(eye);
+                const glm::dvec3 offset = localEye;
                 const double distance = glm::length(offset);
                 if (!std::isfinite(distance) || distance <= 0.0)
                     throw std::invalid_argument("Camera cannot be at a planet center");
@@ -504,13 +526,13 @@ int main(int argc, char** argv) {
                     pendingTerrain[i].localMask = localMask;
                     pendingTerrain[i].geometry = std::async(std::launch::async,
                         [surface = std::move(surface), zones = std::move(zones),
-                         eye, center]() mutable {
-                            return surface.buildGeometryForEye(eye, center, &zones, 20.0);
+                         localEye]() mutable {
+                            return surface.buildGeometryForEye(localEye, glm::dvec3(0.0), &zones, 20.0);
                         });
                     continue;
                 }
                 auto geometry = terrainSurfaces[i].buildGeometryForEye(
-                    eye, center, meshReady[i] ? &lastFaceZones[i] : nullptr, 20.0);
+                    localEye, glm::dvec3(0.0), meshReady[i] ? &lastFaceZones[i] : nullptr, 20.0);
                 installLandMesh(i, std::move(geometry), radial, localMask);
             }
         };
@@ -521,9 +543,30 @@ int main(int argc, char** argv) {
         std::size_t orbitPlanetIndex = initial.orbitPlanetIndex;
         glm::dvec3 planetOrbitCenter = initial.planetOrbitCenter;
         double planetOrbitOuterRadius = initial.planetOrbitOuterRadius;
+        auto updateSimulation = [&](double seconds) {
+            bodies = dynamics.at(seconds);
+            const glm::dvec3 sunFocusOffset(
+                scenario.camera.target[0] - scenario.sun.position[0],
+                scenario.camera.target[1] - scenario.sun.position[1],
+                scenario.camera.target[2] - scenario.sun.position[2]);
+            camera.followTarget(glm::vec3(bodies[0].position + sunFocusOffset));
+            sunPosition = bodies[0].position;
+            if (planetOrbitCamera) {
+                planetOrbitCenter = bodies[orbitPlanetIndex + 1].position;
+                planetOrbitCamera->followTarget(glm::vec3(planetOrbitCenter));
+            }
+            if (surfaceCamera) {
+                const auto index = scenario.surface_camera.planet_index;
+                surfaceCamera->followPlanet(coordinates::PlanetLocalFrame(
+                    bodies[index + 1].position, scenario.planets[index].radius,
+                    bodies[index + 1].orientation), sunPosition);
+            }
+        };
+        updateSimulation(simulationTime);
+        simulation::SimulationClock simulationClock(simulationTime, glfwGetTime());
         CameraInput cameraInput(camera, surfaceCamera ? &*surfaceCamera : nullptr,
                                 planetOrbitCamera ? &*planetOrbitCamera : nullptr);
-        InputContext inputContext{&cameraInput, false};
+        InputContext inputContext{&cameraInput, &simulationClock, false};
         if (surfaceRenderMode && !surfaceCamera) {
             throw std::runtime_error("Surface render test requires surface_camera config");
         }
@@ -585,7 +628,9 @@ int main(int argc, char** argv) {
                           << scenario.surface_camera.walk_speed_mps << " m/s)";
             }
             if (planetOrbitCamera) std::cout << ", 3 for planet orbit";
-            std::cout << ". Press Esc to release the surface cursor and 2 to capture it again. " << configPath
+            std::cout << ". Press T to pause/resume orbits and spin. "
+                      << "Press Y to halve or U to double simulation speed. "
+                      << "Press Esc to release the surface cursor and 2 to capture it again. " << configPath
                       << " reloads on save; press R to reload manually."
                       << " Close the window to exit.\n";
         }
@@ -620,7 +665,7 @@ int main(int argc, char** argv) {
             const auto meshStart = std::chrono::steady_clock::now();
             preparePlanetMeshes(eyeWorld);
             const auto meshEnd = std::chrono::steady_clock::now();
-            renderScene(scenario, view, fov, eyeWorld, shader, waterShader,
+            renderScene(scenario, bodies, view, fov, eyeWorld, shader, waterShader,
                         skyboxShader, waterReflection, g_mesh, skyboxMesh,
                         planetMeshes, waterMeshes, width, height,
                         surfaceRenderMode ? surfaceClip :
@@ -802,6 +847,10 @@ int main(int argc, char** argv) {
                         for (auto& mesh : planetMeshes) mesh.destroy();
                         for (auto& mesh : waterMeshes) mesh.destroy();
                         scenario = std::move(staged.scenario);
+                        dynamics = std::move(staged.dynamics);
+                        bodies = std::move(staged.bodies);
+                        previousFrameTime = glfwGetTime();
+                        simulationClock.reset(0.0, previousFrameTime);
                         terrainSurfaces = std::move(staged.terrainSurfaces);
                         camera = std::move(staged.sunCamera);
                         surfaceCamera = std::move(staged.surfaceCamera);
@@ -832,9 +881,12 @@ int main(int argc, char** argv) {
                     }
                 }
                 const double frameTime = glfwGetTime();
-                const double elapsedSeconds = std::clamp(frameTime - previousFrameTime,
-                                                         0.0, 0.05);
+                const double frameElapsed = std::max(0.0, frameTime - previousFrameTime);
+                const double elapsedSeconds = std::min(frameElapsed, 0.05);
                 previousFrameTime = frameTime;
+                // Orbit time uses actual elapsed wall time, independent of the
+                // smaller movement step used to keep camera controls smooth.
+                updateSimulation(simulationClock.advanceTo(frameTime));
                 WalkKeys keys{
                     glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS,
                     glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS,
@@ -881,7 +933,7 @@ int main(int argc, char** argv) {
                               scenario.sun.radius)
                         : onPlanetOrbit ? planetOrbitClip(eyeWorld) : rendering::ClipPlanes{};
                     preparePlanetMeshes(eyeWorld, true);
-                    renderScene(scenario, view, fov, eyeWorld, shader, waterShader,
+                    renderScene(scenario, bodies, view, fov, eyeWorld, shader, waterShader,
                                 skyboxShader, waterReflection, g_mesh, skyboxMesh,
                                 planetMeshes, waterMeshes, width, height,
                                 clip);

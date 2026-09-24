@@ -33,13 +33,22 @@ struct NedFrame {
 
 class PlanetLocalFrame {
 public:
-    PlanetLocalFrame(const glm::dvec3& planetCenter, double planetRadius)
-        : center_(planetCenter), radius_(planetRadius) {
+    PlanetLocalFrame(const glm::dvec3& planetCenter, double planetRadius,
+                     const glm::dmat3& orientation = glm::dmat3(1.0))
+        : center_(planetCenter), radius_(planetRadius), orientation_(orientation) {
         if (!std::isfinite(radius_) || radius_ <= 0.0 ||
             !std::isfinite(center_.x) || !std::isfinite(center_.y) ||
             !std::isfinite(center_.z)) {
             throw std::invalid_argument("Planet frame requires a finite center and positive radius");
         }
+        const glm::dmat3 product = glm::transpose(orientation_) * orientation_;
+        for (int col = 0; col < 3; ++col)
+            for (int row = 0; row < 3; ++row)
+                if (!std::isfinite(product[col][row]) ||
+                    std::abs(product[col][row] - (col == row ? 1.0 : 0.0)) > 1e-10)
+                    throw std::invalid_argument("Planet orientation must be a rotation");
+        if (glm::determinant(orientation_) < 0.0)
+            throw std::invalid_argument("Planet orientation must be right handed");
     }
 
     glm::dvec3 toWorld(const LatLonAlt& location) const {
@@ -47,13 +56,13 @@ public:
         const double lat = glm::radians(location.latitudeDeg);
         const double lon = glm::radians(location.longitudeDeg);
         const double distance = radius_ + location.altitude;
-        return center_ + distance * glm::dvec3(std::cos(lat) * std::cos(lon),
+        return center_ + toWorldVector(distance * glm::dvec3(std::cos(lat) * std::cos(lon),
                                                 std::cos(lat) * std::sin(lon),
-                                                std::sin(lat));
+                                                std::sin(lat)));
     }
 
     LatLonAlt fromWorld(const glm::dvec3& worldPosition) const {
-        const glm::dvec3 local = worldPosition - center_;
+        const glm::dvec3 local = toLocalVector(worldPosition - center_);
         const double distance = glm::length(local);
         if (!std::isfinite(distance) || distance <= 0.0) {
             throw std::invalid_argument("Position must be away from the planet center");
@@ -67,16 +76,19 @@ public:
         const double lat = glm::radians(location.latitudeDeg);
         const double lon = glm::radians(location.longitudeDeg);
         return {
-            glm::dvec3(-std::sin(lat) * std::cos(lon),
-                       -std::sin(lat) * std::sin(lon), std::cos(lat)),
-            glm::dvec3(-std::sin(lon), std::cos(lon), 0.0),
-            glm::dvec3(-std::cos(lat) * std::cos(lon),
-                       -std::cos(lat) * std::sin(lon), -std::sin(lat))
+            toWorldVector(glm::dvec3(-std::sin(lat) * std::cos(lon),
+                       -std::sin(lat) * std::sin(lon), std::cos(lat))),
+            toWorldVector(glm::dvec3(-std::sin(lon), std::cos(lon), 0.0)),
+            toWorldVector(glm::dvec3(-std::cos(lat) * std::cos(lon),
+                       -std::cos(lat) * std::sin(lon), -std::sin(lat)))
         };
     }
 
     const glm::dvec3& center() const { return center_; }
     double radius() const { return radius_; }
+    const glm::dmat3& orientation() const { return orientation_; }
+    glm::dvec3 toWorldVector(const glm::dvec3& local) const { return orientation_ * local; }
+    glm::dvec3 toLocalVector(const glm::dvec3& world) const { return glm::transpose(orientation_) * world; }
 
 private:
     void validate(const LatLonAlt& location) const {
@@ -91,6 +103,7 @@ private:
 
     glm::dvec3 center_;
     double radius_;
+    glm::dmat3 orientation_;
 };
 
 } // namespace coordinates

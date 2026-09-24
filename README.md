@@ -7,7 +7,7 @@
 These [render-test screenshots](docs/screenshots/) are captured from the
 configured development scene; click an image to view it at full size.
 
-A C++20/OpenGL project that currently renders a static Sun and a configured planet from
+A C++20/OpenGL project that renders a moving Sun, Earth, and Moon from
 `configs/scenarios/solar_system.json`.
 
 The visual direction for later landscape and vegetation steps is the
@@ -15,12 +15,84 @@ The visual direction for later landscape and vegetation steps is the
 [GitHub source](https://github.com/simondevyoutube/Quick_Grass). The renderer
 currently has broad terrain and water; grass remains future work.
 
-The development scene uses kilometers for world coordinates: the Sun is 1 km
-across, the planet center is 10 km from the Sun, and the planet is 200 m across.
-Its surface camera starts 2 m above sampled terrain or water, whichever is
-higher, and walks at 8 m/s by default.
+The development scene uses kilometers for world coordinates: the Sun is 5 km
+across, Earth is 2 km across, and the Moon is 540 m across. The Earth–Moon
+center of mass travels between 10 and 15 km from the Sun.
+The surface camera starts 30 m above sampled terrain or water, whichever is
+higher, and walks at 80 m/s.
 The development config stores planets in a `planets` array; the surface
 camera's `planet_index` selects an entry in that array.
+
+## Orbits and rotation
+
+Each body has a unique `name` and positive `mass_kg`. Every planet or moon has
+an `orbit.parent` naming another body; all parent chains must reach the Sun.
+Parents may appear after their children in the array. Unknown parents,
+duplicate names, self-orbits, and cycles are rejected when loading or reloading.
+The Sun is the sole root and has no `orbit`.
+
+| Setting | Meaning |
+| --- | --- |
+| `orbit.semi_major_axis`, `orbit.semi_minor_axis` | Large and small half axes in `distance_unit`; require `0 < b <= a`. Omitting `b` gives a circle. |
+| `orbit.mean_anomaly_deg` | Initial phase measured uniformly in time; 0 starts at periapsis, 180 at apoapsis. |
+| `orbit.inclination_deg` | Orbital plane tilt relative to world XY. |
+| `orbit.ascending_node_deg` | Rotation of the tilted orbital plane about world +Z. |
+| `orbit.periapsis_deg` | Direction of periapsis within that plane. |
+| `rotation.period_seconds` | Axial rotation period; 0 stops spin, a negative value reverses it. |
+| `rotation.axial_tilt_deg` | Tilt of the body's north axis about world +X, independent of orbital phase. |
+| `rotation.phase_deg` | Initial rotation about the body's own +Z axis. |
+
+Orbital planes use world coordinates, independent of the parent's spin.
+Earth's outer orbit lies in XY. Earth's axial tilt and the Moon's orbital
+inclination are both **20°**, with a zero ascending node, so the Moon orbits
+in Earth's equatorial plane. Both bodies spin once every **60 seconds**;
+the Moon's orbital period is **120 seconds** and the Earth–Moon collective's
+outer period is **300 seconds**. These are elapsed simulation seconds at normal
+speed, including frames that take longer to render. Reloading resets the epoch.
+Press **T** to pause or resume all orbital motion and axial spin. Camera controls
+remain active while paused, and resuming continues from the frozen time without
+a jump. Press **Y** to halve or **U** to double the speed of orbits and spin
+(from 1/1024× to 1024×; starts at 1×). Each press prints the current multiplier.
+Speed changes preserve the current orbital phase and leave camera controls at
+their usual speed. Changing speed while paused takes effect on resume.
+Reloading preserves the paused/running state and speed multiplier.
+
+Speeds follow [Newton's form of Kepler's laws](https://science.nasa.gov/learn/basics-of-space-flight/chapter3-3/).
+Using axes in meters, `e = sqrt(1 - b²/a²)`, `μ = G × (parent mass + collective mass)`,
+`T = 2π × sqrt(a³/μ)`, and `v² = μ × (2/r - 1/a)`, with
+`G = 6.67430e-11 m³ kg⁻¹ s⁻²`. The minor axis determines eccentricity and the
+variation in speed around the ellipse; the major axis and masses set the period.
+Kepler's equation supplies the position and velocity at an absolute time,
+keeping ellipses stable without accumulated integration error.
+
+The collective mass includes the body and all descendants. For Earth's outer
+orbit, the combined Earth–Moon mass is used. Within that collective, Earth
+and Moon move on opposite sides of their shared center of mass in inverse
+proportion to their masses. The Sun also recoils, conserving the whole system's
+center of mass and momentum. The configured Sun `position` is its position at
+time zero. An orbit's axes specify the **relative separation between the parent
+body and the child collective's center of mass**. Multiple siblings contribute
+to their parent's recoil. This is a hierarchy of prescribed two-body ellipses;
+tidal effects and gravitational perturbations between branches are not modeled.
+
+The example masses are deliberately scaled for this small, fast scene:
+
+| Body | Mass (kg) |
+| --- | ---: |
+| Sun | 1.2194532287919512e19 |
+| Earth | 6.338938161361669e17 |
+| Moon | 7.923672701702087e15 |
+
+They were calculated using `M_earth + M_moon = 4π² × (2500 m)³ / (G × 120²)`
+and `M_sun = 4π² × (12500 m)³ / (G × 300²) - (M_earth + M_moon)`,
+with an Earth:Moon mass ratio of 80:1. Spin is configured independently of mass.
+
+Legacy unnamed planets receive names such as `planet_0` and default to orbiting
+`sun`. A legacy `orbit_radius` becomes both axes. `orbit_speed` and planet
+`position` remain readable metadata; dynamic positions and speeds come from
+the orbital elements. Terrain, water, local coordinates, and surface cameras
+share the same body rotation. Planet orbit cameras follow translation while
+letting the surface turn beneath them.
 
 ## Prerequisites
 
@@ -88,7 +160,7 @@ planet selected by `surface_camera.planet_index` (the first planet if no surface
 camera is configured). Both orbit views use left-drag and the wheel. In surface
 mode, the mouse looks around without a
 button and `W`, `A`, `S`, `D` walk along the planet while maintaining clearance
-above ground or water at the configured `walk_speed_mps` (8 m/s in the
+above ground or water at the configured `walk_speed_mps` (80 m/s in the
 development scene). Returning to planet orbit from the surface keeps the
 camera on the same side of the planet.
 The cursor is captured in surface mode. Press `Esc` to release it while staying
@@ -217,6 +289,13 @@ For resolution diagnostics, append `--render-size WIDTH HEIGHT` to any render
 test command. The output reports mesh preparation and GPU-complete render time;
 the actual framebuffer dimensions are printed because a window manager may
 resize the hidden window.
+
+Append `--simulation-time 37` to capture the moving scene at a deterministic
+time in seconds. The test suite captures both the initial scene and the surface
+and planet orbit views after 37 seconds. Orbital unit tests cover the requested
+periods, mass scaling, descendant masses, barycenters, momentum, elliptical
+energy and angular momentum, highly eccentric orbits, unit conversion, long
+runs, the 20° equatorial alignment, and cameras attached to rotating terrain.
 
 The saved surface view looks across water toward flatter land and cliffs. The
 surface render test checks for a visible configured body. The orbit

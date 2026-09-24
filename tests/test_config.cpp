@@ -145,7 +145,9 @@ TEST(ScenarioConfigTest, DevelopmentSceneUsesPlanetListAndTerrainSettings) {
     EXPECT_TRUE(raw.data().contains("planets"));
     EXPECT_FALSE(raw.data().contains("planet"));
     config::ScenarioConfig scenario(raw);
-    ASSERT_EQ(scenario.planets.size(), 1u);
+    ASSERT_EQ(scenario.planets.size(), 2u);
+    EXPECT_EQ(scenario.planets[0].name, "earth");
+    EXPECT_EQ(scenario.planets[1].name, "moon");
     EXPECT_EQ(scenario.surface_camera.planet_index, 0);
     ASSERT_EQ(scenario.planets[0].surface_noise.size(), 2u);
     EXPECT_EQ(scenario.planets[0].surface_noise[0].type, "value_fbm");
@@ -484,16 +486,18 @@ TEST(ScenarioConfigTest, LoadsTheDevelopmentSunAndPlanetFromDisk) {
     EXPECT_DOUBLE_EQ(scenario.metersPerWorldUnit(), 1000.0);
     EXPECT_TRUE(scenario.skybox.enabled);
     EXPECT_EQ(scenario.skybox.seed, 7429);
-    EXPECT_DOUBLE_EQ(scenario.skybox.star_density, 0.003);
+    EXPECT_DOUBLE_EQ(scenario.skybox.star_density, 0.0003);
     EXPECT_DOUBLE_EQ(scenario.skybox.star_scale, 700.0);
     EXPECT_DOUBLE_EQ(scenario.skybox.star_brightness, 1.4);
     EXPECT_DOUBLE_EQ(scenario.skybox.ambient_light, 0.12);
     EXPECT_DOUBLE_EQ(scenario.sun.radius * 2.0, 5.0); // 5 km diameter.
-    ASSERT_EQ(scenario.planets.size(), 1u);
+    ASSERT_EQ(scenario.planets.size(), 2u);
     EXPECT_DOUBLE_EQ(scenario.planets[0].radius * 2.0 *
                      scenario.metersPerWorldUnit(), 2000.0);
-    EXPECT_DOUBLE_EQ(scenario.planets[0].orbit_radius, 10.0);
-    EXPECT_DOUBLE_EQ(scenario.planets[0].position[0] - scenario.sun.position[0], 10.0);
+    EXPECT_DOUBLE_EQ(scenario.planets[0].orbit.semi_major_axis, 12.5);
+    EXPECT_DOUBLE_EQ(scenario.planets[0].orbit.semi_minor_axis, 12.24744871391589);
+    EXPECT_EQ(scenario.planets[0].orbit.parent, "sun");
+    EXPECT_EQ(scenario.planets[1].orbit.parent, "earth");
     EXPECT_DOUBLE_EQ(scenario.surface_camera.altitude *
                      scenario.metersPerWorldUnit(), 30.0);
     EXPECT_GT(scenario.sun.color[0], scenario.sun.color[2]);

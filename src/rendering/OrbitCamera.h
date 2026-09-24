@@ -87,6 +87,13 @@ public:
 
     float requestedDistance() const { return desiredDistance_; }
 
+    void followTarget(const glm::vec3& focus) {
+        if (!std::isfinite(focus.x) || !std::isfinite(focus.y) || !std::isfinite(focus.z))
+            throw std::invalid_argument("Orbit target must be finite");
+        target = focus;
+        updatePosition();
+    }
+
     glm::mat4 getViewMatrix() const {
         return glm::lookAt(position, target, glm::vec3(0.0f, 1.0f, 0.0f));
     }
