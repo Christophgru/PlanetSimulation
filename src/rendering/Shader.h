@@ -10,7 +10,8 @@ class Shader {
 public:
     GLuint id;
     
-    Shader(const char* vertexPath, const char* fragmentPath) {
+    Shader(const char* vertexPath, const char* fragmentPath,
+           const char* fragmentLibraryPath = nullptr) {
         std::string vertexCode;
         std::string fragmentCode;
         
@@ -34,6 +35,15 @@ public:
         fragmentCode.resize(fragmentStream.tellg());
         fragmentStream.seekg(0, std::ios::beg);
         fragmentStream.read(&fragmentCode[0], fragmentCode.size());
+        // GLSL requires #version first; optional shared helpers follow it.
+        if (fragmentLibraryPath) {
+            std::ifstream library(fragmentLibraryPath);
+            if (!library.is_open())
+                throw std::runtime_error("Failed to open fragment library: " + std::string(fragmentLibraryPath));
+            std::ostringstream source;
+            source << library.rdbuf();
+            fragmentCode.insert(fragmentCode.find('\n') + 1, source.str() + "\n");
+        }
         
         // Compile vertex shader
         GLuint vertex = glCreateShader(GL_VERTEX_SHADER);

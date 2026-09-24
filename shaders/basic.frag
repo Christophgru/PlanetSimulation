@@ -27,7 +27,7 @@ void main() {
     vec3 radiance = uEmission;
     if (uEmissive < 0.5) {
         float diffuse = max(dot(normalize(vWorldNormal), uSunDirection), 0.0);
-        radiance = vColor * (uIndirectLight + uSunlight * diffuse);
+        radiance = vColor * (uIndirectLight + uSunlight * diffuse * sunlightVisibility(diffuse));
     }
     fColor = vec4(displayColor(radiance), 1.0);
 }

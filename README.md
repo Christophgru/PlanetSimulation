@@ -130,7 +130,24 @@ normals. Reflected light is averaged over the receiving sphere (intercepted
 power divided over four times its cross-sectional area), as an inexpensive
 uniform contribution to the whole planet. The same calculation allows
 Earthshine on the Moon and multiple reflectors. This is one bounce only, with
-no eclipses, terrain shadows, or recursive light exchange.
+no eclipses or recursive light exchange. The averaged reflected contribution
+does not receive local terrain shadows.
+
+Direct sunlight uses a Sun-facing depth map for each planet: a foreground
+mountain blocks sunlight on terrain and water behind it, even when the hidden
+surface faces the Sun. The maps contain the complete rendered terrain mesh,
+including off-camera geometry, and follow the body's spin and orbital motion.
+They are generated once per frame and reused in the main and water reflection
+passes. Sun rays are parallel within each planet, consistent with its shared
+lighting direction; shadows between separate celestial bodies are not modeled.
+
+`lighting.shadows.enabled` toggles terrain shadows (default true).
+`resolution` is the square depth map size, a power of two from 256 to 4096
+(default 2048). `bias_texels` controls the slope-adjusted comparison offset
+(0..4, default 0.5); excessive bias can erase small shadows. Filtered edges
+reduce aliasing. Detail is limited by the map resolution and the current terrain
+LOD. Shadow projection uses body-local coordinates, avoiding precision loss
+from orbital translation. Ambient fill and averaged moonlight remain in shadow.
 
 Each config block now has a `description` and a `parameter_descriptions` map.
 These explain units, limits, effects, and reserved settings while keeping the

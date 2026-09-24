@@ -7,12 +7,24 @@
         "reference_distance": 10.0,
         "exposure": 1.0,
         "reflections_enabled": true,
+        "shadows": {
+            "enabled": true,
+            "resolution": 2048,
+            "bias_texels": 0.5,
+            "description": "Sun-facing depth maps let mountains block sunlight on terrain and water behind them. Maps follow each body's rotation and are shared across rendering passes.",
+            "parameter_descriptions": {
+                "enabled": "Enable terrain shadows from direct sunlight. Ambient fill and averaged reflected moonlight remain visible in shadow.",
+                "resolution": "Depth map width and height per planet, a power of two from 256 to 4096. Higher values resolve smaller ridges but use more GPU time and memory.",
+                "bias_texels": "Depth comparison offset in shadow texels, 0..4, with extra slope compensation. Increase to reduce self-shadow speckles; excessive values detach shadows from mountains."
+            }
+        },
         "description": "Direct sunlight retains surface-normal shading. Reflected sunlight is averaged over each receiving planet and reused for terrain and water.",
         "parameter_descriptions": {
             "ambient_light": "Uniform linear RGB fill light, 0..1. A low value lets moonlight visibly change the night side.",
             "reference_distance": "Display normalization distance in distance_unit. A nominal solar luminosity (M_bol about 4.74) gives unit irradiance here. This compensates for the miniature scene, independently of intrinsic luminosity.",
             "exposure": "Positive display multiplier up to 100, applied after adding direct, reflected and ambient light. Exponential tone mapping and sRGB encoding prevent hard highlight clipping.",
-            "reflections_enabled": "Enable one bounce of sunlight from other bodies. Reflection depends on albedo, color, phase, radius and both light-path distances; it has no eclipses or terrain shadows."
+            "reflections_enabled": "Enable one bounce of sunlight from other bodies. Reflection depends on albedo, color, phase, radius and both light-path distances; this averaged indirect light has no eclipses or terrain occlusion.",
+            "shadows": "Visibility of direct sunlight, tested per surface point against this planet's terrain."
         }
     },
     "skybox": {
@@ -56,7 +68,7 @@
             0.99,
             0.97
         ],
-        "absolute_magnitude": 3.5,
+        "absolute_magnitude": 3.1,
         "description": "Brighter, nearly white Sun. Mass controls orbit timing; absolute magnitude independently controls emitted light.",
         "parameter_descriptions": {
             "name": "Unique body name referenced by orbit.parent.",

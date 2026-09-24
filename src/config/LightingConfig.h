@@ -8,6 +8,35 @@
 
 namespace config {
 
+struct TerrainShadowConfig {
+    bool enabled = true;
+    int resolution = 2048;
+    double bias_texels = 0.5;
+
+    TerrainShadowConfig() = default;
+    explicit TerrainShadowConfig(const Config& cfg) {
+        if (!cfg.data().is_object())
+            throw std::invalid_argument("lighting.shadows must be an object");
+        if (cfg.data().contains("enabled") && !cfg.data()["enabled"].is_boolean())
+            throw std::invalid_argument("lighting.shadows.enabled must be a boolean");
+        if (cfg.data().contains("resolution") && !cfg.data()["resolution"].is_number_integer())
+            throw std::invalid_argument("lighting.shadows.resolution must be an integer");
+        enabled = cfg.getBool("enabled", enabled);
+        const double requestedResolution = cfg.getDouble("resolution", resolution);
+        if (requestedResolution < 256 || requestedResolution > 4096)
+            throw std::invalid_argument("Shadow resolution must be between 256 and 4096");
+        resolution = static_cast<int>(requestedResolution);
+        bias_texels = cfg.getDouble("bias_texels", bias_texels);
+        validate();
+    }
+
+    void validate() const {
+        if (resolution < 256 || resolution > 4096 || (resolution & (resolution - 1)) != 0 ||
+            !std::isfinite(bias_texels) || bias_texels < 0.0 || bias_texels > 4.0)
+            throw std::invalid_argument("Shadow resolution must be a power of two in 256..4096; bias_texels must be in 0..4");
+    }
+};
+
 inline void validateAbsoluteMagnitude(double magnitude) {
     if (!std::isfinite(magnitude) || magnitude < -30.0 || magnitude > 30.0)
         throw std::invalid_argument("sun.absolute_magnitude must be finite and between -30 and 30");
@@ -20,6 +49,7 @@ struct LightingConfig {
     double reference_distance = 10.0;
     double exposure = 1.0;
     bool reflections_enabled = true;
+    TerrainShadowConfig shadows;
 
     LightingConfig() = default;
     explicit LightingConfig(const Config& cfg, double legacyAmbient = 0.12)
@@ -31,10 +61,13 @@ struct LightingConfig {
         if (cfg.data().contains("reflections_enabled") && !cfg.data()["reflections_enabled"].is_boolean())
             throw std::invalid_argument("lighting.reflections_enabled must be a boolean");
         reflections_enabled = cfg.getBool("reflections_enabled", reflections_enabled);
+        if (cfg.data().contains("shadows"))
+            shadows = TerrainShadowConfig(Config(nlohmann::json(cfg.data()["shadows"])));
         validate();
     }
 
     void validate() const {
+        shadows.validate();
         if (!std::isfinite(ambient_light) || ambient_light < 0.0 || ambient_light > 1.0 ||
             !std::isfinite(reference_distance) || reference_distance <= 0.0 ||
             !std::isfinite(exposure) || exposure <= 0.0 || exposure > 100.0)

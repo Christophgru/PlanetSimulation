@@ -148,3 +148,38 @@ TEST(RenderDiagnosticsTest, WhiteSunIsRestrictedToItsProjectedRegionAndNotCounte
     EXPECT_EQ(result.sun.minX, 1);
     EXPECT_EQ(result.sun.maxY, 1);
 }
+
+TEST(RenderDiagnosticsTest, DepthIdentifiesShadowedTerrainWithoutConfusingBackgroundOrSun) {
+    auto rgba = backgroundFrame();
+    std::vector<float> depth(kWidth * kHeight, 1.0f);
+    paint(rgba, 1, 1, 3, 5, 2); // Within the Sun bounds: not a planet.
+    paint(rgba, 3, 2, 3, 5, 2); // Shadowed terrain.
+    paint(rgba, 4, 2, 3, 5, 2); // Same color but sky depth: not geometry.
+    paint(rgba, 5, 4, 3, 5, 2); // Opaque, but outside the planet's bounds.
+    depth[1 * kWidth + 1] = 0.5f;
+    depth[2 * kWidth + 3] = 0.5f;
+    depth[4 * kWidth + 5] = 0.5f;
+    const auto result = rendering::analyzeFrame(rgba, kWidth, kHeight, kSunColor, kPlanetColor,
+        false, {}, {}, std::array<int, 4>{0, 0, 2, 2}, depth, std::array<int, 4>{0, 0, 4, 3});
+    EXPECT_EQ(result.planet.count, 1);
+    EXPECT_EQ(result.planet.minX, 3);
+    EXPECT_EQ(result.planet.minY, 2);
+}
+
+TEST(RenderDiagnosticsTest, DepthDoesNotMakeEmptyOrBlackFramesPass) {
+    for (bool black : {false, true}) {
+        auto rgba = backgroundFrame();
+        if (black) paint(rgba, 3, 2, 0, 0, 0);
+        std::vector<float> depth(kWidth * kHeight, 0.5f);
+        const auto result = rendering::analyzeFrame(rgba, kWidth, kHeight, kSunColor, kPlanetColor,
+            false, {}, {}, std::array<int, 4>{0, 0, -1, -1}, depth,
+            std::array<int, 4>{0, 0, kWidth - 1, kHeight - 1});
+        EXPECT_EQ(result.planet.count, 0);
+        EXPECT_FALSE(result.bodiesVisible());
+    }
+}
+
+TEST(RenderDiagnosticsTest, InvalidDepthDimensionsAreRejected) {
+    EXPECT_THROW(rendering::analyzeFrame(backgroundFrame(), kWidth, kHeight, kSunColor, kPlanetColor,
+        false, {}, {}, std::nullopt, std::vector<float>{0.5f}), std::invalid_argument);
+}

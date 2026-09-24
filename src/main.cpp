@@ -34,6 +34,7 @@
 #include "rendering/Shader.h"
 #include "rendering/SurfaceCameraTelemetry.h"
 #include "rendering/WaterReflectionTarget.h"
+#include "rendering/TerrainShadowMaps.h"
 
 namespace fs = std::filesystem;
 
@@ -209,6 +210,7 @@ void renderScene(const config::ScenarioConfig& scenario,
                  const glm::dvec3& eyeWorld, const Shader& shader,
                  const Shader& waterShader, const Shader& skyboxShader,
                  rendering::WaterReflectionTarget& reflectionTarget,
+                 const Shader& shadowShader, rendering::TerrainShadowMaps& shadows,
                  const Mesh& sunMesh, const Mesh& skyboxMesh,
                  const std::vector<Mesh>& planetMeshes,
                  const std::vector<Mesh>& waterMeshes, int width, int height,
@@ -217,16 +219,32 @@ void renderScene(const config::ScenarioConfig& scenario,
         fov, static_cast<float>(width) / height, clip);
     const auto& sun = scenario.sun;
     const auto lighting = rendering::calculateLighting(scenario, bodies);
+    shadows.ensure(scenario.planets.size(), scenario.lighting.shadows);
+    if (scenario.lighting.shadows.enabled) {
+        for (std::size_t i = 0; i < scenario.planets.size(); ++i) {
+            const auto& planet = scenario.planets[i];
+            double heightMeters = planet.terrain_landscape.maximumAbsoluteHeightMeters();
+            for (const auto& noise : planet.surface_noise) heightMeters += noise.amplitude_m;
+            const double extent = 1.0 + heightMeters / (scenario.metersPerWorldUnit() * planet.radius);
+            glm::dvec3 localSun = glm::transpose(bodies[i + 1].orientation) * lighting.planets[i].sunDirection;
+            // Coincident centers have no directed sunlight; any map orientation
+            // is valid because their diffuse contribution is already zero.
+            if (glm::dot(localSun, localSun) == 0.0) localSun = glm::dvec3(0, 0, 1);
+            shadows.begin(i, shadowShader, localSun, extent);
+            planetMeshes[i].draw();
+        }
+    }
     const auto setRgb = [](const Shader& target, const char* name, const glm::dvec3& value) {
         target.setFloat3(name, static_cast<float>(value.x), static_cast<float>(value.y),
                         static_cast<float>(value.z));
     };
-    const auto setBodyLighting = [&](const Shader& target, std::size_t index) {
+    const auto setBodyLighting = [&](const Shader& target, std::size_t index, float radiusScale = 1.0f) {
         const auto& light = lighting.planets[index];
         setRgb(target, "uSunDirection", light.sunDirection);
         setRgb(target, "uSunlight", light.sunlight);
         setRgb(target, "uIndirectLight", light.reflectedLight + glm::dvec3(scenario.lighting.ambient_light));
         target.setFloat("uExposure", static_cast<float>(scenario.lighting.exposure));
+        shadows.bindForShading(index, target, scenario.lighting.shadows, radiusScale);
     };
 
     auto drawSkybox = [&](const glm::mat4& passProjection,
@@ -342,7 +360,7 @@ void renderScene(const config::ScenarioConfig& scenario,
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glDepthMask(GL_FALSE);
         waterShader.use();
-        setBodyLighting(waterShader, i);
+        setBodyLighting(waterShader, i, static_cast<float>(radiusWorld / planet.radius));
         waterShader.setMat4("projection", glm::value_ptr(projection));
         waterShader.setMat4("view", glm::value_ptr(view));
         waterShader.setMat4("uReflectionViewProjection",
@@ -650,8 +668,10 @@ int main(int argc, char** argv) {
         }
 
         // Create shader program
-        Shader shader("shaders/basic.vert", "shaders/basic.frag");
-        Shader waterShader("shaders/water.vert", "shaders/water.frag");
+        Shader shader("shaders/basic.vert", "shaders/basic.frag", "shaders/terrain_shadow.glsl");
+        Shader waterShader("shaders/water.vert", "shaders/water.frag", "shaders/terrain_shadow.glsl");
+        Shader shadowShader("shaders/terrain_shadow.vert", "shaders/terrain_shadow.frag");
+        rendering::TerrainShadowMaps terrainShadows;
         Shader skyboxShader("shaders/skybox.vert", "shaders/skybox.frag");
         rendering::WaterReflectionTarget waterReflection;
         
@@ -680,7 +700,7 @@ int main(int argc, char** argv) {
             preparePlanetMeshes(eyeWorld);
             const auto meshEnd = std::chrono::steady_clock::now();
             renderScene(scenario, bodies, view, fov, eyeWorld, shader, waterShader,
-                        skyboxShader, waterReflection, g_mesh, skyboxMesh,
+                        skyboxShader, waterReflection, shadowShader, terrainShadows, g_mesh, skyboxMesh,
                         planetMeshes, waterMeshes, width, height,
                         surfaceRenderMode ? surfaceClip :
                         planetRenderMode ? planetOrbitClip(eyeWorld) :
@@ -709,6 +729,8 @@ int main(int argc, char** argv) {
             // Read rendered framebuffer (account for vertical flip)
             std::vector<unsigned char> pixels(width * height * 4);
             glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+            std::vector<float> depthPixels(width * height);
+            glReadPixels(0, 0, width, height, GL_DEPTH_COMPONENT, GL_FLOAT, depthPixels.data());
             
             // Check for OpenGL errors after reading
             GLenum err;
@@ -718,6 +740,7 @@ int main(int argc, char** argv) {
 
             // Vertically flip the image data (GL_READ_PIXELS reads bottom-up)
             std::vector<unsigned char> flippedPixels(width * height * 4);
+            std::vector<float> flippedDepth(width * height);
             for (int y = 0; y < height; y++) {
                 int srcY = height - 1 - y;
                 for (int x = 0; x < width; x++) {
@@ -727,6 +750,7 @@ int main(int argc, char** argv) {
                     flippedPixels[idx + 1] = pixels[srcIdx + 1];
                     flippedPixels[idx + 2] = pixels[srcIdx + 2];
                     flippedPixels[idx + 3] = pixels[srcIdx + 3];
+                    flippedDepth[idx / 4] = depthPixels[srcIdx / 4];
                 }
             }
 
@@ -745,11 +769,18 @@ int main(int argc, char** argv) {
             const auto sunBounds = rendering::spherePixelBounds(bodies[0].position, scenario.sun.radius,
                 glm::dmat4(rendering::perspectiveProjection(fov, static_cast<float>(width) / height,
                                                            diagnosticClip) * view), width, height);
+            double diagnosticHeight = diagnosticPlanet.terrain_landscape.maximumAbsoluteHeightMeters();
+            for (const auto& noise : diagnosticPlanet.surface_noise) diagnosticHeight += noise.amplitude_m;
+            const auto planetBounds = rendering::spherePixelBounds(bodies[diagnosticPlanetIndex + 1].position,
+                diagnosticPlanet.radius + diagnosticHeight / scenario.metersPerWorldUnit(),
+                glm::dmat4(rendering::perspectiveProjection(fov, static_cast<float>(width) / height,
+                                                           diagnosticClip) * view), width, height);
             const rendering::FrameAnalysis analysis = rendering::analyzeFrame(
                 flippedPixels, width, height, {sunDisplay.r, sunDisplay.g, sunDisplay.b}, diagnosticPlanet.color,
                 diagnosticPlanet.terrain_landscape.enabled || diagnosticPlanet.water.enabled,
                 scenario.skybox.background_color,
-                scenario.skybox.enabled ? scenario.skybox.star_color : std::vector<double>{}, sunBounds);
+                scenario.skybox.enabled ? scenario.skybox.star_color : std::vector<double>{},
+                sunBounds, flippedDepth, planetBounds);
 
             for (std::size_t i = 0; i < frameLighting.planets.size(); ++i) {
                 const auto& light = frameLighting.planets[i];
@@ -774,7 +805,7 @@ int main(int argc, char** argv) {
             };
             printBounds("Non-background pixels", analysis.drawn);
             printBounds("Sun-colored pixels", analysis.sun);
-            printBounds("Planet-colored pixels", analysis.planet);
+            printBounds("Planet pixels (color/depth)", analysis.planet);
             if (scenario.skybox.enabled)
                 printBounds("Star-like pixels", analysis.starLike);
             if (diagnosticPlanet.water.enabled)
@@ -963,7 +994,7 @@ int main(int argc, char** argv) {
                         : onPlanetOrbit ? planetOrbitClip(eyeWorld) : rendering::ClipPlanes{};
                     preparePlanetMeshes(eyeWorld, true);
                     renderScene(scenario, bodies, view, fov, eyeWorld, shader, waterShader,
-                                skyboxShader, waterReflection, g_mesh, skyboxMesh,
+                                skyboxShader, waterReflection, shadowShader, terrainShadows, g_mesh, skyboxMesh,
                                 planetMeshes, waterMeshes, width, height,
                                 clip);
                     glfwSwapBuffers(window);

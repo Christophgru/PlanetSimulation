@@ -31,7 +31,7 @@ void main() {
     vec3 reflection = texture(uReflectionTexture,
                               clamp(reflectionUv, vec2(0.0), vec2(1.0))).rgb;
     float diffuse = max(dot(normal, uSunDirection), 0.0);
-    vec3 litWater = displayColor(uWaterColor * (uIndirectLight + uSunlight * diffuse));
+    vec3 litWater = displayColor(uWaterColor * (uIndirectLight + uSunlight * diffuse * sunlightVisibility(diffuse)));
     // The reflection pass is already in display space; do not expose it twice.
     vec3 surface = mix(litWater, reflection, uReflectionFraction);
     fColor = vec4(surface, uOpacity);

@@ -106,11 +106,15 @@ inline FrameAnalysis analyzeFrame(const std::vector<unsigned char>& rgba,
                                   bool landscapePalette = false,
                                   const std::vector<double>& backgroundColor = {},
                                   const std::vector<double>& starColor = {},
-                                  const std::optional<std::array<int, 4>>& sunPixelRegion = std::nullopt) {
+                                  const std::optional<std::array<int, 4>>& sunPixelRegion = std::nullopt,
+                                  const std::vector<float>& depth = {},
+                                  const std::optional<std::array<int, 4>>& planetPixelRegion = std::nullopt) {
     if (width <= 0 || height <= 0 ||
         rgba.size() != static_cast<std::size_t>(width) * height * 4) {
         throw std::invalid_argument("Invalid RGBA framebuffer dimensions");
     }
+    if (!depth.empty() && depth.size() != static_cast<std::size_t>(width) * height)
+        throw std::invalid_argument("Invalid depth framebuffer dimensions");
 
     FrameAnalysis analysis;
     if (backgroundColor.size() == 3) {
@@ -148,11 +152,19 @@ inline FrameAnalysis analyzeFrame(const std::vector<unsigned char>& rgba,
                 (x >= (*sunPixelRegion)[0] && y >= (*sunPixelRegion)[1] &&
                  x <= (*sunPixelRegion)[2] && y <= (*sunPixelRegion)[3]);
             const bool sunLike = inSunRegion && matchesColor(rgba, index, sunColor);
-            const bool starLike = !sunLike && matchesTintAboveBackground(
+            // Shadowed terrain may be below the color classifier's threshold.
+            // Require actual opaque geometry within the projected planet bounds,
+            // outside the Sun, and a nonblack pixel distinct from the background.
+            const bool planetGeometry = !depth.empty() && planetPixelRegion && sunPixelRegion &&
+                !inSunRegion && x >= (*planetPixelRegion)[0] && y >= (*planetPixelRegion)[1] &&
+                x <= (*planetPixelRegion)[2] && y <= (*planetPixelRegion)[3] &&
+                depth[index / 4] >= 0.0f && depth[index / 4] < 1.0f &&
+                (rgba[index] != 0 || rgba[index + 1] != 0 || rgba[index + 2] != 0);
+            const bool starLike = !sunLike && !planetGeometry && matchesTintAboveBackground(
                 rgba, index, analysis.background, starColor);
             if (starLike) analysis.starLike.include(x, y);
             if (sunLike) analysis.sun.include(x, y);
-            if (!starLike && !sunLike && (matchesColor(rgba, index, planetColor) ||
+            if (!starLike && !sunLike && (planetGeometry || matchesColor(rgba, index, planetColor) ||
                 matchesTerrainTint(rgba, index, planetColor) ||
                 (landscapePalette && rgba[index + 1] > rgba[index] + 6)))
                 analysis.planet.include(x, y);

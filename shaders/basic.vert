@@ -8,10 +8,12 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 uniform vec3 uColor;
+uniform mat4 uShadowMatrix;
 
 out vec3 vColor;
 out vec3 vWorldPosition;
 out vec3 vWorldNormal;
+out vec4 vShadowPosition;
 
 void main() {
     vec4 worldPos = model * vec4(aPos, 1.0);
@@ -19,4 +21,5 @@ void main() {
     vWorldPosition = worldPos.xyz;
     vWorldNormal = normalize(mat3(transpose(inverse(model))) * aNormal);
     vColor = uColor * aColor;
+    vShadowPosition = uShadowMatrix * vec4(aPos, 1.0);
 }
