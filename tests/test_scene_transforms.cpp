@@ -12,6 +12,21 @@ TEST(SceneTransformsTest, SphereCenterStaysAtItsConfiguredPosition) {
     EXPECT_FLOAT_EQ(center.w, 1.0f);
 }
 
+TEST(SceneTransformsTest, SpherePixelBoundsContainProjectedDiskAndRejectOffscreenSun) {
+    const glm::dmat4 projection = glm::perspective(glm::radians(90.0), 1.0, 0.1, 100.0);
+    const auto bounds = rendering::spherePixelBounds({0, 0, -10}, 1, projection, 100, 100);
+    EXPECT_LE(bounds[0], 44);
+    EXPECT_LE(bounds[1], 44);
+    EXPECT_GE(bounds[2], 56);
+    EXPECT_GE(bounds[3], 56);
+    EXPECT_EQ(rendering::spherePixelBounds({0, 0, 10}, 1, projection, 100, 100),
+              (std::array<int, 4>{0, 0, -1, -1}));
+    EXPECT_EQ(rendering::spherePixelBounds({100, 0, -10}, 1, projection, 100, 100),
+              (std::array<int, 4>{0, 0, -1, -1}));
+    EXPECT_EQ(rendering::spherePixelBounds({0, 0, 0}, 1, projection, 100, 100),
+              (std::array<int, 4>{0, 0, 99, 99}));
+}
+
 TEST(SceneTransformsTest, SphereRadiusScalesAroundItsOwnCenter) {
     const glm::mat4 model = rendering::sphereModel(glm::vec3(5.0f, 0.0f, 0.0f), 0.5f);
     const glm::vec4 edge = model * glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);

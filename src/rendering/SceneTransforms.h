@@ -1,7 +1,9 @@
 #pragma once
 
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <limits>
 #include <stdexcept>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -39,6 +41,38 @@ inline glm::mat4 perspectiveProjection(float fovDegrees, float aspect,
                                        ClipPlanes clip = {}) {
     return glm::perspective(glm::radians(fovDegrees), aspect,
                             clip.nearPlane, clip.farPlane);
+}
+
+// Conservative image bounds of a sphere, from its enclosing cube. These let
+// render diagnostics distinguish a white Sun from white background stars.
+inline std::array<int, 4> spherePixelBounds(const glm::dvec3& center, double radius,
+                                           const glm::dmat4& viewProjection,
+                                           int width, int height) {
+    if (!std::isfinite(radius) || radius <= 0.0 || width <= 0 || height <= 0)
+        throw std::invalid_argument("Sphere image bounds require a positive radius and image size");
+    glm::dvec2 minimum(std::numeric_limits<double>::infinity());
+    glm::dvec2 maximum(-std::numeric_limits<double>::infinity());
+    int inFront = 0;
+    for (int x : {-1, 1}) for (int y : {-1, 1}) for (int z : {-1, 1}) {
+        const glm::dvec4 clip = viewProjection * glm::dvec4(center + radius * glm::dvec3(x, y, z), 1);
+        if (!std::isfinite(clip.x) || !std::isfinite(clip.y) || !std::isfinite(clip.w))
+            throw std::invalid_argument("Sphere image projection must be finite");
+        if (clip.w <= 0.0) continue;
+        ++inFront;
+        const glm::dvec2 ndc = glm::dvec2(clip) / clip.w;
+        minimum = glm::min(minimum, ndc);
+        maximum = glm::max(maximum, ndc);
+    }
+    if (inFront == 0) return {0, 0, -1, -1};
+    if (inFront != 8) return {0, 0, width - 1, height - 1};
+    if (maximum.x < -1 || minimum.x > 1 || maximum.y < -1 || minimum.y > 1)
+        return {0, 0, -1, -1};
+    minimum = glm::clamp(minimum, glm::dvec2(-1), glm::dvec2(1));
+    maximum = glm::clamp(maximum, glm::dvec2(-1), glm::dvec2(1));
+    return {std::max(0, static_cast<int>(std::floor((minimum.x + 1) * width / 2))),
+            std::max(0, static_cast<int>(std::floor((1 - maximum.y) * height / 2))),
+            std::min(width - 1, static_cast<int>(std::ceil((maximum.x + 1) * width / 2))),
+            std::min(height - 1, static_cast<int>(std::ceil((1 - minimum.y) * height / 2)))};
 }
 
 inline glm::dvec3 reflectPointAcrossPlane(const glm::dvec3& point,

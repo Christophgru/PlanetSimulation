@@ -6,18 +6,28 @@ in vec3 vWorldNormal;
 
 uniform vec3 uClipCenter;
 uniform float uClipRadius;
-uniform vec3 uSunPosition;
+uniform vec3 uSunDirection;
+uniform vec3 uSunlight;
+uniform vec3 uIndirectLight;
+uniform vec3 uEmission;
+uniform float uExposure;
 uniform float uEmissive;
-uniform float uAmbientLight;
 
 out vec4 fColor;
+
+vec3 displayColor(vec3 radiance) {
+    vec3 mapped = vec3(1.0) - exp(-max(radiance, vec3(0.0)) * uExposure);
+    return mix(1.055 * pow(mapped, vec3(1.0 / 2.4)) - 0.055,
+               12.92 * mapped, lessThanEqual(mapped, vec3(0.0031308)));
+}
 
 void main() {
     if (uClipRadius > 0.0 && distance(vWorldPosition, uClipCenter) < uClipRadius)
         discard;
-    vec3 toSun = normalize(uSunPosition - vWorldPosition);
-    float diffuse = max(dot(normalize(vWorldNormal), toSun), 0.0);
-    float brightness = mix(uAmbientLight + (1.0 - uAmbientLight) * diffuse, 1.0,
-                           clamp(uEmissive, 0.0, 1.0));
-    fColor = vec4(vColor * brightness, 1.0);
+    vec3 radiance = uEmission;
+    if (uEmissive < 0.5) {
+        float diffuse = max(dot(normalize(vWorldNormal), uSunDirection), 0.0);
+        radiance = vColor * (uIndirectLight + uSunlight * diffuse);
+    }
+    fColor = vec4(displayColor(radiance), 1.0);
 }

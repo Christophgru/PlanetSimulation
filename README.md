@@ -94,6 +94,53 @@ the orbital elements. Terrain, water, local coordinates, and surface cameras
 share the same body rotation. Planet orbit cameras follow translation while
 letting the surface turn beneath them.
 
+## Sunlight, moonlight, and config descriptions
+
+`sun.absolute_magnitude` sets **bolometric absolute magnitude**, with a lower
+number giving more light. The example uses **3.5** and emission RGB
+`[1.0, 0.99, 0.97]` for a brighter, nearly white Sun. The
+[IAU magnitude scale](https://arxiv.org/abs/1510.06262) gives
+`L = 3.0128e28 × 10^(-0.4 M_bol)` watts; a magnitude difference of −5 means
+100 times the luminosity. The nominal Sun is about magnitude 4.74.
+
+The `lighting` section groups ambient fill, display exposure, a reference
+distance, and the reflection switch. `reference_distance` uses `distance_unit`
+and normalizes illumination from one nominal solar luminosity to 1 at that
+distance. This is a display scale for the miniature scene; the absolute
+magnitude still determines the intrinsic luminosity. Direct light follows
+inverse-square distance falloff. `exposure` affects the final image after
+adding sunlight, reflected light, and ambient fill. An exponential tone curve
+and sRGB encoding keep the brighter Sun and terrain highlights displayable.
+
+Each planet's `reflection.geometric_albedo` and `reflection.color` determine
+the strength and RGB tint of sunlight it sends to other bodies. The Moon uses
+albedo 0.12; setting it to 0 disables its reflection. Setting
+`lighting.reflections_enabled` to false disables all bounced sunlight.
+Reflection uses a
+[Lambert sphere phase function](https://www.aanda.org/articles/aa/pdf/2018/02/aa31192-17.pdf):
+`Φ(α) = [sin(α) + (π−α) cos(α)] / π`, where `α` is the Sun–Moon–receiver angle.
+Full Moon sends the most light toward Earth, quarter phase sends `1/π` of that,
+and new Moon sends none. The outgoing light is proportional to the Moon's
+illuminating sunlight, albedo, color, `Φ`, and squared radius/separation ratio.
+Sun–Moon and Moon–Earth distance falloff are both included.
+
+Illumination is evaluated once per body per frame and shared by terrain,
+water, and water reflection passes. Direct sunlight still shades surface
+normals. Reflected light is averaged over the receiving sphere (intercepted
+power divided over four times its cross-sectional area), as an inexpensive
+uniform contribution to the whole planet. The same calculation allows
+Earthshine on the Moon and multiple reflectors. This is one bounce only, with
+no eclipses, terrain shadows, or recursive light exchange.
+
+Each config block now has a `description` and a `parameter_descriptions` map.
+These explain units, limits, effects, and reserved settings while keeping the
+actual parameter values directly editable. Metadata is ignored by the parser.
+Ambient fill now belongs under `lighting.ambient_light`; older configs can
+still use `skybox.ambient_light` as a fallback.
+
+Use `--config PATH` to load another scenario, including render-test fixtures.
+The selected file also becomes the interactive reload/watch target.
+
 ## Prerequisites
 
 - CMake 3.16 or newer, Git, and a C++20 compiler
@@ -220,8 +267,8 @@ otherwise pointed absolute-noise crest; `0` preserves a sharp crest and the
 development value `0.25` softens high-angle ridge peaks. Areas below the water
 level form ocean basins.
 Vertex colors interpolate green plains, pale cliffs, and dark seabed across
-triangles, without visible triangle outlines. Land lighting and textures are
-still future work.
+triangles, without visible triangle outlines. Sunlight and moonlight illuminate
+the terrain; land textures remain future work.
 
 `terrain_lod` divides terrain into near, middle, and far surface-distance
 zones. Its `near_surface_distance_m` and `mid_surface_distance_m` are distances
@@ -254,8 +301,9 @@ switch their tessellation.
 `reflection_fraction` for a translucent spherical sea. The development scene
 uses 50% opacity and a 50% mix of water color and reflected sky/Sun
 light. Opaque terrain hides water above its level and remains visible through
-water below it. The reflection currently samples sky colors and Sun direction;
-it does not reflect terrain or refract the scene. The water shell uses the same
+water below it. The reflection pass includes the sky and opaque bodies, including
+terrain, lit by the same sunlight and reflected body light. It does not refract
+the scene. The water shell uses the same
 triangle budget as the land, but its uniformly subdivided geometry stays fixed
 while the camera moves because the sea has no height noise.
 

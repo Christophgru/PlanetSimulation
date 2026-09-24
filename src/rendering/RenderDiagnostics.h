@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstddef>
 #include <limits>
+#include <optional>
 #include <stdexcept>
 #include <vector>
 
@@ -104,7 +105,8 @@ inline FrameAnalysis analyzeFrame(const std::vector<unsigned char>& rgba,
                                   const std::vector<double>& planetColor,
                                   bool landscapePalette = false,
                                   const std::vector<double>& backgroundColor = {},
-                                  const std::vector<double>& starColor = {}) {
+                                  const std::vector<double>& starColor = {},
+                                  const std::optional<std::array<int, 4>>& sunPixelRegion = std::nullopt) {
     if (width <= 0 || height <= 0 ||
         rgba.size() != static_cast<std::size_t>(width) * height * 4) {
         throw std::invalid_argument("Invalid RGBA framebuffer dimensions");
@@ -142,11 +144,15 @@ inline FrameAnalysis analyzeFrame(const std::vector<unsigned char>& rgba,
                 rgba[index + 2] == analysis.background[2]) continue;
 
             analysis.drawn.include(x, y);
-            const bool starLike = matchesTintAboveBackground(
+            const bool inSunRegion = !sunPixelRegion ||
+                (x >= (*sunPixelRegion)[0] && y >= (*sunPixelRegion)[1] &&
+                 x <= (*sunPixelRegion)[2] && y <= (*sunPixelRegion)[3]);
+            const bool sunLike = inSunRegion && matchesColor(rgba, index, sunColor);
+            const bool starLike = !sunLike && matchesTintAboveBackground(
                 rgba, index, analysis.background, starColor);
             if (starLike) analysis.starLike.include(x, y);
-            if (matchesColor(rgba, index, sunColor)) analysis.sun.include(x, y);
-            if (!starLike && (matchesColor(rgba, index, planetColor) ||
+            if (sunLike) analysis.sun.include(x, y);
+            if (!starLike && !sunLike && (matchesColor(rgba, index, planetColor) ||
                 matchesTerrainTint(rgba, index, planetColor) ||
                 (landscapePalette && rgba[index + 1] > rgba[index] + 6)))
                 analysis.planet.include(x, y);

@@ -10,12 +10,14 @@
 #include <vector>
 #include "config/Config.h"
 #include "config/OrbitalConfig.h"
+#include "config/LightingConfig.h"
 
 namespace config {
 
 struct SunConfig {
     std::string name = "sun";
     double mass_kg = 1.0e19;
+    double absolute_magnitude = 4.74; // Bolometric absolute magnitude (IAU zero point).
     std::vector<double> position = {0.0, 0.0, 0.0};
     double radius = 10.0;
     std::vector<double> color = {1.0, 0.9, 0.7};
@@ -24,6 +26,8 @@ struct SunConfig {
     SunConfig(const config::Config& cfg) {
         name = cfg.get("name", name);
         mass_kg = cfg.getDouble("mass_kg", mass_kg);
+        absolute_magnitude = cfg.getDouble("absolute_magnitude", absolute_magnitude);
+        validateAbsoluteMagnitude(absolute_magnitude);
         validateMass(mass_kg);
         if (name.empty() || cfg.data().contains("orbit"))
             throw std::invalid_argument("Sun must have a name and no parent orbit");
@@ -278,6 +282,7 @@ struct PlanetConfig {
     double mass_kg = 1.0e16;
     OrbitConfig orbit;
     RotationConfig rotation;
+    ReflectionConfig reflection;
     double orbit_radius = 5.0;
     double orbit_speed = 0.02;
     double radius = 1.5;
@@ -313,6 +318,8 @@ struct PlanetConfig {
         }
         if (cfg.data().contains("rotation"))
             rotation = RotationConfig(Config{nlohmann::json(cfg.data().at("rotation"))});
+        if (cfg.data().contains("reflection"))
+            reflection = ReflectionConfig(Config{nlohmann::json(cfg.data().at("reflection"))});
         radius = cfg.getDouble("radius", radius);
         auto col_array = cfg.getArray("color", color);
         if (col_array.size() >= 3) {
@@ -429,6 +436,7 @@ struct ScenarioConfig {
     std::string distance_unit = "km";
     SunConfig sun;
     SkyboxConfig skybox;
+    LightingConfig lighting;
     OrbitViewConfig camera;
     std::vector<PlanetConfig> planets;
     SurfaceCameraConfig surface_camera;
@@ -481,6 +489,11 @@ struct ScenarioConfig {
                 throw std::invalid_argument("skybox must be an object");
             skybox = SkyboxConfig(config::Config{nlohmann::json(*skybox_it)});
         }
+        // Old scenarios may still put ambient_light under skybox.
+        lighting.ambient_light = skybox.ambient_light;
+        if (raw_data.contains("lighting"))
+            lighting = LightingConfig(Config{nlohmann::json(raw_data.at("lighting"))},
+                                      skybox.ambient_light);
         auto sun_it = raw_data.find("sun");
         if (sun_it != raw_data.end() && sun_it->is_object()) {
             // Copy the json value first, then move it to Config constructor

@@ -30,6 +30,7 @@
 #include "rendering/PlanetSurfaceCamera.h"
 #include "rendering/RenderDiagnostics.h"
 #include "rendering/SceneTransforms.h"
+#include "rendering/CelestialLighting.h"
 #include "rendering/Shader.h"
 #include "rendering/SurfaceCameraTelemetry.h"
 #include "rendering/WaterReflectionTarget.h"
@@ -215,6 +216,18 @@ void renderScene(const config::ScenarioConfig& scenario,
     const glm::mat4 projection = rendering::perspectiveProjection(
         fov, static_cast<float>(width) / height, clip);
     const auto& sun = scenario.sun;
+    const auto lighting = rendering::calculateLighting(scenario, bodies);
+    const auto setRgb = [](const Shader& target, const char* name, const glm::dvec3& value) {
+        target.setFloat3(name, static_cast<float>(value.x), static_cast<float>(value.y),
+                        static_cast<float>(value.z));
+    };
+    const auto setBodyLighting = [&](const Shader& target, std::size_t index) {
+        const auto& light = lighting.planets[index];
+        setRgb(target, "uSunDirection", light.sunDirection);
+        setRgb(target, "uSunlight", light.sunlight);
+        setRgb(target, "uIndirectLight", light.reflectedLight + glm::dvec3(scenario.lighting.ambient_light));
+        target.setFloat("uExposure", static_cast<float>(scenario.lighting.exposure));
+    };
 
     auto drawSkybox = [&](const glm::mat4& passProjection,
                           const glm::mat4& passView) {
@@ -253,11 +266,8 @@ void renderScene(const config::ScenarioConfig& scenario,
         shader.setMat4("view", glm::value_ptr(passView));
         shader.setFloat3("uClipCenter", clipCenter.x, clipCenter.y, clipCenter.z);
         shader.setFloat("uClipRadius", clipRadius);
-        shader.setFloat3("uSunPosition", static_cast<float>(bodies[0].position.x),
-                          static_cast<float>(bodies[0].position.y),
-                          static_cast<float>(bodies[0].position.z));
-        shader.setFloat("uAmbientLight",
-                        static_cast<float>(scenario.skybox.ambient_light));
+        setRgb(shader, "uEmission", lighting.sunEmission);
+        shader.setFloat("uExposure", static_cast<float>(scenario.lighting.exposure));
 
         const glm::mat4 sunModel = rendering::sphereModel(
             glm::vec3(bodies[0].position), static_cast<float>(sun.radius));
@@ -278,6 +288,7 @@ void renderScene(const config::ScenarioConfig& scenario,
                              static_cast<float>(planet.color[1]),
                              static_cast<float>(planet.color[2]));
             shader.setFloat("uEmissive", 0.0f);
+            setBodyLighting(shader, i);
             planetMeshes[i].draw();
         }
     };
@@ -331,6 +342,7 @@ void renderScene(const config::ScenarioConfig& scenario,
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glDepthMask(GL_FALSE);
         waterShader.use();
+        setBodyLighting(waterShader, i);
         waterShader.setMat4("projection", glm::value_ptr(projection));
         waterShader.setMat4("view", glm::value_ptr(view));
         waterShader.setMat4("uReflectionViewProjection",
@@ -367,6 +379,7 @@ int main(int argc, char** argv) {
     int renderTestWidth = 800;
     int renderTestHeight = 600;
     double simulationTime = 0.0;
+    std::string configPath = "configs/scenarios/solar_system.json";
     
     // Parse command-line arguments
     for (int i = 1; i < argc; i++) {
@@ -381,6 +394,8 @@ int main(int argc, char** argv) {
             renderTestMode = true;
             planetRenderMode = true;
             outputImagePath = argv[++i];
+        } else if (std::string(argv[i]) == "--config" && i + 1 < argc) {
+            configPath = argv[++i];
         } else if (std::string(argv[i]) == "--simulation-time" && i + 1 < argc) {
             try {
                 simulationTime = std::stod(argv[++i]);
@@ -441,7 +456,6 @@ int main(int argc, char** argv) {
     }
 
     // Load scenario config
-    const std::string configPath = "configs/scenarios/solar_system.json";
     if (!fs::exists(configPath)) {
         std::cerr << "Config file not found: " << configPath << "\n";
         std::exit(1);
@@ -724,11 +738,26 @@ int main(int argc, char** argv) {
             const std::size_t diagnosticPlanetIndex =
                 (surfaceRenderMode || planetRenderMode) ? orbitPlanetIndex : 0;
             const auto& diagnosticPlanet = scenario.planets[diagnosticPlanetIndex];
+            const auto frameLighting = rendering::calculateLighting(scenario, bodies);
+            const auto sunDisplay = rendering::displayColor(frameLighting.sunEmission, scenario.lighting.exposure);
+            const auto diagnosticClip = surfaceRenderMode ? surfaceClip :
+                planetRenderMode ? planetOrbitClip(eyeWorld) : rendering::ClipPlanes{};
+            const auto sunBounds = rendering::spherePixelBounds(bodies[0].position, scenario.sun.radius,
+                glm::dmat4(rendering::perspectiveProjection(fov, static_cast<float>(width) / height,
+                                                           diagnosticClip) * view), width, height);
             const rendering::FrameAnalysis analysis = rendering::analyzeFrame(
-                flippedPixels, width, height, scenario.sun.color, diagnosticPlanet.color,
+                flippedPixels, width, height, {sunDisplay.r, sunDisplay.g, sunDisplay.b}, diagnosticPlanet.color,
                 diagnosticPlanet.terrain_landscape.enabled || diagnosticPlanet.water.enabled,
                 scenario.skybox.background_color,
-                scenario.skybox.enabled ? scenario.skybox.star_color : std::vector<double>{});
+                scenario.skybox.enabled ? scenario.skybox.star_color : std::vector<double>{}, sunBounds);
+
+            for (std::size_t i = 0; i < frameLighting.planets.size(); ++i) {
+                const auto& light = frameLighting.planets[i];
+                std::cout << scenario.planets[i].name << " lighting: direct RGB ("
+                          << light.sunlight.r << ", " << light.sunlight.g << ", " << light.sunlight.b
+                          << "), reflected RGB (" << light.reflectedLight.r << ", "
+                          << light.reflectedLight.g << ", " << light.reflectedLight.b << ")\n";
+            }
 
             std::cout << "Image size: " << width << "x" << height << "\n";
             std::cout << "Background pixel: (" << static_cast<int>(analysis.background[0])

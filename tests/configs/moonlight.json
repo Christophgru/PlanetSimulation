@@ -1,0 +1,40 @@
+{
+    "description": "Render regression: smooth Earth night side, no ambient or sky light. Only reflected sunlight from the full Moon can illuminate the visible surface. Exposure is raised to inspect this faint light.",
+    "scenario_name": "Moonlight render regression",
+    "distance_unit": "km",
+    "lighting": {
+        "ambient_light": 0.0,
+        "reference_distance": 10.0,
+        "exposure": 50.0,
+        "reflections_enabled": true
+    },
+    "skybox": {"enabled": false, "background_color": [0.0, 0.0, 0.0]},
+    "sun": {"radius": 1.0, "absolute_magnitude": 3.5, "color": [1.0, 1.0, 1.0]},
+    "planets": [
+        {
+            "name": "earth",
+            "mass_kg": 8e17,
+            "radius": 1.0,
+            "color": [0.5, 0.5, 0.5],
+            "orbit": {"parent": "sun", "semi_major_axis": 10.0},
+            "rotation": {"period_seconds": 0.0},
+            "reflection": {"geometric_albedo": 0.0}
+        },
+        {
+            "name": "moon",
+            "mass_kg": 1e16,
+            "radius": 0.5,
+            "orbit": {"parent": "earth", "semi_major_axis": 3.0},
+            "rotation": {"period_seconds": 0.0},
+            "reflection": {"geometric_albedo": 0.12, "color": [1.0, 1.0, 1.0]}
+        }
+    ],
+    "surface_camera": {
+        "planet_index": 0,
+        "latitude_deg": 0.0,
+        "longitude_deg": 0.0,
+        "altitude": 0.002,
+        "direction_ned": [1.0, 0.0, 0.4],
+        "fov": 60.0
+    }
+}

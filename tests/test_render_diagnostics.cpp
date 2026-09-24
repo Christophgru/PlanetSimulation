@@ -133,3 +133,18 @@ TEST(RenderDiagnosticsTest, ConfiguredBackgroundAndStarsDoNotBecomePlanetPixels)
     EXPECT_EQ(result.planet.minX, 3);
     EXPECT_EQ(result.planet.maxX, 3);
 }
+
+TEST(RenderDiagnosticsTest, WhiteSunIsRestrictedToItsProjectedRegionAndNotCountedAsStars) {
+    auto rgba = backgroundFrame();
+    paint(rgba, 1, 1, 250, 250, 250); // Sun.
+    paint(rgba, 5, 4, 250, 250, 250); // Identical white background star.
+    paint(rgba, 4, 2, 88, 150, 66);   // Earth.
+    const std::vector<double> white{250.0 / 255, 250.0 / 255, 250.0 / 255};
+    const auto result = rendering::analyzeFrame(rgba, kWidth, kHeight, white, kPlanetColor,
+        true, {}, {0.82, 0.9, 1.0}, std::array<int, 4>{0, 0, 2, 2});
+    EXPECT_EQ(result.sun.count, 1);
+    EXPECT_EQ(result.starLike.count, 1);
+    EXPECT_TRUE(result.bodiesSeparate());
+    EXPECT_EQ(result.sun.minX, 1);
+    EXPECT_EQ(result.sun.maxY, 1);
+}
