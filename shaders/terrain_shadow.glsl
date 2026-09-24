@@ -14,13 +14,21 @@ float sunlightVisibility(float incidence) {
     vec2 gradient = vec2(0.0);
     if (abs(determinant) > 1e-12)
         gradient = vec2(dy.y * dx.z - dx.y * dy.z, dx.x * dy.z - dy.x * dx.z) / determinant;
+    // At grazing incidence the projected triangle collapses toward a line.
+    // Extrapolating its plane across neighboring texels can then put a tap's
+    // comparison depth in front of the mountain that should block it. Bound
+    // both the tap correction and the bilinear bias to the same finite slope.
+    const float maxReceiverSlope = 10.0;
+    float slope = abs(gradient.x) + abs(gradient.y);
+    gradient /= max(1.0, slope / maxReceiverSlope);
+    slope = min(slope, maxReceiverSlope);
     if (incidence <= 0.0) return 1.0;
     if (any(lessThan(position, vec3(0.0))) || any(greaterThan(position, vec3(1.0))))
         return 1.0;
     vec2 texel = 1.0 / vec2(textureSize(uShadowMap, 0));
     // Bias covers the hardware bilinear footprint; the outer 3x3 taps use
-    // the exact receiver-plane gradient instead of increasing that bias.
-    float bias = uShadowBias * (1.0 + 2.0 * min(abs(gradient.x) + abs(gradient.y), 10.0));
+    // the bounded receiver-plane gradient instead of increasing that bias.
+    float bias = uShadowBias * (1.0 + 2.0 * slope);
     float visible = 0.0;
     for (int y = -1; y <= 1; ++y)
         for (int x = -1; x <= 1; ++x)

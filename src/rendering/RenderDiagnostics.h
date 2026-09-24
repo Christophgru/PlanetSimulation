@@ -50,6 +50,7 @@ struct LightingFrameMetrics {
     int terrainPixels = 0;
     int skyPixels = 0;
     double terrainMeanLuminance = 0.0;
+    double terrainMaxLuminance = 0.0;
     double skyMeanLuminance = 0.0;
 };
 
@@ -78,6 +79,7 @@ inline LightingFrameMetrics measureLightingFrame(const std::vector<unsigned char
         if (depth[index] >= 0.0f && depth[index] < 1.0f && selectedPlanet) {
             ++result.terrainPixels;
             result.terrainMeanLuminance += value;
+            result.terrainMaxLuminance = std::max(result.terrainMaxLuminance, value);
         } else if (depth[index] == 1.0f) {
             ++result.skyPixels;
             result.skyMeanLuminance += value;

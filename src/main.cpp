@@ -904,6 +904,7 @@ int main(int argc, char** argv) {
                         {"metered_illuminance", frameExposure.meteredIlluminance},
                         {"terrain_pixels", metrics.terrainPixels}, {"sky_pixels", metrics.skyPixels},
                         {"terrain_mean_display_luminance", metrics.terrainMeanLuminance},
+                        {"terrain_max_display_luminance", metrics.terrainMaxLuminance},
                         {"sky_mean_display_luminance", metrics.skyMeanLuminance},
                         {"non_background_pixels", analysis.drawn.count}}}
                 };

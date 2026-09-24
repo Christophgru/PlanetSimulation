@@ -1,0 +1,13 @@
+{
+    "description": "Grazing sunlight regression at the reported camera and adjacent simulation times. Peak terrain luminance catches isolated bright triangles that barely affect the mean.",
+    "base_config": "base.json",
+    "render_size": [
+        800,
+        600
+    ],
+    "cases": [
+        "twilight_before.json",
+        "twilight_reported.json",
+        "twilight_after.json"
+    ]
+}

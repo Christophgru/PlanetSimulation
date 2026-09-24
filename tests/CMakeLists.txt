@@ -126,6 +126,11 @@ add_test(NAME LightingScenariosRenderIntegration COMMAND ${Python3_EXECUTABLE}
     ${CMAKE_CURRENT_SOURCE_DIR}/render_lighting_scenarios.py --binary $<TARGET_FILE:PlanetSimulation>
     --output-dir ${CMAKE_BINARY_DIR}/lighting-scenarios)
 set_tests_properties(LightingScenariosRenderIntegration PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 120)
+add_test(NAME TwilightScenariosRenderIntegration COMMAND ${Python3_EXECUTABLE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/render_lighting_scenarios.py --binary $<TARGET_FILE:PlanetSimulation>
+    --manifest ${CMAKE_CURRENT_SOURCE_DIR}/scenarios/twilight/manifest.json
+    --output-dir ${CMAKE_BINARY_DIR}/twilight-scenarios)
+set_tests_properties(TwilightScenariosRenderIntegration PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 120)
 add_custom_target(render_lighting_scenarios
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/render_lighting_scenarios.py
         --binary $<TARGET_FILE:PlanetSimulation> --output-dir ${CMAKE_BINARY_DIR}/lighting-scenarios

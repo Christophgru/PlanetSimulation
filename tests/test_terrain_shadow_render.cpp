@@ -67,7 +67,8 @@ public:
     }
 
     Image render(bool waterSurface = false, glm::dvec3 indirect = glm::dvec3(0),
-                 float waterRadiusScale = 1.0f, bool secondBody = false) {
+                 float waterRadiusScale = 1.0f, bool secondBody = false,
+                 bool planeReceiver = false, float exposure = 1.0f) {
         maps.ensure(secondBody ? 2 : 1, settings);
         if (settings.enabled) {
             maps.begin(0, depth, sun, 1.5);
@@ -99,7 +100,7 @@ public:
         shader.setFloat3("uSunDirection", sun.x, sun.y, sun.z);
         shader.setFloat3("uSunlight", 1, 1, 1);
         shader.setFloat3("uIndirectLight", indirect.x, indirect.y, indirect.z);
-        shader.setFloat("uExposure", 1);
+        shader.setFloat("uExposure", exposure);
         shader.setFloat("uEmissive", 0);
         shader.setFloat("uClipRadius", -1);
         maps.bindForShading(0, shader, settings, waterSurface ? waterRadiusScale : 1);
@@ -112,7 +113,8 @@ public:
             shader.setInt("uReflectionTexture", 0);
             shader.setMat4("uReflectionViewProjection", glm::value_ptr(glm::mat4(1)));
             sea.draw();
-        } else ridges.draw();
+        } else if (planeReceiver) sea.draw();
+        else ridges.draw();
         Image result(size * size * 3);
         glReadPixels(0, 0, size, size, GL_RGB, GL_UNSIGNED_BYTE, result.data());
         EXPECT_EQ(glGetError(), GLenum(GL_NO_ERROR));
@@ -175,6 +177,46 @@ TEST(TerrainShadowRender, SunMotionResolutionReloadAndOtherBodiesDoNotLeaveStale
         EXPECT_GT(pixel(scene.render(), 0.15)[0], 100);
         scene.sun = glm::normalize(glm::dvec3(-1, 0, 1));
     }
+}
+
+TEST(TerrainShadowRender, GrazingSunCannotLeakThroughAnOpaqueForegroundWall) {
+    ShadowScene scene;
+    // Horizontal receiver at z=0.01. Its whole visible area is behind a tall
+    // vertical wall, including all neighboring shadow-map samples. Even a
+    // near-parallel Sun ray must hit that wall before reaching the receiver.
+    const glm::dvec3 indirect(0.00001, 0.000005, 0.0000025);
+    const auto expected = rendering::displayColor(indirect, 4096) * 255.0;
+    for (float side : {-1.0f, 1.0f}) {
+        scene.ridges.vertices.clear();
+        scene.ridges.indices.clear();
+        for (auto p : {glm::vec3(side * 1.1, -1.2, -1), glm::vec3(side * 1.1, 1.2, -1),
+                       glm::vec3(side * 1.1, 1.2, 1), glm::vec3(side * 1.1, -1.2, 1)})
+            scene.ridges.addVertex(p.x, p.y, p.z, -side, 0, 0);
+        scene.ridges.addTriangle(0, 1, 2);
+        scene.ridges.addTriangle(0, 2, 3);
+        scene.ridges.upload();
+        for (int resolution : {256, 512, 2048}) {
+            scene.settings.resolution = resolution;
+            for (double elevation : {-0.003, -0.00003, 0.0, 0.00003, 0.0003, 0.003, 0.03}) {
+                scene.sun = glm::normalize(glm::dvec3(side, 0, elevation));
+                for (bool water : {false, true}) {
+                    const auto image = scene.render(water, indirect, 1, false, true, 4096);
+                    for (double x : {-0.5, 0.0, 0.5}) {
+                        const auto actual = pixel(image, x);
+                        for (int channel = 0; channel < 3; ++channel)
+                            EXPECT_NEAR(actual[channel], expected[channel], 1.5)
+                                << "side=" << side << ", water=" << water << ", resolution=" << resolution
+                                << ", elevation=" << elevation << ", x=" << x;
+                    }
+                }
+            }
+        }
+    }
+    scene.ridges.indices.clear();
+    scene.ridges.upload();
+    scene.sun = glm::normalize(glm::dvec3(-1, 0, 0.0003));
+    const auto unblocked = scene.render(false, indirect, 1, false, true, 4096);
+    EXPECT_GT(pixel(unblocked, 0)[0], expected.r + 100); // Preserve real grazing sunlight.
 }
 
 int main(int argc, char** argv) {

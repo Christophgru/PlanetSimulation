@@ -164,6 +164,8 @@ lighting direction; shadows between separate celestial bodies are not modeled.
 reduce aliasing. Detail is limited by the map resolution and the current terrain
 LOD. Shadow projection uses body-local coordinates, avoiding precision loss
 from orbital translation. Ambient fill and averaged moonlight remain in shadow.
+Receiver-plane filter corrections are bounded at grazing angles to prevent
+large depth extrapolations that make shadowed triangles flash at sunrise or sunset.
 
 Each config block now has a `description` and a `parameter_descriptions` map.
 These explain units, limits, effects, and reserved settings while keeping the
@@ -435,6 +437,18 @@ day/night brightness, and exact replay of daylight and moonlit images. Dark
 terrain is measured using depth and object identity, without counting the Sun,
 Moon, or stars as terrain. `LightingScenariosRenderIntegration` runs these same
 checks in CTest. Use an existing display instead of `xvfb-run` when available.
+
+`TwilightScenariosRenderIntegration` preserves the reported camera at
+**2707.6216211392884 s** and captures times 0.1 s before and after it. It checks
+peak terrain brightness as well as the mean, so isolated bright triangles
+cannot hide in an otherwise dark image. The GPU shadow tests also sweep
+sunrise/sunset directions and map resolutions for terrain and water behind
+an opaque wall, at maximum night exposure, while preserving real grazing light.
+Generate those replayable captures independently with:
+
+~~~bash
+xvfb-run -a python3 tests/render_lighting_scenarios.py --binary build/PlanetSimulation --manifest tests/scenarios/twilight/manifest.json --output-dir build/twilight-scenarios
+~~~
 
 The saved surface view looks across water toward flatter land and cliffs. The
 surface render test checks for a visible configured body. The orbit

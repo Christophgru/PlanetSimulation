@@ -221,3 +221,25 @@ TEST(RenderDiagnosticsTest, LightingMetricsRejectMissingBuffersAndDoNotInventTer
     EXPECT_EQ(empty.terrainPixels, 0);
     EXPECT_DOUBLE_EQ(empty.terrainMeanLuminance, 0);
 }
+
+TEST(RenderDiagnosticsTest, PeakTerrainLuminanceDetectsIsolatedBrightPixelsWithoutCountingStars) {
+    auto rgba = backgroundFrame();
+    std::vector<float> depth(kWidth * kHeight, 1);
+    std::vector<unsigned char> ids(kWidth * kHeight, 0);
+    const std::array<int, 4> wholeScreen{0, 0, kWidth - 1, kHeight - 1};
+    for (int x = 1; x <= 3; ++x) {
+        paint(rgba, x, 1, 0, 0, 0);
+        depth[kWidth + x] = 0.5;
+        ids[kWidth + x] = 2;
+    }
+    paint(rgba, 4, 1, 255, 255, 255); // A star must not count as a terrain highlight.
+    const auto dark = rendering::measureLightingFrame(rgba, depth, kWidth, kHeight,
+                                                     wholeScreen, wholeScreen, ids);
+    EXPECT_DOUBLE_EQ(dark.terrainMaxLuminance, 0);
+    paint(rgba, 2, 1, 128, 128, 128); // One leaking triangle can leave the mean almost unchanged.
+    const auto fleck = rendering::measureLightingFrame(rgba, depth, kWidth, kHeight,
+                                                      wholeScreen, wholeScreen, ids);
+    EXPECT_EQ(fleck.terrainPixels, 3);
+    EXPECT_NEAR(fleck.terrainMaxLuminance, 128.0 / 255.0, 1e-12);
+    EXPECT_NEAR(fleck.terrainMeanLuminance, fleck.terrainMaxLuminance / 3, 1e-12);
+}

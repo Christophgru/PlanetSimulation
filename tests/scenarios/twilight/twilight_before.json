@@ -1,0 +1,24 @@
+{
+    "name": "twilight_before",
+    "description": "Shadowed terrain retains dim indirect illumination at maximum exposure. The peak bound allows water reflections of bright stars (opacity 0.5 times reflection fraction 0.5) but rejects the reported terrain flecks, which exceeded 0.6.",
+    "simulation_time_seconds": 2707.5216211392885,
+    "expected": {
+        "direct_illuminance": [
+            0,
+            0
+        ],
+        "exposure": [
+            4096,
+            4096
+        ],
+        "terrain_mean_display_luminance": [
+            0.02,
+            0.06
+        ],
+        "terrain_max_display_luminance": [
+            0.01,
+            0.3
+        ]
+    },
+    "verify_replay": false
+}
