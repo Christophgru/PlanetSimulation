@@ -101,8 +101,8 @@
             "mass_kg": 6.338938161361669e+17,
             "orbit": {
                 "parent": "sun",
-                "semi_major_axis": 89.5,
-                "semi_minor_axis": 88.24744871391589,
+                "semi_major_axis": 15.5,
+                "semi_minor_axis": 14.24744871391589,
                 "mean_anomaly_deg": 0.0,
                 "inclination_deg": 0.0,
                 "ascending_node_deg": 0.0,
@@ -306,7 +306,7 @@
         },
         {
             "name": "moon",
-            "mass_kg": 7923672701702087.0,
+            "mass_kg": 792367270170208.0,
             "orbit": {
                 "parent": "earth",
                 "semi_major_axis": 2.5,

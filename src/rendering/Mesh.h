@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <cstdint>
 #include <iostream>
 #include <stdexcept>
 #include <utility>
@@ -16,6 +17,7 @@ public:
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
     bool hasVertexColors = false;
+    std::uint64_t revision = 0;
     
     Mesh() = default;
     
@@ -114,6 +116,7 @@ public:
     }
 
     void upload() {
+        ++revision;
         if (vao == 0) glGenVertexArrays(1, &vao);
         if (vbo == 0) glGenBuffers(1, &vbo);
         if (ebo == 0) glGenBuffers(1, &ebo);

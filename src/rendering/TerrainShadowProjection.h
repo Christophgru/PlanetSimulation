@@ -1,11 +1,33 @@
 #pragma once
 
 #include <cmath>
+#include <cstdint>
 #include <stdexcept>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace rendering {
+
+// Invalidate against the last rendered direction, so small changes accumulate.
+// The angular threshold bounds motion at the reference radius to one map texel.
+class TerrainShadowCache {
+public:
+    bool updateNeeded(const glm::dvec3& sun,double extent,int resolution,std::uint64_t revision) {
+        const auto direction=glm::normalize(sun);
+        const bool changed=!valid_ || extent!=extent_ || resolution!=resolution_ || revision!=revision_ ||
+            glm::length(direction-direction_) >= 2.0/resolution;
+        if (changed) {
+            valid_=true; direction_=direction; extent_=extent; resolution_=resolution; revision_=revision;
+        }
+        return changed;
+    }
+private:
+    bool valid_=false;
+    glm::dvec3 direction_{0};
+    double extent_=0;
+    int resolution_=0;
+    std::uint64_t revision_=0;
+};
 
 // Body-local coordinates keep the shadow depth independent of orbital distance.
 // extent encloses the terrain in units of the planet's reference radius.

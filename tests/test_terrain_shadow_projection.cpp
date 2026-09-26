@@ -84,3 +84,21 @@ TEST(TerrainShadowConfig, RejectsMalformedAndUnboundedSettings) {
     EXPECT_THROW(config::TerrainShadowConfig(config::Config(nlohmann::json::array())), std::invalid_argument);
     EXPECT_THROW(config::LightingConfig(config::Config(nlohmann::json{{"shadows", nullptr}})), std::invalid_argument);
 }
+
+TEST(TerrainShadowCache, ReusesSubTexelChangesButAccumulatedMotionInvalidates) {
+    rendering::TerrainShadowCache cache;
+    EXPECT_TRUE(cache.updateNeeded({1,0,0},1.2,2048,1));
+    EXPECT_FALSE(cache.updateNeeded({1,0,0},1.2,2048,1));
+    EXPECT_FALSE(cache.updateNeeded({1,0.0004,0},1.2,2048,1));
+    EXPECT_FALSE(cache.updateNeeded({1,0.0008,0},1.2,2048,1));
+    EXPECT_TRUE(cache.updateNeeded({1,0.0012,0},1.2,2048,1));
+    EXPECT_FALSE(cache.updateNeeded({1,0.0013,0},1.2,2048,1));
+}
+TEST(TerrainShadowCache, GeometryExtentAndResolutionAlwaysInvalidate) {
+    rendering::TerrainShadowCache cache;
+    EXPECT_TRUE(cache.updateNeeded({1,0,0},1.2,2048,1));
+    EXPECT_TRUE(cache.updateNeeded({1,0,0},1.2,2048,2));
+    EXPECT_TRUE(cache.updateNeeded({1,0,0},1.3,2048,2));
+    EXPECT_TRUE(cache.updateNeeded({1,0,0},1.3,1024,2));
+    EXPECT_FALSE(cache.updateNeeded({2,0,0},1.3,1024,2)); // Direction, not magnitude.
+}

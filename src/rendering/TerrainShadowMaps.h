@@ -29,6 +29,7 @@ public:
             throw std::runtime_error("Shadow resolution exceeds GL_MAX_TEXTURE_SIZE");
         resolution_ = settings.resolution;
         matrices_.resize(count);
+        cache_.resize(count);
         textures_.resize(count);
         glGenFramebuffers(1, &framebuffer_);
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_);
@@ -59,6 +60,13 @@ public:
         glBindTexture(GL_TEXTURE_2D, 0);
         glActiveTexture(GL_TEXTURE0);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+
+    bool beginIfNeeded(std::size_t index,const Shader& shader,const glm::dvec3& sun,
+                       double extent,std::uint64_t revision) {
+        if (!cache_.at(index).updateNeeded(sun,extent,resolution_,revision)) return false;
+        begin(index,shader,sun,extent);
+        return true;
     }
 
     // Caller draws the full terrain mesh after this, including off-camera ridges.
@@ -101,6 +109,7 @@ public:
         if (framebuffer_) glDeleteFramebuffers(1, &framebuffer_);
         textures_.clear();
         matrices_.clear();
+        cache_.clear();
         framebuffer_ = 0;
         resolution_ = 0;
     }
@@ -110,6 +119,7 @@ private:
     int resolution_ = 0;
     std::vector<GLuint> textures_;
     std::vector<glm::mat4> matrices_;
+    std::vector<TerrainShadowCache> cache_;
 };
 
 } // namespace rendering

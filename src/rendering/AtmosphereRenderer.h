@@ -8,6 +8,7 @@
 #include "simulation/Atmosphere.h"
 #include "rendering/CelestialLighting.h"
 #include "rendering/Shader.h"
+#include "rendering/AtmosphereTransmittance.h"
 
 namespace rendering {
 inline bool hasAtmosphere(const config::ScenarioConfig& scene) {
@@ -34,11 +35,25 @@ inline void bindAtmosphere(const Shader& shader, const config::PlanetConfig& pla
 // Geometry depth/stencil survive composition for capture diagnostics and replay.
 class AtmosphereRenderer {
 public:
-    AtmosphereRenderer() = default;
+    explicit AtmosphereRenderer(int downsample = 4) : downsample_(downsample) {
+        if (downsample < 1 || downsample > 4) throw std::invalid_argument("Invalid atmosphere downsample");
+    }
     AtmosphereRenderer(const AtmosphereRenderer&) = delete;
     AtmosphereRenderer& operator=(const AtmosphereRenderer&) = delete;
     ~AtmosphereRenderer() { destroy(); }
     GLuint framebuffer() const { return framebuffers_[0]; }
+    void presentCached(const Shader& shader) const {
+        glBindFramebuffer(GL_FRAMEBUFFER,0); glViewport(0,0,width_,height_);
+        glDisable(GL_DEPTH_TEST); glDepthMask(GL_FALSE); glDisable(GL_BLEND); glDisable(GL_STENCIL_TEST);
+        shader.use(); shader.setInt("uToneMap",1); shader.setInt("uSceneColor",0);
+        shader.setFloat("uExposure",lastExposure_);
+        glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D,colors_[lastSource_]);
+        glBindVertexArray(vao_); glDrawArrays(GL_TRIANGLES,0,3); glBindVertexArray(0);
+        glBindFramebuffer(GL_READ_FRAMEBUFFER,framebuffers_[0]); glBindFramebuffer(GL_DRAW_FRAMEBUFFER,0);
+        glBlitFramebuffer(0,0,width_,height_,0,0,width_,height_,GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT,GL_NEAREST);
+        glBindFramebuffer(GL_FRAMEBUFFER,0); glBindTexture(GL_TEXTURE_2D,0);
+        glEnable(GL_DEPTH_TEST); glDepthMask(GL_TRUE);
+    }
     void begin(int width, int height) {
         if (width <= 0 || height <= 0) throw std::invalid_argument("Invalid atmosphere viewport");
         if (width != width_ || height != height_) {
@@ -64,6 +79,21 @@ public:
                 if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
                     throw std::runtime_error("Atmosphere framebuffer is incomplete");
             }
+            if (downsample_>1) {
+                lowWidth_=(width+downsample_-1)/downsample_; lowHeight_=(height+downsample_-1)/downsample_;
+                glGenFramebuffers(1,&lowFramebuffer_); glBindFramebuffer(GL_FRAMEBUFFER,lowFramebuffer_);
+                glGenTextures(2,lowColors_);
+                for (int i=0;i<2;++i) {
+                    glBindTexture(GL_TEXTURE_2D,lowColors_[i]);
+                    glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA16F,lowWidth_,lowHeight_,0,GL_RGBA,GL_FLOAT,nullptr);
+                    textureSettings();
+                    glFramebufferTexture2D(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0+i,GL_TEXTURE_2D,lowColors_[i],0);
+                }
+                const GLenum attachments[]={GL_COLOR_ATTACHMENT0,GL_COLOR_ATTACHMENT1};
+                glDrawBuffers(2,attachments);
+                if(glCheckFramebufferStatus(GL_FRAMEBUFFER)!=GL_FRAMEBUFFER_COMPLETE)
+                    throw std::runtime_error("Atmosphere integration framebuffer is incomplete");
+            }
             glBindTexture(GL_TEXTURE_2D, 0);
         }
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffers_[0]);
@@ -72,12 +102,15 @@ public:
     void finish(const Shader& shader, const config::ScenarioConfig& scene,
                 const std::vector<simulation::BodyState>& bodies, const FrameLighting& lighting,
                 double exposure, const glm::mat4& view, const glm::mat4& projection,
-                const glm::dvec3& eye, GLuint output = 0, bool toneMap = true) {
+                const glm::dvec3& eye, GLuint output = 0, bool toneMap = true,
+                const AtmosphereTransmittance* columns = nullptr) {
         glDisable(GL_DEPTH_TEST); glDepthMask(GL_FALSE);
         glDisable(GL_BLEND); glDisable(GL_STENCIL_TEST);
         glViewport(0, 0, width_, height_);
         shader.use(); shader.setInt("uToneMap", 0);
         shader.setInt("uSceneColor", 0); shader.setInt("uSceneDepth", 2);
+        shader.setInt("uAtmScatteringBuffer",4); shader.setInt("uAtmTransferBuffer",5);
+        shader.setInt("uAtmIntegrateOnly",0); shader.setInt("uAtmResolve",0);
         shader.setFloat("uExposure", exposure);
         const auto inverseProjection = glm::inverse(projection);
         shader.setMat4("uInverseProjection", glm::value_ptr(inverseProjection));
@@ -94,6 +127,8 @@ public:
             const auto& planet = scene.planets[i];
             if (!planet.atmosphere.enabled || planet.atmosphere.surface_pressure_pa == 0) continue;
             const auto worldToBody = glm::transpose(bodies[i + 1].orientation);
+            shader.setInt("uAtmUseColumns", 0);
+            if (columns) columns->bind(i, shader);
             bindAtmosphere(shader, planet, scene.metersPerWorldUnit(), worldToBody * lighting.planets[i].sunDirection);
             shader.setFloat("uAtmSunAngularRadius", std::asin(std::clamp(scene.sun.radius /
                 std::max(scene.sun.radius, glm::length(bodies[0].position - bodies[i + 1].position)), 0.0, 1.0)));
@@ -107,12 +142,24 @@ public:
             shader.setFloat3("uAtmSunlight", sun.x, sun.y, sun.z);
             shader.setFloat3("uAtmIndirect", indirect.x, indirect.y, indirect.z);
             const int destination = source == 1 ? 2 : 1;
-            glBindFramebuffer(GL_FRAMEBUFFER, framebuffers_[destination]);
             glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, colors_[source]);
+            if (downsample_>1) {
+                glActiveTexture(GL_TEXTURE4); glBindTexture(GL_TEXTURE_2D,0);
+                glActiveTexture(GL_TEXTURE5); glBindTexture(GL_TEXTURE_2D,0);
+                shader.setInt("uAtmIntegrateOnly",1); shader.setInt("uAtmResolve",0);
+                glBindFramebuffer(GL_FRAMEBUFFER,lowFramebuffer_); glViewport(0,0,lowWidth_,lowHeight_);
+                glDrawArrays(GL_TRIANGLES,0,3);
+                shader.setInt("uAtmIntegrateOnly",0); shader.setInt("uAtmResolve",1);
+                glActiveTexture(GL_TEXTURE4); glBindTexture(GL_TEXTURE_2D,lowColors_[0]);
+                glActiveTexture(GL_TEXTURE5); glBindTexture(GL_TEXTURE_2D,lowColors_[1]);
+            }
+            glBindFramebuffer(GL_FRAMEBUFFER, framebuffers_[destination]);
+            glViewport(0,0,width_,height_);
             glDrawArrays(GL_TRIANGLES, 0, 3);
             source = destination;
         }
         if (toneMap) {
+            lastSource_=source; lastExposure_=exposure;
             glBindFramebuffer(GL_FRAMEBUFFER, output);
             shader.setInt("uToneMap", 1);
             glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, colors_[source]);
@@ -126,6 +173,8 @@ public:
             glBlitFramebuffer(0, 0, width_, height_, 0, 0, width_, height_, GL_COLOR_BUFFER_BIT, GL_NEAREST);
         }
         glBindVertexArray(0);
+        glActiveTexture(GL_TEXTURE5); glBindTexture(GL_TEXTURE_2D,0);
+        glActiveTexture(GL_TEXTURE4); glBindTexture(GL_TEXTURE_2D,0);
         glActiveTexture(GL_TEXTURE2); glBindTexture(GL_TEXTURE_2D, 0);
         glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, 0);
         glBindFramebuffer(GL_FRAMEBUFFER, output);
@@ -134,6 +183,10 @@ public:
 private:
     GLuint framebuffers_[3]{}, colors_[3]{}, depth_ = 0, vao_ = 0;
     int width_ = 0, height_ = 0;
+    int downsample_=4,lowWidth_=0,lowHeight_=0;
+    int lastSource_=0;
+    double lastExposure_=1;
+    GLuint lowFramebuffer_=0,lowColors_[2]{};
     static void textureSettings() {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -142,6 +195,8 @@ private:
     }
     void destroy() {
         glDeleteFramebuffers(3, framebuffers_); glDeleteTextures(3, colors_);
+        glDeleteFramebuffers(1,&lowFramebuffer_); glDeleteTextures(2,lowColors_);
+        lowFramebuffer_=lowColors_[0]=lowColors_[1]=0;
         if (depth_) glDeleteTextures(1, &depth_);
         if (vao_) glDeleteVertexArrays(1, &vao_);
         for (int i = 0; i < 3; ++i) framebuffers_[i] = colors_[i] = 0;

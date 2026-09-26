@@ -4,6 +4,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <vector>
+#include <fstream>
+#include "rendering/FrameProfiler.h"
+#include "rendering/PerformanceOverlay.h"
+#include "rendering/AtmosphereRenderer.h"
 #include "rendering/Shader.h"
 #include "simulation/Atmosphere.h"
 
@@ -101,6 +105,76 @@ TEST_F(AtmosphereRender, VacuumMissedShellAndNearGeometryStayUnwarped) {
 TEST_F(AtmosphereRender, DenseAtmosphereDoesNotLeakTrappedRaysToBackground) {
     config::AtmosphereConfig cfg; cfg.enabled = true; cfg.surface_pressure_pa = 1e7;
     EXPECT_FLOAT_EQ(render(cfg,{0,1.001,0}),0);
+}
+TEST_F(AtmosphereRender, PerformanceOverlayIsVisibleOnlyWhileRequested) {
+    config::AtmosphereConfig cfg; cfg.enabled=true; cfg.surface_pressure_pa=0;
+    render(cfg,{0,1.001,0});
+    rendering::PerformanceOverlay overlay;
+    auto pixel = [&](int x,int y) {
+        std::array<float,3> value{}; glReadPixels(x,y,1,1,GL_RGB,GL_FLOAT,value.data()); return value;
+    };
+    const auto before=pixel(25,size-23);
+    overlay.draw(false,size,size,60,16.7,10,true);
+    EXPECT_EQ(pixel(25,size-23),before);
+    overlay.draw(true,size,size,60,16.7,10,true);
+    EXPECT_NEAR(pixel(25,size-23)[0],0.95,1e-5); // Lit F glyph.
+    EXPECT_NEAR(pixel(5,size/2)[0],0.5,1e-5); // Outside panel unchanged.
+    glBindVertexArray(vao);
+    render(cfg,{0,1.001,0});
+    overlay.draw(false,size,size,60,16.7,10,true);
+    EXPECT_EQ(pixel(25,size-23),before);
+    EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+}
+TEST_F(AtmosphereRender, ProfilerWritesEveryFrameAndResolvesGpuQueriesWithoutPollingWaits) {
+    {
+        rendering::FrameProfiler profiler(PLANET_PERFORMANCE_TRACE);
+        for(int i=0;i<24;++i) {
+            profiler.beginFrame(i/60.0);
+            { rendering::FrameProfiler::Scope scope(&profiler,rendering::FrameStage::Opaque);
+              glClearColor(0.1f,0.2f,0.3f,1); glClear(GL_COLOR_BUFFER_BIT); }
+            profiler.endFrame();
+        }
+        glFinish(); // Explicit test synchronization, never inside the profiler.
+        profiler.collect(); EXPECT_TRUE(profiler.gpuReady()); EXPECT_GE(profiler.gpuMilliseconds,0);
+    }
+    std::ifstream stream(PLANET_PERFORMANCE_TRACE); std::string row;
+    ASSERT_TRUE(std::getline(stream,row)); EXPECT_NE(row.find("gpu_opaque_ms"),std::string::npos);
+    int count=0; while(std::getline(stream,row)) ++count;
+    EXPECT_EQ(count,24); EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+}
+TEST_F(AtmosphereRender, ReducedAtmosphereAndLookupPreserveSharpDepthEdges) {
+    auto scene=config::ScenarioConfig(config::Config::load("tests/scenarios/atmosphere/base.json"));
+    std::vector<simulation::BodyState> bodies(scene.planets.size()+1);
+    bodies[0].position={30,0,0}; bodies[1].position={0,0,0}; bodies[2].position={10,10,10};
+    const auto light=rendering::calculateLighting(scene,bodies);
+    rendering::AtmosphereTransmittance table; table.ensure(scene);
+    const glm::dvec3 eye(0,1.03,0);
+    const auto view=glm::lookAt(glm::vec3(eye),glm::vec3(eye)+glm::vec3(1,0,0),glm::vec3(0,1,0));
+    auto capture=[&](int downsample,bool lookup) {
+        rendering::AtmosphereRenderer atmosphere(downsample); atmosphere.begin(size,size);
+        glDisable(GL_SCISSOR_TEST); glDepthMask(GL_TRUE); glClearDepth(1);
+        glClearColor(0.3f,0.4f,0.5f,1); glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
+        glEnable(GL_SCISSOR_TEST); glScissor(0,0,size/2,size);
+        const auto clip=projection*glm::vec4(0,0,-0.03,1);
+        glClearDepth(0.5+0.5*clip.z/clip.w); glClearColor(0.15f,0.6f,0.2f,1);
+        glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT); glDisable(GL_SCISSOR_TEST); glClearDepth(1);
+        atmosphere.finish(shader,scene,bodies,light,1,view,projection,eye,framebuffer,false,lookup ? &table : nullptr);
+        std::vector<float> pixels(size*size*3);
+        glReadPixels(0,0,size,size,GL_RGB,GL_FLOAT,pixels.data());
+        EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR)); return pixels;
+    };
+    const auto exact=capture(1,false), lookup=capture(1,true), reduced=capture(4,true);
+    double tableError=0,reducedError=0;
+    for(std::size_t i=0;i<exact.size();++i) {
+        ASSERT_TRUE(std::isfinite(reduced[i]));
+        tableError+=std::abs(exact[i]-lookup[i]); reducedError+=std::abs(exact[i]-reduced[i]);
+    }
+    EXPECT_LT(tableError/exact.size(),0.0005);
+    EXPECT_LT(reducedError/exact.size(),0.001);
+    for(int x : {size/2-1,size/2}) for(int c=0;c<3;++c) {
+        const int offset=3*((size/2)*size+x)+c;
+        EXPECT_NEAR(reduced[offset],exact[offset],0.002); // No bright/dark edge halo.
+    }
 }
 } // namespace
 int main(int argc,char** argv) {

@@ -106,7 +106,10 @@ exposure. Direct sunlight is attenuated along its atmospheric path too.
 The finite solar disk softens the planet's twilight shadow. The first version
 uses RGB single scattering, exponential density profiles, and a bounded
 48-step curved view integration (24 steps with refraction disabled), with
-8 straight light-path samples. It uses a single-sample HDR
+8 straight light-path samples precomputed in a reusable GPU density-column
+table. Atmospheric fields use quarter resolution with depth-aware upsampling
+and full-resolution integration at unresolved edges. Terrain, stars, and the
+Sun stay at full resolution. It uses a single-sample HDR
 buffer; airless scenes keep their existing multisampling. This follows the
 scattering/transmittance formulation described by
 [Bruneton](https://ebruneton.github.io/precomputed_atmospheric_scattering/),
@@ -161,6 +164,89 @@ For example:
 ~~~bash
 ./build/PlanetSimulation --replay build/atmosphere-scenarios/mist.png.json --surface-capture build/mist-replay.png
 ~~~
+
+## FPS and performance traces
+
+Hold **Tab** in any camera mode to show FPS, frame time, and GPU pass time.
+Release Tab to hide the overlay. FPS uses a rolling wall-clock average over
+roughly 0.25 seconds; GPU timings arrive a few frames later. The interactive
+loop uses vsync without adding a second 16 ms sleep.
+
+<a href="docs/screenshots/performance-overlay.png"><img src="docs/screenshots/performance-overlay.png" width="640" alt="Tab performance overlay showing about 38 FPS above the atmospheric terrain"></a>
+
+Record a CSV trace while exploring the scene:
+
+~~~bash
+./build/PlanetSimulation --performance-trace build/performance.csv
+~~~
+
+Each row identifies its frame and simulation time, CPU wall time and GPU time
+per pass, terrain uploads, shadow updates/reuses, and completed-scene reuses.
+`terrain_build_ms` records completed CPU terrain jobs on the frame that installs
+them, including background jobs; their elapsed time can overlap earlier frames
+and must not be added to the current frame time.
+Passes cover simulation updates, mesh preparation, lighting, lookup tables,
+shadows, opaque geometry, reflected geometry, reflected atmosphere, water,
+main atmosphere, cached presentation, HUD, and swap/presentation. GPU queries
+are collected only when ready; an eight-frame ring skips GPU sampling if it
+fills, marking `gpu_valid=0` and leaving GPU values empty. Rows can arrive out
+of order: sort by `frame`. GPU queries run only while Tab is held or tracing
+is requested. Tracing never calls `glFinish` or waits for a query result.
+
+CPU values are elapsed wall time, including driver stalls, not CPU utilization.
+A large `cpu_present_ms` can be GPU backpressure or vsync; inspect the GPU pass
+columns to identify rendering costs. `gpu_ms` sums the measured GPU passes;
+it excludes presentation idle time. CPU and GPU times overlap and must not be
+added together.
+
+For a repeatable, uncapped benchmark with a final capture:
+
+~~~bash
+./build/PlanetSimulation --config configs/scenarios/solar_system.json --surface-capture build/performance.png --simulation-time 20 --render-size 1280 720 --benchmark-frames 90 --performance-trace build/performance.csv
+~~~
+
+The simulation advances by 1/60 s per benchmark frame. Set `--benchmark-step 0`
+to measure paused-frame reuse, or another step to measure slowly changing
+shadows. Discard the first ten frames (shader/resource warmup) and the last
+frame (captured without swapping) when comparing steady rendering costs.
+`--benchmark-overlay` includes the HUD for diagnostics; its wall-time values
+are not part of deterministic scene replay. `--atmosphere-full-resolution`
+keeps the full-resolution integration path for quality comparisons. Capture
+sidecars preserve that quality choice for replay.
+
+On the Quadro M1000M at 1280×720, the same 90-frame surface benchmark measured:
+
+| Rendering version | Mean frame time | Main atmosphere GPU | Reflected atmosphere GPU |
+| --- | ---: | ---: | ---: |
+| Before optimization | 208 ms | 117 ms | 79 ms |
+| GPU density-column table | 138 ms | 75 ms | 54 ms |
+| Reduced atmospheric fields and shared ray calculations | 26 ms | 10 ms | 9 ms |
+
+These measurements used Debug CPU builds to isolate the rendering changes;
+normal development builds now use `RelWithDebInfo`. This is about **8× faster**
+on that scene and GPU, not a guaranteed frame rate for every view. A later
+`RelWithDebInfo` verification run measured 28.5 ms (about 35 FPS). The final
+capture's average per-channel difference from the original was below 0.04 of
+one 8-bit colour level; differences concentrate around edges. GPU tests also
+compare the reduced path with the full-resolution reference at a sharp depth
+boundary, while the existing night, mist, dust, sunset and bending checks stay
+in place.
+
+The remaining work is still mostly on the GPU. Moving more CPU algorithms to
+shaders would not address the measured bottleneck: cached CPU mesh preparation
+was about 0.005 ms per frame. The useful reuse rules are now:
+
+- Atmospheric density columns are generated on the GPU once per shell shape;
+  camera movement, gas composition, sunlight and exposure reuse them.
+- Shadow maps update when accumulated local Sun-direction change reaches
+  approximately one shadow-map texel, or when mesh revision, extent or
+  resolution changes. Config reload invalidates them.
+- A paused atmospheric scene with identical camera, simulation time, geometry
+  and viewport reuses its completed HDR image. Pending terrain builds prevent
+  this reuse. The HUD is drawn separately, so releasing Tab removes it immediately.
+  The uncapped paused benchmark took about 1.6 ms per frame.
+- Existing terrain LOD movement thresholds and background mesh generation remain
+  active. Moving scenes still render every frame.
 
 ## Lighting baseline without atmosphere
 
@@ -371,10 +457,12 @@ sudo apt install build-essential cmake git python3 libgl1-mesa-dev libglfw3-dev 
 ## Configure, build, and test
 
 Run these commands from the repository root. Repeating the configure and build
-commands updates an existing build directory.
+commands updates an existing build directory. `RelWithDebInfo` keeps debug
+symbols while optimizing CPU terrain generation; use `Debug` when needed for
+step-by-step debugging, rather than for frame-rate comparisons.
 
 ~~~bash
-cmake -S . -B build -DBUILD_TESTING=ON -DCMAKE_BUILD_TYPE=Debug
+cmake -S . -B build -DBUILD_TESTING=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo
 cmake --build build --parallel 2
 ~~~
 
@@ -386,7 +474,7 @@ ctest --output-on-failure
 cd ..
 ~~~
 
-The suite has 28 CTest entries covering unit tests, GPU shadows, scene captures,
+The suite has 30 CTest entries covering unit tests, GPU shadows, scene captures,
 lighting scenarios, and exact replay. It is verified on the native NVIDIA
 display and Mesa llvmpipe under Xvfb. GPU shadow tests use their own offscreen
 framebuffer, so hidden-window allocation does not determine their result.

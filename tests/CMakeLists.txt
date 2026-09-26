@@ -155,5 +155,15 @@ add_custom_target(render_atmosphere_scenarios
 add_executable(atmosphere_render_tests test_atmosphere_render.cpp)
 target_link_libraries(atmosphere_render_tests PRIVATE GTest::gtest OpenGL::GL GLEW::GLEW glfw glm::glm nlohmann_json::nlohmann_json)
 target_include_directories(atmosphere_render_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_compile_definitions(atmosphere_render_tests PRIVATE PLANET_PERFORMANCE_TRACE="${CMAKE_BINARY_DIR}/performance-test.csv")
 add_test(NAME AtmosphereRefractionRenderIntegration COMMAND atmosphere_render_tests)
 set_tests_properties(AtmosphereRefractionRenderIntegration PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
+add_executable(frame_reuse_tests test_frame_reuse.cpp)
+target_link_libraries(frame_reuse_tests PRIVATE GTest::gtest_main OpenGL::GL GLEW::GLEW glm::glm)
+target_include_directories(frame_reuse_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+add_test(NAME FrameReuseTests COMMAND frame_reuse_tests)
+add_test(NAME PerformanceCaptureIntegration COMMAND ${Python3_EXECUTABLE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/test_performance_capture.py --binary $<TARGET_FILE:PlanetSimulation>
+    --output-dir ${CMAKE_BINARY_DIR}/performance-capture-tests)
+set_tests_properties(PerformanceCaptureIntegration PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 60)

@@ -1,5 +1,7 @@
 #define PLANET_ATMOSPHERE
 uniform bool uAtmEnabled;
+uniform bool uAtmUseColumns;
+uniform sampler2D uAtmColumns;
 uniform float uAtmOuter;
 uniform float uAtmRefractivity; // Surface n - 1; zero disables bending.
 uniform vec2 uAtmHeights;
@@ -49,6 +51,25 @@ vec3 atmosphereLightTransmittance(vec3 point, vec3 direction) {
     if (ground.x > 0.00001 && ground.x < outer.y) return vec3(0.0);
     if (length(point) < 1.0 && dot(point, direction) < 0.0) return vec3(0.0);
     float start = max(outer.x, 0.0);
+    if (uAtmUseColumns) {
+        vec3 entry = point + direction*start;
+        float inside = 0.0;
+        if (length(entry)<1.0) {
+            // Reflected cameras can lie below the reference sea sphere.
+            inside = max(0.0,atmosphereSphere(entry,direction,1.0).y);
+            entry += direction*inside;
+        }
+        float radius = clamp(length(entry),1.0,uAtmOuter);
+        float H = sqrt(uAtmOuter*uAtmOuter-1.0);
+        float rho = sqrt(max(0.0,radius*radius-1.0));
+        float distance = max(0.0,outer.y-start-inside);
+        float shortest = uAtmOuter-radius, longest = rho+H;
+        vec2 unit = vec2((distance-shortest)/max(longest-shortest,1e-6),rho/H);
+        vec2 uv = (clamp(unit,0.0,1.0)*vec2(255.0,127.0)+0.5)/vec2(256.0,128.0);
+        vec2 column = texture(uAtmColumns,uv).rg+vec2(inside);
+        vec3 opticalDepth = uAtmRayleigh*column.x+(uAtmScatter+uAtmAbsorb)*column.y;
+        return visibility*exp(-min(opticalDepth,vec3(80.0)));
+    }
     float stepLength = max(0.0, outer.y - start) / 8.0;
     vec3 opticalDepth = vec3(0.0);
     for (int i = 0; i < 8; ++i)
