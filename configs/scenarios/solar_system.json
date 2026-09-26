@@ -3,7 +3,7 @@
     "scenario_name": "Solar System",
     "distance_unit": "km",
     "lighting": {
-        "ambient_light": 0.000001,
+        "ambient_light": 1e-06,
         "reference_distance": 10.0,
         "exposure": 1.0,
         "reflections_enabled": true,
@@ -242,8 +242,6 @@
                     "color": "Linear RGB water color, each channel 0..1, illuminated by sunlight and reflected body light."
                 }
             },
-            "atmosphere_enabled": true,
-            "atmosphere_height": 0.3,
             "reflection": {
                 "geometric_albedo": 0.3,
                 "color": [
@@ -269,9 +267,41 @@
                 "terrain_lod": "Tessellation density and triangle budget selected from distance along the surface.",
                 "terrain_landscape": "Broad continental, plain and cliff height features, added to surface_noise.",
                 "water": "Spherical water shell and its visual reflection of the scene.",
-                "atmosphere_enabled": "Reserved atmosphere metadata; atmospheric scattering is not rendered yet.",
-                "atmosphere_height": "Reserved atmosphere thickness in distance_unit; currently has no visual effect.",
-                "reflection": "Mean reflectivity and color for sunlight bounced toward other bodies, independent of local terrain details."
+                "reflection": "Mean reflectivity and color for sunlight bounced toward other bodies, independent of local terrain details.",
+                "atmosphere": "Optional atmosphere composition, outer radius and reference air conditions."
+            },
+            "atmosphere": {
+                "enabled": true,
+                "radius_multiplier": 1.1,
+                "surface_pressure_pa": 101325.0,
+                "temperature_k": 293.15,
+                "suspended_water_fraction": 0.001,
+                "droplet_radius_um": 10.0,
+                "gas-contents": {
+                    "oxygen": 25.0,
+                    "water": 2.0,
+                    "nitrogen": 70.0,
+                    "red_dust": 0.0001,
+                    "description": "Percent composition. The unspecified balance uses inert argon-like optical properties. Water in excess of saturation can form suspended droplets; red_dust is an effective aerosol loading.",
+                    "parameter_descriptions": {
+                        "oxygen": "Oxygen percentage, 0..100.",
+                        "water": "Total water percentage, 0..100; saturation depends on pressure and temperature.",
+                        "nitrogen": "Nitrogen percentage, 0..100.",
+                        "red_dust": "Effective red mineral aerosol percentage. 0.0001 gives light coloured haze; 0.1 is an opaque dust load."
+                    }
+                },
+                "description": "Spherical atmosphere shared by sky, terrain, water and reflections. Composition derives RGB scattering and absorption; local thermodynamic state is separate for future weather.",
+                "parameter_descriptions": {
+                    "enabled": "Enable atmosphere rendering. Omitting the whole block preserves an airless scene.",
+                    "radius_multiplier": "Outer radius divided by reference planet radius, 1.001..2.0; 1.1 means a shell 10 percent of the radius thick.",
+                    "surface_pressure_pa": "Reference surface pressure in pascals, 0..10000000; zero is vacuum.",
+                    "temperature_k": "Reference air temperature in kelvin, 180..373.15, used for density and condensation.",
+                    "suspended_water_fraction": "Fraction of excess condensable water retained as mist droplets, 0..1. This first rendering model does not simulate precipitation.",
+                    "droplet_radius_um": "Effective suspended water droplet radius in micrometers, 0.1..100; smaller droplets give greater extinction at the same liquid-water mass.",
+                    "gas-contents": "Optional percentages with total at most 100. Supported species: nitrogen, oxygen, water, argon, carbon_dioxide, red_dust. Omission uses dry Earth-like air.",
+                    "refraction_enabled": "Bend view rays through the density gradient and reproject visible distant sky; terrain visibility remains rasterized."
+                },
+                "refraction_enabled": true
             }
         },
         {

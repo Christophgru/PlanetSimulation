@@ -1,0 +1,15 @@
+{
+  "name": "moonlit_night",
+  "simulation_time_seconds": 45,
+  "expected": {
+    "direct_illuminance": [
+      0,
+      0
+    ],
+    "terrain_mean_display_luminance": [
+      0.03,
+      0.4
+    ]
+  },
+  "verify_replay": true
+}

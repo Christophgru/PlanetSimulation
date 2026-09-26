@@ -41,9 +41,15 @@ def run(args):
         names.add(name)
         scene = copy.deepcopy(base)
         scene["scenario_name"] = name
+        for index, overrides in case.get("planet_overrides", {}).items():
+            scene["planets"][int(index)].update(overrides)
+        if case.get("look_at_sun", False):
+            scene["surface_camera"].pop("direction_ned", None)
+            scene["surface_camera"].pop("up_ned", None)
         scene["surface_camera"].update(case.get("surface_camera", {}))
         scene["surface_camera"]["simulation_time_seconds"] = case["simulation_time_seconds"]
         scene["lighting"].update(case.get("lighting", {}))
+        scene["skybox"].update(case.get("skybox", {}))
         resolved = output / f"{name}.config.json"
         resolved.write_text(json.dumps(scene, indent=2) + "\n")
         image = output / f"{name}.png"
@@ -94,6 +100,19 @@ def run(args):
     if {"daylight", "night_moon"} <= results.keys():
         assert results["daylight"]["sky_interior_mean_display_luminance"] < 0.0001
         assert results["night_moon"]["sky_interior_mean_display_luminance"] > 10 * results["daylight"]["sky_interior_mean_display_luminance"]
+    for comparison in manifest.get("comparisons", []):
+        left_case, left_metric = comparison["left"]
+        right_case, right_metric = comparison["right"]
+        if left_case not in results or right_case not in results:
+            continue
+        left = results[left_case][left_metric]
+        right = results[right_case][right_metric] * comparison.get("scale", 1.0)
+        operator = comparison["operator"]
+        if operator not in ("<", ">"):
+            raise ValueError(f"Unsupported comparison: {operator}")
+        assert (left < right if operator == "<" else left > right), (
+            f"{left_case}.{left_metric}={left} must be {operator} {right_case}.{right_metric} * "
+            f"{comparison.get('scale', 1.0)}={right}")
     (output / "results.json").write_text(json.dumps(results, indent=2) + "\n")
     print(f"Validated {len(results)} lighting scenarios; artifacts: {output}")
 

@@ -51,9 +51,11 @@ struct LightingFrameMetrics {
     int skyPixels = 0;
     double terrainMeanLuminance = 0.0;
     double terrainMaxLuminance = 0.0;
+    double terrainLuminanceStddev = 0.0;
     double skyMeanLuminance = 0.0;
     int skyInteriorPixels = 0;
     double skyInteriorMeanLuminance = 0.0;
+    std::array<double, 3> skyInteriorMeanRGB{};
 };
 
 // Include black terrain in the measurement: a moonless night is a valid image.
@@ -81,6 +83,7 @@ inline LightingFrameMetrics measureLightingFrame(const std::vector<unsigned char
         if (depth[index] >= 0.0f && depth[index] < 1.0f && selectedPlanet) {
             ++result.terrainPixels;
             result.terrainMeanLuminance += value;
+            result.terrainLuminanceStddev += value * value;
             result.terrainMaxLuminance = std::max(result.terrainMaxLuminance, value);
         } else if (depth[index] == 1.0f) {
             ++result.skyPixels;
@@ -98,12 +101,20 @@ inline LightingFrameMetrics measureLightingFrame(const std::vector<unsigned char
             if (interior) {
                 ++result.skyInteriorPixels;
                 result.skyInteriorMeanLuminance += value;
+                for (int c = 0; c < 3; ++c) result.skyInteriorMeanRGB[c] += rgba[4 * index + c] / 255.0;
             }
         }
     }
-    if (result.terrainPixels) result.terrainMeanLuminance /= result.terrainPixels;
+    if (result.terrainPixels) {
+        result.terrainMeanLuminance /= result.terrainPixels;
+        result.terrainLuminanceStddev = std::sqrt(std::max(0.0,
+            result.terrainLuminanceStddev / result.terrainPixels - result.terrainMeanLuminance * result.terrainMeanLuminance));
+    }
     if (result.skyPixels) result.skyMeanLuminance /= result.skyPixels;
-    if (result.skyInteriorPixels) result.skyInteriorMeanLuminance /= result.skyInteriorPixels;
+    if (result.skyInteriorPixels) {
+        result.skyInteriorMeanLuminance /= result.skyInteriorPixels;
+        for (double& channel : result.skyInteriorMeanRGB) channel /= result.skyInteriorPixels;
+    }
     return result;
 }
 

@@ -1,0 +1,69 @@
+{
+  "description": "Matched composition captures: clear air, requested gas mixture, dust blackout, condensed-water mist, deep night, sunset and orbital limb.",
+  "base_config": "base.json",
+  "render_size": [
+    640,
+    480
+  ],
+  "cases": [
+    "airless.json",
+    "standard_air.json",
+    "heavy_dust.json",
+    "mist.json",
+    "night.json",
+    "moonlit_night.json",
+    "sunset.json",
+    "orbital_view.json",
+    "night_without_stars.json"
+  ],
+  "comparisons": [
+    {
+      "left": [
+        "mist",
+        "terrain_luminance_stddev"
+      ],
+      "operator": "<",
+      "right": [
+        "airless",
+        "terrain_luminance_stddev"
+      ],
+      "scale": 0.8
+    },
+    {
+      "left": [
+        "standard_air",
+        "sky_interior_blue"
+      ],
+      "operator": ">",
+      "right": [
+        "standard_air",
+        "sky_interior_red"
+      ],
+      "scale": 1.1
+    },
+    {
+      "left": [
+        "moonlit_night",
+        "terrain_mean_display_luminance"
+      ],
+      "operator": ">",
+      "right": [
+        "night",
+        "terrain_mean_display_luminance"
+      ],
+      "scale": 2
+    },
+    {
+      "left": [
+        "sunset",
+        "sky_interior_red"
+      ],
+      "operator": ">",
+      "right": [
+        "sunset",
+        "sky_interior_blue"
+      ],
+      "scale": 2
+    }
+  ]
+}

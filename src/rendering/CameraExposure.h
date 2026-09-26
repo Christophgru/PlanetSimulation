@@ -10,6 +10,7 @@ struct CameraExposure {
     double skySensitivity = 1.0;
     double directIlluminance = 0.0;
     double reflectedIlluminance = 0.0;
+    double atmosphericIlluminance = 0.0;
     double meteredIlluminance = 0.0;
 };
 
@@ -25,8 +26,11 @@ inline CameraExposure cameraExposure(const config::LightingConfig& settings,
                                      const FrameLighting& lighting,
                                      const std::vector<simulation::BodyState>& bodies,
                                      const glm::dvec3& eyeWorld,
-                                     std::optional<std::size_t> planetIndex = std::nullopt) {
+                                     std::optional<std::size_t> planetIndex = std::nullopt,
+                                     double atmosphericIlluminance = 0.0) {
     settings.validate();
+    if (!std::isfinite(atmosphericIlluminance) || atmosphericIlluminance < 0)
+        throw std::invalid_argument("Atmospheric illuminance must be finite and nonnegative");
     CameraExposure result;
     result.exposure = settings.exposure;
     if (!planetIndex) return result; // Whole-system camera keeps manual exposure.
@@ -40,7 +44,9 @@ inline CameraExposure cameraExposure(const config::LightingConfig& settings,
     result.directIlluminance = luminance(light.sunlight) *
         std::max(0.0, glm::dot(radial / distance, light.sunDirection));
     result.reflectedIlluminance = luminance(light.reflectedLight);
-    result.meteredIlluminance = result.directIlluminance + result.reflectedIlluminance + settings.ambient_light;
+    result.atmosphericIlluminance = atmosphericIlluminance;
+    result.meteredIlluminance = result.directIlluminance + result.reflectedIlluminance +
+        result.atmosphericIlluminance + settings.ambient_light;
     if (!std::isfinite(result.meteredIlluminance) || result.meteredIlluminance < 0.0)
         throw std::invalid_argument("Exposure meter illumination must be finite and nonnegative");
     if (!settings.auto_exposure.enabled) return result;

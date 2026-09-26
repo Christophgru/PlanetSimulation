@@ -37,6 +37,7 @@
 #include "rendering/SurfaceCameraTelemetry.h"
 #include "rendering/WaterReflectionTarget.h"
 #include "rendering/TerrainShadowMaps.h"
+#include "rendering/AtmosphereRenderer.h"
 
 namespace fs = std::filesystem;
 
@@ -213,6 +214,8 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                  const Shader& waterShader, const Shader& skyboxShader,
                  rendering::WaterReflectionTarget& reflectionTarget,
                  const Shader& shadowShader, rendering::TerrainShadowMaps& shadows,
+                 const Shader& atmosphereShader, rendering::AtmosphereRenderer& atmosphere,
+                 rendering::AtmosphereRenderer& reflectionAtmosphere,
                  const Mesh& sunMesh, const Mesh& skyboxMesh,
                  const std::vector<Mesh>& planetMeshes,
                  const std::vector<Mesh>& waterMeshes, int width, int height,
@@ -223,7 +226,18 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
         fov, static_cast<float>(width) / height, clip);
     const auto& sun = scenario.sun;
     const auto lighting = rendering::calculateLighting(scenario, bodies);
-    const auto exposure = rendering::cameraExposure(scenario.lighting, lighting, bodies, eyeWorld, meteredPlanet);
+    double skyIlluminance = 0.0;
+    if (meteredPlanet && scenario.planets[*meteredPlanet].atmosphere.enabled) {
+        const auto& planet = scenario.planets[*meteredPlanet];
+        const auto optics = simulation::atmosphereOptics(planet.atmosphere,
+            planet.radius * scenario.metersPerWorldUnit(), simulation::referenceAir(planet.atmosphere));
+        skyIlluminance = simulation::atmosphericSkyIlluminance(planet.atmosphere, optics,
+            (eyeWorld - bodies[*meteredPlanet + 1].position) / planet.radius,
+            lighting.planets[*meteredPlanet].sunDirection, lighting.planets[*meteredPlanet].sunlight);
+    }
+    const auto exposure = rendering::cameraExposure(scenario.lighting, lighting, bodies, eyeWorld,
+                                                    meteredPlanet, skyIlluminance);
+    const bool atmospheric = rendering::hasAtmosphere(scenario);
     shadows.ensure(scenario.planets.size(), scenario.lighting.shadows);
     if (scenario.lighting.shadows.enabled) {
         for (std::size_t i = 0; i < scenario.planets.size(); ++i) {
@@ -250,6 +264,12 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
         setRgb(target, "uIndirectLight", light.reflectedLight + glm::dvec3(scenario.lighting.ambient_light));
         target.setFloat("uExposure", static_cast<float>(exposure.exposure));
         shadows.bindForShading(index, target, scenario.lighting.shadows, radiusScale);
+        target.setFloat("uAtmSunAngularRadius", std::asin(std::clamp(scenario.sun.radius /
+            std::max(scenario.sun.radius, glm::length(bodies[0].position - bodies[index + 1].position)), 0.0, 1.0)));
+        target.setInt("uLinearOutput", atmospheric);
+        target.setFloat("uAtmosphereRadiusScale", radiusScale);
+        rendering::bindAtmosphere(target, scenario.planets[index], scenario.metersPerWorldUnit(),
+            glm::transpose(bodies[index + 1].orientation) * light.sunDirection);
     };
 
     auto drawSkybox = [&](const glm::mat4& passProjection,
@@ -258,6 +278,8 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
         glDepthFunc(GL_LEQUAL);
         glDepthMask(GL_FALSE);
         skyboxShader.use();
+        skyboxShader.setInt("uLinearOutput", atmospheric);
+        skyboxShader.setFloat("uExposure", exposure.exposure);
         skyboxShader.setFloat("uSkySensitivity", static_cast<float>(exposure.skySensitivity));
         skyboxShader.setMat4("projection", glm::value_ptr(passProjection));
         skyboxShader.setMat4("view", glm::value_ptr(passView));
@@ -293,6 +315,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
             glStencilFunc(GL_ALWAYS, 1, 0xff); // Sun.
         }
         shader.use();
+        shader.setInt("uLinearOutput", atmospheric);
         shader.setMat4("projection", glm::value_ptr(passProjection));
         shader.setMat4("view", glm::value_ptr(passView));
         shader.setFloat3("uClipCenter", clipCenter.x, clipCenter.y, clipCenter.z);
@@ -326,11 +349,20 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
         if (record) glDisable(GL_STENCIL_TEST);
     };
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    if (atmospheric) atmosphere.begin(width, height);
+    const GLuint sceneFramebuffer = atmospheric ? atmosphere.framebuffer() : 0;
+    glBindFramebuffer(GL_FRAMEBUFFER, sceneFramebuffer);
     glViewport(0, 0, width, height);
-    glClearColor(static_cast<float>(scenario.skybox.background_color[0] * exposure.skySensitivity),
-                 static_cast<float>(scenario.skybox.background_color[1] * exposure.skySensitivity),
-                 static_cast<float>(scenario.skybox.background_color[2] * exposure.skySensitivity), 1.0f);
+    glm::dvec3 background;
+    for (int c = 0; c < 3; ++c) {
+        background[c] = scenario.skybox.background_color[c] * exposure.skySensitivity;
+        if (atmospheric) {
+            const double srgb = std::clamp(background[c], 0.0, 0.9999);
+            const double mapped = srgb <= 0.04045 ? srgb / 12.92 : std::pow((srgb + 0.055) / 1.055, 2.4);
+            background[c] = -std::log(1.0 - mapped) / exposure.exposure;
+        }
+    }
+    glClearColor(background.r, background.g, background.b, 1.0f);
     glStencilMask(0xff);
     glClearStencil(0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | (recordObjects ? GL_STENCIL_BUFFER_BIT : 0));
@@ -340,8 +372,12 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
     const bool hasWater = std::any_of(
         scenario.planets.begin(), scenario.planets.end(),
         [](const config::PlanetConfig& planet) { return planet.water.enabled; });
-    if (!hasWater) return exposure;
-    reflectionTarget.ensure(width, height);
+    if (!hasWater) {
+        if (atmospheric) atmosphere.finish(atmosphereShader, scenario, bodies, lighting, exposure.exposure,
+                                          view, projection, eyeWorld);
+        return exposure;
+    }
+    reflectionTarget.ensure(width, height, atmospheric);
 
     // The opaque main-scene depth buffer masks this translucent sea. Each
     // planet reuses one bounded reflection target before drawing its water.
@@ -364,14 +400,22 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
 
         glDepthMask(GL_TRUE);
         glDisable(GL_BLEND);
-        reflectionTarget.bind();
+        if (atmospheric) reflectionAtmosphere.begin(reflectionTarget.width(), reflectionTarget.height());
+        else reflectionTarget.bind();
         glViewport(0, 0, reflectionTarget.width(), reflectionTarget.height());
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         drawSkybox(reflectedProjection, reflectedView);
         drawOpaqueScene(reflectedProjection, reflectedView, center,
                         static_cast<float>(radiusWorld));
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        if (atmospheric) {
+            const glm::dvec3 normal = glm::normalize(eyeWorld - centerWorld);
+            const glm::dvec3 reflectedEye = rendering::reflectPointAcrossPlane(eyeWorld,
+                centerWorld + normal * radiusWorld, normal);
+            reflectionAtmosphere.finish(atmosphereShader, scenario, bodies, lighting, exposure.exposure,
+                reflectedView, reflectedProjection, reflectedEye, reflectionTarget.framebuffer(), false);
+        }
+        glBindFramebuffer(GL_FRAMEBUFFER, sceneFramebuffer);
         glViewport(0, 0, width, height);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -404,6 +448,8 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
     glBindTexture(GL_TEXTURE_2D, 0);
     glDepthMask(GL_TRUE);
     glDisable(GL_BLEND);
+    if (atmospheric) atmosphere.finish(atmosphereShader, scenario, bodies, lighting, exposure.exposure,
+                                      view, projection, eyeWorld);
     return exposure;
 }
 
@@ -507,6 +553,7 @@ int main(int argc, char** argv) {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_SAMPLES, 4);
     glfwWindowHint(GLFW_STENCIL_BITS, 8);
+    glfwWindowHint(GLFW_DEPTH_BITS, 24);
 
     // Create window (hidden for render-test mode)
     int width = renderTestMode ? renderTestWidth : 1280;
@@ -724,10 +771,12 @@ int main(int argc, char** argv) {
         }
 
         // Create shader program
-        Shader shader("shaders/basic.vert", "shaders/basic.frag", "shaders/terrain_shadow.glsl");
-        Shader waterShader("shaders/water.vert", "shaders/water.frag", "shaders/terrain_shadow.glsl");
+        Shader shader("shaders/basic.vert", "shaders/basic.frag", "shaders/terrain_shadow.glsl", "shaders/atmosphere.glsl");
+        Shader waterShader("shaders/water.vert", "shaders/water.frag", "shaders/terrain_shadow.glsl", "shaders/atmosphere.glsl");
         Shader shadowShader("shaders/terrain_shadow.vert", "shaders/terrain_shadow.frag");
         rendering::TerrainShadowMaps terrainShadows;
+        Shader atmosphereShader("shaders/atmosphere.vert", "shaders/atmosphere.frag", "shaders/atmosphere.glsl");
+        rendering::AtmosphereRenderer atmosphere, reflectionAtmosphere;
         Shader skyboxShader("shaders/skybox.vert", "shaders/skybox.frag");
         rendering::WaterReflectionTarget waterReflection;
         
@@ -756,7 +805,8 @@ int main(int argc, char** argv) {
             preparePlanetMeshes(eyeWorld);
             const auto meshEnd = std::chrono::steady_clock::now();
             const auto frameExposure = renderScene(scenario, bodies, view, fov, eyeWorld, shader, waterShader,
-                        skyboxShader, waterReflection, shadowShader, terrainShadows, g_mesh, skyboxMesh,
+                        skyboxShader, waterReflection, shadowShader, terrainShadows,
+                        atmosphereShader, atmosphere, reflectionAtmosphere, g_mesh, skyboxMesh,
                         planetMeshes, waterMeshes, width, height,
                         surfaceRenderMode ? surfaceClip :
                         planetRenderMode ? planetOrbitClip(eyeWorld) :
@@ -893,20 +943,33 @@ int main(int argc, char** argv) {
                                                                      planetBounds, sunBounds, flippedObjects);
                 GLint samples = 0;
                 glGetIntegerv(GL_SAMPLES, &samples);
+                const auto& atmosphereConfig = scenario.planets[orbitPlanetIndex].atmosphere;
+                const auto optics = simulation::atmosphereOptics(atmosphereConfig,
+                    scenario.planets[orbitPlanetIndex].radius * scenario.metersPerWorldUnit(),
+                    simulation::referenceAir(atmosphereConfig));
                 const nlohmann::json metadata{
                     {"schema_version", 1}, {"scenario", scenarioDocument},
                     {"surface_camera", snapshot.startConfig},
-                    {"render", {{"width", width}, {"height", height}, {"samples", samples},
+                    {"render", {{"width", width}, {"height", height}, {"samples", rendering::hasAtmosphere(scenario) ? 0 : samples},
                         {"renderer", reinterpret_cast<const char*>(glGetString(GL_RENDERER))},
                         {"exposure", frameExposure.exposure}, {"sky_sensitivity", frameExposure.skySensitivity},
                         {"direct_illuminance", frameExposure.directIlluminance},
                         {"reflected_illuminance", frameExposure.reflectedIlluminance},
+                        {"atmospheric_illuminance", frameExposure.atmosphericIlluminance},
                         {"metered_illuminance", frameExposure.meteredIlluminance},
+                        {"atmosphere_refractive_index", optics.refractiveIndex},
+                        {"atmosphere_refraction_enabled", atmosphereConfig.enabled && atmosphereConfig.refraction_enabled},
+                        {"atmosphere_relative_humidity", optics.relativeHumidity},
+                        {"atmosphere_liquid_water_g_m3", optics.suspendedLiquidWaterGm3},
                         {"terrain_pixels", metrics.terrainPixels}, {"sky_pixels", metrics.skyPixels},
                         {"terrain_mean_display_luminance", metrics.terrainMeanLuminance},
                         {"terrain_max_display_luminance", metrics.terrainMaxLuminance},
+                        {"terrain_luminance_stddev", metrics.terrainLuminanceStddev},
                         {"sky_mean_display_luminance", metrics.skyMeanLuminance},
                         {"sky_interior_pixels", metrics.skyInteriorPixels},
+                        {"sky_interior_red", metrics.skyInteriorMeanRGB[0]},
+                        {"sky_interior_green", metrics.skyInteriorMeanRGB[1]},
+                        {"sky_interior_blue", metrics.skyInteriorMeanRGB[2]},
                         {"sky_interior_mean_display_luminance", metrics.skyInteriorMeanLuminance},
                         {"non_background_pixels", analysis.drawn.count}}}
                 };
@@ -1096,7 +1159,8 @@ int main(int argc, char** argv) {
                         : onPlanetOrbit ? planetOrbitClip(eyeWorld) : rendering::ClipPlanes{};
                     preparePlanetMeshes(eyeWorld, true);
                     renderScene(scenario, bodies, view, fov, eyeWorld, shader, waterShader,
-                                skyboxShader, waterReflection, shadowShader, terrainShadows, g_mesh, skyboxMesh,
+                                skyboxShader, waterReflection, shadowShader, terrainShadows,
+                                atmosphereShader, atmosphere, reflectionAtmosphere, g_mesh, skyboxMesh,
                                 planetMeshes, waterMeshes, width, height,
                                 clip, (onSurface || onPlanetOrbit) ? std::optional<std::size_t>(orbitPlanetIndex) : std::nullopt);
                     glfwSwapBuffers(window);

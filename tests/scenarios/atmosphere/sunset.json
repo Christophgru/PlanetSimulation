@@ -1,0 +1,27 @@
+{
+  "name": "sunset",
+  "simulation_time_seconds": 34,
+  "look_at_sun": true,
+  "surface_camera": {
+    "altitude": 0.03
+  },
+  "expected": {
+    "direct_illuminance": [
+      0,
+      0
+    ],
+    "exposure": [
+      100,
+      800
+    ],
+    "atmospheric_illuminance": [
+      0.0005,
+      0.005
+    ],
+    "terrain_mean_display_luminance": [
+      0.01,
+      0.25
+    ]
+  },
+  "verify_replay": true
+}

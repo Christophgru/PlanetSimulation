@@ -10,6 +10,8 @@ uniform vec3 uBackgroundColor;
 uniform vec3 uStarColor;
 uniform float uSkySensitivity;
 
+uniform bool uLinearOutput;
+uniform float uExposure;
 out vec4 fColor;
 
 uint starHash(ivec3 cell, uint seed) {
@@ -38,5 +40,13 @@ void main() {
         hashUnit(starHash(cell, uint(uSeed) ^ 0xa511e9b3u)));
     vec3 color = uBackgroundColor +
                  visible * magnitude * uStarBrightness * uStarColor;
-    fColor = vec4(color * uSkySensitivity, 1.0);
+    color *= uSkySensitivity;
+    if (uLinearOutput) {
+        // Preserve decorative star brightness through the final HDR tone map.
+        vec3 srgb = clamp(color, vec3(0.0), vec3(0.9999));
+        vec3 mapped = mix(pow((srgb + 0.055) / 1.055, vec3(2.4)), srgb / 12.92,
+                          lessThanEqual(srgb, vec3(0.04045)));
+        color = -log(max(vec3(1.0) - mapped, vec3(1e-6))) / uExposure;
+    }
+    fColor = vec4(color, 1.0);
 }

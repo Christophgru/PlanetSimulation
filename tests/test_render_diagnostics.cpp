@@ -274,3 +274,19 @@ TEST(RenderDiagnosticsTest, SkyInteriorExcludesMultisampleBodyEdgesButRetainsSta
     EXPECT_EQ(noSky.skyInteriorPixels, 0);
     EXPECT_DOUBLE_EQ(noSky.skyInteriorMeanLuminance, 0);
 }
+
+TEST(RenderDiagnosticsTest, AtmosphereMetricsMeasureTerrainContrastAndSkyColorSeparately) {
+    std::vector<unsigned char> rgba(kWidth * kHeight * 4, 0);
+    std::vector<float> depth(kWidth * kHeight, 1);
+    std::vector<unsigned char> ids(kWidth * kHeight, 0);
+    for (int x : {1, 2}) { depth[kWidth + x] = 0.5f; ids[kWidth + x] = 2; }
+    paint(rgba, 1, 1, 255, 255, 255);
+    paint(rgba, 5, 4, 0, 0, 255);
+    const std::array<int, 4> bounds{0,0,kWidth-1,kHeight-1};
+    const auto metrics = rendering::measureLightingFrame(rgba, depth, kWidth, kHeight, bounds, bounds, ids);
+    EXPECT_NEAR(metrics.terrainLuminanceStddev, 0.5, 1e-12);
+    EXPECT_EQ(metrics.skyInteriorPixels, 18);
+    EXPECT_DOUBLE_EQ(metrics.skyInteriorMeanRGB[0], 0);
+    EXPECT_DOUBLE_EQ(metrics.skyInteriorMeanRGB[1], 0);
+    EXPECT_NEAR(metrics.skyInteriorMeanRGB[2], 1.0 / 18.0, 1e-12);
+}

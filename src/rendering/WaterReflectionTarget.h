@@ -15,7 +15,7 @@ public:
     WaterReflectionTarget& operator=(const WaterReflectionTarget&) = delete;
     ~WaterReflectionTarget() { destroy(); }
 
-    void ensure(int viewportWidth, int viewportHeight) {
+    void ensure(int viewportWidth, int viewportHeight, bool linearColor = false) {
         if (viewportWidth <= 0 || viewportHeight <= 0)
             throw std::invalid_argument("Water reflection viewport must be positive");
         const double scale = std::min(1.0, 1024.0 / viewportWidth);
@@ -23,10 +23,11 @@ public:
             viewportWidth * scale)));
         const int requestedHeight = std::max(1, static_cast<int>(std::lround(
             viewportHeight * scale)));
-        if (requestedWidth == width_ && requestedHeight == height_ && framebuffer_ != 0)
+        if (requestedWidth == width_ && requestedHeight == height_ && linearColor == linearColor_ && framebuffer_ != 0)
             return;
 
         destroy();
+        linearColor_ = linearColor;
         width_ = requestedWidth;
         height_ = requestedHeight;
         glGenFramebuffers(1, &framebuffer_);
@@ -34,7 +35,7 @@ public:
 
         glGenTextures(1, &colorTexture_);
         glBindTexture(GL_TEXTURE_2D, colorTexture_);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width_, height_, 0,
+        glTexImage2D(GL_TEXTURE_2D, 0, linearColor ? GL_RGBA16F : GL_RGBA8, width_, height_, 0,
                      GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -57,6 +58,7 @@ public:
     }
 
     void bind() const { glBindFramebuffer(GL_FRAMEBUFFER, framebuffer_); }
+    GLuint framebuffer() const { return framebuffer_; }
     GLuint colorTexture() const { return colorTexture_; }
     int width() const { return width_; }
     int height() const { return height_; }
@@ -73,6 +75,7 @@ private:
     GLuint framebuffer_ = 0;
     GLuint colorTexture_ = 0;
     GLuint depthBuffer_ = 0;
+    bool linearColor_ = false;
     int width_ = 0;
     int height_ = 0;
 };

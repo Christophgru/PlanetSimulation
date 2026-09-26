@@ -135,3 +135,25 @@ add_custom_target(render_lighting_scenarios
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/render_lighting_scenarios.py
         --binary $<TARGET_FILE:PlanetSimulation> --output-dir ${CMAKE_BINARY_DIR}/lighting-scenarios
     DEPENDS PlanetSimulation WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} USES_TERMINAL)
+
+add_executable(atmosphere_tests test_atmosphere.cpp)
+target_link_libraries(atmosphere_tests PRIVATE GTest::gtest_main glm::glm nlohmann_json::nlohmann_json)
+target_include_directories(atmosphere_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+add_test(NAME AtmosphereTests COMMAND atmosphere_tests)
+add_test(NAME AtmosphereScenariosRenderIntegration COMMAND ${Python3_EXECUTABLE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/render_lighting_scenarios.py --binary $<TARGET_FILE:PlanetSimulation>
+    --manifest ${CMAKE_CURRENT_SOURCE_DIR}/scenarios/atmosphere/manifest.json
+    --output-dir ${CMAKE_BINARY_DIR}/atmosphere-scenarios)
+set_tests_properties(AtmosphereScenariosRenderIntegration PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 180)
+add_custom_target(render_atmosphere_scenarios
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/render_lighting_scenarios.py
+        --binary $<TARGET_FILE:PlanetSimulation>
+        --manifest ${CMAKE_CURRENT_SOURCE_DIR}/scenarios/atmosphere/manifest.json
+        --output-dir ${CMAKE_BINARY_DIR}/atmosphere-scenarios
+    DEPENDS PlanetSimulation WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} USES_TERMINAL)
+
+add_executable(atmosphere_render_tests test_atmosphere_render.cpp)
+target_link_libraries(atmosphere_render_tests PRIVATE GTest::gtest OpenGL::GL GLEW::GLEW glfw glm::glm nlohmann_json::nlohmann_json)
+target_include_directories(atmosphere_render_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+add_test(NAME AtmosphereRefractionRenderIntegration COMMAND atmosphere_render_tests)
+set_tests_properties(AtmosphereRefractionRenderIntegration PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})

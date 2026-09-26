@@ -1,6 +1,9 @@
 #version 330 core
 
 in vec3 vWorldPosition;
+in vec3 vBodyPosition;
+uniform bool uLinearOutput;
+uniform float uAtmosphereRadiusScale;
 in vec4 vReflectionClip;
 out vec4 fColor;
 
@@ -31,8 +34,15 @@ void main() {
     vec3 reflection = texture(uReflectionTexture,
                               clamp(reflectionUv, vec2(0.0), vec2(1.0))).rgb;
     float diffuse = max(dot(normal, uSunDirection), 0.0);
-    vec3 litWater = displayColor(uWaterColor * (uIndirectLight + uSunlight * diffuse * sunlightVisibility(diffuse)));
-    // The reflection pass is already in display space; do not expose it twice.
+    vec3 sunlight = uSunlight, indirect = uIndirectLight;
+#ifdef PLANET_ATMOSPHERE
+    vec3 bodyPosition = vBodyPosition * uAtmosphereRadiusScale;
+    sunlight *= atmosphereSunTransmittance(bodyPosition);
+    indirect *= atmosphereLightTransmittance(bodyPosition, normalize(bodyPosition));
+#endif
+    vec3 radiance = uWaterColor * (indirect + sunlight * diffuse * sunlightVisibility(diffuse));
+    vec3 litWater = uLinearOutput ? radiance : displayColor(radiance);
+    // Reflection and water share linear HDR or legacy display space for this frame.
     vec3 surface = mix(litWater, reflection, uReflectionFraction);
     fColor = vec4(surface, uOpacity);
 }

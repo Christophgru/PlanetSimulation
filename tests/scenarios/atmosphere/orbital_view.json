@@ -1,0 +1,24 @@
+{
+  "name": "orbital_view",
+  "simulation_time_seconds": 3000,
+  "surface_camera": {
+    "altitude": 2.5,
+    "direction_ned": [
+      0,
+      0,
+      1
+    ],
+    "up_ned": [
+      1,
+      0,
+      0
+    ]
+  },
+  "expected": {
+    "terrain_mean_display_luminance": [
+      0.01,
+      0.9
+    ]
+  },
+  "verify_replay": true
+}

@@ -1,0 +1,27 @@
+{
+  "name": "heavy_dust",
+  "simulation_time_seconds": 20,
+  "planet_overrides": {
+    "0": {
+      "atmosphere": {
+        "gas-contents": {
+          "nitrogen": 70,
+          "oxygen": 25,
+          "water": 2,
+          "red_dust": 0.1
+        }
+      }
+    }
+  },
+  "expected": {
+    "terrain_mean_display_luminance": [
+      0,
+      0.002
+    ],
+    "sky_interior_mean_display_luminance": [
+      0,
+      0.002
+    ]
+  },
+  "verify_replay": true
+}

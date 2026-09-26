@@ -2,6 +2,8 @@
 
 in vec3 vColor;
 in vec3 vWorldPosition;
+in vec3 vBodyPosition;
+uniform bool uLinearOutput;
 in vec3 vWorldNormal;
 
 uniform vec3 uClipCenter;
@@ -27,7 +29,12 @@ void main() {
     vec3 radiance = uEmission;
     if (uEmissive < 0.5) {
         float diffuse = max(dot(normalize(vWorldNormal), uSunDirection), 0.0);
-        radiance = vColor * (uIndirectLight + uSunlight * diffuse * sunlightVisibility(diffuse));
+        vec3 sunlight = uSunlight, indirect = uIndirectLight;
+#ifdef PLANET_ATMOSPHERE
+        sunlight *= atmosphereSunTransmittance(vBodyPosition);
+        indirect *= atmosphereLightTransmittance(vBodyPosition, normalize(vBodyPosition));
+#endif
+        radiance = vColor * (indirect + sunlight * diffuse * sunlightVisibility(diffuse));
     }
-    fColor = vec4(displayColor(radiance), 1.0);
+    fColor = vec4(uLinearOutput ? radiance : displayColor(radiance), 1.0);
 }

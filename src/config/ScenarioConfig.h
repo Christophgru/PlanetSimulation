@@ -11,6 +11,7 @@
 #include "config/Config.h"
 #include "config/OrbitalConfig.h"
 #include "config/LightingConfig.h"
+#include "config/AtmosphereConfig.h"
 
 namespace config {
 
@@ -292,6 +293,7 @@ struct PlanetConfig {
     TerrainLod terrain_lod;
     TerrainLandscape terrain_landscape;
     Water water;
+    AtmosphereConfig atmosphere;
     bool atmosphere_enabled = false;
     double atmosphere_height = 0.3;
     
@@ -363,6 +365,8 @@ struct PlanetConfig {
                 return std::isfinite(v) && v >= 0.0 && v <= 1.0;
             }))
             throw std::invalid_argument("Invalid planet position, radius or color");
+        if (cfg.data().contains("atmosphere"))
+            atmosphere = AtmosphereConfig(Config{nlohmann::json(cfg.data().at("atmosphere"))});
         atmosphere_enabled = cfg.getBool("atmosphere_enabled", atmosphere_enabled);
         atmosphere_height = cfg.getDouble("atmosphere_height", atmosphere_height);
     }
