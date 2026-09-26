@@ -243,3 +243,34 @@ TEST(RenderDiagnosticsTest, PeakTerrainLuminanceDetectsIsolatedBrightPixelsWitho
     EXPECT_NEAR(fleck.terrainMaxLuminance, 128.0 / 255.0, 1e-12);
     EXPECT_NEAR(fleck.terrainMeanLuminance, fleck.terrainMaxLuminance / 3, 1e-12);
 }
+
+TEST(RenderDiagnosticsTest, SkyInteriorExcludesMultisampleBodyEdgesButRetainsStars) {
+    constexpr int width = 9, height = 7;
+    std::vector<unsigned char> rgba(width * height * 4, 0);
+    std::vector<float> depth(width * height, 1);
+    std::vector<unsigned char> ids(width * height, 0);
+    for (int body = 1; body <= 3; ++body) {
+        const int x = 1 + (body - 1) * 3;
+        depth[3 * width + x] = 0.5f;
+        ids[3 * width + x] = body; // Sun, selected planet, other body.
+        // Resolved color includes geometry, but depth/stencil still say sky.
+        for (int channel = 0; channel < 3; ++channel)
+            rgba[4 * (2 * width + x) + channel] = 128;
+    }
+    rgba[0] = rgba[1] = rgba[2] = 255; // A real star at the image boundary.
+    const std::array<int, 4> wholeScreen{0, 0, width - 1, height - 1};
+    const std::array<int, 4> offscreen{-1, -1, -1, -1};
+    // Both depth-only callers and callers with body IDs must reject edge color.
+    for (const auto& objectIds : {std::vector<unsigned char>{}, ids}) {
+        const auto metrics = rendering::measureLightingFrame(rgba, depth, width, height,
+                                                             wholeScreen, offscreen, objectIds);
+        EXPECT_EQ(metrics.skyPixels, width * height - 3);
+        EXPECT_NEAR(metrics.skyMeanLuminance, (1.0 + 3 * 128.0 / 255.0) / metrics.skyPixels, 1e-12);
+        EXPECT_EQ(metrics.skyInteriorPixels, width * height - 27);
+        EXPECT_NEAR(metrics.skyInteriorMeanLuminance, 1.0 / metrics.skyInteriorPixels, 1e-12);
+    }
+    std::fill(depth.begin(), depth.end(), 0.5f);
+    const auto noSky = rendering::measureLightingFrame(rgba, depth, width, height, wholeScreen, offscreen);
+    EXPECT_EQ(noSky.skyInteriorPixels, 0);
+    EXPECT_DOUBLE_EQ(noSky.skyInteriorMeanLuminance, 0);
+}

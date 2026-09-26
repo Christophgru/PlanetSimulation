@@ -1,0 +1,460 @@
+{
+  "render": {
+    "direct_illuminance": 0.06993584703501987,
+    "exposure": 9.532284069788815,
+    "height": 600,
+    "metered_illuminance": 0.06993776746326408,
+    "non_background_pixels": 206891,
+    "reflected_illuminance": 9.204282442002274e-07,
+    "renderer": "Quadro M1000M/PCIe/SSE2",
+    "samples": 4,
+    "sky_interior_mean_display_luminance": 4.1386994936560575e-05,
+    "sky_interior_pixels": 272755,
+    "sky_mean_display_luminance": 0.0008592489168970928,
+    "sky_pixels": 273832,
+    "sky_sensitivity": 0.14894193859045024,
+    "terrain_max_display_luminance": 0.6946682352941177,
+    "terrain_mean_display_luminance": 0.48651793979644686,
+    "terrain_pixels": 206168,
+    "width": 800
+  },
+  "scenario": {
+    "camera": {
+      "description": "Initial orbit-camera pose in world coordinates.",
+      "fov": 60.0,
+      "parameter_descriptions": {
+        "fov": "Vertical field of view in degrees, greater than 0 and less than 180.",
+        "position": "Eye position [x,y,z] in distance_unit.",
+        "target": "Look-at point [x,y,z] in distance_unit; follows the Sun with this initial offset."
+      },
+      "position": [
+        15.0,
+        15.0,
+        8.0
+      ],
+      "target": [
+        5.0,
+        0.0,
+        0.0
+      ]
+    },
+    "description": "Accelerated Sun-Earth-Moon scene: 60 s spin, 120 s lunar orbit, 300 s solar orbit. Description fields are documentation and do not affect simulation.",
+    "distance_unit": "km",
+    "lighting": {
+      "ambient_light": 1e-06,
+      "auto_exposure": {
+        "description": "Deterministic incident-light metering for surface and planet cameras. Sensitivity rises on the night side to reveal moonlight; identical camera, scene and time give identical exposure without warm-up.",
+        "enabled": true,
+        "max_exposure": 4096.0,
+        "min_exposure": 0.02,
+        "parameter_descriptions": {
+          "enabled": "Use automatic exposure for surface and planet orbit views. False uses lighting.exposure directly; the whole-system camera always uses manual exposure.",
+          "max_exposure": "Upper sensitivity bound, at least min_exposure and at most 1000000. Prevents tiny ambient fill from making a moonless night look like daylight.",
+          "min_exposure": "Positive lower bound on effective exposure, used in bright sunlight.",
+          "star_exposure": "Positive exposure at which decorative stars reach full visibility. Stars and the sky background fade at lower sensitivity.",
+          "target_luminance": "Desired linear luminance of an 18 percent gray surface, greater than 0 and at most 1. The meter uses local solar incidence plus reflected and ambient light; terrain shadows do not affect metering."
+        },
+        "star_exposure": 64.0,
+        "target_luminance": 0.12
+      },
+      "description": "Direct sunlight retains surface-normal shading. Reflected sunlight is averaged over each receiving planet and reused for terrain and water.",
+      "exposure": 1.0,
+      "parameter_descriptions": {
+        "ambient_light": "Uniform linear RGB fill light, 0..1. Keep this near zero with automatic exposure so a night without moonlight remains dark.",
+        "auto_exposure": "Camera sensitivity and star visibility, evaluated deterministically from the current surface location and light.",
+        "exposure": "Positive display multiplier up to 100. In automatic mode this is exposure compensation before sensitivity limits; otherwise it is fixed exposure. Exponential tone mapping and sRGB encoding prevent hard clipping.",
+        "reference_distance": "Display normalization distance in distance_unit. A nominal solar luminosity (M_bol about 4.74) gives unit irradiance here. This compensates for the miniature scene, independently of intrinsic luminosity.",
+        "reflections_enabled": "Enable one bounce of sunlight from other bodies. Reflection depends on albedo, color, phase, radius and both light-path distances; this averaged indirect light has no eclipses or terrain occlusion.",
+        "shadows": "Visibility of direct sunlight, tested per surface point against this planet's terrain."
+      },
+      "reference_distance": 10.0,
+      "reflections_enabled": true,
+      "shadows": {
+        "bias_texels": 0.5,
+        "description": "Sun-facing depth maps let mountains block sunlight on terrain and water behind them. Maps follow each body's rotation and are shared across rendering passes.",
+        "enabled": true,
+        "parameter_descriptions": {
+          "bias_texels": "Depth comparison offset in shadow texels, 0..4, with extra slope compensation. Increase to reduce self-shadow speckles; excessive values detach shadows from mountains.",
+          "enabled": "Enable terrain shadows from direct sunlight. Ambient fill and averaged reflected moonlight remain visible in shadow.",
+          "resolution": "Depth map width and height per planet, a power of two from 256 to 4096. Higher values resolve smaller ridges but use more GPU time and memory."
+        },
+        "resolution": 2048
+      }
+    },
+    "parameter_descriptions": {
+      "camera": "Initial world-space orbit camera (key 1).",
+      "distance_unit": "World distance unit: km or m. Radii, positions, orbit axes and camera altitude use this unit; fields ending in _m or _mps always use meters.",
+      "lighting": "Shared illumination and display exposure, evaluated from the current body positions.",
+      "planets": "All orbiting bodies, including moons. Each orbit.parent names another body; parent chains must end at the Sun.",
+      "scenario_name": "Name printed when the scenario is loaded.",
+      "skybox": "Procedural background stars; these do not illuminate planets.",
+      "sun": "The root body and the only self-emitting light source.",
+      "surface_camera": "Initial planet-fixed walking camera (key 2); also selects the body for planet orbit view (key 3)."
+    },
+    "planets": [
+      {
+        "atmosphere_enabled": true,
+        "atmosphere_height": 0.3,
+        "color": [
+          0.2,
+          0.4,
+          1.0
+        ],
+        "description": "Earth with terrain, water and a tilted equator.",
+        "mass_kg": 6.338938161361669e+17,
+        "name": "earth",
+        "orbit": {
+          "ascending_node_deg": 0.0,
+          "description": "Orbit axes and orientation in the world frame; speed is calculated from masses, not supplied manually.",
+          "inclination_deg": 0.0,
+          "mean_anomaly_deg": 0.0,
+          "parameter_descriptions": {
+            "ascending_node_deg": "Orientation of the tilted orbital plane about world +Z, in degrees.",
+            "inclination_deg": "Orbital plane tilt from world XY in degrees, independent of parent spin.",
+            "mean_anomaly_deg": "Initial phase uniform in time: 0 degrees is periapsis, 180 degrees is apoapsis.",
+            "parent": "Name of the body orbited; must exist, differ from this body, and form an acyclic chain to the Sun.",
+            "periapsis_deg": "Rotation of the nearest point within the orbital plane, in degrees.",
+            "semi_major_axis": "Large ellipse half axis a in distance_unit. Combined parent and child-collective mass determines the stable orbital period from a.",
+            "semi_minor_axis": "Small ellipse half axis b in distance_unit; 0 < b <= a. Sets eccentricity and speed variation; b=a is a circle."
+          },
+          "parent": "sun",
+          "periapsis_deg": 0.0,
+          "semi_major_axis": 89.5,
+          "semi_minor_axis": 88.24744871391589
+        },
+        "parameter_descriptions": {
+          "atmosphere_enabled": "Reserved atmosphere metadata; atmospheric scattering is not rendered yet.",
+          "atmosphere_height": "Reserved atmosphere thickness in distance_unit; currently has no visual effect.",
+          "color": "Linear RGB surface tint, each channel 0..1, multiplied by procedural terrain colors.",
+          "mass_kg": "Positive mass in kilograms. Descendant masses contribute to the outer orbital speed; relative masses set barycentric wobble.",
+          "name": "Unique body name; used by child orbit.parent fields.",
+          "orbit": "Kepler ellipse for the relative separation between the parent body and this body plus its descendants center of mass.",
+          "radius": "Positive reference-sphere radius in distance_unit.",
+          "reflection": "Mean reflectivity and color for sunlight bounced toward other bodies, independent of local terrain details.",
+          "rotation": "Spin about the body north axis, independent of orbital phase.",
+          "surface_noise": "Additive planet-fixed height-noise layers; amplitudes are meters.",
+          "terrain_landscape": "Broad continental, plain and cliff height features, added to surface_noise.",
+          "terrain_lod": "Tessellation density and triangle budget selected from distance along the surface.",
+          "water": "Spherical water shell and its visual reflection of the scene."
+        },
+        "radius": 1,
+        "reflection": {
+          "color": [
+            0.3,
+            0.5,
+            1.0
+          ],
+          "description": "Single-bounce Lambert-sphere approximation for the light this body sends to other bodies.",
+          "geometric_albedo": 0.3,
+          "parameter_descriptions": {
+            "color": "RGB fractions of the reflected sunlight, each 0..1. Equal channels give neutral reflection; a larger blue channel tints the bounced light blue.",
+            "geometric_albedo": "Full-phase reflected brightness relative to a perfectly reflecting flat disk, 0..1; 0 disables this body as a reflector."
+          }
+        },
+        "rotation": {
+          "axial_tilt_deg": 20.0,
+          "description": "Planet-fixed rotation; T pauses and Y/U scale both spin and orbits.",
+          "parameter_descriptions": {
+            "axial_tilt_deg": "North-axis tilt about world +X, in degrees. Earth and the Moon use 20 degrees, matching the lunar inclination.",
+            "period_seconds": "Seconds per full axial turn at 1x simulation speed. Zero disables spin; negative values reverse it.",
+            "phase_deg": "Initial spin angle about the tilted body +Z axis, in degrees."
+          },
+          "period_seconds": 60.0,
+          "phase_deg": 0.0
+        },
+        "surface_noise": [
+          {
+            "amplitude_m": 68,
+            "description": "low freq noise responsible for hills",
+            "frequency": 3.0,
+            "lacunarity": 2.0,
+            "octaves": 4,
+            "parameter_descriptions": {
+              "amplitude_m": "Nonnegative height amplitude in meters; layers add together.",
+              "frequency": "Base spatial frequency, greater than 0 and at most 64; higher values give smaller features.",
+              "lacunarity": "Frequency multiplier between octaves, 1..4; default 2.",
+              "octaves": "Number of noise detail layers, 1..6.",
+              "persistence": "Amplitude multiplier between octaves, greater than 0 and at most 1; default 0.5.",
+              "seed": "Deterministic noise seed. Changing it changes this layer of terrain.",
+              "type": "value_fbm gives smooth hills; ridged_fbm gives sharp ridge relief."
+            },
+            "persistence": 0.5,
+            "seed": 90,
+            "type": "value_fbm"
+          },
+          {
+            "amplitude_m": 40,
+            "description": "fine ridge relief; broad cliff regions use terrain_landscape.seed",
+            "frequency": 8.0,
+            "lacunarity": 2.0,
+            "octaves": 3,
+            "parameter_descriptions": {
+              "amplitude_m": "Nonnegative height amplitude in meters; layers add together.",
+              "frequency": "Base spatial frequency, greater than 0 and at most 64; higher values give smaller features.",
+              "lacunarity": "Frequency multiplier between octaves, 1..4; default 2.",
+              "octaves": "Number of noise detail layers, 1..6.",
+              "persistence": "Amplitude multiplier between octaves, greater than 0 and at most 1; default 0.5.",
+              "seed": "Deterministic noise seed. Changing it changes this layer of terrain.",
+              "type": "value_fbm gives smooth hills; ridged_fbm gives sharp ridge relief."
+            },
+            "persistence": 0.45,
+            "seed": 35,
+            "type": "ridged_fbm"
+          }
+        ],
+        "terrain_landscape": {
+          "cliff_amplitude_m": 120.0,
+          "cliff_frequency": 7.0,
+          "cliff_threshold": 0.62,
+          "continent_amplitude_m": 10.0,
+          "continent_frequency": 1.6,
+          "description": "Broad shapes. This block enables the landscape by default; its own seed controls continental and cliff placement.",
+          "elevation_offset_m": -1.5,
+          "parameter_descriptions": {
+            "cliff_amplitude_m": "Nonnegative cliff height amplitude in meters.",
+            "cliff_frequency": "Cliff noise frequency, greater than 0 and at most 32.",
+            "cliff_threshold": "Noise threshold for cliffs, greater than plain_threshold and less than 1.",
+            "continent_amplitude_m": "Nonnegative broad continental height amplitude in meters.",
+            "continent_frequency": "Broad shape frequency, greater than 0 and at most 16.",
+            "elevation_offset_m": "Base elevation offset in meters; negative values lower the terrain toward ocean basins.",
+            "plain_threshold": "Noise threshold below which broad regions become plains, between 0 and 1.",
+            "ridge_smoothing": "Rounds sharp ridge crests, 0..0.5; 0 preserves sharp crests.",
+            "seed": "Deterministic seed for broad continents and cliff regions."
+          },
+          "plain_threshold": 0.48,
+          "ridge_smoothing": 0.25,
+          "seed": 1
+        },
+        "terrain_lod": {
+          "base_edge_segments": 3,
+          "description": "Adaptive surface detail. The triangle budget bounds mesh work as the camera moves.",
+          "lod_far_diameters": 8.0,
+          "lod_near_diameters": 2.0,
+          "max_edge_segments": 16,
+          "max_triangle_budget": 100000,
+          "medium_edge_segments": 8,
+          "mid_surface_distance_m": 1000.0,
+          "near_surface_distance_m": 300.0,
+          "parameter_descriptions": {
+            "base_edge_segments": "Far-zone subdivisions per base triangle edge, at least 1.",
+            "lod_far_diameters": "Legacy outer distance-test threshold in diameters; must exceed lod_near_diameters.",
+            "lod_near_diameters": "Legacy distance-test threshold in planet diameters; the renderer now uses surface-distance zones.",
+            "max_edge_segments": "Near-zone subdivisions per edge, up to 32.",
+            "max_triangle_budget": "Maximum land triangles per planet, 10000..100000.",
+            "medium_edge_segments": "Middle-zone subdivisions per edge, between base and max density.",
+            "mid_surface_distance_m": "Surface distance defining the outer edge of the middle zone, in meters; must exceed the near distance.",
+            "near_surface_distance_m": "Surface distance from the camera radial position defining the near zone, in meters.",
+            "steep_edge_segments": "Extra near/middle detail for steep faces, between max density and 32.",
+            "steep_slope_threshold": "Rise-over-run threshold for steep-face refinement."
+          },
+          "steep_edge_segments": 32,
+          "steep_slope_threshold": 0.3
+        },
+        "water": {
+          "color": [
+            0.06,
+            0.31,
+            0.56
+          ],
+          "description": "Sea shell. Its reflection_fraction controls the water image, separately from the body reflection/albedo used for moonlight.",
+          "enabled": true,
+          "level_m": 0,
+          "opacity": 0.5,
+          "parameter_descriptions": {
+            "color": "Linear RGB water color, each channel 0..1, illuminated by sunlight and reflected body light.",
+            "enabled": "Draw the water shell and keep the surface camera above it when true.",
+            "level_m": "Sea level relative to the reference sphere, in meters.",
+            "opacity": "Water alpha opacity, 0..1; opaque terrain above sea level still hides the water.",
+            "reflection_fraction": "Mix of lit water color and reflected scene image, 0..1."
+          },
+          "reflection_fraction": 0.5
+        }
+      },
+      {
+        "color": [
+          0.62,
+          0.6,
+          0.56
+        ],
+        "description": "Moon orbiting in Earth's 20-degree equatorial plane and reflecting sunlight onto Earth.",
+        "mass_kg": 7.923672701702087e+15,
+        "name": "moon",
+        "orbit": {
+          "ascending_node_deg": 0.0,
+          "description": "Orbit axes and orientation in the world frame; speed is calculated from masses, not supplied manually.",
+          "inclination_deg": 20.0,
+          "mean_anomaly_deg": 180.0,
+          "parameter_descriptions": {
+            "ascending_node_deg": "Orientation of the tilted orbital plane about world +Z, in degrees.",
+            "inclination_deg": "Orbital plane tilt from world XY in degrees, independent of parent spin.",
+            "mean_anomaly_deg": "Initial phase uniform in time: 0 degrees is periapsis, 180 degrees is apoapsis.",
+            "parent": "Name of the body orbited; must exist, differ from this body, and form an acyclic chain to the Sun.",
+            "periapsis_deg": "Rotation of the nearest point within the orbital plane, in degrees.",
+            "semi_major_axis": "Large ellipse half axis a in distance_unit. Combined parent and child-collective mass determines the stable orbital period from a.",
+            "semi_minor_axis": "Small ellipse half axis b in distance_unit; 0 < b <= a. Sets eccentricity and speed variation; b=a is a circle."
+          },
+          "parent": "earth",
+          "periapsis_deg": 0.0,
+          "semi_major_axis": 2.5,
+          "semi_minor_axis": 2.45
+        },
+        "parameter_descriptions": {
+          "color": "Linear RGB surface tint, each channel 0..1, multiplied by procedural terrain colors.",
+          "mass_kg": "Positive mass in kilograms. Descendant masses contribute to the outer orbital speed; relative masses set barycentric wobble.",
+          "name": "Unique body name; used by child orbit.parent fields.",
+          "orbit": "Kepler ellipse for the relative separation between the parent body and this body plus its descendants center of mass.",
+          "radius": "Positive reference-sphere radius in distance_unit.",
+          "reflection": "Mean reflectivity and color for sunlight bounced toward other bodies, independent of local terrain details.",
+          "rotation": "Spin about the body north axis, independent of orbital phase.",
+          "surface_noise": "Additive planet-fixed height-noise layers; amplitudes are meters."
+        },
+        "radius": 0.27,
+        "reflection": {
+          "color": [
+            0.95,
+            0.95,
+            1.0
+          ],
+          "description": "Single-bounce Lambert-sphere approximation for the light this body sends to other bodies.",
+          "geometric_albedo": 0.12,
+          "parameter_descriptions": {
+            "color": "RGB fractions of the reflected sunlight, each 0..1. Equal channels give neutral reflection; a larger blue channel tints the bounced light blue.",
+            "geometric_albedo": "Full-phase reflected brightness relative to a perfectly reflecting flat disk, 0..1; 0 disables this body as a reflector."
+          }
+        },
+        "rotation": {
+          "axial_tilt_deg": 20.0,
+          "description": "Planet-fixed rotation; T pauses and Y/U scale both spin and orbits.",
+          "parameter_descriptions": {
+            "axial_tilt_deg": "North-axis tilt about world +X, in degrees. Earth and the Moon use 20 degrees, matching the lunar inclination.",
+            "period_seconds": "Seconds per full axial turn at 1x simulation speed. Zero disables spin; negative values reverse it.",
+            "phase_deg": "Initial spin angle about the tilted body +Z axis, in degrees."
+          },
+          "period_seconds": 60.0,
+          "phase_deg": 0.0
+        },
+        "surface_noise": [
+          {
+            "amplitude_m": 8.0,
+            "description": "Fine planet-fixed height relief.",
+            "frequency": 8.0,
+            "octaves": 3,
+            "parameter_descriptions": {
+              "amplitude_m": "Nonnegative height amplitude in meters; layers add together.",
+              "frequency": "Base spatial frequency, greater than 0 and at most 64; higher values give smaller features.",
+              "lacunarity": "Frequency multiplier between octaves, 1..4; default 2.",
+              "octaves": "Number of noise detail layers, 1..6.",
+              "persistence": "Amplitude multiplier between octaves, greater than 0 and at most 1; default 0.5.",
+              "seed": "Deterministic noise seed. Changing it changes this layer of terrain.",
+              "type": "value_fbm gives smooth hills; ridged_fbm gives sharp ridge relief."
+            },
+            "seed": 71,
+            "type": "ridged_fbm"
+          }
+        ]
+      }
+    ],
+    "scenario_name": "Solar System",
+    "skybox": {
+      "background_color": [
+        0.002,
+        0.004,
+        0.012
+      ],
+      "description": "Decorative procedural star field.",
+      "enabled": true,
+      "parameter_descriptions": {
+        "background_color": "RGB background channels, each 0..1.",
+        "enabled": "Draw background stars when true.",
+        "seed": "Deterministic seed for star placement.",
+        "star_brightness": "Display brightness multiplier for decorative stars, 0..20.",
+        "star_color": "RGB tint of the decorative stars, each channel 0..1.",
+        "star_density": "Fraction of procedural cells containing a star, 0..0.25.",
+        "star_scale": "Angular grid density, 1..10000; larger values create finer star cells."
+      },
+      "seed": 7429,
+      "star_brightness": 1.4,
+      "star_color": [
+        0.82,
+        0.9,
+        1.0
+      ],
+      "star_density": 0.0003,
+      "star_scale": 700.0
+    },
+    "sun": {
+      "absolute_magnitude": 3.1,
+      "color": [
+        1.0,
+        0.99,
+        0.97
+      ],
+      "description": "Brighter, nearly white Sun. Mass controls orbit timing; absolute magnitude independently controls emitted light.",
+      "mass_kg": 1.2194532287919512e+19,
+      "name": "sun",
+      "parameter_descriptions": {
+        "absolute_magnitude": "Bolometric absolute magnitude M_bol, -30..30. Lower means brighter; subtracting 5 multiplies luminosity by 100. IAU luminosity is 3.0128e28 * 10^(-0.4*M_bol) watts; the real Sun is about 4.74.",
+        "color": "Linear RGB emission tint, each channel 0..1. Values near equal give white sunlight.",
+        "mass_kg": "Positive mass in kilograms; chosen with the planet masses for the configured orbital periods.",
+        "name": "Unique body name referenced by orbit.parent.",
+        "position": "Sun center [x,y,z] at time zero in distance_unit; the Sun subsequently recoils around the system barycenter.",
+        "radius": "Positive visual radius in distance_unit."
+      },
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "radius": 2.5
+    },
+    "surface_camera": {
+      "altitude": 0.03,
+      "description": "Planet-fixed spherical North-East-Down (NED) camera. The saved local position and view follow orbit, tilt and spin.",
+      "direction_ned": [
+        0.0595365512313363,
+        0.9937565852932968,
+        0.09435702546013867
+      ],
+      "fov": 80.0,
+      "latitude_deg": -21.409888069265286,
+      "longitude_deg": 82.26311950013215,
+      "parameter_descriptions": {
+        "altitude": "Requested eye clearance above terrain or water in distance_unit.",
+        "direction_ned": "Nonzero saved view direction [north,east,down] in the local tangent frame.",
+        "fov": "Vertical field of view in degrees, greater than 0 and less than 180.",
+        "latitude_deg": "Latitude in degrees, -90..90; +Z of the body is north.",
+        "longitude_deg": "Longitude in degrees, from body +X toward body +Y.",
+        "planet_index": "Zero-based index in planets for walking and planet orbit views.",
+        "reference_frame": "Must be planet_spherical_ned.",
+        "simulation_time_seconds": "Finite simulation timestamp restored on startup and reload. Camera telemetry prints the current simulation time, including pause and Y/U speed changes. --simulation-time overrides this value.",
+        "up_ned": "Optional nonparallel view-up vector [north,east,down] for preserving camera roll.",
+        "walk_speed_mps": "Walking speed in meters per real second, greater than 0 and at most 100; unaffected by simulation speed."
+      },
+      "planet_index": 0,
+      "reference_frame": "planet_spherical_ned",
+      "simulation_time_seconds": 0.0,
+      "walk_speed_mps": 80.0
+    }
+  },
+  "schema_version": 1,
+  "surface_camera": {
+    "altitude": 0.03,
+    "direction_ned": [
+      0.05953655123133625,
+      0.9937565852932967,
+      0.09435702546013862
+    ],
+    "fov": 80.0,
+    "latitude_deg": -21.409888069265286,
+    "longitude_deg": 82.26311950013215,
+    "planet_index": 0,
+    "reference_frame": "planet_spherical_ned",
+    "simulation_time_seconds": 20.0,
+    "up_ned": [
+      0.005642867970075072,
+      0.09418814306884693,
+      -0.9955384230386664
+    ],
+    "walk_speed_mps": 80.0
+  }
+}

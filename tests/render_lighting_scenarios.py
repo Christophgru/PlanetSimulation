@@ -57,6 +57,7 @@ def run(args):
         assert metrics["width"] == width and metrics["height"] == height, name
         assert metrics["terrain_pixels"] > width * height * 0.05, f"{name}: missing terrain geometry"
         assert metrics["sky_pixels"] > width * height * 0.05, f"{name}: missing sky"
+        assert metrics["sky_interior_pixels"] > width * height * 0.05, f"{name}: missing sky away from body edges"
         for key, (low, high) in case["expected"].items():
             if not low <= metrics[key] <= high:
                 raise AssertionError(f"{name}: {key}={metrics[key]} outside [{low}, {high}]; see {metadata_path}")
@@ -91,8 +92,8 @@ def run(args):
         assert abs(results["daylight"]["terrain_mean_display_luminance"] -
                    results["daylight_no_moon"]["terrain_mean_display_luminance"]) < 0.05
     if {"daylight", "night_moon"} <= results.keys():
-        assert results["daylight"]["sky_mean_display_luminance"] < 0.0001
-        assert results["night_moon"]["sky_mean_display_luminance"] > 10 * results["daylight"]["sky_mean_display_luminance"]
+        assert results["daylight"]["sky_interior_mean_display_luminance"] < 0.0001
+        assert results["night_moon"]["sky_interior_mean_display_luminance"] > 10 * results["daylight"]["sky_interior_mean_display_luminance"]
     (output / "results.json").write_text(json.dumps(results, indent=2) + "\n")
     print(f"Validated {len(results)} lighting scenarios; artifacts: {output}")
 

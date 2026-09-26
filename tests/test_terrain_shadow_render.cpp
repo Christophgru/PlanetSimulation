@@ -51,7 +51,25 @@ public:
     Mesh ridges, sea;
     glm::dvec3 sun = glm::normalize(glm::dvec3(-1, 0, 1));
 
+    GLuint framebuffer = 0, colorBuffer = 0, depthBuffer = 0;
+
     ShadowScene() {
+        // Hidden windows can have an unallocated default framebuffer on native
+        // drivers. Give these pixel assertions a fixed offscreen render target.
+        glGenFramebuffers(1, &framebuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+        glGenRenderbuffers(1, &colorBuffer);
+        glBindRenderbuffer(GL_RENDERBUFFER, colorBuffer);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB8, size, size);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, colorBuffer);
+        glGenRenderbuffers(1, &depthBuffer);
+        glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, size, size);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
+        glDrawBuffer(GL_COLOR_ATTACHMENT0);
+        glReadBuffer(GL_COLOR_ATTACHMENT0);
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+            throw std::runtime_error("Shadow test framebuffer is incomplete");
         settings.resolution = 512;
         buildRidges(ridges, true);
         for (auto p : {glm::vec3(-1, -1, 0.01), glm::vec3(1, -1, 0.01),
@@ -64,6 +82,9 @@ public:
     ~ShadowScene() {
         ridges.destroy(); sea.destroy();
         glDeleteProgram(terrain.id); glDeleteProgram(water.id); glDeleteProgram(depth.id);
+        glDeleteFramebuffers(1, &framebuffer);
+        glDeleteRenderbuffers(1, &colorBuffer);
+        glDeleteRenderbuffers(1, &depthBuffer);
     }
 
     Image render(bool waterSurface = false, glm::dvec3 indirect = glm::dvec3(0),
@@ -79,7 +100,7 @@ public:
                 ridges.draw();
             }
         }
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
         glViewport(0, 0, size, size);
         glEnable(GL_DEPTH_TEST);
         glDepthMask(GL_TRUE);

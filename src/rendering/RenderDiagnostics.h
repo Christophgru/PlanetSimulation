@@ -52,6 +52,8 @@ struct LightingFrameMetrics {
     double terrainMeanLuminance = 0.0;
     double terrainMaxLuminance = 0.0;
     double skyMeanLuminance = 0.0;
+    int skyInteriorPixels = 0;
+    double skyInteriorMeanLuminance = 0.0;
 };
 
 // Include black terrain in the measurement: a moonless night is a valid image.
@@ -83,10 +85,25 @@ inline LightingFrameMetrics measureLightingFrame(const std::vector<unsigned char
         } else if (depth[index] == 1.0f) {
             ++result.skyPixels;
             result.skyMeanLuminance += value;
+            // Multisample color resolves can mix a body's edge into a pixel
+            // whose resolved depth/stencil sample still says sky. Measure star
+            // visibility only where the surrounding 3x3 pixels are all sky.
+            bool interior = true;
+            for (int ny = std::max(0, y - 1); ny <= std::min(height - 1, y + 1); ++ny)
+                for (int nx = std::max(0, x - 1); nx <= std::min(width - 1, x + 1); ++nx) {
+                    const auto neighbor = static_cast<std::size_t>(ny) * width + nx;
+                    if (depth[neighbor] != 1.0f || (!objectIds.empty() && objectIds[neighbor] != 0))
+                        interior = false;
+                }
+            if (interior) {
+                ++result.skyInteriorPixels;
+                result.skyInteriorMeanLuminance += value;
+            }
         }
     }
     if (result.terrainPixels) result.terrainMeanLuminance /= result.terrainPixels;
     if (result.skyPixels) result.skyMeanLuminance /= result.skyPixels;
+    if (result.skyInteriorPixels) result.skyInteriorMeanLuminance /= result.skyInteriorPixels;
     return result;
 }
 

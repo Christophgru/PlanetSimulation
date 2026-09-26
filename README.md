@@ -1,11 +1,12 @@
 # PlanetSimulation
 
-| Solar view | Planet surface | Planet orbit |
+| Solar overview (compact test scene) | Planet surface (20 s) | Planet orbit (3000 s) |
 |:--:|:--:|:--:|
 | <a href="docs/screenshots/solar-view.png"><img src="docs/screenshots/solar-view.png" width="220" alt="Sun and planet render test"></a> | <a href="docs/screenshots/surface-view.png"><img src="docs/screenshots/surface-view.png" width="220" alt="Planet surface render test"></a> | <a href="docs/screenshots/planet-orbit.png"><img src="docs/screenshots/planet-orbit.png" width="220" alt="Planet orbit render test"></a> |
 
-These [render-test screenshots](docs/screenshots/) are captured from the
-configured development scene; click an image to view it at full size.
+These [renderer captures](docs/screenshots/) show the current surface and planet
+views. The solar overview uses the [frozen compact test scene](tests/fixtures/development/configs/scenarios/solar_system.json)
+to fit the Sun and Earth in one frame. Click an image to view it at full size.
 
 A C++20/OpenGL project that renders a moving Sun, Earth, and Moon from
 `configs/scenarios/solar_system.json`.
@@ -17,11 +18,43 @@ currently has broad terrain and water; grass remains future work.
 
 The development scene uses kilometers for world coordinates: the Sun is 5 km
 across, Earth is 2 km across, and the Moon is 540 m across. The Earth–Moon
-center of mass travels between 10 and 15 km from the Sun.
+center of mass travels between **74.6 and 104.4 km** from the Sun, with outer
+orbital half axes of 89.5 and about 88.25 km.
 The surface camera starts 30 m above sampled terrain or water, whichever is
 higher, and walks at 80 m/s.
 The development config stores planets in a `planets` array; the surface
 camera's `planet_index` selects an entry in that array.
+
+## Lighting visualisations
+
+| Daylight (20 s) | Moonlit night (55 s) | Moonless control (55 s) |
+|:--:|:--:|:--:|
+| <a href="docs/screenshots/surface-view.png"><img src="docs/screenshots/surface-view.png" width="260" alt="Sunlit green terrain and cliffs"></a> | <a href="docs/screenshots/moonlit-night.png"><img src="docs/screenshots/moonlit-night.png" width="260" alt="Dim terrain illuminated by moonlight beneath stars"></a> | <a href="docs/screenshots/moonless-night.png"><img src="docs/screenshots/moonless-night.png" width="260" alt="Almost black terrain with visible stars in the moonless control"></a> |
+
+The same surface camera shows the working scene's accepted lighting: moonlight
+reveals dim terrain, while a moonless night stays almost black. Both night
+captures use the same time and maximum exposure of 4096. The moonless control
+changes only `lighting.reflections_enabled` to false, retaining the Moon's
+geometry and the working ambient fill of `0.000001`. Daylight uses automatic
+exposure of about 9.53. These PNGs are direct captures without brightness edits.
+
+Replay sidecars beside the three surface images preserve their complete scene,
+camera and timestamp, so the comparison survives later config edits. For example:
+
+~~~bash
+./build/PlanetSimulation --replay docs/screenshots/moonlit-night.png.json --surface-capture build/moonlit-night.png
+./build/PlanetSimulation --replay docs/screenshots/moonless-night.png.json --surface-capture build/moonless-night.png
+~~~
+
+| Terrain shadow comparison | Twilight regression |
+|:--:|:--:|
+| <a href="docs/screenshots/terrain-shadows.png"><img src="docs/screenshots/terrain-shadows.png" width="360" alt="Test ridges with terrain shadows enabled on the left and disabled on the right"></a> | <a href="docs/screenshots/twilight.png"><img src="docs/screenshots/twilight.png" width="320" alt="Dim terrain and water at the saved twilight regression camera"></a> |
+
+The ridge test shows shadows enabled on the **left** and disabled on the
+**right**. The twilight capture preserves the reported camera at
+2707.6216211392884 s; its regression checks both average and peak terrain
+brightness to catch isolated bright triangles. The reproduction commands are
+in the render-test section below.
 
 ## Orbits and rotation
 
@@ -47,8 +80,9 @@ Earth's outer orbit lies in XY. Earth's axial tilt and the Moon's orbital
 inclination are both **20°**, with a zero ascending node, so the Moon orbits
 in Earth's equatorial plane. Both bodies spin once every **60 seconds**;
 the Moon's orbital period is **120 seconds** and the Earth–Moon collective's
-outer period is **300 seconds**. These are elapsed simulation seconds at normal
-speed, including frames that take longer to render. Reloading resets the epoch.
+outer period is about **5747.66 seconds (95.79 minutes)**. The frozen compact
+test scene retains the earlier 12.5 km outer half axis and 300-second period.
+These are elapsed simulation seconds at normal speed, including frames that take longer to render. Reloading resets the epoch.
 Press **T** to pause or resume all orbital motion and axial spin. Camera controls
 remain active while paused, and resuming continues from the frozen time without
 a jump. Press **Y** to halve or **U** to double the speed of orbits and spin
@@ -83,9 +117,12 @@ The example masses are deliberately scaled for this small, fast scene:
 | Earth | 6.338938161361669e17 |
 | Moon | 7.923672701702087e15 |
 
-They were calculated using `M_earth + M_moon = 4π² × (2500 m)³ / (G × 120²)`
+They were originally calculated for the compact test scene using
+`M_earth + M_moon = 4π² × (2500 m)³ / (G × 120²)`
 and `M_sun = 4π² × (12500 m)³ / (G × 300²) - (M_earth + M_moon)`,
-with an Earth:Moon mass ratio of 80:1. Spin is configured independently of mass.
+with an Earth:Moon mass ratio of 80:1. The working scene keeps those masses but
+increases the outer orbital axes, lengthening its period and reducing sunlight
+and moonlight through distance falloff. Spin is configured independently of mass.
 
 Legacy unnamed planets receive names such as `planet_0` and default to orbiting
 `sun`. A legacy `orbit_radius` becomes both axes. `orbit_speed` and planet
@@ -97,7 +134,7 @@ letting the surface turn beneath them.
 ## Sunlight, moonlight, and config descriptions
 
 `sun.absolute_magnitude` sets **bolometric absolute magnitude**, with a lower
-number giving more light. A value of **3.5** and emission RGB
+number giving more light. The working value of **3.1** and emission RGB
 `[1.0, 0.99, 0.97]` give a brighter, nearly white Sun. The
 [IAU magnitude scale](https://arxiv.org/abs/1510.06262) gives
 `L = 3.0128e28 × 10^(-0.4 M_bol)` watts; a magnitude difference of −5 means
@@ -179,16 +216,17 @@ The selected file also becomes the interactive reload/watch target.
 ## Prerequisites
 
 - CMake 3.16 or newer, Git, and a C++20 compiler
+- Python 3 for lighting and replay integration tests when `BUILD_TESTING=ON`
 - OpenGL 3.3 support, GLFW 3, and GLEW development libraries
 - A graphical display for GLFW, including the hidden-window render test
 
-CMake fetches nlohmann/json, GLM, and GoogleTest during the first configure, so that
-step needs network access. On Ubuntu/Debian, install the local build dependencies
-with:
+CMake fetches nlohmann/json and GLM during the first configure, plus GoogleTest
+when tests are enabled, so that step needs network access. On Ubuntu/Debian,
+install the local build dependencies with:
 
 ~~~bash
 sudo apt update
-sudo apt install build-essential cmake git libgl1-mesa-dev libglfw3-dev libglew-dev
+sudo apt install build-essential cmake git python3 libgl1-mesa-dev libglfw3-dev libglew-dev
 ~~~
 
 ## Configure, build, and test
@@ -209,8 +247,12 @@ ctest --output-on-failure
 cd ..
 ~~~
 
-The full suite includes an OpenGL render test. On a machine without a display,
-run CTest under Xvfb from the build directory:
+The suite has 25 CTest entries covering unit tests, GPU shadows, scene captures,
+lighting scenarios, and exact replay. It is verified on the native NVIDIA
+display and Mesa llvmpipe under Xvfb. GPU shadow tests use their own offscreen
+framebuffer, so hidden-window allocation does not determine their result.
+The integration captures still need an OpenGL display. On a machine without
+a display, run CTest under Xvfb from the build directory:
 
 ~~~bash
 cd build
@@ -239,8 +281,9 @@ to orbit around the Sun: dragging right moves the camera left, and dragging up
 moves it down. The scroll wheel requests 4% zoom steps and eases into each one.
 Press `1` to orbit the Sun, `2` for the planet surface view, or `3` to orbit the
 planet selected by `surface_camera.planet_index` (the first planet if no surface
-camera is configured). Both orbit views use left-drag and the wheel. In surface
-mode, the mouse looks around without a
+camera is configured). The initial Sun camera retains its compact-scene pose;
+zoom out to include Earth's larger working orbit, or press `3` to follow Earth.
+Both orbit views use left-drag and the wheel. In surface mode, the mouse looks around without a
 button and `W`, `A`, `S`, `D` walk along the planet while maintaining clearance
 above ground or water at the configured `walk_speed_mps` (80 m/s in the
 development scene). Returning to planet orbit from the surface keeps the
@@ -317,9 +360,10 @@ Each planet can configure `surface_noise` as a list of overlapping functions.
 Each function has a `type` (`value_fbm` for smooth hills or `ridged_fbm` for
 ridges), `seed`, `amplitude_m`, `frequency`, `octaves`, `persistence`, and
 `lacunarity`. The function heights add together. The development planet combines
-6.8 m smooth hills and 4 m ridged relief. Smaller amplitudes can be hard to
-see beside the 10–18 m broad terrain features and water. `noise_seed` is only
-the fallback for `surface_noise` functions that omit `seed`; the development scene specifies a
+68 m smooth-hill and 40 m ridged-noise amplitudes, plus 10 m continental and
+120 m cliff amplitudes. These are noise scales rather than exact peak heights;
+the frozen legacy test scene retains its smaller terrain settings.
+`noise_seed` is only the fallback for `surface_noise` functions that omit `seed`; the development scene specifies a
 seed on each function. `terrain_landscape` adds a broad continental height
 field, low-roughness plain regions, and ridge-weighted cliffs. Its own `seed`
 controls those large-scale shapes, including the broad cliff regions. Change
@@ -378,24 +422,25 @@ and [camera-centered terrain detail](https://developer.nvidia.com/gpugems/gpugem
 The water blend is an early approximation of the techniques described in
 [Effective Water Simulation from Physical Models](https://developer.nvidia.com/gpugems/gpugems/part-i-natural-effects/chapter-1-effective-water-simulation-physical-models).
 
-Render the same configured scene to a PNG and print background, Sun, planet,
+Render the frozen compact test scene to a PNG and print background, Sun, planet,
 and blue water-like pixel counts and bounding boxes, plus terrain triangle and
-zone-face counts:
+zone-face counts. This fixture keeps both bodies inside the initial solar view;
+the working scene's wider Earth orbit lies outside that camera's starting view:
 
 ~~~bash
-./build/PlanetSimulation --render-test build/render-test.png
+./build/PlanetSimulation --config tests/fixtures/development/configs/scenarios/solar_system.json --render-test build/render-test.png
 ~~~
 
-Capture the configured surface camera view and confirm a configured body is visible:
+Capture the same fixture's surface camera view and confirm a configured body is visible:
 
 ~~~bash
-./build/PlanetSimulation --surface-render-test build/surface-render-test.png
+./build/PlanetSimulation --config tests/fixtures/development/configs/scenarios/solar_system.json --surface-render-test build/surface-render-test.png
 ~~~
 
 Capture the initial planet-orbit view and confirm that the planet is visible:
 
 ~~~bash
-./build/PlanetSimulation --planet-render-test build/planet-render-test.png
+./build/PlanetSimulation --config tests/fixtures/development/configs/scenarios/solar_system.json --planet-render-test build/planet-render-test.png
 ~~~
 
 For resolution diagnostics, append `--render-size WIDTH HEIGHT` to any render
@@ -412,7 +457,9 @@ runs, the 20° equatorial alignment, and cameras attached to rotating terrain.
 
 The tests use a frozen development config under `tests/fixtures/development`,
 so editing the interactive scenario cannot change their orbital, terrain, or
-camera assumptions. Existing unit assertions are retained.
+camera assumptions. Lighting and twilight scenarios have their own frozen bases.
+Their compact 12.5 km outer orbit receives stronger sunlight and moonlight than
+the working scene; their brightness ranges describe those fixtures.
 
 `tests/scenarios/lighting/manifest.json` defines independent daylight (20 s),
 moonlit night (120 s), moonless night (120 s), new-Moon night (0 s), and fixed
@@ -435,7 +482,12 @@ capture log. `results.json` records image hashes and measurements. The tests
 check Sun and Moon illumination separately, exposure limits, terrain geometry,
 day/night brightness, and exact replay of daylight and moonlit images. Dark
 terrain is measured using depth and object identity, without counting the Sun,
-Moon, or stars as terrain. `LightingScenariosRenderIntegration` runs these same
+Moon, or stars as terrain. Star visibility uses
+`sky_interior_mean_display_luminance`, which excludes a one-pixel border around
+geometry: multisample color can contain a bright terrain edge even when its
+resolved depth/stencil sample says sky. `sky_interior_pixels` ensures enough
+unobstructed sky remains to measure. The original whole-sky and terrain metrics
+are also recorded. `LightingScenariosRenderIntegration` runs these same
 checks in CTest. Use an existing display instead of `xvfb-run` when available.
 
 `TwilightScenariosRenderIntegration` preserves the reported camera at
@@ -449,6 +501,17 @@ Generate those replayable captures independently with:
 ~~~bash
 xvfb-run -a python3 tests/render_lighting_scenarios.py --binary build/PlanetSimulation --manifest tests/scenarios/twilight/manifest.json --output-dir build/twilight-scenarios
 ~~~
+
+Regenerate the shadow comparison with:
+
+~~~bash
+cd build
+xvfb-run -a ctest --output-on-failure -R '^TerrainShadowRenderIntegration$'
+cd ..
+~~~
+
+The output is `build/terrain-shadow-test.png`; the twilight image is
+`build/twilight-scenarios/twilight_reported.png`.
 
 The saved surface view looks across water toward flatter land and cliffs. The
 surface render test checks for a visible configured body. The orbit
@@ -468,8 +531,23 @@ The render test hides its GLFW window but still needs a display. On a Linux
 machine without one, install `xvfb` and run:
 
 ~~~bash
-xvfb-run -a ./build/PlanetSimulation --render-test build/render-test.png
+xvfb-run -a ./build/PlanetSimulation --config tests/fixtures/development/configs/scenarios/solar_system.json --render-test build/render-test.png
 ~~~
 
 The release executable uses the same commands with `build-release` in place of
 `build`.
+
+Refresh the working-scene gallery at its documented times with:
+
+~~~bash
+./build/PlanetSimulation --config configs/scenarios/solar_system.json --surface-capture build/surface-view.png --simulation-time 20
+./build/PlanetSimulation --config configs/scenarios/solar_system.json --planet-render-test build/planet-orbit.png --simulation-time 3000
+./build/PlanetSimulation --config configs/scenarios/solar_system.json --surface-capture build/moonlit-night.png --simulation-time 55
+~~~
+
+For the matching moonless control, copy the working JSON to
+`build/moonless.config.json`, set only `lighting.reflections_enabled` to false,
+and use that file with `--surface-capture build/moonless-night.png --simulation-time 55`.
+Copy reviewed captures into `docs/screenshots/`, including the `.png.json`
+sidecars for surface captures. The solar overview comes from `build/render-test.png`
+using the frozen fixture above.

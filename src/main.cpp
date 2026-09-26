@@ -906,6 +906,8 @@ int main(int argc, char** argv) {
                         {"terrain_mean_display_luminance", metrics.terrainMeanLuminance},
                         {"terrain_max_display_luminance", metrics.terrainMaxLuminance},
                         {"sky_mean_display_luminance", metrics.skyMeanLuminance},
+                        {"sky_interior_pixels", metrics.skyInteriorPixels},
+                        {"sky_interior_mean_display_luminance", metrics.skyInteriorMeanLuminance},
                         {"non_background_pixels", analysis.drawn.count}}}
                 };
                 std::ofstream sidecar(outputImagePath + ".json");
