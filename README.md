@@ -167,8 +167,11 @@ For example:
 
 ## FPS and performance traces
 
-Hold **Tab** in any camera mode to show FPS, frame time, and GPU pass time.
-Release Tab to hide the overlay. FPS uses a rolling wall-clock average over
+Press **I** in any camera mode to toggle a black statistics panel with a white
+border showing FPS, frame time, and GPU pass time. Hold **Tab** to show it
+temporarily when the toggle is off. GPU pass time is a duration, not graphics
+card utilization; a utilization percentage is still pending.
+FPS uses a rolling wall-clock average over
 roughly 0.25 seconds; GPU timings arrive a few frames later. The interactive
 loop uses vsync without adding a second 16 ms sleep.
 
@@ -190,8 +193,9 @@ shadows, opaque geometry, reflected geometry, reflected atmosphere, water,
 main atmosphere, cached presentation, HUD, and swap/presentation. GPU queries
 are collected only when ready; an eight-frame ring skips GPU sampling if it
 fills, marking `gpu_valid=0` and leaving GPU values empty. Rows can arrive out
-of order: sort by `frame`. GPU queries run only while Tab is held or tracing
-is requested. Tracing never calls `glFinish` or waits for a query result.
+of order: sort by `frame`. GPU queries run only while the statistics panel
+is visible or tracing is requested. Tracing never calls `glFinish` or waits
+for a query result.
 
 CPU values are elapsed wall time, including driver stalls, not CPU utilization.
 A large `cpu_present_ms` can be GPU backpressure or vsync; inspect the GPU pass

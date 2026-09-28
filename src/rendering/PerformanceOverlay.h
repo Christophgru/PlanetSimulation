@@ -31,7 +31,9 @@ public:
         else std::snprintf(lines,sizeof(lines),"FPS --\nFRAME -- MS\n%s",gpu);
         if (text_ != lines) {
             text_ = lines; vertices_.clear();
-            rectangle(12,12,270,74,0.025f);
+            // Inset the black fill to leave a two-pixel white border.
+            rectangle(12,12,270,74,1.0f);
+            rectangle(14,14,266,70,0.0f);
             float x=24,y=22;
             for (char c : text_) {
                 if (c == '\n') { x=24; y+=20; continue; }

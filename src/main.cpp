@@ -47,6 +47,7 @@ struct InputContext {
     CameraInput* camera = nullptr;
     simulation::SimulationClock* clock = nullptr;
     bool reloadRequested = false;
+    bool statsVisible = false;
 };
 
 CameraInput* windowCameraInput(GLFWwindow* window) {
@@ -82,6 +83,11 @@ void onScroll(GLFWwindow* window, double, double yOffset) {
 void onKey(GLFWwindow* window, int key, int, int action, int) {
     if (action != GLFW_PRESS) return;
     auto* context = static_cast<InputContext*>(glfwGetWindowUserPointer(window));
+    if (key == GLFW_KEY_I && context) {
+        // GLFW_REPEAT is filtered above so holding I toggles only once.
+        context->statsVisible = !context->statsVisible;
+        return;
+    }
     if (key == GLFW_KEY_T && context && context->clock) {
         context->clock->togglePause(glfwGetTime());
         std::cout << (context->clock->paused() ? "Simulation paused (T to resume)\n" :
@@ -1162,8 +1168,10 @@ int main(int argc, char** argv) {
             double configChangedAt = 0.0;
             double nextConfigCheckAt = previousFrameTime;
             while (!glfwWindowShouldClose(window)) {
-                profiler.beginFrame(simulationClock.seconds(), glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS);
                 glfwPollEvents();
+                const bool statsVisible = inputContext.statsVisible ||
+                    glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS;
+                profiler.beginFrame(simulationClock.seconds(), statsVisible);
                 const double watchTime = glfwGetTime();
                 if (watchTime >= nextConfigCheckAt) {
                     nextConfigCheckAt = watchTime + 0.05;
@@ -1318,7 +1326,7 @@ int main(int argc, char** argv) {
                         frameReuse.remember(view,fov,width,height,simulationClock.seconds(),revisions,eyeWorld,static_cast<int>(cameraInput.mode()));
                     }
                     { rendering::FrameProfiler::Scope scope(&profiler, rendering::FrameStage::Overlay);
-                      performanceOverlay.draw(glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS, width, height,
+                      performanceOverlay.draw(statsVisible, width, height,
                           frameRate.fps, frameRate.milliseconds, profiler.gpuMilliseconds, profiler.gpuReady()); }
                     { rendering::FrameProfiler::Scope scope(&profiler, rendering::FrameStage::Present, false);
                       glfwSwapBuffers(window); }
