@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 410" width="1000" height="410">
+<defs><marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#647889"/></marker></defs>
+<rect width="1000" height="410" fill="#ffffff"/>
+<text x="26.00" y="35.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="22" fill="#17334b" font-weight="700">Why a geometric reflection must be gated on the night side</text>
+<line x1="26.00" y1="51.00" x2="974.00" y2="51.00" stroke="#e2ebee" stroke-width="2" stroke-linecap="round"/>
+<circle cx="487.00" cy="238.00" r="142.00" fill="#dfeaf0" stroke="#4978b7" stroke-width="2"/>
+<path d="M 487 96 A 142 142 0 0 1 487 380 L 487 96" stroke="none" stroke-width="2" fill="#b9cbd5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="91.00" cy="171.00" r="45.00" fill="#df982c"/>
+<line x1="145.00" y1="177.00" x2="322.00" y2="196.00" stroke="#df982c" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow)"/>
+<line x1="185.00" y1="275.00" x2="332.00" y2="275.00" stroke="#647889" stroke-width="2" stroke-linecap="round"/>
+<text x="257.00" y="301.00" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="14" fill="#df982c" font-weight="700">Sun-facing</text>
+<text x="648.00" y="286.00" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="14" fill="#17334b" font-weight="700">night side</text>
+<circle cx="579.00" cy="176.00" r="11.00" fill="#cb6269"/>
+<line x1="579.00" y1="176.00" x2="673.00" y2="112.00" stroke="#cb6269" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 5"/>
+<text x="697.00" y="112.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="13" fill="#cb6269" font-weight="700">invalid bright reflected sample</text>
+<rect x="728.00" y="171.00" width="236.00" height="162.00" rx="10" fill="#f2f7f8" stroke="#e2ebee" stroke-width="2"/>
+<text x="748.00" y="205.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" fill="#17334b" font-weight="700">water radiance</text>
+<text x="748.00" y="240.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="15" fill="#177f89">indirect + Vsun × R</text>
+<text x="748.00" y="273.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="13" fill="#647889">Vsun = local incidence</text>
+<text x="748.00" y="297.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="13" fill="#647889">× terrain visibility</text>
+</svg>

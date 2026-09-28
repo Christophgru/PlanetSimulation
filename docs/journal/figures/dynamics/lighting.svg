@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 430" width="1000" height="430">
+<defs><marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#647889"/></marker></defs>
+<rect width="1000" height="430" fill="#ffffff"/>
+<text x="26.00" y="35.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="22" fill="#17334b" font-weight="700">Direct illumination, reflected moonlight and terrain visibility</text>
+<line x1="26.00" y1="51.00" x2="974.00" y2="51.00" stroke="#e2ebee" stroke-width="2" stroke-linecap="round"/>
+<circle cx="123.00" cy="214.00" r="61.00" fill="#df982c"/>
+<circle cx="715.00" cy="249.00" r="105.00" fill="#4978b7"/>
+<circle cx="474.00" cy="100.00" r="34.00" fill="#647889"/>
+<text x="123.00" y="301.00" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="17" fill="#df982c" font-weight="700">Sun</text>
+<text x="715.00" y="380.00" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="17" fill="#4978b7" font-weight="700">planet</text>
+<text x="474.00" y="55.00" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="16" fill="#647889" font-weight="700">moon</text>
+<line x1="184.00" y1="205.00" x2="596.00" y2="226.00" stroke="#df982c" stroke-width="4" stroke-linecap="round" marker-end="url(#arrow)"/>
+<line x1="174.00" y1="180.00" x2="440.00" y2="107.00" stroke="#df982c" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow)"/>
+<line x1="494.00" y1="125.00" x2="648.00" y2="189.00" stroke="#177f89" stroke-width="3" stroke-linecap="round" marker-end="url(#arrow)"/>
+<text x="393.00" y="181.00" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="14" fill="#df982c" font-weight="700">inverse-square direct flux</text>
+<text x="547.00" y="139.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="13" fill="#177f89" font-weight="700">phase × albedo</text>
+<path d="M 639 306 Q 665 268 689 292 L 709 275 L 725 295" stroke="#17334b" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 615 324 L 659 294 L 708 294 L 669 334 Z" stroke="none" stroke-width="2" fill="#dae0e8" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="868.00" y="233.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="14" fill="#17334b" font-weight="700">shadow-map</text>
+<text x="868.00" y="256.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="14" fill="#17334b">comparison</text>
+<line x1="799.00" y1="263.00" x2="854.00" y2="247.00" stroke="#17334b" stroke-width="2" stroke-linecap="round" marker-end="url(#arrow)"/>
+<text x="45.00" y="404.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="13" fill="#647889">The same terrain depth map gates opaque shading, water reflection and direct atmospheric scattering.</text>
+</svg>

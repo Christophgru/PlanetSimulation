@@ -4,6 +4,10 @@ Version **0.0.1**. The CMake project version is the source of truth for the
 startup banner and capture metadata. See the [image generation log](docs/captures/GENERATION.md)
 for each README image’s last generation date, version and reproduction details.
 
+The [illustrated engineering journal](docs/journal/paper.pdf) traces the project
+from its first commit through the current renderer; its editable source is
+[written in Typst](docs/journal/paper.typ).
+
 | Solar overview (compact test scene) | Planet surface (20 s) | Planet orbit (3000 s) |
 |:--:|:--:|:--:|
 | <a href="docs/screenshots/solar-view.png"><img src="docs/screenshots/solar-view.png" width="220" alt="Sun and planet render test"></a> | <a href="docs/screenshots/surface-view.png"><img src="docs/screenshots/surface-view.png" width="220" alt="Planet surface render test"></a> | <a href="docs/screenshots/planet-orbit.png"><img src="docs/screenshots/planet-orbit.png" width="220" alt="Planet orbit render test"></a> |

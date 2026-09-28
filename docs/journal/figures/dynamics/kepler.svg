@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 445" width="1000" height="445">
+<defs><marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#647889"/></marker></defs>
+<rect width="1000" height="445" fill="#ffffff"/>
+<text x="26.00" y="35.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="22" fill="#17334b" font-weight="700">Kepler ellipse and hierarchical barycentric recoil</text>
+<line x1="26.00" y1="51.00" x2="974.00" y2="51.00" stroke="#e2ebee" stroke-width="2" stroke-linecap="round"/>
+<ellipse cx="275.00" cy="233.00" rx="205.00" ry="126.00" fill="none" stroke="#4978b7" stroke-width="3"/>
+<circle cx="113.29" cy="233.00" r="15.00" fill="#df982c"/>
+<circle cx="440.00" cy="159.00" r="11.00" fill="#177f89"/>
+<line x1="275.00" y1="233.00" x2="480.00" y2="233.00" stroke="#647889" stroke-width="2" stroke-linecap="round"/>
+<line x1="275.00" y1="233.00" x2="275.00" y2="107.00" stroke="#647889" stroke-width="2" stroke-linecap="round"/>
+<text x="372.00" y="225.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" fill="#647889" font-weight="700">a</text>
+<text x="283.00" y="171.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" fill="#647889" font-weight="700">b</text>
+<line x1="113.29" y1="233.00" x2="440.00" y2="159.00" stroke="#df982c" stroke-width="2" stroke-linecap="round" marker-end="url(#arrow)"/>
+<text x="251.00" y="169.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" fill="#df982c" font-weight="700">r(t)</text>
+<text x="113.29" y="263.00" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="13" fill="#df982c" font-weight="700">parent focus</text>
+<text x="439.00" y="137.00" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="13" fill="#177f89" font-weight="700">child collective</text>
+<rect x="535.00" y="88.00" width="426.00" height="263.00" rx="10" fill="#f2f7f8" stroke="#e2ebee" stroke-width="2"/>
+<text x="556.00" y="121.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="17" fill="#17334b" font-weight="700">Earth–Moon subtree</text>
+<line x1="584.00" y1="224.00" x2="901.00" y2="224.00" stroke="#647889" stroke-width="2" stroke-linecap="round"/>
+<circle cx="733.00" cy="224.00" r="7.00" fill="#17334b"/>
+<circle cx="673.00" cy="224.00" r="21.00" fill="#4978b7"/>
+<circle cx="861.00" cy="224.00" r="11.00" fill="#647889"/>
+<text x="733.00" y="199.00" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="13" fill="#17334b" font-weight="700">barycenter</text>
+<text x="673.00" y="265.00" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="14" fill="#4978b7" font-weight="700">Earth</text>
+<text x="861.00" y="265.00" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="14" fill="#647889" font-weight="700">Moon</text>
+<text x="556.00" y="314.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="13" fill="#647889">m₁ r₁ + m₂ r₂ = 0 around the collective center</text>
+<text x="40.00" y="402.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="15" fill="#17334b">Solve E − e sin E = M(t); then rotate the orbital-plane ellipse into world space.</text>
+</svg>

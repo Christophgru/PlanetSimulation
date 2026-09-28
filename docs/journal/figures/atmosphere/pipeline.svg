@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 430" width="1000" height="430">
+<defs><marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#647889"/></marker></defs>
+<rect width="1000" height="430" fill="#ffffff"/>
+<text x="26.00" y="35.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="22" fill="#17334b" font-weight="700">Atmospheric composition: reusable columns and depth-aware fields</text>
+<line x1="26.00" y1="51.00" x2="974.00" y2="51.00" stroke="#e2ebee" stroke-width="2" stroke-linecap="round"/>
+<rect x="29.00" y="108.00" width="168.00" height="113.00" rx="10" fill="#f2f7f8" stroke="#4978b7" stroke-width="2"/>
+<text x="113.00" y="148.00" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="12" fill="#4978b7" font-weight="700">Opaque HDR</text>
+<text x="113.00" y="179.00" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="11" fill="#647889">full resolution</text>
+<rect x="222.00" y="108.00" width="168.00" height="113.00" rx="10" fill="#f2f7f8" stroke="#177f89" stroke-width="2"/>
+<text x="306.00" y="148.00" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="12" fill="#177f89" font-weight="700">Density columns</text>
+<text x="306.00" y="179.00" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="11" fill="#647889">shell-dependent</text>
+<rect x="415.00" y="108.00" width="168.00" height="113.00" rx="10" fill="#f2f7f8" stroke="#559b76" stroke-width="2"/>
+<text x="499.00" y="148.00" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="12" fill="#559b76" font-weight="700">Scattering field</text>
+<text x="499.00" y="179.00" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="11" fill="#647889">quarter resolution</text>
+<rect x="608.00" y="108.00" width="168.00" height="113.00" rx="10" fill="#f2f7f8" stroke="#df982c" stroke-width="2"/>
+<text x="692.00" y="148.00" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="12" fill="#df982c" font-weight="700">Depth-aware resolve</text>
+<text x="692.00" y="179.00" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="11" fill="#647889">full resolution</text>
+<rect x="801.00" y="108.00" width="168.00" height="113.00" rx="10" fill="#f2f7f8" stroke="#cb6269" stroke-width="2"/>
+<text x="885.00" y="148.00" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="12" fill="#cb6269" font-weight="700">Exposure + sRGB</text>
+<text x="885.00" y="179.00" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="11" fill="#647889">full resolution</text>
+<line x1="204.00" y1="164.00" x2="217.00" y2="164.00" stroke="#647889" stroke-width="2" stroke-linecap="round" marker-end="url(#arrow)"/>
+<line x1="397.00" y1="164.00" x2="410.00" y2="164.00" stroke="#647889" stroke-width="2" stroke-linecap="round" marker-end="url(#arrow)"/>
+<line x1="590.00" y1="164.00" x2="603.00" y2="164.00" stroke="#647889" stroke-width="2" stroke-linecap="round" marker-end="url(#arrow)"/>
+<line x1="783.00" y1="164.00" x2="796.00" y2="164.00" stroke="#647889" stroke-width="2" stroke-linecap="round" marker-end="url(#arrow)"/>
+<rect x="265.00" y="292.00" width="470.00" height="84.00" rx="8" fill="#ffffff" stroke="#e2ebee" stroke-width="2"/>
+<text x="500.00" y="322.00" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="16" fill="#17334b" font-weight="700">terrain depth + body IDs constrain reprojected sky</text>
+<text x="500.00" y="350.00" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="12" fill="#647889">edges with no matching coarse sample are integrated at full resolution</text>
+<line x1="110.00" y1="221.00" x2="320.00" y2="292.00" stroke="#647889" stroke-width="2" stroke-linecap="round" marker-end="url(#arrow)"/>
+<line x1="710.00" y1="292.00" x2="694.00" y2="221.00" stroke="#647889" stroke-width="2" stroke-linecap="round" marker-end="url(#arrow)"/>
+</svg>
