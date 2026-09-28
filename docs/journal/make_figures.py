@@ -2,7 +2,7 @@
 """Generate deterministic, dependency-free SVG diagrams for paper.typ.
 
 These are explanatory schematics, not screenshots or performance measurements.
-The only empirical bars use the three historical numbers quoted in README.md.
+The only empirical bars use the three measurements quoted in README.md.
 """
 from html import escape
 from math import cos, sin, pi, exp, sqrt, log
@@ -57,28 +57,6 @@ class SVG:
         full = ROOT / path
         full.parent.mkdir(parents=True,exist_ok=True)
         full.write_text('\n'.join(self.parts+['</svg>'])+'\n')
-
-
-def timeline():
-    s=SVG(1000,420,'A chronological reconstruction from selected commits')
-    milestones=[
-        (90,125,'09 Sep','Config + GL','bd73ba9',BLUE),
-        (235,270,'11 Sep','Shader + PNG','94b42f6',TEAL),
-        (385,125,'15 Sep','Terrain + camera','b3975d6',GREEN),
-        (540,270,'24 Sep','Orbits + lighting','18ffbad',GOLD),
-        (690,125,'26 Sep','Atmosphere','0e48155',CORAL),
-        (855,270,'28 Sep','Diagnostics + fixes','ab59069…',NAVY),
-    ]
-    s.line(70,205,925,205,NAVY,4,arrow=True)
-    for x,y,date,cap,commit,col in milestones:
-        s.circle(x,205,9,col,WHITE,2)
-        s.line(x,205,x, y+15 if y>205 else y+25,col,2)
-        yy=y if y<205 else y+18
-        s.text(x,yy,date,15,col,True,'middle')
-        s.text(x,yy+22,cap,14,NAVY,True,'middle')
-        s.text(x,yy+42,commit,12,GRAY,False,'middle')
-    s.text(500,389,'Chronology follows code milestones; each point anchors a group of commits, not an isolated invention.',12,GRAY,anchor='middle')
-    s.save('figures/early/history.svg')
 
 
 def transforms():
@@ -276,7 +254,7 @@ def atmosphere_pipeline():
 
 
 def performance():
-    s=SVG(1000,455,'Historical Quadro M1000M benchmark reported in the project README')
+    s=SVG(1000,455,'Quadro M1000M benchmark reported in the project README')
     names=['initial','column LUT','reduced fields']
     values=[208,138,26]
     colors=[CORAL,GOLD,TEAL]
@@ -291,7 +269,7 @@ def performance():
     s.text(590,97,'mean frame time',16,NAVY,True)
     s.text(590,122,'1280 × 720, 90 frames',12,GRAY)
     s.text(590,147,'Debug CPU build; single scene and GPU',12,GRAY)
-    s.text(504,430,'Bars reproduce historical reported values, not a new measurement.',12,GRAY,anchor='middle')
+    s.text(504,430,'Bars reproduce reported values; this is not a new measurement.',12,GRAY,anchor='middle')
     s.save('figures/atmosphere/performance.svg')
 
 
@@ -342,6 +320,6 @@ def transition():
     s.save('figures/interaction/transition.svg')
 
 
-for fn in [timeline,transforms,terrain,pole,kepler,orbit_trails,lighting,ocean,atmosphere,atmosphere_pipeline,performance,adaptive,transition]:
+for fn in [transforms,terrain,pole,kepler,orbit_trails,lighting,ocean,atmosphere,atmosphere_pipeline,performance,adaptive,transition]:
     fn()
-print('Generated 13 SVG figures')
+print('Generated 12 SVG figures')

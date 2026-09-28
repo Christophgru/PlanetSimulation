@@ -1,9 +1,9 @@
 # PlanetSimulation engineering journal
 
 [Read the paper](paper.pdf) or [edit the Typst source](paper.typ). The paper
-follows selected Git milestones from the first commit through `9661b8e` and
-explains the implemented algorithms for a master's-level computer science
-reader. It includes 13 generated vector diagrams and current renderer captures.
+explains the physical models behind the renderer, why its approximations were
+chosen, and alternative approaches. It includes 12 generated vector diagrams
+and current renderer captures.
 
 The SVG diagrams are explanatory schematics, generated without third-party
 Python packages:
@@ -12,11 +12,10 @@ Python packages:
 python3 docs/journal/make_figures.py
 ```
 
-With Typst 0.15.1 or newer installed, compile from the repository root. The
-fixed creation timestamp is taken from implementation commit `9661b8e`:
+With Typst 0.15.1 or newer installed, compile from the repository root:
 
 ```sh
-typst compile --root . --creation-timestamp 1790607816 docs/journal/paper.typ docs/journal/paper.pdf
+typst compile --root . docs/journal/paper.typ docs/journal/paper.pdf
 ```
 
 The raster figures refer to the existing, versioned
