@@ -1,7 +1,7 @@
 # PlanetSimulation
 
 Version **0.0.1**. The CMake project version is the source of truth for the
-startup banner and capture metadata. See the [image generation log](docs/screenshots/GENERATION.md)
+startup banner and capture metadata. See the [image generation log](docs/captures/GENERATION.md)
 for each README image’s last generation date, version and reproduction details.
 
 | Solar overview (compact test scene) | Planet surface (20 s) | Planet orbit (3000 s) |
@@ -173,9 +173,16 @@ For example:
 ## FPS and performance traces
 
 Press **I** in any camera mode to toggle a black statistics panel with a white
-border showing FPS, frame time, and GPU pass time. Hold **Tab** to show it
-temporarily when the toggle is off. GPU pass time is a duration, not graphics
-card utilization; a utilization percentage is still pending.
+border showing FPS, frame time, GPU pass time, and device utilization. Hold **Tab** to show it
+temporarily when the toggle is off. `GPU USE` is the device-wide percentage
+reported by NVIDIA NVML on Linux, sampled asynchronously at most twice per second.
+It includes other applications using that GPU; GPU pass milliseconds remain a
+separate measurement. See [NVIDIA's utilization definition](https://docs.nvidia.com/deploy/nvml-api/api/group__nvmlDeviceQueries.html).
+NVML is loaded optionally from the installed driver, with no CUDA build dependency.
+Software rendering, other platforms/vendors, missing telemetry permissions,
+driver errors and ambiguous matching adapters display `GPU USE N/A`.
+Identical-model multi-GPU setups deliberately remain unavailable because the
+OpenGL renderer name cannot identify the active physical adapter uniquely.
 FPS uses a rolling wall-clock average over
 roughly 0.25 seconds; GPU timings arrive a few frames later. The interactive
 loop uses vsync without adding a second 16 ms sleep.
@@ -283,12 +290,12 @@ of 4096. The moonless control changes only `lighting.reflections_enabled` to
 false, retaining the Moon's geometry and ambient fill of `0.000001`.
 These PNGs are direct captures without brightness edits.
 
-Replay sidecars beside the three surface images preserve their complete scene,
+[Replay sidecars](docs/captures/replay/) for the three surface images preserve their complete scene,
 camera and timestamp, so the comparison survives later config edits. For example:
 
 ~~~bash
-./build/PlanetSimulation --replay docs/screenshots/moonlit-night.png.json --surface-capture build/moonlit-night.png
-./build/PlanetSimulation --replay docs/screenshots/moonless-night.png.json --surface-capture build/moonless-night.png
+./build/PlanetSimulation --replay docs/captures/replay/moonlit-night.png.json --surface-capture build/moonlit-night.png
+./build/PlanetSimulation --replay docs/captures/replay/moonless-night.png.json --surface-capture build/moonless-night.png
 ~~~
 
 | Terrain shadow comparison | Twilight regression |
@@ -473,6 +480,19 @@ still use `skybox.ambient_light` as a fallback.
 
 Use `--config PATH` to load another scenario, including render-test fixtures.
 The selected file also becomes the interactive reload/watch target.
+
+## Project layout
+
+- `src/config`, `src/coordinates`, `src/simulation`: scene settings and physical models.
+- `src/rendering/{camera,geometry,lighting,atmosphere,diagnostics}`: rendering subsystems.
+- `shaders/{terrain,water,skybox,atmosphere,diagnostics}`: matching GPU programs.
+- `tests/{camera,geometry,lighting,atmosphere,simulation,config,diagnostics}`: subsystem tests.
+- `tests/scenarios` and `tests/fixtures`: reproducible scene inputs.
+- `docs/screenshots`: PNG images only; `docs/captures/replay`: replay JSON.
+- `docs/captures`: image generation log and manifest; `scripts`: maintenance commands.
+
+`python3 scripts/check_layout.py` checks folder sizes and README capture links.
+Build products belong in a separate build directory.
 
 ## Prerequisites
 
@@ -736,8 +756,8 @@ xvfb-run -a cmake --build build --target render_lighting_scenarios
 Or select a case or an alternative manifest:
 
 ~~~bash
-xvfb-run -a python3 tests/render_lighting_scenarios.py --binary build/PlanetSimulation --case night_moon --output-dir build/night-check
-xvfb-run -a python3 tests/render_lighting_scenarios.py --binary build/PlanetSimulation --manifest tests/scenarios/lighting/manifest.json --output-dir build/lighting-scenarios
+xvfb-run -a python3 tests/lighting/render_lighting_scenarios.py --binary build/PlanetSimulation --case night_moon --output-dir build/night-check
+xvfb-run -a python3 tests/lighting/render_lighting_scenarios.py --binary build/PlanetSimulation --manifest tests/scenarios/lighting/manifest.json --output-dir build/lighting-scenarios
 ~~~
 
 Every case produces a resolved `.config.json`, PNG, replay `.png.json`, and
@@ -762,7 +782,7 @@ an opaque wall, at maximum night exposure, while preserving real grazing light.
 Generate those replayable captures independently with:
 
 ~~~bash
-xvfb-run -a python3 tests/render_lighting_scenarios.py --binary build/PlanetSimulation --manifest tests/scenarios/twilight/manifest.json --output-dir build/twilight-scenarios
+xvfb-run -a python3 tests/lighting/render_lighting_scenarios.py --binary build/PlanetSimulation --manifest tests/scenarios/twilight/manifest.json --output-dir build/twilight-scenarios
 ~~~
 
 Regenerate the shadow comparison with:
@@ -801,7 +821,7 @@ The release executable uses the same commands with `build-release` in place of
 `build`.
 
 Regenerate every README image and update its version, UTC timestamp, command and
-SHA-256 hash in the [generation log](docs/screenshots/GENERATION.md):
+SHA-256 hash in the [generation log](docs/captures/GENERATION.md):
 
 ~~~bash
 cmake --build build --target PlanetSimulation terrain_shadow_render_tests

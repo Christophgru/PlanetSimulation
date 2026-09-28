@@ -5,8 +5,8 @@ document the progress and add comments such that when interrupted you can contin
 
 |Task |State|Comment|
 |:--|--|--:|
-| add stats to the actual screen (black with white boarder) when pressing "i" including fps, and % of graphic card utilisation| p| I toggle and bordered black FPS/frame/GPU-time panel implemented; utilization percentage and runtime validation remain. |
-|The Project has become a bit hard to keep track of. add a more fine granular folder strcture, such that no 10 FIles are just flying around in a single folder. Exeception may be e.g. the picture folder, but then make sure there are actually only image files in there and the jsons are seperated. | -| |
+| add stats to the actual screen (black with white boarder) when pressing "i" including fps, and % of graphic card utilisation| t| I/Tab panel and optional Linux NVML GPU utilization implemented. GPU ABI/failure tests, real X11 input/border tests and performance replay passed; README captures refreshed. Physical NVIDIA hardware is unavailable here. |
+|The Project has become a bit hard to keep track of. add a more fine granular folder strcture, such that no 10 FIles are just flying around in a single folder. Exeception may be e.g. the picture folder, but then make sure there are actually only image files in there and the jsons are seperated. | t| Grouped source/tests/shaders by subsystem; images separated from replay JSON and generation records. Clean build, all 33 CTest tests, layout/link checks and gallery generation passed. |
 | adjust quality settings to be automatically chosen such that we always have at least 20 fps. Based on virtual memory, choose the degree of detail in which the scene is rendered| - |
 | movements around the poles is really awkward, the planet camerastarts spinning when walking towards the pole.|-|
 |  The atmophere is also illuminated if mountains should block the light|-|
@@ -16,24 +16,26 @@ document the progress and add comments such that when interrupted you can contin
 
 # environmental issues :
 if environmental changes are needed inside the container, let the user know by adding dependencies here:
-- 
+- PNG writing requires `libpng-dev` (already available here).
+- Headless input/capture checks use `xvfb`, `xauth`, `xdotool`, and `imagemagick`.
 
 ## Progress checkpoint — 2026-09-28
 
-- `src/main.cpp` toggles statistics on I press (repeats ignored), preserves
-  the Tab hold shortcut, and profiles GPU passes while the panel is visible.
-  Events are polled first so profiling and drawing agree on visibility.
-- `src/rendering/PerformanceOverlay.h` draws a two-pixel white border around
-  a black panel. Existing FPS/frame/GPU-time measurements are retained.
-- Remaining: actual graphics-card utilization percentage, with an unavailable
-  state on unsupported hardware. GPU milliseconds divided by frame time must
-  not be presented as device utilization. Then validate input and rendering.
-- Clean CMake configuration in `/tmp/planet-todo-build` failed: OpenGL headers
-  and libraries are missing. GLFW headers and Xvfb are also absent. Existing
-  `build` cache points at another machine; use a clean build. Runtime validation
-  has not been performed.
-- Resume with telemetry and build/render checks for the first row, then move
-  to automatic quality. Other rows have not been changed.
+- Work in table order. Mark `t` automatically only after tests pass and documentation is updated.
+  `v` is reserved for user verification. Commit each feature after successful tests,
+  before starting the next row.
+- First row: I toggle, Tab hold, bordered panel, FPS/frame/GPU pass time implemented.
+  Added optional Linux NVML device-wide utilization, sampled off the render thread.
+  Ambiguous adapters, software renderers, missing drivers and errors show N/A.
+- First row is t: GpuUtilizationTests, PerformanceOverlayInputIntegration and
+  PerformanceCaptureIntegration passed; gallery regenerated and visually reviewed.
+- Environment now supports builds and headless rendering: `/tmp/planet-readme-build`,
+  RelWithDebInfo, Xvfb, Mesa llvmpipe OpenGL 4.5. Physical NVIDIA validation is
+  unavailable here; the optional driver ABI is exercised with a test library.
+- Folder organization is t: clean `/tmp/planet-organized-build`, all 33 CTest
+  tests passed (70 s), gallery regenerated, links and hashes verified.
+- Next row: automatic quality targeting 20 FPS and memory-aware detail.
+  Later rows remain untouched.
 
 # States: 
 |State |Meaning|
@@ -41,4 +43,5 @@ if environmental changes are needed inside the container, let the user know by a
 |"-" or " "| not yet started|
 |"p"| in progress|
 |"i"| implemented|
-|"t"|tested and documented|
+|"t"|automated tests implemented and passed; documented; may proceed to next task|
+|"v"|verified by the user|

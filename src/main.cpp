@@ -13,7 +13,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "rendering/PngWriter.h"
+#include "rendering/diagnostics/PngWriter.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -22,23 +22,24 @@
 #include "config/ScenarioConfig.h"
 #include "config/SceneReplay.h"
 #include "simulation/OrbitalSystem.h"
-#include "rendering/Mesh.h"
-#include "rendering/Terrain.h"
-#include "rendering/CameraInput.h"
-#include "rendering/OrbitCamera.h"
-#include "rendering/PlanetSurfaceCamera.h"
-#include "rendering/RenderDiagnostics.h"
-#include "rendering/SceneTransforms.h"
-#include "rendering/CelestialLighting.h"
-#include "rendering/CameraExposure.h"
+#include "rendering/geometry/Mesh.h"
+#include "rendering/geometry/Terrain.h"
+#include "rendering/camera/CameraInput.h"
+#include "rendering/camera/OrbitCamera.h"
+#include "rendering/camera/PlanetSurfaceCamera.h"
+#include "rendering/diagnostics/RenderDiagnostics.h"
+#include "rendering/geometry/SceneTransforms.h"
+#include "rendering/lighting/CelestialLighting.h"
+#include "rendering/lighting/CameraExposure.h"
 #include "rendering/Shader.h"
-#include "rendering/SurfaceCameraTelemetry.h"
+#include "rendering/camera/SurfaceCameraTelemetry.h"
 #include "rendering/WaterReflectionTarget.h"
-#include "rendering/TerrainShadowMaps.h"
-#include "rendering/AtmosphereRenderer.h"
-#include "rendering/FrameProfiler.h"
-#include "rendering/PerformanceOverlay.h"
-#include "rendering/FrameReuse.h"
+#include "rendering/lighting/TerrainShadowMaps.h"
+#include "rendering/atmosphere/AtmosphereRenderer.h"
+#include "rendering/diagnostics/FrameProfiler.h"
+#include "rendering/diagnostics/PerformanceOverlay.h"
+#include "rendering/diagnostics/GpuUtilization.h"
+#include "rendering/diagnostics/FrameReuse.h"
 
 namespace fs = std::filesystem;
 
@@ -864,15 +865,18 @@ int main(int argc, char** argv) {
         }
 
         // Create shader program
-        Shader shader("shaders/basic.vert", "shaders/basic.frag", "shaders/terrain_shadow.glsl", "shaders/atmosphere.glsl");
-        Shader waterShader("shaders/water.vert", "shaders/water.frag", "shaders/terrain_shadow.glsl", "shaders/atmosphere.glsl");
-        Shader shadowShader("shaders/terrain_shadow.vert", "shaders/terrain_shadow.frag");
+        Shader shader("shaders/terrain/basic.vert", "shaders/terrain/basic.frag", "shaders/terrain/terrain_shadow.glsl", "shaders/atmosphere/atmosphere.glsl");
+        Shader waterShader("shaders/water/water.vert", "shaders/water/water.frag", "shaders/terrain/terrain_shadow.glsl", "shaders/atmosphere/atmosphere.glsl");
+        Shader shadowShader("shaders/terrain/terrain_shadow.vert", "shaders/terrain/terrain_shadow.frag");
         rendering::TerrainShadowMaps terrainShadows;
-        Shader atmosphereShader("shaders/atmosphere.vert", "shaders/atmosphere.frag", "shaders/atmosphere.glsl");
+        Shader atmosphereShader("shaders/atmosphere/atmosphere.vert", "shaders/atmosphere/atmosphere.frag", "shaders/atmosphere/atmosphere.glsl");
         rendering::AtmosphereRenderer atmosphere(atmosphereFullResolution ? 1 : 4);
         rendering::AtmosphereRenderer reflectionAtmosphere(atmosphereFullResolution ? 1 : 4);
         rendering::AtmosphereTransmittance atmosphereColumns;
         rendering::PerformanceOverlay performanceOverlay;
+        rendering::GpuUtilization gpuUtilization(
+            reinterpret_cast<const char*>(glGetString(GL_VENDOR)),
+            reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
         rendering::FrameRate frameRate;
         rendering::FrameReuse frameReuse;
         auto geometryRevisions = [&]() {
@@ -880,7 +884,7 @@ int main(int argc, char** argv) {
             for (const auto& mesh : planetMeshes) result.push_back(mesh.revision);
             return result;
         };
-        Shader skyboxShader("shaders/skybox.vert", "shaders/skybox.frag");
+        Shader skyboxShader("shaders/skybox/skybox.vert", "shaders/skybox/skybox.frag");
         rendering::WaterReflectionTarget waterReflection;
         
         // Enable depth testing
@@ -935,7 +939,7 @@ int main(int argc, char** argv) {
                 }
                 { rendering::FrameProfiler::Scope scope(&profiler, rendering::FrameStage::Overlay);
                   performanceOverlay.draw(benchmarkOverlay,width,height,frameRate.fps,frameRate.milliseconds,
-                      profiler.gpuMilliseconds,profiler.gpuReady()); }
+                      profiler.gpuMilliseconds,profiler.gpuReady(),gpuUtilization.sample(benchmarkOverlay)); }
                 if (frame + 1 < benchmarkFrames) {
                     rendering::FrameProfiler::Scope scope(&profiler, rendering::FrameStage::Present, false);
                     glfwSwapBuffers(window); glfwPollEvents();
@@ -1320,7 +1324,7 @@ int main(int argc, char** argv) {
                     }
                     { rendering::FrameProfiler::Scope scope(&profiler, rendering::FrameStage::Overlay);
                       performanceOverlay.draw(statsVisible, width, height,
-                          frameRate.fps, frameRate.milliseconds, profiler.gpuMilliseconds, profiler.gpuReady()); }
+                          frameRate.fps, frameRate.milliseconds, profiler.gpuMilliseconds, profiler.gpuReady(), gpuUtilization.sample(statsVisible)); }
                     { rendering::FrameProfiler::Scope scope(&profiler, rendering::FrameStage::Present, false);
                       glfwSwapBuffers(window); }
                 }

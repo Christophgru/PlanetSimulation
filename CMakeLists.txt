@@ -39,6 +39,7 @@ target_link_libraries(PlanetSimulation PRIVATE
     nlohmann_json::nlohmann_json
     OpenGL::GL
     PNG::PNG
+    ${CMAKE_DL_LIBS}
     glfw
     GLEW::GLEW
     glm::glm

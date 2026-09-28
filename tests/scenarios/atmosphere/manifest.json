@@ -6,15 +6,15 @@
     480
   ],
   "cases": [
-    "airless.json",
-    "standard_air.json",
-    "heavy_dust.json",
-    "mist.json",
-    "night.json",
-    "moonlit_night.json",
-    "sunset.json",
-    "orbital_view.json",
-    "night_without_stars.json"
+    "day/airless.json",
+    "day/standard_air.json",
+    "day/heavy_dust.json",
+    "day/mist.json",
+    "night/night.json",
+    "night/moonlit_night.json",
+    "day/sunset.json",
+    "day/orbital_view.json",
+    "night/night_without_stars.json"
   ],
   "comparisons": [
     {
