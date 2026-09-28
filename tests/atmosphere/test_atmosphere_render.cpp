@@ -151,6 +151,17 @@ TEST_F(AtmosphereRender, SurfaceAndOrbitalSkyDisplacementMatchesReferenceRay) {
         EXPECT_NEAR(observed,expected,0.0003); // Better than 0.04 pixel here.
     }
 }
+TEST_F(AtmosphereRender, RasterizedDistantBodyKeepsItsSilhouette) {
+    config::AtmosphereConfig cfg; cfg.enabled = true;
+    // The same visible color ramp represents a distant opaque disk rather
+    // than sky. Its finite depth must prevent image-space reprojection from
+    // cutting dark bands through the original rasterized geometry.
+    const auto clip = projection * glm::vec4(0, 0, -5, 1);
+    std::vector<float> depths(size * size, 0.5f + 0.5f * clip.z / clip.w);
+    glBindTexture(GL_TEXTURE_2D, depth);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size, size, GL_RED, GL_FLOAT, depths.data());
+    EXPECT_NEAR(render(cfg, {0, 1.001, 0}), 0.5f, 1e-6f);
+}
 TEST_F(AtmosphereRender, JsonTemperatureChangesRenderedSkyDisplacement) {
     const auto cold = config::AtmosphereConfig(config::Config{
         nlohmann::json{{"temperature_k", 250.0}}});

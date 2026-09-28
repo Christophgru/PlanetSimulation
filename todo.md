@@ -15,8 +15,8 @@ document the progress and add comments such that when interrupted you can contin
 |when switching from orbital cam to planet cam, add a transition phase of 1 sec where we smoothly drop to the planets surface and reorient our camera in a smooth movement|v| One-second wall-clock descent interpolates eye, orientation and FOV above sampled terrain/water for manual and automatic entry. Geometry, live X11 midpoint, all 39 tests and gallery refresh passed. |
 | Add Light atmospheric light bending and also based on the temperature (set temp param by json for now, later calculate it by orbit and sun strength) |t| Existing curved-ray renderer and JSON temperature model now have CPU and GPU temperature regressions; all 39 tests, documentation and gallery refresh passed. Orbital heat calculation remains future work as requested. |
 |For the ellipsis tracing visualize past ellipsis, not future, and fade the last 20% of the ellipsis to avoid a hefty cut.|t| Ten past revolutions sampled in the moving hierarchy; oldest 20% uses smooth alpha fade. Geometry, real X11 toggle and all 39 CTest tests passed; README updated. |
-|Check the image at USER_IO/user_artifacts/image.png how can we avoid those cuts? maybe se some gradient field instead of rasterisation?|||
-|Add a extreme atmosphere light bending exampe to the readme and journal with renderings. Make light bending a optional feature that can be turned on or off via json|||
+|Check the image at USER_IO/user_artifacts/image.png how can we avoid those cuts? maybe se some gradient field instead of rasterisation? The issue happens at the Poles. In the shadow of a mountain.|p| Controlled thin-atmosphere view reproduced dark slits through the Sun; finite-depth geometry now keeps its rasterized silhouette and a GPU regression passes. Large sky contours in the supplied screenshot still need its camera/time replay for verification. |
+|Add a extreme atmosphere light bending exampe to the readme and journal with renderings. Make light bending a optional feature that can be turned on or off via json|t| Matched extreme on/off renderings, README, journal/PDF and exact replays added. Existing refraction_enabled JSON switch controls bending; gallery hashes and replay comparison passed. 38 full-suite tests passed, then the corrected layout test passed. |
 |add textures, roughness and mini elevation for performant details, make steeper gradients more grey and give them a rocky look (Do so without crazy amounts of polygons, instead use the maps tro crreate rock like local landscape)|||
 |add foliage like the grass in the quickgrass demo (copy it as close as possible) |||
 # environmental issues :
@@ -49,6 +49,25 @@ if environmental changes are needed inside the container, let the user know by a
 
 ## Progress checkpoint — 2026-09-28
 
+- Extreme-refraction example is t: matched 1280×720 renderer captures
+  are in `docs/screenshots/refraction-extreme-{on,off}.png`, with exact replay
+  JSON under `docs/captures/replay/refraction`. Both scenes share a 15 m shell, 150 kPa,
+  180 K and 15° FOV; only `refraction_enabled` changes. README and Typst/PDF
+  include the comparison and disclose the visible sky-edge notch. The gallery
+  generator published 14 images with verified hashes. The full suite passed
+  38/39 checks, then the failed ten-file folder check passed after placing
+  the two new replay sidecars in their own subfolder. The JSON toggle is
+  already implemented and covered by existing atmosphere tests.
+- Validation build moved to ignored `/workspace/build-codex` because `/tmp`
+  build trees are cleared between interrupted turns. Reuse this build.
+- Cut-artifact investigation: standard scene on/off and a dense-air scene did
+  not reproduce the supplied image. A controlled thin, cold atmosphere at a
+  low surface camera did reproduce dark horizontal slits through the Sun.
+  `shaders/atmosphere/atmosphere.frag` now limits image reprojection to pixels
+  with sky depth, preserving finite-depth body silhouettes. On/off visual
+  comparison and `AtmosphereRefractionRenderIntegration` pass. A small bright
+  notch can remain next to the Sun; broad contours in the supplied image are
+  not yet reproduced. Await its camera/time or replay details; do not mark t.
 - Past orbit trail row is t: `pastOrbitTrails` orders samples from ten periods
   ago to the current epoch and gives the oldest fifth a smooth opacity ramp.
   The line shader blends per-vertex alpha. Clean build and all 39 CTest tests

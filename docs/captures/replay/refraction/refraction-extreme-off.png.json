@@ -1,34 +1,34 @@
 {
   "application_version": "0.0.1",
   "render": {
-    "atmosphere_downsample": 4,
+    "atmosphere_downsample": 1,
     "atmosphere_liquid_water_g_m3": 0.0,
-    "atmosphere_refraction_enabled": true,
-    "atmosphere_refractive_index": 1.0002899200095918,
-    "atmosphere_relative_humidity": 0.8684600670525447,
-    "atmospheric_illuminance": 0.07060200750254905,
-    "direct_illuminance": 3.4424016469963696,
-    "exposure": 0.1897706561922573,
+    "atmosphere_refraction_enabled": false,
+    "atmosphere_refractive_index": 1.0007045962354635,
+    "atmosphere_relative_humidity": 0.0,
+    "atmospheric_illuminance": 0.07200125194833631,
+    "direct_illuminance": 0.0,
+    "exposure": 9.258969665907383,
     "height": 720,
-    "metered_illuminance": 3.51301239107939,
-    "non_background_pixels": 899620,
-    "reflected_illuminance": 7.73658047155365e-06,
+    "metered_illuminance": 0.07200225194833632,
+    "non_background_pixels": 921595,
+    "reflected_illuminance": 0.0,
     "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
     "samples": 0,
-    "sky_interior_blue": 0.12855087820280103,
-    "sky_interior_green": 0.09587582220193806,
-    "sky_interior_mean_display_luminance": 0.09201769395511351,
-    "sky_interior_pixels": 547156,
-    "sky_interior_red": 0.0666318556462524,
-    "sky_mean_display_luminance": 0.09236941427981599,
-    "sky_pixels": 548831,
-    "sky_sensitivity": 0.0029651665030040204,
-    "terrain_luminance_stddev": 0.0635340771746881,
-    "terrain_max_display_luminance": 0.58344,
-    "terrain_mean_display_luminance": 0.4056315223283535,
-    "terrain_pixels": 372769,
-    "white_clipped_fraction": 0.0015625,
-    "white_clipped_pixels": 1440,
+    "sky_interior_blue": 0.023807085133087314,
+    "sky_interior_green": 0.25975440055771876,
+    "sky_interior_mean_display_luminance": 0.2930934524378568,
+    "sky_interior_pixels": 123477,
+    "sky_interior_red": 0.49669912329438437,
+    "sky_mean_display_luminance": 0.29290893355342545,
+    "sky_pixels": 125028,
+    "sky_sensitivity": 0.14467140102980286,
+    "terrain_luminance_stddev": 0.010499978050211552,
+    "terrain_max_display_luminance": 0.5105058823529411,
+    "terrain_mean_display_luminance": 0.03618036179989655,
+    "terrain_pixels": 682958,
+    "white_clipped_fraction": 0.0,
+    "white_clipped_pixels": 0,
     "width": 1280
   },
   "scenario": {
@@ -111,17 +111,10 @@
           "droplet_radius_um": 10.0,
           "enabled": true,
           "gas-contents": {
-            "description": "Percent composition. The unspecified balance uses inert argon-like optical properties. Water in excess of saturation can form suspended droplets; red_dust is an effective aerosol loading.",
-            "nitrogen": 70.0,
-            "oxygen": 25.0,
-            "parameter_descriptions": {
-              "nitrogen": "Nitrogen percentage, 0..100.",
-              "oxygen": "Oxygen percentage, 0..100.",
-              "red_dust": "Effective red mineral aerosol percentage. 0.0001 gives light coloured haze; 0.1 is an opaque dust load.",
-              "water": "Total water percentage, 0..100; saturation depends on pressure and temperature."
-            },
-            "red_dust": 0.0001,
-            "water": 2.0
+            "argon": 0.93,
+            "carbon_dioxide": 0.04,
+            "nitrogen": 78.08,
+            "oxygen": 20.95
           },
           "parameter_descriptions": {
             "droplet_radius_um": "Effective suspended water droplet radius in micrometers, 0.1..100; smaller droplets give greater extinction at the same liquid-water mass.",
@@ -133,11 +126,11 @@
             "suspended_water_fraction": "Fraction of excess condensable water retained as mist droplets, 0..1. This first rendering model does not simulate precipitation.",
             "temperature_k": "Reference air temperature in kelvin, 180..373.15, used for density and condensation."
           },
-          "radius_multiplier": 1.1,
-          "refraction_enabled": true,
-          "surface_pressure_pa": 101325.0,
+          "radius_multiplier": 1.015,
+          "refraction_enabled": false,
+          "surface_pressure_pa": 150000,
           "suspended_water_fraction": 0.001,
-          "temperature_k": 293.15
+          "temperature_k": 180
         },
         "color": [
           0.2,
@@ -451,52 +444,44 @@
       "radius": 2.5
     },
     "surface_camera": {
-      "altitude": 0.03,
-      "description": "Planet-fixed spherical North-East-Down (NED) camera. The saved local position and view follow orbit, tilt and spin.",
+      "altitude": 0.002,
       "direction_ned": [
-        0.0595365512313363,
+        0.05953655123133629,
         0.9937565852932968,
         0.09435702546013867
       ],
-      "fov": 80.0,
+      "fov": 15.0,
       "latitude_deg": -21.409888069265286,
       "longitude_deg": 82.26311950013215,
-      "parameter_descriptions": {
-        "altitude": "Requested eye clearance above terrain or water in distance_unit.",
-        "direction_ned": "Nonzero saved view direction [north,east,down] in the local tangent frame.",
-        "fov": "Vertical field of view in degrees, greater than 0 and less than 180.",
-        "latitude_deg": "Latitude in degrees, -90..90; +Z of the body is north.",
-        "longitude_deg": "Longitude in degrees, from body +X toward body +Y.",
-        "planet_index": "Zero-based index in planets for walking and planet orbit views.",
-        "reference_frame": "Must be planet_spherical_ned.",
-        "simulation_time_seconds": "Finite simulation timestamp restored on startup and reload. Camera telemetry prints the current simulation time, including pause and Y/U speed changes. --simulation-time overrides this value.",
-        "up_ned": "Optional nonparallel view-up vector [north,east,down] for preserving camera roll.",
-        "walk_speed_mps": "Walking speed in meters per real second, greater than 0 and at most 100; unaffected by simulation speed."
-      },
       "planet_index": 0,
       "reference_frame": "planet_spherical_ned",
       "simulation_time_seconds": 0.0,
+      "up_ned": [
+        0.0056428679700750856,
+        0.09418814306884682,
+        -0.9955384230386665
+      ],
       "walk_speed_mps": 80.0
     }
   },
   "schema_version": 1,
   "surface_camera": {
-    "altitude": 0.03,
+    "altitude": 0.002,
     "direction_ned": [
-      0.05953655123133664,
+      0.05953655123133629,
       0.9937565852932968,
-      0.09435702546013847
+      0.09435702546013867
     ],
-    "fov": 80.0,
+    "fov": 15.0,
     "latitude_deg": -21.409888069265286,
     "longitude_deg": 82.26311950013215,
     "planet_index": 0,
     "reference_frame": "planet_spherical_ned",
-    "simulation_time_seconds": 20.316666666666666,
+    "simulation_time_seconds": 0.0,
     "up_ned": [
-      0.005642867970074683,
-      0.09418814306884735,
-      -0.9955384230386664
+      0.005642867970075037,
+      0.09418814306884682,
+      -0.9955384230386665
     ],
     "walk_speed_mps": 80.0
   }

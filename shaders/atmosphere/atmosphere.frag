@@ -76,7 +76,8 @@ bool resolveAtmosphere(vec3 original,vec3 direction) {
     scatter /= sum; transfer /= sum;
     vec2 uv = vUv+vec2(scatter.a,transfer.a);
     float exitDistance = atmosphereSphere(uEyeBody,direction,uAtmOuter).y;
-    if (targetDistance>exitDistance+0.01 && all(greaterThanEqual(uv,vec2(0.0))) && all(lessThanEqual(uv,vec2(1.0))) &&
+    if (targetDistance>exitDistance+0.01 && texture(uSceneDepth, vUv).r >= 1.0 &&
+        all(greaterThanEqual(uv,vec2(0.0))) && all(lessThanEqual(uv,vec2(1.0))) &&
         sceneDistance(uv)>exitDistance+0.01)
         original=texture(uSceneColor,uv).rgb;
     fColor = vec4(original*transfer.rgb+scatter.rgb,1.0);
@@ -110,7 +111,9 @@ void main() {
     vec2 segment = atmosphereSphere(uEyeBody, direction, uAtmOuter);
     segment.x = max(0.0, segment.x);
     float distance = sceneDistance(vUv);
-    bool distant = distance > segment.y + 0.01;
+    // Keep rasterized foreground and luminous body silhouettes intact. The
+    // distant sky has no depth sample and can safely reproject available light.
+    bool distant = texture(uSceneDepth, vUv).r >= 1.0 && distance > segment.y + 0.01;
     bool bending = uAtmRefractivity > 0.0;
     segment.y = min(segment.y, distance);
     vec2 ground = atmosphereSphere(uEyeBody, direction, 1.0);

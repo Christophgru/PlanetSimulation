@@ -49,6 +49,8 @@ capture('planet-orbit.png', [*scene, '--simulation-time', '3000'])
 # Preserve the documented airless night controls, while using today's renderer.
 for name in ('moonlit-night.png', 'moonless-night.png'):
     capture(name, ['--replay', str(replays / (name + '.json'))])
+for name in ('refraction-extreme-on.png', 'refraction-extreme-off.png'):
+    capture(name, ['--replay', str(replays / 'refraction' / (name + '.json'))])
 capture('performance-overlay.png', [*scene, '--simulation-time', '20', '--render-size', '1280', '720', '--benchmark-frames', '20', '--benchmark-overlay'])
 for group, mapping in (
     ('atmosphere', {'standard_air': 'atmosphere-day.png', 'sunset': 'atmosphere-sunset.png', 'mist': 'atmosphere-mist.png', 'heavy_dust': 'atmosphere-dust.png'}),
@@ -66,7 +68,8 @@ for name, source, command, timestamp in records:
     shutil.copy2(source, dest / name)
     sidecar = Path(str(source) + '.json')
     if sidecar.exists():
-        shutil.copy2(sidecar, replays / (name + '.json'))
+        replay_dir = replays / 'refraction' if name.startswith('refraction-extreme-') else replays
+        shutil.copy2(sidecar, replay_dir / (name + '.json'))
     rows.append({'image': name, 'version': version, 'generated_utc': timestamp,
                  'sha256': hashlib.sha256(source.read_bytes()).hexdigest(), 'command': command})
 revision = subprocess.check_output(['git', '-c', f'safe.directory={ROOT}', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
@@ -80,7 +83,7 @@ manifest = {'source_sha256': source_hash.hexdigest(), 'version': version, 'base_
             'renderer': subprocess.check_output(['glxinfo', '-B'], text=True), 'images': rows}
 (metadata / 'generation.json').write_text(json.dumps(manifest, indent=2) + '\n')
 log = ['# README image generation log', '', f'## Version {version} — {datetime.now(timezone.utc).date()} (UTC)', '',
-       'All 12 README images were regenerated with the current renderer. Earlier capture dates and versions were not recorded.', '',
+       f'All {len(rows)} README images were regenerated with the current renderer. Earlier capture dates and versions were not recorded.', '',
        f'Base source revision: `{revision}` plus the working-tree changes identified by the source fingerprint.',
        'Build: RelWithDebInfo. Display: Xvfb. OpenGL: Mesa llvmpipe (software rendering).',
        'The performance panel reports this capture environment, not hardware GPU performance.', '',
@@ -90,10 +93,10 @@ log += ['', 'Exact commands, image SHA-256 hashes and renderer details are in [g
         'Available [replay sidecars](replay/) preserve resolved scenes and cameras.', '',
         'The solar overview uses the frozen compact fixture; the surface and orbit gallery use the current working scene.',
         'Night images preserve their airless lighting controls. Atmosphere, shadow and twilight images use regression fixtures.', '',
-        'To regenerate after building with `BUILD_TESTING=ON`:', '', '```bash',
+       'To regenerate after building with `BUILD_TESTING=ON`:', '', '~~~bash',
         'cmake --build build --target PlanetSimulation terrain_shadow_render_tests',
         'LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a -s "-screen 0 1280x720x24" python3 scripts/generate_readme_images.py --build-dir build',
-        '```', '', 'Regenerate after changes to rendering, shaders or pictured scenarios; the version alone does not prove freshness.',
+       '~~~', '', 'Regenerate after changes to rendering, shaders or pictured scenarios; the version alone does not prove freshness.',
         'Commit the images, sidecars and both generation records together.']
 (metadata / 'GENERATION.md').write_text('\n'.join(log) + '\n')
 print(f'Published {len(rows)} images for {version}', flush=True)

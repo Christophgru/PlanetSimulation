@@ -139,8 +139,32 @@ cooler air is denser and bends grazing sky rays more strongly; setting
 `refraction_enabled` to `false` removes the displacement. Temperature is a
 configured input for now and is not calculated from orbital sunlight.
 
-The current refraction pass reprojects the existing distant image. Near terrain
-keeps its rasterized silhouette, depth, and body IDs; off-screen or terrain-hidden
+| Strong bending | Straight-ray control |
+|:--:|:--:|
+| <a href="docs/screenshots/refraction-extreme-on.png"><img src="docs/screenshots/refraction-extreme-on.png" width="330" alt="Zoomed horizon with refraction enabled"></a> | <a href="docs/screenshots/refraction-extreme-off.png"><img src="docs/screenshots/refraction-extreme-off.png" width="330" alt="Same horizon with refraction disabled"></a> |
+
+This controlled example uses a 15 m shell on the 1 km planet, 150,000 Pa,
+180 K, a camera 2 m above the ground, and a 15° field of view. The compressed
+shell deliberately exaggerates the radial index gradient. Both captures use
+the same scene, time and full-resolution atmosphere integration; only
+`planets[0].atmosphere.refraction_enabled` changes. The bent image extends the
+Sun's apparent limb into the sky near the horizon. Its small pointed edge
+shows the present image-reprojection limit where terrain hides the source.
+These are renderer captures, not a physically calibrated Earth atmosphere.
+The exact resolved scenes and camera are in
+[`on`](docs/captures/replay/refraction/refraction-extreme-on.png.json) and
+[`off`](docs/captures/replay/refraction/refraction-extreme-off.png.json) replay sidecars.
+For a regular scenario JSON, set `refraction_enabled` to `true` or `false` in
+that planet's `atmosphere` object; scattering remains enabled in either case.
+Replay either example directly, for instance:
+
+~~~bash
+./build/PlanetSimulation --replay docs/captures/replay/refraction/refraction-extreme-on.png.json --surface-capture build/refraction-extreme-on-replay.png
+~~~
+
+The current refraction pass reprojects the existing distant sky image. Rasterized
+terrain and luminous body pixels keep their silhouettes, depth, and body IDs;
+off-screen or terrain-hidden
 sources cannot be recovered, and geometric terrain shadows/direct-light paths
 remain straight. Strong gradients have a bounded integration budget; trapped
 rays contribute no background light. Multiple scattering, wavelength-dependent

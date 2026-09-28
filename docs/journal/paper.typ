@@ -149,6 +149,13 @@ Only the gradient perpendicular to the ray bends it; a gradient along the ray ch
 
 The renderer bends a view ray and reprojects a visible distant image pixel when that ray escapes the shell. Near terrain retains its rasterized silhouette, and direct-light shadow rays remain straight. An off-screen or hidden source cannot be reconstructed from the existing color buffer; trapped rays do not leak background light. Full curved-ray tracing through scene geometry would represent refracted terrain and solar visibility more consistently, but would require a different visibility structure and substantially more ray queries. The pressure and temperature dependence has a physical basis (R3), while the chosen constants and miniature-world scale remain a rendering model rather than precision terrestrial refractometry.
 
+A deliberately extreme test compresses the shell to 15 m around the 1 km planet, sets pressure to 150,000 Pa and temperature to 180 K, and places the surface camera 2 m above the ground with a 15-degree field of view. The two actual renderer captures below differ only in the JSON `refraction_enabled` switch. Refraction extends the visible solar limb into sky pixels near the horizon, while the already rasterized Sun and terrain keep their silhouettes. A small pointed edge remains where terrain hides the source image; this is a limit of image reprojection rather than a prediction of solar optics. The setting illustrates the rendering model's behavior, not Earth's atmosphere. The replay sidecars in `docs/captures/replay` preserve the exact resolved scenes.
+
+#figure(grid(columns: (1fr, 1fr), gutter: 7pt,
+  image("../screenshots/refraction-extreme-on.png", width: 100%),
+  image("../screenshots/refraction-extreme-off.png", width: 100%)),
+  caption: [Matched full-resolution renderer captures of extreme refraction enabled (left) and disabled (right). Only the JSON bending switch changes; scattering and exposure remain active in both.]) <fig:extreme-refraction>
+
 #figure(grid(columns: (1fr, 1fr), gutter: 7pt,
   image("../screenshots/atmosphere-day.png", width: 100%),
   image("../screenshots/atmosphere-sunset.png", width: 100%),
