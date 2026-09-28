@@ -652,6 +652,9 @@ captures on the same build and graphics driver are checked byte for byte;
 different drivers can rasterize edges differently.
 Surface mouse look keeps heading and pitch independent: horizontal mouse
 movement changes compass heading, while vertical movement changes only pitch.
+Walking transports the camera's direction and up vector along the spherical
+surface, so crossing either pole keeps the view and walking direction smooth
+even though geographic longitude jumps by 180 degrees.
 Pitch stops at 89.9 degrees above or below the local horizon so the view cannot
 cross the vertical pole and flip or begin to roll.
 

@@ -114,13 +114,22 @@ public:
         const glm::dvec3 radial = glm::normalize(position_ - frame_.center());
         const glm::dvec3 nextRadial =
             glm::normalize(std::cos(angle) * radial + std::sin(angle) * tangent);
+        // Parallel-transport the camera basis along the great-circle step.
+        // Latitude/longitude's north and east axes flip at a pole, so keeping
+        // the old numeric heading while rebuilding them would spin the view.
+        const glm::dvec3 axis = glm::normalize(glm::cross(radial, tangent));
+        const glm::dmat3 transport = glm::dmat3(glm::rotate(glm::dmat4(1.0), angle, axis));
+        const glm::dvec3 carriedDirection = glm::normalize(transport * direction_);
+        const glm::dvec3 carriedUp = glm::normalize(transport * up_);
         const double altitude = location_.altitude;
         location_ = frame_.fromWorld(frame_.center() + distance * nextRadial);
         location_.altitude = altitude;
         if (terrain_) resampleTerrainHeight();
         else position_ = frame_.toWorld(location_);
-        updateDirectionFromAngles();
-        updateUp(up_);
+        direction_ = carriedDirection;
+        up_ = carriedUp;
+        updateAnglesFromDirection();
+        updateUp(carriedUp);
     }
 
     // Automatic entry preserves an outside position and its aim. Positions
@@ -218,14 +227,6 @@ private:
             heading_ = std::atan2(east, north);
         }
         pitch_ = std::asin(std::clamp(glm::dot(direction_, -ned.down), -1.0, 1.0));
-    }
-
-    void updateDirectionFromAngles() {
-        const auto ned = frame_.nedAt(location_);
-        const glm::dvec3 tangent =
-            std::cos(heading_) * ned.north + std::sin(heading_) * ned.east;
-        direction_ = glm::normalize(std::cos(pitch_) * tangent -
-                                    std::sin(pitch_) * ned.down);
     }
 
     void updateMouseViewFromAngles() {

@@ -8,7 +8,7 @@ document the progress and add comments such that when interrupted you can contin
 | add stats to the actual screen (black with white boarder) when pressing "i" including fps, and % of graphic card utilisation| v| I/Tab panel and optional Linux NVML GPU utilization implemented. GPU ABI/failure tests, real X11 input/border tests and performance replay passed; README captures refreshed. Physical NVIDIA hardware is unavailable here. |
 |The Project has become a bit hard to keep track of. add a more fine granular folder strcture, such that no 10 FIles are just flying around in a single folder. Exeception may be e.g. the picture folder, but then make sure there are actually only image files in there and the jsons are seperated. | v| Grouped source/tests/shaders by subsystem; images separated from replay JSON and generation records. Clean build, all 33 CTest tests, layout/link checks and gallery generation passed. |
 | adjust quality settings to be automatically chosen such that we always have at least 20 fps. Based on virtual memory, choose the degree of detail in which the scene is rendered| t | Adaptive scene scale and graphics-memory cap implemented. Controller and memory-limited live-render tests passed; full 35-test suite passed. 20 FPS is a target; software rendering reached minimum scale below it. |
-| movements around the poles is really awkward, the planet camerastarts spinning when walking towards the pole.|-|
+| movements around the poles is really awkward, the planet camerastarts spinning when walking towards the pole.|t| View basis follows great-circle walking across either pole. North/south crossing tests, all 35 CTest tests and gallery refresh passed. |
 |  Bug: The atmophere is also illuminated if mountains should block the light|-|
 |Bug The Oceans should not be illuminated on USER_IO/user_artifacts/image.png on the shadow_side of the Planet.| -||
 | When pressing "o" visualize the ellipsis of the planets (and moons) of some orbits in diffrent colors (average color of surface) and add a label to each planet that lists its most important parameters. (make it disappear when we have a planet cam)|-||
@@ -40,7 +40,10 @@ if environmental changes are needed inside the container, let the user know by a
   memory or `--video-memory-mb` caps the initial scale. Full 35-test suite
   passed, including live low-memory rendering and overlay input. Gallery
   regenerated. A strict 20 FPS guarantee is not possible at minimum detail.
-- Next row: fix surface camera behavior at the poles. Later rows untouched.
+- Pole traversal is t: view/up follow the great-circle walk step; heading
+  updates in the new tangent frame. Both poles covered by regression tests.
+  Full 35-test suite passed and gallery refreshed.
+- Next row: block direct atmospheric illumination behind terrain.
 
 # States: 
 |State |Meaning|

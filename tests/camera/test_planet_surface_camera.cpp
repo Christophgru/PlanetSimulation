@@ -189,9 +189,14 @@ TEST(PlanetSurfaceCameraTest, SavedNedDirectionRestoresAViewAwayFromTheSun) {
     EXPECT_GT(glm::length(camera.direction() - sunDirection), 0.1);
     EXPECT_NEAR(glm::length(camera.directionNed() - glm::normalize(saved)),
                 0.0, 1e-10);
+    const glm::dvec3 directionBefore = camera.direction();
+    const glm::dvec3 radialBefore = glm::normalize(camera.position() - camera.frame().center());
     camera.walk(1, 0, 0.3);
-    EXPECT_NEAR(glm::length(camera.directionNed() - glm::normalize(saved)),
-                0.0, 1e-10);
+    const glm::dvec3 radialAfter = glm::normalize(camera.position() - camera.frame().center());
+    const glm::dvec3 axis = glm::normalize(glm::cross(radialBefore, radialAfter));
+    const double angle = std::acos(glm::clamp(glm::dot(radialBefore, radialAfter), -1.0, 1.0));
+    const glm::dvec3 expected = glm::dmat3(glm::rotate(glm::dmat4(1.0), angle, axis)) * directionBefore;
+    EXPECT_NEAR(glm::length(camera.direction() - expected), 0.0, 1e-10);
 }
 
 TEST(PlanetSurfaceCameraTest, RejectsInvalidSavedViewDirection) {
@@ -302,4 +307,30 @@ TEST(PlanetSurfaceCameraTest, WaterSupportsEyeWhenTerrainIsSubmerged) {
     camera.walk(1, 0, 1.0);
     EXPECT_NEAR(camera.location().altitude, 0.012, 1e-12);
     EXPECT_NEAR(camera.groundClearance(), 0.002, 1e-12);
+}
+
+TEST(PlanetSurfaceCameraTest, WalkingAcrossEitherPoleKeepsViewAndMotionContinuous) {
+    for (const double sign : {1.0, -1.0}) {
+        PlanetSurfaceCamera camera({{5.0, 0.0, 0.0}, 0.5},
+            {sign * 89.9, 0.0, 0.2}, {0.0, 0.0, 0.0}, 60.0, 0.01);
+        camera.setDirectionNed({sign, 0.0, 0.0});
+        const glm::dvec3 before = camera.direction();
+        const glm::dvec3 beforeUp = camera.up();
+        const glm::dvec3 beforePosition = camera.position();
+        camera.walk(1, 0, 0.2);
+        EXPECT_GT(glm::dot(before, camera.direction()), 0.99);
+        EXPECT_GT(glm::dot(beforeUp, camera.up()), 0.99);
+        EXPECT_GT(glm::length(camera.position() - beforePosition), 0.001);
+        EXPECT_GT(std::abs(camera.location().longitudeDeg), 170.0);
+        const glm::dvec3 after = camera.direction();
+        const glm::dvec3 afterPosition = camera.position();
+        camera.walk(1, 0, 0.2);
+        EXPECT_GT(glm::dot(after, camera.direction()), 0.99);
+        EXPECT_GT(glm::dot(camera.position() - afterPosition, after), 0.001);
+        camera.look(1.0, 0.0);
+        EXPECT_GT(glm::dot(after, camera.direction()), 0.99);
+        const glm::mat4 view = camera.getViewMatrix();
+        for (int c = 0; c < 4; ++c) for (int r = 0; r < 4; ++r)
+            EXPECT_TRUE(std::isfinite(view[c][r]));
+    }
 }
