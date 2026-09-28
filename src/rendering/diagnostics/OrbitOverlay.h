@@ -21,8 +21,10 @@ public:
           textShader_("shaders/diagnostics/performance_overlay.vert", "shaders/diagnostics/performance_overlay.frag") {
         glGenVertexArrays(1, &lineVao_); glGenBuffers(1, &lineBuffer_);
         glBindVertexArray(lineVao_); glBindBuffer(GL_ARRAY_BUFFER, lineBuffer_);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 4*sizeof(float), nullptr);
         glEnableVertexAttribArray(0);
+        glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 4*sizeof(float), reinterpret_cast<void*>(3*sizeof(float)));
+        glEnableVertexAttribArray(1);
         glGenVertexArrays(1, &textVao_); glGenBuffers(1, &textBuffer_);
         glBindVertexArray(textVao_); glBindBuffer(GL_ARRAY_BUFFER, textBuffer_);
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), nullptr);
@@ -41,21 +43,26 @@ public:
     void paths(const std::vector<OrbitTrail>& trails, const std::vector<glm::vec3>& colors,
                const glm::mat4& viewProjection) {
         if (trails.empty()) return;
-        glDisable(GL_BLEND); glDisable(GL_STENCIL_TEST);
+        glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glDisable(GL_STENCIL_TEST);
         glEnable(GL_DEPTH_TEST); glDepthMask(GL_FALSE);
         lineShader_.use(); lineShader_.setMat4("uViewProjection", glm::value_ptr(viewProjection));
         glBindVertexArray(lineVao_);
         for (std::size_t i = 0; i < trails.size(); ++i) {
-            std::vector<glm::vec3> points;
-            points.reserve(trails[i].positions.size());
-            for (const auto& position : trails[i].positions) points.emplace_back(position);
+            std::vector<float> points;
+            points.reserve(trails[i].positions.size() * 4);
+            for (std::size_t step = 0; step < trails[i].positions.size(); ++step) {
+                const glm::vec3 position(trails[i].positions[step]);
+                points.insert(points.end(), {position.x, position.y, position.z, trails[i].opacity[step]});
+            }
             const glm::vec3 color = glm::mix(colors.at(i), glm::vec3(1.0f), 0.35f);
             lineShader_.setFloat3("uColor", color.r, color.g, color.b);
             glBindBuffer(GL_ARRAY_BUFFER, lineBuffer_);
-            glBufferData(GL_ARRAY_BUFFER, points.size()*sizeof(glm::vec3), points.data(), GL_DYNAMIC_DRAW);
-            glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(points.size()));
+            glBufferData(GL_ARRAY_BUFFER, points.size()*sizeof(float), points.data(), GL_DYNAMIC_DRAW);
+            glDrawArrays(GL_LINE_STRIP, 0, static_cast<GLsizei>(points.size()/4));
         }
         glBindVertexArray(0);
+        glDisable(GL_BLEND);
         glDepthMask(GL_TRUE);
     }
 

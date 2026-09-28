@@ -881,7 +881,7 @@ int main(int argc, char** argv) {
             }
             if (planetOrbitCamera) std::cout << ", 3 for planet orbit";
             std::cout << ". Press T to pause/resume orbits and spin. "
-                      << "Press O for ten predicted orbit paths and body labels. "
+                      << "Press O for ten past orbit paths and body labels. "
                       << "Press Y to halve or U to double simulation speed. "
                       << "Press Esc to release the surface cursor and 2 to capture it again. " << watchedScenePath
                       << " reloads on save; press R to reload manually."
@@ -1418,7 +1418,7 @@ int main(int argc, char** argv) {
                         if (orbitTrails.size() != scenario.planets.size() ||
                             !std::isfinite(orbitTrailEpoch) ||
                             std::abs(now - orbitTrailEpoch) > shortestPeriod * 0.01) {
-                            orbitTrails = rendering::predictedOrbitTrails(dynamics, now);
+                            orbitTrails = rendering::pastOrbitTrails(dynamics, now);
                             orbitTrailEpoch = now;
                         }
                         if (orbitColorRevisions != revisions || orbitColors.size() != scenario.planets.size()) {

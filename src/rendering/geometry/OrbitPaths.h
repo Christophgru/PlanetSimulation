@@ -13,12 +13,13 @@ namespace rendering {
 
 struct OrbitTrail {
     std::vector<glm::dvec3> positions;
+    std::vector<float> opacity;
     double periodSeconds = 0.0;
 };
 
-// Ten future revolutions in the inertial world frame. Sampling the whole
-// hierarchy matters for moons: their parent moves during each lunar orbit.
-inline std::vector<OrbitTrail> predictedOrbitTrails(
+// Oldest samples are first and the current body position is last. The oldest
+// 20% fades in, making a long trail end without a visible hard cut.
+inline std::vector<OrbitTrail> pastOrbitTrails(
     const simulation::OrbitalSystem& system, double epoch,
     int revolutions = 10, int segmentsPerRevolution = 32) {
     if (!std::isfinite(epoch) || revolutions < 1 || segmentsPerRevolution < 3)
@@ -29,10 +30,14 @@ inline std::vector<OrbitTrail> predictedOrbitTrails(
         trail.periodSeconds = system.periodSeconds(body);
         const int segments = revolutions * segmentsPerRevolution;
         trail.positions.reserve(static_cast<std::size_t>(segments) + 1);
+        trail.opacity.reserve(static_cast<std::size_t>(segments) + 1);
         for (int step = 0; step <= segments; ++step) {
-            const double time = epoch + trail.periodSeconds *
-                (static_cast<double>(step) / segmentsPerRevolution);
+            const double fraction = static_cast<double>(step) / segments;
+            const double time = epoch - trail.periodSeconds *
+                (static_cast<double>(segments - step) / segmentsPerRevolution);
             trail.positions.push_back(system.at(time)[body].position);
+            const double fade = std::clamp(fraction / 0.2, 0.0, 1.0);
+            trail.opacity.push_back(static_cast<float>(fade * fade * (3.0 - 2.0 * fade)));
         }
     }
     return trails;

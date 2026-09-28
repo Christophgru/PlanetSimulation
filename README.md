@@ -369,8 +369,9 @@ Speed changes preserve the current orbital phase and leave camera controls at
 their usual speed. Changing speed while paused takes effect on resume.
 Reloading preserves the paused/running state and speed multiplier.
 
-Press **O** in the Sun orbit camera to show each planet's and moon's next ten
-revolutions. The colored trails use the simulated world positions, so a moon's
+Press **O** in the Sun orbit camera to show each planet's and moon's previous ten
+revolutions. The oldest 20% of each path fades smoothly into view, avoiding a
+hard cut at the distant end. The colored trails use simulated world positions, so a moon's
 trail follows its moving parent. Their colors average the rendered terrain
 vertex tints with each body's configured base color. A label beside each visible
 body shows its name, parent, semi-major and semi-minor axes, eccentricity,
