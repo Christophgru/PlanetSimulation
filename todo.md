@@ -12,6 +12,9 @@ document the progress and add comments such that when interrupted you can contin
 | when pressing "o" visualize the ellipsis of the planets (and moons) of 10 orbits in diffrent colors (aferage color of surface)|-|
 | Add Light atmospheric light bending and also based on the temperature (set temp param by json for now, later calculate it by orbit and sun strength) |-|
 
+# environmental issues :
+if environmental changes are needed inside the container, let the user know by adding dependencies here:
+- 
 
 ## Progress checkpoint — 2026-09-28
 

@@ -13,8 +13,7 @@
 #include <stdexcept>
 #include <vector>
 
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
+#include "rendering/PngWriter.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -819,7 +818,7 @@ int main(int argc, char** argv) {
         Mesh skyboxMesh;
         skyboxMesh.generateCube();
         
-        std::cout << "PlanetSimulation v0.1 initialized\n";
+        std::cout << "PlanetSimulation v" << PLANET_VERSION << " initialized\n";
         std::cout << "Scenario: " << scenario.name << "\n";
         std::cout << "Simulation time: " << nlohmann::json(simulationTime).dump() << " s\n";
         std::cout << "Sun radius: " << scenario.sun.radius << "\n";
@@ -1065,13 +1064,7 @@ int main(int argc, char** argv) {
             if (diagnosticPlanet.water.enabled)
                 printBounds("Blue water-like pixels", analysis.waterLike);
 
-            // Write PNG using official stb_image_write API with stride parameter
-            int result = stbi_write_png(outputImagePath.c_str(), width, height, 4, flippedPixels.data(), width * 4);
-            
-            if (result == 0) {
-                std::cerr << "Failed to write PNG: " << outputImagePath << "\n";
-                return 1;
-            }
+            rendering::writePng(outputImagePath, width, height, 4, flippedPixels);
 
             if (surfaceRenderMode) {
                 const auto snapshot = SurfaceCameraTelemetry::capture(*surfaceCamera, scenario.surface_camera,
@@ -1088,7 +1081,7 @@ int main(int argc, char** argv) {
                     scenario.planets[orbitPlanetIndex].radius * scenario.metersPerWorldUnit(),
                     simulation::referenceAir(atmosphereConfig));
                 const nlohmann::json metadata{
-                    {"schema_version", 1}, {"scenario", scenarioDocument},
+                    {"schema_version", 1}, {"application_version", PLANET_VERSION}, {"scenario", scenarioDocument},
                     {"surface_camera", snapshot.startConfig},
                     {"render", {{"width", width}, {"height", height}, {"samples", frameExposure.hdrOutput ? 0 : samples},
                         {"renderer", reinterpret_cast<const char*>(glGetString(GL_RENDERER))},

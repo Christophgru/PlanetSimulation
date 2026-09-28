@@ -94,7 +94,7 @@ target_include_directories(terrain_shadow_projection_tests PRIVATE ${CMAKE_SOURC
 add_test(NAME TerrainShadowProjectionTests COMMAND terrain_shadow_projection_tests)
 
 add_executable(terrain_shadow_render_tests test_terrain_shadow_render.cpp)
-target_link_libraries(terrain_shadow_render_tests PRIVATE GTest::gtest OpenGL::GL GLEW::GLEW glfw glm::glm nlohmann_json::nlohmann_json)
+target_link_libraries(terrain_shadow_render_tests PRIVATE GTest::gtest OpenGL::GL GLEW::GLEW glfw glm::glm nlohmann_json::nlohmann_json PNG::PNG)
 target_include_directories(terrain_shadow_render_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_compile_definitions(terrain_shadow_render_tests PRIVATE PLANET_SHADOW_IMAGE="${CMAKE_BINARY_DIR}/terrain-shadow-test.png")
 add_test(NAME TerrainShadowRenderIntegration COMMAND terrain_shadow_render_tests)

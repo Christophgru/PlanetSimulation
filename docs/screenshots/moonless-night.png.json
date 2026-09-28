@@ -1,21 +1,34 @@
 {
+  "application_version": "0.0.1",
   "render": {
+    "atmosphere_downsample": 4,
+    "atmosphere_liquid_water_g_m3": 0.0,
+    "atmosphere_refraction_enabled": false,
+    "atmosphere_refractive_index": 1.0,
+    "atmosphere_relative_humidity": 0.0,
+    "atmospheric_illuminance": 0.0,
     "direct_illuminance": 0.0,
     "exposure": 4096.0,
     "height": 600,
     "metered_illuminance": 1e-06,
-    "non_background_pixels": 206897,
+    "non_background_pixels": 206265,
     "reflected_illuminance": 0.0,
-    "renderer": "Quadro M1000M/PCIe/SSE2",
+    "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
     "samples": 4,
-    "sky_interior_mean_display_luminance": 0.003958135673410301,
-    "sky_interior_pixels": 272760,
-    "sky_mean_display_luminance": 0.003987399494221043,
-    "sky_pixels": 273837,
+    "sky_interior_blue": 0.012085567771118981,
+    "sky_interior_green": 0.0042280386736525625,
+    "sky_interior_mean_display_luminance": 0.0047915864828007165,
+    "sky_interior_pixels": 272758,
+    "sky_interior_red": 0.00421032563664166,
+    "sky_mean_display_luminance": 0.004790391852518983,
+    "sky_pixels": 273835,
     "sky_sensitivity": 1.0,
-    "terrain_max_display_luminance": 0.18099450980392157,
-    "terrain_mean_display_luminance": 0.020460652521921772,
-    "terrain_pixels": 206163,
+    "terrain_luminance_stddev": 0.0049576747348544425,
+    "terrain_max_display_luminance": 0.1798776470588235,
+    "terrain_mean_display_luminance": 0.02075328026522112,
+    "terrain_pixels": 206165,
+    "white_clipped_fraction": 5.625e-05,
+    "white_clipped_pixels": 27,
     "width": 800
   },
   "scenario": {
@@ -409,30 +422,22 @@
     },
     "surface_camera": {
       "altitude": 0.03,
-      "description": "Planet-fixed spherical North-East-Down (NED) camera. The saved local position and view follow orbit, tilt and spin.",
       "direction_ned": [
-        0.0595365512313363,
+        0.059536551231336304,
         0.9937565852932968,
-        0.09435702546013867
+        0.09435702546013844
       ],
       "fov": 80.0,
       "latitude_deg": -21.409888069265286,
       "longitude_deg": 82.26311950013215,
-      "parameter_descriptions": {
-        "altitude": "Requested eye clearance above terrain or water in distance_unit.",
-        "direction_ned": "Nonzero saved view direction [north,east,down] in the local tangent frame.",
-        "fov": "Vertical field of view in degrees, greater than 0 and less than 180.",
-        "latitude_deg": "Latitude in degrees, -90..90; +Z of the body is north.",
-        "longitude_deg": "Longitude in degrees, from body +X toward body +Y.",
-        "planet_index": "Zero-based index in planets for walking and planet orbit views.",
-        "reference_frame": "Must be planet_spherical_ned.",
-        "simulation_time_seconds": "Finite simulation timestamp restored on startup and reload. Camera telemetry prints the current simulation time, including pause and Y/U speed changes. --simulation-time overrides this value.",
-        "up_ned": "Optional nonparallel view-up vector [north,east,down] for preserving camera roll.",
-        "walk_speed_mps": "Walking speed in meters per real second, greater than 0 and at most 100; unaffected by simulation speed."
-      },
       "planet_index": 0,
       "reference_frame": "planet_spherical_ned",
-      "simulation_time_seconds": 0.0,
+      "simulation_time_seconds": 55.0,
+      "up_ned": [
+        0.0056428679700750994,
+        0.09418814306884671,
+        -0.9955384230386665
+      ],
       "walk_speed_mps": 80.0
     }
   },
@@ -440,9 +445,9 @@
   "surface_camera": {
     "altitude": 0.03,
     "direction_ned": [
-      0.059536551231336304,
+      0.05953655123133628,
       0.9937565852932968,
-      0.09435702546013855
+      0.09435702546013827
     ],
     "fov": 80.0,
     "latitude_deg": -21.409888069265286,
@@ -451,8 +456,8 @@
     "reference_frame": "planet_spherical_ned",
     "simulation_time_seconds": 55.0,
     "up_ned": [
-      0.005642867970075155,
-      0.09418814306884678,
+      0.005642867970075058,
+      0.09418814306884651,
       -0.9955384230386665
     ],
     "walk_speed_mps": 80.0

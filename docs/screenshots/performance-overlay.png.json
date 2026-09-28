@@ -3,33 +3,33 @@
   "render": {
     "atmosphere_downsample": 4,
     "atmosphere_liquid_water_g_m3": 0.0,
-    "atmosphere_refraction_enabled": false,
-    "atmosphere_refractive_index": 1.0,
-    "atmosphere_relative_humidity": 0.0,
-    "atmospheric_illuminance": 0.0,
-    "direct_illuminance": 0.0,
-    "exposure": 4096.0,
-    "height": 600,
-    "metered_illuminance": 3.62141497759793e-05,
-    "non_background_pixels": 206265,
-    "reflected_illuminance": 3.5214149775979303e-05,
+    "atmosphere_refraction_enabled": true,
+    "atmosphere_refractive_index": 1.0002899200095918,
+    "atmosphere_relative_humidity": 0.8684600670525447,
+    "atmospheric_illuminance": 0.07060200750254905,
+    "direct_illuminance": 3.4424016469963696,
+    "exposure": 0.1897706561922573,
+    "height": 720,
+    "metered_illuminance": 3.51301239107939,
+    "non_background_pixels": 904388,
+    "reflected_illuminance": 7.73658047155365e-06,
     "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
-    "samples": 4,
-    "sky_interior_blue": 0.012085567771118981,
-    "sky_interior_green": 0.0042280386736525625,
-    "sky_interior_mean_display_luminance": 0.0047915864828007165,
-    "sky_interior_pixels": 272758,
-    "sky_interior_red": 0.00421032563664166,
-    "sky_mean_display_luminance": 0.004790391852518983,
-    "sky_pixels": 273835,
-    "sky_sensitivity": 1.0,
-    "terrain_luminance_stddev": 0.046740783462456324,
-    "terrain_max_display_luminance": 0.39243999999999996,
-    "terrain_mean_display_luminance": 0.2506728670377204,
-    "terrain_pixels": 206165,
-    "white_clipped_fraction": 5.625e-05,
-    "white_clipped_pixels": 27,
-    "width": 800
+    "samples": 0,
+    "sky_interior_blue": 0.1286626576300867,
+    "sky_interior_green": 0.09559979238129164,
+    "sky_interior_mean_display_luminance": 0.091710870312749,
+    "sky_interior_pixels": 547156,
+    "sky_interior_red": 0.06607927996757701,
+    "sky_mean_display_luminance": 0.09206710889712252,
+    "sky_pixels": 548831,
+    "sky_sensitivity": 0.0029651665030040204,
+    "terrain_luminance_stddev": 0.06281765673289849,
+    "terrain_max_display_luminance": 0.563564705882353,
+    "terrain_mean_display_luminance": 0.405976858380364,
+    "terrain_pixels": 372769,
+    "white_clipped_fraction": 0.0014756944444444444,
+    "white_clipped_pixels": 1360,
+    "width": 1280
   },
   "scenario": {
     "camera": {
@@ -56,14 +56,14 @@
     "lighting": {
       "ambient_light": 1e-06,
       "auto_exposure": {
-        "description": "Deterministic incident-light metering for surface and planet cameras. Sensitivity rises on the night side to reveal moonlight; identical camera, scene and time give identical exposure without warm-up.",
+        "description": "Deterministic incident-light metering for surface and planet cameras. Sensitivity rises on the night side to reveal moonlight; identical camera, scene and time give identical exposure without warm-up. A final HDR highlight meter lowers exposure as needed to keep white clipping at most 5 percent of the image.",
         "enabled": true,
         "max_exposure": 4096.0,
         "min_exposure": 0.02,
         "parameter_descriptions": {
           "enabled": "Use automatic exposure for surface and planet orbit views. False uses lighting.exposure directly; the whole-system camera always uses manual exposure.",
           "max_exposure": "Upper sensitivity bound, at least min_exposure and at most 1000000. Prevents tiny ambient fill from making a moonless night look like daylight.",
-          "min_exposure": "Positive lower bound on effective exposure, used in bright sunlight.",
+          "min_exposure": "Positive lower bound for incident-light metering in bright sunlight. Highlight protection may lower final exposure further to enforce the 5 percent clipping limit.",
           "star_exposure": "Positive exposure at which decorative stars reach full visibility. Stars and the sky background fade at lower sensitivity.",
           "target_luminance": "Desired linear luminance of an 18 percent gray surface, greater than 0 and at most 1. The meter uses local solar incidence plus reflected and ambient light; terrain shadows do not affect metering."
         },
@@ -106,8 +106,39 @@
     },
     "planets": [
       {
-        "atmosphere_enabled": true,
-        "atmosphere_height": 0.3,
+        "atmosphere": {
+          "description": "Spherical atmosphere shared by sky, terrain, water and reflections. Composition derives RGB scattering and absorption; local thermodynamic state is separate for future weather.",
+          "droplet_radius_um": 10.0,
+          "enabled": true,
+          "gas-contents": {
+            "description": "Percent composition. The unspecified balance uses inert argon-like optical properties. Water in excess of saturation can form suspended droplets; red_dust is an effective aerosol loading.",
+            "nitrogen": 70.0,
+            "oxygen": 25.0,
+            "parameter_descriptions": {
+              "nitrogen": "Nitrogen percentage, 0..100.",
+              "oxygen": "Oxygen percentage, 0..100.",
+              "red_dust": "Effective red mineral aerosol percentage. 0.0001 gives light coloured haze; 0.1 is an opaque dust load.",
+              "water": "Total water percentage, 0..100; saturation depends on pressure and temperature."
+            },
+            "red_dust": 0.0001,
+            "water": 2.0
+          },
+          "parameter_descriptions": {
+            "droplet_radius_um": "Effective suspended water droplet radius in micrometers, 0.1..100; smaller droplets give greater extinction at the same liquid-water mass.",
+            "enabled": "Enable atmosphere rendering. Omitting the whole block preserves an airless scene.",
+            "gas-contents": "Optional percentages with total at most 100. Supported species: nitrogen, oxygen, water, argon, carbon_dioxide, red_dust. Omission uses dry Earth-like air.",
+            "radius_multiplier": "Outer radius divided by reference planet radius, 1.001..2.0; 1.1 means a shell 10 percent of the radius thick.",
+            "refraction_enabled": "Bend view rays through the density gradient and reproject visible distant sky; terrain visibility remains rasterized.",
+            "surface_pressure_pa": "Reference surface pressure in pascals, 0..10000000; zero is vacuum.",
+            "suspended_water_fraction": "Fraction of excess condensable water retained as mist droplets, 0..1. This first rendering model does not simulate precipitation.",
+            "temperature_k": "Reference air temperature in kelvin, 180..373.15, used for density and condensation."
+          },
+          "radius_multiplier": 1.1,
+          "refraction_enabled": true,
+          "surface_pressure_pa": 101325.0,
+          "suspended_water_fraction": 0.001,
+          "temperature_k": 293.15
+        },
         "color": [
           0.2,
           0.4,
@@ -132,12 +163,11 @@
           },
           "parent": "sun",
           "periapsis_deg": 0.0,
-          "semi_major_axis": 89.5,
-          "semi_minor_axis": 88.24744871391589
+          "semi_major_axis": 15.5,
+          "semi_minor_axis": 14.24744871391589
         },
         "parameter_descriptions": {
-          "atmosphere_enabled": "Reserved atmosphere metadata; atmospheric scattering is not rendered yet.",
-          "atmosphere_height": "Reserved atmosphere thickness in distance_unit; currently has no visual effect.",
+          "atmosphere": "Optional atmosphere composition, outer radius and reference air conditions.",
           "color": "Linear RGB surface tint, each channel 0..1, multiplied by procedural terrain colors.",
           "mass_kg": "Positive mass in kilograms. Descendant masses contribute to the outer orbital speed; relative masses set barycentric wobble.",
           "name": "Unique body name; used by child orbit.parent fields.",
@@ -290,7 +320,7 @@
           0.56
         ],
         "description": "Moon orbiting in Earth's 20-degree equatorial plane and reflecting sunlight onto Earth.",
-        "mass_kg": 7.923672701702087e+15,
+        "mass_kg": 792367270170208.0,
         "name": "moon",
         "orbit": {
           "ascending_node_deg": 0.0,
@@ -422,22 +452,30 @@
     },
     "surface_camera": {
       "altitude": 0.03,
+      "description": "Planet-fixed spherical North-East-Down (NED) camera. The saved local position and view follow orbit, tilt and spin.",
       "direction_ned": [
-        0.059536551231336304,
+        0.0595365512313363,
         0.9937565852932968,
-        0.09435702546013844
+        0.09435702546013867
       ],
       "fov": 80.0,
       "latitude_deg": -21.409888069265286,
       "longitude_deg": 82.26311950013215,
+      "parameter_descriptions": {
+        "altitude": "Requested eye clearance above terrain or water in distance_unit.",
+        "direction_ned": "Nonzero saved view direction [north,east,down] in the local tangent frame.",
+        "fov": "Vertical field of view in degrees, greater than 0 and less than 180.",
+        "latitude_deg": "Latitude in degrees, -90..90; +Z of the body is north.",
+        "longitude_deg": "Longitude in degrees, from body +X toward body +Y.",
+        "planet_index": "Zero-based index in planets for walking and planet orbit views.",
+        "reference_frame": "Must be planet_spherical_ned.",
+        "simulation_time_seconds": "Finite simulation timestamp restored on startup and reload. Camera telemetry prints the current simulation time, including pause and Y/U speed changes. --simulation-time overrides this value.",
+        "up_ned": "Optional nonparallel view-up vector [north,east,down] for preserving camera roll.",
+        "walk_speed_mps": "Walking speed in meters per real second, greater than 0 and at most 100; unaffected by simulation speed."
+      },
       "planet_index": 0,
       "reference_frame": "planet_spherical_ned",
-      "simulation_time_seconds": 55.0,
-      "up_ned": [
-        0.0056428679700750994,
-        0.09418814306884671,
-        -0.9955384230386665
-      ],
+      "simulation_time_seconds": 0.0,
       "walk_speed_mps": 80.0
     }
   },
@@ -445,20 +483,20 @@
   "surface_camera": {
     "altitude": 0.03,
     "direction_ned": [
-      0.05953655123133628,
+      0.05953655123133664,
       0.9937565852932968,
-      0.09435702546013827
+      0.09435702546013847
     ],
     "fov": 80.0,
     "latitude_deg": -21.409888069265286,
     "longitude_deg": 82.26311950013215,
     "planet_index": 0,
     "reference_frame": "planet_spherical_ned",
-    "simulation_time_seconds": 55.0,
+    "simulation_time_seconds": 20.316666666666666,
     "up_ned": [
-      0.005642867970075058,
-      0.09418814306884651,
-      -0.9955384230386665
+      0.005642867970074683,
+      0.09418814306884735,
+      -0.9955384230386664
     ],
     "walk_speed_mps": 80.0
   }

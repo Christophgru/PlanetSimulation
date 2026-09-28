@@ -3,8 +3,7 @@
 #include <GLFW/glfw3.h>
 #include <array>
 #include <vector>
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
+#include "rendering/PngWriter.h"
 #include "rendering/Mesh.h"
 #include "rendering/TerrainShadowMaps.h"
 #include "rendering/CelestialLighting.h"
@@ -165,7 +164,7 @@ TEST(TerrainShadowRender, ForegroundRidgeBlocksSunFacingRearRidge) {
         std::copy_n(shadowed.data() + (size - 1 - y) * size * 3, size * 3, comparison.data() + y * size * 6);
         std::copy_n(disabled.data() + (size - 1 - y) * size * 3, size * 3, comparison.data() + y * size * 6 + size * 3);
     }
-    EXPECT_NE(stbi_write_png(PLANET_SHADOW_IMAGE, 2 * size, size, 3, comparison.data(), 2 * size * 3), 0);
+    EXPECT_NO_THROW(rendering::writePng(PLANET_SHADOW_IMAGE, 2 * size, size, 3, comparison));
 }
 
 TEST(TerrainShadowRender, ShadowPreservesReflectedAndAmbientColor) {

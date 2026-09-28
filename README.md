@@ -1,11 +1,16 @@
 # PlanetSimulation
 
+Version **0.0.1**. The CMake project version is the source of truth for the
+startup banner and capture metadata. See the [image generation log](docs/screenshots/GENERATION.md)
+for each README image’s last generation date, version and reproduction details.
+
 | Solar overview (compact test scene) | Planet surface (20 s) | Planet orbit (3000 s) |
 |:--:|:--:|:--:|
 | <a href="docs/screenshots/solar-view.png"><img src="docs/screenshots/solar-view.png" width="220" alt="Sun and planet render test"></a> | <a href="docs/screenshots/surface-view.png"><img src="docs/screenshots/surface-view.png" width="220" alt="Planet surface render test"></a> | <a href="docs/screenshots/planet-orbit.png"><img src="docs/screenshots/planet-orbit.png" width="220" alt="Planet orbit render test"></a> |
 
-These [renderer captures](docs/screenshots/) preserve the surface and planet
-views from the lighting stabilisation, before atmospheric scattering was enabled. The solar overview uses the [frozen compact test scene](tests/fixtures/development/configs/scenarios/solar_system.json)
+These [renderer captures](docs/screenshots/) were generated with version 0.0.1.
+The surface and planet views use the current working scene, including its atmosphere.
+The solar overview uses the [frozen compact test scene](tests/fixtures/development/configs/scenarios/solar_system.json)
 to fit the Sun and Earth in one frame. Click an image to view it at full size.
 
 A C++20/OpenGL project that renders a moving Sun, Earth, and Moon from
@@ -175,7 +180,19 @@ FPS uses a rolling wall-clock average over
 roughly 0.25 seconds; GPU timings arrive a few frames later. The interactive
 loop uses vsync without adding a second 16 ms sleep.
 
-<a href="docs/screenshots/performance-overlay.png"><img src="docs/screenshots/performance-overlay.png" width="640" alt="Tab performance overlay showing about 38 FPS above the atmospheric terrain"></a>
+<a href="docs/screenshots/performance-overlay.png"><img src="docs/screenshots/performance-overlay.png" width="640" alt="I performance overlay with a white-bordered black panel showing FPS, frame time, and GPU pass time above atmospheric terrain"></a>
+
+Captured headlessly at 1280×720 with Xvfb and Mesa llvmpipe using
+`--benchmark-overlay`, which draws the same panel toggled by **I**.
+The displayed timings reflect software rendering in the capture environment.
+Regenerate it from the repository root after building:
+
+~~~bash
+LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a -s "-screen 0 1280x720x24" ./build/PlanetSimulation --config configs/scenarios/solar_system.json --surface-capture build/performance-overlay.png --simulation-time 20 --render-size 1280 720 --benchmark-frames 20 --benchmark-overlay
+~~~
+
+The generated `.png.json` sidecar preserves the scene and camera for replay;
+the overlay's live timing values vary between runs.
 
 Record a CSV trace while exploring the scene:
 
@@ -252,18 +269,19 @@ was about 0.005 ms per frame. The useful reuse rules are now:
 - Existing terrain LOD movement thresholds and background mesh generation remain
   active. Moving scenes still render every frame.
 
-## Lighting baseline without atmosphere
+## Surface lighting and airless night controls
 
 | Daylight (20 s) | Moonlit night (55 s) | Moonless control (55 s) |
 |:--:|:--:|:--:|
 | <a href="docs/screenshots/surface-view.png"><img src="docs/screenshots/surface-view.png" width="260" alt="Sunlit green terrain and cliffs"></a> | <a href="docs/screenshots/moonlit-night.png"><img src="docs/screenshots/moonlit-night.png" width="260" alt="Dim terrain illuminated by moonlight beneath stars"></a> | <a href="docs/screenshots/moonless-night.png"><img src="docs/screenshots/moonless-night.png" width="260" alt="Almost black terrain with visible stars in the moonless control"></a> |
 
-The same surface camera shows the saved baseline lighting: moonlight
-reveals dim terrain, while a moonless night stays almost black. Both night
-captures use the same time and maximum exposure of 4096. The moonless control
-changes only `lighting.reflections_enabled` to false, retaining the Moon's
-geometry and the working ambient fill of `0.000001`. Daylight uses automatic
-exposure of about 9.53. These PNGs are direct captures without brightness edits.
+Daylight shows the current working scene with its atmosphere. The two night
+images retain the saved airless lighting configurations, rendered with the
+current version: moonlight reveals dim terrain, while the moonless control
+stays almost black. Both night captures use the same time and maximum exposure
+of 4096. The moonless control changes only `lighting.reflections_enabled` to
+false, retaining the Moon's geometry and ambient fill of `0.000001`.
+These PNGs are direct captures without brightness edits.
 
 Replay sidecars beside the three surface images preserve their complete scene,
 camera and timestamp, so the comparison survives later config edits. For example:
@@ -460,7 +478,7 @@ The selected file also becomes the interactive reload/watch target.
 
 - CMake 3.16 or newer, Git, and a C++20 compiler
 - Python 3 for lighting and replay integration tests when `BUILD_TESTING=ON`
-- OpenGL 3.3 support, GLFW 3, and GLEW development libraries
+- OpenGL 3.3 support, GLFW 3, GLEW, and libpng development libraries
 - A graphical display for GLFW, including the hidden-window render test
 
 CMake fetches nlohmann/json and GLM during the first configure, plus GoogleTest
@@ -469,7 +487,7 @@ install the local build dependencies with:
 
 ~~~bash
 sudo apt update
-sudo apt install build-essential cmake git python3 libgl1-mesa-dev libglfw3-dev libglew-dev
+sudo apt install build-essential cmake git python3 libgl1-mesa-dev libglfw3-dev libglew-dev libpng-dev
 ~~~
 
 ## Configure, build, and test
@@ -782,17 +800,16 @@ xvfb-run -a ./build/PlanetSimulation --config tests/fixtures/development/configs
 The release executable uses the same commands with `build-release` in place of
 `build`.
 
-Refresh the working-scene gallery at its documented times with:
+Regenerate every README image and update its version, UTC timestamp, command and
+SHA-256 hash in the [generation log](docs/screenshots/GENERATION.md):
 
 ~~~bash
-./build/PlanetSimulation --config configs/scenarios/solar_system.json --surface-capture build/surface-view.png --simulation-time 20
-./build/PlanetSimulation --config configs/scenarios/solar_system.json --planet-render-test build/planet-orbit.png --simulation-time 3000
-./build/PlanetSimulation --config configs/scenarios/solar_system.json --surface-capture build/moonlit-night.png --simulation-time 55
+cmake --build build --target PlanetSimulation terrain_shadow_render_tests
+LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a -s "-screen 0 1280x720x24" python3 scripts/generate_readme_images.py --build-dir build
 ~~~
 
-For the matching moonless control, copy the working JSON to
-`build/moonless.config.json`, set only `lighting.reflections_enabled` to false,
-and use that file with `--surface-capture build/moonless-night.png --simulation-time 55`.
-Copy reviewed captures into `docs/screenshots/`, including the `.png.json`
-sidecars for surface captures. The solar overview comes from `build/render-test.png`
-using the frozen fixture above.
+Configure with `BUILD_TESTING=ON` first. The script validates the atmosphere,
+twilight and shadow fixtures and publishes images only after all captures pass.
+Night controls retain their saved airless scenes; the main surface and planet
+views use the current working config. Commit the PNGs, replay sidecars and
+generation records together after reviewing the captures.
