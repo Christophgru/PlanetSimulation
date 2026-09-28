@@ -151,6 +151,18 @@ TEST_F(AtmosphereRender, SurfaceAndOrbitalSkyDisplacementMatchesReferenceRay) {
         EXPECT_NEAR(observed,expected,0.0003); // Better than 0.04 pixel here.
     }
 }
+TEST_F(AtmosphereRender, JsonTemperatureChangesRenderedSkyDisplacement) {
+    const auto cold = config::AtmosphereConfig(config::Config{
+        nlohmann::json{{"temperature_k", 250.0}}});
+    const auto warm = config::AtmosphereConfig(config::Config{
+        nlohmann::json{{"temperature_k", 330.0}}});
+    const float coldPixel = render(cold, {0,1.001,0});
+    const float warmPixel = render(warm, {0,1.001,0});
+    EXPECT_LT(coldPixel, warmPixel - 0.001f);
+    auto disabled = cold;
+    disabled.refraction_enabled = false;
+    EXPECT_NEAR(render(disabled, {0,1.001,0}), 0.5f, 1e-6f);
+}
 TEST_F(AtmosphereRender, VacuumMissedShellAndNearGeometryStayUnwarped) {
     config::AtmosphereConfig cfg; cfg.enabled = true; cfg.surface_pressure_pa = 0;
     EXPECT_NEAR(render(cfg,{0,1.001,0}),0.5,1e-6);

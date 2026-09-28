@@ -168,6 +168,21 @@ TEST(AtmosphereRefraction, GrazingRaysBendTowardDenseAirAndConserveSphericalSnel
     const auto hot = simulation::atmosphereOptics(cfg, 1000, air);
     EXPECT_GT(simulation::traceAtmosphericRay(cfg, hot, origin, direction).direction.y, ray.direction.y);
 }
+
+TEST(AtmosphereRefraction, JsonTemperatureControlsBendingStrength) {
+    const auto cold = parse({{"temperature_k", 250.0}});
+    const auto warm = parse({{"temperature_k", 330.0}});
+    EXPECT_DOUBLE_EQ(cold.temperature_k, 250.0);
+    EXPECT_DOUBLE_EQ(warm.temperature_k, 330.0);
+    const auto coldOptics = simulation::atmosphereOptics(cold, 1000, simulation::referenceAir(cold));
+    const auto warmOptics = simulation::atmosphereOptics(warm, 1000, simulation::referenceAir(warm));
+    EXPECT_GT(coldOptics.refractiveIndex, warmOptics.refractiveIndex);
+    const auto coldRay = simulation::traceAtmosphericRay(cold, coldOptics, {0,1.001,0}, {1,0,0});
+    const auto warmRay = simulation::traceAtmosphericRay(warm, warmOptics, {0,1.001,0}, {1,0,0});
+    ASSERT_TRUE(coldRay.escaped);
+    ASSERT_TRUE(warmRay.escaped);
+    EXPECT_LT(coldRay.direction.y, warmRay.direction.y - 0.0001);
+}
 TEST(AtmosphereRefraction, OrbitalLimbRaysAreReciprocalAndMissedShellsDoNotBend) {
     const auto cfg = parse(json::object());
     const auto optics = simulation::atmosphereOptics(cfg, 1000, simulation::referenceAir(cfg));

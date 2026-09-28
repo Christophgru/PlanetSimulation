@@ -13,7 +13,7 @@ document the progress and add comments such that when interrupted you can contin
 |Bug The Oceans should not be illuminated on USER_IO/user_artifacts/image.png on the shadow_side of the Planet.|t| Local Sun incidence and terrain shadows gate water reflections; dark/day GL regression, full 35-test suite and gallery refresh passed. |
 | When pressing "o" visualize the ellipsis of the planets (and moons) of some orbits in diffrent colors (average color of surface) and add a label to each planet that lists its most important parameters. (make it disappear when we have a planet cam)|t| O toggles ten predicted revolutions colored by average terrain tint; body labels show orbital/physical parameters and hide in planet cameras. Geometry, X11 input, all 37 tests and gallery refresh passed. |
 |when switching from orbital cam to planet cam, add a transition phase of 1 sec where we smoothly drop to the planets surface and reorient our camera in a smooth movement|t| One-second wall-clock descent interpolates eye, orientation and FOV above sampled terrain/water for manual and automatic entry. Geometry, live X11 midpoint, all 39 tests and gallery refresh passed. |
-| Add Light atmospheric light bending and also based on the temperature (set temp param by json for now, later calculate it by orbit and sun strength) |-|
+| Add Light atmospheric light bending and also based on the temperature (set temp param by json for now, later calculate it by orbit and sun strength) |t| Existing curved-ray renderer and JSON temperature model now have CPU and GPU temperature regressions; all 39 tests, documentation and gallery refresh passed. Orbital heat calculation remains future work as requested. |
 
 # environmental issues :
 if environmental changes are needed inside the container, let the user know by adding dependencies here:
@@ -59,7 +59,12 @@ if environmental changes are needed inside the container, let the user know by a
   terrain/water. Paused simulation still permits the descent; changing modes
   cancels it. Geometry, real X11 midpoint, all 39 CTest tests and gallery
   refresh passed.
-- Next row: temperature-controlled atmospheric light bending.
+- Temperature-controlled atmospheric refraction is t: the existing JSON
+  `temperature_k` feeds composition/density optics and curved view rays.
+  Added CPU and GPU regressions that compare cool and warm air; all 39 CTest
+  tests passed. README documents configuration and the future orbital heat
+  calculation remains outside this row. Gallery refreshed.
+- All listed implementation rows are now t or already user-verified v.
 
 # States: 
 |State |Meaning|

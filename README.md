@@ -129,6 +129,11 @@ Snell invariant `n * r * sin(theta)` and reciprocal ray paths, following the
 [spherical-atmosphere formulation](https://doi.org/10.1093/mnras/stv1078).
 The effect uses this miniature world's density profile; it is not calibrated
 to terrestrial astronomical refraction.
+Set `planets[].atmosphere.temperature_k` in the scenario JSON to control the
+reference air temperature (for example, `250` or `330`). At fixed pressure,
+cooler air is denser and bends grazing sky rays more strongly; setting
+`refraction_enabled` to `false` removes the displacement. Temperature is a
+configured input for now and is not calculated from orbital sunlight.
 
 The current refraction pass reprojects the existing distant image. Near terrain
 keeps its rasterized silhouette, depth, and body IDs; off-screen or terrain-hidden
