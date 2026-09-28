@@ -6,6 +6,7 @@ document the progress and add comments such that when interrupted you can contin
 |Task |State|Comment|
 |:--|--|--:|
 | add stats to the actual screen (black with white boarder) when pressing "i" including fps, and % of graphic card utilisation| p| I toggle and bordered black FPS/frame/GPU-time panel implemented; utilization percentage and runtime validation remain. |
+|The Project has become a bit hard to keep track of. add a more fine granular folder strcture, such that no 10 FIles are just flying around in a single folder. Exeception may be e.g. the picture folder, but then make sure there are actually only image files in there and the jsons are seperated. | -| |
 | adjust quality settings to be automatically chosen such that we always have at least 20 fps. Based on virtual memory, choose the degree of detail in which the scene is rendered| - |
 | movements around the poles is really awkward, the planet camerastarts spinning when walking towards the pole.|-|
 |  The atmophere is also illuminated if mountains should block the light|-|
