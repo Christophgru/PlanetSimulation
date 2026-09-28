@@ -4,14 +4,15 @@ document the progress and add comments such that when interrupted you can contin
 
 
 |Task |State|Comment|
-|:--|--|--:|
-| add stats to the actual screen (black with white boarder) when pressing "i" including fps, and % of graphic card utilisation| t| I/Tab panel and optional Linux NVML GPU utilization implemented. GPU ABI/failure tests, real X11 input/border tests and performance replay passed; README captures refreshed. Physical NVIDIA hardware is unavailable here. |
-|The Project has become a bit hard to keep track of. add a more fine granular folder strcture, such that no 10 FIles are just flying around in a single folder. Exeception may be e.g. the picture folder, but then make sure there are actually only image files in there and the jsons are seperated. | t| Grouped source/tests/shaders by subsystem; images separated from replay JSON and generation records. Clean build, all 33 CTest tests, layout/link checks and gallery generation passed. |
+|:--:|:--:|:--:|
+| add stats to the actual screen (black with white boarder) when pressing "i" including fps, and % of graphic card utilisation| v| I/Tab panel and optional Linux NVML GPU utilization implemented. GPU ABI/failure tests, real X11 input/border tests and performance replay passed; README captures refreshed. Physical NVIDIA hardware is unavailable here. |
+|The Project has become a bit hard to keep track of. add a more fine granular folder strcture, such that no 10 FIles are just flying around in a single folder. Exeception may be e.g. the picture folder, but then make sure there are actually only image files in there and the jsons are seperated. | v| Grouped source/tests/shaders by subsystem; images separated from replay JSON and generation records. Clean build, all 33 CTest tests, layout/link checks and gallery generation passed. |
 | adjust quality settings to be automatically chosen such that we always have at least 20 fps. Based on virtual memory, choose the degree of detail in which the scene is rendered| - |
 | movements around the poles is really awkward, the planet camerastarts spinning when walking towards the pole.|-|
-|  The atmophere is also illuminated if mountains should block the light|-|
-|The Oceans should not be illuminated on USER_IO/user_artifacts/image.png on the shadow_side of the Planet.| -||
-| when pressing "o" visualize the ellipsis of the planets (and moons) of 10 orbits in diffrent colors (aferage color of surface)|-|
+|  Bug: The atmophere is also illuminated if mountains should block the light|-|
+|Bug The Oceans should not be illuminated on USER_IO/user_artifacts/image.png on the shadow_side of the Planet.| -||
+| When pressing "o" visualize the ellipsis of the planets (and moons) of some orbits in diffrent colors (average color of surface) and add a label to each planet that lists its most important parameters. (make it disappear when we have a planet cam)|-||
+|when switching from orbital cam to planet cam, add a transition phase of 1 sec where we smoothly drop to the planets surface and reorient our camera in a smooth movement|||
 | Add Light atmospheric light bending and also based on the temperature (set temp param by json for now, later calculate it by orbit and sun strength) |-|
 
 # environmental issues :
