@@ -28,6 +28,7 @@
 #include "rendering/camera/CameraInput.h"
 #include "rendering/camera/OrbitCamera.h"
 #include "rendering/camera/PlanetSurfaceCamera.h"
+#include "rendering/camera/CameraTransition.h"
 #include "rendering/diagnostics/RenderDiagnostics.h"
 #include "rendering/geometry/SceneTransforms.h"
 #include "rendering/lighting/CelestialLighting.h"
@@ -1190,6 +1191,10 @@ int main(int argc, char** argv) {
         } else {
             bool cursorCaptured = false;
             SurfaceCameraTelemetry telemetry;
+            rendering::CameraTransition cameraTransition;
+            rendering::CameraPose displayedPose = rendering::CameraPose::fromView(
+                glm::dvec3(camera.position), camera.getViewMatrix(), camera.fov);
+            CameraMode displayedMode = cameraInput.mode();
             double previousFrameTime = glfwGetTime();
             simulationClock.reset(simulationTime, previousFrameTime);
             if (!replayPath.empty()) simulationClock.togglePause(previousFrameTime);
@@ -1277,6 +1282,10 @@ int main(int argc, char** argv) {
                         pendingTerrain.swap(nextPendingTerrain);
                         cameraInput.rebind(surfaceCamera ? &*surfaceCamera : nullptr,
                                            planetOrbitCamera ? &*planetOrbitCamera : nullptr);
+                        cameraTransition.cancel();
+                        displayedMode = cameraInput.mode();
+                        displayedPose = rendering::CameraPose::fromView(
+                            glm::dvec3(camera.position), camera.getViewMatrix(), camera.fov);
                         telemetry = SurfaceCameraTelemetry{};
                         terrainShadows.destroy();
                         frameReuse.invalidate();
@@ -1307,9 +1316,13 @@ int main(int argc, char** argv) {
                     glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS,
                     glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS
                 };
-                cameraInput.update(keys, elapsedSeconds);
+                cameraInput.update(cameraTransition.active() ? WalkKeys{} : keys, elapsedSeconds);
+                if (cameraInput.mode() == CameraMode::Surface && displayedMode != CameraMode::Surface)
+                    cameraTransition.start(displayedPose, frameTime);
+                if (cameraInput.mode() != CameraMode::Surface) cameraTransition.cancel();
                 const bool wantsCursorCapture = cameraInput.mode() == CameraMode::Surface &&
-                                                cameraInput.surfacePointerCaptured();
+                                                cameraInput.surfacePointerCaptured() &&
+                                                !cameraTransition.active();
                 if (wantsCursorCapture != cursorCaptured) {
                     cursorCaptured = wantsCursorCapture;
                     glfwSetInputMode(window, GLFW_CURSOR,
@@ -1320,7 +1333,7 @@ int main(int argc, char** argv) {
                 }
                 if (surfaceCamera) {
                     const auto snapshot = telemetry.sample(
-                        cameraInput.mode() == CameraMode::Surface,
+                        cameraInput.mode() == CameraMode::Surface && !cameraTransition.active(),
                         frameTime, *surfaceCamera, scenario.surface_camera,
                         scenario.metersPerWorldUnit(), scenario.distance_unit, simulationClock.seconds());
                     if (snapshot) std::cout << snapshot->format() << std::flush;
@@ -1332,17 +1345,39 @@ int main(int argc, char** argv) {
                     const bool onSurface = cameraInput.mode() == CameraMode::Surface && surfaceCamera;
                     const bool onPlanetOrbit = cameraInput.mode() == CameraMode::PlanetOrbit &&
                                                planetOrbitCamera;
-                    const glm::mat4 view = onSurface ? surfaceCamera->getViewMatrix() :
+                    const glm::mat4 targetView = onSurface ? surfaceCamera->getViewMatrix() :
                                            onPlanetOrbit ? planetOrbitCamera->getViewMatrix() :
                                                            camera.getViewMatrix();
-                    const float fov = onSurface ? surfaceCamera->fov() :
+                    const float targetFov = onSurface ? surfaceCamera->fov() :
                                       onPlanetOrbit ? planetOrbitCamera->fov : camera.fov;
-                    const glm::dvec3 eyeWorld = onSurface ? surfaceCamera->position() :
+                    const glm::dvec3 targetEye = onSurface ? surfaceCamera->position() :
                                                  onPlanetOrbit ? glm::dvec3(planetOrbitCamera->position) :
                                                                  glm::dvec3(camera.position);
+                    const rendering::CameraPose targetPose = rendering::CameraPose::fromView(
+                        targetEye, targetView, targetFov);
+                    rendering::CameraPose renderPose = targetPose;
+                    if (onSurface && cameraTransition.active()) {
+                        const std::size_t index = scenario.surface_camera.planet_index;
+                        const auto& planet = scenario.planets[index];
+                        const glm::dvec3 center = bodies[index+1].position;
+                        renderPose = cameraTransition.sample(frameTime, targetPose, center,
+                            [&](const glm::dvec3& radial) {
+                                const glm::dvec3 local = glm::transpose(bodies[index+1].orientation) * radial;
+                                const double terrainHeight = terrainSurfaces[index].heightAt(local);
+                                const double waterHeight = planet.water.enabled ?
+                                    planet.water.level_m / scenario.metersPerWorldUnit() : -std::numeric_limits<double>::infinity();
+                                return planet.radius + std::max(terrainHeight, waterHeight) +
+                                       surfaceCamera->configuredClearance();
+                            });
+                    }
+                    const glm::mat4 view = renderPose.view();
+                    const float fov = renderPose.fov;
+                    const glm::dvec3 eyeWorld = renderPose.position;
                     const rendering::ClipPlanes clip = onSurface
                         ? rendering::surfaceClipPlanes(
-                              surfaceCamera->configuredClearance(),
+                              std::max(surfaceCamera->configuredClearance(),
+                                  glm::length(eyeWorld - bodies[scenario.surface_camera.planet_index+1].position) -
+                                  scenario.planets[scenario.surface_camera.planet_index].radius),
                               glm::length(surfaceCamera->position() - sunPosition),
                               scenario.sun.radius)
                         : onPlanetOrbit ? planetOrbitClip(eyeWorld) : rendering::ClipPlanes{};
@@ -1432,6 +1467,8 @@ int main(int argc, char** argv) {
                           frameRate.fps, frameRate.milliseconds, profiler.gpuMilliseconds, profiler.gpuReady(), gpuUtilization.sample(statsVisible)); }
                     { rendering::FrameProfiler::Scope scope(&profiler, rendering::FrameStage::Present, false);
                       glfwSwapBuffers(window); }
+                    displayedPose = renderPose;
+                    displayedMode = cameraInput.mode();
                 }
                 if (width <= 0 || height <= 0) glfwWaitEventsTimeout(0.05);
                 profiler.endFrame();

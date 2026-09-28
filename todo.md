@@ -12,7 +12,7 @@ document the progress and add comments such that when interrupted you can contin
 |  Bug: The atmophere is also illuminated if mountains should block the light|t| Terrain shadow map attenuates direct atmospheric scattering; GL shadow/no-shadow tests, full 35-test suite and gallery refresh passed. |
 |Bug The Oceans should not be illuminated on USER_IO/user_artifacts/image.png on the shadow_side of the Planet.|t| Local Sun incidence and terrain shadows gate water reflections; dark/day GL regression, full 35-test suite and gallery refresh passed. |
 | When pressing "o" visualize the ellipsis of the planets (and moons) of some orbits in diffrent colors (average color of surface) and add a label to each planet that lists its most important parameters. (make it disappear when we have a planet cam)|t| O toggles ten predicted revolutions colored by average terrain tint; body labels show orbital/physical parameters and hide in planet cameras. Geometry, X11 input, all 37 tests and gallery refresh passed. |
-|when switching from orbital cam to planet cam, add a transition phase of 1 sec where we smoothly drop to the planets surface and reorient our camera in a smooth movement|||
+|when switching from orbital cam to planet cam, add a transition phase of 1 sec where we smoothly drop to the planets surface and reorient our camera in a smooth movement|t| One-second wall-clock descent interpolates eye, orientation and FOV above sampled terrain/water for manual and automatic entry. Geometry, live X11 midpoint, all 39 tests and gallery refresh passed. |
 | Add Light atmospheric light bending and also based on the temperature (set temp param by json for now, later calculate it by orbit and sun strength) |-|
 
 # environmental issues :
@@ -54,7 +54,12 @@ if environmental changes are needed inside the container, let the user know by a
   the moving parent for moons; labels show name, parent, axes, eccentricity,
   period, radius and mass in the Sun orbit camera. Geometry and real X11
   toggle/camera tests, all 37 CTest tests and gallery refresh passed.
-- Next row: smooth one-second transition from orbital to planet camera.
+- Surface-camera transition is t: manual and automatic entry interpolate eye,
+  orientation and FOV for one wall-clock second while staying above sampled
+  terrain/water. Paused simulation still permits the descent; changing modes
+  cancels it. Geometry, real X11 midpoint, all 39 CTest tests and gallery
+  refresh passed.
+- Next row: temperature-controlled atmospheric light bending.
 
 # States: 
 |State |Meaning|

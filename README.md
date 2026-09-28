@@ -596,6 +596,12 @@ button and `W`, `A`, `S`, `D` walk along the planet while maintaining clearance
 above ground or water at the configured `walk_speed_mps` (80 m/s in the
 development scene). Returning to planet orbit from the surface keeps the
 camera on the same side of the planet.
+Selecting `2` from either orbit view, or automatically reaching the surface
+entry distance, starts a one-second camera descent. The eye moves around the
+planet above sampled terrain and water while its view direction and field of
+view ease toward the surface camera. The transition uses wall time, so it also
+plays while orbital motion is paused. Mouse look and walking become active
+when the descent ends; switching back to an orbit view cancels it.
 The cursor is captured in surface mode. Press `Esc` to release it while staying
 in mode `2`, so the config can be edited; press `2` again to resume mouse look.
 Press `1` or `3` to switch to an orbit view. Surface controls also activate

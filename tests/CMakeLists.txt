@@ -31,6 +31,10 @@ add_executable(camera_input_tests camera/test_camera_input.cpp)
 target_link_libraries(camera_input_tests PRIVATE GTest::gtest GTest::gtest_main glm::glm nlohmann_json::nlohmann_json)
 target_include_directories(camera_input_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
 
+add_executable(camera_transition_tests camera/test_camera_transition.cpp)
+target_link_libraries(camera_transition_tests PRIVATE GTest::gtest_main glm::glm)
+target_include_directories(camera_transition_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+
 add_executable(scene_transforms_tests geometry/test_scene_transforms.cpp)
 target_link_libraries(scene_transforms_tests PRIVATE GTest::gtest GTest::gtest_main glm::glm)
 target_include_directories(scene_transforms_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
@@ -77,6 +81,7 @@ enable_testing()
 add_test(NAME ConfigTests COMMAND config_tests)
 add_test(NAME OrbitCameraTests COMMAND orbit_camera_tests)
 add_test(NAME CameraInputTests COMMAND camera_input_tests)
+add_test(NAME CameraTransitionTests COMMAND camera_transition_tests)
 add_test(NAME SceneTransformsTests COMMAND scene_transforms_tests)
 add_test(NAME OrbitPathsTests COMMAND orbit_paths_tests)
 add_test(NAME OrbitalSystemTests COMMAND orbital_system_tests)
@@ -196,6 +201,9 @@ if(UNIX AND XDOTOOL_EXECUTABLE AND IMAGEMAGICK_IMPORT_EXECUTABLE AND IMAGEMAGICK
     add_test(NAME OrbitOverlayInputIntegration COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_CURRENT_SOURCE_DIR}/geometry/test_orbit_input.py --binary $<TARGET_FILE:PlanetSimulation>)
     set_tests_properties(OrbitOverlayInputIntegration PROPERTIES TIMEOUT 120)
+    add_test(NAME CameraTransitionInputIntegration COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/camera/test_camera_transition_input.py --binary $<TARGET_FILE:PlanetSimulation>)
+    set_tests_properties(CameraTransitionInputIntegration PROPERTIES TIMEOUT 120)
 endif()
 
 add_test(NAME RepositoryLayout COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/check_layout.py)
