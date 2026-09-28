@@ -17,7 +17,8 @@ document the progress and add comments such that when interrupted you can contin
 |For the ellipsis tracing visualize past ellipsis, not future, and fade the last 20% of the ellipsis to avoid a hefty cut.|t| Ten past revolutions sampled in the moving hierarchy; oldest 20% uses smooth alpha fade. Geometry, real X11 toggle and all 39 CTest tests passed; README updated. |
 |Check the image at USER_IO/user_artifacts/image.png how can we avoid those cuts? maybe se some gradient field instead of rasterisation? The issue happens at the Poles. In the shadow of a mountain.|p| Controlled thin-atmosphere view reproduced dark slits through the Sun; finite-depth geometry now keeps its rasterized silhouette and a GPU regression passes. Large sky contours in the supplied screenshot still need its camera/time replay for verification. |
 |Add a extreme atmosphere light bending exampe to the readme and journal with renderings. Make light bending a optional feature that can be turned on or off via json|t| Matched extreme on/off renderings, README, journal/PDF and exact replays added. Existing refraction_enabled JSON switch controls bending; gallery hashes and replay comparison passed. 38 full-suite tests passed, then the corrected layout test passed. |
-|add textures, roughness and mini elevation for performant details, make steeper gradients more grey and give them a rocky look (Do so without crazy amounts of polygons, instead use the maps tro crreate rock like local landscape)|||
+|add textures, roughness and mini elevation for performant details, make steeper gradients more grey and give them a rocky look (Do so without crazy amounts of polygons, instead use the maps tro crreate rock like local landscape)|i| Planet-local procedural color, rough diffuse shading, centimetre-scale normal relief and gray steep slopes implemented without added geometry. GPU material regression passes; final gallery and full-suite validation in progress. |
+|Keep the water reflective and smooth. Make the gradient where grass becomes rock adjustable and keep grass longer before setting cliff. |||
 |add foliage like the grass in the quickgrass demo (copy it as close as possible) |||
 # environmental issues :
 current apt get has the following dependencies 
@@ -49,6 +50,19 @@ if environmental changes are needed inside the container, let the user know by a
 
 ## Progress checkpoint — 2026-09-28
 
+- Terrain material work is implemented in `shaders/terrain/basic.{vert,frag}`
+  and bound per body in `src/main.cpp`. It uses two filtered three-dimensional
+  noise scales, slope-based gray rock, rough diffuse reflection, and a
+  centimetre-scale normal perturbation in body-local metres. No geometry or
+  collision changes. `TerrainMaterialRender` checks visible sub-triangle
+  detail, gray slopes, invariant depth, body rotation, distance filtering,
+  and the dark night side. The initial full 39-test suite passed; final
+  validation and 15-image gallery refresh follow the final visual tuning.
+  A new land camera is saved under `docs/captures/replay/terrain`.
+  On Mesa llvmpipe, a single 30-frame 800x600 moving benchmark gave median
+  frame time 386.27 ms before and 390.15 ms after (frames 5–29). The source
+  baseline was rendered from a separate shader copy; triangle counts match.
+
 - Extreme-refraction example is t: matched 1280×720 renderer captures
   are in `docs/screenshots/refraction-extreme-{on,off}.png`, with exact replay
   JSON under `docs/captures/replay/refraction`. Both scenes share a 15 m shell, 150 kPa,
@@ -73,8 +87,9 @@ if environmental changes are needed inside the container, let the user know by a
   The line shader blends per-vertex alpha. Clean build and all 39 CTest tests
   passed under Xvfb. The orbit input test failed once from a fluctuating
   screenshot, then passed on rerun and in the full suite.
-- Next: inspect cuts in `USER_IO/user_artifacts/image.png` (broad atmosphere/
-  terrain bands), then the extreme refraction example and JSON toggle.
+- Next: finish terrain validation and commit it, then foliage. The broad
+  sky bands in the supplied image remain open pending its camera/time replay;
+  fixed-step terrain-shadow integration is a possible cause, not verified.
 - Work in table order. Mark `t` automatically only after tests pass and documentation is updated.
   `v` is reserved for user verification. Commit each feature after successful tests,
   before starting the next row.
@@ -117,7 +132,6 @@ if environmental changes are needed inside the container, let the user know by a
   Added CPU and GPU regressions that compare cool and warm air; all 39 CTest
   tests passed. README documents configuration and the future orbital heat
   calculation remains outside this row. Gallery refreshed.
-- All listed implementation rows are now t or already user-verified v.
 
 # States: 
 |State |Meaning|

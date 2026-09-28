@@ -14,6 +14,7 @@ out vec3 vColor;
 out vec3 vWorldPosition;
 out vec3 vBodyPosition;
 out vec3 vWorldNormal;
+out vec3 vBodyNormal;
 out vec4 vShadowPosition;
 
 void main() {
@@ -22,6 +23,7 @@ void main() {
     vWorldPosition = worldPos.xyz;
     vBodyPosition = aPos;
     vWorldNormal = normalize(mat3(transpose(inverse(model))) * aNormal);
+    vBodyNormal = normalize(aNormal);
     vColor = uColor * aColor;
     vShadowPosition = uShadowMatrix * vec4(aPos, 1.0);
 }

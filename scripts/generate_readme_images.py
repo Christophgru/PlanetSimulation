@@ -51,6 +51,7 @@ for name in ('moonlit-night.png', 'moonless-night.png'):
     capture(name, ['--replay', str(replays / (name + '.json'))])
 for name in ('refraction-extreme-on.png', 'refraction-extreme-off.png'):
     capture(name, ['--replay', str(replays / 'refraction' / (name + '.json'))])
+capture('terrain-detail.png', ['--replay', str(replays / 'terrain' / 'terrain-detail.png.json')])
 capture('performance-overlay.png', [*scene, '--simulation-time', '20', '--render-size', '1280', '720', '--benchmark-frames', '20', '--benchmark-overlay'])
 for group, mapping in (
     ('atmosphere', {'standard_air': 'atmosphere-day.png', 'sunset': 'atmosphere-sunset.png', 'mist': 'atmosphere-mist.png', 'heavy_dust': 'atmosphere-dust.png'}),
@@ -69,6 +70,8 @@ for name, source, command, timestamp in records:
     sidecar = Path(str(source) + '.json')
     if sidecar.exists():
         replay_dir = replays / 'refraction' if name.startswith('refraction-extreme-') else replays
+        if name == 'terrain-detail.png':
+            replay_dir = replays / 'terrain'
         shutil.copy2(sidecar, replay_dir / (name + '.json'))
     rows.append({'image': name, 'version': version, 'generated_utc': timestamp,
                  'sha256': hashlib.sha256(source.read_bytes()).hexdigest(), 'command': command})

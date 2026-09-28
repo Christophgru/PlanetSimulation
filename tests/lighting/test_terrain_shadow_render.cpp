@@ -153,6 +153,68 @@ public:
 };
 } // namespace
 
+TEST(TerrainMaterialRender, DetailPreservesGeometryAndFollowsTheBody) {
+    ShadowScene scene;
+    Mesh patch;
+    auto render = [&](float detailScale, glm::vec3 normal, bool direct,
+                      float rotation = 0.0f, bool night = false) {
+        patch.vertices.clear(); patch.indices.clear();
+        for (auto p : {glm::vec3(-.02,-.02,1), glm::vec3(.02,-.02,1),
+                       glm::vec3(.02,.02,1), glm::vec3(-.02,.02,1)})
+            patch.addVertex(p.x,p.y,p.z,normal.x,normal.y,normal.z);
+        patch.addTriangle(0,1,2); patch.addTriangle(0,2,3); patch.upload();
+        glBindFramebuffer(GL_FRAMEBUFFER,scene.framebuffer);
+        glViewport(0,0,size,size); glEnable(GL_DEPTH_TEST); glDisable(GL_BLEND);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        const auto model = glm::rotate(glm::mat4(1), rotation, glm::vec3(0,1,0));
+        auto& shader = scene.terrain; shader.use();
+        shader.setMat4("model",glm::value_ptr(model));
+        shader.setMat4("view",glm::value_ptr(glm::lookAt(glm::vec3(0,0,3),glm::vec3(0),glm::vec3(0,1,0))*glm::inverse(model)));
+        shader.setMat4("projection",glm::value_ptr(glm::ortho(-.02f,.02f,-.02f,.02f,.1f,10.f)));
+        shader.setInt("uLinearOutput",1); shader.setInt("uShadowsEnabled",0);
+        shader.setFloat("uClipRadius",-1); shader.setFloat("uEmissive",0);
+        shader.setFloat("uTerrainMetersPerRadius",detailScale);
+        shader.setFloat3("uTerrainEyeBody",0,0,3);
+        shader.setFloat3("uColor",.2f,.5f,.1f);
+        shader.setFloat3("uIndirectLight",direct ? 0 : 1,direct ? 0 : 1,direct ? 0 : 1);
+        shader.setFloat3("uSunlight",direct ? 1 : 0,direct ? 1 : 0,direct ? 1 : 0);
+        const auto sun = glm::mat3(model)*glm::normalize(glm::vec3(.6,0,night ? -1 : 1));
+        shader.setFloat3("uSunDirection",sun.x,sun.y,sun.z);
+        patch.draw();
+        Image image(size*size*3);
+        glReadPixels(0,0,size,size,GL_RGB,GL_UNSIGNED_BYTE,image.data());
+        EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+        return image;
+    };
+    const auto plain = render(0,{0,0,1},false);
+    std::vector<float> beforeDepth(size*size), afterDepth(size*size);
+    glReadPixels(0,0,size,size,GL_DEPTH_COMPONENT,GL_FLOAT,beforeDepth.data());
+    const auto textured = render(100,{0,0,1},false);
+    glReadPixels(0,0,size,size,GL_DEPTH_COMPONENT,GL_FLOAT,afterDepth.data());
+    EXPECT_EQ(beforeDepth,afterDepth);
+    EXPECT_EQ(patch.indices.size(),6u);
+    EXPECT_NE(plain,textured);
+    int low=255, high=0;
+    for (std::size_t i=1;i<textured.size();i+=3) {
+        low=std::min(low,int(textured[i])); high=std::max(high,int(textured[i]));
+    }
+    EXPECT_GT(high-low,5); // Detail exists within a pair of flat triangles.
+    const auto rock = render(100,{.8f,0,.6f},false);
+    const auto rockPixel = pixel(rock,0);
+    EXPECT_NEAR(rockPixel[0],rockPixel[1],1);
+    EXPECT_NEAR(rockPixel[1],rockPixel[2],1);
+    const auto lit = render(100,{0,0,1},true);
+    const auto rotated = render(100,{0,0,1},true,.7f);
+    double error=0;
+    for (std::size_t i=0;i<lit.size();++i) error+=std::abs(int(lit[i])-int(rotated[i]));
+    EXPECT_LT(error/lit.size(),.1); // Rotating the body/light/camera retains the material.
+    const auto night = render(100,{0,0,1},true,0,true);
+    EXPECT_EQ(*std::max_element(night.begin(),night.end()),0);
+    const auto distant = render(1e6,{0,0,1},false);
+    EXPECT_EQ(distant,plain); // Unresolved wavelengths do not shimmer.
+    patch.destroy();
+}
+
 TEST(TerrainShadowRender, ForegroundRidgeBlocksSunFacingRearRidge) {
     ShadowScene scene;
     const auto shadowed = scene.render();

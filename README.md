@@ -726,9 +726,23 @@ optional `enabled` switch, `elevation_offset_m`, `continent_amplitude_m`, `conti
 otherwise pointed absolute-noise crest; `0` preserves a sharp crest and the
 development value `0.25` softens high-angle ridge peaks. Areas below the water
 level form ocean basins.
-Vertex colors interpolate green plains, pale cliffs, and dark seabed across
-triangles, without visible triangle outlines. Sunlight and moonlight illuminate
-the terrain; land textures remain future work.
+Vertex colors interpolate green plains, pale heights, and dark seabed across
+triangles. Steeper slopes blend toward gray rock. Planet-fixed procedural
+textures add mottled color and matte roughness; a two-scale height field
+perturbs the smooth surface normals to reveal centimetre-scale relief under
+Sun and Moon light. These details add no triangles and do not change collision
+height or silhouettes. Both texture scales fade before becoming smaller than
+a pixel, including in orbital views. The three-dimensional mapping follows
+planet rotation and has no UV seam at either pole.
+
+<a href="docs/screenshots/terrain-detail.png"><img src="docs/screenshots/terrain-detail.png" width="640" alt="Gray textured rock slopes above green ground viewed from five metres above the surface"></a>
+
+This camera is five metres above sampled land. Its exact scene and camera are
+saved in [the terrain replay](docs/captures/replay/terrain/terrain-detail.png.json):
+
+~~~bash
+./build/PlanetSimulation --replay docs/captures/replay/terrain/terrain-detail.png.json --surface-capture build/terrain-detail.png
+~~~
 
 `terrain_lod` divides terrain into near, middle, and far surface-distance
 zones. Its `near_surface_distance_m` and `mid_surface_distance_m` are distances

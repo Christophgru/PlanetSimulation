@@ -363,6 +363,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                          static_cast<float>(sun.color[1]),
                          static_cast<float>(sun.color[2]));
         shader.setFloat("uEmissive", 1.0f);
+        shader.setFloat("uTerrainMetersPerRadius", 0.0f);
         sunMesh.draw();
 
         for (std::size_t i = 0; i < scenario.planets.size(); ++i) {
@@ -376,6 +377,11 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                              static_cast<float>(planet.color[1]),
                              static_cast<float>(planet.color[2]));
             shader.setFloat("uEmissive", 0.0f);
+            shader.setFloat("uTerrainMetersPerRadius", static_cast<float>(
+                planet.radius * scenario.metersPerWorldUnit()));
+            const glm::dvec3 materialEye = glm::transpose(bodies[i + 1].orientation) *
+                (glm::dvec3(glm::inverse(passView)[3]) - bodies[i + 1].position) / planet.radius;
+            setRgb(shader, "uTerrainEyeBody", materialEye);
             setBodyLighting(shader, i);
             planetMeshes[i].draw();
         }
