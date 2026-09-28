@@ -47,6 +47,8 @@ struct FrameAnalysis {
 };
 
 struct LightingFrameMetrics {
+    int whiteClippedPixels = 0;
+    double whiteClippedFraction = 0.0;
     int terrainPixels = 0;
     int skyPixels = 0;
     double terrainMeanLuminance = 0.0;
@@ -76,6 +78,8 @@ inline LightingFrameMetrics measureLightingFrame(const std::vector<unsigned char
     };
     for (int y = 0; y < height; ++y) for (int x = 0; x < width; ++x) {
         const auto index = static_cast<std::size_t>(y) * width + x;
+        if (rgba[4 * index] >= 250 && rgba[4 * index + 1] >= 250 && rgba[4 * index + 2] >= 250)
+            ++result.whiteClippedPixels;
         const double value = (0.2126 * rgba[4 * index] + 0.7152 * rgba[4 * index + 1] +
                               0.0722 * rgba[4 * index + 2]) / 255.0;
         const bool selectedPlanet = objectIds.empty() ?
@@ -105,6 +109,7 @@ inline LightingFrameMetrics measureLightingFrame(const std::vector<unsigned char
             }
         }
     }
+    result.whiteClippedFraction = double(result.whiteClippedPixels) / (static_cast<std::size_t>(width) * height);
     if (result.terrainPixels) {
         result.terrainMeanLuminance /= result.terrainPixels;
         result.terrainLuminanceStddev = std::sqrt(std::max(0.0,

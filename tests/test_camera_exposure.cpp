@@ -91,3 +91,32 @@ TEST(CameraExposure, ParsesOverridesAndRejectsInvalidBoundsAndMeterInputs) {
     EXPECT_THROW(rendering::cameraExposure(settings(), lights(), bodies, {0, 0, 0}, 0), std::invalid_argument);
     EXPECT_THROW(rendering::cameraExposure(settings(), lights(), bodies, {1, 0, 0}, 10), std::invalid_argument);
 }
+
+TEST(CameraExposure, HighlightLimitPreservesSmallHighlightsAndDarkFrames) {
+    std::vector<rendering::HighlightTile> tiles{{10000, 5}, {0.1f, 95}};
+    EXPECT_DOUBLE_EQ(rendering::highlightLimitedExposure(1, tiles), 1);
+    tiles = {{0, 100}};
+    EXPECT_DOUBLE_EQ(rendering::highlightLimitedExposure(4096, tiles), 4096);
+    tiles.clear();
+    EXPECT_DOUBLE_EQ(rendering::highlightLimitedExposure(2, tiles), 2);
+}
+
+TEST(CameraExposure, HighlightLimitProtectsAtLeast95PercentIncludingTiesAndSmallImages) {
+    for (const auto tiles : {std::vector<rendering::HighlightTile>{{10000, 6}, {0.1f, 94}},
+                            std::vector<rendering::HighlightTile>{{10000, 5}, {10000, 95}},
+                            std::vector<rendering::HighlightTile>{{10000, 1}, {0.1f, 18}},
+                            std::vector<rendering::HighlightTile>{{10000, 8}, {50, 64}, {0.1f, 64}}}) {
+        auto metered = tiles;
+        const double exposure = rendering::highlightLimitedExposure(4096, metered);
+        EXPECT_GT(exposure, 0);
+        EXPECT_LT(exposure, 0.02); // Highlight safety takes priority over the incident minimum.
+        std::size_t total = 0, clipped = 0;
+        for (const auto& tile : tiles) {
+            total += tile.pixels;
+            if (rendering::displayColor(glm::dvec3(tile.peak), exposure).r >= 250.0 / 255.0)
+                clipped += tile.pixels;
+        }
+        EXPECT_LE(clipped, total / 20);
+        EXPECT_DOUBLE_EQ(rendering::highlightLimitedExposure(4096, metered), exposure);
+    }
+}

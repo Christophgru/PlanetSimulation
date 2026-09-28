@@ -7,6 +7,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "simulation/Atmosphere.h"
 #include "rendering/CelestialLighting.h"
+#include "rendering/CameraExposure.h"
 #include "rendering/Shader.h"
 #include "rendering/AtmosphereTransmittance.h"
 
@@ -31,7 +32,7 @@ inline void bindAtmosphere(const Shader& shader, const config::PlanetConfig& pla
     rgb("uAtmAbsorb", optics.aerosolAbsorption); rgb("uAtmSunDirection", localSun);
 }
 
-// Linear HDR targets are used only for scenes opting into the atmosphere block.
+// Linear HDR targets support atmospheric composition and highlight metering.
 // Geometry depth/stencil survive composition for capture diagnostics and replay.
 class AtmosphereRenderer {
 public:
@@ -42,16 +43,16 @@ public:
     AtmosphereRenderer& operator=(const AtmosphereRenderer&) = delete;
     ~AtmosphereRenderer() { destroy(); }
     GLuint framebuffer() const { return framebuffers_[0]; }
-    void presentCached(const Shader& shader) const {
-        glBindFramebuffer(GL_FRAMEBUFFER,0); glViewport(0,0,width_,height_);
+    void presentCached(const Shader& shader, GLuint output = 0) const {
+        glBindFramebuffer(GL_FRAMEBUFFER,output); glViewport(0,0,width_,height_);
         glDisable(GL_DEPTH_TEST); glDepthMask(GL_FALSE); glDisable(GL_BLEND); glDisable(GL_STENCIL_TEST);
-        shader.use(); shader.setInt("uToneMap",1); shader.setInt("uSceneColor",0);
+        shader.use(); shader.setInt("uMeterHighlights",0); shader.setInt("uToneMap",1); shader.setInt("uSceneColor",0);
         shader.setFloat("uExposure",lastExposure_);
         glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D,colors_[lastSource_]);
         glBindVertexArray(vao_); glDrawArrays(GL_TRIANGLES,0,3); glBindVertexArray(0);
-        glBindFramebuffer(GL_READ_FRAMEBUFFER,framebuffers_[0]); glBindFramebuffer(GL_DRAW_FRAMEBUFFER,0);
+        glBindFramebuffer(GL_READ_FRAMEBUFFER,framebuffers_[0]); glBindFramebuffer(GL_DRAW_FRAMEBUFFER,output);
         glBlitFramebuffer(0,0,width_,height_,0,0,width_,height_,GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT,GL_NEAREST);
-        glBindFramebuffer(GL_FRAMEBUFFER,0); glBindTexture(GL_TEXTURE_2D,0);
+        glBindFramebuffer(GL_FRAMEBUFFER,output); glBindTexture(GL_TEXTURE_2D,0);
         glEnable(GL_DEPTH_TEST); glDepthMask(GL_TRUE);
     }
     void begin(int width, int height) {
@@ -99,15 +100,15 @@ public:
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffers_[0]);
     }
 
-    void finish(const Shader& shader, const config::ScenarioConfig& scene,
+    double finish(const Shader& shader, const config::ScenarioConfig& scene,
                 const std::vector<simulation::BodyState>& bodies, const FrameLighting& lighting,
                 double exposure, const glm::mat4& view, const glm::mat4& projection,
                 const glm::dvec3& eye, GLuint output = 0, bool toneMap = true,
-                const AtmosphereTransmittance* columns = nullptr) {
+                const AtmosphereTransmittance* columns = nullptr, bool protectHighlights = false) {
         glDisable(GL_DEPTH_TEST); glDepthMask(GL_FALSE);
         glDisable(GL_BLEND); glDisable(GL_STENCIL_TEST);
         glViewport(0, 0, width_, height_);
-        shader.use(); shader.setInt("uToneMap", 0);
+        shader.use(); shader.setInt("uMeterHighlights", 0); shader.setInt("uToneMap", 0);
         shader.setInt("uSceneColor", 0); shader.setInt("uSceneDepth", 2);
         shader.setInt("uAtmScatteringBuffer",4); shader.setInt("uAtmTransferBuffer",5);
         shader.setInt("uAtmIntegrateOnly",0); shader.setInt("uAtmResolve",0);
@@ -159,6 +160,8 @@ public:
             source = destination;
         }
         if (toneMap) {
+            if (protectHighlights) exposure = meterHighlights(shader, source, exposure);
+            shader.setFloat("uExposure", exposure);
             lastSource_=source; lastExposure_=exposure;
             glBindFramebuffer(GL_FRAMEBUFFER, output);
             shader.setInt("uToneMap", 1);
@@ -179,8 +182,47 @@ public:
         glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, 0);
         glBindFramebuffer(GL_FRAMEBUFFER, output);
         glEnable(GL_DEPTH_TEST); glDepthMask(GL_TRUE);
+        return exposure;
     }
 private:
+    GLuint meterFramebuffer_ = 0, meterColor_ = 0;
+    std::vector<float> meterPeaks_;
+    std::vector<HighlightTile> meterTiles_;
+    double meterHighlights(const Shader& shader, int source, double requested) {
+        const int tileWidth = (width_ + 7) / 8, tileHeight = (height_ + 7) / 8;
+        if (!meterFramebuffer_) {
+            glGenFramebuffers(1, &meterFramebuffer_);
+            glGenTextures(1, &meterColor_);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, meterColor_);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, tileWidth, tileHeight, 0, GL_RG, GL_FLOAT, nullptr);
+            textureSettings();
+            glBindFramebuffer(GL_FRAMEBUFFER, meterFramebuffer_);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, meterColor_, 0);
+            if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+                throw std::runtime_error("Highlight meter framebuffer is incomplete");
+        }
+        glBindFramebuffer(GL_FRAMEBUFFER, meterFramebuffer_);
+        glViewport(0, 0, tileWidth, tileHeight);
+        glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, colors_[source]);
+        shader.setInt("uMeterHighlights", 1);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        meterPeaks_.resize(static_cast<std::size_t>(tileWidth) * tileHeight * 2);
+        glReadPixels(0, 0, tileWidth, tileHeight, GL_RG, GL_FLOAT, meterPeaks_.data());
+        meterTiles_.clear(); meterTiles_.reserve(meterPeaks_.size() / 2);
+        std::size_t clipped = 0;
+        for (int y = 0; y < tileHeight; ++y) for (int x = 0; x < tileWidth; ++x) {
+            clipped += static_cast<std::size_t>(meterPeaks_[2 * (y * tileWidth + x) + 1]);
+            meterTiles_.push_back({meterPeaks_[2 * (y * tileWidth + x)],
+                static_cast<std::size_t>(std::min(8, width_ - x * 8) * std::min(8, height_ - y * 8))});
+        }
+        shader.setInt("uMeterHighlights", 0);
+        glViewport(0, 0, width_, height_);
+        // Sparse stars may touch many tiles. Count actual near-white pixels
+        // first so they cannot unnecessarily darken a frame already in range.
+        if (clipped <= static_cast<std::size_t>(width_) * height_ / 20) return requested;
+        return highlightLimitedExposure(requested, meterTiles_);
+    }
     GLuint framebuffers_[3]{}, colors_[3]{}, depth_ = 0, vao_ = 0;
     int width_ = 0, height_ = 0;
     int downsample_=4,lowWidth_=0,lowHeight_=0;
@@ -194,6 +236,8 @@ private:
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     }
     void destroy() {
+        glDeleteFramebuffers(1, &meterFramebuffer_); glDeleteTextures(1, &meterColor_);
+        meterFramebuffer_ = meterColor_ = 0;
         glDeleteFramebuffers(3, framebuffers_); glDeleteTextures(3, colors_);
         glDeleteFramebuffers(1,&lowFramebuffer_); glDeleteTextures(2,lowColors_);
         lowFramebuffer_=lowColors_[0]=lowColors_[1]=0;

@@ -5,7 +5,35 @@
 
 namespace rendering {
 
+struct HighlightTile {
+    float peak = 0;
+    std::size_t pixels = 0;
+};
+
+// Each tile represents every pixel by its brightest RGB channel. Exclude at
+// most 5% of the actual pixel area, including partial edge tiles. Keep the rest
+// below 250/255, with headroom for quantization and dithering. Never brighten a
+// frame or enforce the incident meter's minimum at the expense of highlights.
+inline double highlightLimitedExposure(double requested, std::vector<HighlightTile>& tiles) {
+    std::size_t pixels = 0;
+    for (const auto& tile : tiles) pixels += tile.pixels;
+    const auto allowance = pixels / 20;
+    std::sort(tiles.begin(), tiles.end(), [](const auto& a, const auto& b) { return a.peak > b.peak; });
+    std::size_t excluded = 0;
+    for (const auto& tile : tiles) {
+        if (tile.pixels == 0) continue;
+        if (excluded + tile.pixels > allowance) {
+            if (tile.peak <= 0) return requested;
+            const double linearWhite = std::pow((248.0 / 255.0 + 0.055) / 1.055, 2.4);
+            return std::min(requested, -std::log1p(-linearWhite) / tile.peak);
+        }
+        excluded += tile.pixels;
+    }
+    return requested;
+}
+
 struct CameraExposure {
+    bool hdrOutput = false;
     double exposure = 1.0;
     double skySensitivity = 1.0;
     double directIlluminance = 0.0;

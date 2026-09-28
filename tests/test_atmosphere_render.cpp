@@ -176,6 +176,57 @@ TEST_F(AtmosphereRender, ReducedAtmosphereAndLookupPreserveSharpDepthEdges) {
         EXPECT_NEAR(reduced[offset],exact[offset],0.002); // No bright/dark edge halo.
     }
 }
+TEST_F(AtmosphereRender, HighlightProtectionLimitsWhitePixelsAndPreservesCachedExposure) {
+    auto scene = config::ScenarioConfig(config::Config::load("tests/scenarios/atmosphere/base.json"));
+    for (auto& planet : scene.planets) planet.atmosphere.enabled = false;
+    const std::vector<simulation::BodyState> bodies(scene.planets.size() + 1);
+    const rendering::FrameLighting lighting;
+    rendering::AtmosphereRenderer renderer;
+    auto read = [&](int width, int height) {
+        std::vector<unsigned char> pixels(width * height * 4);
+        glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+        return pixels;
+    };
+    // Match the output depth/stencil format for the final blit.
+    GLuint outputDepth = 0;
+    glGenRenderbuffers(1, &outputDepth);
+    glBindRenderbuffer(GL_RENDERBUFFER, outputDepth);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, size, size);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, outputDepth);
+    for (int width : {size, 121}) { // Resize and partial 8x8 edge tiles.
+        for (int brightWidth : {0, 4, 8, width}) {
+            renderer.begin(width, size);
+            glDisable(GL_SCISSOR_TEST); glDepthMask(GL_TRUE); glClearDepth(1);
+            glClearColor(0.1f, 0.1f, 0.1f, 1);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+            glEnable(GL_SCISSOR_TEST); glScissor(width - brightWidth, 0, brightWidth, size);
+            glClearColor(10000, 10000, 10000, 1); glClear(GL_COLOR_BUFFER_BIT);
+            glDisable(GL_SCISSOR_TEST);
+            const double exposure = renderer.finish(shader, scene, bodies, lighting, 1,
+                glm::mat4(1), projection, {0, 0, 0}, framebuffer, true, nullptr, true);
+            const auto pixels = read(width, size);
+            int clipped = 0;
+            for (std::size_t i = 0; i < pixels.size(); i += 4)
+                if (pixels[i] >= 250 && pixels[i + 1] >= 250 && pixels[i + 2] >= 250) ++clipped;
+            EXPECT_LE(clipped, width * size / 20);
+            if (brightWidth <= 4) EXPECT_DOUBLE_EQ(exposure, 1);
+            if (brightWidth >= 8) EXPECT_LT(exposure, 0.02);
+            renderer.presentCached(shader, framebuffer);
+            EXPECT_EQ(read(width, size), pixels);
+            EXPECT_EQ(glGetError(), GLenum(GL_NO_ERROR));
+        }
+    }
+    // Explicit manual output bypasses highlight protection.
+    renderer.begin(size, size);
+    glClearColor(10000, 10000, 10000, 1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    EXPECT_DOUBLE_EQ(renderer.finish(shader, scene, bodies, lighting, 1,
+        glm::mat4(1), projection, {0, 0, 0}, framebuffer, true), 1);
+    const auto manual = read(size, size);
+    EXPECT_EQ(manual[0], 255);
+    glDeleteRenderbuffers(1, &outputDepth);
+}
 } // namespace
 int main(int argc,char** argv) {
     testing::InitGoogleTest(&argc,argv);

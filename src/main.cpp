@@ -224,7 +224,8 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                  const std::vector<Mesh>& waterMeshes, int width, int height,
                  rendering::ClipPlanes clip = {},
                  std::optional<std::size_t> meteredPlanet = std::nullopt,
-                 bool recordObjects = false, rendering::FrameProfiler* profiler = nullptr) {
+                 bool recordObjects = false, rendering::FrameProfiler* profiler = nullptr,
+                 bool forceHdr = false) {
     using Stage = rendering::FrameStage;
     using Scope = rendering::FrameProfiler::Scope;
     Scope lightingScope(profiler, Stage::Lighting, false);
@@ -241,9 +242,11 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
             (eyeWorld - bodies[*meteredPlanet + 1].position) / planet.radius,
             lighting.planets[*meteredPlanet].sunDirection, lighting.planets[*meteredPlanet].sunlight);
     }
-    const auto exposure = rendering::cameraExposure(scenario.lighting, lighting, bodies, eyeWorld,
+    auto exposure = rendering::cameraExposure(scenario.lighting, lighting, bodies, eyeWorld,
                                                     meteredPlanet, skyIlluminance);
-    const bool atmospheric = rendering::hasAtmosphere(scenario);
+    const bool protectHighlights = scenario.lighting.auto_exposure.enabled && meteredPlanet.has_value();
+    const bool hdr = rendering::hasAtmosphere(scenario) || forceHdr;
+    exposure.hdrOutput = hdr;
     lightingScope.stop();
     { Scope tablesScope(profiler, Stage::Tables); atmosphereColumns.ensure(scenario); }
     Scope shadowScope(profiler, Stage::Shadows);
@@ -278,7 +281,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
         shadows.bindForShading(index, target, scenario.lighting.shadows, radiusScale);
         target.setFloat("uAtmSunAngularRadius", std::asin(std::clamp(scenario.sun.radius /
             std::max(scenario.sun.radius, glm::length(bodies[0].position - bodies[index + 1].position)), 0.0, 1.0)));
-        target.setInt("uLinearOutput", atmospheric);
+        target.setInt("uLinearOutput", hdr);
         target.setFloat("uAtmosphereRadiusScale", radiusScale);
         atmosphereColumns.bind(index, target);
         rendering::bindAtmosphere(target, scenario.planets[index], scenario.metersPerWorldUnit(),
@@ -291,7 +294,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
         glDepthFunc(GL_LEQUAL);
         glDepthMask(GL_FALSE);
         skyboxShader.use();
-        skyboxShader.setInt("uLinearOutput", atmospheric);
+        skyboxShader.setInt("uLinearOutput", hdr);
         skyboxShader.setFloat("uExposure", exposure.exposure);
         skyboxShader.setFloat("uSkySensitivity", static_cast<float>(exposure.skySensitivity));
         skyboxShader.setMat4("projection", glm::value_ptr(passProjection));
@@ -328,7 +331,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
             glStencilFunc(GL_ALWAYS, 1, 0xff); // Sun.
         }
         shader.use();
-        shader.setInt("uLinearOutput", atmospheric);
+        shader.setInt("uLinearOutput", hdr);
         shader.setMat4("projection", glm::value_ptr(passProjection));
         shader.setMat4("view", glm::value_ptr(passView));
         shader.setFloat3("uClipCenter", clipCenter.x, clipCenter.y, clipCenter.z);
@@ -363,14 +366,14 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
     };
 
     Scope opaqueScope(profiler, Stage::Opaque);
-    if (atmospheric) atmosphere.begin(width, height);
-    const GLuint sceneFramebuffer = atmospheric ? atmosphere.framebuffer() : 0;
+    if (hdr) atmosphere.begin(width, height);
+    const GLuint sceneFramebuffer = hdr ? atmosphere.framebuffer() : 0;
     glBindFramebuffer(GL_FRAMEBUFFER, sceneFramebuffer);
     glViewport(0, 0, width, height);
     glm::dvec3 background;
     for (int c = 0; c < 3; ++c) {
         background[c] = scenario.skybox.background_color[c] * exposure.skySensitivity;
-        if (atmospheric) {
+        if (hdr) {
             const double srgb = std::clamp(background[c], 0.0, 0.9999);
             const double mapped = srgb <= 0.04045 ? srgb / 12.92 : std::pow((srgb + 0.055) / 1.055, 2.4);
             background[c] = -std::log(1.0 - mapped) / exposure.exposure;
@@ -387,13 +390,31 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
     const bool hasWater = std::any_of(
         scenario.planets.begin(), scenario.planets.end(),
         [](const config::PlanetConfig& planet) { return planet.water.enabled; });
-    if (!hasWater) {
-        Scope atmosphereScope(profiler, Stage::Atmosphere);
-        if (atmospheric) atmosphere.finish(atmosphereShader, scenario, bodies, lighting, exposure.exposure,
-                                          view, projection, eyeWorld, 0, true, &atmosphereColumns);
+    const auto finishFrame = [&]() {
+        {
+            Scope atmosphereScope(profiler, Stage::Atmosphere);
+            if (hdr) exposure.exposure = atmosphere.finish(atmosphereShader, scenario, bodies, lighting,
+                exposure.exposure, view, projection, eyeWorld, 0, true, &atmosphereColumns, protectHighlights);
+        }
+        if (protectHighlights && !hdr) {
+            // Preserve legacy display-space water blending and MSAA when the
+            // frame already meets the limit. Only overexposed airless frames
+            // need a second render in HDR to recover their lost highlights.
+            std::vector<unsigned char> pixels(static_cast<std::size_t>(width) * height * 4);
+            glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+            std::size_t clipped = 0;
+            for (std::size_t i = 0; i < pixels.size(); i += 4)
+                if (pixels[i] >= 250 && pixels[i + 1] >= 250 && pixels[i + 2] >= 250) ++clipped;
+            if (clipped > pixels.size() / 4 / 20)
+                return renderScene(scenario, bodies, view, fov, eyeWorld, shader, waterShader, skyboxShader,
+                    reflectionTarget, shadowShader, shadows, atmosphereShader, atmosphere, reflectionAtmosphere,
+                    atmosphereColumns, sunMesh, skyboxMesh, planetMeshes, waterMeshes, width, height,
+                    clip, meteredPlanet, recordObjects, profiler, true);
+        }
         return exposure;
-    }
-    reflectionTarget.ensure(width, height, atmospheric);
+    };
+    if (!hasWater) return finishFrame();
+    reflectionTarget.ensure(width, height, hdr);
 
     // The opaque main-scene depth buffer masks this translucent sea. Each
     // planet reuses one bounded reflection target before drawing its water.
@@ -417,7 +438,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
         Scope reflectionScope(profiler, Stage::Reflection);
         glDepthMask(GL_TRUE);
         glDisable(GL_BLEND);
-        if (atmospheric) reflectionAtmosphere.begin(reflectionTarget.width(), reflectionTarget.height());
+        if (hdr) reflectionAtmosphere.begin(reflectionTarget.width(), reflectionTarget.height());
         else reflectionTarget.bind();
         glViewport(0, 0, reflectionTarget.width(), reflectionTarget.height());
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -426,7 +447,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                         static_cast<float>(radiusWorld));
 
         reflectionScope.stop();
-        if (atmospheric) {
+        if (hdr) {
             Scope reflectionAirScope(profiler, Stage::ReflectionAtmosphere);
             const glm::dvec3 normal = glm::normalize(eyeWorld - centerWorld);
             const glm::dvec3 reflectedEye = rendering::reflectPointAcrossPlane(eyeWorld,
@@ -468,10 +489,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
     glBindTexture(GL_TEXTURE_2D, 0);
     glDepthMask(GL_TRUE);
     glDisable(GL_BLEND);
-    Scope atmosphereScope(profiler, Stage::Atmosphere);
-    if (atmospheric) atmosphere.finish(atmosphereShader, scenario, bodies, lighting, exposure.exposure,
-                                      view, projection, eyeWorld, 0, true, &atmosphereColumns);
-    return exposure;
+    return finishFrame();
 }
 
 int main(int argc, char** argv) {
@@ -1055,6 +1073,8 @@ int main(int argc, char** argv) {
                 std::cout << snapshot.format();
                 const auto metrics = rendering::measureLightingFrame(flippedPixels, flippedDepth, width, height,
                                                                      planetBounds, sunBounds, flippedObjects);
+                std::cout << "White-clipped pixels (RGB >= 250): " << metrics.whiteClippedPixels
+                          << " (" << metrics.whiteClippedFraction * 100.0 << "%)\n";
                 GLint samples = 0;
                 glGetIntegerv(GL_SAMPLES, &samples);
                 const auto& atmosphereConfig = scenario.planets[orbitPlanetIndex].atmosphere;
@@ -1064,7 +1084,7 @@ int main(int argc, char** argv) {
                 const nlohmann::json metadata{
                     {"schema_version", 1}, {"scenario", scenarioDocument},
                     {"surface_camera", snapshot.startConfig},
-                    {"render", {{"width", width}, {"height", height}, {"samples", rendering::hasAtmosphere(scenario) ? 0 : samples},
+                    {"render", {{"width", width}, {"height", height}, {"samples", frameExposure.hdrOutput ? 0 : samples},
                         {"renderer", reinterpret_cast<const char*>(glGetString(GL_RENDERER))},
                         {"exposure", frameExposure.exposure}, {"sky_sensitivity", frameExposure.skySensitivity},
                         {"direct_illuminance", frameExposure.directIlluminance},
@@ -1076,6 +1096,8 @@ int main(int argc, char** argv) {
                         {"atmosphere_downsample", atmosphereFullResolution ? 1 : 4},
                         {"atmosphere_relative_humidity", optics.relativeHumidity},
                         {"atmosphere_liquid_water_g_m3", optics.suspendedLiquidWaterGm3},
+                        {"white_clipped_pixels", metrics.whiteClippedPixels},
+                        {"white_clipped_fraction", metrics.whiteClippedFraction},
                         {"terrain_pixels", metrics.terrainPixels}, {"sky_pixels", metrics.skyPixels},
                         {"terrain_mean_display_luminance", metrics.terrainMeanLuminance},
                         {"terrain_max_display_luminance", metrics.terrainMaxLuminance},

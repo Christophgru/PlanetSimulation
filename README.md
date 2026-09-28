@@ -383,11 +383,25 @@ rises at night to reveal moonlit terrain. Very low ambient fill and the upper
 limit keep a moonless night dark. Setting `enabled` to false restores fixed
 exposure; the whole-system camera always uses fixed exposure.
 
+Automatic exposure also checks the completed image, including atmosphere
+and water reflections. It lowers brightness when needed
+to keep white clipping to at most **5% of scene pixels**. Captures report
+`white_clipped_fraction`, counting pixels whose RGB channels are all at least
+250/255. The limiter conservatively protects every channel in at least 95% of
+the image when reducing exposure, using maxima over 8×8 tiles weighted by
+their actual pixel area.
+Protected highlights have a small margin for display rounding. This can lower
+exposure below `min_exposure`; it never raises the incident meter's exposure.
+Manual exposure bypasses the limiter. The performance overlay is not metered.
+Atmospheric scenes use a small GPU reduction and synchronous readback before
+tone mapping. Airless scenes retain their display-space blending and MSAA;
+only a frame exceeding the limit is rerendered in HDR for highlight recovery.
+
 This meter is deterministic, with no adaptation history or warm-up frames.
 It approximates local lighting using the spherical horizon; individual ridges
 still cast shadows but do not change the meter. The same exposure is used for
-terrain, water, the Sun, and water reflection passes. Stars and the background
-fade below `auto_exposure.star_exposure` and reach full visibility at higher
+terrain, water, the Sun, and water reflections in the final image. Stars and
+the background fade below `auto_exposure.star_exposure` and reach full visibility at higher
 sensitivity, so stars can disappear during daylight.
 
 Each planet's `reflection.geometric_albedo` and `reflection.color` determine

@@ -17,6 +17,7 @@ uniform vec3 uAtmIndirect;
 uniform float uRadius;
 uniform float uExposure;
 uniform bool uToneMap;
+uniform bool uMeterHighlights;
 
 vec3 displayColor(vec3 radiance) {
     vec3 mapped = vec3(1.0) - exp(-max(radiance, vec3(0.0)) * uExposure);
@@ -58,6 +59,25 @@ bool resolveAtmosphere(vec3 original,vec3 direction) {
     return true;
 }
 void main() {
+    if (uMeterHighlights) {
+        // Full coverage: a small bright patch cannot hide between samples.
+        // Only a peak and clipping count per 8x8 tile reach the CPU.
+        ivec2 base = ivec2(gl_FragCoord.xy) * 8;
+        ivec2 size = textureSize(uSceneColor, 0);
+        float peak = 0.0, clipped = 0.0;
+        // Count slightly below the display threshold to cover rounding.
+        float white = -log(1.0 - pow((249.0 / 255.0 + 0.055) / 1.055, 2.4));
+        for (int y = 0; y < 8; ++y) for (int x = 0; x < 8; ++x) {
+            ivec2 p = base + ivec2(x, y);
+            if (all(lessThan(p, size))) {
+                vec3 color = texelFetch(uSceneColor, p, 0).rgb;
+                peak = max(peak, max(color.r, max(color.g, color.b)));
+                if (min(color.r, min(color.g, color.b)) * uExposure >= white) clipped += 1.0;
+            }
+        }
+        fColor = vec4(peak, clipped, 0.0, 1.0);
+        return;
+    }
     vec3 original = texture(uSceneColor, vUv).rgb;
     if (uToneMap) { fColor = vec4(displayColor(original), 1.0); return; }
     vec4 eyePoint = uInverseProjection * vec4(vUv * 2.0 - 1.0, 1.0, 1.0);

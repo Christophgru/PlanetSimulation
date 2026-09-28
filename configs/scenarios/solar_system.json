@@ -13,10 +13,10 @@
             "max_exposure": 4096.0,
             "target_luminance": 0.12,
             "star_exposure": 64.0,
-            "description": "Deterministic incident-light metering for surface and planet cameras. Sensitivity rises on the night side to reveal moonlight; identical camera, scene and time give identical exposure without warm-up.",
+            "description": "Deterministic incident-light metering for surface and planet cameras. Sensitivity rises on the night side to reveal moonlight; identical camera, scene and time give identical exposure without warm-up. A final HDR highlight meter lowers exposure as needed to keep white clipping at most 5 percent of the image.",
             "parameter_descriptions": {
                 "enabled": "Use automatic exposure for surface and planet orbit views. False uses lighting.exposure directly; the whole-system camera always uses manual exposure.",
-                "min_exposure": "Positive lower bound on effective exposure, used in bright sunlight.",
+                "min_exposure": "Positive lower bound for incident-light metering in bright sunlight. Highlight protection may lower final exposure further to enforce the 5 percent clipping limit.",
                 "max_exposure": "Upper sensitivity bound, at least min_exposure and at most 1000000. Prevents tiny ambient fill from making a moonless night look like daylight.",
                 "target_luminance": "Desired linear luminance of an 18 percent gray surface, greater than 0 and at most 1. The meter uses local solar incidence plus reflected and ambient light; terrain shadows do not affect metering.",
                 "star_exposure": "Positive exposure at which decorative stars reach full visibility. Stars and the sky background fade at lower sensitivity."

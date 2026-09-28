@@ -290,3 +290,15 @@ TEST(RenderDiagnosticsTest, AtmosphereMetricsMeasureTerrainContrastAndSkyColorSe
     EXPECT_DOUBLE_EQ(metrics.skyInteriorMeanRGB[1], 0);
     EXPECT_NEAR(metrics.skyInteriorMeanRGB[2], 1.0 / 18.0, 1e-12);
 }
+
+TEST(RenderDiagnosticsTest, WhiteClippingCountsTheWholeScreenAtNearWhiteThreshold) {
+    auto rgba = backgroundFrame();
+    paint(rgba, 0, 0, 250, 250, 250);
+    paint(rgba, 1, 0, 255, 255, 255);
+    paint(rgba, 2, 0, 249, 255, 255); // Bright color, below the white threshold.
+    const std::vector<float> depth(kWidth * kHeight, 1.0f);
+    const std::array<int, 4> bounds{0, 0, kWidth - 1, kHeight - 1};
+    const auto metrics = rendering::measureLightingFrame(rgba, depth, kWidth, kHeight, bounds, bounds);
+    EXPECT_EQ(metrics.whiteClippedPixels, 2);
+    EXPECT_DOUBLE_EQ(metrics.whiteClippedFraction, 2.0 / (kWidth * kHeight));
+}
