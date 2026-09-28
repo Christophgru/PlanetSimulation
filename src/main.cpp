@@ -39,6 +39,8 @@
 #include "rendering/diagnostics/FrameProfiler.h"
 #include "rendering/diagnostics/PerformanceOverlay.h"
 #include "rendering/diagnostics/GpuUtilization.h"
+#include "rendering/diagnostics/AdaptiveQuality.h"
+#include "rendering/diagnostics/VideoMemory.h"
 #include "rendering/diagnostics/FrameReuse.h"
 
 namespace fs = std::filesystem;
@@ -231,7 +233,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                  rendering::ClipPlanes clip = {},
                  std::optional<std::size_t> meteredPlanet = std::nullopt,
                  bool recordObjects = false, rendering::FrameProfiler* profiler = nullptr,
-                 bool forceHdr = false) {
+                 bool forceHdr = false, GLuint outputFramebuffer = 0) {
     using Stage = rendering::FrameStage;
     using Scope = rendering::FrameProfiler::Scope;
     Scope lightingScope(profiler, Stage::Lighting, false);
@@ -373,7 +375,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
 
     Scope opaqueScope(profiler, Stage::Opaque);
     if (hdr) atmosphere.begin(width, height);
-    const GLuint sceneFramebuffer = hdr ? atmosphere.framebuffer() : 0;
+    const GLuint sceneFramebuffer = hdr ? atmosphere.framebuffer() : outputFramebuffer;
     glBindFramebuffer(GL_FRAMEBUFFER, sceneFramebuffer);
     glViewport(0, 0, width, height);
     glm::dvec3 background;
@@ -400,7 +402,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
         {
             Scope atmosphereScope(profiler, Stage::Atmosphere);
             if (hdr) exposure.exposure = atmosphere.finish(atmosphereShader, scenario, bodies, lighting,
-                exposure.exposure, view, projection, eyeWorld, 0, true, &atmosphereColumns, protectHighlights);
+                exposure.exposure, view, projection, eyeWorld, outputFramebuffer, true, &atmosphereColumns, protectHighlights);
         }
         if (protectHighlights && !hdr) {
             // Preserve legacy display-space water blending and MSAA when the
@@ -415,7 +417,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                 return renderScene(scenario, bodies, view, fov, eyeWorld, shader, waterShader, skyboxShader,
                     reflectionTarget, shadowShader, shadows, atmosphereShader, atmosphere, reflectionAtmosphere,
                     atmosphereColumns, sunMesh, skyboxMesh, planetMeshes, waterMeshes, width, height,
-                    clip, meteredPlanet, recordObjects, profiler, true);
+                    clip, meteredPlanet, recordObjects, profiler, true, outputFramebuffer);
         }
         return exposure;
     };
@@ -515,6 +517,7 @@ int main(int argc, char** argv) {
     bool atmosphereFullResolution = false;
     bool explicitAtmosphereQuality = false;
     bool benchmarkOverlay = false;
+    std::optional<std::uint64_t> videoMemoryCapBytes;
     int benchmarkFrames = 1;
     double benchmarkStep = 1.0 / 60.0;
     
@@ -525,6 +528,17 @@ int main(int argc, char** argv) {
             explicitAtmosphereQuality = true;
         } else if (std::string(argv[i]) == "--benchmark-overlay") {
             benchmarkOverlay = true;
+        } else if (std::string(argv[i]) == "--video-memory-mb" && i + 1 < argc) {
+            try {
+                const std::string value = argv[++i];
+                std::size_t used = 0;
+                const auto mebibytes = std::stoull(value, &used);
+                if (used != value.size() || mebibytes < 32 || mebibytes > 65536)
+                    throw std::invalid_argument("range");
+                videoMemoryCapBytes = mebibytes * 1024 * 1024;
+            } catch (...) {
+                std::cerr << "--video-memory-mb needs 32..65536 MiB\n"; return 1;
+            }
         } else if (std::string(argv[i]) == "--performance-trace" && i + 1 < argc) {
             performanceTrace = argv[++i];
         } else if (std::string(argv[i]) == "--benchmark-frames" && i + 1 < argc) {
@@ -886,6 +900,15 @@ int main(int argc, char** argv) {
         };
         Shader skyboxShader("shaders/skybox/skybox.vert", "shaders/skybox/skybox.frag");
         rendering::WaterReflectionTarget waterReflection;
+        rendering::WaterReflectionTarget qualityTarget;
+        Shader qualityPresent("shaders/diagnostics/quality_present.vert", "shaders/diagnostics/quality_present.frag");
+        GLuint qualityVao = 0;
+        glGenVertexArrays(1, &qualityVao);
+        auto availableMemory = rendering::availableVideoMemoryBytes();
+        if (videoMemoryCapBytes && (!availableMemory || *videoMemoryCapBytes < *availableMemory))
+            availableMemory = videoMemoryCapBytes;
+        rendering::AdaptiveQuality adaptiveQuality(availableMemory);
+        std::pair<int,int> lastQualitySize{};
         
         // Enable depth testing
         glEnable(GL_DEPTH_TEST);
@@ -1308,20 +1331,53 @@ int main(int argc, char** argv) {
                     { rendering::FrameProfiler::Scope scope(&profiler, rendering::FrameStage::Mesh, false);
                       preparePlanetMeshes(eyeWorld, true); }
                     const auto revisions=geometryRevisions();
+                    adaptiveQuality.observe(frameTime, frameRate.milliseconds,
+                        !simulationClock.paused());
+                    const auto [sceneWidth, sceneHeight] = adaptiveQuality.size(width, height);
+                    if (lastQualitySize != std::pair{sceneWidth, sceneHeight}) {
+                        std::cout << "Scene render resolution: " << sceneWidth << 'x' << sceneHeight
+                                  << " (" << std::lround(adaptiveQuality.scale() * 100) << "%)\n" << std::flush;
+                        lastQualitySize = {sceneWidth, sceneHeight};
+                    }
+                    const bool scaledScene = sceneWidth != width || sceneHeight != height;
+                    if (scaledScene) qualityTarget.ensure(sceneWidth, sceneHeight, false, 8192);
+                    const GLuint sceneOutput = scaledScene ? qualityTarget.framebuffer() : 0;
                     const bool pending=std::any_of(pendingTerrain.begin(),pendingTerrain.end(),
                         [](const auto& task) { return task.geometry.valid(); });
-                    if (rendering::hasAtmosphere(scenario) && frameReuse.matches(view,fov,width,height,
+                    if (rendering::hasAtmosphere(scenario) && frameReuse.matches(view,fov,sceneWidth,sceneHeight,
                             simulationClock.seconds(),revisions,simulationClock.paused(),pending,eyeWorld,static_cast<int>(cameraInput.mode()))) {
                         rendering::FrameProfiler::Scope scope(&profiler,rendering::FrameStage::CachedPresentation);
-                        atmosphere.presentCached(atmosphereShader); profiler.sceneReuse();
+                        atmosphere.presentCached(atmosphereShader, sceneOutput); profiler.sceneReuse();
                     } else {
                         renderScene(scenario, bodies, view, fov, eyeWorld, shader, waterShader,
                                     skyboxShader, waterReflection, shadowShader, terrainShadows,
                                     atmosphereShader, atmosphere, reflectionAtmosphere, atmosphereColumns, g_mesh, skyboxMesh,
-                                    planetMeshes, waterMeshes, width, height,
-                                    clip, (onSurface || onPlanetOrbit) ? std::optional<std::size_t>(orbitPlanetIndex) : std::nullopt, false, &profiler);
-                        frameReuse.remember(view,fov,width,height,simulationClock.seconds(),revisions,eyeWorld,static_cast<int>(cameraInput.mode()));
+                                    planetMeshes, waterMeshes, sceneWidth, sceneHeight,
+                                    clip, (onSurface || onPlanetOrbit) ? std::optional<std::size_t>(orbitPlanetIndex) : std::nullopt, false, &profiler, false, sceneOutput);
+                        frameReuse.remember(view,fov,sceneWidth,sceneHeight,simulationClock.seconds(),revisions,eyeWorld,static_cast<int>(cameraInput.mode()));
                     }
+                    if (scaledScene) {
+                        // Default windows may be multisampled; a texture draw works
+                        // for both MSAA and single-sample targets.
+                        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                        glViewport(0, 0, width, height);
+                        glDisable(GL_DEPTH_TEST);
+                        glDepthMask(GL_FALSE);
+                        glDisable(GL_BLEND);
+                        glDisable(GL_STENCIL_TEST);
+                        qualityPresent.use();
+                        qualityPresent.setInt("uScene", 0);
+                        glActiveTexture(GL_TEXTURE0);
+                        glBindTexture(GL_TEXTURE_2D, qualityTarget.colorTexture());
+                        glBindVertexArray(qualityVao);
+                        glDrawArrays(GL_TRIANGLES, 0, 3);
+                        glBindVertexArray(0);
+                        glBindTexture(GL_TEXTURE_2D, 0);
+                        glDepthMask(GL_TRUE);
+                        glEnable(GL_DEPTH_TEST);
+                    }
+                    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                    glViewport(0, 0, width, height);
                     { rendering::FrameProfiler::Scope scope(&profiler, rendering::FrameStage::Overlay);
                       performanceOverlay.draw(statsVisible, width, height,
                           frameRate.fps, frameRate.milliseconds, profiler.gpuMilliseconds, profiler.gpuReady(), gpuUtilization.sample(statsVisible)); }
@@ -1334,6 +1390,7 @@ int main(int argc, char** argv) {
         }
 
         // Cleanup
+        glDeleteVertexArrays(1, &qualityVao);
         g_mesh.destroy();
         skyboxMesh.destroy();
         for (auto& planetMesh : planetMeshes) planetMesh.destroy();

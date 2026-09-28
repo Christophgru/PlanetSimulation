@@ -15,10 +15,10 @@ public:
     WaterReflectionTarget& operator=(const WaterReflectionTarget&) = delete;
     ~WaterReflectionTarget() { destroy(); }
 
-    void ensure(int viewportWidth, int viewportHeight, bool linearColor = false) {
+    void ensure(int viewportWidth, int viewportHeight, bool linearColor = false, int maximumWidth = 1024) {
         if (viewportWidth <= 0 || viewportHeight <= 0)
             throw std::invalid_argument("Water reflection viewport must be positive");
-        const double scale = std::min(1.0, 1024.0 / viewportWidth);
+        const double scale = std::min(1.0, static_cast<double>(maximumWidth) / viewportWidth);
         const int requestedWidth = std::max(1, static_cast<int>(std::lround(
             viewportWidth * scale)));
         const int requestedHeight = std::max(1, static_cast<int>(std::lround(
@@ -46,8 +46,8 @@ public:
 
         glGenRenderbuffers(1, &depthBuffer_);
         glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer_);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width_, height_);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width_, height_);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
                                   GL_RENDERBUFFER, depthBuffer_);
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);

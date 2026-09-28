@@ -191,3 +191,13 @@ if(UNIX AND XDOTOOL_EXECUTABLE AND IMAGEMAGICK_IMPORT_EXECUTABLE AND IMAGEMAGICK
 endif()
 
 add_test(NAME RepositoryLayout COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/check_layout.py)
+
+add_executable(adaptive_quality_tests diagnostics/test_adaptive_quality.cpp)
+target_include_directories(adaptive_quality_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(adaptive_quality_tests PRIVATE GTest::gtest_main)
+add_test(NAME AdaptiveQualityTests COMMAND adaptive_quality_tests)
+if(UNIX AND XDOTOOL_EXECUTABLE AND IMAGEMAGICK_IMPORT_EXECUTABLE AND IMAGEMAGICK_CONVERT_EXECUTABLE)
+    add_test(NAME AdaptiveQualityRenderIntegration COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/diagnostics/test_adaptive_render.py --binary $<TARGET_FILE:PlanetSimulation>)
+    set_tests_properties(AdaptiveQualityRenderIntegration PROPERTIES TIMEOUT 60)
+endif()

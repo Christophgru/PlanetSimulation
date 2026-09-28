@@ -170,6 +170,22 @@ For example:
 ./build/PlanetSimulation --replay build/atmosphere-scenarios/mist.png.json --surface-capture build/mist-replay.png
 ~~~
 
+## Automatic interactive quality
+
+The interactive renderer targets **at least 20 FPS** by reducing scene pixel
+detail when the rolling frame time stays above 55 ms, then restoring detail
+after sustained headroom below 32 ms. It uses six render scales from 100% down
+to 25%; the window and statistics panel remain at native resolution. The startup
+scale also respects available graphics memory reported by the driver when an
+NVX or ATI memory extension is present. The memory estimate reserves space for
+other GPU resources. `--video-memory-mb 256` can impose a lower explicit limit
+for testing or a shared device. A resolution change is printed to stdout.
+
+The 20 FPS threshold is a target, not a guarantee: scenes can still fall below
+it at the minimum scale, especially on software rendering or while loading
+terrain. Deterministic captures and benchmarks always use the requested fixed
+resolution so their image hashes and timing comparisons remain meaningful.
+
 ## FPS and performance traces
 
 Press **I** in any camera mode to toggle a black statistics panel with a white
