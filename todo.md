@@ -1,5 +1,8 @@
 # next to do's
 
+document the progress and add comments such that when interrupted you can continue right where you left of
+
+
 |Task |State|Comment|
 |:--|--|--:|
 | add stats to the actual screen (black with white boarder) when pressing "i" including fps, and % of graphic card utilisation| -|
