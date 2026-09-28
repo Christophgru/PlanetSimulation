@@ -9,9 +9,9 @@ document the progress and add comments such that when interrupted you can contin
 |The Project has become a bit hard to keep track of. add a more fine granular folder strcture, such that no 10 FIles are just flying around in a single folder. Exeception may be e.g. the picture folder, but then make sure there are actually only image files in there and the jsons are seperated. | v| Grouped source/tests/shaders by subsystem; images separated from replay JSON and generation records. Clean build, all 33 CTest tests, layout/link checks and gallery generation passed. |
 | adjust quality settings to be automatically chosen such that we always have at least 20 fps. Based on virtual memory, choose the degree of detail in which the scene is rendered| t | Adaptive scene scale and graphics-memory cap implemented. Controller and memory-limited live-render tests passed; full 35-test suite passed. 20 FPS is a target; software rendering reached minimum scale below it. |
 | movements around the poles is really awkward, the planet camerastarts spinning when walking towards the pole.|t| View basis follows great-circle walking across either pole. North/south crossing tests, all 35 CTest tests and gallery refresh passed. |
-|  Bug: The atmophere is also illuminated if mountains should block the light|-|
-|Bug The Oceans should not be illuminated on USER_IO/user_artifacts/image.png on the shadow_side of the Planet.| -||
-| When pressing "o" visualize the ellipsis of the planets (and moons) of some orbits in diffrent colors (average color of surface) and add a label to each planet that lists its most important parameters. (make it disappear when we have a planet cam)|-||
+|  Bug: The atmophere is also illuminated if mountains should block the light|t| Terrain shadow map attenuates direct atmospheric scattering; GL shadow/no-shadow tests, full 35-test suite and gallery refresh passed. |
+|Bug The Oceans should not be illuminated on USER_IO/user_artifacts/image.png on the shadow_side of the Planet.|t| Local Sun incidence and terrain shadows gate water reflections; dark/day GL regression, full 35-test suite and gallery refresh passed. |
+| When pressing "o" visualize the ellipsis of the planets (and moons) of some orbits in diffrent colors (average color of surface) and add a label to each planet that lists its most important parameters. (make it disappear when we have a planet cam)|t| O toggles ten predicted revolutions colored by average terrain tint; body labels show orbital/physical parameters and hide in planet cameras. Geometry, X11 input, all 37 tests and gallery refresh passed. |
 |when switching from orbital cam to planet cam, add a transition phase of 1 sec where we smoothly drop to the planets surface and reorient our camera in a smooth movement|||
 | Add Light atmospheric light bending and also based on the temperature (set temp param by json for now, later calculate it by orbit and sun strength) |-|
 
@@ -50,7 +50,11 @@ if environmental changes are needed inside the container, let the user know by a
 - Night-side ocean is t: local Sun incidence and terrain shadows gate
   reflections; invalid reflected-camera UVs are ignored. Indirect water light
   remains. Dark/day GL regression, all 35 tests and gallery refresh passed.
-- Next row: O-key orbit visualization for planets and moons.
+- O-key orbit visualization is t: ten predicted inertial revolutions include
+  the moving parent for moons; labels show name, parent, axes, eccentricity,
+  period, radius and mass in the Sun orbit camera. Geometry and real X11
+  toggle/camera tests, all 37 CTest tests and gallery refresh passed.
+- Next row: smooth one-second transition from orbital to planet camera.
 
 # States: 
 |State |Meaning|

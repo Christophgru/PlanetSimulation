@@ -360,6 +360,14 @@ Speed changes preserve the current orbital phase and leave camera controls at
 their usual speed. Changing speed while paused takes effect on resume.
 Reloading preserves the paused/running state and speed multiplier.
 
+Press **O** in the Sun orbit camera to show each planet's and moon's next ten
+revolutions. The colored trails use the simulated world positions, so a moon's
+trail follows its moving parent. Their colors average the rendered terrain
+vertex tints with each body's configured base color. A label beside each visible
+body shows its name, parent, semi-major and semi-minor axes, eccentricity,
+period, radius, and mass. Press **O** again to hide the display. The display
+stays hidden in planet orbit and surface camera modes.
+
 Speeds follow [Newton's form of Kepler's laws](https://science.nasa.gov/learn/basics-of-space-flight/chapter3-3/).
 Using axes in meters, `e = sqrt(1 - b²/a²)`, `μ = G × (parent mass + collective mass)`,
 `T = 2π × sqrt(a³/μ)`, and `v² = μ × (2/r - 1/a)`, with

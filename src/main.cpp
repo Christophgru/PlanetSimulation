@@ -10,6 +10,7 @@
 #include <optional>
 #include <array>
 #include <future>
+#include <limits>
 #include <stdexcept>
 #include <vector>
 
@@ -42,6 +43,7 @@
 #include "rendering/diagnostics/AdaptiveQuality.h"
 #include "rendering/diagnostics/VideoMemory.h"
 #include "rendering/diagnostics/FrameReuse.h"
+#include "rendering/diagnostics/OrbitOverlay.h"
 
 namespace fs = std::filesystem;
 
@@ -50,6 +52,7 @@ struct InputContext {
     simulation::SimulationClock* clock = nullptr;
     bool reloadRequested = false;
     bool statsVisible = false;
+    bool orbitsVisible = false;
 };
 
 CameraInput* windowCameraInput(GLFWwindow* window) {
@@ -88,6 +91,11 @@ void onKey(GLFWwindow* window, int key, int, int action, int) {
     if (key == GLFW_KEY_I && context) {
         // GLFW_REPEAT is filtered above so holding I toggles only once.
         context->statsVisible = !context->statsVisible;
+        return;
+    }
+    if (key == GLFW_KEY_O && context) {
+        context->orbitsVisible = !context->orbitsVisible;
+        std::cout << (context->orbitsVisible ? "Orbit paths on\n" : "Orbit paths off\n");
         return;
     }
     if (key == GLFW_KEY_T && context && context->clock) {
@@ -872,6 +880,7 @@ int main(int argc, char** argv) {
             }
             if (planetOrbitCamera) std::cout << ", 3 for planet orbit";
             std::cout << ". Press T to pause/resume orbits and spin. "
+                      << "Press O for ten predicted orbit paths and body labels. "
                       << "Press Y to halve or U to double simulation speed. "
                       << "Press Esc to release the surface cursor and 2 to capture it again. " << watchedScenePath
                       << " reloads on save; press R to reload manually."
@@ -888,6 +897,11 @@ int main(int argc, char** argv) {
         rendering::AtmosphereRenderer reflectionAtmosphere(atmosphereFullResolution ? 1 : 4);
         rendering::AtmosphereTransmittance atmosphereColumns;
         rendering::PerformanceOverlay performanceOverlay;
+        rendering::OrbitOverlay orbitOverlay;
+        std::vector<rendering::OrbitTrail> orbitTrails;
+        std::vector<glm::vec3> orbitColors;
+        std::vector<std::uint64_t> orbitColorRevisions;
+        double orbitTrailEpoch = std::numeric_limits<double>::quiet_NaN();
         rendering::GpuUtilization gpuUtilization(
             reinterpret_cast<const char*>(glGetString(GL_VENDOR)),
             reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
@@ -1266,6 +1280,10 @@ int main(int argc, char** argv) {
                         telemetry = SurfaceCameraTelemetry{};
                         terrainShadows.destroy();
                         frameReuse.invalidate();
+                        orbitTrails.clear();
+                        orbitColors.clear();
+                        orbitColorRevisions.clear();
+                        orbitTrailEpoch = std::numeric_limits<double>::quiet_NaN();
                         std::cout << "Reloaded " << watchedScenePath << ": " << scenario.name
                                   << ", " << scenario.planets.size() << " planet(s)\n";
                     } catch (const std::exception& error) {
@@ -1356,6 +1374,31 @@ int main(int argc, char** argv) {
                                     clip, (onSurface || onPlanetOrbit) ? std::optional<std::size_t>(orbitPlanetIndex) : std::nullopt, false, &profiler, false, sceneOutput);
                         frameReuse.remember(view,fov,sceneWidth,sceneHeight,simulationClock.seconds(),revisions,eyeWorld,static_cast<int>(cameraInput.mode()));
                     }
+                    const bool showOrbits = inputContext.orbitsVisible && cameraInput.mode() == CameraMode::Orbit;
+                    if (showOrbits && !scenario.planets.empty()) {
+                        double shortestPeriod = std::numeric_limits<double>::infinity();
+                        for (std::size_t body = 1; body < dynamics.size(); ++body)
+                            shortestPeriod = std::min(shortestPeriod, dynamics.periodSeconds(body));
+                        const double now = simulationClock.seconds();
+                        if (orbitTrails.size() != scenario.planets.size() ||
+                            !std::isfinite(orbitTrailEpoch) ||
+                            std::abs(now - orbitTrailEpoch) > shortestPeriod * 0.01) {
+                            orbitTrails = rendering::predictedOrbitTrails(dynamics, now);
+                            orbitTrailEpoch = now;
+                        }
+                        if (orbitColorRevisions != revisions || orbitColors.size() != scenario.planets.size()) {
+                            orbitColors.clear();
+                            for (std::size_t i = 0; i < scenario.planets.size(); ++i)
+                                orbitColors.push_back(rendering::averageSurfaceColor(
+                                    scenario.planets[i], planetMeshes[i].vertices, planetMeshes[i].hasVertexColors));
+                            orbitColorRevisions = revisions;
+                        }
+                        glBindFramebuffer(GL_FRAMEBUFFER, sceneOutput);
+                        glViewport(0, 0, sceneWidth, sceneHeight);
+                        const glm::mat4 orbitProjection = rendering::perspectiveProjection(
+                            fov, static_cast<float>(sceneWidth) / sceneHeight, clip);
+                        orbitOverlay.paths(orbitTrails, orbitColors, orbitProjection * view);
+                    }
                     if (scaledScene) {
                         // Default windows may be multisampled; a texture draw works
                         // for both MSAA and single-sample targets.
@@ -1378,6 +1421,12 @@ int main(int argc, char** argv) {
                     }
                     glBindFramebuffer(GL_FRAMEBUFFER, 0);
                     glViewport(0, 0, width, height);
+                    if (showOrbits && !scenario.planets.empty()) {
+                        const glm::mat4 orbitProjection = rendering::perspectiveProjection(
+                            fov, static_cast<float>(width) / height, clip);
+                        orbitOverlay.labels(scenario, bodies, dynamics, orbitColors,
+                                            orbitProjection * view, width, height);
+                    }
                     { rendering::FrameProfiler::Scope scope(&profiler, rendering::FrameStage::Overlay);
                       performanceOverlay.draw(statsVisible, width, height,
                           frameRate.fps, frameRate.milliseconds, profiler.gpuMilliseconds, profiler.gpuReady(), gpuUtilization.sample(statsVisible)); }

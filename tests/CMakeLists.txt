@@ -35,6 +35,10 @@ add_executable(scene_transforms_tests geometry/test_scene_transforms.cpp)
 target_link_libraries(scene_transforms_tests PRIVATE GTest::gtest GTest::gtest_main glm::glm)
 target_include_directories(scene_transforms_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
 
+add_executable(orbit_paths_tests geometry/test_orbit_paths.cpp)
+target_link_libraries(orbit_paths_tests PRIVATE GTest::gtest_main glm::glm nlohmann_json::nlohmann_json)
+target_include_directories(orbit_paths_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+
 add_executable(orbital_system_tests simulation/test_orbital_system.cpp)
 target_link_libraries(orbital_system_tests PRIVATE GTest::gtest_main glm::glm nlohmann_json::nlohmann_json)
 target_include_directories(orbital_system_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
@@ -74,6 +78,7 @@ add_test(NAME ConfigTests COMMAND config_tests)
 add_test(NAME OrbitCameraTests COMMAND orbit_camera_tests)
 add_test(NAME CameraInputTests COMMAND camera_input_tests)
 add_test(NAME SceneTransformsTests COMMAND scene_transforms_tests)
+add_test(NAME OrbitPathsTests COMMAND orbit_paths_tests)
 add_test(NAME OrbitalSystemTests COMMAND orbital_system_tests)
 add_executable(celestial_lighting_tests lighting/test_celestial_lighting.cpp)
 target_link_libraries(celestial_lighting_tests PRIVATE GTest::gtest_main glm::glm nlohmann_json::nlohmann_json)
@@ -188,6 +193,9 @@ if(UNIX AND XDOTOOL_EXECUTABLE AND IMAGEMAGICK_IMPORT_EXECUTABLE AND IMAGEMAGICK
     add_test(NAME PerformanceOverlayInputIntegration COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_CURRENT_SOURCE_DIR}/diagnostics/test_overlay_input.py --binary $<TARGET_FILE:PlanetSimulation>)
     set_tests_properties(PerformanceOverlayInputIntegration PROPERTIES TIMEOUT 120)
+    add_test(NAME OrbitOverlayInputIntegration COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/geometry/test_orbit_input.py --binary $<TARGET_FILE:PlanetSimulation>)
+    set_tests_properties(OrbitOverlayInputIntegration PROPERTIES TIMEOUT 120)
 endif()
 
 add_test(NAME RepositoryLayout COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/check_layout.py)
