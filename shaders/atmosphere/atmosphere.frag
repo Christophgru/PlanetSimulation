@@ -18,6 +18,30 @@ uniform float uRadius;
 uniform float uExposure;
 uniform bool uToneMap;
 uniform bool uMeterHighlights;
+uniform bool uAtmTerrainShadowsEnabled;
+uniform sampler2DShadow uAtmTerrainShadowMap;
+uniform mat4 uAtmTerrainShadowMatrix;
+uniform float uAtmTerrainShadowBias;
+
+float terrainSunVisibility(vec3 bodyPoint) {
+    if (!uAtmTerrainShadowsEnabled) return 1.0;
+    // A single depth sample cannot resolve the partial solar disk at the
+    // geometric horizon. Keep the existing finite-disk twilight model there.
+    float radius = max(length(bodyPoint), 1.000001);
+    float horizon = -sqrt(max(0.0, 1.0 - 1.0 / (radius * radius)));
+    float sunWidth = max(sin(uAtmSunAngularRadius), 0.001);
+    if (dot(bodyPoint / radius, uAtmSunDirection) < horizon + 2.0 * sunWidth)
+        return 1.0;
+    vec4 clip = uAtmTerrainShadowMatrix * vec4(bodyPoint, 1.0);
+    vec3 projected = clip.xyz / clip.w * 0.5 + 0.5;
+    if (any(lessThan(projected, vec3(0.0))) ||
+        any(greaterThan(projected, vec3(1.0)))) return 1.0;
+    // Hardware bilinear depth comparison already filters the shadow edge.
+    // One lookup per ray step keeps the atmospheric integration bounded.
+    return texture(uAtmTerrainShadowMap,
+                   vec3(projected.xy, projected.z - uAtmTerrainShadowBias));
+}
+
 
 vec3 displayColor(vec3 radiance) {
     vec3 mapped = vec3(1.0) - exp(-max(radiance, vec3(0.0)) * uExposure);
@@ -123,6 +147,7 @@ void main() {
         vec3 extinction = atmosphereExtinction(density);
         vec3 stepTransmission = exp(-min(extinction * ds, vec3(80.0)));
         vec3 source = uAtmSunlight * atmosphereSunTransmittance(middle) *
+            terrainSunVisibility(middle) *
             (uAtmRayleigh * density.x * rayleighPhase + uAtmScatter * density.y * aerosolPhase);
         source += uAtmIndirect * atmosphereLightTransmittance(middle, normalize(middle)) *
             (uAtmRayleigh * density.x + uAtmScatter * density.y) * 0.07957747;

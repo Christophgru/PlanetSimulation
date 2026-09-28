@@ -4,24 +4,24 @@
 
 All 12 README images were regenerated with the current renderer. Earlier capture dates and versions were not recorded.
 
-Base source revision: `5c08479a9366760dca72b993458c803bfad8f1ab` plus the working-tree changes identified by the source fingerprint.
+Base source revision: `1eafe2bbb37d721c525e8284864b37e4f34fa6de` plus the working-tree changes identified by the source fingerprint.
 Build: RelWithDebInfo. Display: Xvfb. OpenGL: Mesa llvmpipe (software rendering).
 The performance panel reports this capture environment, not hardware GPU performance.
 
 | Image | Version | Last generated (UTC) |
 | --- | --- | --- |
-| [solar-view.png](../screenshots/solar-view.png) | 0.0.1 | 2026-09-28T14:31:15+00:00 |
-| [surface-view.png](../screenshots/surface-view.png) | 0.0.1 | 2026-09-28T14:31:16+00:00 |
-| [planet-orbit.png](../screenshots/planet-orbit.png) | 0.0.1 | 2026-09-28T14:31:18+00:00 |
-| [moonlit-night.png](../screenshots/moonlit-night.png) | 0.0.1 | 2026-09-28T14:31:19+00:00 |
-| [moonless-night.png](../screenshots/moonless-night.png) | 0.0.1 | 2026-09-28T14:31:19+00:00 |
-| [performance-overlay.png](../screenshots/performance-overlay.png) | 0.0.1 | 2026-09-28T14:31:36+00:00 |
-| [atmosphere-day.png](../screenshots/atmosphere-day.png) | 0.0.1 | 2026-09-28T14:31:40+00:00 |
-| [atmosphere-sunset.png](../screenshots/atmosphere-sunset.png) | 0.0.1 | 2026-09-28T14:31:43+00:00 |
-| [atmosphere-mist.png](../screenshots/atmosphere-mist.png) | 0.0.1 | 2026-09-28T14:31:46+00:00 |
-| [atmosphere-dust.png](../screenshots/atmosphere-dust.png) | 0.0.1 | 2026-09-28T14:31:49+00:00 |
-| [twilight.png](../screenshots/twilight.png) | 0.0.1 | 2026-09-28T14:31:52+00:00 |
-| [terrain-shadows.png](../screenshots/terrain-shadows.png) | 0.0.1 | 2026-09-28T14:31:53+00:00 |
+| [solar-view.png](../screenshots/solar-view.png) | 0.0.1 | 2026-09-28T14:38:41+00:00 |
+| [surface-view.png](../screenshots/surface-view.png) | 0.0.1 | 2026-09-28T14:38:42+00:00 |
+| [planet-orbit.png](../screenshots/planet-orbit.png) | 0.0.1 | 2026-09-28T14:38:44+00:00 |
+| [moonlit-night.png](../screenshots/moonlit-night.png) | 0.0.1 | 2026-09-28T14:38:44+00:00 |
+| [moonless-night.png](../screenshots/moonless-night.png) | 0.0.1 | 2026-09-28T14:38:45+00:00 |
+| [performance-overlay.png](../screenshots/performance-overlay.png) | 0.0.1 | 2026-09-28T14:39:06+00:00 |
+| [atmosphere-day.png](../screenshots/atmosphere-day.png) | 0.0.1 | 2026-09-28T14:39:10+00:00 |
+| [atmosphere-sunset.png](../screenshots/atmosphere-sunset.png) | 0.0.1 | 2026-09-28T14:39:13+00:00 |
+| [atmosphere-mist.png](../screenshots/atmosphere-mist.png) | 0.0.1 | 2026-09-28T14:39:16+00:00 |
+| [atmosphere-dust.png](../screenshots/atmosphere-dust.png) | 0.0.1 | 2026-09-28T14:39:19+00:00 |
+| [twilight.png](../screenshots/twilight.png) | 0.0.1 | 2026-09-28T14:39:22+00:00 |
+| [terrain-shadows.png](../screenshots/terrain-shadows.png) | 0.0.1 | 2026-09-28T14:39:22+00:00 |
 
 Exact commands, image SHA-256 hashes and renderer details are in [generation.json](generation.json).
 Available [replay sidecars](replay/) preserve resolved scenes and cameras.

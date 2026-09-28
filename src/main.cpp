@@ -402,7 +402,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
         {
             Scope atmosphereScope(profiler, Stage::Atmosphere);
             if (hdr) exposure.exposure = atmosphere.finish(atmosphereShader, scenario, bodies, lighting,
-                exposure.exposure, view, projection, eyeWorld, outputFramebuffer, true, &atmosphereColumns, protectHighlights);
+                exposure.exposure, view, projection, eyeWorld, outputFramebuffer, true, &atmosphereColumns, protectHighlights, &shadows);
         }
         if (protectHighlights && !hdr) {
             // Preserve legacy display-space water blending and MSAA when the
@@ -461,7 +461,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
             const glm::dvec3 reflectedEye = rendering::reflectPointAcrossPlane(eyeWorld,
                 centerWorld + normal * radiusWorld, normal);
             reflectionAtmosphere.finish(atmosphereShader, scenario, bodies, lighting, exposure.exposure,
-                reflectedView, reflectedProjection, reflectedEye, reflectionTarget.framebuffer(), false, &atmosphereColumns);
+                reflectedView, reflectedProjection, reflectedEye, reflectionTarget.framebuffer(), false, &atmosphereColumns, false, &shadows);
         }
         Scope waterScope(profiler, Stage::Water);
         glBindFramebuffer(GL_FRAMEBUFFER, sceneFramebuffer);

@@ -8,6 +8,7 @@
 #include "simulation/Atmosphere.h"
 #include "rendering/lighting/CelestialLighting.h"
 #include "rendering/lighting/CameraExposure.h"
+#include "rendering/lighting/TerrainShadowMaps.h"
 #include "rendering/Shader.h"
 #include "rendering/atmosphere/AtmosphereTransmittance.h"
 
@@ -104,7 +105,8 @@ public:
                 const std::vector<simulation::BodyState>& bodies, const FrameLighting& lighting,
                 double exposure, const glm::mat4& view, const glm::mat4& projection,
                 const glm::dvec3& eye, GLuint output = 0, bool toneMap = true,
-                const AtmosphereTransmittance* columns = nullptr, bool protectHighlights = false) {
+                const AtmosphereTransmittance* columns = nullptr, bool protectHighlights = false,
+                const TerrainShadowMaps* shadows = nullptr) {
         glDisable(GL_DEPTH_TEST); glDepthMask(GL_FALSE);
         glDisable(GL_BLEND); glDisable(GL_STENCIL_TEST);
         glViewport(0, 0, width_, height_);
@@ -131,6 +133,8 @@ public:
             shader.setInt("uAtmUseColumns", 0);
             if (columns) columns->bind(i, shader);
             bindAtmosphere(shader, planet, scene.metersPerWorldUnit(), worldToBody * lighting.planets[i].sunDirection);
+            if (shadows) shadows->bindForAtmosphere(i, shader, scene.lighting.shadows);
+            else shader.setInt("uAtmTerrainShadowsEnabled", 0);
             shader.setFloat("uAtmSunAngularRadius", std::asin(std::clamp(scene.sun.radius /
                 std::max(scene.sun.radius, glm::length(bodies[0].position - bodies[i + 1].position)), 0.0, 1.0)));
             const glm::dvec3 eyeBody = worldToBody * (eye - bodies[i + 1].position) / planet.radius;

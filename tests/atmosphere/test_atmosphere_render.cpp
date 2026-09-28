@@ -46,7 +46,9 @@ protected:
         glDeleteTextures(1, &source); glDeleteTextures(1, &depth); glDeleteVertexArrays(1, &vao);
         glDeleteProgram(shader.id);
     }
-    float render(const config::AtmosphereConfig& cfg, glm::dvec3 eye) {
+    float render(const config::AtmosphereConfig& cfg, glm::dvec3 eye,
+                 bool directSun = false, bool terrainShadows = false,
+                 bool scatteringMaterial = false) {
         const auto optics = simulation::atmosphereOptics(cfg, 1000, simulation::referenceAir(cfg));
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
         glViewport(0,0,size,size); glDisable(GL_DEPTH_TEST); glDisable(GL_BLEND);
@@ -59,8 +61,11 @@ protected:
         shader.setFloat3("uAtmSunDirection", 0,1,0);
         shader.setFloat3("uEyeBody", eye.x,eye.y,eye.z);
         // Isolate displacement from scattering: the source ramp encodes UV.
-        shader.setFloat3("uAtmRayleigh",0,0,0); shader.setFloat3("uAtmScatter",0,0,0);
-        shader.setFloat3("uAtmAbsorb",0,0,0); shader.setFloat3("uAtmSunlight",0,0,0);
+        shader.setFloat3("uAtmRayleigh",(directSun || scatteringMaterial) ? .1f : 0.f,0,0);
+        shader.setFloat3("uAtmScatter",0,0,0);
+        shader.setInt("uAtmTerrainShadowsEnabled", terrainShadows ? 1 : 0);
+        shader.setFloat3("uAtmAbsorb",0,0,0);
+        shader.setFloat3("uAtmSunlight",directSun ? 5.f : 0.f,0,0);
         shader.setFloat3("uAtmIndirect",0,0,0);
         shader.setMat4("uProjection",glm::value_ptr(projection));
         shader.setMat4("uInverseProjection",glm::value_ptr(glm::inverse(projection)));
@@ -75,6 +80,62 @@ protected:
         return pixels[3*((size/2)*size+size/2)];
     }
 };
+TEST_F(AtmosphereRender, TerrainShadowBlocksDirectScatteringButPreservesAmbient) {
+    config::AtmosphereConfig cfg; cfg.enabled = true; cfg.refraction_enabled = false;
+    const glm::dvec3 eye(0,1.01,0);
+    GLuint shadow = 0;
+    glGenTextures(1, &shadow);
+    glActiveTexture(GL_TEXTURE1); glBindTexture(GL_TEXTURE_2D, shadow);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    const float border[] = {0,0,0,0};
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border);
+    shader.use(); shader.setInt("uAtmTerrainShadowMap",1);
+    shader.setMat4("uAtmTerrainShadowMatrix",
+        glm::value_ptr(glm::scale(glm::mat4(1),glm::vec3(.5f))));
+    shader.setFloat("uAtmTerrainShadowBias",0);
+    auto sample = [&](float depthValue, bool directSun, bool shadows) {
+        glActiveTexture(GL_TEXTURE1); glBindTexture(GL_TEXTURE_2D,shadow);
+        std::vector<float> depths(16 * 16, depthValue);
+        glTexImage2D(GL_TEXTURE_2D,0,GL_DEPTH_COMPONENT24,16,16,0,
+                     GL_DEPTH_COMPONENT,GL_FLOAT,depths.data());
+        return render(cfg,eye,directSun,shadows,true);
+    };
+    const float lit = sample(1.0f,true,true);
+    const float blocked = sample(0.1f,true,true);
+    const float noShadow = sample(0.1f,true,false);
+    const float ambientOnly = sample(0.1f,false,true);
+    EXPECT_GT(lit, blocked + 0.0002f);
+    EXPECT_NEAR(lit,noShadow,0.001f);
+    EXPECT_NEAR(blocked,ambientOnly,0.001f);
+    glActiveTexture(GL_TEXTURE1); glBindTexture(GL_TEXTURE_2D,0);
+    glDeleteTextures(1,&shadow);
+    glActiveTexture(GL_TEXTURE0);
+}
+TEST_F(AtmosphereRender, TerrainShadowMapBindsForAtmosphereAndCanBeDisabled) {
+    rendering::TerrainShadowMaps maps;
+    config::TerrainShadowConfig settings;
+    settings.enabled = true; settings.resolution = 256;
+    maps.ensure(1,settings);
+    Shader depthShader("shaders/terrain/terrain_shadow.vert", "shaders/terrain/terrain_shadow.frag");
+    maps.begin(0,depthShader,{0,1,0},1.2);
+    shader.use(); maps.bindForAtmosphere(0,shader,settings);
+    GLint enabled = 0, bound = 0;
+    glGetUniformiv(shader.id,glGetUniformLocation(shader.id,"uAtmTerrainShadowsEnabled"),&enabled);
+    glActiveTexture(GL_TEXTURE1); glGetIntegerv(GL_TEXTURE_BINDING_2D,&bound);
+    EXPECT_EQ(enabled,1); EXPECT_NE(bound,0);
+    settings.enabled = false;
+    shader.use(); maps.bindForAtmosphere(0,shader,settings);
+    glGetUniformiv(shader.id,glGetUniformLocation(shader.id,"uAtmTerrainShadowsEnabled"),&enabled);
+    EXPECT_EQ(enabled,0);
+    glActiveTexture(GL_TEXTURE0);
+    glDeleteProgram(depthShader.id);
+    EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+}
 TEST_F(AtmosphereRender, SurfaceAndOrbitalSkyDisplacementMatchesReferenceRay) {
     config::AtmosphereConfig cfg; cfg.enabled = true;
     const auto optics = simulation::atmosphereOptics(cfg,1000,simulation::referenceAir(cfg));

@@ -43,7 +43,11 @@ if environmental changes are needed inside the container, let the user know by a
 - Pole traversal is t: view/up follow the great-circle walk step; heading
   updates in the new tangent frame. Both poles covered by regression tests.
   Full 35-test suite passed and gallery refreshed.
-- Next row: block direct atmospheric illumination behind terrain.
+- Atmospheric mountain shadows are t: each planet's terrain depth map
+  attenuates direct view-path scattering. A GL test checks blocked/unblocked
+  scattering and map binding; sunset stays warm with finite solar-disk
+  twilight. All 35 tests passed and gallery refreshed.
+- Next row: stop sunlit ocean on the planet shadow side.
 
 # States: 
 |State |Meaning|

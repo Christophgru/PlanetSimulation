@@ -104,6 +104,20 @@ public:
         glActiveTexture(GL_TEXTURE0);
     }
 
+    void bindForAtmosphere(std::size_t index, const Shader& shader,
+                           const config::TerrainShadowConfig& settings) const {
+        const bool available = settings.enabled && index < textures_.size();
+        shader.setInt("uAtmTerrainShadowsEnabled", available ? 1 : 0);
+        shader.setInt("uAtmTerrainShadowMap", 1);
+        if (!available) return;
+        shader.setMat4("uAtmTerrainShadowMatrix", glm::value_ptr(matrices_[index]));
+        shader.setFloat("uAtmTerrainShadowBias",
+                        static_cast<float>(settings.bias_texels / resolution_));
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, textures_[index]);
+        glActiveTexture(GL_TEXTURE0);
+    }
+
     void destroy() {
         if (!textures_.empty()) glDeleteTextures(static_cast<GLsizei>(textures_.size()), textures_.data());
         if (framebuffer_) glDeleteFramebuffers(1, &framebuffer_);

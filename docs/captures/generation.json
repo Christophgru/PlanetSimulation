@@ -1,91 +1,91 @@
 {
-  "source_sha256": "77d090ddccc826c27c40c20bdfa9c3764cbd2271c64fa0cb562a380a245015f0",
+  "source_sha256": "f590b2ef1c251bc2c55f264ed246e724453690426f773c081fcb018684dbfd0f",
   "version": "0.0.1",
-  "base_revision": "5c08479a9366760dca72b993458c803bfad8f1ab",
+  "base_revision": "1eafe2bbb37d721c525e8284864b37e4f34fa6de",
   "source_state": "working tree at capture time; see source_sha256",
-  "renderer": "name of display: :108\ndisplay: :108  screen: 0\ndirect rendering: Yes\nExtended renderer info (GLX_MESA_query_renderer):\n    Vendor: Mesa/X.org (0xffffffff)\n    Device: llvmpipe (LLVM 15.0.6, 256 bits) (0xffffffff)\n    Version: 22.3.6\n    Accelerated: no\n    Video memory: 39925MB\n    Unified memory: yes\n    Preferred profile: core (0x1)\n    Max core profile version: 4.5\n    Max compat profile version: 4.5\n    Max GLES1 profile version: 1.1\n    Max GLES[23] profile version: 3.2\nOpenGL vendor string: Mesa/X.org\nOpenGL renderer string: llvmpipe (LLVM 15.0.6, 256 bits)\nOpenGL core profile version string: 4.5 (Core Profile) Mesa 22.3.6\nOpenGL core profile shading language version string: 4.50\nOpenGL core profile context flags: (none)\nOpenGL core profile profile mask: core profile\n\nOpenGL version string: 4.5 (Compatibility Profile) Mesa 22.3.6\nOpenGL shading language version string: 4.50\nOpenGL context flags: (none)\nOpenGL profile mask: compatibility profile\n\nOpenGL ES profile version string: OpenGL ES 3.2 Mesa 22.3.6\nOpenGL ES profile shading language version string: OpenGL ES GLSL ES 3.20\n\n",
+  "renderer": "name of display: :113\ndisplay: :113  screen: 0\ndirect rendering: Yes\nExtended renderer info (GLX_MESA_query_renderer):\n    Vendor: Mesa/X.org (0xffffffff)\n    Device: llvmpipe (LLVM 15.0.6, 256 bits) (0xffffffff)\n    Version: 22.3.6\n    Accelerated: no\n    Video memory: 39925MB\n    Unified memory: yes\n    Preferred profile: core (0x1)\n    Max core profile version: 4.5\n    Max compat profile version: 4.5\n    Max GLES1 profile version: 1.1\n    Max GLES[23] profile version: 3.2\nOpenGL vendor string: Mesa/X.org\nOpenGL renderer string: llvmpipe (LLVM 15.0.6, 256 bits)\nOpenGL core profile version string: 4.5 (Core Profile) Mesa 22.3.6\nOpenGL core profile shading language version string: 4.50\nOpenGL core profile context flags: (none)\nOpenGL core profile profile mask: core profile\n\nOpenGL version string: 4.5 (Compatibility Profile) Mesa 22.3.6\nOpenGL shading language version string: 4.50\nOpenGL context flags: (none)\nOpenGL profile mask: compatibility profile\n\nOpenGL ES profile version string: OpenGL ES 3.2 Mesa 22.3.6\nOpenGL ES profile shading language version string: OpenGL ES GLSL ES 3.20\n\n",
   "images": [
     {
       "image": "solar-view.png",
       "version": "0.0.1",
-      "generated_utc": "2026-09-28T14:31:15+00:00",
+      "generated_utc": "2026-09-28T14:38:41+00:00",
       "sha256": "3b75771fc7d9b6118408393c6b28252525917078620f89a4c8928ce9bd0bf101",
       "command": "/tmp/planet-organized-build/PlanetSimulation --config tests/fixtures/development/configs/scenarios/solar_system.json --render-test /tmp/planet-organized-build/readme-captures/solar-view.png"
     },
     {
       "image": "surface-view.png",
       "version": "0.0.1",
-      "generated_utc": "2026-09-28T14:31:16+00:00",
-      "sha256": "207cdff33993ac5153b0891312c494276d44cbe32ec236eb282880c6882ba719",
+      "generated_utc": "2026-09-28T14:38:42+00:00",
+      "sha256": "549da5cc755cbfc767e72c301319810c9c42a9beecb3efc09992c6e83f3e53d0",
       "command": "/tmp/planet-organized-build/PlanetSimulation --config configs/scenarios/solar_system.json --simulation-time 20 --surface-capture /tmp/planet-organized-build/readme-captures/surface-view.png"
     },
     {
       "image": "planet-orbit.png",
       "version": "0.0.1",
-      "generated_utc": "2026-09-28T14:31:18+00:00",
-      "sha256": "61c35a4056c275652c45cdbd747b8855fe1377e1d6eec51c5bf1aeb2c76f5ea8",
+      "generated_utc": "2026-09-28T14:38:44+00:00",
+      "sha256": "ca84ce38d6a776c79306fbd5ea2a76b7a917b2ab9fa7a5f67bbb520c641f826e",
       "command": "/tmp/planet-organized-build/PlanetSimulation --config configs/scenarios/solar_system.json --simulation-time 3000 --planet-render-test /tmp/planet-organized-build/readme-captures/planet-orbit.png"
     },
     {
       "image": "moonlit-night.png",
       "version": "0.0.1",
-      "generated_utc": "2026-09-28T14:31:19+00:00",
+      "generated_utc": "2026-09-28T14:38:44+00:00",
       "sha256": "d26ab76afc2f8eddd4e5730f35a201a8309e79978f145bce725f926b7e81a4c6",
       "command": "/tmp/planet-organized-build/PlanetSimulation --replay /workspace/docs/captures/replay/moonlit-night.png.json --surface-capture /tmp/planet-organized-build/readme-captures/moonlit-night.png"
     },
     {
       "image": "moonless-night.png",
       "version": "0.0.1",
-      "generated_utc": "2026-09-28T14:31:19+00:00",
+      "generated_utc": "2026-09-28T14:38:45+00:00",
       "sha256": "343b503926e6c040bf9bcbd42b8c4718ece51ef51c688be88b97b1a2a9137159",
       "command": "/tmp/planet-organized-build/PlanetSimulation --replay /workspace/docs/captures/replay/moonless-night.png.json --surface-capture /tmp/planet-organized-build/readme-captures/moonless-night.png"
     },
     {
       "image": "performance-overlay.png",
       "version": "0.0.1",
-      "generated_utc": "2026-09-28T14:31:36+00:00",
-      "sha256": "2a5c559ddc03cce01d6210aefa0f256e5188f74085c2359ed5a2cdffbc6a5968",
+      "generated_utc": "2026-09-28T14:39:06+00:00",
+      "sha256": "5754647eaaf958d9c44f76aa135d54a5e86922ab96ffeb242b99068f12674c5c",
       "command": "/tmp/planet-organized-build/PlanetSimulation --config configs/scenarios/solar_system.json --simulation-time 20 --render-size 1280 720 --benchmark-frames 20 --benchmark-overlay --surface-capture /tmp/planet-organized-build/readme-captures/performance-overlay.png"
     },
     {
       "image": "atmosphere-day.png",
       "version": "0.0.1",
-      "generated_utc": "2026-09-28T14:31:40+00:00",
-      "sha256": "440a6a76b5dc28700622720af9bcf86426adc52277a517a7ab06bd446bd5e7f2",
+      "generated_utc": "2026-09-28T14:39:10+00:00",
+      "sha256": "c4ccb7b7c676061ce4392eb026206d3d6d88eb87f255bdb024a60438f6fc2fac",
       "command": "python3 tests/lighting/render_lighting_scenarios.py --binary /tmp/planet-organized-build/PlanetSimulation --manifest tests/scenarios/atmosphere/manifest.json --case standard_air --output-dir /tmp/planet-organized-build/readme-captures/standard_air"
     },
     {
       "image": "atmosphere-sunset.png",
       "version": "0.0.1",
-      "generated_utc": "2026-09-28T14:31:43+00:00",
-      "sha256": "df762be7efa3a8508a674536c89063ae47e852763340ea30eed474885e0057c2",
+      "generated_utc": "2026-09-28T14:39:13+00:00",
+      "sha256": "e97485fafc00f516f49f92d29bae5a41c7503d48183faa66960b380889c39b88",
       "command": "python3 tests/lighting/render_lighting_scenarios.py --binary /tmp/planet-organized-build/PlanetSimulation --manifest tests/scenarios/atmosphere/manifest.json --case sunset --output-dir /tmp/planet-organized-build/readme-captures/sunset"
     },
     {
       "image": "atmosphere-mist.png",
       "version": "0.0.1",
-      "generated_utc": "2026-09-28T14:31:46+00:00",
-      "sha256": "c0b53a5de3b33629d4789ec62f8895011655d5600963df24de23364def3c97e5",
+      "generated_utc": "2026-09-28T14:39:16+00:00",
+      "sha256": "32da646c1e575d48e2bab155f881ae8c1e87ccb8a4435520b5a231108bfd4ecd",
       "command": "python3 tests/lighting/render_lighting_scenarios.py --binary /tmp/planet-organized-build/PlanetSimulation --manifest tests/scenarios/atmosphere/manifest.json --case mist --output-dir /tmp/planet-organized-build/readme-captures/mist"
     },
     {
       "image": "atmosphere-dust.png",
       "version": "0.0.1",
-      "generated_utc": "2026-09-28T14:31:49+00:00",
+      "generated_utc": "2026-09-28T14:39:19+00:00",
       "sha256": "3c0456207eb6a352ef8d4e6a81ecfbe7232e976caf35938995eb8dd0a1694aa5",
       "command": "python3 tests/lighting/render_lighting_scenarios.py --binary /tmp/planet-organized-build/PlanetSimulation --manifest tests/scenarios/atmosphere/manifest.json --case heavy_dust --output-dir /tmp/planet-organized-build/readme-captures/heavy_dust"
     },
     {
       "image": "twilight.png",
       "version": "0.0.1",
-      "generated_utc": "2026-09-28T14:31:52+00:00",
+      "generated_utc": "2026-09-28T14:39:22+00:00",
       "sha256": "cf30b04bae445e5a1098d459e67f3ed9d27fc9729be505e0eecdfd22b18eb461",
       "command": "python3 tests/lighting/render_lighting_scenarios.py --binary /tmp/planet-organized-build/PlanetSimulation --manifest tests/scenarios/twilight/manifest.json --case twilight_reported --output-dir /tmp/planet-organized-build/readme-captures/twilight_reported"
     },
     {
       "image": "terrain-shadows.png",
       "version": "0.0.1",
-      "generated_utc": "2026-09-28T14:31:53+00:00",
+      "generated_utc": "2026-09-28T14:39:22+00:00",
       "sha256": "4388620431c971ef173b5513e2d9498d15f95ba35da18e363e044bc9e9e3f8ee",
       "command": "ctest --test-dir /tmp/planet-organized-build --output-on-failure -R '^TerrainShadowRenderIntegration$'"
     }

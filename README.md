@@ -107,7 +107,8 @@ not automatically exposed back to daylight brightness.
 
 Atmospheric scenes render terrain, sky and water reflections in linear HDR,
 then integrate view-path scattering and extinction before a single display
-exposure. Direct sunlight is attenuated along its atmospheric path too.
+exposure. Direct sunlight is attenuated along its atmospheric path too. Terrain shadow maps also block direct
+atmospheric scattering behind mountain ridges; indirect atmospheric fill remains.
 The finite solar disk softens the planet's twilight shadow. The first version
 uses RGB single scattering, exponential density profiles, and a bounded
 48-step curved view integration (24 steps with refraction disabled), with
