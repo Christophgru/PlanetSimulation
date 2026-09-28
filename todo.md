@@ -47,7 +47,10 @@ if environmental changes are needed inside the container, let the user know by a
   attenuates direct view-path scattering. A GL test checks blocked/unblocked
   scattering and map binding; sunset stays warm with finite solar-disk
   twilight. All 35 tests passed and gallery refreshed.
-- Next row: stop sunlit ocean on the planet shadow side.
+- Night-side ocean is t: local Sun incidence and terrain shadows gate
+  reflections; invalid reflected-camera UVs are ignored. Indirect water light
+  remains. Dark/day GL regression, all 35 tests and gallery refresh passed.
+- Next row: O-key orbit visualization for planets and moons.
 
 # States: 
 |State |Meaning|

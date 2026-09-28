@@ -50,7 +50,7 @@ public:
     Mesh ridges, sea;
     glm::dvec3 sun = glm::normalize(glm::dvec3(-1, 0, 1));
 
-    GLuint framebuffer = 0, colorBuffer = 0, depthBuffer = 0;
+    GLuint framebuffer = 0, colorBuffer = 0, depthBuffer = 0, reflectionTexture = 0;
 
     ShadowScene() {
         // Hidden windows can have an unallocated default framebuffer on native
@@ -69,6 +69,12 @@ public:
         glReadBuffer(GL_COLOR_ATTACHMENT0);
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
             throw std::runtime_error("Shadow test framebuffer is incomplete");
+        glGenTextures(1, &reflectionTexture);
+        glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, reflectionTexture);
+        const float reflected[] = {0.8f, 0.8f, 0.8f, 1.0f};
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 1, 1, 0, GL_RGBA, GL_FLOAT, reflected);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         settings.resolution = 512;
         buildRidges(ridges, true);
         for (auto p : {glm::vec3(-1, -1, 0.01), glm::vec3(1, -1, 0.01),
@@ -84,11 +90,13 @@ public:
         glDeleteFramebuffers(1, &framebuffer);
         glDeleteRenderbuffers(1, &colorBuffer);
         glDeleteRenderbuffers(1, &depthBuffer);
+        glDeleteTextures(1, &reflectionTexture);
     }
 
     Image render(bool waterSurface = false, glm::dvec3 indirect = glm::dvec3(0),
                  float waterRadiusScale = 1.0f, bool secondBody = false,
-                 bool planeReceiver = false, float exposure = 1.0f) {
+                 bool planeReceiver = false, float exposure = 1.0f,
+                 float reflectionFraction = 0.0f) {
         maps.ensure(secondBody ? 2 : 1, settings);
         if (settings.enabled) {
             maps.begin(0, depth, sun, 1.5);
@@ -129,8 +137,10 @@ public:
             shader.setFloat3("uCameraPosition", 0, 0, 3);
             shader.setFloat3("uWaterColor", 1, 1, 1);
             shader.setFloat("uOpacity", 1);
-            shader.setFloat("uReflectionFraction", 0);
+            shader.setFloat("uReflectionFraction", reflectionFraction);
             shader.setInt("uReflectionTexture", 0);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, reflectionTexture);
             shader.setMat4("uReflectionViewProjection", glm::value_ptr(glm::mat4(1)));
             sea.draw();
         } else if (planeReceiver) sea.draw();
@@ -188,6 +198,19 @@ TEST(TerrainShadowRender, ShadowsWaterAndAccountsForItsDifferentRadius) {
     }
 }
 
+TEST(TerrainShadowRender, NightOceanDoesNotMirrorBrightDayScene) {
+    ShadowScene scene;
+    const glm::dvec3 indirect(0.001, 0.001, 0.001);
+    scene.sun = {0,0,-1}; // Sea faces the camera, but the Sun is behind it.
+    const auto night = scene.render(true, indirect, 1, false, false, 1, 1);
+    for (int x : {-0.7f, 0.0f, 0.7f}) {
+        const auto value = pixel(night,x);
+        for (int c : value) EXPECT_LT(c, 25) << "night water x=" << x;
+    }
+    scene.sun = {0,0,1};
+    const auto day = scene.render(true, indirect, 1, false, false, 1, 1);
+    EXPECT_GT(pixel(day,0.7)[0], 150);
+}
 TEST(TerrainShadowRender, SunMotionResolutionReloadAndOtherBodiesDoNotLeaveStaleMaps) {
     ShadowScene scene;
     for (int resolution : {256, 1024, 512}) {

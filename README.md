@@ -714,8 +714,11 @@ switch their tessellation.
 uses 50% opacity and a 50% mix of water color and reflected sky/Sun
 light. Opaque terrain hides water above its level and remains visible through
 water below it. The reflection pass includes the sky and opaque bodies, including
-terrain, lit by the same sunlight and reflected body light. It does not refract
-the scene. The water shell uses the same
+terrain, lit by the same sunlight and reflected body light. The reflection
+mix fades to zero as local direct sunlight approaches the horizon or terrain
+blocks the Sun, so a bright reflected day scene cannot light the night ocean.
+Indirect water light remains. Reflections outside the reflected camera's view
+are ignored. The pass does not refract the scene. The water shell uses the same
 triangle budget as the land, but its uniformly subdivided geometry stays fixed
 while the camera moves because the sea has no height noise.
 
