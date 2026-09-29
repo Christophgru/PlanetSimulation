@@ -17,7 +17,7 @@ document the progress and add comments such that when interrupted you can contin
 |For the ellipsis tracing visualize past ellipsis, not future, and fade the last 20% of the ellipsis to avoid a hefty cut.|t| Ten past revolutions sampled in the moving hierarchy; oldest 20% uses smooth alpha fade. Geometry, real X11 toggle and all 39 CTest tests passed; README updated. |
 |Check the image at USER_IO/user_artifacts/image.png how can we avoid those cuts? maybe se some gradient field instead of rasterisation? The issue happens at the Poles. In the shadow of a mountain.|p| Controlled thin-atmosphere view reproduced dark slits through the Sun; finite-depth geometry now keeps its rasterized silhouette and a GPU regression passes. Large sky contours in the supplied screenshot still need its camera/time replay for verification. |
 |Add a extreme atmosphere light bending exampe to the readme and journal with renderings. Make light bending a optional feature that can be turned on or off via json|t| Matched extreme on/off renderings, README, journal/PDF and exact replays added. Existing refraction_enabled JSON switch controls bending; gallery hashes and replay comparison passed. 38 full-suite tests passed, then the corrected layout test passed. |
-|add textures, roughness and mini elevation for performant details, make steeper gradients more grey and give them a rocky look (Do so without crazy amounts of polygons, instead use the maps tro crreate rock like local landscape)|i| Planet-local procedural color, rough diffuse shading, centimetre-scale normal relief and gray steep slopes implemented without added geometry. GPU material regression passes; final gallery and full-suite validation in progress. |
+|add textures, roughness and mini elevation for performant details, make steeper gradients more grey and give them a rocky look (Do so without crazy amounts of polygons, instead use the maps tro crreate rock like local landscape)|t| Planet-local procedural color, rough diffuse shading, centimetre-scale normal relief and gray steep slopes implemented without added geometry. GPU material regression, all 39 CTest checks and the 15-image gallery/hash validation passed. |
 |Keep the water reflective and smooth. Make the gradient where grass becomes rock adjustable and keep grass longer before setting cliff. |||
 |add foliage like the grass in the quickgrass demo (copy it as close as possible) |||
 # environmental issues :
@@ -48,7 +48,19 @@ if environmental changes are needed inside the container, let the user know by a
 - PNG writing requires `libpng-dev` (already available here).
 - Headless input/capture checks use `xvfb`, `xauth`, `xdotool`, and `imagemagick`.
 
-## Progress checkpoint — 2026-09-28
+## Progress checkpoint — 2026-09-29
+
+- Terrain material validation is complete. All 39 CTest checks passed across
+  the full run and a focused rerun: the initial layout failure was the missing
+  terrain image, now published; the overlay input timeout passed in isolation.
+  All 15 gallery captures were regenerated and hashes checked. Inspected the
+  terrain-detail image. Headless overview: 14,784 non-background pixels,
+  bounding box (1,1)–(794,598), 3,466 planet pixels. No dependencies added.
+- Next in table order: preserve smooth reflective water and expose the
+  grass-to-rock slope range. Then foliage; asked the user for the exact
+  QuickGrass URL/repository before matching that demo.
+
+## Previous checkpoint — 2026-09-28
 
 - Terrain material work is implemented in `shaders/terrain/basic.{vert,frag}`
   and bound per body in `src/main.cpp`. It uses two filtered three-dimensional
@@ -87,7 +99,7 @@ if environmental changes are needed inside the container, let the user know by a
   The line shader blends per-vertex alpha. Clean build and all 39 CTest tests
   passed under Xvfb. The orbit input test failed once from a fluctuating
   screenshot, then passed on rerun and in the full suite.
-- Next: finish terrain validation and commit it, then foliage. The broad
+- Previous next step (now completed): finish terrain validation and commit it. The broad
   sky bands in the supplied image remain open pending its camera/time replay;
   fixed-step terrain-shadow integration is a possible cause, not verified.
 - Work in table order. Mark `t` automatically only after tests pass and documentation is updated.
