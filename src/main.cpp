@@ -4,18 +4,17 @@
 #include <GL/glew.h>
 #include <GL/gl.h>
 #include <GLFW/glfw3.h>
-#include <thread>
 #include <chrono>
 #include <filesystem>
 #include <cstdlib>
 #include <optional>
 #include <array>
 #include <future>
+#include <limits>
 #include <stdexcept>
 #include <vector>
 
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
+#include "rendering/diagnostics/PngWriter.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -24,19 +23,29 @@
 #include "config/ScenarioConfig.h"
 #include "config/SceneReplay.h"
 #include "simulation/OrbitalSystem.h"
-#include "rendering/Mesh.h"
-#include "rendering/Terrain.h"
-#include "rendering/CameraInput.h"
-#include "rendering/OrbitCamera.h"
-#include "rendering/PlanetSurfaceCamera.h"
-#include "rendering/RenderDiagnostics.h"
-#include "rendering/SceneTransforms.h"
-#include "rendering/CelestialLighting.h"
-#include "rendering/CameraExposure.h"
+#include "rendering/geometry/Mesh.h"
+#include "rendering/geometry/Terrain.h"
+#include "rendering/camera/CameraInput.h"
+#include "rendering/camera/OrbitCamera.h"
+#include "rendering/camera/PlanetSurfaceCamera.h"
+#include "rendering/camera/CameraTransition.h"
+#include "rendering/diagnostics/RenderDiagnostics.h"
+#include "rendering/geometry/SceneTransforms.h"
+#include "rendering/lighting/CelestialLighting.h"
+#include "rendering/lighting/CameraExposure.h"
 #include "rendering/Shader.h"
-#include "rendering/SurfaceCameraTelemetry.h"
+#include "rendering/camera/SurfaceCameraTelemetry.h"
 #include "rendering/WaterReflectionTarget.h"
-#include "rendering/TerrainShadowMaps.h"
+#include "rendering/foliage/GrassRenderer.h"
+#include "rendering/lighting/TerrainShadowMaps.h"
+#include "rendering/atmosphere/AtmosphereRenderer.h"
+#include "rendering/diagnostics/FrameProfiler.h"
+#include "rendering/diagnostics/PerformanceOverlay.h"
+#include "rendering/diagnostics/GpuUtilization.h"
+#include "rendering/diagnostics/AdaptiveQuality.h"
+#include "rendering/diagnostics/VideoMemory.h"
+#include "rendering/diagnostics/FrameReuse.h"
+#include "rendering/diagnostics/OrbitOverlay.h"
 
 namespace fs = std::filesystem;
 
@@ -44,6 +53,8 @@ struct InputContext {
     CameraInput* camera = nullptr;
     simulation::SimulationClock* clock = nullptr;
     bool reloadRequested = false;
+    bool statsVisible = false;
+    bool orbitsVisible = false;
 };
 
 CameraInput* windowCameraInput(GLFWwindow* window) {
@@ -79,6 +90,16 @@ void onScroll(GLFWwindow* window, double, double yOffset) {
 void onKey(GLFWwindow* window, int key, int, int action, int) {
     if (action != GLFW_PRESS) return;
     auto* context = static_cast<InputContext*>(glfwGetWindowUserPointer(window));
+    if (key == GLFW_KEY_I && context) {
+        // GLFW_REPEAT is filtered above so holding I toggles only once.
+        context->statsVisible = !context->statsVisible;
+        return;
+    }
+    if (key == GLFW_KEY_O && context) {
+        context->orbitsVisible = !context->orbitsVisible;
+        std::cout << (context->orbitsVisible ? "Orbit paths on\n" : "Orbit paths off\n");
+        return;
+    }
     if (key == GLFW_KEY_T && context && context->clock) {
         context->clock->togglePause(glfwGetTime());
         std::cout << (context->clock->paused() ? "Simulation paused (T to resume)\n" :
@@ -142,7 +163,7 @@ struct PreparedScene {
                                          planet.terrain_landscape,
                                          planet.water.enabled ?
                                              std::optional<double>(planet.water.level_m) :
-                                             std::nullopt);
+                                             std::nullopt, planet.terrain_material);
         }
         if (scenario.surface_camera.enabled) {
             const auto& settings = scenario.surface_camera;
@@ -213,17 +234,46 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                  const Shader& waterShader, const Shader& skyboxShader,
                  rendering::WaterReflectionTarget& reflectionTarget,
                  const Shader& shadowShader, rendering::TerrainShadowMaps& shadows,
+                 const Shader& atmosphereShader, rendering::AtmosphereRenderer& atmosphere,
+                 rendering::AtmosphereRenderer& reflectionAtmosphere,
+                 rendering::AtmosphereTransmittance& atmosphereColumns,
                  const Mesh& sunMesh, const Mesh& skyboxMesh,
                  const std::vector<Mesh>& planetMeshes,
                  const std::vector<Mesh>& waterMeshes, int width, int height,
                  rendering::ClipPlanes clip = {},
                  std::optional<std::size_t> meteredPlanet = std::nullopt,
-                 bool recordObjects = false) {
+                 bool recordObjects = false, rendering::FrameProfiler* profiler = nullptr,
+                 bool forceHdr = false, GLuint outputFramebuffer = 0,
+                 rendering::GrassRenderer* grass = nullptr, double sceneTime = 0) {
+    using Stage = rendering::FrameStage;
+    using Scope = rendering::FrameProfiler::Scope;
+    Scope lightingScope(profiler, Stage::Lighting, false);
     const glm::mat4 projection = rendering::perspectiveProjection(
         fov, static_cast<float>(width) / height, clip);
     const auto& sun = scenario.sun;
     const auto lighting = rendering::calculateLighting(scenario, bodies);
-    const auto exposure = rendering::cameraExposure(scenario.lighting, lighting, bodies, eyeWorld, meteredPlanet);
+    double skyIlluminance = 0.0;
+    if (meteredPlanet && scenario.planets[*meteredPlanet].atmosphere.enabled) {
+        const auto& planet = scenario.planets[*meteredPlanet];
+        const auto optics = simulation::atmosphereOptics(planet.atmosphere,
+            planet.radius * scenario.metersPerWorldUnit(), simulation::referenceAir(planet.atmosphere));
+        skyIlluminance = simulation::atmosphericSkyIlluminance(planet.atmosphere, optics,
+            (eyeWorld - bodies[*meteredPlanet + 1].position) / planet.radius,
+            lighting.planets[*meteredPlanet].sunDirection, lighting.planets[*meteredPlanet].sunlight);
+    }
+    auto exposure = rendering::cameraExposure(scenario.lighting, lighting, bodies, eyeWorld,
+                                                    meteredPlanet, skyIlluminance);
+    const bool protectHighlights = scenario.lighting.auto_exposure.enabled && meteredPlanet.has_value();
+    const bool hdr = rendering::hasAtmosphere(scenario) || forceHdr;
+    exposure.hdrOutput = hdr;
+    lightingScope.stop();
+    if (grass) for (std::size_t i=0;i<scenario.planets.size();++i) {
+        const auto& planet=scenario.planets[i];
+        grass->prepare(i,planetMeshes[i],planet,scenario.metersPerWorldUnit(),
+            bodies[i+1].toLocalPoint(eyeWorld)/planet.radius);
+    }
+    { Scope tablesScope(profiler, Stage::Tables); atmosphereColumns.ensure(scenario); }
+    Scope shadowScope(profiler, Stage::Shadows);
     shadows.ensure(scenario.planets.size(), scenario.lighting.shadows);
     if (scenario.lighting.shadows.enabled) {
         for (std::size_t i = 0; i < scenario.planets.size(); ++i) {
@@ -235,10 +285,13 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
             // Coincident centers have no directed sunlight; any map orientation
             // is valid because their diffuse contribution is already zero.
             if (glm::dot(localSun, localSun) == 0.0) localSun = glm::dvec3(0, 0, 1);
-            shadows.begin(i, shadowShader, localSun, extent);
-            planetMeshes[i].draw();
+            if (shadows.beginIfNeeded(i, shadowShader, localSun, extent, planetMeshes[i].revision)) {
+                if (profiler) profiler->shadowUpdate();
+                planetMeshes[i].draw();
+            } else if (profiler) profiler->shadowReuse();
         }
     }
+    shadowScope.stop();
     const auto setRgb = [](const Shader& target, const char* name, const glm::dvec3& value) {
         target.setFloat3(name, static_cast<float>(value.x), static_cast<float>(value.y),
                         static_cast<float>(value.z));
@@ -250,6 +303,13 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
         setRgb(target, "uIndirectLight", light.reflectedLight + glm::dvec3(scenario.lighting.ambient_light));
         target.setFloat("uExposure", static_cast<float>(exposure.exposure));
         shadows.bindForShading(index, target, scenario.lighting.shadows, radiusScale);
+        target.setFloat("uAtmSunAngularRadius", std::asin(std::clamp(scenario.sun.radius /
+            std::max(scenario.sun.radius, glm::length(bodies[0].position - bodies[index + 1].position)), 0.0, 1.0)));
+        target.setInt("uLinearOutput", hdr);
+        target.setFloat("uAtmosphereRadiusScale", radiusScale);
+        atmosphereColumns.bind(index, target);
+        rendering::bindAtmosphere(target, scenario.planets[index], scenario.metersPerWorldUnit(),
+            glm::transpose(bodies[index + 1].orientation) * light.sunDirection);
     };
 
     auto drawSkybox = [&](const glm::mat4& passProjection,
@@ -258,6 +318,8 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
         glDepthFunc(GL_LEQUAL);
         glDepthMask(GL_FALSE);
         skyboxShader.use();
+        skyboxShader.setInt("uLinearOutput", hdr);
+        skyboxShader.setFloat("uExposure", exposure.exposure);
         skyboxShader.setFloat("uSkySensitivity", static_cast<float>(exposure.skySensitivity));
         skyboxShader.setMat4("projection", glm::value_ptr(passProjection));
         skyboxShader.setMat4("view", glm::value_ptr(passView));
@@ -293,6 +355,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
             glStencilFunc(GL_ALWAYS, 1, 0xff); // Sun.
         }
         shader.use();
+        shader.setInt("uLinearOutput", hdr);
         shader.setMat4("projection", glm::value_ptr(passProjection));
         shader.setMat4("view", glm::value_ptr(passView));
         shader.setFloat3("uClipCenter", clipCenter.x, clipCenter.y, clipCenter.z);
@@ -307,11 +370,13 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                          static_cast<float>(sun.color[1]),
                          static_cast<float>(sun.color[2]));
         shader.setFloat("uEmissive", 1.0f);
+        shader.setFloat("uTerrainMetersPerRadius", 0.0f);
         sunMesh.draw();
 
         for (std::size_t i = 0; i < scenario.planets.size(); ++i) {
             if (record) glStencilFunc(GL_ALWAYS, i == meteredPlanet.value_or(0) ? 2 : 3, 0xff);
             const auto& planet = scenario.planets[i];
+            shader.use();
             const glm::mat4 model = rendering::sphereModel(
                 glm::vec3(bodies[i + 1].position), static_cast<float>(planet.radius),
                 glm::mat3(bodies[i + 1].orientation));
@@ -320,28 +385,91 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                              static_cast<float>(planet.color[1]),
                              static_cast<float>(planet.color[2]));
             shader.setFloat("uEmissive", 0.0f);
+            shader.setFloat("uTerrainMetersPerRadius", static_cast<float>(
+                planet.radius * scenario.metersPerWorldUnit()));
+            const auto rockRange = planet.terrain_material.slopeMetricRange();
+            shader.setFloat2("uTerrainRockRange", rockRange[0], rockRange[1]);
+            const glm::dvec3 materialEye = glm::transpose(bodies[i + 1].orientation) *
+                (glm::dvec3(glm::inverse(passView)[3]) - bodies[i + 1].position) / planet.radius;
+            setRgb(shader, "uTerrainEyeBody", materialEye);
             setBodyLighting(shader, i);
             planetMeshes[i].draw();
+            if (grass && grass->count(i)) {
+                const auto& settings=planet.foliage;
+                auto& bladeShader=grass->shader;
+                bladeShader.use();
+                bladeShader.setMat4("model",glm::value_ptr(model));
+                bladeShader.setMat4("view",glm::value_ptr(passView));
+                bladeShader.setMat4("projection",glm::value_ptr(passProjection));
+                bladeShader.setFloat3("uClipCenter",clipCenter.x,clipCenter.y,clipCenter.z);
+                bladeShader.setFloat("uClipRadius",clipRadius);
+                bladeShader.setFloat("uMetersPerRadius",planet.radius*scenario.metersPerWorldUnit());
+                bladeShader.setFloat("uGrassHeight",settings.height_m);
+                bladeShader.setFloat("uGrassWidth",settings.width_m);
+                bladeShader.setFloat("uDrawDistance",settings.draw_distance_m);
+                bladeShader.setFloat("uWindStrength",settings.wind_strength);
+                // Every wind frequency is a multiple of 0.05 rad/s. Wrap by
+                // the shared period to retain float precision without a jump.
+                bladeShader.setFloat("uTime",std::remainder(sceneTime,40.0*std::acos(-1.0)));
+                setRgb(bladeShader,"uGrassEyeBody",bodies[i+1].toLocalPoint(eyeWorld)/planet.radius);
+                setRgb(bladeShader,"uViewEyeWorld",glm::dvec3(glm::inverse(passView)[3]));
+                setBodyLighting(bladeShader,i);
+                grass->draw(i);
+            }
         }
         if (record) glDisable(GL_STENCIL_TEST);
     };
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    Scope opaqueScope(profiler, Stage::Opaque);
+    if (hdr) atmosphere.begin(width, height);
+    const GLuint sceneFramebuffer = hdr ? atmosphere.framebuffer() : outputFramebuffer;
+    glBindFramebuffer(GL_FRAMEBUFFER, sceneFramebuffer);
     glViewport(0, 0, width, height);
-    glClearColor(static_cast<float>(scenario.skybox.background_color[0] * exposure.skySensitivity),
-                 static_cast<float>(scenario.skybox.background_color[1] * exposure.skySensitivity),
-                 static_cast<float>(scenario.skybox.background_color[2] * exposure.skySensitivity), 1.0f);
+    glm::dvec3 background;
+    for (int c = 0; c < 3; ++c) {
+        background[c] = scenario.skybox.background_color[c] * exposure.skySensitivity;
+        if (hdr) {
+            const double srgb = std::clamp(background[c], 0.0, 0.9999);
+            const double mapped = srgb <= 0.04045 ? srgb / 12.92 : std::pow((srgb + 0.055) / 1.055, 2.4);
+            background[c] = -std::log(1.0 - mapped) / exposure.exposure;
+        }
+    }
+    glClearColor(background.r, background.g, background.b, 1.0f);
     glStencilMask(0xff);
     glClearStencil(0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | (recordObjects ? GL_STENCIL_BUFFER_BIT : 0));
     drawSkybox(projection, view);
     drawOpaqueScene(projection, view, glm::vec3(0.0f), -1.0f, true);
 
+    opaqueScope.stop();
     const bool hasWater = std::any_of(
         scenario.planets.begin(), scenario.planets.end(),
         [](const config::PlanetConfig& planet) { return planet.water.enabled; });
-    if (!hasWater) return exposure;
-    reflectionTarget.ensure(width, height);
+    const auto finishFrame = [&]() {
+        {
+            Scope atmosphereScope(profiler, Stage::Atmosphere);
+            if (hdr) exposure.exposure = atmosphere.finish(atmosphereShader, scenario, bodies, lighting,
+                exposure.exposure, view, projection, eyeWorld, outputFramebuffer, true, &atmosphereColumns, protectHighlights, &shadows);
+        }
+        if (protectHighlights && !hdr) {
+            // Preserve legacy display-space water blending and MSAA when the
+            // frame already meets the limit. Only overexposed airless frames
+            // need a second render in HDR to recover their lost highlights.
+            std::vector<unsigned char> pixels(static_cast<std::size_t>(width) * height * 4);
+            glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+            std::size_t clipped = 0;
+            for (std::size_t i = 0; i < pixels.size(); i += 4)
+                if (pixels[i] >= 250 && pixels[i + 1] >= 250 && pixels[i + 2] >= 250) ++clipped;
+            if (clipped > pixels.size() / 4 / 20)
+                return renderScene(scenario, bodies, view, fov, eyeWorld, shader, waterShader, skyboxShader,
+                    reflectionTarget, shadowShader, shadows, atmosphereShader, atmosphere, reflectionAtmosphere,
+                    atmosphereColumns, sunMesh, skyboxMesh, planetMeshes, waterMeshes, width, height,
+                    clip, meteredPlanet, recordObjects, profiler, true, outputFramebuffer, grass, sceneTime);
+        }
+        return exposure;
+    };
+    if (!hasWater) return finishFrame();
+    reflectionTarget.ensure(width, height, hdr);
 
     // The opaque main-scene depth buffer masks this translucent sea. Each
     // planet reuses one bounded reflection target before drawing its water.
@@ -362,16 +490,28 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                      reflectionTarget.height(), clip);
         const glm::mat4 reflectionViewProjection = reflectedProjection * reflectedView;
 
+        Scope reflectionScope(profiler, Stage::Reflection);
         glDepthMask(GL_TRUE);
         glDisable(GL_BLEND);
-        reflectionTarget.bind();
+        if (hdr) reflectionAtmosphere.begin(reflectionTarget.width(), reflectionTarget.height());
+        else reflectionTarget.bind();
         glViewport(0, 0, reflectionTarget.width(), reflectionTarget.height());
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         drawSkybox(reflectedProjection, reflectedView);
         drawOpaqueScene(reflectedProjection, reflectedView, center,
                         static_cast<float>(radiusWorld));
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        reflectionScope.stop();
+        if (hdr) {
+            Scope reflectionAirScope(profiler, Stage::ReflectionAtmosphere);
+            const glm::dvec3 normal = glm::normalize(eyeWorld - centerWorld);
+            const glm::dvec3 reflectedEye = rendering::reflectPointAcrossPlane(eyeWorld,
+                centerWorld + normal * radiusWorld, normal);
+            reflectionAtmosphere.finish(atmosphereShader, scenario, bodies, lighting, exposure.exposure,
+                reflectedView, reflectedProjection, reflectedEye, reflectionTarget.framebuffer(), false, &atmosphereColumns, false, &shadows);
+        }
+        Scope waterScope(profiler, Stage::Water);
+        glBindFramebuffer(GL_FRAMEBUFFER, sceneFramebuffer);
         glViewport(0, 0, width, height);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -404,7 +544,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
     glBindTexture(GL_TEXTURE_2D, 0);
     glDepthMask(GL_TRUE);
     glDisable(GL_BLEND);
-    return exposure;
+    return finishFrame();
 }
 
 int main(int argc, char** argv) {
@@ -420,10 +560,45 @@ int main(int argc, char** argv) {
     std::optional<double> commandLineTime;
     std::string configPath = "configs/scenarios/solar_system.json";
     std::string replayPath;
+    std::string performanceTrace;
+    bool atmosphereFullResolution = false;
+    bool explicitAtmosphereQuality = false;
+    bool benchmarkOverlay = false;
+    std::optional<std::uint64_t> videoMemoryCapBytes;
+    int benchmarkFrames = 1;
+    double benchmarkStep = 1.0 / 60.0;
     
     // Parse command-line arguments
     for (int i = 1; i < argc; i++) {
-        if (std::string(argv[i]) == "--render-test" && i + 1 < argc) {
+        if (std::string(argv[i]) == "--atmosphere-full-resolution") {
+            atmosphereFullResolution = true;
+            explicitAtmosphereQuality = true;
+        } else if (std::string(argv[i]) == "--benchmark-overlay") {
+            benchmarkOverlay = true;
+        } else if (std::string(argv[i]) == "--video-memory-mb" && i + 1 < argc) {
+            try {
+                const std::string value = argv[++i];
+                std::size_t used = 0;
+                const auto mebibytes = std::stoull(value, &used);
+                if (used != value.size() || mebibytes < 32 || mebibytes > 65536)
+                    throw std::invalid_argument("range");
+                videoMemoryCapBytes = mebibytes * 1024 * 1024;
+            } catch (...) {
+                std::cerr << "--video-memory-mb needs 32..65536 MiB\n"; return 1;
+            }
+        } else if (std::string(argv[i]) == "--performance-trace" && i + 1 < argc) {
+            performanceTrace = argv[++i];
+        } else if (std::string(argv[i]) == "--benchmark-frames" && i + 1 < argc) {
+            try { benchmarkFrames = std::stoi(argv[++i]); } catch (...) { benchmarkFrames = 0; }
+            if (benchmarkFrames < 1 || benchmarkFrames > 100000) {
+                std::cerr << "--benchmark-frames needs 1..100000 frames\n"; return 1;
+            }
+        } else if (std::string(argv[i]) == "--benchmark-step" && i + 1 < argc) {
+            try { benchmarkStep = std::stod(argv[++i]); } catch (...) { benchmarkStep = -1; }
+            if (!std::isfinite(benchmarkStep) || benchmarkStep < 0 || benchmarkStep > 60) {
+                std::cerr << "--benchmark-step needs 0..60 seconds\n"; return 1;
+            }
+        } else if (std::string(argv[i]) == "--render-test" && i + 1 < argc) {
             renderTestMode = true;
             outputImagePath = argv[++i];
         } else if (std::string(argv[i]) == "--surface-render-test" && i + 1 < argc) {
@@ -468,6 +643,9 @@ int main(int argc, char** argv) {
         }
     }
 
+    if (benchmarkFrames > 1 && !renderTestMode) {
+        std::cerr << "--benchmark-frames requires a render/capture output\n"; return 1;
+    }
     nlohmann::json scenarioDocument;
     const std::string watchedScenePath = replayPath.empty() ? configPath : replayPath;
     const auto loadScenarioDocument = [&]() {
@@ -481,13 +659,20 @@ int main(int argc, char** argv) {
     try {
         scenarioDocument = loadScenarioDocument();
         (void)config::ScenarioConfig(config::Config(nlohmann::json(scenarioDocument)));
-        if (!replayPath.empty() && !explicitRenderSize) {
+        if (!replayPath.empty()) {
             const auto replay = config::Config::load(replayPath).data();
-            if (replay.contains("render")) {
+            if (replay.contains("render") && !explicitRenderSize) {
                 renderTestWidth = replay.at("render").at("width").get<int>();
                 renderTestHeight = replay.at("render").at("height").get<int>();
                 if (renderTestWidth < 64 || renderTestWidth > 8192 || renderTestHeight < 64 || renderTestHeight > 8192)
                     throw std::invalid_argument("Replay render dimensions must be in 64..8192");
+            }
+            if (!explicitAtmosphereQuality && replay.contains("render") &&
+                replay["render"].contains("atmosphere_downsample")) {
+                const auto& raw = replay["render"]["atmosphere_downsample"];
+                if (!raw.is_number_integer() || (raw != 1 && raw != 4))
+                    throw std::invalid_argument("Replay atmosphere_downsample must be 1 or 4");
+                atmosphereFullResolution = raw == 1;
             }
         }
     } catch (const std::exception& error) {
@@ -507,6 +692,7 @@ int main(int argc, char** argv) {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_SAMPLES, 4);
     glfwWindowHint(GLFW_STENCIL_BITS, 8);
+    glfwWindowHint(GLFW_DEPTH_BITS, 24);
 
     // Create window (hidden for render-test mode)
     int width = renderTestMode ? renderTestWidth : 1280;
@@ -522,6 +708,7 @@ int main(int argc, char** argv) {
 
     // Make context current
     glfwMakeContextCurrent(window);
+    glfwSwapInterval(renderTestMode ? 0 : 1);
 
     // Initialize GLEW after context is current
     if (glewInit() != GLEW_OK) {
@@ -538,6 +725,7 @@ int main(int argc, char** argv) {
         auto dynamics = std::move(initial.dynamics);
         auto bodies = std::move(initial.bodies);
         auto terrainSurfaces = std::move(initial.terrainSurfaces);
+        rendering::FrameProfiler profiler(performanceTrace);
         std::vector<Mesh> planetMeshes(scenario.planets.size());
         std::vector<Mesh> waterMeshes(scenario.planets.size());
         std::vector<bool> meshReady(scenario.planets.size(), false);
@@ -548,8 +736,12 @@ int main(int argc, char** argv) {
         std::vector<std::array<int, 3>> meshZoneFaces(scenario.planets.size());
         std::vector<int> meshTriangles(scenario.planets.size(), 0);
         std::vector<int> meshSteepRefinedFaces(scenario.planets.size(), 0);
+        struct TimedTerrainBuild {
+            rendering::TerrainGeometry geometry;
+            double milliseconds = 0;
+        };
         struct PendingTerrainBuild {
-            std::future<rendering::TerrainGeometry> geometry;
+            std::future<TimedTerrainBuild> geometry;
             glm::dvec3 eyeRadial{0.0};
             int localMask = 0;
         };
@@ -561,6 +753,7 @@ int main(int argc, char** argv) {
             meshSteepRefinedFaces[index] = geometry.steepRefinedFaces;
             lastFaceZones[index] = geometry.faceZones;
             planetMeshes[index].loadTerrain(std::move(geometry));
+            profiler.meshUpload();
             meshReady[index] = true;
             lastLocalMask[index] = localMask;
             lastEyeRadial[index] = radial;
@@ -592,7 +785,9 @@ int main(int argc, char** argv) {
                 if (pendingTerrain[i].geometry.valid()) {
                     if (pendingTerrain[i].geometry.wait_for(std::chrono::seconds(0)) !=
                         std::future_status::ready) continue;
-                    installLandMesh(i, pendingTerrain[i].geometry.get(),
+                    auto built = pendingTerrain[i].geometry.get();
+                    profiler.terrainBuild(built.milliseconds);
+                    installLandMesh(i, std::move(built.geometry),
                                     pendingTerrain[i].eyeRadial,
                                     pendingTerrain[i].localMask);
                 }
@@ -612,12 +807,19 @@ int main(int argc, char** argv) {
                     pendingTerrain[i].geometry = std::async(std::launch::async,
                         [surface = std::move(surface), zones = std::move(zones),
                          localEye]() mutable {
-                            return surface.buildGeometryForEye(localEye, glm::dvec3(0.0), &zones, 20.0);
+                            const auto start = std::chrono::steady_clock::now();
+                            auto geometry = surface.buildGeometryForEye(localEye, glm::dvec3(0.0), &zones, 20.0);
+                            const double milliseconds = std::chrono::duration<double, std::milli>(
+                                std::chrono::steady_clock::now() - start).count();
+                            return TimedTerrainBuild{std::move(geometry), milliseconds};
                         });
                     continue;
                 }
+                const auto buildStart = std::chrono::steady_clock::now();
                 auto geometry = terrainSurfaces[i].buildGeometryForEye(
                     localEye, glm::dvec3(0.0), meshReady[i] ? &lastFaceZones[i] : nullptr, 20.0);
+                profiler.terrainBuild(std::chrono::duration<double, std::milli>(
+                    std::chrono::steady_clock::now() - buildStart).count());
                 installLandMesh(i, std::move(geometry), radial, localMask);
             }
         };
@@ -678,7 +880,7 @@ int main(int argc, char** argv) {
         Mesh skyboxMesh;
         skyboxMesh.generateCube();
         
-        std::cout << "PlanetSimulation v0.1 initialized\n";
+        std::cout << "PlanetSimulation v" << PLANET_VERSION << " initialized\n";
         std::cout << "Scenario: " << scenario.name << "\n";
         std::cout << "Simulation time: " << nlohmann::json(simulationTime).dump() << " s\n";
         std::cout << "Sun radius: " << scenario.sun.radius << "\n";
@@ -717,6 +919,7 @@ int main(int argc, char** argv) {
             }
             if (planetOrbitCamera) std::cout << ", 3 for planet orbit";
             std::cout << ". Press T to pause/resume orbits and spin. "
+                      << "Press O for ten past orbit paths and body labels. "
                       << "Press Y to halve or U to double simulation speed. "
                       << "Press Esc to release the surface cursor and 2 to capture it again. " << watchedScenePath
                       << " reloads on save; press R to reload manually."
@@ -724,17 +927,47 @@ int main(int argc, char** argv) {
         }
 
         // Create shader program
-        Shader shader("shaders/basic.vert", "shaders/basic.frag", "shaders/terrain_shadow.glsl");
-        Shader waterShader("shaders/water.vert", "shaders/water.frag", "shaders/terrain_shadow.glsl");
-        Shader shadowShader("shaders/terrain_shadow.vert", "shaders/terrain_shadow.frag");
+        Shader shader("shaders/terrain/basic.vert", "shaders/terrain/basic.frag", "shaders/terrain/terrain_shadow.glsl", "shaders/atmosphere/atmosphere.glsl");
+        Shader waterShader("shaders/water/water.vert", "shaders/water/water.frag", "shaders/terrain/terrain_shadow.glsl", "shaders/atmosphere/atmosphere.glsl");
+        rendering::GrassRenderer grass;
+        Shader shadowShader("shaders/terrain/terrain_shadow.vert", "shaders/terrain/terrain_shadow.frag");
         rendering::TerrainShadowMaps terrainShadows;
-        Shader skyboxShader("shaders/skybox.vert", "shaders/skybox.frag");
+        Shader atmosphereShader("shaders/atmosphere/atmosphere.vert", "shaders/atmosphere/atmosphere.frag", "shaders/atmosphere/atmosphere.glsl");
+        rendering::AtmosphereRenderer atmosphere(atmosphereFullResolution ? 1 : 4);
+        rendering::AtmosphereRenderer reflectionAtmosphere(atmosphereFullResolution ? 1 : 4);
+        rendering::AtmosphereTransmittance atmosphereColumns;
+        rendering::PerformanceOverlay performanceOverlay;
+        rendering::OrbitOverlay orbitOverlay;
+        std::vector<rendering::OrbitTrail> orbitTrails;
+        std::vector<glm::vec3> orbitColors;
+        std::vector<std::uint64_t> orbitColorRevisions;
+        double orbitTrailEpoch = std::numeric_limits<double>::quiet_NaN();
+        rendering::GpuUtilization gpuUtilization(
+            reinterpret_cast<const char*>(glGetString(GL_VENDOR)),
+            reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
+        rendering::FrameRate frameRate;
+        rendering::FrameReuse frameReuse;
+        auto geometryRevisions = [&]() {
+            std::vector<std::uint64_t> result;
+            for (const auto& mesh : planetMeshes) result.push_back(mesh.revision);
+            return result;
+        };
+        Shader skyboxShader("shaders/skybox/skybox.vert", "shaders/skybox/skybox.frag");
         rendering::WaterReflectionTarget waterReflection;
+        rendering::WaterReflectionTarget qualityTarget;
+        Shader qualityPresent("shaders/diagnostics/quality_present.vert", "shaders/diagnostics/quality_present.frag");
+        GLuint qualityVao = 0;
+        glGenVertexArrays(1, &qualityVao);
+        auto availableMemory = rendering::availableVideoMemoryBytes();
+        if (videoMemoryCapBytes && (!availableMemory || *videoMemoryCapBytes < *availableMemory))
+            availableMemory = videoMemoryCapBytes;
+        rendering::AdaptiveQuality adaptiveQuality(availableMemory);
+        std::pair<int,int> lastQualitySize{};
         
         // Enable depth testing
         glEnable(GL_DEPTH_TEST);
         
-        // Render exactly one frame for render-test mode
+        // Single captures remain deterministic; benchmarks repeat the same camera path.
         if (renderTestMode) {
             glfwPollEvents();
             int width = 0;
@@ -744,41 +977,76 @@ int main(int argc, char** argv) {
                 std::cerr << "Render test framebuffer has invalid dimensions\n";
                 return 1;
             }
-            const glm::mat4 view = surfaceRenderMode ? surfaceCamera->getViewMatrix() :
-                                   planetRenderMode ? planetOrbitCamera->getViewMatrix() :
-                                                      camera.getViewMatrix();
-            const float fov = surfaceRenderMode ? surfaceCamera->fov() :
-                              planetRenderMode ? planetOrbitCamera->fov : camera.fov;
-            const glm::dvec3 eyeWorld = surfaceRenderMode ? surfaceCamera->position() :
-                                         planetRenderMode ? glm::dvec3(planetOrbitCamera->position) :
-                                                            glm::dvec3(camera.position);
             const auto meshStart = std::chrono::steady_clock::now();
-            preparePlanetMeshes(eyeWorld);
-            const auto meshEnd = std::chrono::steady_clock::now();
-            const auto frameExposure = renderScene(scenario, bodies, view, fov, eyeWorld, shader, waterShader,
-                        skyboxShader, waterReflection, shadowShader, terrainShadows, g_mesh, skyboxMesh,
-                        planetMeshes, waterMeshes, width, height,
-                        surfaceRenderMode ? surfaceClip :
-                        planetRenderMode ? planetOrbitClip(eyeWorld) :
-                                           rendering::ClipPlanes{},
-                        (surfaceRenderMode || planetRenderMode) ? std::optional<std::size_t>(orbitPlanetIndex) : std::nullopt, true);
+            auto meshEnd = meshStart;
+            rendering::CameraExposure frameExposure;
+            const double benchmarkStart = simulationTime;
+            double lastBenchmarkFrame = glfwGetTime();
+            for (int frame = 0; frame < benchmarkFrames; ++frame) {
+                frameRate.sample(glfwGetTime()-lastBenchmarkFrame); lastBenchmarkFrame=glfwGetTime();
+                simulationTime = benchmarkStart + frame * benchmarkStep;
+                profiler.beginFrame(simulationTime);
+                { rendering::FrameProfiler::Scope scope(&profiler, rendering::FrameStage::Update, false);
+                  if (frame > 0) updateSimulation(simulationTime); }
+                const glm::mat4 view = surfaceRenderMode ? surfaceCamera->getViewMatrix() :
+                                       planetRenderMode ? planetOrbitCamera->getViewMatrix() :
+                                                          camera.getViewMatrix();
+                const float fov = surfaceRenderMode ? surfaceCamera->fov() :
+                                  planetRenderMode ? planetOrbitCamera->fov : camera.fov;
+                const glm::dvec3 eyeWorld = surfaceRenderMode ? surfaceCamera->position() :
+                                             planetRenderMode ? glm::dvec3(planetOrbitCamera->position) :
+                                                                glm::dvec3(camera.position);
+                { rendering::FrameProfiler::Scope scope(&profiler, rendering::FrameStage::Mesh, false);
+                  preparePlanetMeshes(eyeWorld); }
+                if (frame == 0) meshEnd = std::chrono::steady_clock::now();
+                const auto revisions=geometryRevisions();
+                if (rendering::hasAtmosphere(scenario) && frameReuse.matches(view,fov,width,height,simulationTime,revisions,benchmarkStep==0,false,eyeWorld,surfaceRenderMode ? 1 : planetRenderMode ? 2 : 0)) {
+                    rendering::FrameProfiler::Scope scope(&profiler,rendering::FrameStage::CachedPresentation);
+                    atmosphere.presentCached(atmosphereShader); profiler.sceneReuse();
+                } else {
+                    frameExposure = renderScene(scenario, bodies, view, fov, eyeWorld, shader, waterShader,
+                                skyboxShader, waterReflection, shadowShader, terrainShadows,
+                                atmosphereShader, atmosphere, reflectionAtmosphere, atmosphereColumns, g_mesh, skyboxMesh,
+                                planetMeshes, waterMeshes, width, height,
+                                surfaceRenderMode ? surfaceClip :
+                                planetRenderMode ? planetOrbitClip(eyeWorld) :
+                                                   rendering::ClipPlanes{},
+                                (surfaceRenderMode || planetRenderMode) ? std::optional<std::size_t>(orbitPlanetIndex) : std::nullopt, true, &profiler, false, 0, &grass, simulationTime);
+                    frameReuse.remember(view,fov,width,height,simulationTime,revisions,eyeWorld,surfaceRenderMode ? 1 : planetRenderMode ? 2 : 0);
+                }
+                { rendering::FrameProfiler::Scope scope(&profiler, rendering::FrameStage::Overlay);
+                  performanceOverlay.draw(benchmarkOverlay,width,height,frameRate.fps,frameRate.milliseconds,
+                      profiler.gpuMilliseconds,profiler.gpuReady(),gpuUtilization.sample(benchmarkOverlay)); }
+                if (frame + 1 < benchmarkFrames) {
+                    rendering::FrameProfiler::Scope scope(&profiler, rendering::FrameStage::Present, false);
+                    glfwSwapBuffers(window); glfwPollEvents();
+                }
+                profiler.endFrame();
+            }
             for (std::size_t i = 0; i < scenario.planets.size(); ++i)
                 std::cout << "Planet " << i << " terrain: " << meshTriangles[i]
                           << " triangles; far/middle/near faces: " << meshZoneFaces[i][0]
                           << "/" << meshZoneFaces[i][1] << "/" << meshZoneFaces[i][2]
                           << "; steep-refined faces: " << meshSteepRefinedFaces[i]
                           << " (budget " << scenario.planets[i].terrain_lod.max_triangle_budget
-                          << ")\n";
+                          << "); foliage blades: " << grass.count(i) << "\n";
 
             // Call glFinish() before reading framebuffer
             glFinish();
+            profiler.collect();
             const auto renderEnd = std::chrono::steady_clock::now();
             std::cout << "Mesh preparation: "
                       << std::chrono::duration<double, std::milli>(meshEnd - meshStart).count()
-                      << " ms; GPU-complete render: "
+                      << " ms; GPU-complete " << (benchmarkFrames > 1 ? "benchmark" : "render") << ": "
                       << std::chrono::duration<double, std::milli>(renderEnd - meshEnd).count()
                       << " ms\n";
             
+            const glm::dvec3 eyeWorld = surfaceRenderMode ? surfaceCamera->position() :
+                planetRenderMode ? glm::dvec3(planetOrbitCamera->position) : glm::dvec3(camera.position);
+            const glm::mat4 view = surfaceRenderMode ? surfaceCamera->getViewMatrix() :
+                planetRenderMode ? planetOrbitCamera->getViewMatrix() : camera.getViewMatrix();
+            const float fov = surfaceRenderMode ? surfaceCamera->fov() :
+                planetRenderMode ? planetOrbitCamera->fov : camera.fov;
             // Configure pixel packing for read
             glPixelStorei(GL_PACK_ALIGNMENT, 1);
             glReadBuffer(GL_BACK);
@@ -877,13 +1145,7 @@ int main(int argc, char** argv) {
             if (diagnosticPlanet.water.enabled)
                 printBounds("Blue water-like pixels", analysis.waterLike);
 
-            // Write PNG using official stb_image_write API with stride parameter
-            int result = stbi_write_png(outputImagePath.c_str(), width, height, 4, flippedPixels.data(), width * 4);
-            
-            if (result == 0) {
-                std::cerr << "Failed to write PNG: " << outputImagePath << "\n";
-                return 1;
-            }
+            rendering::writePng(outputImagePath, width, height, 4, flippedPixels);
 
             if (surfaceRenderMode) {
                 const auto snapshot = SurfaceCameraTelemetry::capture(*surfaceCamera, scenario.surface_camera,
@@ -891,22 +1153,41 @@ int main(int argc, char** argv) {
                 std::cout << snapshot.format();
                 const auto metrics = rendering::measureLightingFrame(flippedPixels, flippedDepth, width, height,
                                                                      planetBounds, sunBounds, flippedObjects);
+                std::cout << "White-clipped pixels (RGB >= 250): " << metrics.whiteClippedPixels
+                          << " (" << metrics.whiteClippedFraction * 100.0 << "%)\n";
                 GLint samples = 0;
                 glGetIntegerv(GL_SAMPLES, &samples);
+                const auto& atmosphereConfig = scenario.planets[orbitPlanetIndex].atmosphere;
+                const auto optics = simulation::atmosphereOptics(atmosphereConfig,
+                    scenario.planets[orbitPlanetIndex].radius * scenario.metersPerWorldUnit(),
+                    simulation::referenceAir(atmosphereConfig));
                 const nlohmann::json metadata{
-                    {"schema_version", 1}, {"scenario", scenarioDocument},
+                    {"schema_version", 1}, {"application_version", PLANET_VERSION}, {"scenario", scenarioDocument},
                     {"surface_camera", snapshot.startConfig},
-                    {"render", {{"width", width}, {"height", height}, {"samples", samples},
+                    {"render", {{"width", width}, {"height", height}, {"samples", frameExposure.hdrOutput ? 0 : samples},
                         {"renderer", reinterpret_cast<const char*>(glGetString(GL_RENDERER))},
                         {"exposure", frameExposure.exposure}, {"sky_sensitivity", frameExposure.skySensitivity},
                         {"direct_illuminance", frameExposure.directIlluminance},
                         {"reflected_illuminance", frameExposure.reflectedIlluminance},
+                        {"atmospheric_illuminance", frameExposure.atmosphericIlluminance},
                         {"metered_illuminance", frameExposure.meteredIlluminance},
+                        {"atmosphere_refractive_index", optics.refractiveIndex},
+                        {"atmosphere_refraction_enabled", atmosphereConfig.enabled && atmosphereConfig.refraction_enabled},
+                        {"atmosphere_downsample", atmosphereFullResolution ? 1 : 4},
+                        {"atmosphere_relative_humidity", optics.relativeHumidity},
+                        {"atmosphere_liquid_water_g_m3", optics.suspendedLiquidWaterGm3},
+                        {"white_clipped_pixels", metrics.whiteClippedPixels},
+                        {"white_clipped_fraction", metrics.whiteClippedFraction},
                         {"terrain_pixels", metrics.terrainPixels}, {"sky_pixels", metrics.skyPixels},
+                        {"foliage_blades", grass.count(orbitPlanetIndex)},
                         {"terrain_mean_display_luminance", metrics.terrainMeanLuminance},
                         {"terrain_max_display_luminance", metrics.terrainMaxLuminance},
+                        {"terrain_luminance_stddev", metrics.terrainLuminanceStddev},
                         {"sky_mean_display_luminance", metrics.skyMeanLuminance},
                         {"sky_interior_pixels", metrics.skyInteriorPixels},
+                        {"sky_interior_red", metrics.skyInteriorMeanRGB[0]},
+                        {"sky_interior_green", metrics.skyInteriorMeanRGB[1]},
+                        {"sky_interior_blue", metrics.skyInteriorMeanRGB[2]},
                         {"sky_interior_mean_display_luminance", metrics.skyInteriorMeanLuminance},
                         {"non_background_pixels", analysis.drawn.count}}}
                 };
@@ -950,6 +1231,10 @@ int main(int argc, char** argv) {
         } else {
             bool cursorCaptured = false;
             SurfaceCameraTelemetry telemetry;
+            rendering::CameraTransition cameraTransition;
+            rendering::CameraPose displayedPose = rendering::CameraPose::fromView(
+                glm::dvec3(camera.position), camera.getViewMatrix(), camera.fov);
+            CameraMode displayedMode = cameraInput.mode();
             double previousFrameTime = glfwGetTime();
             simulationClock.reset(simulationTime, previousFrameTime);
             if (!replayPath.empty()) simulationClock.togglePause(previousFrameTime);
@@ -963,6 +1248,9 @@ int main(int argc, char** argv) {
             double nextConfigCheckAt = previousFrameTime;
             while (!glfwWindowShouldClose(window)) {
                 glfwPollEvents();
+                const bool statsVisible = inputContext.statsVisible ||
+                    glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS;
+                profiler.beginFrame(simulationClock.seconds(), statsVisible);
                 const double watchTime = glfwGetTime();
                 if (watchTime >= nextConfigCheckAt) {
                     nextConfigCheckAt = watchTime + 0.05;
@@ -1034,7 +1322,18 @@ int main(int argc, char** argv) {
                         pendingTerrain.swap(nextPendingTerrain);
                         cameraInput.rebind(surfaceCamera ? &*surfaceCamera : nullptr,
                                            planetOrbitCamera ? &*planetOrbitCamera : nullptr);
+                        cameraTransition.cancel();
+                        displayedMode = cameraInput.mode();
+                        displayedPose = rendering::CameraPose::fromView(
+                            glm::dvec3(camera.position), camera.getViewMatrix(), camera.fov);
                         telemetry = SurfaceCameraTelemetry{};
+                        terrainShadows.destroy();
+                        grass.clear();
+                        frameReuse.invalidate();
+                        orbitTrails.clear();
+                        orbitColors.clear();
+                        orbitColorRevisions.clear();
+                        orbitTrailEpoch = std::numeric_limits<double>::quiet_NaN();
                         std::cout << "Reloaded " << watchedScenePath << ": " << scenario.name
                                   << ", " << scenario.planets.size() << " planet(s)\n";
                     } catch (const std::exception& error) {
@@ -1046,18 +1345,25 @@ int main(int argc, char** argv) {
                 const double frameElapsed = std::max(0.0, frameTime - previousFrameTime);
                 const double elapsedSeconds = std::min(frameElapsed, 0.05);
                 previousFrameTime = frameTime;
+                frameRate.sample(frameElapsed);
                 // Orbit time uses actual elapsed wall time, independent of the
                 // smaller movement step used to keep camera controls smooth.
-                updateSimulation(simulationClock.advanceTo(frameTime));
+                { rendering::FrameProfiler::Scope scope(&profiler, rendering::FrameStage::Update, false);
+                  updateSimulation(simulationClock.advanceTo(frameTime));
+                  profiler.simulationTime(simulationClock.seconds()); }
                 WalkKeys keys{
                     glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS,
                     glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS,
                     glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS,
                     glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS
                 };
-                cameraInput.update(keys, elapsedSeconds);
+                cameraInput.update(cameraTransition.active() ? WalkKeys{} : keys, elapsedSeconds);
+                if (cameraInput.mode() == CameraMode::Surface && displayedMode != CameraMode::Surface)
+                    cameraTransition.start(displayedPose, frameTime);
+                if (cameraInput.mode() != CameraMode::Surface) cameraTransition.cancel();
                 const bool wantsCursorCapture = cameraInput.mode() == CameraMode::Surface &&
-                                                cameraInput.surfacePointerCaptured();
+                                                cameraInput.surfacePointerCaptured() &&
+                                                !cameraTransition.active();
                 if (wantsCursorCapture != cursorCaptured) {
                     cursorCaptured = wantsCursorCapture;
                     glfwSetInputMode(window, GLFW_CURSOR,
@@ -1068,7 +1374,7 @@ int main(int argc, char** argv) {
                 }
                 if (surfaceCamera) {
                     const auto snapshot = telemetry.sample(
-                        cameraInput.mode() == CameraMode::Surface,
+                        cameraInput.mode() == CameraMode::Surface && !cameraTransition.active(),
                         frameTime, *surfaceCamera, scenario.surface_camera,
                         scenario.metersPerWorldUnit(), scenario.distance_unit, simulationClock.seconds());
                     if (snapshot) std::cout << snapshot->format() << std::flush;
@@ -1080,32 +1386,138 @@ int main(int argc, char** argv) {
                     const bool onSurface = cameraInput.mode() == CameraMode::Surface && surfaceCamera;
                     const bool onPlanetOrbit = cameraInput.mode() == CameraMode::PlanetOrbit &&
                                                planetOrbitCamera;
-                    const glm::mat4 view = onSurface ? surfaceCamera->getViewMatrix() :
+                    const glm::mat4 targetView = onSurface ? surfaceCamera->getViewMatrix() :
                                            onPlanetOrbit ? planetOrbitCamera->getViewMatrix() :
                                                            camera.getViewMatrix();
-                    const float fov = onSurface ? surfaceCamera->fov() :
+                    const float targetFov = onSurface ? surfaceCamera->fov() :
                                       onPlanetOrbit ? planetOrbitCamera->fov : camera.fov;
-                    const glm::dvec3 eyeWorld = onSurface ? surfaceCamera->position() :
+                    const glm::dvec3 targetEye = onSurface ? surfaceCamera->position() :
                                                  onPlanetOrbit ? glm::dvec3(planetOrbitCamera->position) :
                                                                  glm::dvec3(camera.position);
+                    const rendering::CameraPose targetPose = rendering::CameraPose::fromView(
+                        targetEye, targetView, targetFov);
+                    rendering::CameraPose renderPose = targetPose;
+                    if (onSurface && cameraTransition.active()) {
+                        const std::size_t index = scenario.surface_camera.planet_index;
+                        const auto& planet = scenario.planets[index];
+                        const glm::dvec3 center = bodies[index+1].position;
+                        renderPose = cameraTransition.sample(frameTime, targetPose, center,
+                            [&](const glm::dvec3& radial) {
+                                const glm::dvec3 local = glm::transpose(bodies[index+1].orientation) * radial;
+                                const double terrainHeight = terrainSurfaces[index].heightAt(local);
+                                const double waterHeight = planet.water.enabled ?
+                                    planet.water.level_m / scenario.metersPerWorldUnit() : -std::numeric_limits<double>::infinity();
+                                return planet.radius + std::max(terrainHeight, waterHeight) +
+                                       surfaceCamera->configuredClearance();
+                            });
+                    }
+                    const glm::mat4 view = renderPose.view();
+                    const float fov = renderPose.fov;
+                    const glm::dvec3 eyeWorld = renderPose.position;
                     const rendering::ClipPlanes clip = onSurface
                         ? rendering::surfaceClipPlanes(
-                              surfaceCamera->configuredClearance(),
+                              std::max(surfaceCamera->configuredClearance(),
+                                  glm::length(eyeWorld - bodies[scenario.surface_camera.planet_index+1].position) -
+                                  scenario.planets[scenario.surface_camera.planet_index].radius),
                               glm::length(surfaceCamera->position() - sunPosition),
                               scenario.sun.radius)
                         : onPlanetOrbit ? planetOrbitClip(eyeWorld) : rendering::ClipPlanes{};
-                    preparePlanetMeshes(eyeWorld, true);
-                    renderScene(scenario, bodies, view, fov, eyeWorld, shader, waterShader,
-                                skyboxShader, waterReflection, shadowShader, terrainShadows, g_mesh, skyboxMesh,
-                                planetMeshes, waterMeshes, width, height,
-                                clip, (onSurface || onPlanetOrbit) ? std::optional<std::size_t>(orbitPlanetIndex) : std::nullopt);
-                    glfwSwapBuffers(window);
+                    { rendering::FrameProfiler::Scope scope(&profiler, rendering::FrameStage::Mesh, false);
+                      preparePlanetMeshes(eyeWorld, true); }
+                    const auto revisions=geometryRevisions();
+                    adaptiveQuality.observe(frameTime, frameRate.milliseconds,
+                        !simulationClock.paused());
+                    const auto [sceneWidth, sceneHeight] = adaptiveQuality.size(width, height);
+                    if (lastQualitySize != std::pair{sceneWidth, sceneHeight}) {
+                        std::cout << "Scene render resolution: " << sceneWidth << 'x' << sceneHeight
+                                  << " (" << std::lround(adaptiveQuality.scale() * 100) << "%)\n" << std::flush;
+                        lastQualitySize = {sceneWidth, sceneHeight};
+                    }
+                    const bool scaledScene = sceneWidth != width || sceneHeight != height;
+                    if (scaledScene) qualityTarget.ensure(sceneWidth, sceneHeight, false, 8192);
+                    const GLuint sceneOutput = scaledScene ? qualityTarget.framebuffer() : 0;
+                    const bool pending=std::any_of(pendingTerrain.begin(),pendingTerrain.end(),
+                        [](const auto& task) { return task.geometry.valid(); });
+                    if (rendering::hasAtmosphere(scenario) && frameReuse.matches(view,fov,sceneWidth,sceneHeight,
+                            simulationClock.seconds(),revisions,simulationClock.paused(),pending,eyeWorld,static_cast<int>(cameraInput.mode()))) {
+                        rendering::FrameProfiler::Scope scope(&profiler,rendering::FrameStage::CachedPresentation);
+                        atmosphere.presentCached(atmosphereShader, sceneOutput); profiler.sceneReuse();
+                    } else {
+                        renderScene(scenario, bodies, view, fov, eyeWorld, shader, waterShader,
+                                    skyboxShader, waterReflection, shadowShader, terrainShadows,
+                                    atmosphereShader, atmosphere, reflectionAtmosphere, atmosphereColumns, g_mesh, skyboxMesh,
+                                    planetMeshes, waterMeshes, sceneWidth, sceneHeight,
+                                    clip, (onSurface || onPlanetOrbit) ? std::optional<std::size_t>(orbitPlanetIndex) : std::nullopt, false, &profiler, false, sceneOutput, &grass, simulationClock.seconds());
+                        frameReuse.remember(view,fov,sceneWidth,sceneHeight,simulationClock.seconds(),revisions,eyeWorld,static_cast<int>(cameraInput.mode()));
+                    }
+                    const bool showOrbits = inputContext.orbitsVisible && cameraInput.mode() == CameraMode::Orbit;
+                    if (showOrbits && !scenario.planets.empty()) {
+                        double shortestPeriod = std::numeric_limits<double>::infinity();
+                        for (std::size_t body = 1; body < dynamics.size(); ++body)
+                            shortestPeriod = std::min(shortestPeriod, dynamics.periodSeconds(body));
+                        const double now = simulationClock.seconds();
+                        if (orbitTrails.size() != scenario.planets.size() ||
+                            !std::isfinite(orbitTrailEpoch) ||
+                            std::abs(now - orbitTrailEpoch) > shortestPeriod * 0.01) {
+                            orbitTrails = rendering::pastOrbitTrails(dynamics, now);
+                            orbitTrailEpoch = now;
+                        }
+                        if (orbitColorRevisions != revisions || orbitColors.size() != scenario.planets.size()) {
+                            orbitColors.clear();
+                            for (std::size_t i = 0; i < scenario.planets.size(); ++i)
+                                orbitColors.push_back(rendering::averageSurfaceColor(
+                                    scenario.planets[i], planetMeshes[i].vertices, planetMeshes[i].hasVertexColors));
+                            orbitColorRevisions = revisions;
+                        }
+                        glBindFramebuffer(GL_FRAMEBUFFER, sceneOutput);
+                        glViewport(0, 0, sceneWidth, sceneHeight);
+                        const glm::mat4 orbitProjection = rendering::perspectiveProjection(
+                            fov, static_cast<float>(sceneWidth) / sceneHeight, clip);
+                        orbitOverlay.paths(orbitTrails, orbitColors, orbitProjection * view);
+                    }
+                    if (scaledScene) {
+                        // Default windows may be multisampled; a texture draw works
+                        // for both MSAA and single-sample targets.
+                        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                        glViewport(0, 0, width, height);
+                        glDisable(GL_DEPTH_TEST);
+                        glDepthMask(GL_FALSE);
+                        glDisable(GL_BLEND);
+                        glDisable(GL_STENCIL_TEST);
+                        qualityPresent.use();
+                        qualityPresent.setInt("uScene", 0);
+                        glActiveTexture(GL_TEXTURE0);
+                        glBindTexture(GL_TEXTURE_2D, qualityTarget.colorTexture());
+                        glBindVertexArray(qualityVao);
+                        glDrawArrays(GL_TRIANGLES, 0, 3);
+                        glBindVertexArray(0);
+                        glBindTexture(GL_TEXTURE_2D, 0);
+                        glDepthMask(GL_TRUE);
+                        glEnable(GL_DEPTH_TEST);
+                    }
+                    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                    glViewport(0, 0, width, height);
+                    if (showOrbits && !scenario.planets.empty()) {
+                        const glm::mat4 orbitProjection = rendering::perspectiveProjection(
+                            fov, static_cast<float>(width) / height, clip);
+                        orbitOverlay.labels(scenario, bodies, dynamics, orbitColors,
+                                            orbitProjection * view, width, height);
+                    }
+                    { rendering::FrameProfiler::Scope scope(&profiler, rendering::FrameStage::Overlay);
+                      performanceOverlay.draw(statsVisible, width, height,
+                          frameRate.fps, frameRate.milliseconds, profiler.gpuMilliseconds, profiler.gpuReady(), gpuUtilization.sample(statsVisible)); }
+                    { rendering::FrameProfiler::Scope scope(&profiler, rendering::FrameStage::Present, false);
+                      glfwSwapBuffers(window); }
+                    displayedPose = renderPose;
+                    displayedMode = cameraInput.mode();
                 }
-                std::this_thread::sleep_for(std::chrono::milliseconds(16));
+                if (width <= 0 || height <= 0) glfwWaitEventsTimeout(0.05);
+                profiler.endFrame();
             }
         }
 
         // Cleanup
+        glDeleteVertexArrays(1, &qualityVao);
         g_mesh.destroy();
         skyboxMesh.destroy();
         for (auto& planetMesh : planetMeshes) planetMesh.destroy();

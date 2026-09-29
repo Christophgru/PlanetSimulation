@@ -11,7 +11,8 @@ public:
     GLuint id;
     
     Shader(const char* vertexPath, const char* fragmentPath,
-           const char* fragmentLibraryPath = nullptr) {
+           const char* fragmentLibraryPath = nullptr,
+           const char* additionalFragmentLibraryPath = nullptr) {
         std::string vertexCode;
         std::string fragmentCode;
         
@@ -36,10 +37,11 @@ public:
         fragmentStream.seekg(0, std::ios::beg);
         fragmentStream.read(&fragmentCode[0], fragmentCode.size());
         // GLSL requires #version first; optional shared helpers follow it.
-        if (fragmentLibraryPath) {
-            std::ifstream library(fragmentLibraryPath);
+        for (const char* libraryPath : {fragmentLibraryPath, additionalFragmentLibraryPath}) {
+            if (!libraryPath) continue;
+            std::ifstream library(libraryPath);
             if (!library.is_open())
-                throw std::runtime_error("Failed to open fragment library: " + std::string(fragmentLibraryPath));
+                throw std::runtime_error("Failed to open fragment library: " + std::string(libraryPath));
             std::ostringstream source;
             source << library.rdbuf();
             fragmentCode.insert(fragmentCode.find('\n') + 1, source.str() + "\n");
