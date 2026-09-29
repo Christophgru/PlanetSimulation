@@ -30,8 +30,15 @@ std::vector<GrassBlade> placeGrass(const std::vector<float>& vertices,
     double highestGround=planet.terrain_landscape.maximumAbsoluteHeightMeters();
     for (const auto& noise:planet.surface_noise) highestGround+=noise.amplitude_m;
     if ((glm::length(eyeBody)-1)*metersPerRadius-highestGround>radius) return result;
+    // A three-sigma patch concentrates instances around the walker instead
+    // of spending the same density on barely visible distant grass. Integrate
+    // the truncated Gaussian to scale its peak to the instance budget.
+    const double sigma = settings.draw_distance_m / 3.0;
+    const double variance2 = 2.0 * sigma * sigma;
+    const double weightedArea = std::acos(-1.0) * variance2 *
+        (1.0 - std::exp(-radius * radius / variance2));
     const double density = std::min(settings.density_per_m2,
-        0.8 * settings.max_blades / (std::acos(-1.0) * radius * radius));
+        0.8 * settings.max_blades / weightedArea);
     result.reserve(settings.max_blades);
     const auto rockRange = planet.terrain_material.slopeMetricRange();
     std::uint32_t accepted = 0, reservoir = grassHash(settings.seed);
@@ -59,7 +66,9 @@ std::vector<GrassBlade> placeGrass(const std::vector<float>& vertices,
             const double a = std::sqrt(grassRandom(random)), b = grassRandom(random);
             const glm::dvec3 weights(1-a,a*(1-b),a*b);
             const glm::dvec3 root = p[0]*weights.x+p[1]*weights.y+p[2]*weights.z;
-            if (glm::length(root-eyeBody)*metersPerRadius > radius || glm::length(root) < 1e-9) continue;
+            const double distanceMeters = glm::length(root-eyeBody)*metersPerRadius;
+            if (distanceMeters > radius || glm::length(root) < 1e-9) continue;
+            if (grassRandom(random) >= std::exp(-distanceMeters*distanceMeters / variance2)) continue;
             const glm::dvec3 radial = glm::normalize(root);
             const auto n = glm::normalize(normal[0]*weights.x+normal[1]*weights.y+normal[2]*weights.z);
             const auto tint = color[0]*weights.x+color[1]*weights.y+color[2]*weights.z;

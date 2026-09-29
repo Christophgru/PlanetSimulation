@@ -458,7 +458,7 @@
       "reference_frame": "planet_spherical_ned",
       "simulation_time_seconds": 0.0,
       "up_ned": [
-        0.005642867970074881,
+        0.005642867970074832,
         0.09418814306884683,
         -0.9955384230386665
       ],
@@ -480,7 +480,7 @@
     "reference_frame": "planet_spherical_ned",
     "simulation_time_seconds": 0.0,
     "up_ned": [
-      0.005642867970074832,
+      0.005642867970074784,
       0.09418814306884683,
       -0.9955384230386665
     ],

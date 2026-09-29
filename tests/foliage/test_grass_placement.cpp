@@ -52,6 +52,41 @@ TEST(GrassPlacement, RejectsWaterCliffsSnowDisabledAndDistantViews) {
     p.water.enabled=false; p.foliage.enabled=false;
     EXPECT_TRUE(rendering::placeGrass(patch(),indices,p,100,{0,0,1.02}).empty());
 }
+TEST(GrassPlacement, GaussianDensityFallsWithDistanceAndFollowsTheEye) {
+    auto p=planet();
+    p.foliage.max_blades=12000;
+    // Subdivide a wide planar patch so the per-triangle work cap does not
+    // limit the measured distribution. Three equal-area annuli distinguish
+    // Gaussian density from a uniform disk with only an outer cutoff.
+    std::vector<float> vertices;
+    std::vector<unsigned> triangles;
+    for (int y=-20;y<20;++y) for (int x=-20;x<20;++x) {
+        const auto base=static_cast<unsigned>(vertices.size()/9);
+        for (auto corner: {glm::dvec2(x,y),glm::dvec2(x+1,y),
+                           glm::dvec2(x+1,y+1),glm::dvec2(x,y+1)}) {
+            for (auto value: {float(corner.x/100),float(corner.y/100),1.0f,
+                             0.0f,0.0f,1.0f,1.0f,1.0f,1.0f}) vertices.push_back(value);
+        }
+        triangles.insert(triangles.end(),{base,base+1,base+2,base,base+2,base+3});
+    }
+    for (double x: {0.0,0.05}) {
+        const auto blades=rendering::placeGrass(vertices,triangles,p,100,{x,0,1.0});
+        ASSERT_GT(blades.size(),1000u);
+        ASSERT_LE(blades.size(),std::size_t(p.foliage.max_blades));
+        std::array<int,3> annuli{};
+        double meanX=0,meanY=0;
+        for (const auto& blade:blades) {
+            const double dx=(blade.root.x-x)*100,dy=blade.root.y*100;
+            const int bin=int((dx*dx+dy*dy)/100*3);
+            if (bin<3) ++annuli[bin];
+            meanX+=dx; meanY+=dy;
+        }
+        EXPECT_GT(annuli[0],3*annuli[1]);
+        EXPECT_GT(annuli[1],3*annuli[2]);
+        EXPECT_NEAR(meanX/blades.size(),0,0.3);
+        EXPECT_NEAR(meanY/blades.size(),0,0.3);
+    }
+}
 TEST(GrassPlacement, BothPolesUseTheSameBodyLocalPlacement) {
     const auto p=planet();
     const auto north=rendering::placeGrass(patch(),indices,p,100,{0,0,1.02});

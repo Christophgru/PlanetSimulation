@@ -833,7 +833,12 @@ budget. The defaults shown above remain the smaller reference preset.
 The random height multiplier is 0.75–1.5. Supported ranges are
 0–2 wind strength, 0.05–3 m height, 0.005–0.3 m width, 5–100 m draw distance,
 positive density up to 4096 blades/m², and 1–250,000 blades per planet.
-Density is reduced when necessary to fit the instance budget. Each blade uses
+Density peaks at the camera and follows a Gaussian with standard deviation
+`draw_distance_m / 3`: about 61% of peak at one third of the distance, 14%
+at two thirds, and 1% at the edge. `density_per_m2` sets the requested peak;
+the integrated distribution is scaled down when necessary to fit the instance
+budget. A cached patch follows walking, rebuilding after 15% of the draw
+distance; overlapping candidates keep their seeded positions. Each blade uses
 one instance; the terrain triangle budget is unchanged. Height fades over the
 last quarter of the draw distance. The default distance is shorter than the
 demo's 100 m to bound work on weaker hardware.
