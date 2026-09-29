@@ -251,6 +251,30 @@ struct PlanetConfig {
         }
     };
 
+    struct TerrainMaterial {
+        // Angles from the local horizontal, independent of mesh LOD thresholds.
+        double rock_start_degrees = 35.0;
+        double rock_end_degrees = 55.0;
+
+        TerrainMaterial() = default;
+        explicit TerrainMaterial(const config::Config& cfg) {
+            rock_start_degrees = cfg.getDouble("rock_start_degrees", rock_start_degrees);
+            rock_end_degrees = cfg.getDouble("rock_end_degrees", rock_end_degrees);
+            validate();
+        }
+        void validate() const {
+            if (!std::isfinite(rock_start_degrees) || !std::isfinite(rock_end_degrees) ||
+                rock_start_degrees < 0.0 || rock_end_degrees > 90.0 ||
+                rock_end_degrees - rock_start_degrees < 0.1)
+                throw std::invalid_argument("planet.terrain_material needs 0 <= rock_start_degrees < rock_end_degrees <= 90, at least 0.1 degrees apart");
+        }
+        std::array<double, 2> slopeMetricRange() const {
+            const double radiansPerDegree = std::acos(-1.0) / 180.0;
+            return {1.0 - std::cos(rock_start_degrees * radiansPerDegree),
+                    1.0 - std::cos(rock_end_degrees * radiansPerDegree)};
+        }
+    };
+
     struct Water {
         bool enabled = false;
         double level_m = 0.0;
@@ -292,6 +316,7 @@ struct PlanetConfig {
     std::vector<SurfaceNoiseFunction> surface_noise;
     TerrainLod terrain_lod;
     TerrainLandscape terrain_landscape;
+    TerrainMaterial terrain_material;
     Water water;
     AtmosphereConfig atmosphere;
     bool atmosphere_enabled = false;
@@ -352,6 +377,11 @@ struct PlanetConfig {
             const auto& raw = cfg.data().at("terrain_landscape");
             if (!raw.is_object()) throw std::invalid_argument("planet.terrain_landscape must be an object");
             terrain_landscape = TerrainLandscape(config::Config{nlohmann::json(raw)});
+        }
+        if (cfg.data().contains("terrain_material")) {
+            const auto& raw = cfg.data().at("terrain_material");
+            if (!raw.is_object()) throw std::invalid_argument("planet.terrain_material must be an object");
+            terrain_material = TerrainMaterial(config::Config{nlohmann::json(raw)});
         }
         if (cfg.data().contains("water")) {
             const auto& raw = cfg.data().at("water");

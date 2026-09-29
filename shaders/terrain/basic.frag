@@ -16,6 +16,7 @@ uniform vec3 uEmission;
 uniform float uExposure;
 uniform float uEmissive;
 uniform float uTerrainMetersPerRadius;
+uniform vec2 uTerrainRockRange;
 uniform vec3 uTerrainEyeBody;
 uniform mat4 model;
 
@@ -55,7 +56,7 @@ void main() {
         if (uTerrainMetersPerRadius > 0.0) {
             vec3 p = vBodyPosition * uTerrainMetersPerRadius;
             vec3 bodyNormal = normalize(vBodyNormal);
-            float rock = smoothstep(0.025, 0.16,
+            float rock = smoothstep(uTerrainRockRange.x, uTerrainRockRange.y,
                 1.0 - dot(bodyNormal, normalize(vBodyPosition)));
             float footprint = max(max(fwidth(p.x), fwidth(p.y)), fwidth(p.z));
             float coarseVisibility = 1.0 - smoothstep(0.35, 1.0, footprint * 0.45);

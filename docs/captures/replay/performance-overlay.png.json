@@ -16,16 +16,16 @@
     "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
     "samples": 0,
     "sky_interior_blue": 0.1285300646956948,
-    "sky_interior_green": 0.09585379744045808,
-    "sky_interior_mean_display_luminance": 0.09199565455537383,
+    "sky_interior_green": 0.09585381177482936,
+    "sky_interior_mean_display_luminance": 0.09199566937854715,
     "sky_interior_pixels": 547156,
-    "sky_interior_red": 0.06660935068333439,
-    "sky_mean_display_luminance": 0.09231155301954944,
+    "sky_interior_red": 0.06660937218489131,
+    "sky_mean_display_luminance": 0.09233153730200706,
     "sky_pixels": 548831,
     "sky_sensitivity": 0.0029651665030040204,
-    "terrain_luminance_stddev": 0.057622224377765575,
-    "terrain_max_display_luminance": 0.5232196078431373,
-    "terrain_mean_display_luminance": 0.3681283573350125,
+    "terrain_luminance_stddev": 0.05713730326065908,
+    "terrain_max_display_luminance": 0.5459592156862745,
+    "terrain_mean_display_luminance": 0.3686595429175892,
     "terrain_pixels": 372769,
     "white_clipped_fraction": 0.0015625,
     "white_clipped_pixels": 1440,
@@ -178,6 +178,7 @@
           "surface_noise": "Additive planet-fixed height-noise layers; amplitudes are meters.",
           "terrain_landscape": "Broad continental, plain and cliff height features, added to surface_noise.",
           "terrain_lod": "Tessellation density and triangle budget selected from distance along the surface.",
+          "terrain_material": "Slope range for the grass-to-rock material transition and darkening.",
           "water": "Spherical water shell and its visual reflection of the scene."
         },
         "radius": 1,
@@ -292,6 +293,15 @@
           },
           "steep_edge_segments": 32,
           "steep_slope_threshold": 0.3
+        },
+        "terrain_material": {
+          "description": "Keep grass on gentler hills; gradually blend to gray rock and darken steeper slopes. Independent of terrain LOD and landscape shape.",
+          "parameter_descriptions": {
+            "rock_end_degrees": "Slope where rock fully replaces the grass tint, at least 0.1 degrees above the start and at most 90.",
+            "rock_start_degrees": "Slope from the local horizontal where rock begins, 0..90 degrees."
+          },
+          "rock_end_degrees": 55.0,
+          "rock_start_degrees": 35.0
         },
         "water": {
           "color": [

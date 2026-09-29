@@ -20,12 +20,12 @@
     "sky_interior_mean_display_luminance": 0.08569429206010667,
     "sky_interior_pixels": 272452,
     "sky_interior_red": 0.059451781828604194,
-    "sky_mean_display_luminance": 0.0861218847138309,
+    "sky_mean_display_luminance": 0.08615342631830214,
     "sky_pixels": 273529,
     "sky_sensitivity": 0.0029691838955661176,
-    "terrain_luminance_stddev": 0.06113423787920191,
-    "terrain_max_display_luminance": 0.5195811764705882,
-    "terrain_mean_display_luminance": 0.36020945676756344,
+    "terrain_luminance_stddev": 0.06065604275429956,
+    "terrain_max_display_luminance": 0.5366799999999999,
+    "terrain_mean_display_luminance": 0.3608755141476985,
     "terrain_pixels": 206471,
     "white_clipped_fraction": 0.0,
     "white_clipped_pixels": 0,
@@ -178,6 +178,7 @@
           "surface_noise": "Additive planet-fixed height-noise layers; amplitudes are meters.",
           "terrain_landscape": "Broad continental, plain and cliff height features, added to surface_noise.",
           "terrain_lod": "Tessellation density and triangle budget selected from distance along the surface.",
+          "terrain_material": "Slope range for the grass-to-rock material transition and darkening.",
           "water": "Spherical water shell and its visual reflection of the scene."
         },
         "radius": 1,
@@ -292,6 +293,15 @@
           },
           "steep_edge_segments": 32,
           "steep_slope_threshold": 0.3
+        },
+        "terrain_material": {
+          "description": "Keep grass on gentler hills; gradually blend to gray rock and darken steeper slopes. Independent of terrain LOD and landscape shape.",
+          "parameter_descriptions": {
+            "rock_end_degrees": "Slope where rock fully replaces the grass tint, at least 0.1 degrees above the start and at most 90.",
+            "rock_start_degrees": "Slope from the local horizontal where rock begins, 0..90 degrees."
+          },
+          "rock_end_degrees": 55.0,
+          "rock_start_degrees": 35.0
         },
         "water": {
           "color": [

@@ -290,6 +290,31 @@ TEST(ScenarioConfigTest, RejectsInvalidLandscapeZonesAndWater) {
     EXPECT_THROW(parse(), std::invalid_argument);
 }
 
+TEST(ScenarioConfigTest, TerrainMaterialSlopeRangeIsPerPlanetAndValidated) {
+    auto raw = R"({"planets":[{"terrain_material":{
+        "rock_start_degrees":42,"rock_end_degrees":68}},{}]})"_json;
+    auto parse = [&] { return config::ScenarioConfig(config::Config{nlohmann::json(raw)}); };
+    const auto scene = parse();
+    EXPECT_DOUBLE_EQ(scene.planets[0].terrain_material.rock_start_degrees, 42);
+    EXPECT_DOUBLE_EQ(scene.planets[0].terrain_material.rock_end_degrees, 68);
+    EXPECT_DOUBLE_EQ(scene.planets[1].terrain_material.rock_start_degrees, 35);
+    EXPECT_DOUBLE_EQ(scene.planets[1].terrain_material.rock_end_degrees, 55);
+    for (const auto& invalid : {R"([])"_json, R"({"rock_start_degrees":-1})"_json,
+            R"({"rock_end_degrees":91})"_json,
+            R"({"rock_start_degrees":55,"rock_end_degrees":55})"_json,
+            R"({"rock_start_degrees":60,"rock_end_degrees":55})"_json,
+            R"({"rock_start_degrees":0,"rock_end_degrees":0.01})"_json}) {
+        raw["planets"][0]["terrain_material"] = invalid;
+        EXPECT_THROW(parse(), std::invalid_argument) << invalid;
+    }
+    config::PlanetConfig::TerrainMaterial material;
+    material.rock_start_degrees = std::numeric_limits<double>::quiet_NaN();
+    EXPECT_THROW(material.validate(), std::invalid_argument);
+    material.rock_start_degrees = 35;
+    material.rock_end_degrees = std::numeric_limits<double>::infinity();
+    EXPECT_THROW(material.validate(), std::invalid_argument);
+}
+
 TEST(ScenarioConfigTest, DefaultValues) {
     nlohmann::json json = R"({
         "scenario_name": "Minimal",

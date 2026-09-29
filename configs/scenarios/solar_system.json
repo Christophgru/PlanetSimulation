@@ -223,6 +223,15 @@
                     "seed": "Deterministic seed for broad continents and cliff regions."
                 }
             },
+            "terrain_material": {
+                "rock_start_degrees": 35.0,
+                "rock_end_degrees": 55.0,
+                "description": "Keep grass on gentler hills; gradually blend to gray rock and darken steeper slopes. Independent of terrain LOD and landscape shape.",
+                "parameter_descriptions": {
+                    "rock_start_degrees": "Slope from the local horizontal where rock begins, 0..90 degrees.",
+                    "rock_end_degrees": "Slope where rock fully replaces the grass tint, at least 0.1 degrees above the start and at most 90."
+                }
+            },
             "water": {
                 "enabled": true,
                 "level_m": 0,
@@ -266,6 +275,7 @@
                 "surface_noise": "Additive planet-fixed height-noise layers; amplitudes are meters.",
                 "terrain_lod": "Tessellation density and triangle budget selected from distance along the surface.",
                 "terrain_landscape": "Broad continental, plain and cliff height features, added to surface_noise.",
+                "terrain_material": "Slope range for the grass-to-rock material transition and darkening.",
                 "water": "Spherical water shell and its visual reflection of the scene.",
                 "reflection": "Mean reflectivity and color for sunlight bounced toward other bodies, independent of local terrain details.",
                 "atmosphere": "Optional atmosphere composition, outer radius and reference air conditions."

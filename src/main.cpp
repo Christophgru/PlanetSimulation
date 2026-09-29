@@ -162,7 +162,7 @@ struct PreparedScene {
                                          planet.terrain_landscape,
                                          planet.water.enabled ?
                                              std::optional<double>(planet.water.level_m) :
-                                             std::nullopt);
+                                             std::nullopt, planet.terrain_material);
         }
         if (scenario.surface_camera.enabled) {
             const auto& settings = scenario.surface_camera;
@@ -379,6 +379,8 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
             shader.setFloat("uEmissive", 0.0f);
             shader.setFloat("uTerrainMetersPerRadius", static_cast<float>(
                 planet.radius * scenario.metersPerWorldUnit()));
+            const auto rockRange = planet.terrain_material.slopeMetricRange();
+            shader.setFloat2("uTerrainRockRange", rockRange[0], rockRange[1]);
             const glm::dvec3 materialEye = glm::transpose(bodies[i + 1].orientation) *
                 (glm::dvec3(glm::inverse(passView)[3]) - bodies[i + 1].position) / planet.radius;
             setRgb(shader, "uTerrainEyeBody", materialEye);

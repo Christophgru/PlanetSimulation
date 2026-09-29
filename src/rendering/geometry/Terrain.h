@@ -35,11 +35,13 @@ public:
                    const config::PlanetConfig::TerrainLod& lod,
                    double radiusWorld, double metersPerWorldUnit,
                    const config::PlanetConfig::TerrainLandscape& landscape = {},
-                   std::optional<double> waterLevelMeters = std::nullopt)
+                   std::optional<double> waterLevelMeters = std::nullopt,
+                   const config::PlanetConfig::TerrainMaterial& material = {})
         : functions_(functions), lod_(lod), landscape_(landscape), radius_(radiusWorld),
-          metersPerUnit_(metersPerWorldUnit), waterLevelMeters_(waterLevelMeters) {
+          metersPerUnit_(metersPerWorldUnit), waterLevelMeters_(waterLevelMeters), material_(material) {
         lod_.validate();
         landscape_.validate();
+        material_.validate();
         for (const auto& function : functions_) {
             function.validate();
             totalAmplitudeMeters_ += function.amplitude_m;
@@ -83,7 +85,7 @@ public:
                                              double waterLevelMeters,
                                              double beachWidthMeters,
                                              double maximumHeightMeters,
-                                             double steepSlopeThreshold) {
+                                             const config::PlanetConfig::TerrainMaterial& material = {}) {
         const glm::dvec3 seabed(0.30, 0.40, 0.19);
         const glm::dvec3 beach(4.20, 1.90, 0.18);
         const glm::dvec3 grass(1.10, 1.30, 0.18);
@@ -106,9 +108,11 @@ public:
         glm::dvec3 land = glm::mix(grass, beach, beachWeight);
         land = glm::mix(land, snow, snowWeight);
 
-        const double darkStart = std::max(0.05, steepSlopeThreshold);
-        const double darkEnd = std::max(darkStart + 0.2, 3.0 * darkStart);
-        const double steep = smoothstep(darkStart, darkEnd, slope);
+        // Convert rise/run to the shader's 1-cos(angle) measure, keeping the
+        // broad color darkening and fine gray-rock blend on the same range.
+        const auto range = material.slopeMetricRange();
+        const double steep = smoothstep(range[0], range[1],
+            1.0 - 1.0 / std::sqrt(1.0 + slope * slope));
         land *= glm::mix(1.0, 0.50, steep);
 
         const double submerged = 1.0 - smoothstep(
@@ -590,7 +594,7 @@ private:
         return landscapeColorFactors(heightMeters, slope,
             waterLevelMeters_.value_or(0.0), 0.1,
             totalAmplitudeMeters_,
-            lod_.steep_slope_threshold);
+            material_);
     }
 
     GridSample makeGridSample(const glm::dvec3& radial, double heightWorld) const {
@@ -671,6 +675,7 @@ private:
     double metersPerUnit_;
     double totalAmplitudeMeters_ = 0.0;
     std::optional<double> waterLevelMeters_;
+    config::PlanetConfig::TerrainMaterial material_;
 };
 
 } // namespace rendering

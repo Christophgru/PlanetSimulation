@@ -96,7 +96,7 @@ TEST(TerrainTest, LandscapePaletteUsesWaterRelativeBeachGreenSnowAndDarkSlopes) 
     const glm::dvec3 planetColor(0.2, 0.4, 1.0);
     auto color = [&](double height, double slope, double water = 0.0) {
         return planetColor * rendering::TerrainSurface::landscapeColorFactors(
-            height, slope, water, 0.1, 40.0, 0.3);
+            height, slope, water, 0.1, 40.0);
     };
     const glm::dvec3 seabed = color(-1.0, 0.0);
     const glm::dvec3 beach = color(0.06, 0.0);
@@ -115,6 +115,14 @@ TEST(TerrainTest, LandscapePaletteUsesWaterRelativeBeachGreenSnowAndDarkSlopes) 
               std::min({snow.x, snow.y, snow.z}), 0.01);
     EXPECT_GT(snow.x, 0.9);
     EXPECT_LT(glm::length(steepGrass), 0.6 * glm::length(grass));
+    // A 25-degree hill keeps its full grass tint under the new defaults.
+    EXPECT_EQ(color(5.0, std::tan(glm::radians(25.0))), grass);
+    config::PlanetConfig::TerrainMaterial earlyRock;
+    earlyRock.rock_start_degrees = 10;
+    earlyRock.rock_end_degrees = 20;
+    const auto earlier = planetColor * rendering::TerrainSurface::landscapeColorFactors(
+        5.0, std::tan(glm::radians(25.0)), 0.0, 0.1, 40.0, earlyRock);
+    EXPECT_NEAR(glm::length(earlier), 0.5 * glm::length(grass), 1e-12);
 }
 
 TEST(TerrainTest, OverlappingFunctionsAddTheirIndependentHeightFields) {

@@ -735,6 +735,26 @@ height or silhouettes. Both texture scales fade before becoming smaller than
 a pixel, including in orbital views. The three-dimensional mapping follows
 planet rotation and has no UV seam at either pole.
 
+Each planet's optional `terrain_material` controls when grass gives way to
+rock. The defaults keep grass on slopes up to 35° and smoothly blend to full
+gray rock at 55°, measured from the local horizontal:
+
+~~~json
+"terrain_material": {
+    "rock_start_degrees": 35.0,
+    "rock_end_degrees": 55.0
+}
+~~~
+
+Raise both angles to keep grass on steeper hills, or widen the range for a
+longer blend. Values must be finite, between 0° and 90°, with the end at least
+0.1° above the start. These settings also control broad slope darkening and
+reload when the scenario is saved. They are independent of
+`terrain_lod.steep_slope_threshold`, which controls tessellation, and
+`terrain_landscape.cliff_threshold`, which controls the landscape shape.
+The sea retains its smooth spherical normal and sharp scene reflections;
+terrain roughness and normal relief apply only to land.
+
 <a href="docs/screenshots/terrain-detail.png"><img src="docs/screenshots/terrain-detail.png" width="640" alt="Gray textured rock slopes above green ground viewed from five metres above the surface"></a>
 
 This camera is five metres above sampled land. Its exact scene and camera are

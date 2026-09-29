@@ -18,7 +18,7 @@ document the progress and add comments such that when interrupted you can contin
 |Check the image at USER_IO/user_artifacts/image.png how can we avoid those cuts? maybe se some gradient field instead of rasterisation? The issue happens at the Poles. In the shadow of a mountain.|p| Controlled thin-atmosphere view reproduced dark slits through the Sun; finite-depth geometry now keeps its rasterized silhouette and a GPU regression passes. Large sky contours in the supplied screenshot still need its camera/time replay for verification. |
 |Add a extreme atmosphere light bending exampe to the readme and journal with renderings. Make light bending a optional feature that can be turned on or off via json|t| Matched extreme on/off renderings, README, journal/PDF and exact replays added. Existing refraction_enabled JSON switch controls bending; gallery hashes and replay comparison passed. 38 full-suite tests passed, then the corrected layout test passed. |
 |add textures, roughness and mini elevation for performant details, make steeper gradients more grey and give them a rocky look (Do so without crazy amounts of polygons, instead use the maps tro crreate rock like local landscape)|t| Planet-local procedural color, rough diffuse shading, centimetre-scale normal relief and gray steep slopes implemented without added geometry. GPU material regression, all 39 CTest checks and the 15-image gallery/hash validation passed. |
-|Keep the water reflective and smooth. Make the gradient where grass becomes rock adjustable and keep grass longer before setting cliff. |||
+|Keep the water reflective and smooth. Make the gradient where grass becomes rock adjustable and keep grass longer before setting cliff. |t| Per-planet terrain_material slope range added (35–55° defaults), shared by gray-rock shading and broad darkening. Config/CPU/GPU regressions, smooth water reflection check, all 39 CTest tests and refreshed 15-image gallery/hash checks passed. |
 |add foliage like the grass in the quickgrass demo (copy it as close as possible) |||
 # environmental issues :
 current apt get has the following dependencies 
@@ -50,15 +50,24 @@ if environmental changes are needed inside the container, let the user know by a
 
 ## Progress checkpoint — 2026-09-29
 
+- Resumed after workspace permissions were restored. Configurable slope range
+  is implemented in ScenarioConfig, TerrainSurface and the terrain shader,
+  with config/CPU/GPU regressions and README/config documentation. All 39
+  CTest tests passed in one run (93 s); all 15 gallery images refreshed and
+  hashes checked; terrain-detail visually inspected. Overview render: 14,784
+  non-background pixels, bounding box (1,1)–(794,598), 3,471 planet pixels.
+  Water retains its separate smooth shader; sharp two-color reflection test passes.
+  Found the likely foliage reference: https://github.com/simondevyoutube/Quick_Grass;
+  asked the user to confirm while finishing the preceding row.
 - Terrain material validation is complete. All 39 CTest checks passed across
   the full run and a focused rerun: the initial layout failure was the missing
   terrain image, now published; the overlay input timeout passed in isolation.
   All 15 gallery captures were regenerated and hashes checked. Inspected the
   terrain-detail image. Headless overview: 14,784 non-background pixels,
   bounding box (1,1)–(794,598), 3,466 planet pixels. No dependencies added.
-- Next in table order: preserve smooth reflective water and expose the
-  grass-to-rock slope range. Then foliage; asked the user for the exact
-  QuickGrass URL/repository before matching that demo.
+- Next in table order: foliage, using SimonDev Quick_Grass as the likely
+  reference unless the user supplies a different demo. Prior slope/water row
+  is complete. No new environment dependencies.
 
 ## Previous checkpoint — 2026-09-28
 

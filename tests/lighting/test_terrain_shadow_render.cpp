@@ -157,7 +157,8 @@ TEST(TerrainMaterialRender, DetailPreservesGeometryAndFollowsTheBody) {
     ShadowScene scene;
     Mesh patch;
     auto render = [&](float detailScale, glm::vec3 normal, bool direct,
-                      float rotation = 0.0f, bool night = false) {
+                      float rotation = 0.0f, bool night = false,
+                      const config::PlanetConfig::TerrainMaterial& material = {}) {
         patch.vertices.clear(); patch.indices.clear();
         for (auto p : {glm::vec3(-.02,-.02,1), glm::vec3(.02,-.02,1),
                        glm::vec3(.02,.02,1), glm::vec3(-.02,.02,1)})
@@ -174,6 +175,8 @@ TEST(TerrainMaterialRender, DetailPreservesGeometryAndFollowsTheBody) {
         shader.setInt("uLinearOutput",1); shader.setInt("uShadowsEnabled",0);
         shader.setFloat("uClipRadius",-1); shader.setFloat("uEmissive",0);
         shader.setFloat("uTerrainMetersPerRadius",detailScale);
+        const auto rockRange = material.slopeMetricRange();
+        shader.setFloat2("uTerrainRockRange",rockRange[0],rockRange[1]);
         shader.setFloat3("uTerrainEyeBody",0,0,3);
         shader.setFloat3("uColor",.2f,.5f,.1f);
         shader.setFloat3("uIndirectLight",direct ? 0 : 1,direct ? 0 : 1,direct ? 0 : 1);
@@ -199,10 +202,21 @@ TEST(TerrainMaterialRender, DetailPreservesGeometryAndFollowsTheBody) {
         low=std::min(low,int(textured[i])); high=std::max(high,int(textured[i]));
     }
     EXPECT_GT(high-low,5); // Detail exists within a pair of flat triangles.
-    const auto rock = render(100,{.8f,0,.6f},false);
+    const auto rock = render(100,{.8660254f,0,.5f},false);
     const auto rockPixel = pixel(rock,0);
     EXPECT_NEAR(rockPixel[0],rockPixel[1],1);
     EXPECT_NEAR(rockPixel[1],rockPixel[2],1);
+    const glm::vec3 hillNormal(std::sin(glm::radians(25.f)), 0, std::cos(glm::radians(25.f)));
+    const auto grassyHill = pixel(render(100,hillNormal,false),0);
+    EXPECT_GT(grassyHill[1],2 * grassyHill[0]);
+    config::PlanetConfig::TerrainMaterial earlyRock;
+    earlyRock.rock_start_degrees = 10;
+    earlyRock.rock_end_degrees = 20;
+    const auto rockyHill = pixel(render(100,hillNormal,false,0,false,earlyRock),0);
+    EXPECT_NEAR(rockyHill[0],rockyHill[1],1);
+    const auto halfway = pixel(render(100,{.7071068f,0,.7071068f},false),0);
+    EXPECT_GT(halfway[1]-halfway[0],2);
+    EXPECT_LT(halfway[1]-halfway[0],grassyHill[1]-grassyHill[0]);
     const auto lit = render(100,{0,0,1},true);
     const auto rotated = render(100,{0,0,1},true,.7f);
     double error=0;
@@ -273,6 +287,29 @@ TEST(TerrainShadowRender, NightOceanDoesNotMirrorBrightDayScene) {
     const auto day = scene.render(true, indirect, 1, false, false, 1, 1);
     EXPECT_GT(pixel(day,0.7)[0], 150);
 }
+TEST(TerrainMaterialRender, WaterKeepsSmoothSharpReflections) {
+    ShadowScene scene;
+    scene.settings.enabled = false;
+    scene.sun = {0,0,1};
+    // A sharp two-color source must retain its clean boundary on the sea.
+    // Terrain's procedural relief and matte response must not enter this pass.
+    const float reflected[] = {.2f,.4f,.8f,1, .8f,.4f,.2f,1};
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D,scene.reflectionTexture);
+    glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA32F,2,1,0,GL_RGBA,GL_FLOAT,reflected);
+    const auto mirror = scene.render(true,glm::dvec3(0),1,false,false,1,1);
+    for (double y : {-.7,0.,.7}) {
+        for (double x : {-.7,-.1,-.01,.01,.1,.7}) {
+            const auto actual = pixel(mirror,x,y);
+            const std::array<int,3> expected = x < 0 ?
+                std::array<int,3>{51,102,204} : std::array<int,3>{204,102,51};
+            for (int c=0;c<3;++c) EXPECT_NEAR(actual[c],expected[c],1);
+        }
+    }
+    const auto diffuse = scene.render(true);
+    EXPECT_NE(mirror,diffuse);
+}
+
 TEST(TerrainShadowRender, SunMotionResolutionReloadAndOtherBodiesDoNotLeaveStaleMaps) {
     ShadowScene scene;
     for (int resolution : {256, 1024, 512}) {
