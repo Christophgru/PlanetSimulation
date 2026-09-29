@@ -22,7 +22,7 @@ document the progress and add comments such that when interrupted you can contin
 |add foliage like the grass in the quickgrass demo (copy it as close as possible) |t| SimonDev Quick_Grass port implemented with instanced curved blades, distance LOD, wind, bright tips, slope/water exclusion, terrain shadows and water reflections. MIT attribution preserved. All 41 CTest tests and refreshed 16-image gallery/hash checks passed on the current scene settings. |
 |Compile time has become pretty long, lets do a stabilisation commit where we try to clean up unnecessary header includes, and increase linking instead of compiling huge files new. |t| Config parsing, terrain generation, mesh/shader and foliage implementations moved into three compiled libraries; JSON removed from value-type headers. All 41 tests and 12 independent-header checks passed; grass replay byte-identical. Terrain implementation rebuild compiles one object and relinks consumers in 4.32 s. |
 |Spawn the Foliage in a gaussian distribution around the current position, such that at the current position there are most and far away only view. If its coputationally too complex add 5 distance zones.|t| Gaussian placement with sigma = draw distance / 3 and integrated budget scaling implemented. Equal-area radial density, moving-camera and pole tests pass; all 41 CTest checks, exact replay and refreshed 16-image gallery/hash checks passed. |
-|as visible in image USER_IO/user_artifacts/image copy.png the water boarders are still pretty rough, the sand applies to whole (huge) triangles and the grass doesn't qite reach the water. Lets think of ways to keep it performant for large scale but have accurate, fine triangular resolution when we get close to the water.|p| Screenshot inspected. Shared-edge local shoreline subdivision, adaptive water shell and per-fragment altitude palette implemented; foliage uses the same altitude biome. Build, topology/budget, image comparison and documentation in progress. |
+|as visible in image USER_IO/user_artifacts/image copy.png the water boarders are still pretty rough, the sand applies to whole (huge) triangles and the grass doesn't qite reach the water. Lets think of ways to keep it performant for large scale but have accurate, fine triangular resolution when we get close to the water.|t| Shared-edge local shoreline subdivision, adaptive water shell and per-fragment altitude palette implemented; foliage uses the same altitude biome. All 41 checks pass, including topology/budget and sub-triangle beach tests. Close before/after inspected; 17-image gallery refreshed and hashes verified. |
 |When the Camera gets close to a steep mountain, its possible to look inside the planet, lets fix that |||
 |Let's outsource the rendering part from main to a Renderer Class that initializes during the constructor call and tears down in the destructor. Main should only include configparser and renderer, and maybe some commandargs parse utils, but keep it really minimal and move all the stuff in seperate classes.||| 
 |Lets add a parameter that determines how sharply the grass foliage falls of |||
@@ -66,6 +66,18 @@ if environmental changes are needed inside the container, let the user know by a
 
 ## Progress checkpoint — 2026-09-29
 
+- Shoreline work from `a3a4b8b` is validated. Shared-edge refinement stays
+  watertight and within the configured cap; local water geometry follows the
+  same refinement target. Beach shading and foliage biome selection use root/
+  fragment altitude. The close shoreline capture has 518,393 non-background
+  pixels, bounds (0,0)–(959,539), 100,000 land and 60,000 water triangles.
+  All 17 gallery images refreshed, hashes checked, shoreline and solar views
+  inspected. All 41 CTest checks pass across the full run and focused reruns;
+  the sole stale foliage test now respects the user's 400 m limit and README
+  documents the 120 m working distance. No new dependencies.
+  Next: steep-mountain camera clipping. A controlled 80 m plateau replay
+  reproduces the bug: live rendering uses reference-sphere altitude to set
+  its near plane, whereas captures use the configured ground clearance.
 - Gaussian foliage density complete. Peak requested density is normalized
   against the integrated Gaussian to preserve the hard instance budget.
   Seeded candidate roots remain stable when moving the patch. Radial annuli,
@@ -106,8 +118,8 @@ if environmental changes are needed inside the container, let the user know by a
   All 15 gallery captures were regenerated and hashes checked. Inspected the
   terrain-detail image. Headless overview: 14,784 non-background pixels,
   bounding box (1,1)–(794,598), 3,466 planet pixels. No dependencies added.
-- Next in table order: compile-time stabilization, then Gaussian foliage
-  density, finer shorelines, and steep-mountain camera clearance. Preserve the
+- Next in table order: steep-mountain camera clearance, then the Renderer
+  extraction and the newer entries below it. Preserve the
   user's new scene settings. The earlier sky-cut replay is still unavailable.
 
 ## Previous checkpoint — 2026-09-28

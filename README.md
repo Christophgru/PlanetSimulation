@@ -839,10 +839,10 @@ license](external/quick-grass/README.md) record the version and adaptations.
 
 These are the defaults when a foliage block is present. Height and width are
 in metres. The working scene overrides them with 1 m height, 0.08 m width,
-60 m draw distance, a requested density of 1200.72 blades/m² and a 200,000-blade
+120 m draw distance, a requested density of 1200.72 blades/m² and a 200,000-blade
 budget. The defaults shown above remain the smaller reference preset.
 The random height multiplier is 0.75–1.5. Supported ranges are
-0–2 wind strength, 0.05–3 m height, 0.005–0.3 m width, 5–100 m draw distance,
+0–2 wind strength, 0.05–3 m height, 0.005–0.3 m width, 5–400 m draw distance,
 positive density up to 4096 blades/m², and 1–250,000 blades per planet.
 Density peaks at the camera and follows a Gaussian with standard deviation
 `draw_distance_m / 3`: about 61% of peak at one third of the distance, 14%

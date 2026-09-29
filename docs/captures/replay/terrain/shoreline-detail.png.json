@@ -9,25 +9,25 @@
     "atmospheric_illuminance": 0.21861905501335072,
     "direct_illuminance": 3.4691005590661894,
     "exposure": 0.1807797773302936,
-    "foliage_blades": 0,
+    "foliage_blades": 107365,
     "height": 540,
     "metered_illuminance": 3.687728110476835,
-    "non_background_pixels": 518179,
+    "non_background_pixels": 518393,
     "reflected_illuminance": 7.496397295090353e-06,
     "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
     "samples": 0,
-    "sky_interior_blue": 0.13607721335014528,
-    "sky_interior_green": 0.11674839502333152,
-    "sky_interior_mean_display_luminance": 0.11141778854313344,
-    "sky_interior_pixels": 245013,
-    "sky_interior_red": 0.08511082605235569,
-    "sky_mean_display_luminance": 0.11164597764348766,
-    "sky_pixels": 246071,
+    "sky_interior_blue": 0.13607233044319839,
+    "sky_interior_green": 0.116729437385601,
+    "sky_interior_mean_display_luminance": 0.11139995387315,
+    "sky_interior_pixels": 244900,
+    "sky_interior_red": 0.08509237063562268,
+    "sky_mean_display_luminance": 0.11164885943587491,
+    "sky_pixels": 246037,
     "sky_sensitivity": 0.0028246840207858375,
-    "terrain_luminance_stddev": 0.0760785095437528,
-    "terrain_max_display_luminance": 0.6088807843137255,
-    "terrain_mean_display_luminance": 0.4372012213056307,
-    "terrain_pixels": 272329,
+    "terrain_luminance_stddev": 0.12559097784199347,
+    "terrain_max_display_luminance": 0.6381811764705881,
+    "terrain_mean_display_luminance": 0.31509483664135357,
+    "terrain_pixels": 272363,
     "white_clipped_fraction": 0.0,
     "white_clipped_pixels": 0,
     "width": 960
@@ -473,30 +473,22 @@
     },
     "surface_camera": {
       "altitude": 0.002,
-      "description": "Planet-fixed spherical North-East-Down (NED) camera. The saved local position and view follow orbit, tilt and spin.",
       "direction_ned": [
-        -0.8,
-        0.6,
-        0.1
+        -0.7960297521679914,
+        0.5970223141259934,
+        0.0995037190209988
       ],
       "fov": 80.0,
       "latitude_deg": -19.7,
       "longitude_deg": 80.5,
-      "parameter_descriptions": {
-        "altitude": "Requested eye clearance above terrain or water in distance_unit.",
-        "direction_ned": "Nonzero saved view direction [north,east,down] in the local tangent frame.",
-        "fov": "Vertical field of view in degrees, greater than 0 and less than 180.",
-        "latitude_deg": "Latitude in degrees, -90..90; +Z of the body is north.",
-        "longitude_deg": "Longitude in degrees, from body +X toward body +Y.",
-        "planet_index": "Zero-based index in planets for walking and planet orbit views.",
-        "reference_frame": "Must be planet_spherical_ned.",
-        "simulation_time_seconds": "Finite simulation timestamp restored on startup and reload. Camera telemetry prints the current simulation time, including pause and Y/U speed changes. --simulation-time overrides this value.",
-        "up_ned": "Optional nonparallel view-up vector [north,east,down] for preserving camera roll.",
-        "walk_speed_mps": "Walking speed in meters per real second, greater than 0 and at most 100; unaffected by simulation speed."
-      },
       "planet_index": 0,
       "reference_frame": "planet_spherical_ned",
-      "simulation_time_seconds": 0.0,
+      "simulation_time_seconds": 20.0,
+      "up_ned": [
+        -0.07960297521679927,
+        0.05970223141259934,
+        -0.9950371902099892
+      ],
       "walk_speed_mps": 80.0
     }
   },
@@ -504,9 +496,9 @@
   "surface_camera": {
     "altitude": 0.002,
     "direction_ned": [
-      -0.7960297521679914,
+      -0.7960297521679915,
       0.5970223141259934,
-      0.0995037190209988
+      0.09950371902099864
     ],
     "fov": 80.0,
     "latitude_deg": -19.7,
@@ -516,7 +508,7 @@
     "simulation_time_seconds": 20.0,
     "up_ned": [
       -0.07960297521679927,
-      0.05970223141259934,
+      0.05970223141259923,
       -0.9950371902099892
     ],
     "walk_speed_mps": 80.0
