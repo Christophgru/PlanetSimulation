@@ -22,6 +22,53 @@ glm::dvec3 vertex(const rendering::TerrainGeometry& geometry, int index) {
 }
 }
 
+TEST(TerrainTest, ShoreSettingsParseAndBoundRefinementWork) {
+    const config::PlanetConfig::TerrainLod lod(config::Config{nlohmann::json::parse(
+        R"({"shoreline_edge_m":2.5,"shoreline_distance_m":45})")});
+    EXPECT_DOUBLE_EQ(lod.shoreline_edge_m,2.5);
+    EXPECT_DOUBLE_EQ(lod.shoreline_distance_m,45);
+    for (const auto* raw: {R"({"shoreline_edge_m":-1})",R"({"shoreline_edge_m":0.01})",
+                          R"({"shoreline_distance_m":0})",R"({"shoreline_distance_m":1001})"})
+        EXPECT_THROW(config::PlanetConfig::TerrainLod(config::Config{nlohmann::json::parse(raw)}),std::invalid_argument);
+}
+
+TEST(TerrainTest, ShoreRefinementIsLocalWatertightAndBudgeted) {
+    config::PlanetConfig::TerrainLod lod;
+    lod.base_edge_segments=1; lod.medium_edge_segments=2;
+    lod.max_edge_segments=4; lod.steep_edge_segments=4;
+    lod.near_surface_distance_m=100; lod.mid_surface_distance_m=200;
+    lod.shoreline_edge_m=2; lod.shoreline_distance_m=40;
+    lod.max_triangle_budget=20000;
+    const rendering::TerrainSurface sea({},lod,1,1000,{},0.0);
+    const auto nearby=sea.buildGeometryForEye({0,0,1.002},{0,0,0});
+    const auto distant=sea.buildGeometryForEye({0,0,4},{0,0,0});
+    EXPECT_GT(nearby.shorelineAddedTriangles,100);
+    EXPECT_EQ(distant.shorelineAddedTriangles,0);
+    EXPECT_LE(nearby.triangleCount(),lod.max_triangle_budget);
+    using Point=std::array<long long,3>;
+    std::map<std::pair<Point,Point>,int> edges;
+    int fine=0;
+    for (std::size_t t=0;t<nearby.indices.size();t+=3) {
+        for (int side=0;side<3;++side) {
+            const auto a=vertex(nearby,nearby.indices[t+side]);
+            const auto b=vertex(nearby,nearby.indices[t+(side+1)%3]);
+            const auto key=[](const glm::dvec3& p) { return Point{
+                std::llround(p.x*1e8),std::llround(p.y*1e8),std::llround(p.z*1e8)}; };
+            auto ka=key(a),kb=key(b); if (kb<ka) std::swap(ka,kb);
+            ++edges[{ka,kb}];
+            if (glm::length((a+b)*0.5-glm::dvec3(0,0,1))*1000<15) {
+                EXPECT_LE(glm::length(a-b)*1000,2.1);
+                ++fine;
+            }
+        }
+    }
+    EXPECT_GT(fine,100);
+    for (const auto& [edge,count]:edges) EXPECT_EQ(count,2);
+    lod.shoreline_edge_m=0;
+    const rendering::TerrainSurface disabled({},lod,1,1000,{},0.0);
+    EXPECT_EQ(disabled.buildGeometryForEye({0,0,1.002},{0,0,0}).shorelineAddedTriangles,0);
+}
+
 TEST(TerrainTest, NoiseIsDeterministicContinuousAndBoundedByAmplitude) {
     const auto a = makeTerrain();
     const auto same = makeTerrain();

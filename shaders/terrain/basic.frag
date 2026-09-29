@@ -19,6 +19,9 @@ uniform float uTerrainMetersPerRadius;
 uniform vec2 uTerrainRockRange;
 uniform vec3 uTerrainEyeBody;
 uniform mat4 model;
+uniform bool uLandscapeEnabled;
+uniform vec3 uLandscapeLevels; // sea level, beach width, maximum relief (metres)
+uniform vec3 uColor;
 
 out vec4 fColor;
 
@@ -45,6 +48,22 @@ vec3 displayColor(vec3 radiance) {
                12.92 * mapped, lessThanEqual(mapped, vec3(0.0031308)));
 }
 
+// Evaluate the biome at the actual fragment height. Interpolating a beach
+// tint from distant vertices can spread a 10 cm shore band over whole faces.
+vec3 landscapeColor(float height, float rock) {
+    float water=uLandscapeLevels.x, width=uLandscapeLevels.y;
+    float beachTop=water+width;
+    float snowStart=max(beachTop+1.0,water+0.25*max(1.0,uLandscapeLevels.z-water));
+    float snowEnd=max(snowStart+1.0,water+0.40*max(1.0,uLandscapeLevels.z-water));
+    float aboveWater=smoothstep(water-max(0.05,0.05*width),water+max(0.02,0.02*width),height);
+    float beach=aboveWater*(1.0-smoothstep(beachTop,beachTop+max(0.15,0.15*width),height));
+    vec3 land=mix(vec3(1.10,1.30,0.18),vec3(4.20,1.90,0.18),beach);
+    land=mix(land,vec3(4.60,2.30,0.92),smoothstep(snowStart,snowEnd,height));
+    land*=mix(1.0,0.50,rock);
+    float submerged=1.0-smoothstep(water-max(0.5,0.05*width),water+max(0.02,0.02*width),height);
+    return mix(land,vec3(0.30,0.40,0.19),submerged)*uColor;
+}
+
 void main() {
     if (uClipRadius > 0.0 && distance(vWorldPosition, uClipCenter) < uClipRadius)
         discard;
@@ -58,6 +77,8 @@ void main() {
             vec3 bodyNormal = normalize(vBodyNormal);
             float rock = smoothstep(uTerrainRockRange.x, uTerrainRockRange.y,
                 1.0 - dot(bodyNormal, normalize(vBodyPosition)));
+            if (uLandscapeEnabled)
+                albedo=landscapeColor((length(vBodyPosition)-1.0)*uTerrainMetersPerRadius,rock);
             float footprint = max(max(fwidth(p.x), fwidth(p.y)), fwidth(p.z));
             float coarseVisibility = 1.0 - smoothstep(0.35, 1.0, footprint * 0.45);
             float coarse = mix(0.5, terrainNoise(p * 0.45), coarseVisibility);

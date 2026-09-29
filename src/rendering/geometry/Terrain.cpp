@@ -182,6 +182,12 @@ TerrainGeometry TerrainSurface::buildGeometryForEye(const glm::dvec3& eyeWorld,
         throw std::invalid_argument("Terrain eye must be outside the planet center");
     const bool localView = cameraDistance < 3.0 * radius_;
     const glm::dvec3 eyeRadial = offset / cameraDistance;
+    const bool nearWater = localView && waterLevelMeters_ && lod_.shoreline_edge_m > 0.0 &&
+        std::abs((cameraDistance-radius_)*metersPerUnit_ - *waterLevelMeters_) < lod_.shoreline_distance_m;
+    // Reserve local refinement space rather than exceeding the existing cap.
+    const int minimumBase = 320 * 3 * lod_.base_edge_segments * (2*ringCount(lod_.base_edge_segments)-1);
+    const int baseBudget = nearWater ? std::max(minimumBase, lod_.max_triangle_budget*3/4)
+                                    : lod_.max_triangle_budget;
 
     std::vector<BaseFace> faces = baseFaces();
     if (!std::isfinite(zoneHysteresisMeters) || zoneHysteresisMeters < 0.0 ||
@@ -254,7 +260,7 @@ TerrainGeometry TerrainSurface::buildGeometryForEye(const glm::dvec3& eyeWorld,
         return triangles;
     };
     auto edges = makeEdges();
-    while (estimate(edges) > lod_.max_triangle_budget) {
+    while (estimate(edges) > baseBudget) {
         auto candidate = faces.end();
         // Spend spare triangles on steep faces. Prefer near-zone crests
         // over middle-zone crests, and use the fixed face order within a
@@ -356,6 +362,7 @@ TerrainGeometry TerrainSurface::buildGeometryForEye(const glm::dvec3& eyeWorld,
     }
     if (geometry.triangleCount() != predicted)
         throw std::logic_error("Terrain triangle budget estimation disagrees with mesh");
+    if (nearWater) refineShoreline(geometry, offset/radius_);
     return geometry;
 }
 

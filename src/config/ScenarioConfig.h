@@ -103,6 +103,8 @@ struct PlanetConfig {
         double near_surface_distance_m = 35.0;
         double mid_surface_distance_m = 110.0;
         int max_triangle_budget = 60000;
+        double shoreline_edge_m = 1.0;
+        double shoreline_distance_m = 80.0;
         double lod_near_diameters = 2.0;
         double lod_far_diameters = 8.0;
 
@@ -121,6 +123,9 @@ struct PlanetConfig {
                 !std::isfinite(mid_surface_distance_m) ||
                 mid_surface_distance_m <= near_surface_distance_m ||
                 max_triangle_budget < 10000 || max_triangle_budget > 100000 ||
+                !std::isfinite(shoreline_edge_m) || shoreline_edge_m < 0.0 || shoreline_edge_m > 100.0 ||
+                (shoreline_edge_m > 0.0 && shoreline_edge_m < 0.1) ||
+                !std::isfinite(shoreline_distance_m) || shoreline_distance_m < 1.0 || shoreline_distance_m > 1000.0 ||
                 320 * 3 * base_edge_segments *
                     (2 * std::max(1, (base_edge_segments + 1) / 2) - 1) > max_triangle_budget ||
                 !std::isfinite(lod_near_diameters) || lod_near_diameters <= 0.0 ||

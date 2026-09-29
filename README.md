@@ -740,8 +740,10 @@ optional `enabled` switch, `elevation_offset_m`, `continent_amplitude_m`, `conti
 otherwise pointed absolute-noise crest; `0` preserves a sharp crest and the
 development value `0.25` softens high-angle ridge peaks. Areas below the water
 level form ocean basins.
-Vertex colors interpolate green plains, pale heights, and dark seabed across
-triangles. Steeper slopes blend toward gray rock. Planet-fixed procedural
+The landscape palette uses each fragment's height for green plains, pale
+heights, narrow beaches, and dark seabed. Beach colors therefore follow the
+waterline inside triangles; grass placement uses the same height palette.
+Steeper slopes blend toward gray rock. Planet-fixed procedural
 textures add mottled color and matte roughness; a two-scale height field
 perturbs the smooth surface normals to reveal centimetre-scale relief under
 Sun and Moon light. These details add no triangles and do not change collision
@@ -804,6 +806,15 @@ surface-distance zones.
 Faces retain their current detail level for another 20 m while the camera
 moves away from a zone boundary, so walking back and forth does not repeatedly
 switch their tessellation.
+
+Near water, `terrain_lod.shoreline_edge_m` targets 1 m edges within
+`shoreline_distance_m` (80 m by default). Set the edge target to `0` to disable
+this extra refinement. Targets support 0.1–100 m and distances 1–1000 m.
+The builder reserves a quarter of the existing triangle budget, then splits
+nearby shoreline edges on both incident faces to keep the shell closed.
+Closest edges take priority; the hard budget and eight-pass work limit can
+stop subdivision before the target is reached. Distant shores retain coarse
+geometry. Land and water rebuild together in the existing background job.
 
 Optional per-planet `foliage` enables grass on the green biome. The working
 Earth enables it; omitted blocks leave grass disabled in older scenes.
@@ -870,9 +881,19 @@ terrain, lit by the same sunlight and reflected body light. The reflection
 mix fades to zero as local direct sunlight approaches the horizon or terrain
 blocks the Sun, so a bright reflected day scene cannot light the night ocean.
 Indirect water light remains. Reflections outside the reflected camera's view
-are ignored. The pass does not refract the scene. The water shell uses the same
-triangle budget as the land, but its uniformly subdivided geometry stays fixed
-while the camera moves because the sea has no height noise.
+are ignored. The pass does not refract the scene. The water shell uses a coarse
+distant mesh with the same local edge target near the camera, reducing flat
+triangle intersections at the shore. Its separate budget is the smaller of
+60,000 triangles and the land budget. Refined vertices stay on the sea sphere;
+the residual approximation can still change slightly when mesh detail updates.
+
+![Fine shoreline with grass approaching the beach](docs/screenshots/shoreline-detail.png)
+
+This [shoreline replay](docs/captures/replay/terrain/shoreline-detail.png.json)
+uses a 2 m camera beside the water. The narrow sand band is shaded inside
+the triangles; grass stops at the beach instead of following coarse corner
+colors. `TerrainTests` checks local resolution, shared edges and budgets;
+the GPU material test checks the beach band within two large triangles.
 
 The terrain choice follows NVIDIA's guidance on [broad and fine procedural
 noise](https://developer.nvidia.com/gpugems/gpugems3/part-i-geometry/chapter-1-generating-complex-procedural-terrains-using-gpu)

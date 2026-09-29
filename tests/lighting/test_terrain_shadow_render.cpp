@@ -230,6 +230,45 @@ TEST(TerrainMaterialRender, DetailPreservesGeometryAndFollowsTheBody) {
     patch.destroy();
 }
 
+TEST(TerrainMaterialRender, BeachBandIsNarrowInsideCoarseTriangles) {
+    ShadowScene scene;
+    Mesh patch;
+    for (auto p: {glm::vec3(-.02,-.02,.999),glm::vec3(.02,-.02,1.001),
+                  glm::vec3(.02,.02,1.001),glm::vec3(-.02,.02,.999)})
+        patch.addVertex(p.x,p.y,p.z,0,0,1);
+    patch.addTriangle(0,1,2); patch.addTriangle(0,2,3); patch.upload();
+    glBindFramebuffer(GL_FRAMEBUFFER,scene.framebuffer);
+    glViewport(0,0,size,size); glEnable(GL_DEPTH_TEST); glDisable(GL_BLEND);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    auto& shader=scene.terrain; shader.use();
+    shader.setMat4("model",glm::value_ptr(glm::mat4(1)));
+    shader.setMat4("view",glm::value_ptr(glm::lookAt(glm::vec3(0,0,3),glm::vec3(0),glm::vec3(0,1,0))));
+    shader.setMat4("projection",glm::value_ptr(glm::ortho(-.02f,.02f,-.02f,.02f,.1f,10.f)));
+    shader.setInt("uLinearOutput",1); shader.setInt("uShadowsEnabled",0);
+    shader.setFloat("uClipRadius",-1); shader.setFloat("uEmissive",0);
+    shader.setFloat("uTerrainMetersPerRadius",1000);
+    shader.setFloat2("uTerrainRockRange",.18,.42);
+    shader.setFloat3("uTerrainEyeBody",0,0,3);
+    shader.setFloat3("uColor",.1,.2,.1);
+    shader.setFloat3("uIndirectLight",1,1,1); shader.setFloat3("uSunlight",0,0,0);
+    shader.setFloat3("uSunDirection",0,0,1);
+    shader.setInt("uLandscapeEnabled",1); shader.setFloat3("uLandscapeLevels",0,.1,40);
+    patch.draw();
+    Image image(size*size*3);
+    glReadPixels(0,0,size,size,GL_RGB,GL_UNSIGNED_BYTE,image.data());
+    const auto sand=pixel(image,.08), grass=pixel(image,.7), seabed=pixel(image,-.7);
+    EXPECT_GT(sand[0],sand[1]); EXPECT_GT(sand[0],2*grass[0]);
+    EXPECT_GT(grass[1],2*grass[0]); EXPECT_LT(seabed[0],grass[0]);
+    int sandPixels=0;
+    for (int x=0;x<size;++x) {
+        const auto offset=(size/2*size+x)*3;
+        if (image[offset]>image[offset+1]) ++sandPixels;
+    }
+    EXPECT_GT(sandPixels,3); EXPECT_LT(sandPixels,25);
+    EXPECT_EQ(patch.indices.size(),6u);
+    patch.destroy();
+}
+
 TEST(GrassRender, WindMovesBladesWhileNightAndClippingRemainDark) {
     ShadowScene scene;
     rendering::GrassRenderer grass;

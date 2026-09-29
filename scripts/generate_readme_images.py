@@ -52,6 +52,7 @@ for name in ('moonlit-night.png', 'moonless-night.png'):
 for name in ('refraction-extreme-on.png', 'refraction-extreme-off.png'):
     capture(name, ['--replay', str(replays / 'refraction' / (name + '.json'))])
 capture('terrain-detail.png', ['--replay', str(replays / 'terrain' / 'terrain-detail.png.json')])
+capture('shoreline-detail.png', ['--replay', str(replays / 'terrain' / 'shoreline-detail.png.json')])
 capture('grass-detail.png', ['--replay', str(replays / 'foliage' / 'grass-detail.png.json')])
 capture('performance-overlay.png', [*scene, '--simulation-time', '20', '--render-size', '1280', '720', '--benchmark-frames', '20', '--benchmark-overlay'])
 for group, mapping in (
@@ -71,7 +72,7 @@ for name, source, command, timestamp in records:
     sidecar = Path(str(source) + '.json')
     if sidecar.exists():
         replay_dir = replays / 'refraction' if name.startswith('refraction-extreme-') else replays
-        if name == 'terrain-detail.png':
+        if name in ('terrain-detail.png', 'shoreline-detail.png'):
             replay_dir = replays / 'terrain'
         if name == 'grass-detail.png':
             replay_dir = replays / 'foliage'

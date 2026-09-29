@@ -12,14 +12,15 @@
 namespace rendering {
 
 // Positions and colors are interleaved as position, face normal, color factor.
-// Faces own vertices, but shared corners receive the same sampled height tint;
-// the shader interpolates those tints across the triangle boundaries.
+// Faces own vertices, but shared corners receive the same sampled height tint.
+// Landscape rendering uses per-fragment height; other bodies keep these tints.
 struct TerrainGeometry {
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
     std::array<int, 3> zoneFaces{}; // far, middle, near
     std::vector<int> faceZones; // one zone per fixed base face, for LOD hysteresis
     int steepRefinedFaces = 0;
+    int shorelineAddedTriangles = 0;
     int coarseNoiseSamples = 0;
     int fineNoiseSamples = 0;
     int triangleCount() const { return static_cast<int>(indices.size() / 3); }
@@ -72,6 +73,7 @@ public:
     const config::PlanetConfig::TerrainLod& lodSettings() const { return lod_; }
 
 private:
+    void refineShoreline(TerrainGeometry& geometry, const glm::dvec3& eyeBody) const;
     struct GridSample {
         glm::dvec3 position;
         double height;

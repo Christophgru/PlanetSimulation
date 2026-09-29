@@ -102,6 +102,25 @@ TEST(GrassPlacement, BothPolesUseTheSameBodyLocalPlacement) {
         EXPECT_EQ(north[i].variation,south[i].variation);
     }
 }
+TEST(GrassPlacement, ShoreBiomeUsesRootHeightInsteadOfCoarseVertexTint) {
+    auto p=planet();
+    p.terrain_landscape.enabled=true;
+    p.terrain_landscape.continent_amplitude_m=10;
+    p.water.enabled=true;
+    auto ground=patch({0,0,1},{3,1,6}); // Coarse snow-colored corners.
+    for (std::size_t i=0;i<ground.size();i+=9) {
+        ground[i]*=.2f; ground[i+1]*=.2f; ground[i+2]=1.003f;
+    }
+    const auto grass=rendering::placeGrass(ground,indices,p,100,{0,0,1.02});
+    ASSERT_GT(grass.size(),50u);
+    for (const auto& blade:grass) {
+        const double height=(glm::length(glm::dvec3(blade.root))-1)*100;
+        EXPECT_GT(height,.25); EXPECT_LT(height,.4);
+    }
+    // The same low patch at sea level must not grow grass through the water.
+    for (std::size_t i=0;i<ground.size();i+=9) ground[i+2]=1.0f;
+    EXPECT_TRUE(rendering::placeGrass(ground,indices,p,100,{0,0,1.02}).empty());
+}
 TEST(GrassConfig, ParsesAndRejectsUnboundedOrNonfiniteWork) {
     config::PlanetConfig p(config::Config{nlohmann::json::parse(R"({"foliage":{"height_m":0.8,"max_blades":1200}})")});
     EXPECT_TRUE(p.foliage.enabled); EXPECT_DOUBLE_EQ(p.foliage.height_m,.8);

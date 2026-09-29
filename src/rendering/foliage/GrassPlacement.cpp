@@ -1,5 +1,6 @@
 #include "rendering/foliage/GrassPlacement.h"
 #include "config/ScenarioConfig.h"
+#include "rendering/geometry/Terrain.h"
 #include <algorithm>
 #include <cmath>
 
@@ -71,7 +72,14 @@ std::vector<GrassBlade> placeGrass(const std::vector<float>& vertices,
             if (grassRandom(random) >= std::exp(-distanceMeters*distanceMeters / variance2)) continue;
             const glm::dvec3 radial = glm::normalize(root);
             const auto n = glm::normalize(normal[0]*weights.x+normal[1]*weights.y+normal[2]*weights.z);
-            const auto tint = color[0]*weights.x+color[1]*weights.y+color[2]*weights.z;
+            auto tint = color[0]*weights.x+color[1]*weights.y+color[2]*weights.z;
+            if (planet.terrain_landscape.enabled) {
+                const double cosine=std::clamp(glm::dot(n,radial),1e-6,1.0);
+                const double riseOverRun=std::sqrt(1.0-cosine*cosine)/cosine;
+                tint=TerrainSurface::landscapeColorFactors((glm::length(root)-1)*metersPerRadius,
+                    riseOverRun,planet.water.enabled ? planet.water.level_m : 0.0,0.1,highestGround,
+                    planet.terrain_material)*glm::dvec3(planet.color[0],planet.color[1],planet.color[2]);
+            }
             // Only the green biome grows grass; beaches, snow and airless gray
             // bodies are excluded. Thin coverage smoothly through the rock blend.
             if (tint.y <= 1.15 * std::max(tint.x,tint.z)) continue;

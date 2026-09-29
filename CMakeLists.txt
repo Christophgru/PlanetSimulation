@@ -44,6 +44,7 @@ target_link_libraries(planet_config PUBLIC nlohmann_json::nlohmann_json)
 
 add_library(planet_geometry STATIC
     src/rendering/geometry/Terrain.cpp
+    src/rendering/geometry/TerrainShoreline.cpp
     src/rendering/foliage/GrassPlacement.cpp)
 target_link_libraries(planet_geometry PUBLIC planet_config glm::glm)
 

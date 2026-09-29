@@ -389,6 +389,11 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                 planet.radius * scenario.metersPerWorldUnit()));
             const auto rockRange = planet.terrain_material.slopeMetricRange();
             shader.setFloat2("uTerrainRockRange", rockRange[0], rockRange[1]);
+            shader.setInt("uLandscapeEnabled",planet.terrain_landscape.enabled);
+            double maximumHeight=planet.terrain_landscape.maximumAbsoluteHeightMeters();
+            for (const auto& noise:planet.surface_noise) maximumHeight+=noise.amplitude_m;
+            shader.setFloat3("uLandscapeLevels",planet.water.enabled ? planet.water.level_m : 0.0,
+                             0.1,maximumHeight);
             const glm::dvec3 materialEye = glm::transpose(bodies[i + 1].orientation) *
                 (glm::dvec3(glm::inverse(passView)[3]) - bodies[i + 1].position) / planet.radius;
             setRgb(shader, "uTerrainEyeBody", materialEye);
@@ -729,7 +734,6 @@ int main(int argc, char** argv) {
         std::vector<Mesh> planetMeshes(scenario.planets.size());
         std::vector<Mesh> waterMeshes(scenario.planets.size());
         std::vector<bool> meshReady(scenario.planets.size(), false);
-        std::vector<bool> waterMeshReady(scenario.planets.size(), false);
         std::vector<int> lastLocalMask(scenario.planets.size(), 0);
         std::vector<std::vector<int>> lastFaceZones(scenario.planets.size());
         std::vector<glm::dvec3> lastEyeRadial(scenario.planets.size(), glm::dvec3(0.0));
@@ -738,6 +742,7 @@ int main(int argc, char** argv) {
         std::vector<int> meshSteepRefinedFaces(scenario.planets.size(), 0);
         struct TimedTerrainBuild {
             rendering::TerrainGeometry geometry;
+            std::optional<rendering::TerrainGeometry> water;
             double milliseconds = 0;
         };
         struct PendingTerrainBuild {
@@ -767,26 +772,15 @@ int main(int argc, char** argv) {
                 if (!std::isfinite(distance) || distance <= 0.0)
                     throw std::invalid_argument("Camera cannot be at a planet center");
                 const glm::dvec3 radial = offset / distance;
-                const double seaRadius = planet.radius +
-                    planet.water.level_m / scenario.metersPerWorldUnit();
-                if (planet.water.enabled && !waterMeshReady[i]) {
-                    // Water has no height noise. A fixed shell avoids the ocean
-                    // changing tessellation every time the eye moves.
-                    const rendering::TerrainSurface seaSurface(
-                        {}, planet.terrain_lod, seaRadius, scenario.metersPerWorldUnit());
-                    const int budgetSegments = static_cast<int>(std::floor(std::sqrt(
-                        planet.terrain_lod.max_triangle_budget / 320.0)));
-                    waterMeshes[i].loadTerrain(seaSurface.buildGeometry(
-                        std::max(1, std::min({8, planet.terrain_lod.max_edge_segments,
-                                              budgetSegments}))));
-                    waterMeshReady[i] = true;
-                }
                 const int localMask = distance < 3.0 * planet.radius ? 1 : 0;
                 if (pendingTerrain[i].geometry.valid()) {
                     if (pendingTerrain[i].geometry.wait_for(std::chrono::seconds(0)) !=
                         std::future_status::ready) continue;
                     auto built = pendingTerrain[i].geometry.get();
                     profiler.terrainBuild(built.milliseconds);
+                    if (built.water) {
+                        waterMeshes[i].loadTerrain(std::move(*built.water));
+                    }
                     installLandMesh(i, std::move(built.geometry),
                                     pendingTerrain[i].eyeRadial,
                                     pendingTerrain[i].localMask);
@@ -796,31 +790,42 @@ int main(int argc, char** argv) {
                         glm::dot(radial, lastEyeRadial[i]), -1.0, 1.0)) : 0.0;
                 if (meshReady[i] && localMask == lastLocalMask[i] &&
                     (localMask == 0 || movedMeters < 10.0)) continue;
+                // Land and the nearby ocean shell rebuild together off-thread.
+                auto buildMeshes = [surface=terrainSurfaces[i], planet,
+                                    zones=lastFaceZones[i], localEye,
+                                    meters=scenario.metersPerWorldUnit()]() {
+                    const auto start=std::chrono::steady_clock::now();
+                    auto land=surface.buildGeometryForEye(localEye, glm::dvec3(0.0),
+                        zones.empty() ? nullptr : &zones, 20.0);
+                    std::optional<rendering::TerrainGeometry> water;
+                    if (planet.water.enabled) {
+                        auto lod=planet.terrain_lod;
+                        lod.base_edge_segments=1;
+                        lod.medium_edge_segments=3;
+                        lod.max_edge_segments=8;
+                        lod.steep_edge_segments=8;
+                        lod.near_surface_distance_m=lod.shoreline_distance_m;
+                        lod.mid_surface_distance_m=2*lod.shoreline_distance_m;
+                        lod.max_triangle_budget=std::min(60000,lod.max_triangle_budget);
+                        const double seaRadius=planet.radius+planet.water.level_m/meters;
+                        const rendering::TerrainSurface sea({},lod,seaRadius,meters,{},0.0);
+                        water=sea.buildGeometryForEye(localEye,glm::dvec3(0.0));
+                    }
+                    return TimedTerrainBuild{std::move(land),std::move(water),
+                        std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count()};
+                };
                 if (asyncWalking && meshReady[i] && localMask == lastLocalMask[i]) {
-                    // CPU noise/tessellation can take hundreds of milliseconds.
-                    // Keep drawing the current mesh while an immutable copy of
-                    // the terrain builds the next geometry off the render loop.
-                    auto surface = terrainSurfaces[i];
-                    auto zones = lastFaceZones[i];
                     pendingTerrain[i].eyeRadial = radial;
                     pendingTerrain[i].localMask = localMask;
-                    pendingTerrain[i].geometry = std::async(std::launch::async,
-                        [surface = std::move(surface), zones = std::move(zones),
-                         localEye]() mutable {
-                            const auto start = std::chrono::steady_clock::now();
-                            auto geometry = surface.buildGeometryForEye(localEye, glm::dvec3(0.0), &zones, 20.0);
-                            const double milliseconds = std::chrono::duration<double, std::milli>(
-                                std::chrono::steady_clock::now() - start).count();
-                            return TimedTerrainBuild{std::move(geometry), milliseconds};
-                        });
+                    pendingTerrain[i].geometry = std::async(std::launch::async,std::move(buildMeshes));
                     continue;
                 }
-                const auto buildStart = std::chrono::steady_clock::now();
-                auto geometry = terrainSurfaces[i].buildGeometryForEye(
-                    localEye, glm::dvec3(0.0), meshReady[i] ? &lastFaceZones[i] : nullptr, 20.0);
-                profiler.terrainBuild(std::chrono::duration<double, std::milli>(
-                    std::chrono::steady_clock::now() - buildStart).count());
-                installLandMesh(i, std::move(geometry), radial, localMask);
+                auto built=buildMeshes();
+                profiler.terrainBuild(built.milliseconds);
+                if (built.water) {
+                    waterMeshes[i].loadTerrain(std::move(*built.water));
+                }
+                installLandMesh(i, std::move(built.geometry), radial, localMask);
             }
         };
         glm::dvec3 sunPosition = initial.sunPosition;
@@ -1029,7 +1034,8 @@ int main(int argc, char** argv) {
                           << "/" << meshZoneFaces[i][1] << "/" << meshZoneFaces[i][2]
                           << "; steep-refined faces: " << meshSteepRefinedFaces[i]
                           << " (budget " << scenario.planets[i].terrain_lod.max_triangle_budget
-                          << "); foliage blades: " << grass.count(i) << "\n";
+                          << "); foliage blades: " << grass.count(i)
+                          << "; water triangles: " << waterMeshes[i].indices.size()/3 << "\n";
 
             // Call glFinish() before reading framebuffer
             glFinish();
@@ -1283,7 +1289,6 @@ int main(int argc, char** argv) {
                         std::vector<Mesh> nextPlanetMeshes(count);
                         std::vector<Mesh> nextWaterMeshes(count);
                         std::vector<bool> nextMeshReady(count, false);
-                        std::vector<bool> nextWaterMeshReady(count, false);
                         std::vector<int> nextLocalMask(count, 0);
                         std::vector<std::vector<int>> nextFaceZones(count);
                         std::vector<glm::dvec3> nextEyeRadial(count, glm::dvec3(0.0));
@@ -1312,7 +1317,6 @@ int main(int argc, char** argv) {
                         planetMeshes.swap(nextPlanetMeshes);
                         waterMeshes.swap(nextWaterMeshes);
                         meshReady.swap(nextMeshReady);
-                        waterMeshReady.swap(nextWaterMeshReady);
                         lastLocalMask.swap(nextLocalMask);
                         lastFaceZones.swap(nextFaceZones);
                         lastEyeRadial.swap(nextEyeRadial);
