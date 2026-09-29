@@ -1,0 +1,15 @@
+{
+  "name": "standard_air",
+  "simulation_time_seconds": 20,
+  "expected": {
+    "terrain_mean_display_luminance": [
+      0.1,
+      0.7
+    ],
+    "sky_interior_mean_display_luminance": [
+      0.01,
+      0.3
+    ]
+  },
+  "verify_replay": true
+}

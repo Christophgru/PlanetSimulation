@@ -1,0 +1,25 @@
+{
+  "name": "night",
+  "simulation_time_seconds": 45,
+  "lighting": {
+    "reflections_enabled": false
+  },
+  "expected": {
+    "direct_illuminance": [
+      0,
+      0
+    ],
+    "terrain_mean_display_luminance": [
+      0,
+      0.05
+    ],
+    "sky_interior_mean_display_luminance": [
+      0,
+      0.02
+    ],
+    "exposure": [
+      4096,
+      4096
+    ]
+  }
+}

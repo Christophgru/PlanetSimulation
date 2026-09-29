@@ -1,0 +1,30 @@
+{
+  "name": "mist",
+  "simulation_time_seconds": 20,
+  "planet_overrides": {
+    "0": {
+      "atmosphere": {
+        "gas-contents": {
+          "nitrogen": 50,
+          "oxygen": 25,
+          "water": 20
+        }
+      }
+    }
+  },
+  "expected": {
+    "terrain_mean_display_luminance": [
+      0.05,
+      0.6
+    ],
+    "atmosphere_relative_humidity": [
+      5,
+      15
+    ],
+    "atmosphere_liquid_water_g_m3": [
+      0.1,
+      0.2
+    ]
+  },
+  "verify_replay": true
+}

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 425" width="1000" height="425">
+<defs><marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#647889"/></marker></defs>
+<rect width="1000" height="425" fill="#ffffff"/>
+<text x="26.00" y="35.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="22" fill="#17334b" font-weight="700">Best-effort quality control: timing feedback and memory cap</text>
+<line x1="26.00" y1="51.00" x2="974.00" y2="51.00" stroke="#e2ebee" stroke-width="2" stroke-linecap="round"/>
+<rect x="47.00" y="101.00" width="400.00" height="254.00" rx="10" fill="#f2f7f8" stroke="#e2ebee" stroke-width="2"/>
+<text x="69.00" y="134.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="18" fill="#17334b" font-weight="700">feedback law</text>
+<text x="69.00" y="171.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="15" fill="#177f89">mₜ = 0.85 mₜ₋₁ + 0.15 frame-ms</text>
+<text x="69.00" y="206.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="15" fill="#cb6269">mₜ &gt; 55 ms → lower scale</text>
+<text x="69.00" y="241.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="15" fill="#559b76">mₜ &lt; 32 ms → raise scale</text>
+<text x="69.00" y="276.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="13" fill="#647889">1.5 s cooldown; moving scene only</text>
+<text x="69.00" y="317.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="13" fill="#17334b">20 FPS remains a target, not a guarantee</text>
+<rect x="492.00" y="101.00" width="462.00" height="254.00" rx="10" fill="#ffffff" stroke="#e2ebee" stroke-width="2"/>
+<text x="516.00" y="134.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="18" fill="#17334b" font-weight="700">discrete scene scales</text>
+<rect x="525.00" y="245.00" width="48.00" height="75.00" rx="3" fill="#177f89"/>
+<text x="549.00" y="340.00" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="12" fill="#17334b" font-weight="700">100%</text>
+<rect x="593.00" y="260.00" width="48.00" height="60.00" rx="3" fill="#4978b7"/>
+<text x="617.00" y="340.00" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="12" fill="#17334b" font-weight="700">80%</text>
+<rect x="661.00" y="271.25" width="48.00" height="48.75" rx="3" fill="#4978b7"/>
+<text x="685.00" y="340.00" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="12" fill="#17334b" font-weight="700">65%</text>
+<rect x="729.00" y="282.50" width="48.00" height="37.50" rx="3" fill="#4978b7"/>
+<text x="753.00" y="340.00" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="12" fill="#17334b" font-weight="700">50%</text>
+<rect x="797.00" y="293.75" width="48.00" height="26.25" rx="3" fill="#4978b7"/>
+<text x="821.00" y="340.00" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="12" fill="#17334b" font-weight="700">35%</text>
+<rect x="865.00" y="301.25" width="48.00" height="18.75" rx="3" fill="#4978b7"/>
+<text x="889.00" y="340.00" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="12" fill="#17334b" font-weight="700">25%</text>
+<text x="516.00" y="177.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="13" fill="#647889">memory estimate ∝ width × height × scale²</text>
+<text x="516.00" y="199.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="13" fill="#647889">reserve 75% of reported graphics memory</text>
+</svg>
