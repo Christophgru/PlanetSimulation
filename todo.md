@@ -20,7 +20,7 @@ document the progress and add comments such that when interrupted you can contin
 |add textures, roughness and mini elevation for performant details, make steeper gradients more grey and give them a rocky look (Do so without crazy amounts of polygons, instead use the maps tro crreate rock like local landscape)|t| Planet-local procedural color, rough diffuse shading, centimetre-scale normal relief and gray steep slopes implemented without added geometry. GPU material regression, all 39 CTest checks and the 15-image gallery/hash validation passed. |
 |Keep the water reflective and smooth. Make the gradient where grass becomes rock adjustable and keep grass longer before setting cliff. |t| Per-planet terrain_material slope range added (35–55° defaults), shared by gray-rock shading and broad darkening. Config/CPU/GPU regressions, smooth water reflection check, all 39 CTest tests and refreshed 15-image gallery/hash checks passed. |
 |add foliage like the grass in the quickgrass demo (copy it as close as possible) |t| SimonDev Quick_Grass port implemented with instanced curved blades, distance LOD, wind, bright tips, slope/water exclusion, terrain shadows and water reflections. MIT attribution preserved. All 41 CTest tests and refreshed 16-image gallery/hash checks passed on the current scene settings. |
-|Compile time has become pretty long, lets do a stabilisation commit where we try to clean up unnecessary header includes, and increase linking instead of compiling huge files new. |||
+|Compile time has become pretty long, lets do a stabilisation commit where we try to clean up unnecessary header includes, and increase linking instead of compiling huge files new. |t| Config parsing, terrain generation, mesh/shader and foliage implementations moved into three compiled libraries; JSON removed from value-type headers. All 41 tests and 12 independent-header checks passed; grass replay byte-identical. Terrain implementation rebuild compiles one object and relinks consumers in 4.32 s. |
 |Spawn the Foliage in a gaussian distribution around the current position, such that at the current position there are most and far away only view. If its coputationally too complex add 5 distance zones.|||
 |as visible in image USER_IO/user_artifacts/image copy.png the water boarders are still pretty rough, the sand applies to whole (huge) triangles and the grass doesn't qite reach the water. Lets think of ways to keep it performant for large scale but have accurate, fine triangular resolution when we get close to the water.|||
 |When the Camera gets close to a steep mountain, its possible to look inside the planet, lets fix that |||
@@ -56,6 +56,14 @@ if environmental changes are needed inside the container, let the user know by a
 
 ## Progress checkpoint — 2026-09-29
 
+- Compile-time stabilization complete: substantial implementations now have
+  `.cpp` files and shared static libraries. All 41 CTest entries passed under
+  Xvfb with two jobs; real X11 input tests now run serially to avoid focus
+  collisions. Twelve public headers compile independently. Frozen grass
+  capture matches the saved pre-refactor executable byte for byte. Overview
+  inspected: 14,784 non-background pixels, bounds (1,1)–(794,598).
+  Touching Terrain.cpp rebuilt one object and relinked ten executables in
+  4.32 s (GCC/Ninja/RelWithDebInfo, two jobs). No dependencies added.
 - Foliage implementation now lives in `src/rendering/foliage` and
   `shaders/foliage`, configured by `src/config/FoliageConfig.h`. The existing
   README already confirms SimonDev Quick_Grass as the reference. Adapted its

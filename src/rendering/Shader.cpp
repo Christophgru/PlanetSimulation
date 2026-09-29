@@ -1,0 +1,114 @@
+#include "rendering/Shader.h"
+#include <fstream>
+#include <sstream>
+#include <iostream>
+#include <stdexcept>
+
+Shader::Shader(const char* vertexPath, const char* fragmentPath,
+       const char* fragmentLibraryPath,
+       const char* additionalFragmentLibraryPath) {
+    std::string vertexCode;
+    std::string fragmentCode;
+
+    // Read shaders from files
+    std::ifstream vertexStream(vertexPath);
+    if (!vertexStream.is_open()) {
+        throw std::runtime_error("Failed to open vertex shader: " + std::string(vertexPath));
+    }
+    std::ifstream fragmentStream(fragmentPath);
+    if (!fragmentStream.is_open()) {
+        throw std::runtime_error("Failed to open fragment shader: " + std::string(fragmentPath));
+    }
+
+    // Read shaders into strings
+    vertexStream.seekg(0, std::ios::end);
+    vertexCode.resize(vertexStream.tellg());
+    vertexStream.seekg(0, std::ios::beg);
+    vertexStream.read(&vertexCode[0], vertexCode.size());
+
+    fragmentStream.seekg(0, std::ios::end);
+    fragmentCode.resize(fragmentStream.tellg());
+    fragmentStream.seekg(0, std::ios::beg);
+    fragmentStream.read(&fragmentCode[0], fragmentCode.size());
+    // GLSL requires #version first; optional shared helpers follow it.
+    for (const char* libraryPath : {fragmentLibraryPath, additionalFragmentLibraryPath}) {
+        if (!libraryPath) continue;
+        std::ifstream library(libraryPath);
+        if (!library.is_open())
+            throw std::runtime_error("Failed to open fragment library: " + std::string(libraryPath));
+        std::ostringstream source;
+        source << library.rdbuf();
+        fragmentCode.insert(fragmentCode.find('\n') + 1, source.str() + "\n");
+    }
+
+    // Compile vertex shader
+    GLuint vertex = glCreateShader(GL_VERTEX_SHADER);
+    const char* vertexSource = vertexCode.c_str();
+    glShaderSource(vertex, 1, &vertexSource, nullptr);
+    glCompileShader(vertex);
+    checkCompileErrors(vertex, "VERTEX");
+
+    // Compile fragment shader
+    GLuint fragment = glCreateShader(GL_FRAGMENT_SHADER);
+    const char* fragmentSource = fragmentCode.c_str();
+    glShaderSource(fragment, 1, &fragmentSource, nullptr);
+    glCompileShader(fragment);
+    checkCompileErrors(fragment, "FRAGMENT");
+
+    // Create shader program
+    id = glCreateProgram();
+    glAttachShader(id, vertex);
+    glAttachShader(id, fragment);
+    glLinkProgram(id);
+    checkLinkErrors(id);
+}
+
+void Shader::use() const {
+    glUseProgram(id);
+}
+
+void Shader::setFloat(const char* name, float value) const {
+    glUniform1f(glGetUniformLocation(id, name), value);
+}
+
+void Shader::setInt(const char* name, int value) const {
+    glUniform1i(glGetUniformLocation(id, name), value);
+}
+
+void Shader::setFloat2(const char* name, float x, float y) const {
+    glUniform2f(glGetUniformLocation(id, name), x, y);
+}
+
+void Shader::setFloat3(const char* name, float x, float y, float z) const {
+    glUniform3f(glGetUniformLocation(id, name), x, y, z);
+}
+
+void Shader::setFloat4(const char* name, float x, float y, float z, float w) const {
+    glUniform4f(glGetUniformLocation(id, name), x, y, z, w);
+}
+
+void Shader::setMat4(const char* name, const float* value) const {
+    glUniformMatrix4fv(glGetUniformLocation(id, name), 1, GL_FALSE, value);
+}
+
+void Shader::checkCompileErrors(GLuint shader, const char* type) {
+    GLint success;
+    GLchar infoLog[512];
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        glGetShaderInfoLog(shader, 512, nullptr, infoLog);
+        std::cerr << "Shader compilation error (" << type << "):\n" << infoLog << "\n";
+        glDeleteShader(shader);
+    }
+}
+
+void Shader::checkLinkErrors(GLuint program) {
+    GLint success;
+    GLchar infoLog[512];
+    glGetProgramiv(program, GL_LINK_STATUS, &success);
+    if (!success) {
+        glGetProgramInfoLog(program, 512, nullptr, infoLog);
+        std::cerr << "Shader linking error:\n" << infoLog << "\n";
+        glDeleteProgram(program);
+    }
+}

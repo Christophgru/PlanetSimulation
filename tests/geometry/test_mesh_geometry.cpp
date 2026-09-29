@@ -1,3 +1,4 @@
+#include "rendering/geometry/Terrain.h"
 #include <gtest/gtest.h>
 #include <cmath>
 #include "rendering/geometry/Mesh.h"

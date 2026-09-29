@@ -581,6 +581,20 @@ cmake -S . -B build -DBUILD_TESTING=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo
 cmake --build build --parallel 2
 ~~~
 
+Configuration parsing, terrain generation, and OpenGL rendering are compiled
+once into `planet_config`, `planet_geometry`, and `planet_rendering` static
+libraries, shared by the application and tests. Changes to their `.cpp` files
+recompile that implementation and relink its consumers. Value-type config
+headers forward-declare `Config`; code that reads JSON includes
+`config/Config.h` explicitly. This keeps JSON parsing out of geometry and
+camera compilation.
+
+In the stabilization check (GCC, Ninja, `RelWithDebInfo`, two build jobs),
+touching `Terrain.cpp` rebuilt one object and relinked ten executables in
+4.32 seconds. All twelve config/rendering headers checked independently;
+the grass replay remained byte-identical to the pre-refactor executable.
+Build times depend on the machine and build configuration.
+
 Run all registered tests:
 
 ~~~bash
@@ -589,7 +603,7 @@ ctest --output-on-failure
 cd ..
 ~~~
 
-The suite has 30 CTest entries covering unit tests, GPU shadows, scene captures,
+The suite has 41 CTest entries covering unit tests, GPU shadows, scene captures,
 lighting scenarios, and exact replay. It is verified on the native NVIDIA
 display and Mesa llvmpipe under Xvfb. GPU shadow tests use their own offscreen
 framebuffer, so hidden-window allocation does not determine their result.

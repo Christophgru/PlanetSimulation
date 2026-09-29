@@ -57,7 +57,7 @@ target_link_libraries(star_field_tests PRIVATE GTest::gtest GTest::gtest_main)
 target_include_directories(star_field_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
 
 add_executable(mesh_geometry_tests geometry/test_mesh_geometry.cpp)
-target_link_libraries(mesh_geometry_tests PRIVATE GTest::gtest GTest::gtest_main OpenGL::GL GLEW::GLEW glm::glm nlohmann_json::nlohmann_json)
+target_link_libraries(mesh_geometry_tests PRIVATE planet_rendering GTest::gtest GTest::gtest_main OpenGL::GL GLEW::GLEW glm::glm nlohmann_json::nlohmann_json)
 target_include_directories(mesh_geometry_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
 
 add_executable(terrain_tests geometry/test_terrain.cpp)
@@ -104,7 +104,7 @@ target_include_directories(terrain_shadow_projection_tests PRIVATE ${CMAKE_SOURC
 add_test(NAME TerrainShadowProjectionTests COMMAND terrain_shadow_projection_tests)
 
 add_executable(terrain_shadow_render_tests lighting/test_terrain_shadow_render.cpp)
-target_link_libraries(terrain_shadow_render_tests PRIVATE GTest::gtest OpenGL::GL GLEW::GLEW glfw glm::glm nlohmann_json::nlohmann_json PNG::PNG)
+target_link_libraries(terrain_shadow_render_tests PRIVATE planet_rendering GTest::gtest OpenGL::GL GLEW::GLEW glfw glm::glm nlohmann_json::nlohmann_json PNG::PNG)
 target_include_directories(terrain_shadow_render_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_compile_definitions(terrain_shadow_render_tests PRIVATE PLANET_SHADOW_IMAGE="${CMAKE_BINARY_DIR}/terrain-shadow-test.png")
 add_test(NAME TerrainShadowRenderIntegration COMMAND terrain_shadow_render_tests)
@@ -172,7 +172,7 @@ add_custom_target(render_atmosphere_scenarios
     DEPENDS PlanetSimulation WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} USES_TERMINAL)
 
 add_executable(atmosphere_render_tests atmosphere/test_atmosphere_render.cpp)
-target_link_libraries(atmosphere_render_tests PRIVATE GTest::gtest OpenGL::GL GLEW::GLEW glfw glm::glm nlohmann_json::nlohmann_json)
+target_link_libraries(atmosphere_render_tests PRIVATE planet_rendering GTest::gtest OpenGL::GL GLEW::GLEW glfw glm::glm nlohmann_json::nlohmann_json)
 target_include_directories(atmosphere_render_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_compile_definitions(atmosphere_render_tests PRIVATE PLANET_PERFORMANCE_TRACE="${CMAKE_BINARY_DIR}/performance-test.csv")
 add_test(NAME AtmosphereRefractionRenderIntegration COMMAND atmosphere_render_tests)
@@ -226,3 +226,23 @@ if(UNIX AND XDOTOOL_EXECUTABLE AND IMAGEMAGICK_IMPORT_EXECUTABLE AND IMAGEMAGICK
         ${CMAKE_CURRENT_SOURCE_DIR}/diagnostics/test_adaptive_render.py --binary $<TARGET_FILE:PlanetSimulation>)
     set_tests_properties(AdaptiveQualityRenderIntegration PROPERTIES TIMEOUT 60)
 endif()
+
+# These tests send real keyboard events to the shared X11 display. Keep
+# their windows isolated even when CTest is invoked with --parallel.
+if(UNIX AND XDOTOOL_EXECUTABLE AND IMAGEMAGICK_IMPORT_EXECUTABLE AND IMAGEMAGICK_CONVERT_EXECUTABLE)
+    set_tests_properties(PerformanceOverlayInputIntegration OrbitOverlayInputIntegration
+        CameraTransitionInputIntegration AdaptiveQualityRenderIntegration
+        PROPERTIES RUN_SERIAL TRUE)
+endif()
+
+# Link only the implementation each CPU test consumes. GPU tests link
+# planet_rendering above, which already carries geometry/config dependencies.
+foreach(target config_tests orbit_paths_tests celestial_lighting_tests
+        camera_exposure_tests scene_replay_tests terrain_shadow_projection_tests
+        atmosphere_tests)
+    target_link_libraries(${target} PRIVATE planet_config)
+endforeach()
+foreach(target camera_input_tests orbital_system_tests terrain_tests
+        planet_surface_camera_tests surface_camera_telemetry_tests grass_placement_tests)
+    target_link_libraries(${target} PRIVATE planet_geometry)
+endforeach()

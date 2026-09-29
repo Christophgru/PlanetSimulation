@@ -30,12 +30,35 @@ FetchContent_MakeAvailable(glm)
 find_package(glfw3 REQUIRED)
 find_package(GLEW REQUIRED)
 
-# Main executable - headers are included directly from src/ directories
+# Compile substantial implementations once and share them with the tests.
+# Public headers expose value types; JSON parsing stays in planet_config.
+add_library(planet_config STATIC
+    src/config/parsing/Config.cpp
+    src/config/parsing/ScenarioConfig.cpp
+    src/config/parsing/AtmosphereConfig.cpp
+    src/config/parsing/LightingConfig.cpp
+    src/config/parsing/OrbitalConfig.cpp
+    src/config/parsing/FoliageConfig.cpp)
+target_include_directories(planet_config PUBLIC ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(planet_config PUBLIC nlohmann_json::nlohmann_json)
+
+add_library(planet_geometry STATIC
+    src/rendering/geometry/Terrain.cpp
+    src/rendering/foliage/GrassPlacement.cpp)
+target_link_libraries(planet_geometry PUBLIC planet_config glm::glm)
+
+add_library(planet_rendering STATIC
+    src/rendering/Shader.cpp
+    src/rendering/geometry/Mesh.cpp
+    src/rendering/foliage/GrassRenderer.cpp)
+target_link_libraries(planet_rendering PUBLIC planet_geometry OpenGL::GL GLEW::GLEW)
+
 add_executable(PlanetSimulation src/main.cpp)
 target_compile_definitions(PlanetSimulation PRIVATE PLANET_VERSION="${PROJECT_VERSION}")
 
 # Link required libraries
 target_link_libraries(PlanetSimulation PRIVATE 
+    planet_rendering
     nlohmann_json::nlohmann_json
     OpenGL::GL
     PNG::PNG

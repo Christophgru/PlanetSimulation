@@ -1,7 +1,6 @@
 #pragma once
 
 #include <string>
-#include <fstream>
 #include <vector>
 #include <nlohmann/json.hpp>
 
@@ -26,72 +25,5 @@ public:
 private:
     nlohmann::json m_data;
 };
-
-inline Config Config::load(const std::string& path) {
-    std::ifstream file(path);
-    if (!file.is_open()) {
-        throw std::runtime_error("Failed to open config file: " + path);
-    }
-    
-    nlohmann::json json;
-    file >> json;
-    return Config{std::move(json)};
-}
-
-inline std::string Config::get(std::string key) const {
-    auto it = m_data.find(key);
-    if (it != m_data.end()) {
-        return it->get<std::string>();
-    }
-    static const std::string empty;
-    return empty;
-}
-
-inline std::string Config::get(std::string key, std::string defaultVal) const {
-    auto it = m_data.find(key);
-    if (it != m_data.end()) {
-        return it->get<std::string>();
-    }
-    return defaultVal;
-}
-
-inline double Config::getDouble(std::string key, double defaultVal) const {
-    auto it = m_data.find(key);
-    if (it != m_data.end()) {
-        return it->get<double>();
-    }
-    return defaultVal;
-}
-
-inline int Config::getInt(std::string key, int defaultVal) const {
-    auto it = m_data.find(key);
-    if (it != m_data.end()) {
-        return it->get<int>();
-    }
-    return defaultVal;
-}
-
-inline bool Config::getBool(std::string key, bool defaultVal) const {
-    auto it = m_data.find(key);
-    if (it != m_data.end() && it->is_boolean()) {
-        return it->get<bool>();
-    }
-    return defaultVal;
-}
-
-inline std::vector<double> Config::getArray(std::string key, std::vector<double> defaultVal) const {
-    auto it = m_data.find(key);
-    if (it != m_data.end()) {
-        // Check if the value is actually an array
-        if (it.value().is_array()) {
-            std::vector<double> result;
-            for (const auto& val : it.value()) {
-                result.push_back(val.get<double>());
-            }
-            return result;
-        }
-    }
-    return defaultVal;
-}
 
 } // namespace config

@@ -1,3 +1,4 @@
+#include "config/Config.h"
 #include <gtest/gtest.h>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>

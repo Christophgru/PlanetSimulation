@@ -1,3 +1,5 @@
+#include "config/ScenarioConfig.h"
+#include "config/Config.h"
 #include <gtest/gtest.h>
 #include <limits>
 #include "rendering/foliage/GrassPlacement.h"

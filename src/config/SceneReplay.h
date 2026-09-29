@@ -1,5 +1,7 @@
 #pragma once
 
+#include <nlohmann/json.hpp>
+#include "config/Config.h"
 #include "config/ScenarioConfig.h"
 
 namespace config {

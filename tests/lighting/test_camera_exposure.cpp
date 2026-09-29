@@ -1,3 +1,4 @@
+#include "config/Config.h"
 #include <gtest/gtest.h>
 #include "rendering/lighting/CameraExposure.h"
 

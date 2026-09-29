@@ -1,0 +1,361 @@
+#include "config/ScenarioConfig.h"
+#include "config/Config.h"
+
+namespace config {
+
+SunConfig::SunConfig(const config::Config& cfg) {
+    name = cfg.get("name", name);
+    mass_kg = cfg.getDouble("mass_kg", mass_kg);
+    absolute_magnitude = cfg.getDouble("absolute_magnitude", absolute_magnitude);
+    validateAbsoluteMagnitude(absolute_magnitude);
+    validateMass(mass_kg);
+    if (name.empty() || cfg.data().contains("orbit"))
+        throw std::invalid_argument("Sun must have a name and no parent orbit");
+    auto pos_array = cfg.getArray("position", position);
+    if (pos_array.size() >= 3) {
+        position = {pos_array[0], pos_array[1], pos_array[2]};
+    }
+    radius = cfg.getDouble("radius", radius);
+    auto col_array = cfg.getArray("color", color);
+    if (col_array.size() >= 3) {
+        color = {col_array[0], col_array[1], col_array[2]};
+    }
+    if (position.size() != 3 ||
+        !std::all_of(position.begin(), position.end(), [](double v) { return std::isfinite(v); }) ||
+        !std::isfinite(radius) || radius <= 0.0 || color.size() != 3 ||
+        !std::all_of(color.begin(), color.end(), [](double v) {
+            return std::isfinite(v) && v >= 0.0 && v <= 1.0;
+        }))
+        throw std::invalid_argument("Invalid Sun position, radius or color");
+}
+
+SkyboxConfig::SkyboxConfig(const config::Config& cfg) {
+    enabled = cfg.getBool("enabled", enabled);
+    seed = cfg.getInt("seed", seed);
+    star_density = cfg.getDouble("star_density", star_density);
+    star_scale = cfg.getDouble("star_scale", star_scale);
+    star_brightness = cfg.getDouble("star_brightness", star_brightness);
+    ambient_light = cfg.getDouble("ambient_light", ambient_light);
+    background_color = cfg.getArray("background_color", background_color);
+    star_color = cfg.getArray("star_color", star_color);
+    validate();
+}
+
+OrbitViewConfig::OrbitViewConfig(const config::Config& cfg) {
+    auto readVector = [&cfg](const char* key, std::array<double, 3>& value) {
+        if (!cfg.data().contains(key)) return;
+        const auto& raw = cfg.data().at(key);
+        if (!raw.is_array() || raw.size() != 3 ||
+            !std::all_of(raw.begin(), raw.end(), [](const auto& element) {
+                return element.is_number() && std::isfinite(element.template get<double>());
+            })) {
+            throw std::invalid_argument(std::string("camera.") + key +
+                                        " must be a finite 3-vector");
+        }
+        for (int i = 0; i < 3; ++i) value[i] = raw[i].get<double>();
+    };
+    readVector("position", position);
+    readVector("target", target);
+    fov = cfg.getDouble("fov", fov);
+    if (!std::isfinite(fov) || fov <= 0.0 || fov >= 180.0 ||
+        std::hypot(position[0] - target[0], position[1] - target[1],
+                   position[2] - target[2]) <= 1e-12)
+        throw std::invalid_argument("Invalid camera position, target or field of view");
+}
+
+PlanetConfig::SurfaceNoiseFunction::SurfaceNoiseFunction(const config::Config& cfg, int defaultSeed)
+    : seed(defaultSeed) {
+    type = cfg.get("type", type);
+    amplitude_m = cfg.getDouble("amplitude_m", amplitude_m);
+    frequency = cfg.getDouble("frequency", frequency);
+    octaves = cfg.getInt("octaves", octaves);
+    persistence = cfg.getDouble("persistence", persistence);
+    lacunarity = cfg.getDouble("lacunarity", lacunarity);
+    seed = cfg.getInt("seed", seed);
+    validate();
+}
+
+PlanetConfig::TerrainLod::TerrainLod(const config::Config& cfg) {
+    base_edge_segments = cfg.getInt("base_edge_segments", base_edge_segments);
+    max_edge_segments = cfg.getInt("max_edge_segments", max_edge_segments);
+    medium_edge_segments = cfg.getInt("medium_edge_segments",
+        std::max(base_edge_segments, std::min(medium_edge_segments, max_edge_segments)));
+    steep_edge_segments = cfg.getInt("steep_edge_segments", max_edge_segments);
+    steep_slope_threshold = cfg.getDouble("steep_slope_threshold",
+                                          steep_slope_threshold);
+    near_surface_distance_m = cfg.getDouble("near_surface_distance_m", near_surface_distance_m);
+    mid_surface_distance_m = cfg.getDouble("mid_surface_distance_m", mid_surface_distance_m);
+    max_triangle_budget = cfg.getInt("max_triangle_budget", max_triangle_budget);
+    lod_near_diameters = cfg.getDouble("lod_near_diameters", lod_near_diameters);
+    lod_far_diameters = cfg.getDouble("lod_far_diameters", lod_far_diameters);
+    validate();
+}
+
+PlanetConfig::TerrainLandscape::TerrainLandscape(const config::Config& cfg) {
+    enabled = cfg.getBool("enabled", true);
+    elevation_offset_m = cfg.getDouble("elevation_offset_m", elevation_offset_m);
+    continent_amplitude_m = cfg.getDouble("continent_amplitude_m", continent_amplitude_m);
+    continent_frequency = cfg.getDouble("continent_frequency", continent_frequency);
+    plain_threshold = cfg.getDouble("plain_threshold", plain_threshold);
+    cliff_threshold = cfg.getDouble("cliff_threshold", cliff_threshold);
+    cliff_amplitude_m = cfg.getDouble("cliff_amplitude_m", cliff_amplitude_m);
+    cliff_frequency = cfg.getDouble("cliff_frequency", cliff_frequency);
+    ridge_smoothing = cfg.getDouble("ridge_smoothing", ridge_smoothing);
+    seed = cfg.getInt("seed", seed);
+    validate();
+}
+
+PlanetConfig::TerrainMaterial::TerrainMaterial(const config::Config& cfg) {
+    rock_start_degrees = cfg.getDouble("rock_start_degrees", rock_start_degrees);
+    rock_end_degrees = cfg.getDouble("rock_end_degrees", rock_end_degrees);
+    validate();
+}
+
+PlanetConfig::Water::Water(const config::Config& cfg) {
+    enabled = cfg.getBool("enabled", true);
+    level_m = cfg.getDouble("level_m", level_m);
+    opacity = cfg.getDouble("opacity", opacity);
+    reflection_fraction = cfg.getDouble("reflection_fraction", reflection_fraction);
+    const auto parsedColor = cfg.getArray("color", color);
+    if (parsedColor.size() != 3) throw std::invalid_argument("planet.water.color must have three channels");
+    color = parsedColor;
+    validate();
+}
+
+PlanetConfig::PlanetConfig(const config::Config& cfg) {
+    auto pos_array = cfg.getArray("position", position);
+    if (pos_array.size() >= 3) {
+        position = {pos_array[0], pos_array[1], pos_array[2]};
+    }
+    orbit_radius = cfg.getDouble("orbit_radius", orbit_radius);
+    orbit_speed = cfg.getDouble("orbit_speed", orbit_speed);
+    name = cfg.get("name", name);
+    if (cfg.data().contains("name") && name.empty())
+        throw std::invalid_argument("Planet name must not be empty");
+    mass_kg = cfg.getDouble("mass_kg", mass_kg);
+    validateMass(mass_kg);
+    if (cfg.data().contains("orbit")) {
+        orbit = OrbitConfig(Config{nlohmann::json(cfg.data().at("orbit"))});
+    } else {
+        // Legacy circular-orbit configs retain their radius. orbit_speed
+        // remains readable metadata; physics always derives the speed.
+        orbit.semi_major_axis = orbit.semi_minor_axis = orbit_radius;
+        orbit.validate();
+    }
+    if (cfg.data().contains("rotation"))
+        rotation = RotationConfig(Config{nlohmann::json(cfg.data().at("rotation"))});
+    if (cfg.data().contains("reflection"))
+        reflection = ReflectionConfig(Config{nlohmann::json(cfg.data().at("reflection"))});
+    radius = cfg.getDouble("radius", radius);
+    auto col_array = cfg.getArray("color", color);
+    if (col_array.size() >= 3) {
+        color = {col_array[0], col_array[1], col_array[2]};
+    }
+    noise_seed = cfg.getInt("noise_seed", noise_seed);
+    if (cfg.data().contains("surface_noise")) {
+        const auto& raw = cfg.data().at("surface_noise");
+        if (!raw.is_array() || raw.size() > 8) {
+            throw std::invalid_argument("planet.surface_noise must be an array of at most eight functions");
+        }
+        for (std::size_t i = 0; i < raw.size(); ++i) {
+            if (!raw[i].is_object()) {
+                throw std::invalid_argument("planet.surface_noise entries must be objects");
+            }
+            surface_noise.emplace_back(config::Config{nlohmann::json(raw[i])},
+                                       noise_seed);
+        }
+    }
+    if (cfg.data().contains("terrain_lod")) {
+        const auto& raw = cfg.data().at("terrain_lod");
+        if (!raw.is_object()) {
+            throw std::invalid_argument("planet.terrain_lod must be an object");
+        }
+        terrain_lod = TerrainLod(config::Config{nlohmann::json(raw)});
+    }
+    if (cfg.data().contains("terrain_landscape")) {
+        const auto& raw = cfg.data().at("terrain_landscape");
+        if (!raw.is_object()) throw std::invalid_argument("planet.terrain_landscape must be an object");
+        terrain_landscape = TerrainLandscape(config::Config{nlohmann::json(raw)});
+    }
+    if (cfg.data().contains("terrain_material")) {
+        const auto& raw = cfg.data().at("terrain_material");
+        if (!raw.is_object()) throw std::invalid_argument("planet.terrain_material must be an object");
+        terrain_material = TerrainMaterial(config::Config{nlohmann::json(raw)});
+    }
+    if (cfg.data().contains("foliage")) {
+        const auto& raw = cfg.data().at("foliage");
+        if (!raw.is_object()) throw std::invalid_argument("planet.foliage must be an object");
+        foliage = FoliageConfig(config::Config{nlohmann::json(raw)});
+    }
+    if (cfg.data().contains("water")) {
+        const auto& raw = cfg.data().at("water");
+        if (!raw.is_object()) throw std::invalid_argument("planet.water must be an object");
+        water = Water(config::Config{nlohmann::json(raw)});
+    }
+    if (position.size() != 3 ||
+        !std::all_of(position.begin(), position.end(), [](double v) { return std::isfinite(v); }) ||
+        !std::isfinite(radius) || radius <= 0.0 || color.size() != 3 ||
+        !std::all_of(color.begin(), color.end(), [](double v) {
+            return std::isfinite(v) && v >= 0.0 && v <= 1.0;
+        }))
+        throw std::invalid_argument("Invalid planet position, radius or color");
+    if (cfg.data().contains("atmosphere"))
+        atmosphere = AtmosphereConfig(Config{nlohmann::json(cfg.data().at("atmosphere"))});
+    atmosphere_enabled = cfg.getBool("atmosphere_enabled", atmosphere_enabled);
+    atmosphere_height = cfg.getDouble("atmosphere_height", atmosphere_height);
+}
+
+SurfaceCameraConfig::SurfaceCameraConfig(const config::Config& cfg) {
+    enabled = true;
+    reference_frame = cfg.get("reference_frame", reference_frame);
+    planet_index = cfg.getInt("planet_index", planet_index);
+    latitude_deg = cfg.getDouble("latitude_deg", latitude_deg);
+    longitude_deg = cfg.getDouble("longitude_deg", longitude_deg);
+    altitude = cfg.getDouble("altitude", altitude);
+    fov = cfg.getDouble("fov", fov);
+    walk_speed_mps = cfg.getDouble("walk_speed_mps", walk_speed_mps);
+    if (cfg.data().contains("simulation_time_seconds")) {
+        const auto& time = cfg.data().at("simulation_time_seconds");
+        if (!time.is_number() || !std::isfinite(time.get<double>()))
+            throw std::invalid_argument("surface_camera.simulation_time_seconds must be finite seconds");
+        simulation_time_seconds = time.get<double>();
+    }
+    auto parseNedVector = [&cfg](const char* key) {
+        const auto& raw = cfg.data().at(key);
+        if (!raw.is_array() || raw.size() != 3 ||
+            !raw[0].is_number() || !raw[1].is_number() ||
+            !raw[2].is_number()) {
+            throw std::invalid_argument(std::string("surface_camera.") + key +
+                                        " must be a nonzero 3-vector");
+        }
+        const std::array<double, 3> values{
+            raw[0].get<double>(), raw[1].get<double>(), raw[2].get<double>()};
+        const double magnitude = std::hypot(values[0], values[1], values[2]);
+        if (!std::isfinite(magnitude) || magnitude <= 1e-12) {
+            throw std::invalid_argument(std::string("surface_camera.") + key +
+                                        " must be a nonzero finite 3-vector");
+        }
+        return values;
+    };
+    if (cfg.data().contains("direction_ned")) {
+        direction_ned = parseNedVector("direction_ned");
+    }
+    if (cfg.data().contains("up_ned")) {
+        up_ned = parseNedVector("up_ned");
+        if (!direction_ned) {
+            throw std::invalid_argument("surface_camera.up_ned requires direction_ned");
+        }
+        const double directionLength = std::hypot(
+            (*direction_ned)[0], (*direction_ned)[1], (*direction_ned)[2]);
+        const double upLength = std::hypot(
+            (*up_ned)[0], (*up_ned)[1], (*up_ned)[2]);
+        double dot = 0.0;
+        for (int axis = 0; axis < 3; ++axis) {
+            dot += ((*direction_ned)[axis] / directionLength) *
+                   ((*up_ned)[axis] / upLength);
+        }
+        if (std::abs(dot) > 0.999999) {
+            throw std::invalid_argument("surface_camera.up_ned must not align with direction_ned");
+        }
+    }
+}
+
+ScenarioConfig::ScenarioConfig(const config::Config& cfg) {
+    name = cfg.get("scenario_name", name);
+    distance_unit = cfg.get("distance_unit", distance_unit);
+    if (distance_unit != "km" && distance_unit != "m") {
+        throw std::invalid_argument("distance_unit must be km or m");
+    }
+
+    // Only parse sun if it exists in the config
+    const auto& raw_data = cfg.data();
+    auto skybox_it = raw_data.find("skybox");
+    if (skybox_it != raw_data.end()) {
+        if (!skybox_it->is_object())
+            throw std::invalid_argument("skybox must be an object");
+        skybox = SkyboxConfig(config::Config{nlohmann::json(*skybox_it)});
+    }
+    // Old scenarios may still put ambient_light under skybox.
+    lighting.ambient_light = skybox.ambient_light;
+    if (raw_data.contains("lighting"))
+        lighting = LightingConfig(Config{nlohmann::json(raw_data.at("lighting"))},
+                                  skybox.ambient_light);
+    auto sun_it = raw_data.find("sun");
+    if (sun_it != raw_data.end() && sun_it->is_object()) {
+        // Copy the json value first, then move it to Config constructor
+        config::Config sun_cfg{std::move(nlohmann::json(*sun_it))};
+        sun = SunConfig(sun_cfg);
+    }
+
+    for (int i = 0; i < 3; ++i) {
+        camera.position[i] += sun.position[i];
+        camera.target[i] = sun.position[i];
+    }
+    auto camera_it = raw_data.find("camera");
+    if (camera_it != raw_data.end()) {
+        if (!camera_it->is_object())
+            throw std::invalid_argument("camera must be an object");
+        camera = OrbitViewConfig(config::Config{nlohmann::json(*camera_it)});
+    }
+
+    // Check for "planets" array first, then fall back to single "planet" object
+    auto planets_it = raw_data.find("planets");
+    if (planets_it != raw_data.end() && planets_it->is_array()) {
+        // Iterate over each planet object in the array
+        for (const auto& planet_json : planets_it.value()) {
+            // Copy the json value first, then move it to Config constructor
+            config::Config planet_cfg{std::move(nlohmann::json(planet_json))};
+            planets.emplace_back(PlanetConfig{planet_cfg});
+        }
+    } else {
+        // Try singular "planet" key
+        auto planet_it = raw_data.find("planet");
+        if (planet_it != raw_data.end() && planet_it->is_object()) {
+            // Copy the json value first, then move it to Config constructor
+            config::Config planet_cfg{std::move(nlohmann::json(*planet_it))};
+            planets.emplace_back(planet_cfg);
+        }
+    }
+
+    for (std::size_t i = 0; i < planets.size(); ++i)
+        if (planets[i].name.empty()) planets[i].name = "planet_" + std::to_string(i);
+    orbitalParents();
+
+    for (const auto& planet : planets) {
+        double totalAmplitudeMeters = 0.0;
+        for (const auto& function : planet.surface_noise)
+            totalAmplitudeMeters += function.amplitude_m;
+        totalAmplitudeMeters += planet.terrain_landscape.maximumAbsoluteHeightMeters();
+        if (!std::isfinite(totalAmplitudeMeters) ||
+            totalAmplitudeMeters >= planet.radius * metersPerWorldUnit()) {
+            throw std::invalid_argument("Planet radius must exceed terrain height");
+        }
+        if (planet.water.enabled &&
+            std::abs(planet.water.level_m) >= planet.radius * metersPerWorldUnit())
+            throw std::invalid_argument("Water level must be within the planet radius");
+    }
+
+    auto surface_it = raw_data.find("surface_camera");
+    if (surface_it != raw_data.end()) {
+        if (!surface_it->is_object()) {
+            throw std::invalid_argument("surface_camera must be an object");
+        }
+        config::Config surface_cfg{nlohmann::json(*surface_it)};
+        surface_camera = SurfaceCameraConfig(surface_cfg);
+        if (surface_camera.reference_frame != "planet_spherical_ned" ||
+            surface_camera.planet_index < 0 ||
+            static_cast<size_t>(surface_camera.planet_index) >= planets.size() ||
+            !std::isfinite(surface_camera.latitude_deg) ||
+            surface_camera.latitude_deg < -90.0 || surface_camera.latitude_deg > 90.0 ||
+            !std::isfinite(surface_camera.longitude_deg) ||
+            !std::isfinite(surface_camera.altitude) || surface_camera.altitude < 0.0 ||
+            !std::isfinite(surface_camera.fov) ||
+            surface_camera.fov <= 0.0 || surface_camera.fov >= 180.0 ||
+            !std::isfinite(surface_camera.walk_speed_mps) ||
+            surface_camera.walk_speed_mps <= 0.0 ||
+            surface_camera.walk_speed_mps > 100.0) {
+            throw std::invalid_argument("Invalid surface_camera reference frame or coordinates");
+        }
+    }
+}
+} // namespace config
