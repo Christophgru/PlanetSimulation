@@ -70,8 +70,9 @@ TEST(GrassConfig, ParsesAndRejectsUnboundedOrNonfiniteWork) {
     EXPECT_TRUE(p.foliage.enabled); EXPECT_DOUBLE_EQ(p.foliage.height_m,.8);
     EXPECT_EQ(p.foliage.max_blades,1200);
     EXPECT_FALSE(config::PlanetConfig{}.foliage.enabled);
+    EXPECT_NO_THROW(config::FoliageConfig(config::Config{nlohmann::json::parse(R"({"density_per_m2":1200.72})")}));
     for (const auto* raw : {R"({"max_blades":0})",R"({"max_blades":250001})",
-         R"({"density_per_m2":65})",R"({"draw_distance_m":101})",R"({"width_m":0})",
+         R"({"density_per_m2":4097})",R"({"draw_distance_m":101})",R"({"width_m":0})",
          R"({"height_m":4})",R"({"wind_strength":-1})"})
         EXPECT_THROW(config::FoliageConfig(config::Config{nlohmann::json::parse(raw)}),std::invalid_argument);
     p.foliage.height_m=std::numeric_limits<double>::quiet_NaN();

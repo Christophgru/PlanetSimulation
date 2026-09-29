@@ -19,7 +19,7 @@ document the progress and add comments such that when interrupted you can contin
 |Add a extreme atmosphere light bending exampe to the readme and journal with renderings. Make light bending a optional feature that can be turned on or off via json|t| Matched extreme on/off renderings, README, journal/PDF and exact replays added. Existing refraction_enabled JSON switch controls bending; gallery hashes and replay comparison passed. 38 full-suite tests passed, then the corrected layout test passed. |
 |add textures, roughness and mini elevation for performant details, make steeper gradients more grey and give them a rocky look (Do so without crazy amounts of polygons, instead use the maps tro crreate rock like local landscape)|t| Planet-local procedural color, rough diffuse shading, centimetre-scale normal relief and gray steep slopes implemented without added geometry. GPU material regression, all 39 CTest checks and the 15-image gallery/hash validation passed. |
 |Keep the water reflective and smooth. Make the gradient where grass becomes rock adjustable and keep grass longer before setting cliff. |t| Per-planet terrain_material slope range added (35–55° defaults), shared by gray-rock shading and broad darkening. Config/CPU/GPU regressions, smooth water reflection check, all 39 CTest tests and refreshed 15-image gallery/hash checks passed. |
-|add foliage like the grass in the quickgrass demo (copy it as close as possible) |i| SimonDev Quick_Grass port implemented with instanced curved blades, distance LOD, wind, bright tips, slope/water exclusion, terrain shadows and water reflections. MIT attribution preserved. Initial close render inspected; full validation and gallery refresh pending. |
+|add foliage like the grass in the quickgrass demo (copy it as close as possible) |t| SimonDev Quick_Grass port implemented with instanced curved blades, distance LOD, wind, bright tips, slope/water exclusion, terrain shadows and water reflections. MIT attribution preserved. All 41 CTest tests and refreshed 16-image gallery/hash checks passed on the current scene settings. |
 |Compile time has become pretty long, lets do a stabilisation commit where we try to clean up unnecessary header includes, and increase linking instead of compiling huge files new. |||
 |Spawn the Foliage in a gaussian distribution around the current position, such that at the current position there are most and far away only view. If its coputationally too complex add 5 distance zones.|||
 |as visible in image USER_IO/user_artifacts/image copy.png the water boarders are still pretty rough, the sand applies to whole (huge) triangles and the grass doesn't qite reach the water. Lets think of ways to keep it performant for large scale but have accurate, fine triangular resolution when we get close to the water.|||
@@ -64,7 +64,9 @@ if environmental changes are needed inside the container, let the user know by a
   same-LOD overlap is seeded independently of camera rejection. Wind uses
   simulation time; patches clear on reload. Three-metre surface preview is
   saved as the new foliage replay and inspected. CPU/GPU/full-capture tests
-  and updated gallery are the next validation steps. No new dependencies.
+  and updated gallery are complete: all 41 CTest tests passed (70 s), all 16
+  images refreshed and hashes checked. Tests/documentation now honor the user
+  density limit of 4096 and working scene camera at 2 m. No new dependencies.
 - Resumed after workspace permissions were restored. Configurable slope range
   is implemented in ScenarioConfig, TerrainSurface and the terrain shader,
   with config/CPU/GPU regressions and README/config documentation. All 39
@@ -80,9 +82,9 @@ if environmental changes are needed inside the container, let the user know by a
   All 15 gallery captures were regenerated and hashes checked. Inspected the
   terrain-detail image. Headless overview: 14,784 non-background pixels,
   bounding box (1,1)–(794,598), 3,466 planet pixels. No dependencies added.
-- Next in table order: foliage, using SimonDev Quick_Grass as the likely
-  reference unless the user supplies a different demo. Prior slope/water row
-  is complete. No new environment dependencies.
+- Next in table order: compile-time stabilization, then Gaussian foliage
+  density, finer shorelines, and steep-mountain camera clearance. Preserve the
+  user's new scene settings. The earlier sky-cut replay is still unavailable.
 
 ## Previous checkpoint — 2026-09-28
 

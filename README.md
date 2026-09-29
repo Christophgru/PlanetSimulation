@@ -29,7 +29,7 @@ The development scene uses kilometers for world coordinates: the Sun is 5 km
 across, Earth is 2 km across, and the Moon is 540 m across. The Earth–Moon
 center of mass travels between **74.6 and 104.4 km** from the Sun, with outer
 orbital half axes of 89.5 and about 88.25 km.
-The surface camera starts 30 m above sampled terrain or water, whichever is
+The surface camera starts 2 m above sampled terrain or water, whichever is
 higher, and walks at 80 m/s.
 The development config stores planets in a `planets` array; the surface
 camera's `planet_index` selects an entry in that array.
@@ -813,9 +813,12 @@ license](external/quick-grass/README.md) record the version and adaptations.
 ~~~
 
 These are the defaults when a foliage block is present. Height and width are
-in metres; the random height multiplier is 0.75–1.5. Supported ranges are
+in metres. The working scene overrides them with 1 m height, 0.08 m width,
+60 m draw distance, a requested density of 1200.72 blades/m² and a 200,000-blade
+budget. The defaults shown above remain the smaller reference preset.
+The random height multiplier is 0.75–1.5. Supported ranges are
 0–2 wind strength, 0.05–3 m height, 0.005–0.3 m width, 5–100 m draw distance,
-positive density up to 64 blades/m², and 1–250,000 blades per planet.
+positive density up to 4096 blades/m², and 1–250,000 blades per planet.
 Density is reduced when necessary to fit the instance budget. Each blade uses
 one instance; the terrain triangle budget is unchanged. Height fades over the
 last quarter of the draw distance. The default distance is shorter than the
