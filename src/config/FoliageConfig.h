@@ -27,7 +27,7 @@ struct FoliageConfig {
         validate();
     }
     void validate() const {
-        if (!std::isfinite(density_per_m2) || density_per_m2 <= 0 || density_per_m2 > 64 ||
+        if (!std::isfinite(density_per_m2) || density_per_m2 <= 0 || density_per_m2 > 4096 ||
             !std::isfinite(height_m) || height_m < 0.05 || height_m > 3 ||
             !std::isfinite(width_m) || width_m < 0.005 || width_m > 0.3 ||
             !std::isfinite(draw_distance_m) || draw_distance_m < 5 || draw_distance_m > 100 ||
