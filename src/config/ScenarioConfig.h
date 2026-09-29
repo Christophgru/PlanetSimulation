@@ -12,6 +12,7 @@
 #include "config/OrbitalConfig.h"
 #include "config/LightingConfig.h"
 #include "config/AtmosphereConfig.h"
+#include "config/FoliageConfig.h"
 
 namespace config {
 
@@ -317,6 +318,7 @@ struct PlanetConfig {
     TerrainLod terrain_lod;
     TerrainLandscape terrain_landscape;
     TerrainMaterial terrain_material;
+    FoliageConfig foliage;
     Water water;
     AtmosphereConfig atmosphere;
     bool atmosphere_enabled = false;
@@ -382,6 +384,11 @@ struct PlanetConfig {
             const auto& raw = cfg.data().at("terrain_material");
             if (!raw.is_object()) throw std::invalid_argument("planet.terrain_material must be an object");
             terrain_material = TerrainMaterial(config::Config{nlohmann::json(raw)});
+        }
+        if (cfg.data().contains("foliage")) {
+            const auto& raw = cfg.data().at("foliage");
+            if (!raw.is_object()) throw std::invalid_argument("planet.foliage must be an object");
+            foliage = FoliageConfig(config::Config{nlohmann::json(raw)});
         }
         if (cfg.data().contains("water")) {
             const auto& raw = cfg.data().at("water");

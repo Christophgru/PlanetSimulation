@@ -20,10 +20,10 @@ to fit the Sun and Earth in one frame. Click an image to view it at full size.
 A C++20/OpenGL project that renders a moving Sun, Earth, and Moon from
 `configs/scenarios/solar_system.json`.
 
-The visual direction for later landscape and vegetation steps is the
+The visual reference for landscape and vegetation is the
 [Quick Grass live demo](https://simondevyoutube.github.io/Quick_Grass/) and its
 [GitHub source](https://github.com/simondevyoutube/Quick_Grass). The renderer
-currently has broad terrain and water; grass remains future work.
+now includes wind-animated instanced grass adapted to spherical terrain.
 
 The development scene uses kilometers for world coordinates: the Sun is 5 km
 across, Earth is 2 km across, and the Moon is 540 m across. The Earth–Moon
@@ -543,9 +543,9 @@ The selected file also becomes the interactive reload/watch target.
 ## Project layout
 
 - `src/config`, `src/coordinates`, `src/simulation`: scene settings and physical models.
-- `src/rendering/{camera,geometry,lighting,atmosphere,diagnostics}`: rendering subsystems.
-- `shaders/{terrain,water,skybox,atmosphere,diagnostics}`: matching GPU programs.
-- `tests/{camera,geometry,lighting,atmosphere,simulation,config,diagnostics}`: subsystem tests.
+- `src/rendering/{camera,geometry,foliage,lighting,atmosphere,diagnostics}`: rendering subsystems.
+- `shaders/{terrain,foliage,water,skybox,atmosphere,diagnostics}`: matching GPU programs.
+- `tests/{camera,geometry,foliage,lighting,atmosphere,simulation,config,diagnostics}`: subsystem tests.
 - `tests/scenarios` and `tests/fixtures`: reproducible scene inputs.
 - `docs/screenshots`: PNG images only; `docs/captures/replay`: replay JSON.
 - `docs/captures`: image generation log and manifest; `scripts`: maintenance commands.
@@ -790,6 +790,54 @@ surface-distance zones.
 Faces retain their current detail level for another 20 m while the camera
 moves away from a zone boundary, so walking back and forth does not repeatedly
 switch their tessellation.
+
+Optional per-planet `foliage` enables grass on the green biome. The working
+Earth enables it; omitted blocks leave grass disabled in older scenes.
+The port follows [SimonDev's Quick_Grass](https://github.com/simondevyoutube/Quick_Grass)
+with six-segment curved blades nearby and one-segment blades beyond 15 m,
+random heights and lean, coherent wind, dark bases, yellow-green tips,
+wrapped diffuse lighting and backscatter. The [source attribution and MIT
+license](external/quick-grass/README.md) record the version and adaptations.
+
+~~~json
+"foliage": {
+    "enabled": true,
+    "density_per_m2": 30.72,
+    "height_m": 1.5,
+    "width_m": 0.1,
+    "draw_distance_m": 40.0,
+    "wind_strength": 1.0,
+    "max_blades": 100000,
+    "seed": 7321
+}
+~~~
+
+These are the defaults when a foliage block is present. Height and width are
+in metres; the random height multiplier is 0.75–1.5. Supported ranges are
+0–2 wind strength, 0.05–3 m height, 0.005–0.3 m width, 5–100 m draw distance,
+positive density up to 64 blades/m², and 1–250,000 blades per planet.
+Density is reduced when necessary to fit the instance budget. Each blade uses
+one instance; the terrain triangle budget is unchanged. Height fades over the
+last quarter of the draw distance. The default distance is shorter than the
+demo's 100 m to bound work on weaker hardware.
+
+Roots sit on the rendered terrain triangles and follow body rotation, including
+at the poles. Water, beaches, snow and gray bodies do not grow grass. Coverage
+thins through the configured grass-to-rock slope range. Blades receive terrain
+shadows and atmospheric lighting and appear in water reflections. They do not
+cast individual shadows; base occlusion is an approximation, as in the demo.
+Wind follows simulation time, so pause freezes it and capture replays are exact.
+Patches update after movement or terrain LOD changes; a new tessellation can
+reseed the patch. Player collision and the demo's screen-space blade thickening
+are not implemented.
+
+<a href="docs/screenshots/grass-detail.png"><img src="docs/screenshots/grass-detail.png" width="640" alt="Wind-bent grass with dark roots and bright tips on green hills beneath rocky ridges"></a>
+
+This view is three metres above the ground. Replay it with:
+
+~~~bash
+./build/PlanetSimulation --replay docs/captures/replay/foliage/grass-detail.png.json --surface-capture build/grass-detail.png
+~~~
 
 `water` sets `enabled`, `level_m`, `color`, `opacity`, and
 `reflection_fraction` for a translucent spherical sea. The development scene

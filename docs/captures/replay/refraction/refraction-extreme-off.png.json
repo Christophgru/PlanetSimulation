@@ -9,6 +9,7 @@
     "atmospheric_illuminance": 0.07200125194833631,
     "direct_illuminance": 0.0,
     "exposure": 9.258969665907383,
+    "foliage_blades": 0,
     "height": 720,
     "metered_illuminance": 0.07200225194833632,
     "non_background_pixels": 921595,
@@ -457,8 +458,8 @@
       "reference_frame": "planet_spherical_ned",
       "simulation_time_seconds": 0.0,
       "up_ned": [
-        0.005642867970074985,
-        0.09418814306884683,
+        0.005642867970074933,
+        0.09418814306884685,
         -0.9955384230386665
       ],
       "walk_speed_mps": 80.0
@@ -479,8 +480,8 @@
     "reference_frame": "planet_spherical_ned",
     "simulation_time_seconds": 0.0,
     "up_ned": [
-      0.005642867970074933,
-      0.09418814306884685,
+      0.005642867970074881,
+      0.09418814306884683,
       -0.9955384230386665
     ],
     "walk_speed_mps": 80.0

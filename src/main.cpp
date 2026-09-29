@@ -36,6 +36,7 @@
 #include "rendering/Shader.h"
 #include "rendering/camera/SurfaceCameraTelemetry.h"
 #include "rendering/WaterReflectionTarget.h"
+#include "rendering/foliage/GrassRenderer.h"
 #include "rendering/lighting/TerrainShadowMaps.h"
 #include "rendering/atmosphere/AtmosphereRenderer.h"
 #include "rendering/diagnostics/FrameProfiler.h"
@@ -242,7 +243,8 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                  rendering::ClipPlanes clip = {},
                  std::optional<std::size_t> meteredPlanet = std::nullopt,
                  bool recordObjects = false, rendering::FrameProfiler* profiler = nullptr,
-                 bool forceHdr = false, GLuint outputFramebuffer = 0) {
+                 bool forceHdr = false, GLuint outputFramebuffer = 0,
+                 rendering::GrassRenderer* grass = nullptr, double sceneTime = 0) {
     using Stage = rendering::FrameStage;
     using Scope = rendering::FrameProfiler::Scope;
     Scope lightingScope(profiler, Stage::Lighting, false);
@@ -265,6 +267,11 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
     const bool hdr = rendering::hasAtmosphere(scenario) || forceHdr;
     exposure.hdrOutput = hdr;
     lightingScope.stop();
+    if (grass) for (std::size_t i=0;i<scenario.planets.size();++i) {
+        const auto& planet=scenario.planets[i];
+        grass->prepare(i,planetMeshes[i],planet,scenario.metersPerWorldUnit(),
+            bodies[i+1].toLocalPoint(eyeWorld)/planet.radius);
+    }
     { Scope tablesScope(profiler, Stage::Tables); atmosphereColumns.ensure(scenario); }
     Scope shadowScope(profiler, Stage::Shadows);
     shadows.ensure(scenario.planets.size(), scenario.lighting.shadows);
@@ -369,6 +376,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
         for (std::size_t i = 0; i < scenario.planets.size(); ++i) {
             if (record) glStencilFunc(GL_ALWAYS, i == meteredPlanet.value_or(0) ? 2 : 3, 0xff);
             const auto& planet = scenario.planets[i];
+            shader.use();
             const glm::mat4 model = rendering::sphereModel(
                 glm::vec3(bodies[i + 1].position), static_cast<float>(planet.radius),
                 glm::mat3(bodies[i + 1].orientation));
@@ -386,6 +394,28 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
             setRgb(shader, "uTerrainEyeBody", materialEye);
             setBodyLighting(shader, i);
             planetMeshes[i].draw();
+            if (grass && grass->count(i)) {
+                const auto& settings=planet.foliage;
+                auto& bladeShader=grass->shader;
+                bladeShader.use();
+                bladeShader.setMat4("model",glm::value_ptr(model));
+                bladeShader.setMat4("view",glm::value_ptr(passView));
+                bladeShader.setMat4("projection",glm::value_ptr(passProjection));
+                bladeShader.setFloat3("uClipCenter",clipCenter.x,clipCenter.y,clipCenter.z);
+                bladeShader.setFloat("uClipRadius",clipRadius);
+                bladeShader.setFloat("uMetersPerRadius",planet.radius*scenario.metersPerWorldUnit());
+                bladeShader.setFloat("uGrassHeight",settings.height_m);
+                bladeShader.setFloat("uGrassWidth",settings.width_m);
+                bladeShader.setFloat("uDrawDistance",settings.draw_distance_m);
+                bladeShader.setFloat("uWindStrength",settings.wind_strength);
+                // Every wind frequency is a multiple of 0.05 rad/s. Wrap by
+                // the shared period to retain float precision without a jump.
+                bladeShader.setFloat("uTime",std::remainder(sceneTime,40.0*std::acos(-1.0)));
+                setRgb(bladeShader,"uGrassEyeBody",bodies[i+1].toLocalPoint(eyeWorld)/planet.radius);
+                setRgb(bladeShader,"uViewEyeWorld",glm::dvec3(glm::inverse(passView)[3]));
+                setBodyLighting(bladeShader,i);
+                grass->draw(i);
+            }
         }
         if (record) glDisable(GL_STENCIL_TEST);
     };
@@ -434,7 +464,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                 return renderScene(scenario, bodies, view, fov, eyeWorld, shader, waterShader, skyboxShader,
                     reflectionTarget, shadowShader, shadows, atmosphereShader, atmosphere, reflectionAtmosphere,
                     atmosphereColumns, sunMesh, skyboxMesh, planetMeshes, waterMeshes, width, height,
-                    clip, meteredPlanet, recordObjects, profiler, true, outputFramebuffer);
+                    clip, meteredPlanet, recordObjects, profiler, true, outputFramebuffer, grass, sceneTime);
         }
         return exposure;
     };
@@ -899,6 +929,7 @@ int main(int argc, char** argv) {
         // Create shader program
         Shader shader("shaders/terrain/basic.vert", "shaders/terrain/basic.frag", "shaders/terrain/terrain_shadow.glsl", "shaders/atmosphere/atmosphere.glsl");
         Shader waterShader("shaders/water/water.vert", "shaders/water/water.frag", "shaders/terrain/terrain_shadow.glsl", "shaders/atmosphere/atmosphere.glsl");
+        rendering::GrassRenderer grass;
         Shader shadowShader("shaders/terrain/terrain_shadow.vert", "shaders/terrain/terrain_shadow.frag");
         rendering::TerrainShadowMaps terrainShadows;
         Shader atmosphereShader("shaders/atmosphere/atmosphere.vert", "shaders/atmosphere/atmosphere.frag", "shaders/atmosphere/atmosphere.glsl");
@@ -980,7 +1011,7 @@ int main(int argc, char** argv) {
                                 surfaceRenderMode ? surfaceClip :
                                 planetRenderMode ? planetOrbitClip(eyeWorld) :
                                                    rendering::ClipPlanes{},
-                                (surfaceRenderMode || planetRenderMode) ? std::optional<std::size_t>(orbitPlanetIndex) : std::nullopt, true, &profiler);
+                                (surfaceRenderMode || planetRenderMode) ? std::optional<std::size_t>(orbitPlanetIndex) : std::nullopt, true, &profiler, false, 0, &grass, simulationTime);
                     frameReuse.remember(view,fov,width,height,simulationTime,revisions,eyeWorld,surfaceRenderMode ? 1 : planetRenderMode ? 2 : 0);
                 }
                 { rendering::FrameProfiler::Scope scope(&profiler, rendering::FrameStage::Overlay);
@@ -998,7 +1029,7 @@ int main(int argc, char** argv) {
                           << "/" << meshZoneFaces[i][1] << "/" << meshZoneFaces[i][2]
                           << "; steep-refined faces: " << meshSteepRefinedFaces[i]
                           << " (budget " << scenario.planets[i].terrain_lod.max_triangle_budget
-                          << ")\n";
+                          << "); foliage blades: " << grass.count(i) << "\n";
 
             // Call glFinish() before reading framebuffer
             glFinish();
@@ -1148,6 +1179,7 @@ int main(int argc, char** argv) {
                         {"white_clipped_pixels", metrics.whiteClippedPixels},
                         {"white_clipped_fraction", metrics.whiteClippedFraction},
                         {"terrain_pixels", metrics.terrainPixels}, {"sky_pixels", metrics.skyPixels},
+                        {"foliage_blades", grass.count(orbitPlanetIndex)},
                         {"terrain_mean_display_luminance", metrics.terrainMeanLuminance},
                         {"terrain_max_display_luminance", metrics.terrainMaxLuminance},
                         {"terrain_luminance_stddev", metrics.terrainLuminanceStddev},
@@ -1296,6 +1328,7 @@ int main(int argc, char** argv) {
                             glm::dvec3(camera.position), camera.getViewMatrix(), camera.fov);
                         telemetry = SurfaceCameraTelemetry{};
                         terrainShadows.destroy();
+                        grass.clear();
                         frameReuse.invalidate();
                         orbitTrails.clear();
                         orbitColors.clear();
@@ -1414,7 +1447,7 @@ int main(int argc, char** argv) {
                                     skyboxShader, waterReflection, shadowShader, terrainShadows,
                                     atmosphereShader, atmosphere, reflectionAtmosphere, atmosphereColumns, g_mesh, skyboxMesh,
                                     planetMeshes, waterMeshes, sceneWidth, sceneHeight,
-                                    clip, (onSurface || onPlanetOrbit) ? std::optional<std::size_t>(orbitPlanetIndex) : std::nullopt, false, &profiler, false, sceneOutput);
+                                    clip, (onSurface || onPlanetOrbit) ? std::optional<std::size_t>(orbitPlanetIndex) : std::nullopt, false, &profiler, false, sceneOutput, &grass, simulationClock.seconds());
                         frameReuse.remember(view,fov,sceneWidth,sceneHeight,simulationClock.seconds(),revisions,eyeWorld,static_cast<int>(cameraInput.mode()));
                     }
                     const bool showOrbits = inputContext.orbitsVisible && cameraInput.mode() == CameraMode::Orbit;

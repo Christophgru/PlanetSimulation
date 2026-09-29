@@ -19,7 +19,7 @@ document the progress and add comments such that when interrupted you can contin
 |Add a extreme atmosphere light bending exampe to the readme and journal with renderings. Make light bending a optional feature that can be turned on or off via json|t| Matched extreme on/off renderings, README, journal/PDF and exact replays added. Existing refraction_enabled JSON switch controls bending; gallery hashes and replay comparison passed. 38 full-suite tests passed, then the corrected layout test passed. |
 |add textures, roughness and mini elevation for performant details, make steeper gradients more grey and give them a rocky look (Do so without crazy amounts of polygons, instead use the maps tro crreate rock like local landscape)|t| Planet-local procedural color, rough diffuse shading, centimetre-scale normal relief and gray steep slopes implemented without added geometry. GPU material regression, all 39 CTest checks and the 15-image gallery/hash validation passed. |
 |Keep the water reflective and smooth. Make the gradient where grass becomes rock adjustable and keep grass longer before setting cliff. |t| Per-planet terrain_material slope range added (35–55° defaults), shared by gray-rock shading and broad darkening. Config/CPU/GPU regressions, smooth water reflection check, all 39 CTest tests and refreshed 15-image gallery/hash checks passed. |
-|add foliage like the grass in the quickgrass demo (copy it as close as possible) |||
+|add foliage like the grass in the quickgrass demo (copy it as close as possible) |i| SimonDev Quick_Grass port implemented with instanced curved blades, distance LOD, wind, bright tips, slope/water exclusion, terrain shadows and water reflections. MIT attribution preserved. Initial close render inspected; full validation and gallery refresh pending. |
 # environmental issues :
 current apt get has the following dependencies 
     git \
@@ -50,6 +50,15 @@ if environmental changes are needed inside the container, let the user know by a
 
 ## Progress checkpoint — 2026-09-29
 
+- Foliage implementation now lives in `src/rendering/foliage` and
+  `shaders/foliage`, configured by `src/config/FoliageConfig.h`. The existing
+  README already confirms SimonDev Quick_Grass as the reference. Adapted its
+  six/one-segment blades, palette and light response with the MIT notice in
+  `external/quick-grass`. Terrain roots are sampled from rendered triangles;
+  same-LOD overlap is seeded independently of camera rejection. Wind uses
+  simulation time; patches clear on reload. Three-metre surface preview is
+  saved as the new foliage replay and inspected. CPU/GPU/full-capture tests
+  and updated gallery are the next validation steps. No new dependencies.
 - Resumed after workspace permissions were restored. Configurable slope range
   is implemented in ScenarioConfig, TerrainSurface and the terrain shader,
   with config/CPU/GPU regressions and README/config documentation. All 39

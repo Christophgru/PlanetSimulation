@@ -232,6 +232,17 @@
                     "rock_end_degrees": "Slope where rock fully replaces the grass tint, at least 0.1 degrees above the start and at most 90."
                 }
             },
+            "foliage": {
+                "enabled": true,
+                "density_per_m2": 30.72,
+                "height_m": 1.5,
+                "width_m": 0.1,
+                "draw_distance_m": 40.0,
+                "wind_strength": 1.0,
+                "max_blades": 100000,
+                "seed": 7321,
+                "description": "SimonDev Quick_Grass-style instanced blades on green terrain. Density may be reduced to respect the instance budget. Wind follows simulation time."
+            },
             "water": {
                 "enabled": true,
                 "level_m": 0,
@@ -423,7 +434,7 @@
         "planet_index": 0,
         "latitude_deg": -21.409888069265286,
         "longitude_deg": 82.26311950013215,
-        "altitude": 0.03,
+        "altitude": 0.0017,
         "walk_speed_mps": 80.0,
         "direction_ned": [
             0.0595365512313363,

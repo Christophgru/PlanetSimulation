@@ -7,6 +7,7 @@
 #include "rendering/geometry/Mesh.h"
 #include "rendering/lighting/TerrainShadowMaps.h"
 #include "rendering/lighting/CelestialLighting.h"
+#include "rendering/foliage/GrassRenderer.h"
 
 namespace {
 constexpr int size = 256;
@@ -227,6 +228,69 @@ TEST(TerrainMaterialRender, DetailPreservesGeometryAndFollowsTheBody) {
     const auto distant = render(1e6,{0,0,1},false);
     EXPECT_EQ(distant,plain); // Unresolved wavelengths do not shimmer.
     patch.destroy();
+}
+
+TEST(GrassRender, WindMovesBladesWhileNightAndClippingRemainDark) {
+    ShadowScene scene;
+    rendering::GrassRenderer grass;
+    config::PlanetConfig planet;
+    planet.radius=1; planet.color={.2,.6,.1}; planet.foliage.enabled=true;
+    planet.foliage.draw_distance_m=10; planet.foliage.max_blades=4000;
+    Mesh ground;
+    ground.hasVertexColors=true;
+    for (glm::vec3 p : {glm::vec3(-.1,-.1,1),glm::vec3(.1,-.1,1),glm::vec3(.1,.1,1),glm::vec3(-.1,.1,1)}) {
+        for (const auto v : {p,glm::vec3(0,0,1),glm::vec3(1)})
+            for (int c=0;c<3;++c) ground.vertices.push_back(v[c]);
+    }
+    ground.indices={0,1,2,0,2,3};
+    const glm::vec3 eye(0,-5,102);
+    grass.prepare(0,ground,planet,100,glm::dvec3(eye)/100.0);
+    ASSERT_GT(grass.count(0),500u);
+    GLuint occluder=0;
+    glGenTextures(1,&occluder); glActiveTexture(GL_TEXTURE4); glBindTexture(GL_TEXTURE_2D,occluder);
+    const float depth=0;
+    glTexImage2D(GL_TEXTURE_2D,0,GL_DEPTH_COMPONENT24,1,1,0,GL_DEPTH_COMPONENT,GL_FLOAT,&depth);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_COMPARE_MODE,GL_COMPARE_REF_TO_TEXTURE);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_COMPARE_FUNC,GL_LEQUAL);
+    auto render=[&](float time,bool night=false,float clip=-1.0f,bool shadow=false) {
+        glBindFramebuffer(GL_FRAMEBUFFER,scene.framebuffer);
+        glViewport(0,0,size,size); glEnable(GL_DEPTH_TEST); glDisable(GL_BLEND);
+        glClearColor(0,0,0,1); glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+        auto& s=grass.shader; s.use();
+        GLint linked=GL_FALSE; glGetProgramiv(s.id,GL_LINK_STATUS,&linked); EXPECT_EQ(linked,GL_TRUE);
+        s.setMat4("model",glm::value_ptr(glm::scale(glm::mat4(1),glm::vec3(100))));
+        s.setMat4("view",glm::value_ptr(glm::lookAt(eye,glm::vec3(0,3,100.5),glm::vec3(0,0,1))));
+        s.setMat4("projection",glm::value_ptr(glm::perspective(glm::radians(60.f),1.f,.1f,30.f)));
+        s.setFloat3("uGrassEyeBody",0,-.05f,1.02f);
+        s.setFloat3("uViewEyeWorld",eye.x,eye.y,eye.z);
+        s.setFloat3("uClipCenter",0,0,0); s.setFloat("uClipRadius",clip);
+        s.setFloat("uMetersPerRadius",100); s.setFloat("uGrassHeight",1.5f);
+        s.setFloat("uGrassWidth",.1f); s.setFloat("uDrawDistance",10);
+        s.setFloat("uWindStrength",1); s.setFloat("uTime",time);
+        s.setInt("uShadowsEnabled",shadow); s.setInt("uLinearOutput",1);
+        s.setInt("uShadowMap",4); s.setFloat("uShadowBias",.0001f);
+        s.setMat4("uShadowMatrix",glm::value_ptr(glm::translate(glm::mat4(1),glm::vec3(0,0,-1))));
+        s.setFloat3("uSunDirection",0,0,night ? -1 : 1);
+        s.setFloat3("uSunlight",1,1,1); s.setFloat3("uIndirectLight",0,0,0);
+        grass.draw(0);
+        Image result(size*size*3);
+        glReadPixels(0,0,size,size,GL_RGB,GL_UNSIGNED_BYTE,result.data());
+        EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+        return result;
+    };
+    const auto first=render(0);
+    EXPECT_GT(std::count_if(first.begin(),first.end(),[](auto c) { return c>20; }),1000);
+    EXPECT_EQ(first,render(0));
+    EXPECT_NE(first,render(2));
+    const auto night=render(0,true),clipped=render(0,false,200);
+    EXPECT_EQ(*std::max_element(night.begin(),night.end()),0);
+    EXPECT_EQ(*std::max_element(clipped.begin(),clipped.end()),0);
+    const auto shadow=render(0,false,-1,true);
+    EXPECT_EQ(*std::max_element(shadow.begin(),shadow.end()),0);
+    glDeleteTextures(1,&occluder);
+    grass.clear(); EXPECT_EQ(grass.count(0),0u);
 }
 
 TEST(TerrainShadowRender, ForegroundRidgeBlocksSunFacingRearRidge) {

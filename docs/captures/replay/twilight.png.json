@@ -9,6 +9,7 @@
     "atmospheric_illuminance": 0.0,
     "direct_illuminance": 0.0,
     "exposure": 4096.0,
+    "foliage_blades": 0,
     "height": 600,
     "metered_illuminance": 1.8348077700740813e-06,
     "non_background_pixels": 235810,

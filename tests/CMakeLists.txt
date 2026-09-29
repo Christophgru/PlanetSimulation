@@ -113,6 +113,11 @@ add_test(NAME RenderDiagnosticsTests COMMAND render_diagnostics_tests)
 add_test(NAME StarFieldTests COMMAND star_field_tests)
 add_test(NAME MeshGeometryTests COMMAND mesh_geometry_tests)
 add_test(NAME TerrainTests COMMAND terrain_tests)
+
+add_executable(grass_placement_tests foliage/test_grass_placement.cpp)
+target_link_libraries(grass_placement_tests PRIVATE GTest::gtest_main glm::glm nlohmann_json::nlohmann_json)
+target_include_directories(grass_placement_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+add_test(NAME GrassPlacementTests COMMAND grass_placement_tests)
 add_test(NAME PlanetLocalFrameTests COMMAND planet_local_frame_tests)
 add_test(NAME PlanetSurfaceCameraTests COMMAND planet_surface_camera_tests)
 add_test(NAME SurfaceCameraTelemetryTests COMMAND surface_camera_telemetry_tests)
@@ -132,6 +137,10 @@ add_test(NAME MoonlightRenderIntegration COMMAND PlanetSimulation
 set_tests_properties(MoonlightRenderIntegration PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
+add_test(NAME GrassCaptureIntegration COMMAND ${Python3_EXECUTABLE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/foliage/test_grass_capture.py --binary $<TARGET_FILE:PlanetSimulation>
+    --output-dir ${CMAKE_BINARY_DIR}/grass-captures)
+set_tests_properties(GrassCaptureIntegration PROPERTIES TIMEOUT 90)
 add_test(NAME LightingScenariosRenderIntegration COMMAND ${Python3_EXECUTABLE}
     ${CMAKE_CURRENT_SOURCE_DIR}/lighting/render_lighting_scenarios.py --binary $<TARGET_FILE:PlanetSimulation>
     --output-dir ${CMAKE_BINARY_DIR}/lighting-scenarios)
