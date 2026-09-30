@@ -45,12 +45,24 @@ mat3 axisRotation(vec3 a,float angle) {
                 a.x*a.y*k-a.z*s,c+a.y*a.y*k,a.z*a.y*k+a.x*s,
                 a.x*a.z*k+a.y*s,a.y*a.z*k-a.x*s,c+a.z*a.z*k);
 }
+float grassLodFadeEnd(float variation) {
+    // Shared with GrassLod.cpp: a stable, tint-independent retention tier.
+    uint h=uint(variation*65536.0);
+    h^=h>>16; h*=0x7feb352du; h^=h>>15; h*=0x846ca68bu; h^=h>>16;
+    float nearDistance=min(15.0,uDrawDistance*.25);
+    return nearDistance+float((h&7u)+1u)*(uDrawDistance-nearDistance)/8.0;
+}
 void main() {
     float t=float(gl_VertexID/2)/float(uSegments);
+    // The final strip vertex is the shared apex; no duplicate zero-area tip.
     float side=float(gl_VertexID%2);
     float distanceToEye=length(aRoot-uGrassEyeBody)*uMetersPerRadius;
-    float low=smoothstep(7.5,15.0,distanceToEye);
-    float fade=1.0-smoothstep(uDrawDistance*0.75,uDrawDistance,distanceToEye);
+    float nearDistance=min(15.0,uDrawDistance*.25);
+    float low=smoothstep(nearDistance*.25,nearDistance*.5,distanceToEye);
+    float fadeEnd=grassLodFadeEnd(aVariation.w);
+    float tierWidth=(uDrawDistance-nearDistance)/8.0;
+    float fade=min(1.0-smoothstep(fadeEnd-tierWidth,fadeEnd,distanceToEye),
+                  1.0-smoothstep(uDrawDistance*.75,uDrawDistance,distanceToEye));
     vec3 up=normalize(aUp);
     vec3 right=normalize(cross(abs(up.z)<0.9 ? vec3(0,0,1) : vec3(0,1,0),up));
     vec3 forward=cross(right,up);
@@ -60,17 +72,23 @@ void main() {
     // All advection rates traverse whole 256-cell periods in 8192 seconds;
     // GrassWind.h wraps the double clock by that exact common period.
     float gust=clamp(0.5+0.5*grassPerlin(p*.08+uTime*vec3(.25,.125,0)),0.0,1.0);
-    float windAngle=pow(mix(.25,1.0,gust),2.0)*1.25*uWindStrength*t;
+    // Distant blades become straight before the CPU can lower their segment
+    // count. Collinear intermediate vertices then vanish without a shape pop.
+    float windAngle=pow(mix(.25,1.0,gust),2.0)*1.25*uWindStrength*mix(t,1.0,low);
     float windDirection=grassPerlin(p*.02+vec3(19.3,7.1,43.7)+uTime*vec3(.03125,0,0));
     mat3 wind=axisRotation(vec3(cos(windDirection),0,sin(windDirection)),windAngle);
     mat3 turn=axisRotation(vec3(0,1,0),aVariation.x);
     float lean=aVariation.y+.1*uWindStrength*grassPerlin(p*.7+vec3(5.2,31.8,11.4)+uTime*vec3(0,.5,0));
     float curve=-lean*mix(t*t,1.0,low);
-    float height=uGrassHeight*aVariation.z*fade;
-    float width=uGrassWidth*mix(1.0-t*t,1.0-t,low)*fade;
+    float height=uGrassHeight*aVariation.z;
+    float width=uGrassWidth*mix(1.0-t*t,1.0-t,low);
     vec3 local=axisRotation(vec3(1,0,0),curve)*vec3((side-.5)*width,t*height,0);
+    local*=fade; // Smooth collapse while sinking; retired strips have zero area.
     mat3 bend=frame*wind*turn;
-    vec3 body=aRoot+bend*local/uMetersPerRadius;
+    // Retiring blades sink along local gravity, rather than popping out or
+    // shrinking toward a conspicuous bright root on the ground.
+    float sink=(height+uGrassWidth+.01)*(1.0-fade);
+    vec3 body=aRoot+(bend*local-up*sink)/uMetersPerRadius;
     float derivative=-2.0*lean*t*(1.0-low);
     vec3 tangent=normalize(vec3(0,cos(curve)-t*sin(curve)*derivative,sin(curve)+t*cos(curve)*derivative));
     vec3 bladeNormal=vec3(0,-tangent.z,tangent.y);

@@ -313,7 +313,16 @@ TEST(GrassRender, WindMovesBladesWhileNightAndClippingRemainDark) {
         s.setMat4("uShadowMatrix",glm::value_ptr(glm::translate(glm::mat4(1),glm::vec3(0,0,-1))));
         s.setFloat3("uSunDirection",0,0,night ? -1 : 1);
         s.setFloat3("uSunlight",1,1,1); s.setFloat3("uIndirectLight",0,0,0);
+        GLuint primitives=0;
+        glGenQueries(1,&primitives);
+        glBeginQuery(GL_PRIMITIVES_GENERATED,primitives);
         grass.draw(0);
+        glEndQuery(GL_PRIMITIVES_GENERATED);
+        GLuint generated=0;
+        glGetQueryObjectuiv(primitives,GL_QUERY_RESULT,&generated);
+        EXPECT_EQ(generated,grass.drawStats(0).triangles);
+        EXPECT_LE(grass.drawStats(0).batches,6u);
+        glDeleteQueries(1,&primitives);
         Image result(size*size*3);
         glReadPixels(0,0,size,size,GL_RGB,GL_UNSIGNED_BYTE,result.data());
         EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));

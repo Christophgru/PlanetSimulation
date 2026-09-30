@@ -1,0 +1,620 @@
+{
+  "utc": "2026-09-30T20:37:50.497199+00:00",
+  "platform": "Linux-7.0.0-34-generic-x86_64-with-glibc2.36",
+  "binary_sha256": "ae6983505e258bfe04aefbd157a5c7a5ae6d2ae9ae45ea8de5f0b8c9944f4607",
+  "frames": 20,
+  "warmup": 3,
+  "size": [
+    640,
+    360
+  ],
+  "environment": {
+    "LIBGL_ALWAYS_SOFTWARE": "1",
+    "LP_NUM_THREADS": "2"
+  },
+  "terrain_mode": "synchronous capture; interactive walking builds terrain asynchronously",
+  "walk_step_m": 2.0,
+  "orbit_step_s": 0,
+  "cases": {
+    "stationary": {
+      "measured_frames": 16,
+      "frame_ms": {
+        "mean": 40.72154825,
+        "median": 40.65362399999999,
+        "p95": 42.738193
+      },
+      "gpu_ms": {
+        "mean": 2.3038005,
+        "median": 2.3000415,
+        "p95": 2.45546
+      },
+      "terrain_build_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "foliage_placement_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "foliage_sort_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "foliage_upload_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "cpu_update_ms": {
+        "mean": 0.00999925,
+        "median": 0.008492,
+        "p95": 0.023766
+      },
+      "gpu_update_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "cpu_mesh_ms": {
+        "mean": 0.0014765,
+        "median": 0.0014399999999999999,
+        "p95": 0.001823
+      },
+      "gpu_mesh_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "cpu_lighting_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "gpu_lighting_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "cpu_foliage_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "gpu_foliage_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "cpu_tables_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "gpu_tables_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "cpu_shadows_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "gpu_shadows_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "cpu_opaque_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "gpu_opaque_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "cpu_reflection_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "gpu_reflection_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "cpu_reflection_atmosphere_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "gpu_reflection_atmosphere_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "cpu_water_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "gpu_water_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "cpu_atmosphere_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "gpu_atmosphere_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "cpu_cached_present_ms": {
+        "mean": 37.9347075,
+        "median": 37.8308105,
+        "p95": 39.662467
+      },
+      "gpu_cached_present_ms": {
+        "mean": 2.3037505625,
+        "median": 2.300002,
+        "p95": 2.455437
+      },
+      "cpu_overlay_ms": {
+        "mean": 0.0024405,
+        "median": 0.0013145000000000001,
+        "p95": 0.019947
+      },
+      "gpu_overlay_ms": {
+        "mean": 4.99375e-05,
+        "median": 3.35e-05,
+        "p95": 0.000252
+      },
+      "cpu_present_ms": {
+        "mean": 2.75260425,
+        "median": 2.7731725000000003,
+        "p95": 3.032571
+      },
+      "gpu_present_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "scene_reuses": 16,
+      "mesh_uploads": 0,
+      "foliage_rebuilds": 0,
+      "shadow_updates": 0,
+      "shadow_reuses": 0,
+      "foliage_rebuild_frame_mean_ms": 0,
+      "gpu_measured_frames": 16,
+      "command": [
+        "/workspace/build-codex/pre-grass-lod/PlanetSimulation",
+        "--replay",
+        "/workspace/build-codex/lod-verified/before/stationary/input.json",
+        "--surface-capture",
+        "/workspace/build-codex/lod-verified/before/stationary/capture.png",
+        "--render-size",
+        "640",
+        "360",
+        "--benchmark-frames",
+        "20",
+        "--benchmark-step",
+        "0",
+        "--benchmark-walk-step",
+        "0",
+        "--performance-trace",
+        "/workspace/build-codex/lod-verified/before/stationary/frames.csv"
+      ],
+      "input_sha256": "3cee74cd079bfffa9ea4236f7f232558274a67680558ca225e3e592ab697d3ed"
+    },
+    "walking": {
+      "measured_frames": 16,
+      "frame_ms": {
+        "mean": 1576.965724375,
+        "median": 1387.16541,
+        "p95": 2667.78186
+      },
+      "gpu_ms": {
+        "mean": 1391.26045875,
+        "median": 1267.9170450000001,
+        "p95": 2666.29466
+      },
+      "terrain_build_ms": {
+        "mean": 161.97553987499998,
+        "median": 0.0,
+        "p95": 925.235385
+      },
+      "foliage_placement_ms": {
+        "mean": 15.178330875,
+        "median": 0.0,
+        "p95": 41.005795
+      },
+      "foliage_sort_ms": {
+        "mean": 5.9813276250000005,
+        "median": 0.0,
+        "p95": 16.701165
+      },
+      "foliage_upload_ms": {
+        "mean": 0.37020993750000003,
+        "median": 0.0,
+        "p95": 1.170759
+      },
+      "cpu_update_ms": {
+        "mean": 0.0174725,
+        "median": 0.0150245,
+        "p95": 0.046416
+      },
+      "gpu_update_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "cpu_mesh_ms": {
+        "mean": 162.6036218125,
+        "median": 0.0015015,
+        "p95": 929.671102
+      },
+      "gpu_mesh_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "cpu_lighting_ms": {
+        "mean": 0.00478025,
+        "median": 0.004094,
+        "p95": 0.016726
+      },
+      "gpu_lighting_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "cpu_foliage_ms": {
+        "mean": 21.5317550625,
+        "median": 0.00068,
+        "p95": 58.881515
+      },
+      "gpu_foliage_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "cpu_tables_ms": {
+        "mean": 0.005038,
+        "median": 0.0038145,
+        "p95": 0.008947
+      },
+      "gpu_tables_ms": {
+        "mean": 3.1875e-05,
+        "median": 2.45e-05,
+        "p95": 5.3e-05
+      },
+      "cpu_shadows_ms": {
+        "mean": 2.298780125,
+        "median": 0.0011285000000000002,
+        "p95": 12.510705
+      },
+      "gpu_shadows_ms": {
+        "mean": 8.446371875,
+        "median": 2.3e-05,
+        "p95": 52.5051
+      },
+      "cpu_opaque_ms": {
+        "mean": 391.1852884375,
+        "median": 369.108422,
+        "p95": 845.302969
+      },
+      "gpu_opaque_ms": {
+        "mean": 574.685134375,
+        "median": 516.003061,
+        "p95": 1583.08495
+      },
+      "cpu_reflection_ms": {
+        "mean": 372.5570229375,
+        "median": 321.2498415,
+        "p95": 1048.36948
+      },
+      "gpu_reflection_ms": {
+        "mean": 270.54516625,
+        "median": 257.5663965,
+        "p95": 477.266378
+      },
+      "cpu_reflection_atmosphere_ms": {
+        "mean": 203.7917250625,
+        "median": 193.9908035,
+        "p95": 331.357648
+      },
+      "gpu_reflection_atmosphere_ms": {
+        "mean": 116.2367403125,
+        "median": 112.0948055,
+        "p95": 164.784345
+      },
+      "cpu_water_ms": {
+        "mean": 7.2073661875,
+        "median": 7.130132,
+        "p95": 8.766511
+      },
+      "gpu_water_ms": {
+        "mean": 14.0114106875,
+        "median": 13.919104,
+        "p95": 16.588477
+      },
+      "cpu_atmosphere_ms": {
+        "mean": 368.9189760625,
+        "median": 341.5425455,
+        "p95": 473.702359
+      },
+      "gpu_atmosphere_ms": {
+        "mean": 407.33557725,
+        "median": 378.638019,
+        "p95": 510.585087
+      },
+      "cpu_cached_present_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "gpu_cached_present_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "cpu_overlay_ms": {
+        "mean": 0.00111125,
+        "median": 0.0010425,
+        "p95": 0.001646
+      },
+      "gpu_overlay_ms": {
+        "mean": 2.73125e-05,
+        "median": 2.4e-05,
+        "p95": 5.8e-05
+      },
+      "cpu_present_ms": {
+        "mean": 46.727672375,
+        "median": 44.705372,
+        "p95": 67.894636
+      },
+      "gpu_present_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "scene_reuses": 0,
+      "mesh_uploads": 3,
+      "foliage_rebuilds": 6,
+      "shadow_updates": 3,
+      "shadow_reuses": 29,
+      "foliage_rebuild_frame_mean_ms": 57.41693983333333,
+      "gpu_measured_frames": 16,
+      "command": [
+        "/workspace/build-codex/pre-grass-lod/PlanetSimulation",
+        "--replay",
+        "/workspace/build-codex/lod-verified/before/walking/input.json",
+        "--surface-capture",
+        "/workspace/build-codex/lod-verified/before/walking/capture.png",
+        "--render-size",
+        "640",
+        "360",
+        "--benchmark-frames",
+        "20",
+        "--benchmark-step",
+        "0",
+        "--benchmark-walk-step",
+        "2.0",
+        "--performance-trace",
+        "/workspace/build-codex/lod-verified/before/walking/frames.csv"
+      ],
+      "input_sha256": "3cee74cd079bfffa9ea4236f7f232558274a67680558ca225e3e592ab697d3ed"
+    },
+    "walking-bare": {
+      "measured_frames": 16,
+      "frame_ms": {
+        "mean": 708.9855555,
+        "median": 534.9787530000001,
+        "p95": 1503.17172
+      },
+      "gpu_ms": {
+        "mean": 543.2333563125001,
+        "median": 533.4218705000001,
+        "p95": 594.008156
+      },
+      "terrain_build_ms": {
+        "mean": 163.54993981249999,
+        "median": 0.0,
+        "p95": 916.22934
+      },
+      "foliage_placement_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "foliage_sort_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "foliage_upload_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "cpu_update_ms": {
+        "mean": 0.0153633125,
+        "median": 0.014409499999999999,
+        "p95": 0.020064
+      },
+      "gpu_update_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "cpu_mesh_ms": {
+        "mean": 164.1821495,
+        "median": 0.0011719999999999999,
+        "p95": 920.511833
+      },
+      "gpu_mesh_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "cpu_lighting_ms": {
+        "mean": 0.0036514375,
+        "median": 0.0036639999999999997,
+        "p95": 0.005761
+      },
+      "gpu_lighting_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "cpu_foliage_ms": {
+        "mean": 0.0003854375,
+        "median": 0.0003765,
+        "p95": 0.000675
+      },
+      "gpu_foliage_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "cpu_tables_ms": {
+        "mean": 0.0040864375,
+        "median": 0.0032900000000000004,
+        "p95": 0.009027
+      },
+      "gpu_tables_ms": {
+        "mean": 2.88125e-05,
+        "median": 2.65e-05,
+        "p95": 4e-05
+      },
+      "cpu_shadows_ms": {
+        "mean": 2.4420920625,
+        "median": 0.001161,
+        "p95": 13.490117
+      },
+      "gpu_shadows_ms": {
+        "mean": 7.8776991875,
+        "median": 3.7000000000000005e-05,
+        "p95": 42.573726
+      },
+      "cpu_opaque_ms": {
+        "mean": 21.3922731875,
+        "median": 15.052770500000001,
+        "p95": 48.464258
+      },
+      "gpu_opaque_ms": {
+        "mean": 164.289593375,
+        "median": 164.1863015,
+        "p95": 171.927358
+      },
+      "cpu_reflection_ms": {
+        "mean": 20.905595875,
+        "median": 20.09144,
+        "p95": 26.482279
+      },
+      "gpu_reflection_ms": {
+        "mean": 85.60667325,
+        "median": 85.38990000000001,
+        "p95": 91.41961
+      },
+      "cpu_reflection_atmosphere_ms": {
+        "mean": 327.5604186875,
+        "median": 323.3835765,
+        "p95": 344.408563
+      },
+      "gpu_reflection_atmosphere_ms": {
+        "mean": 114.61669075,
+        "median": 113.4606885,
+        "p95": 124.050197
+      },
+      "cpu_water_ms": {
+        "mean": 7.056541,
+        "median": 6.876645,
+        "p95": 8.634892
+      },
+      "gpu_water_ms": {
+        "mean": 13.523006,
+        "median": 13.6872565,
+        "p95": 15.763442
+      },
+      "cpu_atmosphere_ms": {
+        "mean": 119.574304875,
+        "median": 119.139928,
+        "p95": 131.247506
+      },
+      "gpu_atmosphere_ms": {
+        "mean": 157.319633125,
+        "median": 156.868437,
+        "p95": 170.383055
+      },
+      "cpu_cached_present_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "gpu_cached_present_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "cpu_overlay_ms": {
+        "mean": 0.0011001875,
+        "median": 0.0010990000000000002,
+        "p95": 0.00129
+      },
+      "gpu_overlay_ms": {
+        "mean": 3.18125e-05,
+        "median": 2.3e-05,
+        "p95": 9.9e-05
+      },
+      "cpu_present_ms": {
+        "mean": 45.780019125,
+        "median": 45.859086500000004,
+        "p95": 48.621011
+      },
+      "gpu_present_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "scene_reuses": 0,
+      "mesh_uploads": 3,
+      "foliage_rebuilds": 0,
+      "shadow_updates": 3,
+      "shadow_reuses": 29,
+      "foliage_rebuild_frame_mean_ms": 0,
+      "gpu_measured_frames": 16,
+      "command": [
+        "/workspace/build-codex/pre-grass-lod/PlanetSimulation",
+        "--replay",
+        "/workspace/build-codex/lod-verified/before/walking-bare/input.json",
+        "--surface-capture",
+        "/workspace/build-codex/lod-verified/before/walking-bare/capture.png",
+        "--render-size",
+        "640",
+        "360",
+        "--benchmark-frames",
+        "20",
+        "--benchmark-step",
+        "0",
+        "--benchmark-walk-step",
+        "2.0",
+        "--performance-trace",
+        "/workspace/build-codex/lod-verified/before/walking-bare/frames.csv"
+      ],
+      "input_sha256": "3698841d1ad4e82b9a7a33a7574b1da3788c3a588233dc167b765d7279af39f1"
+    }
+  },
+  "runtime_dir": "/workspace/build-codex/pre-grass-lod",
+  "shader_sha256": "5107cbb27769ceaa5898fdfe24630c26c33d824cc870de68e5edf32d17257a2e",
+  "graphics": "name of display: :99\ndisplay: :99  screen: 0\ndirect rendering: Yes\nExtended renderer info (GLX_MESA_query_renderer):\n    Vendor: Mesa/X.org (0xffffffff)\n    Device: llvmpipe (LLVM 15.0.6, 256 bits) (0xffffffff)\n    Version: 22.3.6\n    Accelerated: no\n    Video memory: 39925MB\n    Unified memory: yes\n    Preferred profile: core (0x1)\n    Max core profile version: 4.5\n    Max compat profile version: 4.5\n    Max GLES1 profile version: 1.1\n    Max GLES[23] profile version: 3.2\nOpenGL vendor string: Mesa/X.org\nOpenGL renderer string: llvmpipe (LLVM 15.0.6, 256 bits)\nOpenGL core profile version string: 4.5 (Core Profile) Mesa 22.3.6\nOpenGL core profile shading language version string: 4.50\nOpenGL core profile context flags: (none)\nOpenGL core profile profile mask: core profile\n\nOpenGL version string: 4.5 (Compatibility Profile) Mesa 22.3.6\nOpenGL shading language version string: 4.50\nOpenGL context flags: (none)\nOpenGL profile mask: compatibility profile\n\nOpenGL ES profile version string: OpenGL ES 3.2 Mesa 22.3.6\nOpenGL ES profile shading language version string: OpenGL ES GLSL ES 3.20\n\n"
+}

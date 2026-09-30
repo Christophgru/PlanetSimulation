@@ -124,7 +124,7 @@ add_test(NAME StarFieldTests COMMAND star_field_tests)
 add_test(NAME MeshGeometryTests COMMAND mesh_geometry_tests)
 add_test(NAME TerrainTests COMMAND terrain_tests)
 
-add_executable(grass_placement_tests foliage/test_grass_placement.cpp)
+add_executable(grass_placement_tests foliage/test_grass_placement.cpp foliage/test_grass_lod.cpp)
 add_executable(foliage_benchmark foliage/benchmark_grass.cpp)
 target_link_libraries(foliage_benchmark PRIVATE planet_app)
 target_link_libraries(grass_placement_tests PRIVATE GTest::gtest_main glm::glm nlohmann_json::nlohmann_json)

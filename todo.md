@@ -14,9 +14,11 @@ document the progress and add comments such that when interrupted you can contin
 
 |Task |State|Comment|
 |:--:|:--:|:--:|
-|Let's apply some optimisations from this repo: https://github.com/vercidium-patreon/glvertexid namely triangle optimisations, batching and 8 lods with sinking. Not all is applicable to our current setup 1:1 but these methods in general seem applicable, so let's apply them as well as possible.|p| Reviewed pinned regular-heightmap example; adapting to grass with single-tip strips, one instance upload per planet and eight distance/density levels with smooth sinking. Preserving terrain shared-edge/shoreline topology. CPU guard-band and GPU topology/transition regressions added; validation, benchmarks and documentation pending. |
-|Add more timing traces especially on the cpu side, how much time is spent in what functions, use a dedicated debugger/tool for the runtime analysis. Return and report if the environment doesnt provide a suitable context.|||
-|Lets add a parameter that determines how sharply the grass foliage falls of if it can be included without or with only minor performace loss into the application, also add the perlin noise parameter to the json config|||
+|Let's apply some optimisations from this repo: https://github.com/vercidium-patreon/glvertexid namely triangle optimisations, batching and 8 lods with sinking. Not all is applicable to our current setup 1:1 but these methods in general seem applicable, so let's apply them as well as possible.|t| Adapted to grass: single-tip strips, one instance upload, eight guarded LODs and smooth sinking, with compatible levels merged. Frozen view submits 26.8% fewer vertices and 31.5% fewer triangles, uploads 10.0% fewer bytes. One paired software-renderer run reduces walking mean by 7.2%; no hardware FPS guarantee. All 43 tests pass; journal/PDF and 17 gallery images refreshed, visually inspected and hashes verified. |
+|Add more timing traces especially on the cpu side, how much time is spent in what functions, use a dedicated debugger/tool for the runtime analysis. Add reports of the rundtime analysis in top down and bottom up visualisation (how the time is divided/which functions are called when vs how much time is spent in what functions). Return and report if the environment doesn't provide a suitable context.|||
+|Do 8 LODs also for the landscape of the planet implement sinking, such that always the most precise landscape is highest, remove the rest from the scene. |||
+|The Goal must be that we can cover the whole horizon with grass with reasonable fps. For that lets add grass foliage for high distance, reduce the placement accuracy, move the random placement from cpu to shader, and apply further techniques that seem suitable. |||
+|Add the perlin noise parameter to the json config|||
 |If not already implemented add frustum culling (for the foliage I think it could be difficult for the light simulation, but you may reduce triangle quality in the non camera viewed parts.), compute shaders and gpu instancing to be able to viaualize more foliage and finer landscape. Benchmark and calculate what data is sent from cpu to gpu, then add a section in the journal that identifies techniques most promising to reduce the largest delays. |||
 |Lets add a third person camera "4" and a actor on the same position as cam 2 that follows a small astronaut that can walk around the planet. Create a 3d model of the astronaut or download some nice MIT licensed one online (comic style). Create Walking movement such that the feet stay on the ground and dont slide over it. Search if tere is a nice library for that movement. If not, approvximate the foor movement for now and we will coma back later to that.|||
 |Make foliage movement independant of planetary movement, such that if pressed t only the planet movement stop, but local grass movement keeps going|||
@@ -58,6 +60,23 @@ if environmental changes are needed inside the container, let the user know by a
 
 ## Progress checkpoint — 2026-09-30
 
+- glvertexid adaptation is implemented: `GrassLod` builds eight guarded distance
+  ranges, stable density retirement tiers and one front-to-back instance buffer.
+  Single-tip strips remove one degenerate triangle per blade; equal one-triangle
+  levels coalesce, giving at most six draws. Shader sinking updates every frame;
+  distant blades straighten before segment reduction. Terrain topology is kept.
+  All 43 CTest entries pass (92.97 s; `build-codex/lod-tests.log`). The frozen
+  view submits 26.8% fewer vertices and 31.5% fewer triangles, and uploads 10.0%
+  fewer instance bytes. A single paired llvmpipe run reduces walking mean by
+  7.2% and median by 6.6%; this is not a hardware FPS guarantee. Full analysis,
+  frozen inputs, CSVs, logs and hashes are in `docs/journal/benchmarks/grass-lod.md`
+  and `benchmarks/lod/`. Journal PDF compiled; all 17 gallery hashes verified,
+  grass and shoreline visually inspected. Headless overview has 14,784
+  non-background pixels, bounds (1,1)–(794,598). Baseline executable and shader
+  tree are in `build-codex/pre-grass-lod/`; use `--runtime-dir` when comparing
+  it so it cannot load current shaders. No dependencies added. Preserve the
+  user's 60 m draw distance. Next: the CPU timing/profiler task immediately
+  after this row. The reference itself contains a heightmap example, not eight LODs.
 - Perlin wind is complete in `shaders/foliage/grass.vert`; `GrassWind.h`
   bounds the shared phase to an 8192-second period. Broad gusts, slow direction
   and fine flutter now use three body-local gradient fields with quintic fade.

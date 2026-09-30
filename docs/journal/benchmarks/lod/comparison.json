@@ -1,0 +1,33 @@
+{
+  "reference_revision": "25f1d1d292eeb9cd50984d933890b1ec00d4c97c",
+  "build": "GCC 12.2.0, RelWithDebInfo (-O2 -g -DNDEBUG)",
+  "cases": {
+    "stationary": {
+      "before_png_sha256": "82b60a536e43e7c7bc8e295bf993924930347e5bd2a8428b3d30201e66ac494f",
+      "after_png_sha256": "ce4f3a54c5e0894cdd8a9317efbd17ff3bc8b17003753dc7a6ff8b54195709eb",
+      "identical": false
+    },
+    "walking": {
+      "before_png_sha256": "55c27fe636ba4bf92aa0f59a03e2259160afceb13b3ddbbe1f30faa960f43094",
+      "after_png_sha256": "fb73eedcdf050c969b675039e30dc47ed9c2c709078e891a6a3c4547ef40dc7c",
+      "identical": false
+    },
+    "walking-bare": {
+      "before_png_sha256": "cf7dbdd50fcde3261bb733814ec3d92c589c509da71cb9434b124d7339a55725",
+      "after_png_sha256": "cf7dbdd50fcde3261bb733814ec3d92c589c509da71cb9434b124d7339a55725",
+      "identical": true
+    }
+  },
+  "initial_work": {
+    "blades": 162828,
+    "old_vertices": 1477562,
+    "old_triangles": 1151906,
+    "old_instance_bytes": 6513120,
+    "new_blades": 146510,
+    "new_vertices": 1081766,
+    "new_triangles": 788746,
+    "new_instance_bytes": 5860400,
+    "new_batches": 6
+  },
+  "batch_median_ms": 15.010532
+}

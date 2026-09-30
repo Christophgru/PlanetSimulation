@@ -15,6 +15,8 @@ from datetime import datetime, timezone
 ROOT = Path(__file__).resolve().parents[2]
 p = argparse.ArgumentParser(description=__doc__)
 p.add_argument('--binary', type=Path, required=True)
+p.add_argument('--runtime-dir', type=Path, default=ROOT,
+               help='Directory containing shaders/; use a saved tree for baseline comparisons')
 p.add_argument('--output-dir', type=Path, required=True)
 p.add_argument('--replay', type=Path, default=ROOT / 'docs/captures/replay/foliage/grass-detail.png.json')
 p.add_argument('--config', type=Path, default=ROOT / 'configs/scenarios/solar_system.json')
@@ -60,6 +62,12 @@ report = {'utc': datetime.now(timezone.utc).isoformat(), 'platform': platform.pl
                           ['LIBGL_ALWAYS_SOFTWARE', 'LP_NUM_THREADS']},
           'terrain_mode': 'synchronous capture; interactive walking builds terrain asynchronously',
           'walk_step_m': args.walk_step, 'orbit_step_s': 0, 'cases': {}}
+shader_hash = hashlib.sha256()
+runtime = args.runtime_dir.resolve()
+for shader in sorted((runtime / 'shaders').rglob('*')):
+    if shader.is_file():
+        shader_hash.update(str(shader.relative_to(runtime)).encode() + b'\0' + shader.read_bytes() + b'\0')
+report.update(runtime_dir=str(runtime), shader_sha256=shader_hash.hexdigest())
 try:
     report['graphics'] = subprocess.check_output(['glxinfo', '-B'], text=True)
 except (OSError, subprocess.CalledProcessError):
@@ -79,7 +87,7 @@ for case in args.cases:
                '--benchmark-step', '0', '--benchmark-walk-step',
                str(0 if case == 'stationary' else args.walk_step), '--performance-trace', str(trace)]
     with (case_dir / 'capture.log').open('w') as log:
-        subprocess.run(command, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=True)
+        subprocess.run(command, cwd=runtime, stdout=log, stderr=subprocess.STDOUT, check=True)
     with trace.open() as stream:
         rows = sorted(csv.DictReader(stream), key=lambda row: int(row['frame']))
     assert len(rows) == args.frames

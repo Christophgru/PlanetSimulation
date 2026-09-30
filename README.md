@@ -871,7 +871,7 @@ geometry. Land and water rebuild together in the existing background job.
 Optional per-planet `foliage` enables grass on the green biome. The working
 Earth enables it; omitted blocks leave grass disabled in older scenes.
 The port follows [SimonDev's Quick_Grass](https://github.com/simondevyoutube/Quick_Grass)
-with six-segment curved blades nearby and one-segment blades beyond 15 m,
+with six-segment curved blades nearby and progressively simpler distant blades,
 random heights and lean, Perlin-noise wind, dark bases, yellow-green tips,
 wrapped diffuse lighting and backscatter. The [source attribution and MIT
 license](external/quick-grass/README.md) record the version and adaptations.
@@ -896,15 +896,39 @@ budget. The defaults shown above remain the smaller reference preset.
 The random height multiplier is 0.75–1.5. Supported ranges are
 0–2 wind strength, 0.05–3 m height, 0.005–0.3 m width, 5–400 m draw distance,
 positive density up to 4096 blades/m², and 1–250,000 blades per planet.
-Density peaks at the camera and follows a Gaussian with standard deviation
+Candidate density peaks at the camera and follows a Gaussian with standard deviation
 `draw_distance_m / 3`: about 61% of peak at one third of the distance, 14%
 at two thirds, and 1% at the edge. `density_per_m2` sets the requested peak;
 the integrated distribution is scaled down when necessary to fit the instance
 budget. A cached patch follows walking, rebuilding after 15% of the draw
 distance; overlapping candidates keep their seeded positions. Each blade uses
-one instance; the terrain triangle budget is unchanged. Height fades over the
-last quarter of the draw distance. The default distance is shorter than the
+one instance; the terrain triangle budget is unchanged. The default distance is shorter than the
 demo's 100 m to bound work on weaker hardware.
+
+Grass uses eight distance levels with segment counts **6, 5, 4, 3, 2, 1, 1, 1**.
+For the working 60 m draw distance, nominal boundaries are 7.5, 9.375, 11.25,
+13.125, 15, 30 and 45 m. The cached patch keeps extra detail for the 9 m movement
+margin, so moving toward a blade cannot expose insufficient geometry before
+the next rebuild. Blades straighten before their first geometry reduction;
+removing collinear vertices then leaves their shape intact. Each strip has one
+shared tip: 13 vertices / 11 triangles nearby, down to 3 vertices / 1 triangle.
+
+Beyond `min(15 m, draw_distance_m / 4)`, eight stable, randomly distributed
+retention groups gradually thin the candidates further. Each group sinks and
+collapses over its distance interval; the final group vanishes at the draw limit.
+The outer-quarter fade also applies. This adds a distance LOD factor to the
+Gaussian density, without changing candidate seeds or the instance cap.
+The shader updates sinking every frame, including while walking within a cached
+patch. CPU removal includes the same movement margin and only removes blades
+that cannot be visible before the next rebuild. Reflections use the same LOD.
+
+Instances are sorted front to back and uploaded once per planet into a shared
+buffer. Each level draws a contiguous range; the three levels using a single
+triangle share one draw, giving at most six instanced draws per pass. Capture
+logs report submitted vertices, triangles, batches and active instance bytes
+per planet. These adaptations and their measurements are recorded in the
+[LOD journal](docs/journal/benchmarks/grass-lod.md), with the scope of the
+[gl_VertexID heightmap reference](https://github.com/vercidium-patreon/glvertexid).
 
 Roots sit on the rendered terrain triangles and follow body rotation, including
 at the poles. Water, beaches, snow and gray bodies do not grow grass. Coverage

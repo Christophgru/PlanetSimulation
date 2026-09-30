@@ -1,0 +1,32 @@
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 20.0 s
+Sun radius: 2.5
+Planets: 2
+Surface camera position: (6.9946, 5.87568, -0.562742)
+Surface render test mode enabled
+Output image: /workspace/build-codex/lod-verified/after/stationary/capture.png
+Planet 0 terrain: 100000 triangles; far/middle/near faces: 220/82/18; steep-refined faces: 15 (budget 100000); foliage blades: 146510; water triangles: 60000
+Planet 0 foliage per pass: 1081766 vertices; 788746 triangles; 6 batches; instance bytes: 5860400
+Planet 1 terrain: 960 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 60000); foliage blades: 0; water triangles: 0
+Planet 1 foliage per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Mesh preparation: 1377.35 ms; GPU-complete benchmark: 3011.96 ms
+earth lighting: direct RGB (4.42966, 4.38536, 4.29677), reflected RGB (7.53886e-06, 7.46347e-06, 7.69757e-06)
+moon lighting: direct RGB (8.26617, 8.18351, 8.01819), reflected RGB (0.0122606, 0.02023, 0.0396426)
+Image size: 640x360
+Background pixel: (8, 21, 5)
+Non-background pixels: 230399, bounding box: (0, 0)-(639, 359)
+Sun-colored pixels: 0
+Planet pixels (color/depth): 181838, bounding box: (0, 52)-(639, 359)
+Camera exposure: 0.175354; sky sensitivity: 0.00273991
+Star-like pixels: 30861, bounding box: (0, 0)-(639, 143)
+Blue water-like pixels: 17690, bounding box: (302, 0)-(639, 71)
+Simulation time: 20.0 s
+Surface camera position (world, km): [6.994598500763506,5.875675765923116,-0.562742349263953]
+Surface camera direction (world, unit vector): [0.6114639935820548,-0.749282257589539,-0.25433812733093863]
+Surface camera position (planet LLA): latitude=-21.409888069265286 deg, longitude=103.0 deg, altitude=6.015136819711464 m above reference sphere
+Surface camera ground clearance: 3.0 m
+surface_camera start value: {"altitude":0.003,"direction_ned":[0.049778974257457725,0.9955794851491649,-0.07964635881193383],"fov":65.0,"latitude_deg":-21.409888069265286,"longitude_deg":103.0,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":20.0,"up_ned":[-0.00397734935732752,-0.07954698714652261,-0.9968231826798577],"walk_speed_mps":80.0}
+White-clipped pixels (RGB >= 250): 0 (0%)
+Render test completed successfully
+Output image: /workspace/build-codex/lod-verified/after/stationary/capture.png

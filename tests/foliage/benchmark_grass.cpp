@@ -2,6 +2,7 @@
 #include "config/Config.h"
 #include "config/SceneReplay.h"
 #include "rendering/foliage/GrassPlacement.h"
+#include "rendering/foliage/GrassLod.h"
 #include <chrono>
 #include <cstring>
 #include <ctime>
@@ -21,7 +22,7 @@ int main(int argc, char** argv) {
         const auto& planet = scene.scenario.planets.at(index);
         const auto localEye = scene.bodies.at(index + 1).toLocalPoint(scene.surfaceCamera->position());
         const auto mesh = scene.terrainSurfaces.at(index).buildGeometryForEye(localEye, glm::dvec3(0));
-        std::cout << "iteration,placement_ms,placement_cpu_ms,blades,checksum\n" << std::setprecision(9);
+        std::cout << "iteration,placement_ms,placement_cpu_ms,blades,checksum,lod_batch_ms,old_vertices,old_triangles,old_instance_bytes,new_blades,new_vertices,new_triangles,new_instance_bytes,new_batches\n" << std::setprecision(9);
         for (int iteration = 0; iteration < 12; ++iteration) {
             const auto start = std::chrono::steady_clock::now();
             const auto cpuStart = std::clock();
@@ -45,7 +46,33 @@ int main(int argc, char** argv) {
                 for (int i=0; i<3; ++i) append(blade.up[i]);
                 for (int i=0; i<4; ++i) append(blade.variation[i]);
             }
-            std::cout << iteration << ',' << ms << ',' << cpuMs << ',' << blades.size() << ',' << hash << '\n';
+            const double scale=planet.radius*scene.scenario.metersPerWorldUnit();
+            const auto eye=localEye/planet.radius;
+            const double margin=rendering::grassRebuildDistance(planet.foliage);
+            std::size_t oldVertices=0,oldTriangles=0;
+            for (const auto& blade:blades) {
+                const bool near=glm::length(glm::dvec3(blade.root)-eye)*scale<=15+margin;
+                oldVertices+=near ? 14 : 4;
+                oldTriangles+=near ? 12 : 2; // Includes the old degenerate tip.
+            }
+            const auto batchStart=std::chrono::steady_clock::now();
+            const auto plan=rendering::batchGrass(blades,eye,scale,planet.foliage.draw_distance_m,margin);
+            const double batchMs=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-batchStart).count();
+            std::size_t newVertices=0,newTriangles=0,newBatches=0;
+            int previousSegments=0;
+            for (int level=0; level<8; ++level) {
+                const auto count=plan.batches[level].count;
+                newVertices+=count*rendering::grassLodVertices(level);
+                newTriangles+=count*(rendering::grassLodVertices(level)-2);
+                if (count) {
+                    newBatches+=rendering::grassLodSegments[level]!=previousSegments;
+                    previousSegments=rendering::grassLodSegments[level];
+                }
+            }
+            std::cout << iteration << ',' << ms << ',' << cpuMs << ',' << blades.size() << ',' << hash
+                      << ',' << batchMs << ',' << oldVertices << ',' << oldTriangles << ',' << blades.size()*sizeof(rendering::GrassBlade)
+                      << ',' << plan.blades.size() << ',' << newVertices << ',' << newTriangles << ',' << plan.blades.size()*sizeof(rendering::GrassBlade)
+                      << ',' << newBatches << '\n';
         }
     } catch (const std::exception& error) {
         std::cerr << error.what() << '\n'; return 1;

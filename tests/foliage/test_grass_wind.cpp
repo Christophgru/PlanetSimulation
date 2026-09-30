@@ -1,4 +1,5 @@
 #include "rendering/foliage/GrassWind.h"
+#include "rendering/foliage/GrassLod.h"
 #include <gtest/gtest.h>
 #include <GL/glew.h>
 #include <glm/glm.hpp>
@@ -23,8 +24,8 @@ public:
         const auto main = source.find("void main()");
         if (main == std::string::npos) throw std::runtime_error("Missing grass shader main");
         source.replace(main, 11, "void grassMain()");
-        source += "\nuniform vec3 uNoisePoint; out float windNoise;\n"
-                  "void main() { grassMain(); windNoise=grassPerlin(uNoisePoint); }\n";
+        source += "\nuniform vec3 uNoisePoint; out float windNoise, lodEnd;\n"
+                  "void main() { grassMain(); windNoise=grassPerlin(uNoisePoint); lodEnd=grassLodFadeEnd(aVariation.w); }\n";
         const GLuint shader = glCreateShader(GL_VERTEX_SHADER);
         const char* code = source.c_str();
         glShaderSource(shader, 1, &code, nullptr);
@@ -39,8 +40,8 @@ public:
         }
         program_ = glCreateProgram();
         glAttachShader(program_, shader);
-        const char* outputs[] = {"vBodyPosition", "vWorldPosition", "windNoise"};
-        glTransformFeedbackVaryings(program_, 3, outputs, GL_INTERLEAVED_ATTRIBS);
+        const char* outputs[] = {"vBodyPosition", "vWorldPosition", "windNoise", "lodEnd"};
+        glTransformFeedbackVaryings(program_, 4, outputs, GL_INTERLEAVED_ATTRIBS);
         glLinkProgram(program_);
         glDeleteShader(shader);
         glGetProgramiv(program_, GL_LINK_STATUS, &ok);
@@ -52,7 +53,7 @@ public:
         glGenBuffers(1, &buffer_);
         glBindVertexArray(vao_);
         glBindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, buffer_);
-        glBufferData(GL_TRANSFORM_FEEDBACK_BUFFER, 7*sizeof(float), nullptr, GL_STREAM_READ);
+        glBufferData(GL_TRANSFORM_FEEDBACK_BUFFER, 8*sizeof(float), nullptr, GL_STREAM_READ);
         glUseProgram(program_);
         uniform("uMetersPerRadius", 100);
         uniform("uGrassHeight", 1.5f);
@@ -74,13 +75,16 @@ public:
     void uniform(const char* name, float value) {
         glUniform1f(glGetUniformLocation(program_, name), value);
     }
-    std::array<float, 7> sample(glm::vec3 root, double seconds, float strength=1,
-                                int vertex=12, glm::mat4 model=glm::mat4(1)) {
+    void segments(int value) { glUniform1i(glGetUniformLocation(program_, "uSegments"),value); }
+    void variation(float value) { glVertexAttrib4f(2,.3f,.2f,1,value); }
+    std::array<float, 8> sample(glm::vec3 root, double seconds, float strength=1,
+                                int vertex=12, glm::mat4 model=glm::mat4(1), float distance=0) {
         const auto up=glm::normalize(root);
         glVertexAttrib3fv(0, glm::value_ptr(root));
         glVertexAttrib3fv(1, glm::value_ptr(up));
         glUniform3fv(glGetUniformLocation(program_, "uNoisePoint"), 1, glm::value_ptr(root));
-        glUniform3fv(glGetUniformLocation(program_, "uGrassEyeBody"), 1, glm::value_ptr(root));
+        const auto eye=root+up*(distance/100);
+        glUniform3fv(glGetUniformLocation(program_, "uGrassEyeBody"), 1, glm::value_ptr(eye));
         glUniformMatrix4fv(glGetUniformLocation(program_, "model"), 1, GL_FALSE, glm::value_ptr(model));
         uniform("uTime", rendering::grassWindTime(seconds));
         uniform("uWindStrength", strength);
@@ -90,7 +94,7 @@ public:
         glDrawArrays(GL_POINTS, vertex, 1);
         glEndTransformFeedback();
         glDisable(GL_RASTERIZER_DISCARD);
-        std::array<float, 7> result{};
+        std::array<float, 8> result{};
         glGetBufferSubData(GL_TRANSFORM_FEEDBACK_BUFFER, 0, sizeof(result), result.data());
         EXPECT_EQ(glGetError(), GLenum(GL_NO_ERROR));
         for (float value : result) EXPECT_TRUE(std::isfinite(value));
@@ -98,7 +102,38 @@ public:
     }
 };
 
-glm::vec3 body(const std::array<float, 7>& sample) { return {sample[0], sample[1], sample[2]}; }
+glm::vec3 body(const std::array<float, 8>& sample) { return {sample[0], sample[1], sample[2]}; }
+}
+
+TEST(GrassWind, LodSinksSmoothlyAndEveryDistantSegmentCountHasTheSameShape) {
+    WindProbe probe;
+    const glm::vec3 root(0,0,1);
+    for (float distance : {5.f,60.f,400.f}) {
+        probe.uniform("uDrawDistance",distance);
+        for (int seed=0; seed<64; ++seed) {
+            const float variation=seed/64.f;
+            probe.variation(variation);
+            const float end=rendering::grassLodFadeEnd(variation,distance);
+            const auto sample=[&](float d,int vertex) { return probe.sample(root,3,1,vertex,glm::mat4(1),d); };
+            EXPECT_NEAR(sample(0,12)[7],end,.0001f); // CPU rejection agrees with the shader.
+            const auto before=body(sample(end-.001f,12)), after=body(sample(end+.001f,12));
+            EXPECT_LT(glm::length(before-after)*100,.003f);
+            EXPECT_LT(after.z,root.z); // Completely sunk and collapsed, never left floating.
+            EXPECT_EQ(body(sample(end+.001f,0)),after);
+        }
+    }
+    probe.uniform("uDrawDistance",60);
+    probe.variation(.5f);
+    const float distance=16; // Beyond the full-detail region, before retirement.
+    const auto sample=[&](int vertex) { return body(probe.sample(root,3,1,vertex,glm::mat4(1),distance)); };
+    probe.segments(6);
+    const auto left=sample(0), tip=sample(12), middle=sample(6);
+    EXPECT_LT(glm::length(middle-glm::mix(left,tip,.5f)),.000001f);
+    for (int segments : rendering::grassLodSegments) {
+        probe.segments(segments);
+        EXPECT_EQ(sample(0),left);
+        EXPECT_EQ(sample(2*segments),tip);
+    }
 }
 
 TEST(GrassWind, GradientFieldIsContinuousAtLatticeAndPeriodBoundaries) {

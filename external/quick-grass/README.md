@@ -14,3 +14,7 @@ It uses periodic 3D Perlin gradient noise for gusts, direction and flutter rathe
 than the demo's noise library, omits its player
 collision and view-space thickening, and defaults to a shorter draw distance.
 No Three.js runtime or reference textures are required.
+
+The port now adds intermediate geometry levels, eight stable density-retention
+tiers with sinking, single-tip strips and a shared instance buffer. These
+adaptations are described in the [LOD journal](../../docs/journal/benchmarks/grass-lod.md).

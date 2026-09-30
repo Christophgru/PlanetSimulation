@@ -68,7 +68,7 @@ int Renderer::Impl::capture() {
         }
         profiler.endFrame();
     }
-    for (std::size_t i = 0; i < scene.scenario.planets.size(); ++i)
+    for (std::size_t i = 0; i < scene.scenario.planets.size(); ++i) {
         std::cout << "Planet " << i << " terrain: " << meshTriangles[i]
                   << " triangles; far/middle/near faces: " << meshZoneFaces[i][0]
                   << "/" << meshZoneFaces[i][1] << "/" << meshZoneFaces[i][2]
@@ -76,6 +76,11 @@ int Renderer::Impl::capture() {
                   << " (budget " << scene.scenario.planets[i].terrain_lod.max_triangle_budget
                   << "); foliage blades: " << grass.count(i)
                   << "; water triangles: " << meshes.waterMeshes[i].indices.size()/3 << "\n";
+        const auto stats=grass.drawStats(i);
+        std::cout << "Planet " << i << " foliage per pass: " << stats.vertices
+                  << " vertices; " << stats.triangles << " triangles; " << stats.batches
+                  << " batches; instance bytes: " << stats.instanceBytes << '\n';
+    }
 
     // Call glFinish() before reading framebuffer
     glFinish();

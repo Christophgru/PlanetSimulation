@@ -29,3 +29,7 @@ paper, records new software-renderer measurements of walking, foliage placement,
 sorting and uploads. Frozen inputs, raw traces and before/after hashes are kept
 beside the study. It distinguishes capture-time terrain construction from the
 interactive background path and does not claim a hardware FPS improvement.
+
+The [grass LOD study](benchmarks/grass-lod.md) measures the later single-tip
+strips, shared instance buffer, eight distance levels and gradual sinking,
+including the extra draw submissions and reduced distant density.

@@ -183,6 +183,28 @@ Grass wind now samples three advected 3D Perlin gradient fields, replacing the e
 
 The lattice repeats every 256 cells. Drift rates are binary fractions of a cell per second with a common 8192-second period, allowing the double simulation clock to wrap before conversion to a float uniform without a discontinuity. Both the main and water-reflection pass use the same field and phase. Wind strength zero leaves the seeded static lean; pause still freezes wind, preserving deterministic captures. The vertex shader adds no textures, triangles or per-instance uploads, but performs more arithmetic than the old sine field. GPU transform-feedback checks exercise lattice and period boundaries, both poles, large wrapped times, fixed blade roots and independence from body transforms; pixel tests retain wind motion, shadowing and reflection clipping checks.
 
+== Grass geometry budgets and eight distance levels
+
+The #link("https://github.com/vercidium-patreon/glvertexid/tree/25f1d1d292eeb9cd50984d933890b1ec00d4c97c")[glvertexid heightmap example] reconstructs regular-grid coordinates from vertex IDs and connects strips with degenerate vertices. Its published example contains neither eight LODs nor sinking; those requested techniques are adapted here to the existing instanced grass. Terrain retains its irregular spherical tessellation and shared shoreline edges, which cannot be represented directly by that regular height-only grid.
+
+Blade strips now terminate in one tip, removing the former duplicate tip vertex and degenerate triangle. Eight nominal distance levels use 6, 5, 4, 3, 2, 1, 1 and 1 segments. At the working 60 m draw range, boundaries are 7.5, 9.375, 11.25, 13.125, 15, 30 and 45 m. Geometry straightens between 3.75 and 7.5 m, before any segment reduction can occur; removing collinear intermediate vertices preserves its shape. The CPU subtracts the 9 m movement allowance when choosing detail, keeping enough geometry while the cached patch follows the walker. Each retained blade submits no more vertices than the previous near/far scheme.
+
+Eight deterministic retention groups thin distant candidates further, retiring one eighth on average in each equally spaced interval from 15 to 60 m. Smooth sinking and collapse update in the shader on every frame. CPU rejection uses the same group hash and adds the movement allowance, so a discarded root cannot become visible before the next rebuild. This deliberately trades distant density and shape detail for less work; the near-camera Gaussian candidates and terrain remain unchanged. Both main and reflection passes use the same decisions. One sorted instance buffer replaces two separate buffers. Compatible one-triangle levels merge into a single draw, leaving at most six instanced draws per pass rather than two previously, but only one instance upload per rebuilt patch.
+
+#table(
+  columns: (2fr, 1fr, 1fr), inset: 5pt, stroke: 0.4pt + rgb("#dfe8eb"),
+  [*Initial frozen grass view*], [*Previous*], [*Eight LODs*],
+  [Uploaded blade instances], [162,828], [146,510],
+  [Vertices submitted per pass], [1,477,562], [1,081,766],
+  [Triangles submitted per pass], [1,151,906], [788,746],
+  [Instance bytes per rebuild], [6,513,120], [5,860,400],
+  [Instanced draws per pass], [2], [6],
+)
+
+These counts come from the same generated roots: vertex submissions fall by 26.8%, submitted triangles by 31.5%, and instance payload by 10.0%. Triangle counts include submitted degenerates and fully sunk reserved geometry; bytes exclude driver overhead. CPU tests check guard-band visibility and the vertex bound. GPU transform feedback checks endpoint agreement, sinking continuity and distant shape invariance; a primitive query verifies submitted triangle accounting. Full timings, raw traces, executable and shader-tree hashes, frozen inputs and reproduction commands are in `docs/journal/benchmarks/grass-lod.md` and its data directory.
+
+A paired 640×360 walking capture on Mesa llvmpipe with two worker threads measures 20 frames, excluding three warmup frames and the final readback frame. Mean frame time falls from 1576.97 to 1463.22 ms (7.2%); the median falls from 1387.17 to 1295.95 ms (6.6%). The foliage-disabled control changes from 708.99 to 720.05 ms mean, and grass preparation per rebuild remains similar. This single software-renderer pair measures a quality/performance tradeoff, not a hardware FPS guarantee. Both versions rebuild grass six times and install three terrain meshes in the measured window; bare final captures match exactly.
+
 == Camera movement and grass preparation: measured costs
 
 The following measurements predate the Perlin wind change; their recorded executable hashes and captures identify the earlier sine-wind workload.
