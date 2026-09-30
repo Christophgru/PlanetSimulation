@@ -27,7 +27,12 @@ int Renderer::Impl::capture() {
         simulationTime = benchmarkStart + frame * options.benchmarkStep;
         profiler.beginFrame(simulationTime);
         { rendering::FrameProfiler::Scope scope(&profiler, rendering::FrameStage::Update, false);
-          if (frame > 0) scene.updateSimulation(simulationTime); }
+          if (frame > 0) {
+              scene.updateSimulation(simulationTime);
+              if (options.benchmarkWalkStep > 0)
+                  scene.surfaceCamera->walk(1, 0, options.benchmarkWalkStep /
+                      (scene.surfaceCamera->walkSpeed() * scene.scenario.metersPerWorldUnit()));
+          } }
         const glm::mat4 view = options.surfaceRenderMode ? scene.surfaceCamera->getViewMatrix() :
                                options.planetRenderMode ? scene.planetOrbitCamera->getViewMatrix() :
                                                   scene.sunCamera.getViewMatrix();

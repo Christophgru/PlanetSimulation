@@ -42,4 +42,14 @@ TEST(CommandLineOptions, InvalidValuesFailBeforeWindowStartup) {
     EXPECT_THROW(parse({"--video-memory-mb", "31"}), std::invalid_argument);
     EXPECT_THROW(parse({"--benchmark-step", "inf"}), std::invalid_argument);
     EXPECT_THROW(parse({"--benchmark-frames", "2"}), std::invalid_argument);
+    EXPECT_THROW(parse({"--benchmark-walk-step", "nan"}), std::invalid_argument);
+    EXPECT_THROW(parse({"--benchmark-walk-step", "2m"}), std::invalid_argument);
+    EXPECT_THROW(parse({"--benchmark-walk-step", "-1"}), std::invalid_argument);
+    EXPECT_THROW(parse({"--benchmark-walk-step", "101"}), std::invalid_argument);
+    EXPECT_THROW(parse({"--benchmark-walk-step"}), std::invalid_argument);
+    EXPECT_THROW(parse({"--benchmark-walk-step", "2"}), std::invalid_argument);
+    const auto walk = parse({"--surface-capture", "walk.png", "--benchmark-frames", "6",
+                             "--benchmark-walk-step", "2", "--benchmark-step", "0"});
+    EXPECT_EQ(walk.benchmarkWalkStep, 2);
+    EXPECT_EQ(walk.benchmarkStep, 0);
 }

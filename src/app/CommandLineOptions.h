@@ -24,6 +24,7 @@ struct CommandLineOptions {
     std::optional<std::uint64_t> videoMemoryCapBytes;
     int benchmarkFrames = 1;
     double benchmarkStep = 1.0 / 60.0;
+    double benchmarkWalkStep = 0.0; // Metres per frame, independent of orbit time.
 
     static CommandLineOptions parse(int argc, char** argv);
 };

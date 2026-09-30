@@ -30,6 +30,18 @@ CommandLineOptions CommandLineOptions::parse(int argc, char** argv) {
             if (options.benchmarkFrames < 1 || options.benchmarkFrames > 100000) {
                 throw std::invalid_argument("--benchmark-frames needs 1..100000 frames");
             }
+        } else if (std::string(argv[i]) == "--benchmark-walk-step") {
+            try {
+                if (i + 1 >= argc) throw std::invalid_argument("missing distance");
+                const std::string value = argv[++i];
+                std::size_t used = 0;
+                options.benchmarkWalkStep = std::stod(value, &used);
+                if (used != value.size() || !std::isfinite(options.benchmarkWalkStep) ||
+                    options.benchmarkWalkStep < 0 || options.benchmarkWalkStep > 100)
+                    throw std::invalid_argument("range");
+            } catch (...) {
+                throw std::invalid_argument("--benchmark-walk-step needs 0..100 metres per frame");
+            }
         } else if (std::string(argv[i]) == "--benchmark-step" && i + 1 < argc) {
             try { options.benchmarkStep = std::stod(argv[++i]); } catch (...) { options.benchmarkStep = -1; }
             if (!std::isfinite(options.benchmarkStep) || options.benchmarkStep < 0 || options.benchmarkStep > 60) {
@@ -80,6 +92,9 @@ CommandLineOptions CommandLineOptions::parse(int argc, char** argv) {
     if (options.benchmarkFrames > 1 && !options.renderTestMode) {
         throw std::invalid_argument("--benchmark-frames requires a render/capture output");
     }
+    if (options.benchmarkWalkStep > 0 &&
+        (!options.surfaceRenderMode || options.benchmarkFrames < 2))
+        throw std::invalid_argument("--benchmark-walk-step requires a surface capture and at least two frames");
     return options;
 }
 }

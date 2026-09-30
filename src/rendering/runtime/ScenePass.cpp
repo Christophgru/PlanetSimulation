@@ -42,11 +42,15 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
     const bool hdr = rendering::hasAtmosphere(scenario) || forceHdr;
     exposure.hdrOutput = hdr;
     lightingScope.stop();
+    Scope foliageScope(profiler, Stage::Foliage, false);
     if (grass) for (std::size_t i=0;i<scenario.planets.size();++i) {
         const auto& planet=scenario.planets[i];
-        grass->prepare(i,planetMeshes[i],planet,scenario.metersPerWorldUnit(),
+        const auto prepared = grass->prepare(i,planetMeshes[i],planet,scenario.metersPerWorldUnit(),
             bodies[i+1].toLocalPoint(eyeWorld)/planet.radius);
+        if (profiler) profiler->foliagePreparation(prepared.rebuilds,
+            prepared.placementMs, prepared.sortMs, prepared.uploadMs);
     }
+    foliageScope.stop();
     { Scope tablesScope(profiler, Stage::Tables); atmosphereColumns.ensure(scenario); }
     Scope shadowScope(profiler, Stage::Shadows);
     shadows.ensure(scenario.planets.size(), scenario.lighting.shadows);

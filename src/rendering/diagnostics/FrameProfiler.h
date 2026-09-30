@@ -27,10 +27,10 @@ private:
     unsigned frames_ = 0;
 };
 
-enum class FrameStage { Update, Mesh, Lighting, Tables, Shadows, Opaque, Reflection,
+enum class FrameStage { Update, Mesh, Lighting, Foliage, Tables, Shadows, Opaque, Reflection,
                         ReflectionAtmosphere, Water, Atmosphere, CachedPresentation, Overlay, Present, Count };
 inline constexpr std::array<const char*, static_cast<int>(FrameStage::Count)> frameStageNames{
-    "update", "mesh", "lighting", "tables", "shadows", "opaque", "reflection",
+    "update", "mesh", "lighting", "foliage", "tables", "shadows", "opaque", "reflection",
     "reflection_atmosphere", "water", "atmosphere", "cached_present", "overlay", "present"};
 
 class FrameProfiler {
@@ -45,6 +45,8 @@ class FrameProfiler {
         Clock::time_point start;
         unsigned long long number = 0;
         double simulation = 0, wallMs = 0, gpuMs = 0, terrainBuildMs = 0;
+        double foliagePlacementMs = 0, foliageSortMs = 0, foliageUploadMs = 0;
+        unsigned foliageRebuilds = 0;
         int count = 0, shadowUpdates = 0, shadowReuses = 0, meshUploads = 0, sceneReuses = 0;
         bool pending = false, timed = false;
     };
@@ -54,6 +56,7 @@ public:
         trace_.open(path);
         if (!trace_) throw std::runtime_error("Cannot open performance trace: " + path);
         trace_ << "frame,simulation_s,frame_ms,gpu_valid,gpu_ms,shadow_updates,shadow_reuses,mesh_uploads,scene_reuses,terrain_build_ms";
+        trace_ << ",foliage_rebuilds,foliage_placement_ms,foliage_sort_ms,foliage_upload_ms";
         for (const auto* name : frameStageNames) trace_ << ",cpu_" << name << "_ms,gpu_" << name << "_ms";
         trace_ << '\n' << std::setprecision(9);
     }
@@ -111,6 +114,13 @@ public:
     void shadowReuse() { if (current_) ++current_->shadowReuses; }
     void terrainBuild(double milliseconds) { if (current_) current_->terrainBuildMs += milliseconds; }
     void meshUpload() { if (current_) ++current_->meshUploads; }
+    void foliagePreparation(unsigned rebuilds, double placement, double sort, double upload) {
+        if (!current_) return;
+        current_->foliageRebuilds += rebuilds;
+        current_->foliagePlacementMs += placement;
+        current_->foliageSortMs += sort;
+        current_->foliageUploadMs += upload;
+    }
     bool gpuReady() const { return lastReady_; }
     double gpuMilliseconds = 0;
     class Scope {
@@ -159,6 +169,8 @@ private:
         trace_ << frame.number << ',' << frame.simulation << ',' << frame.wallMs << ',' << gpuValid << ',';
         if (gpuValid) trace_ << frame.gpuMs;
         trace_ << ',' << frame.shadowUpdates << ',' << frame.shadowReuses << ',' << frame.meshUploads << ',' << frame.sceneReuses << ',' << frame.terrainBuildMs;
+        trace_ << ',' << frame.foliageRebuilds << ',' << frame.foliagePlacementMs
+               << ',' << frame.foliageSortMs << ',' << frame.foliageUploadMs;
         for (int i = 0; i < stageCount; ++i) {
             trace_ << ',' << frame.cpu[i] << ',';
             if (gpuValid) trace_ << frame.gpu[i];

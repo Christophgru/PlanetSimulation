@@ -55,7 +55,13 @@ std::vector<GrassBlade> placeGrass(const std::vector<float>& vertices,
         }
         const glm::dvec3 center = (p[0]+p[1]+p[2])/3.0;
         const double bound = std::max({glm::length(p[0]-center),glm::length(p[1]-center),glm::length(p[2]-center)});
-        if ((glm::length(center-eyeBody)-bound) * metersPerRadius > radius) continue;
+        const double minimumDistance = std::max(0.0,
+            (glm::length(center-eyeBody)-bound) * metersPerRadius);
+        if (minimumDistance > radius) continue;
+        // The bounding sphere contains the entire triangle, so this is an
+        // upper bound on every candidate's Gaussian acceptance probability.
+        // Reject against it before doing barycentric geometry or exp per root.
+        const double maximumAcceptance = std::exp(-minimumDistance*minimumDistance / variance2);
         const double area = 0.5 * glm::length(glm::cross(p[1]-p[0],p[2]-p[0])) * metersPerRadius * metersPerRadius;
         std::uint32_t random = grassHash(std::uint32_t(triangle/3) ^ std::uint32_t(settings.seed));
         // Bound work for coarse orbital triangles intersecting the patch.
@@ -64,12 +70,17 @@ std::vector<GrassBlade> placeGrass(const std::vector<float>& vertices,
         for (int blade = 0; blade < count; ++blade) {
             // Rejection by the camera must not move the following candidates.
             random=grassHash(triangleSeed+std::uint32_t(blade));
-            const double a = std::sqrt(grassRandom(random)), b = grassRandom(random);
+            // Keep the original random stream and candidate indices intact:
+            // accepted roots, attributes and reservoir order remain identical.
+            const double areaSample = grassRandom(random), b = grassRandom(random);
+            const double acceptanceSample = grassRandom(random);
+            if (acceptanceSample >= maximumAcceptance) continue;
+            const double a = std::sqrt(areaSample);
             const glm::dvec3 weights(1-a,a*(1-b),a*b);
             const glm::dvec3 root = p[0]*weights.x+p[1]*weights.y+p[2]*weights.z;
             const double distanceMeters = glm::length(root-eyeBody)*metersPerRadius;
             if (distanceMeters > radius || glm::length(root) < 1e-9) continue;
-            if (grassRandom(random) >= std::exp(-distanceMeters*distanceMeters / variance2)) continue;
+            if (acceptanceSample >= std::exp(-distanceMeters*distanceMeters / variance2)) continue;
             const glm::dvec3 radial = glm::normalize(root);
             const auto n = glm::normalize(normal[0]*weights.x+normal[1]*weights.y+normal[2]*weights.z);
             auto tint = color[0]*weights.x+color[1]*weights.y+color[2]*weights.z;

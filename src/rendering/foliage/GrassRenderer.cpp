@@ -4,6 +4,7 @@
 #include "config/ScenarioConfig.h"
 #include <algorithm>
 #include <utility>
+#include <chrono>
 
 namespace rendering {
 
@@ -33,34 +34,50 @@ void GrassRenderer::clear() {
     patches_.clear();
 }
 
-void GrassRenderer::prepare(std::size_t index,const Mesh& mesh,const config::PlanetConfig& planet,
+GrassPreparationStats GrassRenderer::prepare(std::size_t index,const Mesh& mesh,const config::PlanetConfig& planet,
              double metersPerWorldUnit,const glm::dvec3& eyeBody) {
     if (patches_.size()<=index) patches_.resize(index+1);
     auto& patch=patches_[index];
     if (!planet.foliage.enabled || !mesh.hasVertexColors) {
-        patch.near.count=patch.far.count=0; patch.ready=false; return;
+        patch.near.count=patch.far.count=0; patch.ready=false; return {};
     }
     const double scale=planet.radius*metersPerWorldUnit;
     const double margin=grassRebuildDistance(planet.foliage);
-    if (patch.ready && patch.revision==mesh.revision && glm::length(eyeBody-patch.eye)*scale<margin) return;
+    if (patch.ready && patch.revision==mesh.revision && glm::length(eyeBody-patch.eye)*scale<margin) return {};
+    const auto start = std::chrono::steady_clock::now();
     auto blades=placeGrass(mesh.vertices,mesh.indices,planet,metersPerWorldUnit,eyeBody);
-    std::vector<GrassBlade> near,far;
-    for (const auto& blade:blades) {
+    const auto placed = std::chrono::steady_clock::now();
+    struct DistanceKey { std::size_t index; double squaredDistance; };
+    std::vector<DistanceKey> nearKeys,farKeys;
+    for (std::size_t i = 0; i < blades.size(); ++i) {
+        const auto& blade = blades[i];
         // The margin guarantees that a low-detail blade cannot approach
         // within the detailed range before the next patch update.
-        const double distance=glm::length(glm::dvec3(blade.root)-eyeBody)*scale;
-        (distance<=15.0+margin ? near : far).push_back(blade);
+        const auto offset = glm::dvec3(blade.root)-eyeBody;
+        const double squaredDistance = glm::dot(offset, offset);
+        const double distance=std::sqrt(squaredDistance)*scale;
+        (distance<=15.0+margin ? nearKeys : farKeys).push_back({i, squaredDistance});
     }
     // Front-to-back blades let depth testing reject the dense layers behind
     // them before running atmospheric/material shading.
-    const auto nearer=[&](const GrassBlade& a,const GrassBlade& b) {
-        const auto da=glm::dvec3(a.root)-eyeBody,db=glm::dvec3(b.root)-eyeBody;
-        return glm::dot(da,da)<glm::dot(db,db);
+    // Sort compact keys; recomputing double-precision distances inside every
+    // comparator made this O(N log N) geometry work on each patch rebuild.
+    const auto nearer=[](const DistanceKey& a,const DistanceKey& b) {
+        return a.squaredDistance < b.squaredDistance;
     };
-    std::sort(near.begin(),near.end(),nearer);
-    std::sort(far.begin(),far.end(),nearer);
+    std::sort(nearKeys.begin(),nearKeys.end(),nearer);
+    std::sort(farKeys.begin(),farKeys.end(),nearer);
+    std::vector<GrassBlade> near,far;
+    near.reserve(nearKeys.size()); far.reserve(farKeys.size());
+    for (const auto& key : nearKeys) near.push_back(blades[key.index]);
+    for (const auto& key : farKeys) far.push_back(blades[key.index]);
+    const auto sorted = std::chrono::steady_clock::now();
     upload(patch.near,near); upload(patch.far,far);
+    const auto uploaded = std::chrono::steady_clock::now();
     patch.eye=eyeBody; patch.revision=mesh.revision; patch.ready=true;
+    return {std::chrono::duration<double,std::milli>(placed-start).count(),
+            std::chrono::duration<double,std::milli>(sorted-placed).count(),
+            std::chrono::duration<double,std::milli>(uploaded-sorted).count(), 1};
 }
 
 std::size_t GrassRenderer::count(std::size_t index) const {

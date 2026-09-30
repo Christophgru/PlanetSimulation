@@ -73,6 +73,13 @@ TEST(GrassPlacement, GaussianDensityFallsWithDistanceAndFollowsTheEye) {
         const auto blades=rendering::placeGrass(vertices,triangles,p,100,{x,0,1.0});
         ASSERT_GT(blades.size(),1000u);
         ASSERT_LE(blades.size(),std::size_t(p.foliage.max_blades));
+        // Conservative triangle rejection must retain the integrated density,
+        // not merely its radial shape. This flat patch covers the whole disk.
+        const double sigma = p.foliage.draw_distance_m / 3;
+        const double radius = p.foliage.draw_distance_m + rendering::grassRebuildDistance(p.foliage);
+        const double expected = p.foliage.density_per_m2 * 2 * std::acos(-1.0) * sigma * sigma *
+            (1 - std::exp(-radius * radius / (2 * sigma * sigma)));
+        EXPECT_NEAR(double(blades.size()), expected, 5 * std::sqrt(expected));
         std::array<int,3> annuli{};
         double meanX=0,meanY=0;
         for (const auto& blade:blades) {

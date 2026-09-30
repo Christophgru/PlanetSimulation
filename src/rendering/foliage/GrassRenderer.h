@@ -11,6 +11,10 @@ namespace config { struct PlanetConfig; }
 
 namespace rendering {
 struct GrassBlade;
+struct GrassPreparationStats {
+    double placementMs = 0, sortMs = 0, uploadMs = 0;
+    unsigned rebuilds = 0;
+};
 class GrassRenderer {
     struct Batch { GLuint vao=0, buffer=0; GLsizei count=0; };
     struct Patch {
@@ -29,7 +33,7 @@ public:
     GrassRenderer& operator=(const GrassRenderer&) = delete;
     ~GrassRenderer();
     void clear();
-    void prepare(std::size_t index,const Mesh& mesh,const config::PlanetConfig& planet,
+    GrassPreparationStats prepare(std::size_t index,const Mesh& mesh,const config::PlanetConfig& planet,
                  double metersPerWorldUnit,const glm::dvec3& eyeBody);
     std::size_t count(std::size_t index) const;
     void draw(std::size_t index) const;
