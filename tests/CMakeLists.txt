@@ -213,6 +213,11 @@ if(UNIX AND XDOTOOL_EXECUTABLE AND IMAGEMAGICK_IMPORT_EXECUTABLE AND IMAGEMAGICK
     add_test(NAME CameraTransitionInputIntegration COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_CURRENT_SOURCE_DIR}/camera/test_camera_transition_input.py --binary $<TARGET_FILE:PlanetSimulation>)
     set_tests_properties(CameraTransitionInputIntegration PROPERTIES TIMEOUT 120)
+    add_test(NAME CameraClippingInputIntegration COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/camera/test_camera_clipping_input.py
+        --binary $<TARGET_FILE:PlanetSimulation>
+        --output-dir ${CMAKE_BINARY_DIR}/camera-clipping-test)
+    set_tests_properties(CameraClippingInputIntegration PROPERTIES TIMEOUT 90)
 endif()
 
 add_test(NAME RepositoryLayout COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/check_layout.py)
@@ -231,7 +236,7 @@ endif()
 # their windows isolated even when CTest is invoked with --parallel.
 if(UNIX AND XDOTOOL_EXECUTABLE AND IMAGEMAGICK_IMPORT_EXECUTABLE AND IMAGEMAGICK_CONVERT_EXECUTABLE)
     set_tests_properties(PerformanceOverlayInputIntegration OrbitOverlayInputIntegration
-        CameraTransitionInputIntegration AdaptiveQualityRenderIntegration
+        CameraTransitionInputIntegration CameraClippingInputIntegration AdaptiveQualityRenderIntegration
         PROPERTIES RUN_SERIAL TRUE)
 endif()
 

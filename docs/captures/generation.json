@@ -1,126 +1,126 @@
 {
-  "source_sha256": "5168b8c0679e9ea84b8a40ebbb9516a820ac400973750b8bab9b983a6e7ae638",
+  "source_sha256": "85f83ecd14d9211093a057028a644760867b2677d653eaf0c4a0e57b15b3a0d4",
   "version": "0.0.1",
-  "base_revision": "0e729b169d28a2a847a9ab5834bfbd09a9c16605",
+  "base_revision": "35020da31e63e193db29632acc3057c56934ae99",
   "source_state": "working tree at capture time; see source_sha256",
-  "renderer": "name of display: :99\ndisplay: :99  screen: 0\ndirect rendering: Yes\nExtended renderer info (GLX_MESA_query_renderer):\n    Vendor: Mesa/X.org (0xffffffff)\n    Device: llvmpipe (LLVM 15.0.6, 256 bits) (0xffffffff)\n    Version: 22.3.6\n    Accelerated: no\n    Video memory: 39925MB\n    Unified memory: yes\n    Preferred profile: core (0x1)\n    Max core profile version: 4.5\n    Max compat profile version: 4.5\n    Max GLES1 profile version: 1.1\n    Max GLES[23] profile version: 3.2\nOpenGL vendor string: Mesa/X.org\nOpenGL renderer string: llvmpipe (LLVM 15.0.6, 256 bits)\nOpenGL core profile version string: 4.5 (Core Profile) Mesa 22.3.6\nOpenGL core profile shading language version string: 4.50\nOpenGL core profile context flags: (none)\nOpenGL core profile profile mask: core profile\n\nOpenGL version string: 4.5 (Compatibility Profile) Mesa 22.3.6\nOpenGL shading language version string: 4.50\nOpenGL context flags: (none)\nOpenGL profile mask: compatibility profile\n\nOpenGL ES profile version string: OpenGL ES 3.2 Mesa 22.3.6\nOpenGL ES profile shading language version string: OpenGL ES GLSL ES 3.20\n\n",
+  "renderer": "name of display: :101\ndisplay: :101  screen: 0\ndirect rendering: Yes\nExtended renderer info (GLX_MESA_query_renderer):\n    Vendor: Mesa/X.org (0xffffffff)\n    Device: llvmpipe (LLVM 15.0.6, 256 bits) (0xffffffff)\n    Version: 22.3.6\n    Accelerated: no\n    Video memory: 39925MB\n    Unified memory: yes\n    Preferred profile: core (0x1)\n    Max core profile version: 4.5\n    Max compat profile version: 4.5\n    Max GLES1 profile version: 1.1\n    Max GLES[23] profile version: 3.2\nOpenGL vendor string: Mesa/X.org\nOpenGL renderer string: llvmpipe (LLVM 15.0.6, 256 bits)\nOpenGL core profile version string: 4.5 (Core Profile) Mesa 22.3.6\nOpenGL core profile shading language version string: 4.50\nOpenGL core profile context flags: (none)\nOpenGL core profile profile mask: core profile\n\nOpenGL version string: 4.5 (Compatibility Profile) Mesa 22.3.6\nOpenGL shading language version string: 4.50\nOpenGL context flags: (none)\nOpenGL profile mask: compatibility profile\n\nOpenGL ES profile version string: OpenGL ES 3.2 Mesa 22.3.6\nOpenGL ES profile shading language version string: OpenGL ES GLSL ES 3.20\n\n",
   "images": [
     {
       "image": "solar-view.png",
       "version": "0.0.1",
-      "generated_utc": "2026-09-29T23:04:11+00:00",
+      "generated_utc": "2026-09-29T23:30:56+00:00",
       "sha256": "b34ef867eaa34ae7f075bd3da0267df6238dbe1c2c6962fb1e18297e23ed9ad1",
       "command": "/workspace/build-codex/PlanetSimulation --config tests/fixtures/development/configs/scenarios/solar_system.json --render-test /workspace/build-codex/readme-captures/solar-view.png"
     },
     {
       "image": "surface-view.png",
       "version": "0.0.1",
-      "generated_utc": "2026-09-29T23:04:18+00:00",
+      "generated_utc": "2026-09-29T23:30:58+00:00",
       "sha256": "39853ce1e6066d3a3cd64806b8c05bb2441be53018443a785b0fa1f5e5f1ce5e",
       "command": "/workspace/build-codex/PlanetSimulation --config configs/scenarios/solar_system.json --simulation-time 20 --surface-capture /workspace/build-codex/readme-captures/surface-view.png"
     },
     {
       "image": "planet-orbit.png",
       "version": "0.0.1",
-      "generated_utc": "2026-09-29T23:04:20+00:00",
+      "generated_utc": "2026-09-29T23:30:59+00:00",
       "sha256": "61c605d22c5625cf4a324c998826e5bd1b631785744cacf4ccb615bc54d0f48d",
       "command": "/workspace/build-codex/PlanetSimulation --config configs/scenarios/solar_system.json --simulation-time 3000 --planet-render-test /workspace/build-codex/readme-captures/planet-orbit.png"
     },
     {
       "image": "moonlit-night.png",
       "version": "0.0.1",
-      "generated_utc": "2026-09-29T23:04:22+00:00",
+      "generated_utc": "2026-09-29T23:31:01+00:00",
       "sha256": "c9bad2a7ac39ce1bfc7c6c718b59ec4201aea78decde6512e5399641f8e09ede",
       "command": "/workspace/build-codex/PlanetSimulation --replay /workspace/docs/captures/replay/moonlit-night.png.json --surface-capture /workspace/build-codex/readme-captures/moonlit-night.png"
     },
     {
       "image": "moonless-night.png",
       "version": "0.0.1",
-      "generated_utc": "2026-09-29T23:04:23+00:00",
+      "generated_utc": "2026-09-29T23:31:03+00:00",
       "sha256": "2c1693a8a6ac3b6f948b5ab7498d690446b8dfcfcc3522a3ea9f95acfe55adaa",
       "command": "/workspace/build-codex/PlanetSimulation --replay /workspace/docs/captures/replay/moonless-night.png.json --surface-capture /workspace/build-codex/readme-captures/moonless-night.png"
     },
     {
       "image": "refraction-extreme-on.png",
       "version": "0.0.1",
-      "generated_utc": "2026-09-29T23:04:30+00:00",
+      "generated_utc": "2026-09-29T23:31:07+00:00",
       "sha256": "72b104ac6319aa020e851cbd23fa4040d2e48416cf63f13f7cc8fcc111faa4ee",
       "command": "/workspace/build-codex/PlanetSimulation --replay /workspace/docs/captures/replay/refraction/refraction-extreme-on.png.json --surface-capture /workspace/build-codex/readme-captures/refraction-extreme-on.png"
     },
     {
       "image": "refraction-extreme-off.png",
       "version": "0.0.1",
-      "generated_utc": "2026-09-29T23:04:33+00:00",
+      "generated_utc": "2026-09-29T23:31:11+00:00",
       "sha256": "0deb6b8b5b6941c2ea09d7d2cea353249843245f1a8554e828eeb32e2b9f6dc7",
       "command": "/workspace/build-codex/PlanetSimulation --replay /workspace/docs/captures/replay/refraction/refraction-extreme-off.png.json --surface-capture /workspace/build-codex/readme-captures/refraction-extreme-off.png"
     },
     {
       "image": "terrain-detail.png",
       "version": "0.0.1",
-      "generated_utc": "2026-09-29T23:04:37+00:00",
+      "generated_utc": "2026-09-29T23:31:14+00:00",
       "sha256": "cbfffffaf6f5cc629aeb10d41690464a4d0b8ced2a325eb932954c47b833c398",
       "command": "/workspace/build-codex/PlanetSimulation --replay /workspace/docs/captures/replay/terrain/terrain-detail.png.json --surface-capture /workspace/build-codex/readme-captures/terrain-detail.png"
     },
     {
       "image": "shoreline-detail.png",
       "version": "0.0.1",
-      "generated_utc": "2026-09-29T23:04:40+00:00",
+      "generated_utc": "2026-09-29T23:31:18+00:00",
       "sha256": "f14b26f80b459e556ec0db68e488eaf056470839e010090160404d146b7a64ce",
       "command": "/workspace/build-codex/PlanetSimulation --replay /workspace/docs/captures/replay/terrain/shoreline-detail.png.json --surface-capture /workspace/build-codex/readme-captures/shoreline-detail.png"
     },
     {
       "image": "grass-detail.png",
       "version": "0.0.1",
-      "generated_utc": "2026-09-29T23:04:43+00:00",
+      "generated_utc": "2026-09-29T23:31:22+00:00",
       "sha256": "f0da1815560cc271cde56c76ab91277be2f7ffb9e7531148f154971473e4b6bc",
       "command": "/workspace/build-codex/PlanetSimulation --replay /workspace/docs/captures/replay/foliage/grass-detail.png.json --surface-capture /workspace/build-codex/readme-captures/grass-detail.png"
     },
     {
       "image": "performance-overlay.png",
       "version": "0.0.1",
-      "generated_utc": "2026-09-29T23:05:07+00:00",
-      "sha256": "54869313ea15ce7401f0fcc503945216c3ce227db4c00a7bd394d7d5465cb315",
+      "generated_utc": "2026-09-29T23:31:57+00:00",
+      "sha256": "a74ae7221935e1e0a3cc92e7ba7cb108f9a4ae93bc61681388ca8ebb61994ce9",
       "command": "/workspace/build-codex/PlanetSimulation --config configs/scenarios/solar_system.json --simulation-time 20 --render-size 1280 720 --benchmark-frames 20 --benchmark-overlay --surface-capture /workspace/build-codex/readme-captures/performance-overlay.png"
     },
     {
       "image": "atmosphere-day.png",
       "version": "0.0.1",
-      "generated_utc": "2026-09-29T23:05:11+00:00",
+      "generated_utc": "2026-09-29T23:32:03+00:00",
       "sha256": "7b6eaceb6a8564c910c3dc10bbed72c95d19a71bd92b7009e9ca5db58f661304",
       "command": "python3 tests/lighting/render_lighting_scenarios.py --binary /workspace/build-codex/PlanetSimulation --manifest tests/scenarios/atmosphere/manifest.json --case standard_air --output-dir /workspace/build-codex/readme-captures/standard_air"
     },
     {
       "image": "atmosphere-sunset.png",
       "version": "0.0.1",
-      "generated_utc": "2026-09-29T23:05:15+00:00",
+      "generated_utc": "2026-09-29T23:32:10+00:00",
       "sha256": "4c2068b98539f63f1e14920f7b2502b9972dd4b391f6938016b26cc808a05f30",
       "command": "python3 tests/lighting/render_lighting_scenarios.py --binary /workspace/build-codex/PlanetSimulation --manifest tests/scenarios/atmosphere/manifest.json --case sunset --output-dir /workspace/build-codex/readme-captures/sunset"
     },
     {
       "image": "atmosphere-mist.png",
       "version": "0.0.1",
-      "generated_utc": "2026-09-29T23:05:19+00:00",
+      "generated_utc": "2026-09-29T23:32:16+00:00",
       "sha256": "04a830a86806100d13e068ac76b8cb758cf9b98de862b9b243df3496b926d447",
       "command": "python3 tests/lighting/render_lighting_scenarios.py --binary /workspace/build-codex/PlanetSimulation --manifest tests/scenarios/atmosphere/manifest.json --case mist --output-dir /workspace/build-codex/readme-captures/mist"
     },
     {
       "image": "atmosphere-dust.png",
       "version": "0.0.1",
-      "generated_utc": "2026-09-29T23:05:23+00:00",
+      "generated_utc": "2026-09-29T23:32:22+00:00",
       "sha256": "3c0456207eb6a352ef8d4e6a81ecfbe7232e976caf35938995eb8dd0a1694aa5",
       "command": "python3 tests/lighting/render_lighting_scenarios.py --binary /workspace/build-codex/PlanetSimulation --manifest tests/scenarios/atmosphere/manifest.json --case heavy_dust --output-dir /workspace/build-codex/readme-captures/heavy_dust"
     },
     {
       "image": "twilight.png",
       "version": "0.0.1",
-      "generated_utc": "2026-09-29T23:05:27+00:00",
+      "generated_utc": "2026-09-29T23:32:26+00:00",
       "sha256": "4be19e13c56b6543662d20f0cc54fe812cfa74eb79f933d2f36fc18c6293d3c1",
       "command": "python3 tests/lighting/render_lighting_scenarios.py --binary /workspace/build-codex/PlanetSimulation --manifest tests/scenarios/twilight/manifest.json --case twilight_reported --output-dir /workspace/build-codex/readme-captures/twilight_reported"
     },
     {
       "image": "terrain-shadows.png",
       "version": "0.0.1",
-      "generated_utc": "2026-09-29T23:05:29+00:00",
+      "generated_utc": "2026-09-29T23:32:27+00:00",
       "sha256": "4388620431c971ef173b5513e2d9498d15f95ba35da18e363e044bc9e9e3f8ee",
       "command": "ctest --test-dir /workspace/build-codex --output-on-failure -R '^TerrainShadowRenderIntegration$'"
     }

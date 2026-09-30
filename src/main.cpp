@@ -1418,12 +1418,14 @@ int main(int argc, char** argv) {
                     const glm::mat4 view = renderPose.view();
                     const float fov = renderPose.fov;
                     const glm::dvec3 eyeWorld = renderPose.position;
+                    // Match the capture path: altitude above the reference
+                    // sphere includes the mountain underneath us. Using it
+                    // here clips away nearby ground and exposes the interior.
+                    // Keep this small near plane throughout the descent too.
                     const rendering::ClipPlanes clip = onSurface
                         ? rendering::surfaceClipPlanes(
-                              std::max(surfaceCamera->configuredClearance(),
-                                  glm::length(eyeWorld - bodies[scenario.surface_camera.planet_index+1].position) -
-                                  scenario.planets[scenario.surface_camera.planet_index].radius),
-                              glm::length(surfaceCamera->position() - sunPosition),
+                              surfaceCamera->configuredClearance(),
+                              glm::length(eyeWorld - sunPosition),
                               scenario.sun.radius)
                         : onPlanetOrbit ? planetOrbitClip(eyeWorld) : rendering::ClipPlanes{};
                     { rendering::FrameProfiler::Scope scope(&profiler, rendering::FrameStage::Mesh, false);

@@ -603,7 +603,7 @@ ctest --output-on-failure
 cd ..
 ~~~
 
-The suite has 41 CTest entries covering unit tests, GPU shadows, scene captures,
+The suite has 42 CTest entries covering unit tests, GPU shadows, scene captures,
 lighting scenarios, and exact replay. It is verified on the native NVIDIA
 display and Mesa llvmpipe under Xvfb. GPU shadow tests use their own offscreen
 framebuffer, so hidden-window allocation does not determine their result.
@@ -688,6 +688,13 @@ the Sun. The JSON `altitude` is the requested clearance above sampled terrain or
 in the configured world distance unit (`0.002` km is 2 m in the development
 scene). The printed LLA altitude varies with terrain or water height, while the reusable
 config snippet keeps the requested clearance and walking speed.
+
+Live views and captures both size the near clipping plane from that ground
+clearance. Mountain height above the reference sphere does not enlarge it;
+with a 2 m eye clearance the near plane remains 0.2 m away, including during
+the surface-camera descent. `CameraClippingInputIntegration` compares a live
+window with a paused capture on an 80 m mountaintop, guarding against nearby
+ground disappearing and exposing the planet interior.
 
 Save the printed JSON object as `camera.json` to replay it directly:
 

@@ -23,7 +23,7 @@ document the progress and add comments such that when interrupted you can contin
 |Compile time has become pretty long, lets do a stabilisation commit where we try to clean up unnecessary header includes, and increase linking instead of compiling huge files new. |t| Config parsing, terrain generation, mesh/shader and foliage implementations moved into three compiled libraries; JSON removed from value-type headers. All 41 tests and 12 independent-header checks passed; grass replay byte-identical. Terrain implementation rebuild compiles one object and relinks consumers in 4.32 s. |
 |Spawn the Foliage in a gaussian distribution around the current position, such that at the current position there are most and far away only view. If its coputationally too complex add 5 distance zones.|t| Gaussian placement with sigma = draw distance / 3 and integrated budget scaling implemented. Equal-area radial density, moving-camera and pole tests pass; all 41 CTest checks, exact replay and refreshed 16-image gallery/hash checks passed. |
 |as visible in image USER_IO/user_artifacts/image copy.png the water boarders are still pretty rough, the sand applies to whole (huge) triangles and the grass doesn't qite reach the water. Lets think of ways to keep it performant for large scale but have accurate, fine triangular resolution when we get close to the water.|t| Shared-edge local shoreline subdivision, adaptive water shell and per-fragment altitude palette implemented; foliage uses the same altitude biome. All 41 checks pass, including topology/budget and sub-triangle beach tests. Close before/after inspected; 17-image gallery refreshed and hashes verified. |
-|When the Camera gets close to a steep mountain, its possible to look inside the planet, lets fix that |||
+|When the Camera gets close to a steep mountain, its possible to look inside the planet, lets fix that |t| Live near-plane clipping now uses ground clearance instead of mountain altitude, including descent. Live-versus-capture regression fails on the old executable and passes with the fix. All 42 tests pass; 17-image gallery refreshed and verified. |
 |Let's outsource the rendering part from main to a Renderer Class that initializes during the constructor call and tears down in the destructor. Main should only include configparser and renderer, and maybe some commandargs parse utils, but keep it really minimal and move all the stuff in seperate classes.||| 
 |Lets add a parameter that determines how sharply the grass foliage falls of |||
 |Lets add a third person camera "4" and a actor on the same position as cam 2 that follows a small astronaut that can walk around the planet. Create a 3d model of the astronaut or download some nice MIT licensed one online (comic style). Create Walking movement such that the feet stay on the ground and dont slide over it. Search if tere is a nice library for that movement. If not, approvximate the foor movement for now and we will coma back later to that.|||
@@ -64,7 +64,18 @@ if environmental changes are needed inside the container, let the user know by a
 - PNG writing requires `libpng-dev` (already available here).
 - Headless input/capture checks use `xvfb`, `xauth`, `xdotool`, and `imagemagick`.
 
-## Progress checkpoint — 2026-09-29
+## Progress checkpoint — 2026-09-30
+
+- Mountain-altitude clipping fix validated: all 42 CTest tests passed (88 s).
+  The new X11 regression compares a paused live window with its capture on
+  an 80 m plateau, with the eye 2 m above the ground. The old executable
+  fails; the fixed frame shows 921,217 ground pixels, bounds
+  (0,0)–(1279,719), and matches the capture. Test windows retain their initial
+  dimensions to avoid cursor warps changing the view during mouse capture.
+  All 17 gallery images refreshed and hashes verified; only the timing
+  overlay image changed. Next: extract Renderer ownership and lifecycle.
+
+## Previous checkpoint — 2026-09-29
 
 - Shoreline work from `a3a4b8b` is validated. Shared-edge refinement stays
   watertight and within the configured cap; local water geometry follows the
