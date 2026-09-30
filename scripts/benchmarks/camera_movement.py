@@ -5,6 +5,7 @@ import csv
 import hashlib
 import json
 import math
+import os
 from pathlib import Path
 import platform
 import statistics
@@ -24,8 +25,10 @@ p.add_argument('--size', type=int, nargs=2, default=[640, 360])
 p.add_argument('--cases', nargs='+', choices=['stationary', 'walking', 'walking-bare'],
                default=['stationary', 'walking', 'walking-bare'])
 args = p.parse_args()
-if args.frames < args.warmup + 3:
+if args.warmup < 0 or args.frames < args.warmup + 3:
     p.error('Need at least two measured frames plus the final readback frame')
+if not math.isfinite(args.walk_step) or not 0 < args.walk_step <= 100:
+    p.error('--walk-step must be finite and in (0, 100] metres')
 out = args.output_dir.resolve()
 out.mkdir(parents=True, exist_ok=True)
 binary = args.binary.resolve()
@@ -47,11 +50,15 @@ def summarize(rows):
         result[key] = sum(int(r[key]) for r in rows)
     rebuilt = [float(r['cpu_foliage_ms']) for r in rows if int(r['foliage_rebuilds'])]
     result['foliage_rebuild_frame_mean_ms'] = statistics.mean(rebuilt) if rebuilt else 0
+    result['gpu_measured_frames'] = sum(int(r['gpu_valid']) for r in rows)
     return result
 
 report = {'utc': datetime.now(timezone.utc).isoformat(), 'platform': platform.platform(),
           'binary_sha256': hashlib.sha256(binary.read_bytes()).hexdigest(),
           'frames': args.frames, 'warmup': args.warmup, 'size': args.size,
+          'environment': {key: os.environ.get(key) for key in
+                          ['LIBGL_ALWAYS_SOFTWARE', 'LP_NUM_THREADS']},
+          'terrain_mode': 'synchronous capture; interactive walking builds terrain asynchronously',
           'walk_step_m': args.walk_step, 'orbit_step_s': 0, 'cases': {}}
 try:
     report['graphics'] = subprocess.check_output(['glxinfo', '-B'], text=True)

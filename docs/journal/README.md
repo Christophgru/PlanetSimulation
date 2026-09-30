@@ -23,3 +23,9 @@ The raster figures refer to the existing, versioned
 SHA-256 hashes are recorded in [generation.json](../captures/generation.json).
 The Quadro M1000M benchmark plotted in the paper reproduces numbers already
 reported in the project README; it is not a new measurement.
+
+The [camera-movement study](benchmarks/camera-movement.md), also included in the
+paper, records new software-renderer measurements of walking, foliage placement,
+sorting and uploads. Frozen inputs, raw traces and before/after hashes are kept
+beside the study. It distinguishes capture-time terrain construction from the
+interactive background path and does not claim a hardware FPS improvement.

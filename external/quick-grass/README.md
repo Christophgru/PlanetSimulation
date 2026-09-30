@@ -10,6 +10,7 @@ random height/lean/orientation, wind bending, dark bases and bright yellow-green
 tips, curved normals, wrapped diffuse light and approximate backscatter.
 The OpenGL port uses body-local spherical frames, rendered-terrain roots,
 terrain shadows, the existing atmosphere and exposure, and bounded placement.
-It uses procedural gusts rather than the demo's noise library, omits its player
+It uses periodic 3D Perlin gradient noise for gusts, direction and flutter rather
+than the demo's noise library, omits its player
 collision and view-space thickening, and defaults to a shorter draw distance.
 No Three.js runtime or reference textures are required.

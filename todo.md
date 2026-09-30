@@ -24,9 +24,12 @@ document the progress and add comments such that when interrupted you can contin
 |Spawn the Foliage in a gaussian distribution around the current position, such that at the current position there are most and far away only view. If its coputationally too complex add 5 distance zones.|t| Gaussian placement with sigma = draw distance / 3 and integrated budget scaling implemented. Equal-area radial density, moving-camera and pole tests pass; all 41 CTest checks, exact replay and refreshed 16-image gallery/hash checks passed. |
 |as visible in image USER_IO/user_artifacts/image copy.png the water boarders are still pretty rough, the sand applies to whole (huge) triangles and the grass doesn't qite reach the water. Lets think of ways to keep it performant for large scale but have accurate, fine triangular resolution when we get close to the water.|t| Shared-edge local shoreline subdivision, adaptive water shell and per-fragment altitude palette implemented; foliage uses the same altitude biome. All 41 checks pass, including topology/budget and sub-triangle beach tests. Close before/after inspected; 17-image gallery refreshed and hashes verified. |
 |When the Camera gets close to a steep mountain, its possible to look inside the planet, lets fix that |t| Live near-plane clipping now uses ground clearance instead of mountain altitude, including descent. Live-versus-capture regression fails on the old executable and passes with the fix. All 42 tests pass; 17-image gallery refreshed and verified. |
-|Lately whenever the position of the planet cam changes, the fps drop from 30 to 10 fps, benchmark the code, write in the joural wha parts take how long, and see if the fliage placement needs optimisation or maybe partly updates instead of whole new placement of all grass.|p| Adding foliage placement/sort/upload trace fields and a fixed-step walking benchmark. Measure stationary, walking and foliage-disabled controls before choosing an optimization; record results and limits in the journal. |
+|Lately whenever the position of the planet cam changes, the fps drop from 30 to 10 fps, benchmark the code, write in the joural wha parts take how long, and see if the fliage placement needs optimisation or maybe partly updates instead of whole new placement of all grass.|t| Added placement/sort/upload traces and fixed-step stationary/walking/bare benchmarks. Conservative candidate rejection and cached sort distances reduce CPU placement by 34% and measured rebuild preparation from 79.92 to 50.79 ms, with identical captures. Journal/PDF retain raw data and partial-update analysis. All 43 tests and 17 gallery hashes pass. Software-renderer walking median remains similar; the reported hardware FPS drop is not resolved by these measurements. |
 |Let's outsource the rendering part from main to a Renderer Class that initializes during the constructor call and tears down in the destructor. Main should only include configparser and renderer, and maybe some commandargs parse utils, but keep it really minimal and move all the stuff in seperate classes.|t| Main reduced to 14 lines; Renderer owns startup/teardown, with separate window/input, scene loading, terrain, capture and live-render implementations. All 43 checks pass across the full run and corrected input-test rerun. Lifecycle/failure recovery tested; 17 gallery hashes verified, all 16 deterministic images unchanged. |
-|Lets add a parameter that determines how sharply the grass foliage falls of if it can be included without or with only minor performace loss into the application |||
+|For the wind, lets switch to perlin noise.|t| Gusts, direction and flutter now use periodic 3D Perlin gradient fields in body-local metres, with a seamless 8192-second clock wrap. GPU continuity/root/pole/transform checks and all 43 CTest entries passed. README, journal/PDF and all 17 gallery images refreshed and hashes verified; grass visually inspected. No added textures, geometry, instance data or dependencies. |
+|Let's apply some optimisations from this repo: https://github.com/vercidium-patreon/glvertexid namely triangle optimisations, batching and 8 lods with sinking. Not all is applicable to our current setup 1:1 but these methods in general seem applicable, so let's apply them as well as possible.|||
+|Lets add a parameter that determines how sharply the grass foliage falls of if it can be included without or with only minor performace loss into the application, also add the perlin noise parameter to the json config|||
+|If not already implemented add frustum culling (for the foliage I think it could be difficult for the light simulation, but you may reduce triangle quality in the non camera viewed parts.), compute shaders and gpu instancing to be able to viaualize more foliage and finer landscape. Benchmark and calculate what data is sent from cpu to gpu, then add a section in the journal that identifies techniques most promising to reduce the largest delays. |||
 |Lets add a third person camera "4" and a actor on the same position as cam 2 that follows a small astronaut that can walk around the planet. Create a 3d model of the astronaut or download some nice MIT licensed one online (comic style). Create Walking movement such that the feet stay on the ground and dont slide over it. Search if tere is a nice library for that movement. If not, approvximate the foor movement for now and we will coma back later to that.|||
 |Make foliage movement independant of planetary movement, such that if pressed t only the planet movement stop, but local grass movement keeps going|||
 |The quick grass demo mentioned something like 6 poly grass if close and 1 pol grass if far away, is this already active? if not add it.|||
@@ -67,6 +70,38 @@ if environmental changes are needed inside the container, let the user know by a
 
 ## Progress checkpoint — 2026-09-30
 
+- Perlin wind is complete in `shaders/foliage/grass.vert`; `GrassWind.h`
+  bounds the shared phase to an 8192-second period. Broad gusts, slow direction
+  and fine flutter now use three body-local gradient fields with quintic fade.
+  Focused GPU checks pass for lattice/time-wrap continuity, roots, both poles,
+  large times, zero wind and body transforms, plus existing lighting/clipping.
+  All 43 CTest entries pass (98 s); all 17 gallery images regenerated and hashes
+  verified (`build-codex/perlin-tests.log`, `perlin-gallery.log`). Grass capture
+  and journal pages visually inspected; PDF compiled. The overview has 14,784
+  non-background pixels, bounds (1,1)–(794,598). The prior movement benchmark is
+  explicitly labelled as a sine-wind workload. No dependencies added; preserve
+  the user's 60 m draw distance. Pre-change executable and shader:
+  `build-codex/pre-perlin/`. Next: the linked glvertexid triangle/batching/8-LOD
+  techniques, then the foliage falloff parameter. Wind still follows simulation
+  time; its separate pause behavior remains the later dedicated task.
+- Camera-movement profiling complete: all 43 CTest entries pass (86 s), including
+  fixed-step walking, foliage timing fields and exact paused replay. The working
+  scene now uses the user's 60 m grass draw distance; keep that setting. Controlled
+  CPU placement runs alternate baseline/optimized order and retain identical
+  162,828 blades and attribute checksums. Median process CPU time is 52.505 ms
+  before and 34.6775 ms after. Paired rendering runs with two llvmpipe threads
+  reduce preparation per rebuild from 79.92 to 50.79 ms, but walking frame
+  medians remain 872/869 ms; no hardware FPS fix is claimed. All three paired
+  PNGs are byte-identical. Raw CSVs, input scenes and executable hashes are in
+  `docs/journal/benchmarks/movement/`; the analysis is in `camera-movement.md`
+  and the compiled journal PDF. Background terrain construction and partial
+  patch update tradeoffs are documented. All 17 gallery images regenerated
+  and hashes verified; only the working surface view (60 m setting) and timing
+  overlay changed. Overview and grass visually inspected; overview has 14,784
+  non-background pixels, bounds (1,1)–(794,598). No new dependencies.
+  Earlier `movement-before/after` timings vary with host load and must not be
+  used to claim a speedup. Next in table order: Perlin-noise wind, then the
+  linked triangle/batching/LOD optimizations and foliage falloff parameter.
 - Renderer extraction complete: main is 14 lines; `planet_app` compiles the
   implementation. `src/app` owns options/window/input, `src/app/scene` loads and
   stages CPU scenes, and `src/rendering/runtime` contains private renderer state

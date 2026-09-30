@@ -1,0 +1,67 @@
+{
+  "baseline_revision": "7e13c8259374a1b0780710a0d289ef58bc0ae22d",
+  "build": "GCC 12.2.0, CMake RelWithDebInfo (-O2 -g -DNDEBUG), C++20",
+  "order": [
+    "before",
+    "after",
+    "after",
+    "before",
+    "before",
+    "after"
+  ],
+  "warmup_iterations_per_run": 2,
+  "input_sha256": "00aeb7696d0d297364b0832ad964dcb03ed83a2f3b5e12cd1b46572264edc82d",
+  "cpu": {
+    "before": {
+      "placement_ms": {
+        "median": 52.586409,
+        "mean": 52.605738366666664
+      },
+      "placement_cpu_ms": {
+        "median": 52.505,
+        "mean": 52.5779
+      },
+      "measured_iterations": 30,
+      "blades": [
+        162828
+      ],
+      "checksums": [
+        "16316014324999664024"
+      ],
+      "binary_sha256": "464ee3b14a5e10a6fa7e5960c1fab94d9478d11f9cc8105eb7a80c391d05c46a"
+    },
+    "after": {
+      "placement_ms": {
+        "median": 34.682692,
+        "mean": 34.72158603333333
+      },
+      "placement_cpu_ms": {
+        "median": 34.677499999999995,
+        "mean": 34.716233333333335
+      },
+      "measured_iterations": 30,
+      "blades": [
+        162828
+      ],
+      "checksums": [
+        "16316014324999664024"
+      ],
+      "binary_sha256": "7c6366fe32b067f311b30cf4bd9029bde778da415d20b0548a7e8e3a252d6d7a"
+    }
+  },
+  "captures": {
+    "stationary": {
+      "before": "0488f162e3e2137613691341587f751553bb4d2f11893f3ded1e15ffeaad17c2",
+      "after": "0488f162e3e2137613691341587f751553bb4d2f11893f3ded1e15ffeaad17c2"
+    },
+    "walking": {
+      "before": "d4906e696e6a79579d2cbd006a06755a8b7a54fc31a99490e10b08ed98982d6e",
+      "after": "d4906e696e6a79579d2cbd006a06755a8b7a54fc31a99490e10b08ed98982d6e"
+    },
+    "walking-bare": {
+      "before": "69eb1559851f6a599a113ca937d8cf25c8fd2cd6ecff316be2bffafdae724ebd",
+      "after": "69eb1559851f6a599a113ca937d8cf25c8fd2cd6ecff316be2bffafdae724ebd"
+    }
+  },
+  "captures_identical": true
+}

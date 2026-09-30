@@ -1,4 +1,5 @@
 #include "rendering/runtime/ScenePass.h"
+#include "rendering/foliage/GrassWind.h"
 #include <glm/gtc/type_ptr.hpp>
 
 namespace rendering {
@@ -192,9 +193,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                 bladeShader.setFloat("uGrassWidth",settings.width_m);
                 bladeShader.setFloat("uDrawDistance",settings.draw_distance_m);
                 bladeShader.setFloat("uWindStrength",settings.wind_strength);
-                // Every wind frequency is a multiple of 0.05 rad/s. Wrap by
-                // the shared period to retain float precision without a jump.
-                bladeShader.setFloat("uTime",std::remainder(sceneTime,40.0*std::acos(-1.0)));
+                bladeShader.setFloat("uTime",rendering::grassWindTime(sceneTime));
                 setRgb(bladeShader,"uGrassEyeBody",bodies[i+1].toLocalPoint(eyeWorld)/planet.radius);
                 setRgb(bladeShader,"uViewEyeWorld",glm::dvec3(glm::inverse(passView)[3]));
                 setBodyLighting(bladeShader,i);

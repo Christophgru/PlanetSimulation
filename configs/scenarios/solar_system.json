@@ -237,7 +237,7 @@
                 "density_per_m2": 1200.72,
                 "height_m": 1.0,
                 "width_m": 0.08,
-                "draw_distance_m": 120.0,
+                "draw_distance_m": 60.0,
                 "wind_strength": 1.0,
                 "max_blades": 200000,
                 "seed": 7321

@@ -12,6 +12,33 @@ out vec3 vBodyPosition,vWorldPosition,vNormal,vUp,vColor;
 out vec4 vShadowPosition;
 out vec3 vBlade; // height fraction, side, detailed shading weight
 
+// Improved Perlin gradient noise: corner dot products and a quintic fade.
+// Algorithm: https://cs.nyu.edu/~perlin/noise/ . Integer hashing replaces
+// the reference permutation table; no textures or extra instance data.
+float grassGradient(ivec3 cell, vec3 offset) {
+    uvec3 c=uvec3(cell & ivec3(255));
+    uint h=c.x*1597334677u ^ c.y*3812015801u ^ c.z*2798796415u;
+    h^=h>>16; h*=0x7feb352du; h^=h>>15;
+    const vec3 gradients[12]=vec3[12](
+        vec3(1,1,0),vec3(-1,1,0),vec3(1,-1,0),vec3(-1,-1,0),
+        vec3(1,0,1),vec3(-1,0,1),vec3(1,0,-1),vec3(-1,0,-1),
+        vec3(0,1,1),vec3(0,-1,1),vec3(0,1,-1),vec3(0,-1,-1));
+    return dot(gradients[h%12u],offset);
+}
+float grassPerlin(vec3 p) {
+    // Bound integer conversion as well as the gradient lookup. The field
+    // repeats every 256 cells, including at negative coordinates.
+    p=mod(p,256.0);
+    ivec3 cell=ivec3(floor(p));
+    vec3 f=fract(p);
+    vec3 blend=f*f*f*(f*(f*6.0-15.0)+10.0);
+    return mix(
+        mix(mix(grassGradient(cell,f),grassGradient(cell+ivec3(1,0,0),f-vec3(1,0,0)),blend.x),
+            mix(grassGradient(cell+ivec3(0,1,0),f-vec3(0,1,0)),grassGradient(cell+ivec3(1,1,0),f-vec3(1,1,0)),blend.x),blend.y),
+        mix(mix(grassGradient(cell+ivec3(0,0,1),f-vec3(0,0,1)),grassGradient(cell+ivec3(1,0,1),f-vec3(1,0,1)),blend.x),
+            mix(grassGradient(cell+ivec3(0,1,1),f-vec3(0,1,1)),grassGradient(cell+ivec3(1,1,1),f-vec3(1,1,1)),blend.x),blend.y),blend.z);
+}
+
 mat3 axisRotation(vec3 a,float angle) {
     float s=sin(angle),c=cos(angle),k=1.0-c;
     return mat3(c+a.x*a.x*k,a.y*a.x*k+a.z*s,a.z*a.x*k-a.y*s,
@@ -29,13 +56,15 @@ void main() {
     vec3 forward=cross(right,up);
     mat3 frame=mat3(right,up,forward);
     vec3 p=aRoot*uMetersPerRadius;
-    // Coherent broad gusts plus a small blade-local flutter, in body metres.
-    float gust=0.5+0.5*sin(dot(p,vec3(.19,.11,.23))+uTime)*sin(dot(p,vec3(.07,.13,.05))+.7*uTime);
+    // Advected 3D fields stay attached to the body without a UV/pole seam.
+    // All advection rates traverse whole 256-cell periods in 8192 seconds;
+    // GrassWind.h wraps the double clock by that exact common period.
+    float gust=clamp(0.5+0.5*grassPerlin(p*.08+uTime*vec3(.25,.125,0)),0.0,1.0);
     float windAngle=pow(mix(.25,1.0,gust),2.0)*1.25*uWindStrength*t;
-    float windDirection=sin(dot(p,vec3(.03,.05,.02))+.05*uTime);
+    float windDirection=grassPerlin(p*.02+vec3(19.3,7.1,43.7)+uTime*vec3(.03125,0,0));
     mat3 wind=axisRotation(vec3(cos(windDirection),0,sin(windDirection)),windAngle);
     mat3 turn=axisRotation(vec3(0,1,0),aVariation.x);
-    float lean=aVariation.y+.1*uWindStrength*sin(dot(p,vec3(13.7,9.1,7.3))+.35*uTime);
+    float lean=aVariation.y+.1*uWindStrength*grassPerlin(p*.7+vec3(5.2,31.8,11.4)+uTime*vec3(0,.5,0));
     float curve=-lean*mix(t*t,1.0,low);
     float height=uGrassHeight*aVariation.z*fade;
     float width=uGrassWidth*mix(1.0-t*t,1.0-t,low)*fade;

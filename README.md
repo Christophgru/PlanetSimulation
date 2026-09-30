@@ -262,7 +262,12 @@ per pass, terrain uploads, shadow updates/reuses, and completed-scene reuses.
 `terrain_build_ms` records completed CPU terrain jobs on the frame that installs
 them, including background jobs; their elapsed time can overlap earlier frames
 and must not be added to the current frame time.
-Passes cover simulation updates, mesh preparation, lighting, lookup tables,
+`foliage_rebuilds` counts rebuilt grass patches; `foliage_placement_ms`,
+`foliage_sort_ms`, and `foliage_upload_ms` separate root generation, ordering
+blades by distance, and submitting instance buffers. `cpu_foliage_ms` includes
+the complete preparation stage. Grass draw time belongs to the opaque and
+reflection GPU passes; `gpu_foliage_ms` is zero because preparation is CPU work.
+Passes cover simulation updates, mesh preparation, lighting, foliage preparation, lookup tables,
 shadows, opaque geometry, reflected geometry, reflected atmosphere, water,
 main atmosphere, cached presentation, HUD, and swap/presentation. GPU queries
 are collected only when ready; an eight-frame ring skips GPU sampling if it
@@ -291,6 +296,27 @@ frame (captured without swapping) when comparing steady rendering costs.
 are not part of deterministic scene replay. `--atmosphere-full-resolution`
 keeps the full-resolution integration path for quality comparisons. Capture
 sidecars preserve that quality choice for replay.
+
+To compare a paused stationary camera, walking with grass, and walking without
+grass at the same frozen orbital time:
+
+~~~bash
+LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=2 xvfb-run -a python3 scripts/benchmarks/camera_movement.py --binary build/PlanetSimulation --output-dir build/camera-movement
+~~~
+
+Omit the software-renderer environment variables when profiling a physical GPU.
+The script combines the saved grass camera with the current working scenario,
+records the resolved inputs, driver, executable hash, per-frame CSV and summary,
+and advances the camera by 2 m per frame using `--benchmark-walk-step`.
+It discards five warmup frames and the final readback frame. This deliberately
+accelerated walk exposes rebuilds in a short run; it does not emulate a fixed
+real-time walking speed. Captures rebuild terrain synchronously for repeatable
+geometry, whereas interactive walking builds terrain in the background.
+A stationary paused scene reuses its complete rendered image. These capture
+times therefore cannot establish the FPS of interactive walking. For that,
+use `--performance-trace` during normal movement on the target GPU.
+The [camera-movement journal](docs/journal/benchmarks/camera-movement.md)
+records the measured costs, optimization comparison and remaining work.
 
 On the Quadro M1000M at 1280×720, the same 90-frame surface benchmark measured:
 
@@ -846,7 +872,7 @@ Optional per-planet `foliage` enables grass on the green biome. The working
 Earth enables it; omitted blocks leave grass disabled in older scenes.
 The port follows [SimonDev's Quick_Grass](https://github.com/simondevyoutube/Quick_Grass)
 with six-segment curved blades nearby and one-segment blades beyond 15 m,
-random heights and lean, coherent wind, dark bases, yellow-green tips,
+random heights and lean, Perlin-noise wind, dark bases, yellow-green tips,
 wrapped diffuse lighting and backscatter. The [source attribution and MIT
 license](external/quick-grass/README.md) record the version and adaptations.
 
@@ -865,7 +891,7 @@ license](external/quick-grass/README.md) record the version and adaptations.
 
 These are the defaults when a foliage block is present. Height and width are
 in metres. The working scene overrides them with 1 m height, 0.08 m width,
-120 m draw distance, a requested density of 1200.72 blades/m² and a 200,000-blade
+60 m draw distance, a requested density of 1200.72 blades/m² and a 200,000-blade
 budget. The defaults shown above remain the smaller reference preset.
 The random height multiplier is 0.75–1.5. Supported ranges are
 0–2 wind strength, 0.05–3 m height, 0.005–0.3 m width, 5–400 m draw distance,
@@ -885,7 +911,19 @@ at the poles. Water, beaches, snow and gray bodies do not grow grass. Coverage
 thins through the configured grass-to-rock slope range. Blades receive terrain
 shadows and atmospheric lighting and appear in water reflections. They do not
 cast individual shadows; base occlusion is an approximation, as in the demo.
+Wind samples three periodic 3D Perlin gradient fields in body-local metres:
+12.5 m cells for broad gusts, 50 m cells for slowly changing direction, and
+roughly 1.4 m cells for fine flutter. The fields drift smoothly over time;
+neighboring blades share coherent gusts without a latitude/longitude texture
+seam. Quintic interpolation keeps lattice crossings smooth. Noise is evaluated
+in the vertex shader with no texture, geometry or instance-buffer additions.
+`wind_strength: 0` removes all wind deformation, retaining each blade's seeded
+static lean. The same phase drives the main and reflected views.
 Wind follows simulation time, so pause freezes it and capture replays are exact.
+The clock uses an 8192-second wrap period, shared by the drifting fields,
+to retain float precision without an animation jump. The implementation follows
+the gradient-and-fade construction of [Perlin's improved noise](https://cs.nyu.edu/~perlin/noise/)
+with integer hashing in place of a permutation table.
 Patches update after movement or terrain LOD changes; a new tessellation can
 reseed the patch. Player collision and the demo's screen-space blade thickening
 are not implemented.

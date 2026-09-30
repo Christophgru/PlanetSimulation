@@ -177,6 +177,38 @@ The project's recorded Quadro M1000M benchmark at 1280×720 reported 208 ms mean
 
 A profiler now records CPU stage times and asynchronous GPU timestamp results without blocking for each query. CPU frame time, GPU pass time, and swap/presentation delay answer different questions; adding CPU and GPU times would double-count overlap. A completed HDR scene may be reused if camera, time, viewport, geometry, and pending-terrain state match. The HUD remains separately drawn so input can reveal or hide it immediately.
 
+== Perlin wind on a rotating planet
+
+Grass wind now samples three advected 3D Perlin gradient fields, replacing the earlier overlapping sine waves. The field input is each root in body-local metres, so orbital translation and rotation do not change the local deformation. Gust cells span 12.5 m, direction cells 50 m, and flutter cells approximately 1.4 m. The implementation blends gradient dot products at eight cell corners with the quintic fade $6t^5-15t^4+10t^3$, following the construction in #link("https://cs.nyu.edu/~perlin/noise/")[Ken Perlin's improved-noise reference]. Integer hashing selects corner gradients instead of a permutation table. This is a visual wind model, not a fluid simulation.
+
+The lattice repeats every 256 cells. Drift rates are binary fractions of a cell per second with a common 8192-second period, allowing the double simulation clock to wrap before conversion to a float uniform without a discontinuity. Both the main and water-reflection pass use the same field and phase. Wind strength zero leaves the seeded static lean; pause still freezes wind, preserving deterministic captures. The vertex shader adds no textures, triangles or per-instance uploads, but performs more arithmetic than the old sine field. GPU transform-feedback checks exercise lattice and period boundaries, both poles, large wrapped times, fixed blade roots and independence from body transforms; pixel tests retain wind motion, shadowing and reflection clipping checks.
+
+== Camera movement and grass preparation: measured costs
+
+The following measurements predate the Perlin wind change; their recorded executable hashes and captures identify the earlier sine-wind workload.
+
+On 2026-09-30, a fixed-step benchmark separated the cost of moving the surface camera from orbital motion. Three cases share the same camera and scene: stationary with paused time, walking with grass, and walking without grass. Each capture has 36 frames at 640×360; five warmup frames and the final readback frame are excluded. Walking advances 2 m per frame. The working scene uses a 60 m grass draw distance and a 200,000-blade budget. The host runs Mesa 22.3.6 llvmpipe with two worker threads under Xvfb; CPU code uses GCC 12.2.0 with `-O2`. These are software-renderer measurements, not a reproduction of the reported 30-to-10 FPS change on a physical GPU.
+
+#table(
+  columns: (2.0fr, 1fr, 1fr, 1fr),
+  inset: 5pt, stroke: 0.4pt + rgb("#dfe8eb"),
+  [*Case*], [*Frame mean / median (ms)*], [*GPU passes mean (ms)*], [*Grass per rebuild (ms)*],
+  [Before: stationary], [36.64 / 36.59], [2.09], [0],
+  [Before: walking], [1089.03 / 872.44], [924.25], [79.92],
+  [Before: walking, bare], [620.87 / 478.28], [481.32], [0],
+  [After: stationary], [37.26 / 36.96], [2.20], [0],
+  [After: walking], [1033.55 / 869.35], [878.71], [50.79],
+  [After: walking, bare], [639.14 / 482.17], [498.60], [0],
+)
+
+Both walking runs rebuild grass on ten measured frames and install five terrain meshes. All thirty stationary frames reuse the completed scene. Captures construct terrain synchronously for reproducible geometry; live walking already constructs land and water in the background. The optimized capture's CPU mesh stage averages 136.34 ms per frame, with a median near zero. This average must not be interpreted as a render-thread stall in the interactive path. CPU and GPU times overlap, and swap time includes software-driver waits.
+
+Two local changes reduce grass preparation without changing its roots or appearance. A conservative triangle bound rejects candidates whose random sample cannot pass the Gaussian density test, before computing their full geometry. Sorting caches each squared distance once, then sorts compact keys and gathers the instance buffers. Mean placement time on rebuilding frames falls from 55.59 to 35.65 ms, sorting from 23.51 to 14.26 ms, while instance submission stays near 0.85 ms. Complete preparation falls from 79.92 to 50.79 ms, about 36%. Three isolated placement runs per version, alternating order and discarding two warmup iterations per run, reduce median process CPU time from 52.505 to 34.6775 ms (34%). All iterations retain exactly 162,828 blades and identical attribute checksums. All three paired final PNGs are byte-identical.
+
+The median walking frame remains nearly unchanged, at 872 versus 869 ms. Rendering grass, reflected geometry and atmosphere dominates this software-renderer workload. Grass is already instanced and distance-cached; it is drawn in both opaque and reflection passes. Partial patch updates could reduce preparation spikes further, but would not eliminate those draw costs. They also require stable terrain tile identities: candidate seeds currently depend on triangle indices, which can change with tessellation. Reusing roots across mesh revisions without resampling could leave grass above or below the new ground. A future tiled cache or background placement job should retain overlap, rebuild changed tiles and discard obsolete jobs. The later culling and LOD work should measure each render pass on the target GPU before choosing a broader redesign.
+
+Reproduction commands, complete per-pass tables, frozen inputs, raw CSVs, executable hashes and caveats are retained in `docs/journal/benchmarks/camera-movement.md` and its `movement/` data directory. Live traces now expose foliage placement, sorting, upload and rebuild counts separately. No end-to-end hardware FPS improvement is claimed from this single paired software-rendering run.
+
 = Visibility, exposure, and interactive constraints
 
 == Diagnostics, dependency boundaries and adaptive quality
@@ -212,7 +244,7 @@ Orbit-to-surface entry is a one-second wall-clock transition. The starting pose 
 
 == What the evidence establishes
 
-The repository contains 39 CTest entries covering configuration and orbital invariants; terrain and camera behavior; lighting, shadows, atmosphere and refraction on OpenGL; renderer captures; adaptive quality; and real GLFW input under Xvfb. The 12 README images are checked against their SHA-256 manifest. These checks establish specific numerical and rendered behaviors on the tested software renderer. They do not establish physical fidelity, portability to every GPU driver, or a guaranteed 20 FPS for arbitrary scenes.
+The repository contains 43 CTest entries covering configuration and orbital invariants; terrain and camera behavior; lighting, shadows, atmosphere and refraction on OpenGL; renderer captures; adaptive quality; and real GLFW input under Xvfb. The 17 README images are checked against their SHA-256 manifest. These checks establish specific numerical and rendered behaviors on the tested software renderer. They do not establish physical fidelity, portability to every GPU driver, or a guaranteed 20 FPS for arbitrary scenes.
 
 The model boundaries are deliberate. Orbits are prescribed two-body ellipses with hierarchical recoil. Terrain is a deterministic synthetic height field with bounded tessellation. Atmospheric scale heights are chosen relative to shell size; the model does not solve hydrostatic temperature profiles, cloud dynamics, weather, or multiple scattering. Refraction bends view rays and reprojects available distant imagery but keeps near opaque geometry and direct shadow rays straight. Atmospheric temperature is read from JSON rather than evolved from sunlight and orbit. These limits define what a visual comparison can support.
 
