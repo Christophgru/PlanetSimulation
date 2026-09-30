@@ -543,15 +543,28 @@ The selected file also becomes the interactive reload/watch target.
 ## Project layout
 
 - `src/config`, `src/coordinates`, `src/simulation`: scene settings and physical models.
+- `src/app` and `src/app/scene`: command-line options, window/input, config/replay loading and CPU scene preparation.
+- `src/rendering/Renderer.h`: application renderer with constructor/destructor ownership.
+- `src/rendering/runtime`: renderer state, terrain jobs, scene passes, captures and interactive loop.
 - `src/rendering/{camera,geometry,foliage,lighting,atmosphere,diagnostics}`: rendering subsystems.
 - `shaders/{terrain,foliage,water,skybox,atmosphere,diagnostics}`: matching GPU programs.
-- `tests/{camera,geometry,foliage,lighting,atmosphere,simulation,config,diagnostics}`: subsystem tests.
+- `tests/{app,camera,geometry,foliage,lighting,atmosphere,simulation,config,diagnostics}`: subsystem tests.
 - `tests/scenarios` and `tests/fixtures`: reproducible scene inputs.
 - `docs/screenshots`: PNG images only; `docs/captures/replay`: replay JSON.
 - `docs/captures`: image generation log and manifest; `scripts`: maintenance commands.
 
 `python3 scripts/check_layout.py` checks folder sizes and README capture links.
 Build products belong in a separate build directory.
+
+`main.cpp` parses options, constructs `rendering::Renderer`, and calls `run()`.
+The constructor loads and validates the scene and initializes the GLFW context
+and rendering resources. Terrain meshes remain generated on demand for the
+current camera. The destructor joins outstanding terrain jobs, releases GPU
+resources, then destroys the window and context. Partially completed startup
+and failed captures follow the same ownership rules. Use one Renderer at a time
+on a single thread. Its public header hides GL and JSON implementation details.
+Scene reload stages the CPU replacement before installing it; window callbacks
+borrow the renderer's camera and clock state.
 
 ## Prerequisites
 
@@ -589,6 +602,9 @@ headers forward-declare `Config`; code that reads JSON includes
 `config/Config.h` explicitly. This keeps JSON parsing out of geometry and
 camera compilation.
 
+`planet_app` compiles the application and renderer implementation separately
+from the small executable entry point and shares it with lifecycle tests.
+
 In the stabilization check (GCC, Ninja, `RelWithDebInfo`, two build jobs),
 touching `Terrain.cpp` rebuilt one object and relinked ten executables in
 4.32 seconds. All twelve config/rendering headers checked independently;
@@ -603,8 +619,11 @@ ctest --output-on-failure
 cd ..
 ~~~
 
-The suite has 42 CTest entries covering unit tests, GPU shadows, scene captures,
-lighting scenarios, and exact replay. It is verified on the native NVIDIA
+The suite has 43 CTest entries covering unit tests, GPU shadows, scene captures,
+lighting scenarios, exact replay, and renderer lifecycle/failure recovery.
+Renderer lifecycle checks cover repeated construction, partial startup failure,
+capture write failure, and GPU deletion before context teardown.
+Earlier rendering checks were verified on the native NVIDIA
 display and Mesa llvmpipe under Xvfb. GPU shadow tests use their own offscreen
 framebuffer, so hidden-window allocation does not determine their result.
 The integration captures still need an OpenGL display. On a machine without

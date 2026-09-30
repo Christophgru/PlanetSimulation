@@ -25,7 +25,7 @@ document the progress and add comments such that when interrupted you can contin
 |as visible in image USER_IO/user_artifacts/image copy.png the water boarders are still pretty rough, the sand applies to whole (huge) triangles and the grass doesn't qite reach the water. Lets think of ways to keep it performant for large scale but have accurate, fine triangular resolution when we get close to the water.|t| Shared-edge local shoreline subdivision, adaptive water shell and per-fragment altitude palette implemented; foliage uses the same altitude biome. All 41 checks pass, including topology/budget and sub-triangle beach tests. Close before/after inspected; 17-image gallery refreshed and hashes verified. |
 |When the Camera gets close to a steep mountain, its possible to look inside the planet, lets fix that |t| Live near-plane clipping now uses ground clearance instead of mountain altitude, including descent. Live-versus-capture regression fails on the old executable and passes with the fix. All 42 tests pass; 17-image gallery refreshed and verified. |
 |Lately whenever the position of the planet cam changes, the fps drop from 30 to 10 fps, benchmark the code, write in the joural wha parts take how long, and see if the fliage placement needs optimisation or maybe partly updates instead of whole new placement of all grass.|
-|Let's outsource the rendering part from main to a Renderer Class that initializes during the constructor call and tears down in the destructor. Main should only include configparser and renderer, and maybe some commandargs parse utils, but keep it really minimal and move all the stuff in seperate classes.||| 
+|Let's outsource the rendering part from main to a Renderer Class that initializes during the constructor call and tears down in the destructor. Main should only include configparser and renderer, and maybe some commandargs parse utils, but keep it really minimal and move all the stuff in seperate classes.|t| Main reduced to 14 lines; Renderer owns startup/teardown, with separate window/input, scene loading, terrain, capture and live-render implementations. All 43 checks pass across the full run and corrected input-test rerun. Lifecycle/failure recovery tested; 17 gallery hashes verified, all 16 deterministic images unchanged. |
 |Lets add a parameter that determines how sharply the grass foliage falls of |||
 |Lets add a third person camera "4" and a actor on the same position as cam 2 that follows a small astronaut that can walk around the planet. Create a 3d model of the astronaut or download some nice MIT licensed one online (comic style). Create Walking movement such that the feet stay on the ground and dont slide over it. Search if tere is a nice library for that movement. If not, approvximate the foor movement for now and we will coma back later to that.|||
 |Make foliage movement independant of planetary movement, such that if pressed t only the planet movement stop, but local grass movement keeps going|||
@@ -67,6 +67,22 @@ if environmental changes are needed inside the container, let the user know by a
 
 ## Progress checkpoint — 2026-09-30
 
+- Renderer extraction complete: main is 14 lines; `planet_app` compiles the
+  implementation. `src/app` owns options/window/input, `src/app/scene` loads and
+  stages CPU scenes, and `src/rendering/runtime` contains private renderer state
+  and separate execution paths. Scoped GPU adapters release resources before
+  the context even on construction failure. Shader failures now throw and
+  release temporary shader stages. Seven lifecycle/recovery and options cases
+  pass. All 43 CTest entries passed across the full run and a focused rerun:
+  the original fixed-delay orbit input check also failed on the old executable;
+  it now waits for a changed, settled camera frame and passes on both builds.
+  Public Renderer header compiles independently. All 17 gallery hashes verified;
+  all 16 deterministic PNGs match the previous gallery exactly, with only the
+  timing overlay changing. Overview and shoreline visually inspected; overview
+  has 14,784 non-background pixels, bounds (1,1)–(794,598).
+  Pre-refactor executable and source: `build-codex/pre-renderer/`. No dependencies
+  added. Next: the newly inserted planet-camera movement FPS profiling task,
+  before the foliage falloff parameter.
 - Mountain-altitude clipping fix validated: all 42 CTest tests passed (88 s).
   The new X11 regression compares a paused live window with its capture on
   an 80 m plateau, with the eye 2 m above the ground. The old executable

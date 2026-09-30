@@ -1,0 +1,31 @@
+#pragma once
+#include "rendering/lighting/CameraExposure.h"
+#include "rendering/geometry/SceneTransforms.h"
+#include "rendering/geometry/Mesh.h"
+#include "rendering/Shader.h"
+#include "rendering/WaterReflectionTarget.h"
+#include "rendering/foliage/GrassRenderer.h"
+#include "rendering/lighting/TerrainShadowMaps.h"
+#include "rendering/atmosphere/AtmosphereRenderer.h"
+#include "rendering/diagnostics/FrameProfiler.h"
+
+namespace rendering {
+rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
+                 const std::vector<simulation::BodyState>& bodies,
+                 const glm::mat4& view, float fov,
+                 const glm::dvec3& eyeWorld, const Shader& shader,
+                 const Shader& waterShader, const Shader& skyboxShader,
+                 rendering::WaterReflectionTarget& reflectionTarget,
+                 const Shader& shadowShader, rendering::TerrainShadowMaps& shadows,
+                 const Shader& atmosphereShader, rendering::AtmosphereRenderer& atmosphere,
+                 rendering::AtmosphereRenderer& reflectionAtmosphere,
+                 rendering::AtmosphereTransmittance& atmosphereColumns,
+                 const Mesh& sunMesh, const Mesh& skyboxMesh,
+                 const std::vector<Mesh>& planetMeshes,
+                 const std::vector<Mesh>& waterMeshes, int width, int height,
+                 rendering::ClipPlanes clip = {},
+                 std::optional<std::size_t> meteredPlanet = std::nullopt,
+                 bool recordObjects = false, rendering::FrameProfiler* profiler = nullptr,
+                 bool forceHdr = false, GLuint outputFramebuffer = 0,
+                 rendering::GrassRenderer* grass = nullptr, double sceneTime = 0);
+}

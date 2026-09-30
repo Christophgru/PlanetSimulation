@@ -43,24 +43,37 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath,
 
     // Compile vertex shader
     GLuint vertex = glCreateShader(GL_VERTEX_SHADER);
-    const char* vertexSource = vertexCode.c_str();
-    glShaderSource(vertex, 1, &vertexSource, nullptr);
-    glCompileShader(vertex);
-    checkCompileErrors(vertex, "VERTEX");
+    GLuint fragment = 0;
+    try {
+        const char* vertexSource = vertexCode.c_str();
+        glShaderSource(vertex, 1, &vertexSource, nullptr);
+        glCompileShader(vertex);
+        checkCompileErrors(vertex, "VERTEX");
 
-    // Compile fragment shader
-    GLuint fragment = glCreateShader(GL_FRAGMENT_SHADER);
-    const char* fragmentSource = fragmentCode.c_str();
-    glShaderSource(fragment, 1, &fragmentSource, nullptr);
-    glCompileShader(fragment);
-    checkCompileErrors(fragment, "FRAGMENT");
+        // Compile fragment shader
+        fragment = glCreateShader(GL_FRAGMENT_SHADER);
+        const char* fragmentSource = fragmentCode.c_str();
+        glShaderSource(fragment, 1, &fragmentSource, nullptr);
+        glCompileShader(fragment);
+        checkCompileErrors(fragment, "FRAGMENT");
 
-    // Create shader program
-    id = glCreateProgram();
-    glAttachShader(id, vertex);
-    glAttachShader(id, fragment);
-    glLinkProgram(id);
-    checkLinkErrors(id);
+        // Create shader program
+        id = glCreateProgram();
+        glAttachShader(id, vertex);
+        glAttachShader(id, fragment);
+        glLinkProgram(id);
+        checkLinkErrors(id);
+        glDetachShader(id, vertex);
+        glDetachShader(id, fragment);
+    } catch (...) {
+        if (id) glDeleteProgram(id);
+        if (fragment) glDeleteShader(fragment);
+        glDeleteShader(vertex);
+        id = 0;
+        throw;
+    }
+    glDeleteShader(fragment);
+    glDeleteShader(vertex);
 }
 
 void Shader::use() const {
@@ -97,8 +110,7 @@ void Shader::checkCompileErrors(GLuint shader, const char* type) {
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(shader, 512, nullptr, infoLog);
-        std::cerr << "Shader compilation error (" << type << "):\n" << infoLog << "\n";
-        glDeleteShader(shader);
+        throw std::runtime_error(std::string("Shader compilation error (") + type + "): " + infoLog);
     }
 }
 
@@ -108,7 +120,6 @@ void Shader::checkLinkErrors(GLuint program) {
     glGetProgramiv(program, GL_LINK_STATUS, &success);
     if (!success) {
         glGetProgramInfoLog(program, 512, nullptr, infoLog);
-        std::cerr << "Shader linking error:\n" << infoLog << "\n";
-        glDeleteProgram(program);
+        throw std::runtime_error(std::string("Shader linking error: ") + infoLog);
     }
 }

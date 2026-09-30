@@ -54,11 +54,21 @@ add_library(planet_rendering STATIC
     src/rendering/foliage/GrassRenderer.cpp)
 target_link_libraries(planet_rendering PUBLIC planet_geometry OpenGL::GL GLEW::GLEW)
 
-add_executable(PlanetSimulation src/main.cpp)
-target_compile_definitions(PlanetSimulation PRIVATE PLANET_VERSION="${PROJECT_VERSION}")
+add_library(planet_app STATIC
+    src/app/CommandLineOptions.cpp
+    src/app/Window.cpp
+    src/app/WindowInput.cpp
+    src/app/scene/SceneSource.cpp
+    src/app/scene/PreparedScene.cpp
+    src/rendering/runtime/Renderer.cpp
+    src/rendering/runtime/TerrainMeshes.cpp
+    src/rendering/runtime/ScenePass.cpp
+    src/rendering/runtime/Capture.cpp
+    src/rendering/runtime/Interactive.cpp)
+target_compile_definitions(planet_app PRIVATE PLANET_VERSION="${PROJECT_VERSION}")
 
 # Link required libraries
-target_link_libraries(PlanetSimulation PRIVATE 
+target_link_libraries(planet_app PUBLIC
     planet_rendering
     nlohmann_json::nlohmann_json
     OpenGL::GL
@@ -68,6 +78,9 @@ target_link_libraries(PlanetSimulation PRIVATE
     GLEW::GLEW
     glm::glm
 )
+
+add_executable(PlanetSimulation src/main.cpp)
+target_link_libraries(PlanetSimulation PRIVATE planet_app)
 
 # Include directories for all source files
 target_include_directories(PlanetSimulation PRIVATE 

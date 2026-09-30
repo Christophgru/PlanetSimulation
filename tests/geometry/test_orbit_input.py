@@ -37,25 +37,38 @@ try:
     def pixels():
         png = command('import', '-window', window, 'png:-')
         return subprocess.check_output(['convert', 'png:-', '-depth', '8', 'rgb:-'], input=png)
-    before = pixels()
+    def settled(previous=None):
+        # The first planet-camera frame can take longer than 0.8 s on
+        # software GL. Wait for the requested change and then a stable frame,
+        # rather than comparing the old orbit frame against the new camera.
+        deadline = time.monotonic() + 15
+        last = None
+        repeats = 0
+        while time.monotonic() < deadline:
+            current = pixels()
+            changed_view = previous is None or current != previous
+            drawn = len(set(current)) > 10
+            repeats = repeats + 1 if drawn and changed_view and current == last else 0
+            if repeats >= 2:
+                return current
+            last = current
+            time.sleep(0.25)
+        raise AssertionError('Paused scene did not settle after input')
+    before = settled()
     command('xdotool', 'key', 'o')
-    time.sleep(0.8)
-    shown = pixels()
+    shown = settled(before)
     assert len(before) == len(shown)
     changed = sum(a != b for a, b in zip(before, shown))
     assert changed > 3000, f'Orbit toggle changed only {changed} color channels'
     command('xdotool', 'key', 'o')
-    time.sleep(0.8)
-    hidden = pixels()
+    hidden = settled(shown)
     remaining = sum(a != b for a, b in zip(before, hidden))
     assert remaining < changed / 3, f'Orbits remained after toggling off: {remaining} versus {changed}'
-    command('xdotool', 'key', 'o')
     command('xdotool', 'key', '3')
-    time.sleep(0.8)
-    planetCamera = pixels()
+    planetCameraOff = settled(hidden)
     command('xdotool', 'key', 'o')
     time.sleep(0.8)
-    planetCameraOff = pixels()
+    planetCamera = settled()
     cameraDifference = sum(a != b for a, b in zip(planetCamera, planetCameraOff))
     assert cameraDifference < changed / 3, f'Orbit display appeared in planet camera: {cameraDifference}'
     print(f'Validated O paths/labels and planet-camera hiding ({changed} changed channels)')

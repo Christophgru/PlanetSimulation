@@ -5,7 +5,7 @@
 
 class Shader {
 public:
-    GLuint id;
+    GLuint id = 0;
     
     Shader(const char* vertexPath, const char* fragmentPath,
            const char* fragmentLibraryPath = nullptr,
