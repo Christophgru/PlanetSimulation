@@ -19,6 +19,7 @@ void TerrainSurface::refineShoreline(TerrainGeometry& geometry, const glm::dvec3
             GridSample middle;
             int uses=0;
             double distance=0;
+            double sinkMeters=0;
             bool wanted=false, split=false;
         };
         std::map<EdgeKey,Edge> edges;
@@ -28,7 +29,7 @@ void TerrainSurface::refineShoreline(TerrainGeometry& geometry, const glm::dvec3
             const glm::dvec3 p(v[offset],v[offset+1],v[offset+2]);
             return GridSample{p,(glm::length(p)-1)*radius_,
                 {v[offset+3],v[offset+4],v[offset+5]},
-                {v[offset+6],v[offset+7],v[offset+8]}};
+                {v[offset+6],v[offset+7],v[offset+8]}, geometry.lodSinkMeters[index]};
         };
         for (std::size_t t=0;t<geometry.indices.size();t+=3) {
             const std::array<GridSample,3> p{sample(geometry.indices[t]),
@@ -48,6 +49,7 @@ void TerrainSurface::refineShoreline(TerrainGeometry& geometry, const glm::dvec3
                 const auto a=p[side].position, b=p[(side+1)%3].position;
                 auto& edge=edges[edgeKey(a,b)];
                 edge.a=a; edge.b=b; ++edge.uses;
+                edge.sinkMeters=0.5*(p[side].sinkMeters+p[(side+1)%3].sinkMeters);
                 if (shore && glm::length(a-b)*scale>lod_.shoreline_edge_m) {
                     edge.wanted=true;
                     const double fraction=std::clamp(glm::dot(eyeBody-a,b-a)/glm::dot(b-a,b-a),0.0,1.0);
@@ -67,11 +69,13 @@ void TerrainSurface::refineShoreline(TerrainGeometry& geometry, const glm::dvec3
             edge->split=true; spare-=edge->uses; added+=edge->uses;
             const auto radial=glm::normalize(edge->a+edge->b);
             edge->middle=makeGridSample(radial,heightAt(radial));
+            edge->middle.sinkMeters=edge->sinkMeters;
         }
         if (added==0) break;
         TerrainGeometry refined;
         refined.vertices.reserve(std::size_t(geometry.triangleCount()+added)*27);
         refined.indices.reserve(std::size_t(geometry.triangleCount()+added)*3);
+        refined.lodSinkMeters.reserve(std::size_t(geometry.triangleCount()+added)*3);
         for (std::size_t t=0;t<geometry.indices.size();t+=3) {
             const std::array<GridSample,3> p{sample(geometry.indices[t]),
                 sample(geometry.indices[t+1]),sample(geometry.indices[t+2])};
@@ -100,6 +104,7 @@ void TerrainSurface::refineShoreline(TerrainGeometry& geometry, const glm::dvec3
         }
         geometry.vertices=std::move(refined.vertices);
         geometry.indices=std::move(refined.indices);
+        geometry.lodSinkMeters=std::move(refined.lodSinkMeters);
     }
     geometry.shorelineAddedTriangles=geometry.triangleCount()-originalCount;
 }

@@ -85,6 +85,7 @@ PlanetConfig::TerrainLod::TerrainLod(const config::Config& cfg) {
                                           steep_slope_threshold);
     near_surface_distance_m = cfg.getDouble("near_surface_distance_m", near_surface_distance_m);
     mid_surface_distance_m = cfg.getDouble("mid_surface_distance_m", mid_surface_distance_m);
+    sink_depth_m = cfg.getDouble("sink_depth_m", sink_depth_m);
     max_triangle_budget = cfg.getInt("max_triangle_budget", max_triangle_budget);
     shoreline_edge_m = cfg.getDouble("shoreline_edge_m", shoreline_edge_m);
     shoreline_distance_m = cfg.getDouble("shoreline_distance_m", shoreline_distance_m);

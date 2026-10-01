@@ -495,8 +495,8 @@ TEST(TerrainTest, ZoneHysteresisRetainsDetailWhenEyeCrossesABoundary) {
     for (std::size_t i = 0; i < first.faceZones.size(); ++i) {
         if (first.faceZones[i] >= 1)
             EXPECT_GE(protectedMesh.faceZones[i], first.faceZones[i]) << i;
-        if (first.faceZones[i] == 2 && withoutHysteresis.faceZones[i] < 2 &&
-            protectedMesh.faceZones[i] == 2) ++retainedNearFaces;
+        if (first.faceZones[i] == 7 && withoutHysteresis.faceZones[i] < 7 &&
+            protectedMesh.faceZones[i] == 7) ++retainedNearFaces;
     }
     EXPECT_GT(retainedNearFaces, 0);
     EXPECT_LE(protectedMesh.triangleCount(), planet.terrain_lod.max_triangle_budget);

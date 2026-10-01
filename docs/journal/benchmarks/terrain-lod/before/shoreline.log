@@ -1,0 +1,32 @@
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 20.0 s
+Sun radius: 2.5
+Planets: 2
+Surface camera position: (6.79545, 6.15527, -0.429834)
+Surface render test mode enabled
+Output image: build-terrain/before/shoreline.png
+Planet 0 terrain: 100000 triangles; far/middle/near faces: 223/78/19; steep-refined faces: 16 (budget 100000); foliage blades: 99474; water triangles: 60000
+Planet 0 foliage per pass: 799094 vertices; 600146 triangles; 6 batches; instance bytes: 3978960
+Planet 1 terrain: 960 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 60000); foliage blades: 0; water triangles: 0
+Planet 1 foliage per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Mesh preparation: 2595.86 ms; GPU-complete render: 28300.5 ms
+earth lighting: direct RGB (4.42966, 4.38536, 4.29677), reflected RGB (7.53886e-06, 7.46347e-06, 7.69757e-06)
+moon lighting: direct RGB (8.26617, 8.18351, 8.01819), reflected RGB (0.0122606, 0.02023, 0.0396426)
+Image size: 960x540
+Background pixel: (8, 21, 5)
+Non-background pixels: 518396, bounding box: (0, 0)-(959, 539)
+Sun-colored pixels: 0
+Planet pixels (color/depth): 272343, bounding box: (0, 211)-(959, 539)
+Camera exposure: 0.18078; sky sensitivity: 0.00282468
+Star-like pixels: 232977, bounding box: (0, 0)-(959, 266)
+Blue water-like pixels: 13048, bounding box: (427, 0)-(769, 56)
+Simulation time: 20.0 s
+Surface camera position (world, km): [6.795448055368787,6.155271802575506,-0.4298338101262937]
+Surface camera direction (world, unit vector): [0.5481735099129061,-0.16150307254466828,-0.82062327568038]
+Surface camera position (planet LLA): latitude=-19.7 deg, longitude=80.5 deg, altitude=2.587561847525271 m above reference sphere
+Surface camera ground clearance: 2.0 m
+surface_camera start value: {"altitude":0.002,"direction_ned":[-0.7960297521679919,0.5970223141259932,0.09950371902099736],"fov":80.0,"latitude_deg":-19.7,"longitude_deg":80.5,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":20.0,"up_ned":[-0.07960297521679843,0.0597022314125982,-0.9950371902099893],"walk_speed_mps":80.0}
+White-clipped pixels (RGB >= 250): 0 (0%)
+Render test completed successfully
+Output image: build-terrain/before/shoreline.png

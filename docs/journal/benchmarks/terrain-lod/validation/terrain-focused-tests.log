@@ -1,0 +1,12 @@
+Internal ctest changing into directory: /workspace/build-terrain
+Test project /workspace/build-terrain
+    Start  2: ConfigTests
+1/3 Test  #2: ConfigTests ......................   Passed    0.03 sec
+    Start 17: TerrainTests
+2/3 Test #17: TerrainTests .....................   Passed   11.63 sec
+    Start 18: GrassPlacementTests
+3/3 Test #18: GrassPlacementTests ..............   Passed    0.08 sec
+
+100% tests passed, 0 tests failed out of 3
+
+Total Test time (real) =  11.76 sec

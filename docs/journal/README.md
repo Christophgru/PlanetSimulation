@@ -40,3 +40,8 @@ independent Callgrind instruction attribution. Its
 [standalone walking report](benchmarks/cpu/walking/report/report.html) is
 interactive. The study records rejected gprofng sampling and the limits of
 software-renderer measurements.
+
+The [terrain LOD study](benchmarks/terrain-lod.md) describes eight surface
+levels, shared inward offsets, a single closed mesh and fixed before/after
+shoreline and grass captures. It records triangle and transfer budgets and
+the limits of spatial sinking.

@@ -58,6 +58,7 @@ void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalkin
                 lod.medium_edge_segments=3;
                 lod.max_edge_segments=8;
                 lod.steep_edge_segments=8;
+                lod.sink_depth_m=0.0; // The sea remains at its configured physical level.
                 lod.near_surface_distance_m=lod.shoreline_distance_m;
                 lod.mid_surface_distance_m=2*lod.shoreline_distance_m;
                 lod.max_triangle_budget=std::min(60000,lod.max_triangle_budget);

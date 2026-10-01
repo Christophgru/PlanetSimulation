@@ -78,6 +78,13 @@ int Renderer::Impl::capture() {
                   << " (budget " << scene.scenario.planets[i].terrain_lod.max_triangle_budget
                   << "); foliage blades: " << grass.count(i)
                   << "; water triangles: " << meshes.waterMeshes[i].indices.size()/3 << "\n";
+        std::cout << "Planet " << i << " terrain LOD faces (coarse to fine): ";
+        for (int level = 0; level < 8; ++level) {
+            if (level) std::cout << '/';
+            std::cout << std::count(lastFaceZones[i].begin(), lastFaceZones[i].end(), level);
+        }
+        std::cout << "; mesh bytes: " << meshes.planetMeshes[i].vertices.size()*sizeof(float) +
+            meshes.planetMeshes[i].indices.size()*sizeof(unsigned int) << '\n';
         const auto stats=grass.drawStats(i);
         std::cout << "Planet " << i << " foliage per pass: " << stats.vertices
                   << " vertices; " << stats.triangles << " triangles; " << stats.batches

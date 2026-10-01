@@ -85,17 +85,18 @@ def terrain():
     s.circle(285,82,16,CORAL)
     s.text(313,86,'eye',16,CORAL,True)
     s.path('M 391 204 Q 508 130 598 214',GRAY,2,dash='7 6')
-    s.rect(570,89,373,255,PALE,LITE)
-    s.text(593,122,'angular distance from eye',17,NAVY,True)
-    rows=[('near',153,16,TEAL),('middle',214,8,BLUE),('far',275,3,GRAY)]
+    s.rect(570,79,400,300,PALE,LITE)
+    s.text(593,106,'eight levels: near to far',17,NAVY,True)
+    rows=[(f'L{7-i}',130+i*28,n,TEAL if i==0 else BLUE if i<7 else GRAY)
+          for i,n in enumerate((16,14,12,10,8,6,5,3))]
     for label,y,n,col in rows:
         s.text(593,y+11,label,14,col,True)
         for i in range(n+1):
             x=687+i*231/n
             s.line(x,y-7,x,y+16,col,1)
         s.line(687,y+16,918,y+16,col,2)
-    s.text(593,329,'shared edge samples prevent cracks',12,GRAY)
-    s.text(265,407,'h(u) is fixed in planet-local coordinates; only mesh density follows the camera.',14,NAVY,anchor='middle')
+    s.text(593,363,'shared edges; coarser interiors sink inward',12,GRAY)
+    s.text(500,413,'Fixed height field + bounded coarse offset; one closed mesh, finest samples unsunk.',14,NAVY,anchor='middle')
     s.save('figures/early/terrain.svg')
 
 

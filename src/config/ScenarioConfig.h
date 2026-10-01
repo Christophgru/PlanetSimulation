@@ -102,6 +102,7 @@ struct PlanetConfig {
         double steep_slope_threshold = 0.35;
         double near_surface_distance_m = 35.0;
         double mid_surface_distance_m = 110.0;
+        double sink_depth_m = 1.0;
         int max_triangle_budget = 60000;
         double shoreline_edge_m = 1.0;
         double shoreline_distance_m = 80.0;
@@ -122,6 +123,7 @@ struct PlanetConfig {
                 !std::isfinite(near_surface_distance_m) || near_surface_distance_m <= 0.0 ||
                 !std::isfinite(mid_surface_distance_m) ||
                 mid_surface_distance_m <= near_surface_distance_m ||
+                !std::isfinite(sink_depth_m) || sink_depth_m < 0.0 || sink_depth_m > 100.0 ||
                 max_triangle_budget < 10000 || max_triangle_budget > 100000 ||
                 !std::isfinite(shoreline_edge_m) || shoreline_edge_m < 0.0 || shoreline_edge_m > 100.0 ||
                 (shoreline_edge_m > 0.0 && shoreline_edge_m < 0.1) ||

@@ -17,8 +17,12 @@ namespace rendering {
 struct TerrainGeometry {
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
-    std::array<int, 3> zoneFaces{}; // far, middle, near
-    std::vector<int> faceZones; // one zone per fixed base face, for LOD hysteresis
+    std::array<int, 3> zoneFaces{}; // compatibility summary: level 0, levels 1-6, level 7
+    std::array<int, 8> lodFaces{}; // coarse to fine, one selected level per base face
+    std::vector<int> faceZones; // levels 0-7, for LOD hysteresis
+    // CPU-only displacement, shared/interpolated through shoreline refinement.
+    // Applied once after tessellation; never added to the GPU vertex stride.
+    std::vector<float> lodSinkMeters;
     int steepRefinedFaces = 0;
     int shorelineAddedTriangles = 0;
     int coarseNoiseSamples = 0;
@@ -59,7 +63,7 @@ public:
     TerrainGeometry buildGeometry(int edgeSegments) const;
 
     // Tessellate only the faces close to the camera. Every base-face edge is
-    // sampled once at the finer of its two adjacent zones, then both faces
+    // sampled once at the finer of its two adjacent levels, then both faces
     // use those identical boundary samples. Concentric interior rings fill
     // unequal edge segment counts without T junctions or cracks.
     TerrainGeometry buildGeometryForEye(const glm::dvec3& eyeWorld,
@@ -79,6 +83,7 @@ private:
         double height;
         glm::dvec3 normal;
         glm::dvec3 color;
+        double sinkMeters = 0.0;
     };
     struct SurfaceGradient {
         double slope;

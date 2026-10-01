@@ -1,0 +1,52 @@
+{
+  "description": "Fixed shoreline and grass replays under Xvfb/Mesa llvmpipe. Timings were collected alongside compilation and are not a performance comparison.",
+  "baseline_executable": "build-codex/PlanetSimulation",
+  "current_executable": "build-terrain/PlanetSimulation",
+  "executable_sha256": {
+    "build-codex/PlanetSimulation": "181e1e1fe0a55610474aaf34c041c9bdb5890a76ef8cdb8967a2e9162437ea99",
+    "build-terrain/PlanetSimulation": "e717cbbab9035f7614a71c07536167ecaa0789e91f41a4037fa5a514a5f9f3c1"
+  },
+  "artifacts": {
+    "after/grass.log": "ffca623266761c8632103423f6cc2892dd9c89b4f87d937756f91ec57d3828a5",
+    "after/grass.png": "b946c9b422d772578f3cea33ba801a251452e70c4f57513764f82895f815cf4c",
+    "after/grass.png.json": "81d0e0e85a1c7cc6e522999b30bf3bf6da2763b811cd11994995ee2940687084",
+    "after/shoreline.log": "bb56f781e244f53869caceff559cb90e4433927761b93be7028fd96e7702a14a",
+    "after/shoreline.png": "c26a959d7f500a29f3b1932329039f8f8d48de0787a590ba3f1e005a78646209",
+    "after/shoreline.png.json": "8c3031989b3be597b0d9d54de0363e8310f8adaa926dd0216958e6ef85331e58",
+    "before/grass.log": "698071029e4a883ba9f4e2980174a16b7a3d57674030bf114bcbc0a55d682ce3",
+    "before/grass.png": "a2b0cf9a7a386f0af50b8f949c24857d843d124a4ece1b2f838748b68bbe876a",
+    "before/grass.png.json": "63a98386a5df5b5f2ce74eba918b3d9f15fa37538453a2812ffb2204f41c4f72",
+    "before/shoreline.log": "3144f320162e3982ed6130c2e84d5a7ece91fa9ed718eb543f0ea5f272e25f01",
+    "before/shoreline.png": "34c8cb348a10bc58d5f9b9cf7fbeb1c62330024253df971334c2c11174857d27",
+    "before/shoreline.png.json": "ac010bc7007eac28b2d08ae4b1937a1781b9a9a34dd0915292b46154c3ad00fa",
+    "validation/terrain-build.log": "38033187b4211c94e24a2ede1259d4774de450996b8204961ebf0b1bb251ddb8",
+    "validation/terrain-configure.log": "2f5b131d33c0cd1e83f0b85fc89c1c15d10110ab1d0ca378302a5fbfc1dcdd81",
+    "validation/terrain-focused-tests.log": "2f606c1b296d3d6cb4aa99964a76604bd4b1872d510a141b18f1135a789daf70",
+    "validation/terrain-gallery.log": "0f0935f30d2d4ad58f8a8bf50d51db06ab154e20842d6926588a374bbbd1f75f",
+    "validation/terrain-tests.log": "d85897f921561f338ae42b8a15c56824320f4bcb90a8168c3ef0f5ed85b235b1",
+    "validation/terrain-typst.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "commands": {
+    "configure": "cmake -S . -B build-terrain -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_TESTING=ON -DFETCHCONTENT_SOURCE_DIR_NLOHMANN_JSON=/workspace/build/_deps/nlohmann_json-src -DFETCHCONTENT_SOURCE_DIR_GLM=/workspace/build/_deps/glm-src -DFETCHCONTENT_SOURCE_DIR_GOOGLETEST=/workspace/build/_deps/googletest-src",
+    "build": "cmake --build build-terrain -j 6",
+    "tests": "LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=2 xvfb-run -a -s \"-screen 0 1280x720x24\" ctest --test-dir build-terrain --output-on-failure -j 2",
+    "gallery": "LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=2 xvfb-run -a -s \"-screen 0 1280x720x24\" python3 scripts/generate_readme_images.py --build-dir build-terrain",
+    "capture_template": "LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=2 xvfb-run -a {binary} --replay {replay}.png.json --surface-capture {output}.png"
+  },
+  "inputs_match": "For each before/after pair: scenario, surface_camera, render dimensions and simulation time match. Render measurements differ as expected.",
+  "validation": {
+    "ctest_passed": 45,
+    "ctest_failed": 0,
+    "ctest_seconds": 350.77,
+    "gallery_images_verified": 17,
+    "gallery_source_sha256": "e671e27d52a291a79503bd39604e22e83d1d628b180e8fe10e7f8b93ba52839f",
+    "typst_version": "0.15.1",
+    "journal_pdf_sha256": "fe501a8140a28b068a9a9c1e65bfc63d86290c171498381354602139ec400921",
+    "visual_review": [
+      "solar overview",
+      "before/after shoreline",
+      "before/after grass",
+      "journal pages 3-4"
+    ]
+  }
+}

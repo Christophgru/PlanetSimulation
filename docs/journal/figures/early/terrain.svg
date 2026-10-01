@@ -11,44 +11,106 @@
 <circle cx="285.00" cy="82.00" r="16.00" fill="#cb6269"/>
 <text x="313.00" y="86.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="16" fill="#cb6269" font-weight="700">eye</text>
 <path d="M 391 204 Q 508 130 598 214" stroke="#647889" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 6"/>
-<rect x="570.00" y="89.00" width="373.00" height="255.00" rx="10" fill="#f2f7f8" stroke="#e2ebee" stroke-width="2"/>
-<text x="593.00" y="122.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="17" fill="#17334b" font-weight="700">angular distance from eye</text>
-<text x="593.00" y="164.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="14" fill="#177f89" font-weight="700">near</text>
-<line x1="687.00" y1="146.00" x2="687.00" y2="169.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
-<line x1="701.44" y1="146.00" x2="701.44" y2="169.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
-<line x1="715.88" y1="146.00" x2="715.88" y2="169.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
-<line x1="730.31" y1="146.00" x2="730.31" y2="169.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
-<line x1="744.75" y1="146.00" x2="744.75" y2="169.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
-<line x1="759.19" y1="146.00" x2="759.19" y2="169.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
-<line x1="773.62" y1="146.00" x2="773.62" y2="169.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
-<line x1="788.06" y1="146.00" x2="788.06" y2="169.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
-<line x1="802.50" y1="146.00" x2="802.50" y2="169.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
-<line x1="816.94" y1="146.00" x2="816.94" y2="169.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
-<line x1="831.38" y1="146.00" x2="831.38" y2="169.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
-<line x1="845.81" y1="146.00" x2="845.81" y2="169.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
-<line x1="860.25" y1="146.00" x2="860.25" y2="169.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
-<line x1="874.69" y1="146.00" x2="874.69" y2="169.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
-<line x1="889.12" y1="146.00" x2="889.12" y2="169.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
-<line x1="903.56" y1="146.00" x2="903.56" y2="169.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
-<line x1="918.00" y1="146.00" x2="918.00" y2="169.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
-<line x1="687.00" y1="169.00" x2="918.00" y2="169.00" stroke="#177f89" stroke-width="2" stroke-linecap="round"/>
-<text x="593.00" y="225.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="14" fill="#4978b7" font-weight="700">middle</text>
+<rect x="570.00" y="79.00" width="400.00" height="300.00" rx="10" fill="#f2f7f8" stroke="#e2ebee" stroke-width="2"/>
+<text x="593.00" y="106.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="17" fill="#17334b" font-weight="700">eight levels: near to far</text>
+<text x="593.00" y="141.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="14" fill="#177f89" font-weight="700">L7</text>
+<line x1="687.00" y1="123.00" x2="687.00" y2="146.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
+<line x1="701.44" y1="123.00" x2="701.44" y2="146.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
+<line x1="715.88" y1="123.00" x2="715.88" y2="146.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
+<line x1="730.31" y1="123.00" x2="730.31" y2="146.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
+<line x1="744.75" y1="123.00" x2="744.75" y2="146.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
+<line x1="759.19" y1="123.00" x2="759.19" y2="146.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
+<line x1="773.62" y1="123.00" x2="773.62" y2="146.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
+<line x1="788.06" y1="123.00" x2="788.06" y2="146.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
+<line x1="802.50" y1="123.00" x2="802.50" y2="146.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
+<line x1="816.94" y1="123.00" x2="816.94" y2="146.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
+<line x1="831.38" y1="123.00" x2="831.38" y2="146.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
+<line x1="845.81" y1="123.00" x2="845.81" y2="146.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
+<line x1="860.25" y1="123.00" x2="860.25" y2="146.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
+<line x1="874.69" y1="123.00" x2="874.69" y2="146.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
+<line x1="889.12" y1="123.00" x2="889.12" y2="146.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
+<line x1="903.56" y1="123.00" x2="903.56" y2="146.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
+<line x1="918.00" y1="123.00" x2="918.00" y2="146.00" stroke="#177f89" stroke-width="1" stroke-linecap="round"/>
+<line x1="687.00" y1="146.00" x2="918.00" y2="146.00" stroke="#177f89" stroke-width="2" stroke-linecap="round"/>
+<text x="593.00" y="169.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="14" fill="#4978b7" font-weight="700">L6</text>
+<line x1="687.00" y1="151.00" x2="687.00" y2="174.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="703.50" y1="151.00" x2="703.50" y2="174.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="720.00" y1="151.00" x2="720.00" y2="174.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="736.50" y1="151.00" x2="736.50" y2="174.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="753.00" y1="151.00" x2="753.00" y2="174.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="769.50" y1="151.00" x2="769.50" y2="174.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="786.00" y1="151.00" x2="786.00" y2="174.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="802.50" y1="151.00" x2="802.50" y2="174.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="819.00" y1="151.00" x2="819.00" y2="174.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="835.50" y1="151.00" x2="835.50" y2="174.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="852.00" y1="151.00" x2="852.00" y2="174.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="868.50" y1="151.00" x2="868.50" y2="174.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="885.00" y1="151.00" x2="885.00" y2="174.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="901.50" y1="151.00" x2="901.50" y2="174.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="918.00" y1="151.00" x2="918.00" y2="174.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="687.00" y1="174.00" x2="918.00" y2="174.00" stroke="#4978b7" stroke-width="2" stroke-linecap="round"/>
+<text x="593.00" y="197.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="14" fill="#4978b7" font-weight="700">L5</text>
+<line x1="687.00" y1="179.00" x2="687.00" y2="202.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="706.25" y1="179.00" x2="706.25" y2="202.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="725.50" y1="179.00" x2="725.50" y2="202.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="744.75" y1="179.00" x2="744.75" y2="202.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="764.00" y1="179.00" x2="764.00" y2="202.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="783.25" y1="179.00" x2="783.25" y2="202.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="802.50" y1="179.00" x2="802.50" y2="202.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="821.75" y1="179.00" x2="821.75" y2="202.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="841.00" y1="179.00" x2="841.00" y2="202.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="860.25" y1="179.00" x2="860.25" y2="202.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="879.50" y1="179.00" x2="879.50" y2="202.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="898.75" y1="179.00" x2="898.75" y2="202.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="918.00" y1="179.00" x2="918.00" y2="202.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="687.00" y1="202.00" x2="918.00" y2="202.00" stroke="#4978b7" stroke-width="2" stroke-linecap="round"/>
+<text x="593.00" y="225.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="14" fill="#4978b7" font-weight="700">L4</text>
 <line x1="687.00" y1="207.00" x2="687.00" y2="230.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
-<line x1="715.88" y1="207.00" x2="715.88" y2="230.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
-<line x1="744.75" y1="207.00" x2="744.75" y2="230.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
-<line x1="773.62" y1="207.00" x2="773.62" y2="230.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="710.10" y1="207.00" x2="710.10" y2="230.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="733.20" y1="207.00" x2="733.20" y2="230.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="756.30" y1="207.00" x2="756.30" y2="230.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="779.40" y1="207.00" x2="779.40" y2="230.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
 <line x1="802.50" y1="207.00" x2="802.50" y2="230.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
-<line x1="831.38" y1="207.00" x2="831.38" y2="230.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
-<line x1="860.25" y1="207.00" x2="860.25" y2="230.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
-<line x1="889.12" y1="207.00" x2="889.12" y2="230.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="825.60" y1="207.00" x2="825.60" y2="230.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="848.70" y1="207.00" x2="848.70" y2="230.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="871.80" y1="207.00" x2="871.80" y2="230.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="894.90" y1="207.00" x2="894.90" y2="230.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
 <line x1="918.00" y1="207.00" x2="918.00" y2="230.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
 <line x1="687.00" y1="230.00" x2="918.00" y2="230.00" stroke="#4978b7" stroke-width="2" stroke-linecap="round"/>
-<text x="593.00" y="286.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="14" fill="#647889" font-weight="700">far</text>
-<line x1="687.00" y1="268.00" x2="687.00" y2="291.00" stroke="#647889" stroke-width="1" stroke-linecap="round"/>
-<line x1="764.00" y1="268.00" x2="764.00" y2="291.00" stroke="#647889" stroke-width="1" stroke-linecap="round"/>
-<line x1="841.00" y1="268.00" x2="841.00" y2="291.00" stroke="#647889" stroke-width="1" stroke-linecap="round"/>
-<line x1="918.00" y1="268.00" x2="918.00" y2="291.00" stroke="#647889" stroke-width="1" stroke-linecap="round"/>
-<line x1="687.00" y1="291.00" x2="918.00" y2="291.00" stroke="#647889" stroke-width="2" stroke-linecap="round"/>
-<text x="593.00" y="329.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="12" fill="#647889">shared edge samples prevent cracks</text>
-<text x="265.00" y="407.00" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="14" fill="#17334b">h(u) is fixed in planet-local coordinates; only mesh density follows the camera.</text>
+<text x="593.00" y="253.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="14" fill="#4978b7" font-weight="700">L3</text>
+<line x1="687.00" y1="235.00" x2="687.00" y2="258.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="715.88" y1="235.00" x2="715.88" y2="258.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="744.75" y1="235.00" x2="744.75" y2="258.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="773.62" y1="235.00" x2="773.62" y2="258.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="802.50" y1="235.00" x2="802.50" y2="258.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="831.38" y1="235.00" x2="831.38" y2="258.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="860.25" y1="235.00" x2="860.25" y2="258.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="889.12" y1="235.00" x2="889.12" y2="258.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="918.00" y1="235.00" x2="918.00" y2="258.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="687.00" y1="258.00" x2="918.00" y2="258.00" stroke="#4978b7" stroke-width="2" stroke-linecap="round"/>
+<text x="593.00" y="281.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="14" fill="#4978b7" font-weight="700">L2</text>
+<line x1="687.00" y1="263.00" x2="687.00" y2="286.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="725.50" y1="263.00" x2="725.50" y2="286.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="764.00" y1="263.00" x2="764.00" y2="286.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="802.50" y1="263.00" x2="802.50" y2="286.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="841.00" y1="263.00" x2="841.00" y2="286.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="879.50" y1="263.00" x2="879.50" y2="286.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="918.00" y1="263.00" x2="918.00" y2="286.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="687.00" y1="286.00" x2="918.00" y2="286.00" stroke="#4978b7" stroke-width="2" stroke-linecap="round"/>
+<text x="593.00" y="309.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="14" fill="#4978b7" font-weight="700">L1</text>
+<line x1="687.00" y1="291.00" x2="687.00" y2="314.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="733.20" y1="291.00" x2="733.20" y2="314.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="779.40" y1="291.00" x2="779.40" y2="314.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="825.60" y1="291.00" x2="825.60" y2="314.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="871.80" y1="291.00" x2="871.80" y2="314.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="918.00" y1="291.00" x2="918.00" y2="314.00" stroke="#4978b7" stroke-width="1" stroke-linecap="round"/>
+<line x1="687.00" y1="314.00" x2="918.00" y2="314.00" stroke="#4978b7" stroke-width="2" stroke-linecap="round"/>
+<text x="593.00" y="337.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="14" fill="#647889" font-weight="700">L0</text>
+<line x1="687.00" y1="319.00" x2="687.00" y2="342.00" stroke="#647889" stroke-width="1" stroke-linecap="round"/>
+<line x1="764.00" y1="319.00" x2="764.00" y2="342.00" stroke="#647889" stroke-width="1" stroke-linecap="round"/>
+<line x1="841.00" y1="319.00" x2="841.00" y2="342.00" stroke="#647889" stroke-width="1" stroke-linecap="round"/>
+<line x1="918.00" y1="319.00" x2="918.00" y2="342.00" stroke="#647889" stroke-width="1" stroke-linecap="round"/>
+<line x1="687.00" y1="342.00" x2="918.00" y2="342.00" stroke="#647889" stroke-width="2" stroke-linecap="round"/>
+<text x="593.00" y="363.00" text-anchor="start" font-family="DejaVu Sans, sans-serif" font-size="12" fill="#647889">shared edges; coarser interiors sink inward</text>
+<text x="500.00" y="413.00" text-anchor="middle" font-family="DejaVu Sans, sans-serif" font-size="14" fill="#17334b">Fixed height field + bounded coarse offset; one closed mesh, finest samples unsunk.</text>
 </svg>
