@@ -53,6 +53,8 @@ def summarize(rows):
                                'p95': values[math.ceil(.95 * len(values)) - 1]}
     for key in ['scene_reuses', 'mesh_uploads', 'foliage_rebuilds', 'shadow_updates', 'shadow_reuses']:
         result[key] = sum(int(r[key]) for r in rows)
+    if 'foliage_upload_bytes' in rows[0]:
+        result['foliage_upload_bytes'] = sum(int(r['foliage_upload_bytes']) for r in rows)
     rebuilt = [float(r['cpu_foliage_ms']) for r in rows if int(r['foliage_rebuilds'])]
     result['foliage_rebuild_frame_mean_ms'] = statistics.mean(rebuilt) if rebuilt else 0
     result['gpu_measured_frames'] = sum(int(r['gpu_valid']) for r in rows)

@@ -191,7 +191,9 @@ Grass wind now samples three advected 3D Perlin gradient fields, replacing the e
 
 The lattice repeats every 256 cells. Drift rates are binary fractions of a cell per second with a common 8192-second period, allowing the double simulation clock to wrap before conversion to a float uniform without a discontinuity. Both the main and water-reflection pass use the same field and phase. Wind strength zero leaves the seeded static lean; pause still freezes wind, preserving deterministic captures. The vertex shader adds no textures, triangles or per-instance uploads, but performs more arithmetic than the old sine field. GPU transform-feedback checks exercise lattice and period boundaries, both poles, large wrapped times, fixed blade roots and independence from body transforms; pixel tests retain wind motion, shadowing and reflection clipping checks.
 
-== Grass geometry budgets and eight distance levels
+== Historical grass geometry budgets and eight distance levels
+
+These measurements describe the earlier single-triangle/sinking experiment. The current procedural quad implementation below supersedes its geometry, sinking and per-root transfer.
 
 The #link("https://github.com/vercidium-patreon/glvertexid/tree/25f1d1d292eeb9cd50984d933890b1ec00d4c97c")[glvertexid heightmap example] reconstructs regular-grid coordinates from vertex IDs and connects strips with degenerate vertices. Its published example contains neither eight LODs nor sinking; those requested techniques are adapted here to the existing instanced grass. Terrain retains its irregular spherical tessellation and shared shoreline edges, which cannot be represented directly by that regular height-only grid.
 
@@ -212,6 +214,14 @@ Eight deterministic retention groups thin distant candidates further, retiring o
 These counts come from the same generated roots: vertex submissions fall by 26.8%, submitted triangles by 31.5%, and instance payload by 10.0%. Triangle counts include submitted degenerates and fully sunk reserved geometry; bytes exclude driver overhead. CPU tests check guard-band visibility and the vertex bound. GPU transform feedback checks endpoint agreement, sinking continuity and distant shape invariance; a primitive query verifies submitted triangle accounting. Full timings, raw traces, executable and shader-tree hashes, frozen inputs and reproduction commands are in `docs/journal/benchmarks/grass-lod.md` and its data directory.
 
 A paired 640×360 walking capture on Mesa llvmpipe with two worker threads measures 20 frames, excluding three warmup frames and the final readback frame. Mean frame time falls from 1576.97 to 1463.22 ms (7.2%); the median falls from 1387.17 to 1295.95 ms (6.6%). The foliage-disabled control changes from 708.99 to 720.05 ms mean, and grass preparation per rebuild remains similar. This single software-renderer pair measures a quality/performance tradeoff, not a hardware FPS guarantee. Both versions rebuild grass six times and install three terrain meshes in the measured window; bare final captures match exactly.
+
+== Procedural grass and terrain-buffer reuse
+
+Grass now swaps between six-segment strips (14 vertices, 12 triangles) and low-detail tapered quads (4 vertices, 2 triangles). A narrow top edge preserves both low triangles. Current camera-to-triangle bounds select geometry without rebuilding roots, while the fragment shader evaluates a shared nonlinear palette so low detail retains the same base-to-tip color. Dithered pixel coverage replaces sinking; grass roots and heights stay fixed while coverage retires. The landscape retains its independent eight-level sinking.
+
+Both layers reuse the terrain's GPU vertex/index buffers through OpenGL 3.3 buffer textures. They upload only one four-byte triangle ID per selected patch plus small rule uniforms. GLSL generates barycentric roots, blade variation, Gaussian acceptance, biome rejection and Perlin wind. No individual grass positions, blade meshes, random arrays or noise fields are uploaded; cached frames upload zero grass buffer bytes. A bounded CPU plan still reserves candidates and draw ranges. This trades GPU evaluation for lower traffic and does not by itself guarantee higher FPS.
+
+The JSON `foliage.wind_noise` block controls gust, direction and flutter frequencies in cycles per metre, an integer field seed and the wrapped clock's speed multiplier. No sampled wind data crosses the CPU/GPU boundary. Full implementation details and collected validation are in `docs/journal/benchmarks/procedural-grass.md`.
 
 == Camera movement and grass preparation: measured costs
 

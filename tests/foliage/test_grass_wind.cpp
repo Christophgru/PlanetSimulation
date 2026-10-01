@@ -55,6 +55,8 @@ public:
         glBindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER, buffer_);
         glBufferData(GL_TRANSFORM_FEEDBACK_BUFFER, 8*sizeof(float), nullptr, GL_STREAM_READ);
         glUseProgram(program_);
+        glUniform1i(glGetUniformLocation(program_,"uTerrainVertices"),8);
+        glUniform1i(glGetUniformLocation(program_,"uTerrainIndices"),9);
         uniform("uMetersPerRadius", 100);
         uniform("uGrassHeight", 1.5f);
         uniform("uGrassWidth", .1f);
@@ -74,6 +76,10 @@ public:
     }
     void uniform(const char* name, float value) {
         glUniform1f(glGetUniformLocation(program_, name), value);
+    }
+    void seed(int value) { glUniform1i(glGetUniformLocation(program_,"uWindSeed"),value); }
+    void frequencies(float gust,float direction,float flutter) {
+        glUniform3f(glGetUniformLocation(program_,"uWindFrequencies"),gust,direction,flutter);
     }
     void segments(int value) { glUniform1i(glGetUniformLocation(program_, "uSegments"),value); }
     void variation(float value) { glVertexAttrib4f(2,.3f,.2f,1,value); }
@@ -105,7 +111,7 @@ public:
 glm::vec3 body(const std::array<float, 8>& sample) { return {sample[0], sample[1], sample[2]}; }
 }
 
-TEST(GrassWind, LodSinksSmoothlyAndEveryDistantSegmentCountHasTheSameShape) {
+TEST(GrassWind, CoverageRetirementNeverSinksAndLowQuadsKeepBothTopVertices) {
     WindProbe probe;
     const glm::vec3 root(0,0,1);
     for (float distance : {5.f,60.f,400.f}) {
@@ -115,25 +121,35 @@ TEST(GrassWind, LodSinksSmoothlyAndEveryDistantSegmentCountHasTheSameShape) {
             probe.variation(variation);
             const float end=rendering::grassLodFadeEnd(variation,distance);
             const auto sample=[&](float d,int vertex) { return probe.sample(root,3,1,vertex,glm::mat4(1),d); };
-            EXPECT_NEAR(sample(0,12)[7],end,.0001f); // CPU rejection agrees with the shader.
+            EXPECT_NEAR(sample(0,12)[7],end,.0001f);
             const auto before=body(sample(end-.001f,12)), after=body(sample(end+.001f,12));
             EXPECT_LT(glm::length(before-after)*100,.003f);
-            EXPECT_LT(after.z,root.z); // Completely sunk and collapsed, never left floating.
-            EXPECT_EQ(body(sample(end+.001f,0)),after);
+            EXPECT_GT(glm::length(after-root)*100,1.4f);
+            const auto left=body(sample(end+1,0)), right=body(sample(end+1,1));
+            EXPECT_LT(glm::length((left+right)*.5f-root),.000001f);
         }
     }
     probe.uniform("uDrawDistance",60);
     probe.variation(.5f);
-    const float distance=16; // Beyond the full-detail region, before retirement.
-    const auto sample=[&](int vertex) { return body(probe.sample(root,3,1,vertex,glm::mat4(1),distance)); };
+    const auto sample=[&](int vertex) { return body(probe.sample(root,3,1,vertex,glm::mat4(1),16)); };
     probe.segments(6);
-    const auto left=sample(0), tip=sample(12), middle=sample(6);
-    EXPECT_LT(glm::length(middle-glm::mix(left,tip,.5f)),.000001f);
-    for (int segments : rendering::grassLodSegments) {
-        probe.segments(segments);
-        EXPECT_EQ(sample(0),left);
-        EXPECT_EQ(sample(2*segments),tip);
-    }
+    const auto left=sample(0), tipLeft=sample(12), tipRight=sample(13), middle=sample(6);
+    EXPECT_GT(glm::length(tipRight-tipLeft),.00005f);
+    EXPECT_LT(glm::length(middle-glm::mix(left,tipLeft,.5f)),.000001f);
+    probe.segments(1);
+    EXPECT_EQ(sample(0),left); EXPECT_EQ(sample(2),tipLeft); EXPECT_EQ(sample(3),tipRight);
+}
+
+TEST(GrassWind, ConfiguredSeedAndFrequenciesChangeNoiseAndKeepRootsFixed) {
+    WindProbe probe;
+    const glm::vec3 root(.013f,.027f,1);
+    const auto original=probe.sample(root,3);
+    probe.seed(123);
+    EXPECT_NE(original,probe.sample(root,3));
+    probe.frequencies(.2f,.05f,1.4f);
+    EXPECT_NE(original,probe.sample(root,3));
+    const auto left=body(probe.sample(root,3,1,0)), right=body(probe.sample(root,3,1,1));
+    EXPECT_LT(glm::length((left+right)*.5f-root),.000001f);
 }
 
 TEST(GrassWind, GradientFieldIsContinuousAtLatticeAndPeriodBoundaries) {

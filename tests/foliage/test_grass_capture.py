@@ -38,15 +38,18 @@ def capture(name, frames=1, replay=None, walk=0):
     return hashlib.sha256(image.read_bytes()).hexdigest(), metadata, triangles, list(csv.DictReader(trace.open()))
 
 on, metadata, triangles, _ = capture('grass')
+assert metadata['foliage_patch_bytes'] < metadata['foliage_candidates'] * 40
 assert 1000 < metadata['foliage_blades'] <= scene['planets'][0]['foliage']['max_blades'], metadata
 paused, _, _, rows = capture('paused', 4)
 assert paused == on, 'Paused grass moved or frame reuse changed its image'
 assert all(int(r['scene_reuses']) == 1 for r in rows[1:]), rows
 assert int(rows[0]['foliage_rebuilds']) == 2  # Detailed and GPU horizon patches.
 assert float(rows[0]['foliage_placement_ms']) > 0
-assert float(rows[0]['foliage_sort_ms']) > 0
+assert float(rows[0]['foliage_sort_ms']) == 0  # No CPU per-root sorting.
 assert float(rows[0]['foliage_upload_ms']) > 0
 assert all(float(r['cpu_foliage_ms']) == 0 for r in rows[1:])
+assert all(int(r['foliage_upload_bytes']) == 0 for r in rows[1:])
+assert int(rows[0]['foliage_upload_bytes']) == metadata['foliage_patch_bytes'] + metadata['horizon_foliage_patch_bytes']
 walked, _, _, walking = capture('walking', 6, walk=4)
 assert walked != on, 'Walking benchmark did not move the view'
 assert all(r['simulation_s'] == walking[0]['simulation_s'] for r in walking)
@@ -55,6 +58,10 @@ assert sum(int(r['foliage_rebuilds']) for r in walking) >= 2, walking
 start = json.loads((out / 'grass.png.json').read_text())['surface_camera']
 end = json.loads((out / 'walking.png.json').read_text())['surface_camera']
 assert (start['latitude_deg'], start['longitude_deg']) != (end['latitude_deg'], end['longitude_deg'])
+scene['planets'][0]['foliage']['frustum_culling'] = False
+unculled, _, _, _ = capture('unculled')
+assert unculled == on, 'Frustum rejection removed visible grass or its reflections'
+scene['planets'][0]['foliage']['frustum_culling'] = True
 scene['planets'][0]['foliage']['near_enabled'] = False
 _, far_metadata, far_triangles, far_rows = capture('far-only')
 assert far_metadata['foliage_blades'] == 0 and far_metadata['horizon_foliage_candidates'] > 0

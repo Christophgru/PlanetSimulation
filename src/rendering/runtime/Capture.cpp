@@ -86,15 +86,23 @@ int Renderer::Impl::capture() {
         std::cout << "; mesh bytes: " << meshes.planetMeshes[i].vertices.size()*sizeof(float) +
             meshes.planetMeshes[i].indices.size()*sizeof(unsigned int) << '\n';
         const auto stats=grass.drawStats(i);
-        std::cout << "Planet " << i << " foliage per pass: " << stats.vertices
+        std::cout << "Planet " << i << " foliage candidate bounds per pass: " << stats.vertices
                   << " vertices; " << stats.triangles << " triangles; " << stats.batches
                   << " batches; instance bytes: " << stats.instanceBytes << '\n';
         const auto horizon=grass.horizon.stats(i);
-        std::cout << "Planet " << i << " horizon foliage per pass: " << horizon.candidates
+        std::cout << "Planet " << i << " horizon foliage candidate bounds per pass: " << horizon.candidates
                   << " candidates; " << horizon.patches << " patches; " << horizon.vertices
                   << " vertices; " << horizon.triangles << " triangles; " << horizon.batches
                   << " batches; patch bytes: " << horizon.patchBytes
                   << "; distance: " << horizon.distanceMeters << " m\n";
+        for (const auto* layer:{&grass.near,&grass.horizon}) if (layer->usesCompute(i)) {
+            const auto counts=layer->computedCounts(i);
+            std::cout << "Planet " << i << (layer==&grass.near ? " near" : " horizon")
+                << " GPU grass draws: " << counts[0] << " detailed; " << counts[1]
+                << " quads; " << counts[0]*14+counts[1]*4 << " vertices; "
+                << counts[0]*12+counts[1]*2 << " triangles; GPU working bytes: "
+                << layer->stats(i).gpuBytes << '\n';
+        }
     }
 
     // Call glFinish() before reading framebuffer
@@ -230,6 +238,8 @@ int Renderer::Impl::capture() {
         const auto optics = simulation::atmosphereOptics(atmosphereConfig,
             scene.scenario.planets[scene.orbitPlanetIndex].radius * scene.scenario.metersPerWorldUnit(),
             simulation::referenceAir(atmosphereConfig));
+        const auto drawnNear=grass.near.computedCounts(scene.orbitPlanetIndex);
+        const auto drawnFar=grass.horizon.computedCounts(scene.orbitPlanetIndex);
         const nlohmann::json metadata{
             {"schema_version", 1}, {"application_version", PLANET_VERSION}, {"scenario", source.document},
             {"surface_camera", snapshot.startConfig},
@@ -249,6 +259,19 @@ int Renderer::Impl::capture() {
                 {"white_clipped_fraction", metrics.whiteClippedFraction},
                 {"terrain_pixels", metrics.terrainPixels}, {"sky_pixels", metrics.skyPixels},
                 {"foliage_blades", grass.count(scene.orbitPlanetIndex)},
+                {"foliage_candidates", grass.count(scene.orbitPlanetIndex)},
+                {"foliage_patches", grass.near.stats(scene.orbitPlanetIndex).patches},
+                {"foliage_patch_bytes", grass.near.stats(scene.orbitPlanetIndex).patchBytes},
+                {"foliage_gpu_compute", grass.near.usesCompute(scene.orbitPlanetIndex)},
+                {"horizon_foliage_gpu_compute", grass.horizon.usesCompute(scene.orbitPlanetIndex)},
+                {"foliage_gpu_drawn_blades", drawnNear[0]+drawnNear[1]},
+                {"foliage_gpu_vertices", drawnNear[0]*14+drawnNear[1]*4},
+                {"foliage_gpu_triangles", drawnNear[0]*12+drawnNear[1]*2},
+                {"horizon_foliage_gpu_drawn_tufts", drawnFar[0]+drawnFar[1]},
+                {"horizon_foliage_gpu_vertices", drawnFar[0]*14+drawnFar[1]*4},
+                {"horizon_foliage_gpu_triangles", drawnFar[0]*12+drawnFar[1]*2},
+                {"foliage_gpu_working_bytes", grass.near.stats(scene.orbitPlanetIndex).gpuBytes+
+                    grass.horizon.stats(scene.orbitPlanetIndex).gpuBytes},
                 {"horizon_foliage_candidates", grass.horizon.stats(scene.orbitPlanetIndex).candidates},
                 {"horizon_foliage_patches", grass.horizon.stats(scene.orbitPlanetIndex).patches},
                 {"horizon_foliage_patch_bytes", grass.horizon.stats(scene.orbitPlanetIndex).patchBytes},

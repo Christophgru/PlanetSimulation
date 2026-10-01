@@ -4,6 +4,7 @@ import argparse
 from datetime import datetime, timezone
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import shlex
@@ -26,6 +27,17 @@ replays = metadata / 'replay'
 replays.mkdir(parents=True, exist_ok=True)
 version = re.search(r'project\(PlanetSimulation VERSION ([\d.]+)', (ROOT / 'CMakeLists.txt').read_text())[1]
 records = []
+
+def publish_copy(source, target):
+    temporary = target.with_name(target.name + '.tmp')
+    shutil.copy2(source, temporary)
+    temporary.replace(target)
+
+def publish_text(target, value):
+    temporary = target.with_name(target.name + '.tmp')
+    temporary.write_text(value)
+    temporary.replace(target)
+
 
 def run(command, name, cwd=ROOT):
     command = [str(x) for x in command]
@@ -68,7 +80,7 @@ record('terrain-shadows.png', build / 'terrain-shadow-test.png', command)
 # Publish only after every capture and scenario check has succeeded.
 rows = []
 for name, source, command, timestamp in records:
-    shutil.copy2(source, dest / name)
+    publish_copy(source, dest / name)
     sidecar = Path(str(source) + '.json')
     if sidecar.exists():
         replay_dir = replays / 'refraction' if name.startswith('refraction-extreme-') else replays
@@ -76,7 +88,7 @@ for name, source, command, timestamp in records:
             replay_dir = replays / 'terrain'
         if name == 'grass-detail.png':
             replay_dir = replays / 'foliage'
-        shutil.copy2(sidecar, replay_dir / (name + '.json'))
+        publish_copy(sidecar, replay_dir / (name + '.json'))
     rows.append({'image': name, 'version': version, 'generated_utc': timestamp,
                  'sha256': hashlib.sha256(source.read_bytes()).hexdigest(), 'command': command})
 revision = subprocess.check_output(['git', '-c', f'safe.directory={ROOT}', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
@@ -86,13 +98,20 @@ for directory in ('src', 'shaders', 'configs', 'tests', 'scripts'):
     source_files.extend(p for p in (ROOT / directory).rglob('*') if p.is_file() and '__pycache__' not in p.parts)
 for path in sorted(source_files):
     source_hash.update(str(path.relative_to(ROOT)).encode() + b'\0' + path.read_bytes() + b'\0')
+try:
+    graphics = subprocess.check_output(['glxinfo', '-B'], stderr=subprocess.STDOUT, text=True)
+except (OSError, subprocess.CalledProcessError):
+    # The EGL test harness runs actual GL without an X11 socket. Use the
+    # renderer identity reported by the capture instead of inventing GLX data.
+    graphics = json.loads((out / 'grass-detail.png.json').read_text())['render']['renderer']
+display = 'Mesa EGL pbuffer harness' if 'egl-window' in os.environ.get('LD_PRELOAD', '') else 'GL window/Xvfb'
 manifest = {'source_sha256': source_hash.hexdigest(), 'version': version, 'base_revision': revision, 'source_state': 'working tree at capture time; see source_sha256',
-            'renderer': subprocess.check_output(['glxinfo', '-B'], text=True), 'images': rows}
-(metadata / 'generation.json').write_text(json.dumps(manifest, indent=2) + '\n')
+            'renderer': graphics, 'display': display, 'images': rows}
+publish_text(metadata / 'generation.json', json.dumps(manifest, indent=2) + '\n')
 log = ['# README image generation log', '', f'## Version {version} — {datetime.now(timezone.utc).date()} (UTC)', '',
        f'All {len(rows)} README images were regenerated with the current renderer. Earlier capture dates and versions were not recorded.', '',
        f'Base source revision: `{revision}` plus the working-tree changes identified by the source fingerprint.',
-       'Build: RelWithDebInfo. Display: Xvfb. OpenGL: Mesa llvmpipe (software rendering).',
+       f'Build: RelWithDebInfo. Display: {display}. OpenGL renderer: {graphics.splitlines()[0]}.',
        'The performance panel reports this capture environment, not hardware GPU performance.', '',
        '| Image | Version | Last generated (UTC) |', '| --- | --- | --- |']
 log += [f'| [{r["image"]}](../screenshots/{r["image"]}) | {version} | {r["generated_utc"]} |' for r in rows]
@@ -105,5 +124,5 @@ log += ['', 'Exact commands, image SHA-256 hashes and renderer details are in [g
         'LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a -s "-screen 0 1280x720x24" python3 scripts/generate_readme_images.py --build-dir build',
        '~~~', '', 'Regenerate after changes to rendering, shaders or pictured scenarios; the version alone does not prove freshness.',
         'Commit the images, sidecars and both generation records together.']
-(metadata / 'GENERATION.md').write_text('\n'.join(log) + '\n')
+publish_text(metadata / 'GENERATION.md', '\n'.join(log) + '\n')
 print(f'Published {len(rows)} images for {version}', flush=True)

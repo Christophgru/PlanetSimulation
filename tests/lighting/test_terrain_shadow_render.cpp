@@ -282,6 +282,7 @@ TEST(GrassRender, WindMovesBladesWhileNightAndClippingRemainDark) {
             for (int c=0;c<3;++c) ground.vertices.push_back(v[c]);
     }
     ground.indices={0,1,2,0,2,3};
+    ground.upload();
     const glm::vec3 eye(0,-5,102);
     grass.prepare(0,ground,planet,100,glm::dvec3(eye)/100.0);
     ASSERT_GT(grass.count(0),500u);
@@ -307,6 +308,8 @@ TEST(GrassRender, WindMovesBladesWhileNightAndClippingRemainDark) {
         s.setFloat3("uClipCenter",0,0,0); s.setFloat("uClipRadius",clip);
         s.setFloat("uMetersPerRadius",100); s.setFloat("uGrassHeight",1.5f);
         s.setFloat("uGrassWidth",.1f); s.setFloat("uDrawDistance",10);
+        s.setFloat("uGaussianSigma",planet.foliage.draw_distance_m/3);
+        s.setFloat3("uPlanetColor",.2,.6,.1); s.setFloat2("uTerrainRockRange",.35,.5);
         s.setFloat("uWindStrength",1); s.setFloat("uTime",time);
         s.setInt("uShadowsEnabled",shadow); s.setInt("uLinearOutput",1);
         s.setInt("uShadowMap",4); s.setFloat("uShadowBias",.0001f);
@@ -321,7 +324,7 @@ TEST(GrassRender, WindMovesBladesWhileNightAndClippingRemainDark) {
         GLuint generated=0;
         glGetQueryObjectuiv(primitives,GL_QUERY_RESULT,&generated);
         EXPECT_EQ(generated,grass.drawStats(0).triangles);
-        EXPECT_LE(grass.drawStats(0).batches,6u);
+        EXPECT_LE(grass.drawStats(0).batches,40u);
         glDeleteQueries(1,&primitives);
         Image result(size*size*3);
         glReadPixels(0,0,size,size,GL_RGB,GL_UNSIGNED_BYTE,result.data());

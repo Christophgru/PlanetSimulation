@@ -4,6 +4,24 @@
 #include <iostream>
 #include <stdexcept>
 
+Shader::Shader(const char* computePath) {
+    std::ifstream file(computePath);
+    if (!file) throw std::runtime_error("Failed to open compute shader: " + std::string(computePath));
+    std::ostringstream source; source << file.rdbuf();
+    const auto code=source.str(); const char* pointer=code.c_str();
+    const GLuint compute=glCreateShader(GL_COMPUTE_SHADER);
+    try {
+        glShaderSource(compute,1,&pointer,nullptr); glCompileShader(compute);
+        checkCompileErrors(compute,"COMPUTE");
+        id=glCreateProgram(); glAttachShader(id,compute); glLinkProgram(id);
+        checkLinkErrors(id); glDetachShader(id,compute);
+    } catch (...) {
+        if (id) glDeleteProgram(id);
+        glDeleteShader(compute); id=0; throw;
+    }
+    glDeleteShader(compute);
+}
+
 Shader::Shader(const char* vertexPath, const char* fragmentPath,
        const char* fragmentLibraryPath,
        const char* additionalFragmentLibraryPath) {

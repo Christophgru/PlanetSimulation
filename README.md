@@ -923,11 +923,19 @@ license](external/quick-grass/README.md) record the version and adaptations.
 "foliage": {
     "enabled": true,
     "near_enabled": true,
+    "frustum_culling": true,
     "density_per_m2": 30.72,
     "height_m": 1.5,
     "width_m": 0.1,
     "draw_distance_m": 40.0,
     "wind_strength": 1.0,
+    "wind_noise": {
+        "gust_frequency": 0.08,
+        "direction_frequency": 0.02,
+        "flutter_frequency": 0.7,
+        "speed_multiplier": 1.0,
+        "seed": 0
+    },
     "max_blades": 100000,
     "seed": 7321,
     "rebuild_distance_fraction": 0.15,
@@ -943,10 +951,10 @@ license](external/quick-grass/README.md) record the version and adaptations.
     "lean_max": 0.4,
     "horizon_enabled": true,
     "far_distance_m": 0.0,
-    "far_density_per_m2": 3.35,
+    "far_density_per_m2": 0.35,
     "far_max_instances": 80000,
     "far_rebuild_distance_m": 10.0,
-    "far_max_candidates_per_patch": 128000,
+    "far_max_candidates_per_patch": 128,
     "far_height_scale": 1.0,
     "far_width_scale": 6.0,
     "far_min_width_m": 0.25,
@@ -960,21 +968,27 @@ These are the defaults when a foliage block is present. Height and width are
 in metres. The working scene's current overrides and descriptions of every
 parameter are in `configs/scenarios/solar_system.json`; changing the near
 budget does not change the distant GPU layer's independent budget.
-The random height multiplier is 0.75–1.5. Supported ranges are
+The random height multiplier is 0.75–1.5. Budgets include candidates rejected on the GPU; reported candidate counts are not a readback of visible blades. Supported ranges are
 0–2 wind strength, 0.05–3 m height, 0.005–0.3 m width, 5–400 m draw distance,
-positive density up to 4096 blades/m², and 1–250,000 blades per planet.
+positive density up to 4096 blades/m², and 1–250,000 submitted near candidates per planet.
 Candidate density peaks at the camera and follows a Gaussian with standard deviation
 `draw_distance_m * gaussian_sigma_fraction`: by default about 61% of peak at one third of the distance, 14%
 at two thirds, and 1% at the edge. `density_per_m2` sets the requested peak;
 the integrated distribution is scaled down when necessary to fit the instance
 budget using `budget_fraction` as headroom. A cached patch follows walking, rebuilding after `rebuild_distance_fraction` of the draw
-distance; overlapping candidates keep their seeded positions. Each blade uses
+distance; overlapping candidates keep their seeded positions. Each GPU candidate uses
 one instance; the terrain triangle budget is unchanged. The default distance is shorter than the
 demo's 100 m to bound work on weaker hardware.
 
-The far layer uploads seeded triangle descriptors and generates roots, random
-heights, biome rejection and sinking in the vertex shader using OpenGL 3.3
-instancing. Its CPU planner runs on terrain revisions or movement beyond
+Both layers reuse the terrain vertex/index buffers through OpenGL 3.3 buffer
+textures. Only a four-byte triangle ID per selected patch is uploaded, plus
+small uniforms for density, seed, camera, shape and wind rules. GLSL generates
+barycentric root positions, blade variation, Gaussian acceptance and biome
+rejection; no individual grass positions, blade meshes, random arrays or
+Perlin-noise fields cross from CPU to GPU. Cached frames upload no grass buffers.
+The planner caps submitted candidate work, including GPU rejection, and groups
+triangle IDs by candidate slots. The near layer supports up to 65536 candidates (power-of-two slots, rounded down from the configured cap)
+per triangle; the distant layer retains its lower configurable cap. Its CPU planner runs on terrain revisions or movement beyond
 `far_rebuild_distance_m`, independently of the near layer. `far_distance_m=0`
 derives the cutoff from the eye height and terrain relief; a positive override
 must exceed the near draw distance. `far_max_instances` caps all submitted
@@ -987,33 +1001,39 @@ Far fade-in distances are the near draw distance times the two
 `height_m * far_height_scale` and the shared random multiplier range. Width is
 `max(far_min_width_m, width_m * far_width_scale)`. Both layers share `green_ratio`
 and `water_clearance_m`; `root_offset_m` and the lean range tune the detailed
-layer. `near_enabled=false` skips its CPU root generation while keeping the
+layer. `near_enabled=false` skips the near plan while keeping the
 distant GPU layer available. These settings are validated before rendering.
 
-Grass uses eight distance levels with segment counts **6, 5, 4, 3, 2, 1, 1, 1**.
-For the working 60 m draw distance, nominal boundaries are 7.5, 9.375, 11.25,
-13.125, 15, 30 and 45 m. The cached patch keeps extra detail for the 9 m movement
-margin, so moving toward a blade cannot expose insufficient geometry before
-the next rebuild. Blades straighten before their first geometry reduction;
-removing collinear vertices then leaves their shape intact. Each strip has one
-shared tip: 13 vertices / 11 triangles nearby, down to 3 vertices / 1 triangle.
+Grass geometry now hot-swaps between a **six-segment strip** (14 vertices,
+12 triangles) and a **single tapered quad** (4 vertices, 2 triangles), following
+Quick_Grass's high/low geometry selection. A narrow top edge keeps both low
+triangles nondegenerate. The camera-to-triangle bound selects geometry every
+rendered frame, without regenerating or uploading roots. Blades straighten
+between half of `min(15 m, draw_distance_m / 4)` and that threshold, so any
+triangle switched to quads already has straight blades. Reflections share the
+main camera's geometry choice. Fragment shading evaluates the same palette
+across both geometries, avoiding a different gradient from vertex interpolation.
 
-Beyond `min(15 m, draw_distance_m / 4)`, eight stable, randomly distributed
-retention groups gradually thin the candidates further. Each group sinks and
-collapses over its distance interval; the final group vanishes at the draw limit.
-The outer-quarter fade also applies. This adds a distance LOD factor to the
-Gaussian density, without changing candidate seeds or the instance cap.
-The shader updates sinking every frame, including while walking within a cached
-patch. CPU removal includes the same movement margin and only removes blades
-that cannot be visible before the next rebuild. Reflections use the same LOD.
+Eight stable retention tiers and the outer-quarter distance fade reduce pixel
+coverage using deterministic screen-space dithering. Both detailed and horizon
+grass retain their height and ground roots during fading: **grass never sinks**.
+Terrain retains its independent eight LODs and configured sinking. A cached
+plan includes the walking margin and only uploads triangle IDs when the camera
+moves past its rebuild threshold or the terrain mesh changes. Adjacent patches
+with equal candidate counts and geometry merge into instanced draw calls.
 
-Instances are sorted front to back and uploaded once per planet into a shared
-buffer. Each level draws a contiguous range; the three levels using a single
-triangle share one draw, giving at most six instanced draws per pass. Capture
-logs report submitted vertices, triangles, batches and active instance bytes
-per planet. These adaptations and their measurements are recorded in the
-[LOD journal](docs/journal/benchmarks/grass-lod.md), with the scope of the
-[gl_VertexID heightmap reference](https://github.com/vercidium-patreon/glvertexid).
+With `frustum_culling=true` (default), GPU patch bounds are tested against the
+active pass's six clip planes before random sampling, normals/colors, biome
+checks or wind. Bounds include maximum blade reach. Reflection views use their
+own frustum; no individual blade shadow casting is added. Candidate work counts
+include rejected geometry, so this avoids shader work without changing the
+reserved instance count.
+
+Capture logs report candidate vertices/triangles, draw batches and actual grass
+payload bytes. The new transfer and performance study is recorded in the
+[procedural grass journal](docs/journal/benchmarks/procedural-grass.md). The
+[older LOD study](docs/journal/benchmarks/grass-lod.md) records the superseded
+single-triangle/sinking experiment; its measurements describe that version.
 
 Roots sit on the rendered terrain triangles and follow body rotation, including
 at the poles. Water, beaches, snow and gray bodies do not grow grass. Coverage
@@ -1025,7 +1045,10 @@ Wind samples three periodic 3D Perlin gradient fields in body-local metres:
 roughly 1.4 m cells for fine flutter. The fields drift smoothly over time;
 neighboring blades share coherent gusts without a latitude/longitude texture
 seam. Quintic interpolation keeps lattice crossings smooth. Noise is evaluated
-in the vertex shader with no texture, geometry or instance-buffer additions.
+in the vertex shader without noise textures or field uploads. `wind_noise`
+frequencies are cycles per metre (0.001–100); `seed` chooses the gradient field,
+and `speed_multiplier` (0–16) scales the wrapped wind clock; zero freezes wind.
+Only these scalar settings are sent to the GPU.
 `wind_strength: 0` removes all wind deformation, retaining each blade's seeded
 static lean. The same phase drives the main and reflected views.
 Wind follows simulation time, so pause freezes it and capture replays are exact.

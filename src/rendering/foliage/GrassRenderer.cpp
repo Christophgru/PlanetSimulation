@@ -1,115 +1,19 @@
 #include "rendering/foliage/GrassRenderer.h"
-#include "rendering/foliage/GrassPlacement.h"
-#include "rendering/foliage/GrassLod.h"
-#include "rendering/geometry/Mesh.h"
-#include "config/ScenarioConfig.h"
-#include <chrono>
-#include "rendering/diagnostics/tracing/CpuTrace.h"
 
 namespace rendering {
-
-void GrassRenderer::upload(Patch& patch, const GrassLodPlan& plan) {
-    CpuTrace::Scope scope("GrassRenderer::upload");
-    if (!patch.buffer) glGenBuffers(1,&patch.buffer);
-    glBindBuffer(GL_ARRAY_BUFFER,patch.buffer);
-    // One contiguous instance upload per planet. GL 3.3 lacks base-instance
-    // draws, so each LOD VAO points at a range of the same buffer.
-    glBufferData(GL_ARRAY_BUFFER,plan.blades.size()*sizeof(GrassBlade),plan.blades.data(),GL_STATIC_DRAW);
-    for (std::size_t level=0; level<patch.batches.size(); ++level) {
-        auto& batch=patch.batches[level];
-        batch.count=0;
-        // The last three density levels share one-triangle geometry. Their
-        // contiguous ranges can be submitted together without extra draws.
-        if (level>0 && grassLodSegments[level]==grassLodSegments[level-1]) continue;
-        std::size_t first=0;
-        for (std::size_t end=level; end<patch.batches.size() && grassLodSegments[end]==grassLodSegments[level]; ++end) {
-            if (!batch.count) first=plan.batches[end].first;
-            batch.count+=static_cast<GLsizei>(plan.batches[end].count);
-        }
-        if (!batch.count) continue;
-        if (!batch.vao) glGenVertexArrays(1,&batch.vao);
-        glBindVertexArray(batch.vao);
-        const auto start=first*sizeof(GrassBlade);
-        for (int location=0;location<3;++location) {
-            const std::size_t offset = location==0 ? offsetof(GrassBlade,root) :
-                location==1 ? offsetof(GrassBlade,up) : offsetof(GrassBlade,variation);
-            glEnableVertexAttribArray(location);
-            glVertexAttribPointer(location,location==2 ? 4 : 3,GL_FLOAT,GL_FALSE,sizeof(GrassBlade),reinterpret_cast<void*>(start+offset));
-            glVertexAttribDivisor(location,1);
-        }
-    }
-    glBindVertexArray(0);
-}
-
-GrassRenderer::~GrassRenderer() { clear(); glDeleteProgram(shader.id); }
-
-void GrassRenderer::clear() {
-    horizon.clear();
-    for (auto& patch : patches_) {
-        for (auto& batch : patch.batches) glDeleteVertexArrays(1,&batch.vao);
-        glDeleteBuffers(1,&patch.buffer);
-    }
-    patches_.clear();
-}
-
+void GrassRenderer::clear() { near.clear(); horizon.clear(); }
 GrassPreparationStats GrassRenderer::prepare(std::size_t index,const Mesh& mesh,const config::PlanetConfig& planet,
-             double metersPerWorldUnit,const glm::dvec3& eyeBody) {
-    CpuTrace::Scope scope("GrassRenderer::prepare");
-    const auto far=horizon.prepare(index,mesh,planet,metersPerWorldUnit,eyeBody);
-    if (patches_.size()<=index) patches_.resize(index+1);
-    auto& patch=patches_[index];
-    if (!planet.foliage.enabled || !planet.foliage.near_enabled || !mesh.hasVertexColors) {
-        for (auto& batch:patch.batches) batch.count=0;
-        patch.ready=false; return far;
-    }
-    const double scale=planet.radius*metersPerWorldUnit;
-    const double margin=grassRebuildDistance(planet.foliage);
-    if (patch.ready && patch.revision==mesh.revision && glm::length(eyeBody-patch.eye)*scale<margin) return far;
-    const auto start = std::chrono::steady_clock::now();
-    auto blades=placeGrass(mesh.vertices,mesh.indices,planet,metersPerWorldUnit,eyeBody);
-    const auto placed = std::chrono::steady_clock::now();
-    const auto plan=batchGrass(blades,eyeBody,scale,planet.foliage.draw_distance_m,margin);
-    const auto sorted = std::chrono::steady_clock::now();
-    upload(patch,plan);
-    const auto uploaded = std::chrono::steady_clock::now();
-    patch.eye=eyeBody; patch.revision=mesh.revision; patch.ready=true;
-    return {far.placementMs+std::chrono::duration<double,std::milli>(placed-start).count(),
-            std::chrono::duration<double,std::milli>(sorted-placed).count(),
-            far.uploadMs+std::chrono::duration<double,std::milli>(uploaded-sorted).count(), far.rebuilds+1};
+    double metersPerWorldUnit,const glm::dvec3& eyeBody) {
+    const auto a=near.prepare(index,mesh,planet,metersPerWorldUnit,eyeBody);
+    const auto b=horizon.prepare(index,mesh,planet,metersPerWorldUnit,eyeBody);
+    return {a.placementMs+b.placementMs,a.sortMs+b.sortMs,a.uploadMs+b.uploadMs,a.rebuilds+b.rebuilds,
+        a.uploadedBytes+b.uploadedBytes};
 }
-
-std::size_t GrassRenderer::count(std::size_t index) const {
-    return drawStats(index).blades;
-}
-
+std::size_t GrassRenderer::count(std::size_t index) const { return near.stats(index).candidates; }
 GrassDrawStats GrassRenderer::drawStats(std::size_t index) const {
-    GrassDrawStats stats;
-    if (index>=patches_.size()) return stats;
-    for (std::size_t level=0; level<grassLodSegments.size(); ++level) {
-        const auto count=static_cast<std::size_t>(patches_[index].batches[level].count);
-        stats.blades+=count;
-        stats.vertices+=count*grassLodVertices(level);
-        stats.triangles+=count*(grassLodVertices(level)-2);
-        stats.batches+=count>0;
-    }
-    stats.instanceBytes=stats.blades*sizeof(GrassBlade);
-    return stats;
+    const auto s=near.stats(index);
+    // instanceBytes is the actual descriptor payload, not one record per root.
+    return {s.candidates,s.vertices,s.triangles,s.batches,s.patchBytes};
 }
-
-void GrassRenderer::draw(std::size_t index) const {
-    CpuTrace::Scope scope("GrassRenderer::draw");
-    if (index>=patches_.size()) return;
-    const bool culled=glIsEnabled(GL_CULL_FACE);
-    glDisable(GL_CULL_FACE); // Two-sided blades, without duplicate geometry.
-    const auto& patch=patches_[index];
-    for (std::size_t level=0; level<grassLodSegments.size(); ++level) {
-        const auto& batch=patch.batches[level];
-        if (!batch.count) continue;
-        shader.setInt("uSegments",grassLodSegments[level]);
-        glBindVertexArray(batch.vao);
-        glDrawArraysInstanced(GL_TRIANGLE_STRIP,0,grassLodVertices(level),batch.count);
-    }
-    glBindVertexArray(0);
-    if (culled) glEnable(GL_CULL_FACE);
-}
+void GrassRenderer::draw(std::size_t index,const GrassPass* pass) const { near.draw(index,pass); }
 } // namespace rendering

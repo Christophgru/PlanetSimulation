@@ -1,4 +1,8 @@
-# Grass triangles, batching and eight distance levels
+# Historical grass triangles, batching and eight distance levels
+
+This report records the earlier single-triangle/sinking experiment. It is
+superseded by [procedural quads and terrain-buffer reuse](procedural-grass.md).
+The measurements below describe the archived version, not the current renderer.
 
 ## Scope of the reference
 

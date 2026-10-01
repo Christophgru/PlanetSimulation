@@ -29,7 +29,7 @@ TEST(GrassLod, EightContiguousSortedBatchesRetainAttributesAndReduceVertices) {
     EXPECT_EQ(next,plan.blades.size());
     EXPECT_LT(next,blades.size());
     EXPECT_LT(vertices,blades.size()*14);
-    EXPECT_EQ(rendering::grassLodVertices(7)-2,1); // One actual far triangle.
+    EXPECT_EQ(rendering::grassLodVertices(7)-2,2); // Both triangles of the low quad.
 }
 
 TEST(GrassLod, GuardBandCannotRemoveVisibleBladesOrUndersampleAfterMovement) {

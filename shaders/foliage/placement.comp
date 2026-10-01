@@ -1,29 +1,21 @@
-#version 330 core
-// Distant tufts use seeded GPU placement on coarse rendered triangles.
-// Palette and wind follow Quick_Grass adaptations; see external/quick-grass.
-layout(location=0) in uint aTriangle;
-uniform mat4 model,view,projection,uShadowMatrix;
-uniform vec3 uGrassEyeBody,uFacingEyeBody,uPlanetColor,uLandscapeLevels;
-uniform vec2 uTerrainRockRange;
-uniform float uMetersPerRadius,uTime,uWindStrength,uGrassHeight,uGrassWidth,uDrawDistance,uFarDistance;
-uniform int uSlotsPerPatch,uWindSeed=0;
-uniform bool uGpuInstances=false;
-layout(location=1) in vec4 aGpuRoot;
-layout(location=2) in vec4 aGpuUp;
-layout(location=3) in vec4 aGpuVariation;
-layout(location=4) in vec4 aGpuWind;
-uniform vec3 uWindFrequencies=vec3(.08,.02,.7);
-flat out float vFade,vVariation;
+#version 430 core
+// Procedural placement and wind evaluated once per candidate. No CPU roots.
+layout(local_size_x=128) in;
+layout(std430,binding=0) readonly buffer TriangleRules { uint triangleIDs[]; };
+struct Command { uint vertices, instances, first, base; };
+layout(std430,binding=1) buffer DrawCommands { Command commands[2]; };
+struct Blade { vec4 rootFade, upLow, variation, wind; };
+layout(std430,binding=2) buffer GeneratedBlades { Blade blades[]; };
+uniform bool uReset,uDetailed;
+uniform int uCapacity,uFirstPatch,uCandidateCount,uSlotsPerPatch,uWindSeed=0;
+uniform mat4 model,view,projection;
+uniform vec3 uGrassEyeBody,uPlacementEyeBody,uPlanetColor,uLandscapeLevels;
+uniform vec2 uTerrainRockRange,uHeightMultiplierRange,uLeanRange;
 uniform bool uLandscapeEnabled,uWaterEnabled;
-uniform vec2 uHeightMultiplierRange=vec2(.75,1.5);
-uniform vec3 uFarShape=vec3(1.0,6.0,.25); // height scale, width scale, minimum width (m)
-uniform vec3 uFarFadeFractions=vec3(.5,.75,.85);
-uniform float uGreenRatio=1.15,uWaterClearance=.15;
-out vec3 vBodyPosition,vWorldPosition,vNormal,vUp,vColor,vBlade;
-out vec4 vShadowPosition;
-// Additional outputs make production root generation directly testable.
-out vec3 vRoot;
-out float vVisible;
+uniform float uMetersPerRadius,uTime,uWindStrength,uGrassHeight,uGrassWidth,uDrawDistance,uFarDistance;
+uniform float uGaussianSigma,uGreenRatio,uWaterClearance,uRootOffset,uPlacementMargin;
+uniform vec3 uWindFrequencies,uFarShape,uFarFadeFractions;
+uint aTriangle;
 uniform samplerBuffer uTerrainVertices;
 uniform usamplerBuffer uTerrainIndices;
 uniform int uGrassSeed=7321;
@@ -103,7 +95,13 @@ float grassPerlin(vec3 p) {
             mix(grassGradient(cell+ivec3(0,1,1),f-vec3(0,1,1)),grassGradient(cell+ivec3(1,1,1),f-vec3(1,1,1)),blend.x),blend.y),blend.z);
 }
 
-
+float grassLodFadeEnd(float variation) {
+    // Shared with GrassLod.cpp: a stable, tint-independent retention tier.
+    uint h=uint(variation*65536.0);
+    h^=h>>16; h*=0x7feb352du; h^=h>>15; h*=0x846ca68bu; h^=h>>16;
+    float nearDistance=min(15.0,uDrawDistance*.25);
+    return nearDistance+float((h&7u)+1u)*(uDrawDistance-nearDistance)/8.0;
+}
 uint horizonHash(uint h) {
     h^=h>>16; h*=0x7feb352du; h^=h>>15; h*=0x846ca68bu; return h^(h>>16);
 }
@@ -128,51 +126,65 @@ float biomeVisibility(vec3 root,vec3 up,uint seed) {
     return horizonRandom(seed+17u)<smoothstep(uTerrainRockRange.x,uTerrainRockRange.y,slope) ? 0.0 : 1.0;
 }
 void main() {
-    if (!uGpuInstances && !loadTerrainPatch()) {
-        vRoot=vec3(0); vVisible=0.0; vFade=0.0; vVariation=0.0;
-        vBodyPosition=vec3(0); vWorldPosition=vec3(0); vNormal=vec3(0,0,1);
-        vUp=vNormal; vColor=vec3(0); vBlade=vec3(0);
-        vShadowPosition=vec4(0,0,0,1); gl_Position=vec4(2,2,2,1); return;
+    uint id=gl_GlobalInvocationID.x;
+    if (uReset) {
+        if (id<2u) commands[id]=Command(id==0u ? 14u : 4u,0u,0u,0u);
+        return;
     }
-    aExpectedCandidates=min(aExpectedCandidates,float(uSlotsPerPatch));
-    uint candidate=uint(gl_InstanceID % max(1,uSlotsPerPatch));
-    uint seed=horizonHash(aPatchSeed ^ (candidate*0x9e3779b9u));
+    if (id>=uint(uCandidateCount)) return;
+    aTriangle=triangleIDs[uint(uFirstPatch)+id/uint(uSlotsPerPatch)];
+    if (!loadTerrainPatch()) return;
+    uint seed=horizonHash(aPatchSeed ^ ((id%uint(uSlotsPerPatch))*0x9e3779b9u));
     float a=sqrt(horizonRandom(seed+1u)), b=horizonRandom(seed+2u);
-    vec3 root=uGpuInstances ? aGpuRoot.xyz : aPatchA*(1.0-a)+aPatchB*(a*(1.0-b))+aPatchC*(a*b);
-    vRoot=root; vVisible=0.0; vFade=0.0; vVariation=0.0;
-    vBodyPosition=root; vWorldPosition=(model*vec4(root,1)).xyz;
-    vNormal=vec3(0,0,1); vUp=vNormal; vColor=vec3(0); vBlade=vec3(0);
-    vShadowPosition=vec4(0,0,0,1); gl_Position=vec4(2,2,2,1);
-    if (!uGpuInstances && (horizonRandom(seed+3u)>=aExpectedCandidates/float(uSlotsPerPatch) || length(root)<1e-9)) return;
-    float distanceToEye=length(root-uGrassEyeBody)*uMetersPerRadius;
-    // Fade pixel coverage in as detailed Gaussian grass thins, and out at
-    // the conservative horizon. Rejection precedes the expensive wind field.
-    float fade=smoothstep(uDrawDistance*uFarFadeFractions.x,uDrawDistance*uFarFadeFractions.y,distanceToEye)*
-        (1.0-smoothstep(uFarDistance*uFarFadeFractions.z,uFarDistance,distanceToEye));
-    if (uGpuInstances) fade=aGpuRoot.w;
+    vec3 root=aPatchA*(1.0-a)+aPatchB*(a*(1.0-b))+aPatchC*(a*b);
+    if (length(root)<1e-9) return;
     vec3 up=normalize(root);
-    if (fade<=0.0 || (!uGpuInstances && biomeVisibility(root,up,seed)==0.0)) return;
-    vVisible=fade; vFade=fade;
-    float t=float(gl_VertexID/2);
-    float side=float(gl_VertexID%2);
-    vec3 viewDirection=uFacingEyeBody-root;
-    vec3 right=cross(up,viewDirection);
-    vec3 bodyRight=normalize(cross(abs(up.z)<.9 ? vec3(0,0,1) : vec3(0,1,0),up));
-    right=length(right)>1e-7 ? normalize(right) : bodyRight;
-    float variation=uGpuInstances ? aGpuVariation.w : horizonRandom(seed+4u); vVariation=variation;
-    float height=uGrassHeight*uFarShape.x*(uGpuInstances ? aGpuVariation.z : mix(uHeightMultiplierRange.x,uHeightMultiplierRange.y,horizonRandom(seed+5u)));
-    float width=max(uFarShape.z,uGrassWidth*uFarShape.y);
+    float d=length(root-uGrassEyeBody)*uMetersPerRadius;
+    float fade=1.0, low=1.0;
+    uint queue=1u;
+    vec3 center=(aPatchA+aPatchB+aPatchC)/3.0;
+    float reach=max(max(length(aPatchA-center),length(aPatchB-center)),length(aPatchC-center));
+    if (uDetailed) {
+        float minimumDistance=max(0.0,(length(center-uPlacementEyeBody)-reach)*uMetersPerRadius-uPlacementMargin);
+        aExpectedCandidates=min(aExpectedCandidates*exp(-minimumDistance*minimumDistance/(2.0*uGaussianSigma*uGaussianSigma)),float(uSlotsPerPatch));
+        float acceptance=exp((minimumDistance*minimumDistance-d*d)/(2.0*uGaussianSigma*uGaussianSigma));
+        if (d>=uDrawDistance || horizonRandom(seed+3u)>=aExpectedCandidates/float(uSlotsPerPatch)*acceptance) return;
+        aPatchNormal=normalize(patchNormalA*(1.0-a)+patchNormalB*(a*(1.0-b))+patchNormalC*(a*b));
+        aPatchColor=patchColorA*(1.0-a)+patchColorB*(a*(1.0-b))+patchColorC*(a*b);
+        float nearDistance=min(15.0,uDrawDistance*.25);
+        low=smoothstep(nearDistance*.5,nearDistance,d);
+        if ((length(center-uGrassEyeBody)-reach)*uMetersPerRadius<nearDistance) queue=0u;
+        float end=grassLodFadeEnd(horizonRandom(seed+4u));
+        fade=min(1.0-smoothstep(end-(uDrawDistance-nearDistance)/8.0,end,d),
+            1.0-smoothstep(uDrawDistance*.75,uDrawDistance,d));
+    } else {
+        if (horizonRandom(seed+3u)>=min(aExpectedCandidates,float(uSlotsPerPatch))/float(uSlotsPerPatch)) return;
+        fade=smoothstep(uDrawDistance*uFarFadeFractions.x,uDrawDistance*uFarFadeFractions.y,d)*
+            (1.0-smoothstep(uFarDistance*uFarFadeFractions.z,uFarDistance,d));
+    }
+    if (biomeVisibility(root,up,seed)==0.0) return;
+    vec4 variation=vec4(horizonRandom(seed+6u)*6.28318530718,
+        mix(uLeanRange.x,uLeanRange.y,horizonRandom(seed+7u)),
+        mix(uHeightMultiplierRange.x,uHeightMultiplierRange.y,horizonRandom(seed+5u)),horizonRandom(seed+4u));
+    if (uDetailed) {
+        root+=aPatchNormal*(uRootOffset/uMetersPerRadius);
+        float shadingDistance=length(root-uGrassEyeBody)*uMetersPerRadius;
+        float nearDistance=min(15.0,uDrawDistance*.25);
+        low=smoothstep(nearDistance*.5,nearDistance,shadingDistance);
+        float end=grassLodFadeEnd(variation.w);
+        fade=min(1.0-smoothstep(end-(uDrawDistance-nearDistance)/8.0,end,shadingDistance),
+            1.0-smoothstep(uDrawDistance*.75,uDrawDistance,shadingDistance));
+    }
+    if (fade<=0.0) return;
     vec3 p=root*uMetersPerRadius;
-    // One coherent gust field, rather than all three detailed wind fields.
-    float gust=uGpuInstances ? aGpuWind.x : clamp(.5+.5*grassPerlin(p*uWindFrequencies.x+uTime*vec3(.25,.125,0)),0.0,1.0);
-    vec3 tipOffset=up*height+bodyRight*(height*.25*uWindStrength*(gust-.5));
-    vec3 local=right*((side-.5)*width*(1.0-.9*t))+tipOffset*t;
-    vec3 body=root+local/uMetersPerRadius;
-    vBodyPosition=body;
-    vec4 world=model*vec4(body,1); vWorldPosition=world.xyz;
-    vUp=normalize(mat3(model)*up); vNormal=vUp;
-    vColor=vec3(1);
-    vBlade=vec3(t,side,0); // Cheap distant lighting has no blade backscatter.
-    vShadowPosition=uShadowMatrix*vec4(body,1);
-    gl_Position=projection*view*world;
+    float gust=clamp(.5+.5*grassPerlin(p*uWindFrequencies.x+uTime*vec3(.25,.125,0)),0.0,1.0);
+    float direction=0.0,flutter=0.0;
+    if (uDetailed) {
+        direction=grassPerlin(p*uWindFrequencies.y+vec3(19.3,7.1,43.7)+uTime*vec3(.03125,0,0));
+        flutter=grassPerlin(p*uWindFrequencies.z+vec3(5.2,31.8,11.4)+uTime*vec3(0,.5,0));
+    }
+    // Submitted candidate counts are bounded by the CPU plan. Compaction can
+    // only reduce them; each output queue has capacity for the entire plan.
+    uint slot=atomicAdd(commands[queue].instances,1u)+queue*uint(uCapacity);
+    blades[slot]=Blade(vec4(root,fade),vec4(up,low),variation,vec4(gust,direction,flutter,0));
 }

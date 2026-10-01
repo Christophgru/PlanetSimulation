@@ -65,6 +65,7 @@ add_library(planet_rendering STATIC
     src/rendering/geometry/Mesh.cpp
     src/rendering/foliage/GrassRenderer.cpp)
 target_sources(planet_rendering PRIVATE src/rendering/foliage/horizon/HorizonGrass.cpp)
+target_sources(planet_rendering PRIVATE src/rendering/foliage/horizon/HorizonGrassCompute.cpp)
 target_link_libraries(planet_rendering PUBLIC planet_geometry OpenGL::GL GLEW::GLEW)
 
 add_library(planet_app STATIC

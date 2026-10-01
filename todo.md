@@ -17,8 +17,8 @@ document the progress and add comments such that when interrupted you can contin
 |Let's apply some optimisations from this repo: https://github.com/vercidium-patreon/glvertexid namely triangle optimisations, batching and 8 lods with sinking. Not all is applicable to our current setup 1:1 but these methods in general seem applicable, so let's apply them as well as possible.|t| Adapted to grass: single-tip strips, one instance upload, eight guarded LODs and smooth sinking, with compatible levels merged. Frozen view submits 26.8% fewer vertices and 31.5% fewer triangles, uploads 10.0% fewer bytes. One paired software-renderer run reduces walking mean by 7.2%; no hardware FPS guarantee. All 43 tests pass; journal/PDF and 17 gallery images refreshed, visually inspected and hashes verified. |
 |Add more timing traces especially on the cpu side, how much time is spent in what functions, use a dedicated debugger/tool for the runtime analysis. Add reports of the rundtime analysis in top down and bottom up visualisation (how the time is divided/which functions are called when vs how much time is spent in what functions). Return and report if the environment doesn't provide a suitable context.|t| Nested wall/thread-CPU traces, interactive top-down/bottom-up reports and Callgrind instruction study published with verified artifacts and journal/PDF. All 40 available tests pass (197.24 s); five GUI tests require missing xdotool/ImageMagick (prior container run: 45/45). gprofng timings rejected; no hardware FPS claim. |
 |Do 8 LODs also for the landscape of the planet implement sinking, such that always the most precise landscape is highest, remove the rest from the scene. |t| Eight budgeted surface-distance levels with bounded inward sinking and shared boundaries; one closed mesh, sea level preserved. All 45 tests pass; journal/PDF, fixed capture evidence and all 17 gallery images updated and verified. Spatial transitions retain small steps; 60 m grass distance preserved. |
-|The Goal must be that we can cover the whole horizon with grass with reasonable fps. For that lets add grass foliage for high distance, reduce the placement accuracy, move the random placement from cpu to shader, and apply further techniques that seem suitable. |p| Adding a budgeted distant-tuft layer with coarse terrain patch uploads and shader-generated random roots; retaining the working 60 m detailed grass range. |
-|Add the perlin noise parameter to the json config|||
+|The Goal must be that we can cover the whole horizon with grass with reasonable fps. For that lets add grass foliage for high distance, reduce the placement accuracy, move the random placement from cpu to shader, and apply further techniques that seem suitable. |p| Both layers now generate random roots on the GPU from resident terrain buffers; only four-byte triangle IDs and rule uniforms are uploaded. Quad geometry, no grass sinking, frustum rejection and measurements are being validated. The working 60 m near range is preserved. |
+|Add the perlin noise parameter to the json config|p| JSON wind_noise rules and GPU-only random roots/Perlin evaluation implemented; validating both layers and measuring actual transfer. |
 |If not already implemented add frustum culling (for the foliage I think it could be difficult for the light simulation, but you may reduce triangle quality in the non camera viewed parts.), compute shaders and gpu instancing to be able to viaualize more foliage and finer landscape. Benchmark and calculate what data is sent from cpu to gpu, then add a section in the journal that identifies techniques most promising to reduce the largest delays. |||
 |Lets add a third person camera "4" and a actor on the same position as cam 2 that follows a small astronaut that can walk around the planet. Create a 3d model of the astronaut or download some nice MIT licensed one online (comic style). Create Walking movement such that the feet stay on the ground and dont slide over it. Search if tere is a nice library for that movement. If not, approvximate the foor movement for now and we will coma back later to that.|||
 |Make foliage movement independant of planetary movement, such that if pressed t only the planet movement stop, but local grass movement keeps going|||
@@ -72,6 +72,29 @@ current terrain-validation container has these tools and registers all 45
 tests. The install command above restores them on hosts where they are absent;
 reconfigure afterwards. Valgrind is only needed to recollect the independent
 instruction profile.
+
+## Current checkpoint — grass correction and procedural placement
+
+- User correction takes priority: grass sinking is removed from both layers;
+  terrain sinking remains. Detailed blades use six segments and low blades use
+  four-vertex tapered quads with a nonzero top edge. Shared fragment shading
+  keeps the palette consistent. Coverage fades replace geometric collapse.
+- Both layers reuse resident terrain buffers and upload only four-byte triangle
+  IDs rather than 40 bytes per individual root. GLSL generates barycentric roots, height, lean, orientation,
+  palette variation, Gaussian acceptance, biome rejection and Perlin wind.
+  CPU planning reserves a hard candidate budget. Geometry hot-swaps from current
+  triangle bounds while cached descriptors stay on the GPU. All of this is
+  implemented but still being validated; do not mark t before tests/reports.
+- JSON `foliage.wind_noise` exposes gust/direction/flutter frequencies, a seed
+  and clock speed. The production CPU placement helper remains only as a
+  reference for existing tests/benchmarks.
+- Fresh build: `build-grass`, local dependency sources, GCC 13. The managed
+  sandbox blocks X11 sockets; use the existing Mesa EGL harness at
+  `build/startup-egl-window.so` for shader/rendering checks. Native window/input
+  checks cannot run here. Baseline executable/shaders preserved in
+  `build-grass/pre-change`. Next: complete focused/full available tests,
+  measure descriptor transfer and isolated rendering, refresh documentation
+  and artifacts, then proceed in table order.
 
 ## Progress checkpoint — 2026-10-01
 

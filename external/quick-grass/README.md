@@ -15,6 +15,11 @@ than the demo's noise library, omits its player
 collision and view-space thickening, and defaults to a shorter draw distance.
 No Three.js runtime or reference textures are required.
 
-The port now adds intermediate geometry levels, eight stable density-retention
-tiers with sinking, single-tip strips and a shared instance buffer. These
-adaptations are described in the [LOD journal](../../docs/journal/benchmarks/grass-lod.md).
+The port uses six-segment strips nearby and four-vertex tapered quads farther
+away, selected from current terrain patch bounds. The narrow top edge makes
+both low triangles nondegenerate. All random roots, variations and Perlin wind
+are generated in GLSL from terrain buffer views and small rule uniforms;
+only triangle IDs are uploaded for the grass plan. Fragment palette evaluation
+is shared across LODs. Screen-space coverage fades replace grass sinking.
+Terrain sinking remains an independent landscape feature. See the
+[procedural grass journal](../../docs/journal/benchmarks/procedural-grass.md).

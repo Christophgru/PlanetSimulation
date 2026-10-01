@@ -8,16 +8,83 @@ uniform mat4 model,view,projection,uShadowMatrix;
 uniform vec3 uGrassEyeBody;
 uniform float uMetersPerRadius,uTime,uWindStrength,uGrassHeight,uGrassWidth,uDrawDistance;
 uniform int uSegments;
+// Descriptor attributes advance once per uSlotsPerPatch generated roots.
+layout(location=3) in uint aTriangle;
+uniform bool uProcedural=false,uGpuInstances=false;
+layout(location=4) in vec3 aWindSamples;
+layout(location=5) in float aCoverage;
+layout(location=6) in float aLow;
+uniform int uSlotsPerPatch,uWindSeed=0;
+uniform vec3 uPlacementEyeBody,uPlanetColor,uLandscapeLevels;
+uniform vec2 uTerrainRockRange,uHeightMultiplierRange=vec2(.75,1.5),uLeanRange=vec2(.1,.4);
+uniform bool uLandscapeEnabled,uWaterEnabled;
+uniform float uGaussianSigma=13.333333,uGreenRatio=1.15,uWaterClearance=.15,uRootOffset=.005,uPlacementMargin=0;
+uniform vec3 uWindFrequencies=vec3(.08,.02,.7);
+flat out float vFade,vVariation;
+out vec3 vRoot;
+out float vVisible;
 out vec3 vBodyPosition,vWorldPosition,vNormal,vUp,vColor;
 out vec4 vShadowPosition;
 out vec3 vBlade; // height fraction, side, detailed shading weight
+
+uniform samplerBuffer uTerrainVertices;
+uniform usamplerBuffer uTerrainIndices;
+uniform int uGrassSeed=7321;
+uniform float uPlacementDensity;
+vec3 aPatchA,aPatchB,aPatchC,aPatchNormal,aPatchColor;
+vec3 patchNormalA,patchNormalB,patchNormalC,patchColorA,patchColorB,patchColorC;
+float aExpectedCandidates;
+uint aPatchSeed;
+vec3 terrainVector(int offset) {
+    // R32F buffer views work on core GL 3.3 without RGB32 extensions or
+    // repacking the terrain's nine-float interleaved vertex records.
+    return vec3(texelFetch(uTerrainVertices,offset).r,
+        texelFetch(uTerrainVertices,offset+1).r,texelFetch(uTerrainVertices,offset+2).r);
+}
+uniform bool uFrustumCull=false;
+uniform float uCullExtent=0;
+bool patchVisible() {
+    vec3 center=(aPatchA+aPatchB+aPatchC)/3.0;
+    float radius=max(max(length(aPatchA-center),length(aPatchB-center)),length(aPatchC-center))+uCullExtent;
+    mat4 clip=projection*view*model;
+    vec4 w=vec4(clip[0][3],clip[1][3],clip[2][3],clip[3][3]);
+    for (int axis=0;axis<3;++axis) {
+        vec4 row=vec4(clip[0][axis],clip[1][axis],clip[2][axis],clip[3][axis]);
+        for (int sign=-1;sign<=1;sign+=2) {
+            vec4 plane=w+float(sign)*row;
+            if (dot(plane,vec4(center,1)) < -(radius+1e-5)*length(plane.xyz)) return false;
+        }
+    }
+    return true;
+}
+bool loadTerrainPatch() {
+    ivec3 indices=ivec3(texelFetch(uTerrainIndices,int(aTriangle)*3).r,
+        texelFetch(uTerrainIndices,int(aTriangle)*3+1).r,
+        texelFetch(uTerrainIndices,int(aTriangle)*3+2).r)*9;
+    aPatchA=terrainVector(indices.x);
+    aPatchB=terrainVector(indices.y);
+    aPatchC=terrainVector(indices.z);
+    if (uFrustumCull && !patchVisible()) return false;
+    patchNormalA=terrainVector(indices.x+3);
+    patchNormalB=terrainVector(indices.y+3);
+    patchNormalC=terrainVector(indices.z+3);
+    patchColorA=terrainVector(indices.x+6)*uPlanetColor;
+    patchColorB=terrainVector(indices.y+6)*uPlanetColor;
+    patchColorC=terrainVector(indices.z+6)*uPlanetColor;
+    aPatchNormal=normalize(patchNormalA+patchNormalB+patchNormalC);
+    aPatchColor=(patchColorA+patchColorB+patchColorC)/3.0;
+    aExpectedCandidates=.5*length(cross(aPatchB-aPatchA,aPatchC-aPatchA))*
+        uMetersPerRadius*uMetersPerRadius*uPlacementDensity;
+    aPatchSeed=aTriangle ^ uint(uGrassSeed);
+    return true;
+}
 
 // Improved Perlin gradient noise: corner dot products and a quintic fade.
 // Algorithm: https://cs.nyu.edu/~perlin/noise/ . Integer hashing replaces
 // the reference permutation table; no textures or extra instance data.
 float grassGradient(ivec3 cell, vec3 offset) {
     uvec3 c=uvec3(cell & ivec3(255));
-    uint h=c.x*1597334677u ^ c.y*3812015801u ^ c.z*2798796415u;
+    uint h=c.x*1597334677u ^ c.y*3812015801u ^ c.z*2798796415u ^ uint(uWindSeed);
     h^=h>>16; h*=0x7feb352du; h^=h>>15;
     const vec3 gradients[12]=vec3[12](
         vec3(1,1,0),vec3(-1,1,0),vec3(1,-1,0),vec3(-1,-1,0),
@@ -52,52 +119,110 @@ float grassLodFadeEnd(float variation) {
     float nearDistance=min(15.0,uDrawDistance*.25);
     return nearDistance+float((h&7u)+1u)*(uDrawDistance-nearDistance)/8.0;
 }
+uint horizonHash(uint h) {
+    h^=h>>16; h*=0x7feb352du; h^=h>>15; h*=0x846ca68bu; return h^(h>>16);
+}
+float horizonRandom(uint h) { return float(horizonHash(h)>>8)* (1.0/16777216.0); }
+float biomeVisibility(vec3 root,vec3 up,uint seed) {
+    float height=(length(root)-1.0)*uMetersPerRadius;
+    if (uWaterEnabled && height<=uLandscapeLevels.x+uWaterClearance) return 0.0;
+    vec3 tint=aPatchColor;
+    if (uLandscapeEnabled) {
+        float water=uLandscapeLevels.x, beachTop=water+uLandscapeLevels.y;
+        float beachFade=max(.15,.15*uLandscapeLevels.y);
+        float relief=max(1.0,uLandscapeLevels.z-water);
+        float snowStart=max(beachTop+1.0,water+.25*relief);
+        float snowEnd=max(snowStart+1.0,water+.40*relief);
+        if (height>=snowEnd) return 0.0;
+        float beachWeight=(1.0-smoothstep(beachTop,beachTop+beachFade,height));
+        tint=mix(mix(vec3(1.10,1.30,.18),vec3(4.20,1.90,.18),beachWeight),
+                 vec3(4.60,2.30,.92),smoothstep(snowStart,snowEnd,height))*uPlanetColor;
+    }
+    if (tint.y<=uGreenRatio*max(tint.x,tint.z)) return 0.0;
+    float slope=1.0-dot(normalize(aPatchNormal),up);
+    return horizonRandom(seed+17u)<smoothstep(uTerrainRockRange.x,uTerrainRockRange.y,slope) ? 0.0 : 1.0;
+}
 void main() {
+    vec3 root=aRoot, rootUp=aUp;
+    vec4 variation=aVariation;
+    vFade=1.0; vVariation=variation.w; vRoot=root; vVisible=1.0;
+    if (uProcedural) {
+        if (!loadTerrainPatch()) {
+            vVisible=0.0; vFade=0.0; vBodyPosition=vec3(0); vWorldPosition=vec3(0);
+            vNormal=vec3(0,0,1); vUp=vNormal; vColor=vec3(0); vBlade=vec3(0);
+            vShadowPosition=vec4(0,0,0,1); gl_Position=vec4(2,2,2,1); return;
+        }
+        uint seed=horizonHash(aPatchSeed ^ (uint(gl_InstanceID % uSlotsPerPatch)*0x9e3779b9u));
+        float a=sqrt(horizonRandom(seed+1u)), b=horizonRandom(seed+2u);
+        root=aPatchA*(1.0-a)+aPatchB*(a*(1.0-b))+aPatchC*(a*b);
+        rootUp=normalize(root);
+        aPatchNormal=normalize(patchNormalA*(1.0-a)+patchNormalB*(a*(1.0-b))+patchNormalC*(a*b));
+        aPatchColor=patchColorA*(1.0-a)+patchColorB*(a*(1.0-b))+patchColorC*(a*b);
+        vRoot=root; vVisible=0.0; vFade=0.0;
+        vBodyPosition=root; vWorldPosition=(model*vec4(root,1)).xyz;
+        vNormal=vec3(0,0,1); vUp=vNormal; vColor=vec3(0); vBlade=vec3(0);
+        vShadowPosition=vec4(0,0,0,1); gl_Position=vec4(2,2,2,1);
+        // The conservative Gaussian bound matches the CPU planner. Only
+        // density rules are uniforms; every random sample is GLSL.
+        vec3 center=(aPatchA+aPatchB+aPatchC)/3.0;
+        float reach=max(max(length(aPatchA-center),length(aPatchB-center)),length(aPatchC-center));
+        float minimumDistance=max(0.0,(length(center-uPlacementEyeBody)-reach)*uMetersPerRadius-uPlacementMargin);
+        float d=length(root-uGrassEyeBody)*uMetersPerRadius;
+        aExpectedCandidates=min(aExpectedCandidates*exp(-minimumDistance*minimumDistance/(2.0*uGaussianSigma*uGaussianSigma)),float(uSlotsPerPatch));
+        float acceptance=exp((minimumDistance*minimumDistance-d*d)/(2.0*uGaussianSigma*uGaussianSigma));
+        if (length(root)<1e-9 || d>=uDrawDistance ||
+            horizonRandom(seed+3u)>=aExpectedCandidates/float(uSlotsPerPatch)*acceptance ||
+            biomeVisibility(root,rootUp,seed)==0.0) return;
+        variation=vec4(horizonRandom(seed+6u)*6.28318530718,
+            mix(uLeanRange.x,uLeanRange.y,horizonRandom(seed+7u)),
+            mix(uHeightMultiplierRange.x,uHeightMultiplierRange.y,horizonRandom(seed+5u)),horizonRandom(seed+4u));
+        root+=normalize(aPatchNormal)*(uRootOffset/uMetersPerRadius);
+        vVisible=1.0; vVariation=variation.w;
+    }
     float t=float(gl_VertexID/2)/float(uSegments);
-    // The final strip vertex is the shared apex; no duplicate zero-area tip.
+    // A narrow but nonzero top edge makes both triangles of the low quad
+    // useful, and shares endpoints with the six-segment strip.
     float side=float(gl_VertexID%2);
-    float distanceToEye=length(aRoot-uGrassEyeBody)*uMetersPerRadius;
+    float distanceToEye=length(root-uGrassEyeBody)*uMetersPerRadius;
     float nearDistance=min(15.0,uDrawDistance*.25);
-    float low=smoothstep(nearDistance*.25,nearDistance*.5,distanceToEye);
-    float fadeEnd=grassLodFadeEnd(aVariation.w);
+    float low=uGpuInstances ? aLow : smoothstep(nearDistance*.5,nearDistance,distanceToEye);
+    float fadeEnd=grassLodFadeEnd(variation.w);
     float tierWidth=(uDrawDistance-nearDistance)/8.0;
-    float fade=min(1.0-smoothstep(fadeEnd-tierWidth,fadeEnd,distanceToEye),
-                  1.0-smoothstep(uDrawDistance*.75,uDrawDistance,distanceToEye));
-    vec3 up=normalize(aUp);
+    vFade=min(1.0-smoothstep(fadeEnd-tierWidth,fadeEnd,distanceToEye),
+              1.0-smoothstep(uDrawDistance*.75,uDrawDistance,distanceToEye));
+    if (uGpuInstances) vFade=aCoverage;
+    vVisible=vFade;
+    vec3 up=normalize(rootUp);
     vec3 right=normalize(cross(abs(up.z)<0.9 ? vec3(0,0,1) : vec3(0,1,0),up));
     vec3 forward=cross(right,up);
     mat3 frame=mat3(right,up,forward);
-    vec3 p=aRoot*uMetersPerRadius;
+    vec3 p=root*uMetersPerRadius;
     // Advected 3D fields stay attached to the body without a UV/pole seam.
     // All advection rates traverse whole 256-cell periods in 8192 seconds;
     // GrassWind.h wraps the double clock by that exact common period.
-    float gust=clamp(0.5+0.5*grassPerlin(p*.08+uTime*vec3(.25,.125,0)),0.0,1.0);
+    float gust=uGpuInstances ? aWindSamples.x : clamp(0.5+0.5*grassPerlin(p*uWindFrequencies.x+uTime*vec3(.25,.125,0)),0.0,1.0);
     // Distant blades become straight before the CPU can lower their segment
     // count. Collinear intermediate vertices then vanish without a shape pop.
     float windAngle=pow(mix(.25,1.0,gust),2.0)*1.25*uWindStrength*mix(t,1.0,low);
-    float windDirection=grassPerlin(p*.02+vec3(19.3,7.1,43.7)+uTime*vec3(.03125,0,0));
+    float windDirection=uGpuInstances ? aWindSamples.y : grassPerlin(p*uWindFrequencies.y+vec3(19.3,7.1,43.7)+uTime*vec3(.03125,0,0));
     mat3 wind=axisRotation(vec3(cos(windDirection),0,sin(windDirection)),windAngle);
-    mat3 turn=axisRotation(vec3(0,1,0),aVariation.x);
-    float lean=aVariation.y+.1*uWindStrength*grassPerlin(p*.7+vec3(5.2,31.8,11.4)+uTime*vec3(0,.5,0));
+    mat3 turn=axisRotation(vec3(0,1,0),variation.x);
+    float flutter=uGpuInstances ? aWindSamples.z : grassPerlin(p*uWindFrequencies.z+vec3(5.2,31.8,11.4)+uTime*vec3(0,.5,0));
+    float lean=variation.y+.1*uWindStrength*flutter;
     float curve=-lean*mix(t*t,1.0,low);
-    float height=uGrassHeight*aVariation.z;
-    float width=uGrassWidth*mix(1.0-t*t,1.0-t,low);
+    float height=uGrassHeight*variation.z;
+    float width=uGrassWidth*mix(1.0-.9*t*t,1.0-.9*t,low);
     vec3 local=axisRotation(vec3(1,0,0),curve)*vec3((side-.5)*width,t*height,0);
-    local*=fade; // Smooth collapse while sinking; retired strips have zero area.
     mat3 bend=frame*wind*turn;
-    // Retiring blades sink along local gravity, rather than popping out or
-    // shrinking toward a conspicuous bright root on the ground.
-    float sink=(height+uGrassWidth+.01)*(1.0-fade);
-    vec3 body=aRoot+(bend*local-up*sink)/uMetersPerRadius;
+    // Fade coverage in the fragment shader; roots and height never sink.
+    vec3 body=root+bend*local/uMetersPerRadius;
     float derivative=-2.0*lean*t*(1.0-low);
     vec3 tangent=normalize(vec3(0,cos(curve)-t*sin(curve)*derivative,sin(curve)+t*cos(curve)*derivative));
     vec3 bladeNormal=vec3(0,-tangent.z,tangent.y);
     bladeNormal=axisRotation(vec3(0,1,0),mix(.3,-.3,side)*3.14159265)*bladeNormal;
     vNormal=normalize(mat3(model)*normalize(mix(up,bend*bladeNormal,.25*(1.0-low))));
     vUp=normalize(mat3(model)*up);
-    vec3 base=mix(vec3(.02,.075,.01),vec3(.025,.1,.01),aVariation.w);
-    vec3 tip=mix(vec3(.65,.8,.25),vec3(.8,.9,.4),aVariation.w);
-    vColor=mix(mix(base,tip,pow(t,4.0))*mix(.75,1.0,aVariation.w),mix(vec3(.02,.075,.01),vec3(.65,.8,.25),t),low);
+    vColor=vec3(1); // Shared fragment palette avoids interpolation-dependent LOD tint.
     vBlade=vec3(t,side,1.0-low);
     vBodyPosition=body;
     vec4 world=model*vec4(body,1);

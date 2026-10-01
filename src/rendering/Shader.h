@@ -10,6 +10,7 @@ public:
     Shader(const char* vertexPath, const char* fragmentPath,
            const char* fragmentLibraryPath = nullptr,
            const char* additionalFragmentLibraryPath = nullptr);
+    explicit Shader(const char* computePath);
     
     void use() const;
     

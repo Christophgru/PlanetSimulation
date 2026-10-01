@@ -76,14 +76,14 @@ TEST(HorizonPlan, EveryCandidateAndPatchIsCoveredByAHardSubmittedWorkBudget) {
 TEST(HorizonPlan, SameMeshHasStableSeedsAndCornersAcrossSmallCameraMovement) {
     Fixture f; const auto first=f.plan(), moved=f.plan({.001,0,1.02});
     std::map<unsigned,rendering::HorizonGrassPatch> saved;
-    for (const auto& patch:first.patches) saved.emplace(patch.seed,patch);
+    for (const auto& patch:first.patches) saved.emplace(patch.triangle,patch);
     ASSERT_EQ(moved.patches.size(),first.patches.size());
     for (const auto& patch:moved.patches) {
-        ASSERT_TRUE(saved.contains(patch.seed));
-        EXPECT_EQ(patch.a,saved.at(patch.seed).a); EXPECT_EQ(patch.b,saved.at(patch.seed).b);
-        EXPECT_EQ(patch.c,saved.at(patch.seed).c);
+        ASSERT_TRUE(saved.contains(patch.triangle));
+        EXPECT_EQ(patch.a,saved.at(patch.triangle).a); EXPECT_EQ(patch.b,saved.at(patch.triangle).b);
+        EXPECT_EQ(patch.c,saved.at(patch.triangle).c);
     }
-    ++f.planet.foliage.seed; EXPECT_NE(f.plan().patches.front().seed,first.patches.front().seed);
+    ++f.planet.foliage.seed; EXPECT_EQ(f.plan().patches.front().triangle,first.patches.front().triangle);
 }
 
 TEST(HorizonPlan, DisabledGrayEmptyAndDistantScenesDoNotAllocateCandidates) {
@@ -167,4 +167,43 @@ TEST(HorizonPlan, PlacementControlsParseAndValidateTogether) {
     bad=parsed; bad.far_fade_in_end_fraction=.1; EXPECT_THROW(bad.validate(),std::invalid_argument);
     bad=parsed; bad.far_max_candidates_per_patch=3; EXPECT_THROW(bad.validate(),std::invalid_argument);
     bad=parsed; bad.max_candidates_per_triangle=0; EXPECT_THROW(bad.validate(),std::invalid_argument);
+}
+
+TEST(ProceduralGrassPlan, DetailedDescriptorsRespectHardBudgetsAndRetainCornersAndSeeds) {
+    Fixture f;
+    f.planet.foliage.draw_distance_m=60; f.planet.foliage.far_distance_m=100;
+    for (int budget:{1,17,200,4096,100000}) {
+        f.planet.foliage.max_blades=budget;
+        const auto plan=rendering::planHorizonGrass(f.vertices,f.indices,f.planet,100,{0,0,1.02},true);
+        EXPECT_LE(plan.candidates,budget); EXPECT_GT(plan.candidates,0);
+        std::size_t count=0;
+        for (std::size_t level=0;level<rendering::horizonGrassSlots.size();++level) {
+            const auto& batch=plan.batches[level];
+            count+=batch.count*rendering::horizonGrassSlots[level];
+            for (std::size_t i=batch.first;i<batch.first+batch.count;++i)
+                EXPECT_LE(plan.patches[i].expectedCandidates,rendering::horizonGrassSlots[level]);
+        }
+        EXPECT_EQ(count,plan.candidates);
+    }
+    f.planet.foliage.near_enabled=false;
+    EXPECT_TRUE(rendering::planHorizonGrass(f.vertices,f.indices,f.planet,100,{0,0,1.02},true).patches.empty());
+}
+
+TEST(ProceduralGrassPlan, WindNoiseConfigValidatesScaleSeedAndSpeed) {
+    const config::FoliageConfig c(config::Config{nlohmann::json{{"wind_noise",{
+        {"gust_frequency",.2},{"direction_frequency",.05},{"flutter_frequency",1.4},
+        {"speed_multiplier",2},{"seed",123}}}}});
+    EXPECT_EQ(c.wind_noise.gust_frequency,.2); EXPECT_EQ(c.wind_noise.direction_frequency,.05);
+    EXPECT_EQ(c.wind_noise.flutter_frequency,1.4); EXPECT_EQ(c.wind_noise.speed_multiplier,2);
+    EXPECT_EQ(c.wind_noise.seed,123);
+    for (double invalid:{0.0,-1.0,101.0,std::numeric_limits<double>::infinity()}) {
+        auto bad=c; bad.wind_noise.gust_frequency=invalid;
+        EXPECT_THROW(bad.validate(),std::invalid_argument);
+        bad=c; bad.wind_noise.direction_frequency=invalid;
+        EXPECT_THROW(bad.validate(),std::invalid_argument);
+        bad=c; bad.wind_noise.flutter_frequency=invalid;
+        EXPECT_THROW(bad.validate(),std::invalid_argument);
+    }
+    auto bad=c; bad.wind_noise.speed_multiplier=-1; EXPECT_THROW(bad.validate(),std::invalid_argument);
+    EXPECT_THROW(config::FoliageConfig(config::Config{nlohmann::json{{"wind_noise",3}}}),std::invalid_argument);
 }

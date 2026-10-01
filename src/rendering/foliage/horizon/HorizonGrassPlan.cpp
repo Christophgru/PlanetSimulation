@@ -3,6 +3,7 @@
 #include "rendering/diagnostics/tracing/CpuTrace.h"
 #include "config/ScenarioConfig.h"
 #include <algorithm>
+#include <bit>
 #include <cmath>
 #include <stdexcept>
 
@@ -15,7 +16,7 @@ double maximumGround(const config::PlanetConfig& planet) {
 }
 int bucket(double expected,int maxSlots) {
     int level=0;
-    while (horizonGrassSlots[level]<maxSlots && horizonGrassSlots[level]<expected) ++level;
+    while (level+1<int(horizonGrassSlots.size()) && horizonGrassSlots[level]<maxSlots && horizonGrassSlots[level]<expected) ++level;
     return level;
 }
 }
@@ -40,14 +41,19 @@ double horizonGrassDistance(const config::PlanetConfig& planet, double metersPer
 
 HorizonGrassPlan planHorizonGrass(const std::vector<float>& vertices,
     const std::vector<unsigned>& indices, const config::PlanetConfig& planet,
-    double metersPerWorldUnit, const glm::dvec3& eyeBody) {
+    double metersPerWorldUnit, const glm::dvec3& eyeBody, bool detailed) {
     CpuTrace::Scope scope("planHorizonGrass");
     HorizonGrassPlan result;
     const auto& settings=planet.foliage;
-    if (!settings.enabled || !settings.horizon_enabled || vertices.empty()) return result;
+    if (!settings.enabled || !(detailed ? settings.near_enabled : settings.horizon_enabled) || vertices.empty()) return result;
     const double scale=planet.radius*metersPerWorldUnit;
-    result.distanceMeters=horizonGrassDistance(planet,metersPerWorldUnit,eyeBody);
-    const double margin=settings.far_rebuild_distance_m;
+    result.distanceMeters=detailed ? settings.draw_distance_m : horizonGrassDistance(planet,metersPerWorldUnit,eyeBody);
+    const double margin=detailed ? grassRebuildDistance(settings) : settings.far_rebuild_distance_m;
+    const double variance2=2*std::pow(settings.draw_distance_m*settings.gaussian_sigma_fraction,2);
+    const double weightedArea=std::acos(-1.0)*variance2*(1-std::exp(-std::pow(result.distanceMeters+margin,2)/variance2));
+    const double requestedDensity=detailed ? std::min(settings.density_per_m2,
+        settings.budget_fraction*settings.max_blades/weightedArea) : settings.far_density_per_m2;
+    const int slotCap=int(std::bit_floor(unsigned(detailed ? settings.max_candidates_per_triangle : settings.far_max_candidates_per_patch)));
     const double maximumHeight=maximumGround(planet);
     const auto rockRange=planet.terrain_material.slopeMetricRange();
     const double water=planet.water.enabled ? planet.water.level_m : 0;
@@ -55,7 +61,7 @@ HorizonGrassPlan planHorizonGrass(const std::vector<float>& vertices,
     const double snowStart=std::max(water+1.1,water+.25*relief);
     const double snowEnd=std::max(snowStart+1,water+.4*relief);
     if ((glm::length(eyeBody)-1)*scale-maximumHeight>result.distanceMeters+margin) return result;
-    const double inner=settings.draw_distance_m*settings.far_fade_in_start_fraction;
+    const double inner=detailed ? 0 : settings.draw_distance_m*settings.far_fade_in_start_fraction;
     struct Candidate { HorizonGrassPatch patch; double area, distance; int level=0; };
     std::vector<Candidate> candidates;
     double totalArea=0;
@@ -99,19 +105,24 @@ HorizonGrassPlan planHorizonGrass(const std::vector<float>& vertices,
         if (!planet.terrain_landscape.enabled && tint.y<=settings.green_ratio*std::max(tint.x,tint.z)) continue;
         HorizonGrassPatch patch{glm::vec3(p[0]),glm::vec3(p[1]),glm::vec3(p[2]),
             glm::vec3(normal),glm::vec3(tint),0,
-            grassHash(std::uint32_t(t/3)^std::uint32_t(settings.seed))};
-        candidates.push_back({patch,area,distance}); totalArea+=area;
+            std::uint32_t(t/3)};
+        // Reserve only a conservative Gaussian upper bound. The shader uses
+        // this same cached eye/bound to accept the actual root probability.
+        const double minimumDistance=std::max(0.0,distance-reach*scale-margin);
+        const double weighted=detailed ? area*std::exp(-minimumDistance*minimumDistance/variance2) : area;
+        if (weighted*requestedDensity<1e-6) continue;
+        candidates.push_back({patch,weighted,distance}); totalArea+=weighted;
     }
-    const std::size_t budget=std::size_t(settings.far_max_instances);
+    const std::size_t budget=std::size_t(detailed ? settings.max_blades : settings.far_max_instances);
     if (candidates.size()>budget) {
         // A very small explicit budget cannot represent every triangle. Keep
         // a seed-stable sample instead of cutting coverage at a near distance.
-        std::sort(candidates.begin(),candidates.end(),[](const auto& a,const auto& b) { return a.patch.seed<b.patch.seed; });
+        std::sort(candidates.begin(),candidates.end(),[](const auto& a,const auto& b) { return grassHash(a.patch.triangle)<grassHash(b.patch.triangle); });
         candidates.resize(budget);
         totalArea=0; for (const auto& candidate:candidates) totalArea+=candidate.area;
     }
     if (candidates.empty()) return result;
-    double low=0, high=settings.far_density_per_m2;
+    double low=0, high=requestedDensity;
     // Sorted areas turn each budget probe into seven binary searches instead
     // of another full candidate scan. Keep the multiplication/comparison used
     // by bucket(), including exact power-of-two boundaries.
@@ -122,7 +133,7 @@ HorizonGrassPlan planHorizonGrass(const std::vector<float>& vertices,
     const auto submitted=[&](double density) {
         std::size_t count=areas.size();
         for (int slots:horizonGrassSlots) {
-            if (slots>=settings.far_max_candidates_per_patch) break;
+            if (slots>=slotCap || slots==horizonGrassSlots.back()) break;
             const auto first=std::upper_bound(areas.begin(),areas.end(),double(slots),
                 [density](double limit,double area) { return limit<area*density; });
             count+=std::size_t(areas.end()-first)*slots;
@@ -141,12 +152,12 @@ HorizonGrassPlan planHorizonGrass(const std::vector<float>& vertices,
     }
     std::stable_sort(candidates.begin(),candidates.end(),[](const auto& a,const auto& b) { return a.distance<b.distance; });
     for (auto& candidate:candidates) {
-        candidate.level=bucket(candidate.area*high,settings.far_max_candidates_per_patch);
+        candidate.level=bucket(candidate.area*high,slotCap);
         ++result.batches[candidate.level].count;
     }
-    std::array<std::size_t,8> next{};
+    std::array<std::size_t,horizonGrassSlots.size()> next{};
     std::size_t patchCount=0;
-    for (int level=0;level<8;++level) {
+    for (std::size_t level=0;level<horizonGrassSlots.size();++level) {
         auto& batch=result.batches[level]; batch.first=patchCount;
         next[level]=patchCount; patchCount+=batch.count;
         result.candidates+=batch.count*horizonGrassSlots[level];
@@ -156,6 +167,7 @@ HorizonGrassPlan planHorizonGrass(const std::vector<float>& vertices,
         candidate.patch.expectedCandidates=float(std::min(candidate.area*high,double(horizonGrassSlots[candidate.level])));
         result.patches[next[candidate.level]++]=candidate.patch;
     }
+    result.density=high;
     if (result.candidates>budget) throw std::logic_error("Horizon foliage budget exceeded");
     return result;
 }

@@ -7,11 +7,20 @@ class Config;
 struct FoliageConfig {
     bool enabled = false;
     bool near_enabled = true;
+    bool frustum_culling = true;
+    bool compute_placement = true; // GL 4.3; core GL 3.3 retains vertex fallback.
     double density_per_m2 = 30.72;
     double height_m = 1.5;
     double width_m = 0.1;
     double draw_distance_m = 40.0;
     double wind_strength = 1.0;
+    struct WindNoise {
+        double gust_frequency = 0.08;
+        double direction_frequency = 0.02;
+        double flutter_frequency = 0.7;
+        double speed_multiplier = 1.0;
+        int seed = 0;
+    } wind_noise;
     int max_blades = 100000;
     int seed = 7321;
     double rebuild_distance_fraction = 0.15;
@@ -49,7 +58,11 @@ struct FoliageConfig {
             !std::isfinite(width_m) || width_m < 0.005 || width_m > 0.3 ||
             !std::isfinite(draw_distance_m) || draw_distance_m < 5 || draw_distance_m > 400 ||
             !std::isfinite(wind_strength) || wind_strength < 0 || wind_strength > 2 ||
-            max_blades < 1 || max_blades > 250000 ||
+            outside(wind_noise.gust_frequency,0.001,100) ||
+            outside(wind_noise.direction_frequency,0.001,100) ||
+            outside(wind_noise.flutter_frequency,0.001,100) ||
+            outside(wind_noise.speed_multiplier,0,16) ||
+            max_blades < 1 || max_blades > 25000000 ||
             !std::isfinite(far_distance_m) || far_distance_m < 0 || far_distance_m > 20000 ||
             (far_distance_m > 0 && far_distance_m <= draw_distance_m) ||
             !std::isfinite(far_density_per_m2) || far_density_per_m2 <= 0 || far_density_per_m2 > 4 ||
