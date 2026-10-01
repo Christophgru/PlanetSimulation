@@ -4,13 +4,13 @@
 -- Check for working CXX compiler: /usr/bin/c++ - skipped
 -- Detecting CXX compile features
 -- Detecting CXX compile features - done
--- Found OpenGL: /usr/lib/x86_64-linux-gnu/libOpenGL.so   
--- Found ZLIB: /usr/lib/x86_64-linux-gnu/libz.so (found version "1.2.13") 
--- Found PNG: /usr/lib/x86_64-linux-gnu/libpng.so (found version "1.6.39") 
+-- Found OpenGL: /usr/lib/x86_64-linux-gnu/libOpenGL.so
+-- Found ZLIB: /usr/lib/x86_64-linux-gnu/libz.so (found version "1.2.13")
+-- Found PNG: /usr/lib/x86_64-linux-gnu/libpng.so (found version "1.6.39")
 -- Using the multi-header code from /workspace/build/_deps/nlohmann_json-src/include/
 -- GLM: Version 1.0.1
 -- GLM: Build with C++ features auto detection
--- Found GLEW: /usr/include (found version "2.2.0") 
+-- Found GLEW: /usr/include (found version "2.2.0")
 -- The C compiler identification is GNU 12.2.0
 -- Detecting C compiler ABI info
 -- Detecting C compiler ABI info - done
@@ -19,8 +19,8 @@
 -- Detecting C compile features - done
 -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
 -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
--- Found Threads: TRUE  
--- Found Python3: /usr/bin/python3 (found version "3.11.2") found components: Interpreter 
+-- Found Threads: TRUE
+-- Found Python3: /usr/bin/python3 (found version "3.11.2") found components: Interpreter
 -- Configuring done
 -- Generating done
 -- Build files have been written to: /workspace/build-terrain

@@ -20,7 +20,7 @@
     "before/shoreline.png": "34c8cb348a10bc58d5f9b9cf7fbeb1c62330024253df971334c2c11174857d27",
     "before/shoreline.png.json": "ac010bc7007eac28b2d08ae4b1937a1781b9a9a34dd0915292b46154c3ad00fa",
     "validation/terrain-build.log": "38033187b4211c94e24a2ede1259d4774de450996b8204961ebf0b1bb251ddb8",
-    "validation/terrain-configure.log": "2f5b131d33c0cd1e83f0b85fc89c1c15d10110ab1d0ca378302a5fbfc1dcdd81",
+    "validation/terrain-configure.log": "3c3a00fb5a8f3e63481bf6a58cf2d2043bc0dd8f6d89eb0f2cebb3aab5336a12",
     "validation/terrain-focused-tests.log": "2f606c1b296d3d6cb4aa99964a76604bd4b1872d510a141b18f1135a789daf70",
     "validation/terrain-gallery.log": "0f0935f30d2d4ad58f8a8bf50d51db06ab154e20842d6926588a374bbbd1f75f",
     "validation/terrain-tests.log": "d85897f921561f338ae42b8a15c56824320f4bcb90a8168c3ef0f5ed85b235b1",
@@ -48,5 +48,6 @@
       "before/after grass",
       "journal pages 3-4"
     ]
-  }
+  },
+  "log_normalization": "Trailing whitespace removed from the CMake configure log; diagnostic content is unchanged."
 }
