@@ -94,6 +94,24 @@ TEST(GrassPlacement, GaussianDensityFallsWithDistanceAndFollowsTheEye) {
         EXPECT_NEAR(meanY/blades.size(),0,0.3);
     }
 }
+
+TEST(GrassPlacement, ConfigControlsRootVariationAndNearLayerIndependently) {
+    auto p=planet();
+    p.foliage.root_offset_m=.02; p.foliage.height_multiplier_min=1.1; p.foliage.height_multiplier_max=1.1;
+    p.foliage.lean_min=.25; p.foliage.lean_max=.25;
+    p.foliage.rebuild_distance_fraction=.3;
+    EXPECT_EQ(rendering::grassRebuildDistance(p.foliage),3);
+    const auto blades=rendering::placeGrass(patch(),indices,p,100,{0,0,1.02});
+    ASSERT_FALSE(blades.empty());
+    for (const auto& blade:blades) {
+        EXPECT_NEAR(blade.root.z,1.0002,1e-6);
+        EXPECT_FLOAT_EQ(blade.variation.y,.25); EXPECT_FLOAT_EQ(blade.variation.z,1.1);
+    }
+    p.foliage.near_enabled=false;
+    EXPECT_TRUE(rendering::placeGrass(patch(),indices,p,100,{0,0,1.02}).empty());
+    p.foliage.near_enabled=true; p.foliage.green_ratio=4;
+    EXPECT_TRUE(rendering::placeGrass(patch(),indices,p,100,{0,0,1.02}).empty());
+}
 TEST(GrassPlacement, BothPolesUseTheSameBodyLocalPlacement) {
     const auto p=planet();
     const auto north=rendering::placeGrass(patch(),indices,p,100,{0,0,1.02});

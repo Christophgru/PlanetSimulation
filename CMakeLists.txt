@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.16)
 project(PlanetSimulation VERSION 0.0.1 LANGUAGES CXX)
 
+# Interactive terrain/foliage preparation needs an optimized default build.
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Build type" FORCE)
+endif()
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -52,12 +57,14 @@ add_library(planet_geometry STATIC
     src/rendering/geometry/TerrainShoreline.cpp
     src/rendering/foliage/GrassPlacement.cpp
     src/rendering/foliage/GrassLod.cpp)
+target_sources(planet_geometry PRIVATE src/rendering/foliage/horizon/HorizonGrassPlan.cpp)
 target_link_libraries(planet_geometry PUBLIC planet_config planet_diagnostics glm::glm)
 
 add_library(planet_rendering STATIC
     src/rendering/Shader.cpp
     src/rendering/geometry/Mesh.cpp
     src/rendering/foliage/GrassRenderer.cpp)
+target_sources(planet_rendering PRIVATE src/rendering/foliage/horizon/HorizonGrass.cpp)
 target_link_libraries(planet_rendering PUBLIC planet_geometry OpenGL::GL GLEW::GLEW)
 
 add_library(planet_app STATIC

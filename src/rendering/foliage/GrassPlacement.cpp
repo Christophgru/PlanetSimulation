@@ -18,7 +18,7 @@ double grassRandom(std::uint32_t& state) {
 }
 
 double grassRebuildDistance(const config::FoliageConfig& settings) {
-    return settings.draw_distance_m * 0.15;
+    return settings.draw_distance_m * settings.rebuild_distance_fraction;
 }
 
 std::vector<GrassBlade> placeGrass(const std::vector<float>& vertices,
@@ -27,23 +27,27 @@ std::vector<GrassBlade> placeGrass(const std::vector<float>& vertices,
     CpuTrace::Scope scope("placeGrass");
     std::vector<GrassBlade> result;
     const auto& settings = planet.foliage;
-    if (!settings.enabled || vertices.empty()) return result;
+    if (!settings.enabled || !settings.near_enabled || vertices.empty()) return result;
     const double metersPerRadius = planet.radius * metersPerWorldUnit;
     const double radius = settings.draw_distance_m + grassRebuildDistance(settings);
     double highestGround=planet.terrain_landscape.maximumAbsoluteHeightMeters();
     for (const auto& noise:planet.surface_noise) highestGround+=noise.amplitude_m;
     if ((glm::length(eyeBody)-1)*metersPerRadius-highestGround>radius) return result;
-    // A three-sigma patch concentrates instances around the walker instead
+    // A Gaussian patch concentrates instances around the walker instead
     // of spending the same density on barely visible distant grass. Integrate
     // the truncated Gaussian to scale its peak to the instance budget.
-    const double sigma = settings.draw_distance_m / 3.0;
+    const double sigma = settings.draw_distance_m * settings.gaussian_sigma_fraction;
     const double variance2 = 2.0 * sigma * sigma;
     const double weightedArea = std::acos(-1.0) * variance2 *
         (1.0 - std::exp(-radius * radius / variance2));
     const double density = std::min(settings.density_per_m2,
-        0.8 * settings.max_blades / weightedArea);
+        settings.budget_fraction * settings.max_blades / weightedArea);
     result.reserve(settings.max_blades);
     const auto rockRange = planet.terrain_material.slopeMetricRange();
+    // Subtracting the default endpoints rounds differently from the original
+    // literal span. Preserve the existing seeded float attributes by default.
+    const double leanSpread=settings.lean_min==0.1 && settings.lean_max==0.4
+        ? 0.3 : settings.lean_max-settings.lean_min;
     std::uint32_t accepted = 0, reservoir = grassHash(settings.seed);
     for (std::size_t triangle = 0; triangle + 2 < indices.size(); triangle += 3) {
         glm::dvec3 p[3], normal[3], color[3];
@@ -51,8 +55,6 @@ std::vector<GrassBlade> placeGrass(const std::vector<float>& vertices,
             const auto offset = std::size_t(indices[triangle+c]) * 9;
             for (int axis = 0; axis < 3; ++axis) {
                 p[c][axis] = vertices.at(offset+axis);
-                normal[c][axis] = vertices.at(offset+3+axis);
-                color[c][axis] = vertices.at(offset+6+axis) * planet.color[axis];
             }
         }
         const glm::dvec3 center = (p[0]+p[1]+p[2])/3.0;
@@ -67,7 +69,15 @@ std::vector<GrassBlade> placeGrass(const std::vector<float>& vertices,
         const double area = 0.5 * glm::length(glm::cross(p[1]-p[0],p[2]-p[0])) * metersPerRadius * metersPerRadius;
         std::uint32_t random = grassHash(std::uint32_t(triangle/3) ^ std::uint32_t(settings.seed));
         // Bound work for coarse orbital triangles intersecting the patch.
-        const int count = int(std::min(8192.0,std::floor(area*density + grassRandom(random))));
+        const int count = int(std::min(double(settings.max_candidates_per_triangle),std::floor(area*density + grassRandom(random))));
+        if (!count) continue;
+        for (int c=0;c<3;++c) {
+            const auto offset=std::size_t(indices[triangle+c])*9;
+            for (int axis=0;axis<3;++axis) {
+                normal[c][axis]=vertices.at(offset+3+axis);
+                color[c][axis]=vertices.at(offset+6+axis)*planet.color[axis];
+            }
+        }
         const auto triangleSeed=random;
         for (int blade = 0; blade < count; ++blade) {
             // Rejection by the camera must not move the following candidates.
@@ -95,14 +105,15 @@ std::vector<GrassBlade> placeGrass(const std::vector<float>& vertices,
             }
             // Only the green biome grows grass; beaches, snow and airless gray
             // bodies are excluded. Thin coverage smoothly through the rock blend.
-            if (tint.y <= 1.15 * std::max(tint.x,tint.z)) continue;
+            if (tint.y <= settings.green_ratio * std::max(tint.x,tint.z)) continue;
             const double slope = 1.0 - glm::dot(n,radial);
             const double t = std::clamp((slope-rockRange[0])/(rockRange[1]-rockRange[0]),0.0,1.0);
             if (grassRandom(random) < t*t*(3-2*t)) continue;
-            if (planet.water.enabled && (glm::length(root)-1)*metersPerRadius <= planet.water.level_m+0.15) continue;
-            GrassBlade instance{glm::vec3(root + n*(0.005/metersPerRadius)),glm::vec3(radial),
-                glm::vec4(grassRandom(random)*6.28318530718,0.1+0.3*grassRandom(random),
-                          0.75+0.75*grassRandom(random),grassRandom(random))};
+            if (planet.water.enabled && (glm::length(root)-1)*metersPerRadius <= planet.water.level_m+settings.water_clearance_m) continue;
+            GrassBlade instance{glm::vec3(root + n*(settings.root_offset_m/metersPerRadius)),glm::vec3(radial),
+                glm::vec4(grassRandom(random)*6.28318530718,
+                          settings.lean_min+leanSpread*grassRandom(random),
+                          settings.height_multiplier_min+(settings.height_multiplier_max-settings.height_multiplier_min)*grassRandom(random),grassRandom(random))};
             // Reservoir sampling keeps the hard instance cap unbiased by mesh
             // traversal order when unusually folded terrain exceeds the estimate.
             ++accepted;

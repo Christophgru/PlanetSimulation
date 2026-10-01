@@ -262,7 +262,7 @@ per pass, terrain uploads, shadow updates/reuses, and completed-scene reuses.
 `terrain_build_ms` records completed CPU terrain jobs on the frame that installs
 them, including background jobs; their elapsed time can overlap earlier frames
 and must not be added to the current frame time.
-`foliage_rebuilds` counts rebuilt grass patches; `foliage_placement_ms`,
+`foliage_rebuilds` counts rebuilt grass layer patches (near and horizon separately); `foliage_placement_ms`,
 `foliage_sort_ms`, and `foliage_upload_ms` separate root generation, ordering
 blades by distance, and submitting instance buffers. `cpu_foliage_ms` includes
 the complete preparation stage. Grass draw time belongs to the opaque and
@@ -922,31 +922,73 @@ license](external/quick-grass/README.md) record the version and adaptations.
 ~~~json
 "foliage": {
     "enabled": true,
+    "near_enabled": true,
     "density_per_m2": 30.72,
     "height_m": 1.5,
     "width_m": 0.1,
     "draw_distance_m": 40.0,
     "wind_strength": 1.0,
     "max_blades": 100000,
-    "seed": 7321
+    "seed": 7321,
+    "rebuild_distance_fraction": 0.15,
+    "gaussian_sigma_fraction": 0.3333333333333333,
+    "budget_fraction": 0.8,
+    "max_candidates_per_triangle": 8192,
+    "green_ratio": 1.15,
+    "water_clearance_m": 0.15,
+    "root_offset_m": 0.005,
+    "height_multiplier_min": 0.75,
+    "height_multiplier_max": 1.5,
+    "lean_min": 0.1,
+    "lean_max": 0.4,
+    "horizon_enabled": true,
+    "far_distance_m": 0.0,
+    "far_density_per_m2": 3.35,
+    "far_max_instances": 80000,
+    "far_rebuild_distance_m": 10.0,
+    "far_max_candidates_per_patch": 128000,
+    "far_height_scale": 1.0,
+    "far_width_scale": 6.0,
+    "far_min_width_m": 0.25,
+    "far_fade_in_start_fraction": 0.5,
+    "far_fade_in_end_fraction": 0.75,
+    "far_fade_out_start_fraction": 0.85
 }
 ~~~
 
 These are the defaults when a foliage block is present. Height and width are
-in metres. The working scene overrides them with 1 m height, 0.08 m width,
-60 m draw distance, a requested density of 1200.72 blades/m² and a 200,000-blade
-budget. The defaults shown above remain the smaller reference preset.
+in metres. The working scene's current overrides and descriptions of every
+parameter are in `configs/scenarios/solar_system.json`; changing the near
+budget does not change the distant GPU layer's independent budget.
 The random height multiplier is 0.75–1.5. Supported ranges are
 0–2 wind strength, 0.05–3 m height, 0.005–0.3 m width, 5–400 m draw distance,
 positive density up to 4096 blades/m², and 1–250,000 blades per planet.
 Candidate density peaks at the camera and follows a Gaussian with standard deviation
-`draw_distance_m / 3`: about 61% of peak at one third of the distance, 14%
+`draw_distance_m * gaussian_sigma_fraction`: by default about 61% of peak at one third of the distance, 14%
 at two thirds, and 1% at the edge. `density_per_m2` sets the requested peak;
 the integrated distribution is scaled down when necessary to fit the instance
-budget. A cached patch follows walking, rebuilding after 15% of the draw
+budget using `budget_fraction` as headroom. A cached patch follows walking, rebuilding after `rebuild_distance_fraction` of the draw
 distance; overlapping candidates keep their seeded positions. Each blade uses
 one instance; the terrain triangle budget is unchanged. The default distance is shorter than the
 demo's 100 m to bound work on weaker hardware.
+
+The far layer uploads seeded triangle descriptors and generates roots, random
+heights, biome rejection and sinking in the vertex shader using OpenGL 3.3
+instancing. Its CPU planner runs on terrain revisions or movement beyond
+`far_rebuild_distance_m`, independently of the near layer. `far_distance_m=0`
+derives the cutoff from the eye height and terrain relief; a positive override
+must exceed the near draw distance. `far_max_instances` caps all submitted
+candidates, including GPU-rejected roots. `far_max_candidates_per_patch` must
+be a power of two from 1 through 128. Smaller caps thin large terrain triangles.
+
+Far fade-in distances are the near draw distance times the two
+`far_fade_in_*_fraction` parameters; fade-out starts at the far cutoff times
+`far_fade_out_start_fraction`. The start must precede the end. Tuft height uses
+`height_m * far_height_scale` and the shared random multiplier range. Width is
+`max(far_min_width_m, width_m * far_width_scale)`. Both layers share `green_ratio`
+and `water_clearance_m`; `root_offset_m` and the lean range tune the detailed
+layer. `near_enabled=false` skips its CPU root generation while keeping the
+distant GPU layer available. These settings are validated before rendering.
 
 Grass uses eight distance levels with segment counts **6, 5, 4, 3, 2, 1, 1, 1**.
 For the working 60 m draw distance, nominal boundaries are 7.5, 9.375, 11.25,

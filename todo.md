@@ -17,7 +17,7 @@ document the progress and add comments such that when interrupted you can contin
 |Let's apply some optimisations from this repo: https://github.com/vercidium-patreon/glvertexid namely triangle optimisations, batching and 8 lods with sinking. Not all is applicable to our current setup 1:1 but these methods in general seem applicable, so let's apply them as well as possible.|t| Adapted to grass: single-tip strips, one instance upload, eight guarded LODs and smooth sinking, with compatible levels merged. Frozen view submits 26.8% fewer vertices and 31.5% fewer triangles, uploads 10.0% fewer bytes. One paired software-renderer run reduces walking mean by 7.2%; no hardware FPS guarantee. All 43 tests pass; journal/PDF and 17 gallery images refreshed, visually inspected and hashes verified. |
 |Add more timing traces especially on the cpu side, how much time is spent in what functions, use a dedicated debugger/tool for the runtime analysis. Add reports of the rundtime analysis in top down and bottom up visualisation (how the time is divided/which functions are called when vs how much time is spent in what functions). Return and report if the environment doesn't provide a suitable context.|t| Nested wall/thread-CPU traces, interactive top-down/bottom-up reports and Callgrind instruction study published with verified artifacts and journal/PDF. All 40 available tests pass (197.24 s); five GUI tests require missing xdotool/ImageMagick (prior container run: 45/45). gprofng timings rejected; no hardware FPS claim. |
 |Do 8 LODs also for the landscape of the planet implement sinking, such that always the most precise landscape is highest, remove the rest from the scene. |t| Eight budgeted surface-distance levels with bounded inward sinking and shared boundaries; one closed mesh, sea level preserved. All 45 tests pass; journal/PDF, fixed capture evidence and all 17 gallery images updated and verified. Spatial transitions retain small steps; 60 m grass distance preserved. |
-|The Goal must be that we can cover the whole horizon with grass with reasonable fps. For that lets add grass foliage for high distance, reduce the placement accuracy, move the random placement from cpu to shader, and apply further techniques that seem suitable. |||
+|The Goal must be that we can cover the whole horizon with grass with reasonable fps. For that lets add grass foliage for high distance, reduce the placement accuracy, move the random placement from cpu to shader, and apply further techniques that seem suitable. |p| Adding a budgeted distant-tuft layer with coarse terrain patch uploads and shader-generated random roots; retaining the working 60 m detailed grass range. |
 |Add the perlin noise parameter to the json config|||
 |If not already implemented add frustum culling (for the foliage I think it could be difficult for the light simulation, but you may reduce triangle quality in the non camera viewed parts.), compute shaders and gpu instancing to be able to viaualize more foliage and finer landscape. Benchmark and calculate what data is sent from cpu to gpu, then add a section in the journal that identifies techniques most promising to reduce the largest delays. |||
 |Lets add a third person camera "4" and a actor on the same position as cam 2 that follows a small astronaut that can walk around the planet. Create a 3d model of the astronaut or download some nice MIT licensed one online (comic style). Create Walking movement such that the feet stay on the ground and dont slide over it. Search if tere is a nice library for that movement. If not, approvximate the foor movement for now and we will coma back later to that.|||
@@ -74,6 +74,46 @@ reconfigure afterwards. Valgrind is only needed to recollect the independent
 instruction profile.
 
 ## Progress checkpoint — 2026-10-01
+
+- User-reported segfault investigation takes priority over horizon foliage.
+  No crash reproduced yet with the GCC 12 build: startup, frozen surface
+  capture, live WASD/camera switches/reload using both the frozen replay and
+  working scenario, and a GDB run with 12 frames/20 m walking steps all exit
+  normally. Exact triggering command/action requested from the user. Logs and
+  reproduction scripts are in ignored `build-terrain/crash-*` and
+  `build-terrain/reproduce_*.py`. `build/PlanetSimulation` was copied from
+  another host (its CMake cache points at `/d/Programmieren/...`) and requires
+  GLIBC 2.38 / newer libstdc++, so cannot run on this Debian 12 container;
+  do not confuse that loader error with a reproduced segfault. GDB 13.1
+  installed as an optional debugging dependency. ASan/UBSan build lives in
+  `build-crash`, configured against the existing local dependency sources.
+  Sanitized four-frame/20 m walking capture and live working-scenario WASD,
+  camera switches and reload finish without sanitizer errors. Leak detection
+  disabled for these crash probes; ASan/UBSan error checks remain enabled.
+  Evidence: `crash-sanitized.log`, `crash-sanitized-live.log`, and
+  `crash-sanitized-live-result.log` in `build-terrain`.
+  Sanitized terrain/LOD unit tests also pass: 25 tests, 30.31 s, log
+  `build-terrain/crash-sanitized-terrain-tests.log`. All rendering probes use
+  llvmpipe/Xvfb; native GPU behavior remains unverified. Crash investigation
+  needs the user's actual launch/action and output/backtrace before a fix can
+  be identified. Horizon task remains p and is not committed as complete.
+  Corrected the new feedback test to reattach production vertex source before
+  relinking (Shader detaches/deletes its shaders after initial linking), and
+  allowed floating-point rounding when checking a barycentric root's plane.
+  CPU plan and all 16 GPU tests pass. Lifecycle test passes on rerun after a
+  transient GLFW initialization failure; capture test also passes on rerun (82.25 s) after timing
+  out during concurrent sanitizer compilation. Do not mark the crash fixed
+  without a reproduction or trace identifying its cause.
+
+- Horizon foliage in progress: baseline executable, shaders and frozen grass
+  replay copied to `build-terrain/pre-horizon/` before changes. Plan: retain
+  the 60 m detailed layer, derive a conservative far radius from eye height
+  and maximum terrain relief, and upload coarse triangle descriptors instead
+  of individual distant roots. GLSL generates seeds, roots, variation and
+  one-triangle tufts; hard candidate/patch budgets and GPU biome rejection
+  bound work. Next: implement/test the CPU patch plan, GL renderer and shader,
+  verify distant coverage/roots/replays, benchmark fixed workloads without
+  concurrent work, update journal/PDF/gallery, run the full suite and commit.
 
 - Terrain LOD complete: eight distance levels derive from the existing segment
   anchors (working sequence 3/5/6/8/10/12/14/16). Bounded inward offsets keep

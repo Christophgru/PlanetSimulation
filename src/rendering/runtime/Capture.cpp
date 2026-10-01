@@ -89,6 +89,12 @@ int Renderer::Impl::capture() {
         std::cout << "Planet " << i << " foliage per pass: " << stats.vertices
                   << " vertices; " << stats.triangles << " triangles; " << stats.batches
                   << " batches; instance bytes: " << stats.instanceBytes << '\n';
+        const auto horizon=grass.horizon.stats(i);
+        std::cout << "Planet " << i << " horizon foliage per pass: " << horizon.candidates
+                  << " candidates; " << horizon.patches << " patches; " << horizon.vertices
+                  << " vertices; " << horizon.triangles << " triangles; " << horizon.batches
+                  << " batches; patch bytes: " << horizon.patchBytes
+                  << "; distance: " << horizon.distanceMeters << " m\n";
     }
 
     // Call glFinish() before reading framebuffer
@@ -243,6 +249,10 @@ int Renderer::Impl::capture() {
                 {"white_clipped_fraction", metrics.whiteClippedFraction},
                 {"terrain_pixels", metrics.terrainPixels}, {"sky_pixels", metrics.skyPixels},
                 {"foliage_blades", grass.count(scene.orbitPlanetIndex)},
+                {"horizon_foliage_candidates", grass.horizon.stats(scene.orbitPlanetIndex).candidates},
+                {"horizon_foliage_patches", grass.horizon.stats(scene.orbitPlanetIndex).patches},
+                {"horizon_foliage_patch_bytes", grass.horizon.stats(scene.orbitPlanetIndex).patchBytes},
+                {"horizon_foliage_distance_m", grass.horizon.stats(scene.orbitPlanetIndex).distanceMeters},
                 {"terrain_mean_display_luminance", metrics.terrainMeanLuminance},
                 {"terrain_max_display_luminance", metrics.terrainMaxLuminance},
                 {"terrain_luminance_stddev", metrics.terrainLuminanceStddev},

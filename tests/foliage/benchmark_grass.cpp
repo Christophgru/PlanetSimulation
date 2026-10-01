@@ -3,6 +3,7 @@
 #include "config/SceneReplay.h"
 #include "rendering/foliage/GrassPlacement.h"
 #include "rendering/foliage/GrassLod.h"
+#include "rendering/foliage/horizon/HorizonGrassPlan.h"
 #include <chrono>
 #include <cstring>
 #include <ctime>
@@ -22,7 +23,7 @@ int main(int argc, char** argv) {
         const auto& planet = scene.scenario.planets.at(index);
         const auto localEye = scene.bodies.at(index + 1).toLocalPoint(scene.surfaceCamera->position());
         const auto mesh = scene.terrainSurfaces.at(index).buildGeometryForEye(localEye, glm::dvec3(0));
-        std::cout << "iteration,placement_ms,placement_cpu_ms,blades,checksum,lod_batch_ms,old_vertices,old_triangles,old_instance_bytes,new_blades,new_vertices,new_triangles,new_instance_bytes,new_batches\n" << std::setprecision(9);
+        std::cout << "iteration,placement_ms,placement_cpu_ms,blades,checksum,lod_batch_ms,old_vertices,old_triangles,old_instance_bytes,new_blades,new_vertices,new_triangles,new_instance_bytes,new_batches,horizon_plan_ms,horizon_cpu_ms,horizon_patches,horizon_candidates,horizon_patch_bytes\n" << std::setprecision(9);
         for (int iteration = 0; iteration < 12; ++iteration) {
             const auto start = std::chrono::steady_clock::now();
             const auto cpuStart = std::clock();
@@ -69,10 +70,19 @@ int main(int argc, char** argv) {
                     previousSegments=rendering::grassLodSegments[level];
                 }
             }
+            const auto horizonStart=std::chrono::steady_clock::now();
+            const auto horizonCpuStart=std::clock();
+            const auto horizon=rendering::planHorizonGrass(mesh.vertices,mesh.indices,planet,
+                scene.scenario.metersPerWorldUnit(),eye);
+            const double horizonCpuMs=1000.0*(std::clock()-horizonCpuStart)/CLOCKS_PER_SEC;
+            const double horizonMs=std::chrono::duration<double,std::milli>(
+                std::chrono::steady_clock::now()-horizonStart).count();
             std::cout << iteration << ',' << ms << ',' << cpuMs << ',' << blades.size() << ',' << hash
                       << ',' << batchMs << ',' << oldVertices << ',' << oldTriangles << ',' << blades.size()*sizeof(rendering::GrassBlade)
                       << ',' << plan.blades.size() << ',' << newVertices << ',' << newTriangles << ',' << plan.blades.size()*sizeof(rendering::GrassBlade)
-                      << ',' << newBatches << '\n';
+                      << ',' << newBatches << ',' << horizonMs << ',' << horizonCpuMs
+                      << ',' << horizon.patches.size() << ',' << horizon.candidates
+                      << ',' << horizon.patches.size()*sizeof(rendering::HorizonGrassPatch) << '\n';
         }
     } catch (const std::exception& error) {
         std::cerr << error.what() << '\n'; return 1;

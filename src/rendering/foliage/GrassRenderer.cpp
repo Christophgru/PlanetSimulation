@@ -44,6 +44,7 @@ void GrassRenderer::upload(Patch& patch, const GrassLodPlan& plan) {
 GrassRenderer::~GrassRenderer() { clear(); glDeleteProgram(shader.id); }
 
 void GrassRenderer::clear() {
+    horizon.clear();
     for (auto& patch : patches_) {
         for (auto& batch : patch.batches) glDeleteVertexArrays(1,&batch.vao);
         glDeleteBuffers(1,&patch.buffer);
@@ -54,15 +55,16 @@ void GrassRenderer::clear() {
 GrassPreparationStats GrassRenderer::prepare(std::size_t index,const Mesh& mesh,const config::PlanetConfig& planet,
              double metersPerWorldUnit,const glm::dvec3& eyeBody) {
     CpuTrace::Scope scope("GrassRenderer::prepare");
+    const auto far=horizon.prepare(index,mesh,planet,metersPerWorldUnit,eyeBody);
     if (patches_.size()<=index) patches_.resize(index+1);
     auto& patch=patches_[index];
-    if (!planet.foliage.enabled || !mesh.hasVertexColors) {
+    if (!planet.foliage.enabled || !planet.foliage.near_enabled || !mesh.hasVertexColors) {
         for (auto& batch:patch.batches) batch.count=0;
-        patch.ready=false; return {};
+        patch.ready=false; return far;
     }
     const double scale=planet.radius*metersPerWorldUnit;
     const double margin=grassRebuildDistance(planet.foliage);
-    if (patch.ready && patch.revision==mesh.revision && glm::length(eyeBody-patch.eye)*scale<margin) return {};
+    if (patch.ready && patch.revision==mesh.revision && glm::length(eyeBody-patch.eye)*scale<margin) return far;
     const auto start = std::chrono::steady_clock::now();
     auto blades=placeGrass(mesh.vertices,mesh.indices,planet,metersPerWorldUnit,eyeBody);
     const auto placed = std::chrono::steady_clock::now();
@@ -71,9 +73,9 @@ GrassPreparationStats GrassRenderer::prepare(std::size_t index,const Mesh& mesh,
     upload(patch,plan);
     const auto uploaded = std::chrono::steady_clock::now();
     patch.eye=eyeBody; patch.revision=mesh.revision; patch.ready=true;
-    return {std::chrono::duration<double,std::milli>(placed-start).count(),
+    return {far.placementMs+std::chrono::duration<double,std::milli>(placed-start).count(),
             std::chrono::duration<double,std::milli>(sorted-placed).count(),
-            std::chrono::duration<double,std::milli>(uploaded-sorted).count(), 1};
+            far.uploadMs+std::chrono::duration<double,std::milli>(uploaded-sorted).count(), far.rebuilds+1};
 }
 
 std::size_t GrassRenderer::count(std::size_t index) const {

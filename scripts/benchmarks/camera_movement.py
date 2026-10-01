@@ -10,7 +10,9 @@ from pathlib import Path
 import platform
 import statistics
 import subprocess
+import sys
 from datetime import datetime, timezone
+sys.dont_write_bytecode = True
 
 ROOT = Path(__file__).resolve().parents[2]
 p = argparse.ArgumentParser(description=__doc__)
@@ -24,8 +26,9 @@ p.add_argument('--frames', type=int, default=36)
 p.add_argument('--warmup', type=int, default=5)
 p.add_argument('--walk-step', type=float, default=2.0, help='metres per frame')
 p.add_argument('--size', type=int, nargs=2, default=[640, 360])
-p.add_argument('--cases', nargs='+', choices=['stationary', 'walking', 'walking-bare'],
+p.add_argument('--cases', nargs='+', choices=['stationary', 'walking', 'walking-bare', 'walking-far-only'],
                default=['stationary', 'walking', 'walking-bare'])
+p.add_argument('--cpu-trace', action='store_true', help='Save nested wall/thread CPU scopes and an HTML report per case')
 args = p.parse_args()
 if args.warmup < 0 or args.frames < args.warmup + 3:
     p.error('Need at least two measured frames plus the final readback frame')
@@ -59,7 +62,7 @@ report = {'utc': datetime.now(timezone.utc).isoformat(), 'platform': platform.pl
           'binary_sha256': hashlib.sha256(binary.read_bytes()).hexdigest(),
           'frames': args.frames, 'warmup': args.warmup, 'size': args.size,
           'environment': {key: os.environ.get(key) for key in
-                          ['LIBGL_ALWAYS_SOFTWARE', 'LP_NUM_THREADS']},
+                          ['LIBGL_ALWAYS_SOFTWARE', 'LP_NUM_THREADS', 'LD_PRELOAD', 'MESA_SHADER_CACHE_DIR']},
           'terrain_mode': 'synchronous capture; interactive walking builds terrain asynchronously',
           'walk_step_m': args.walk_step, 'orbit_step_s': 0, 'cases': {}}
 shader_hash = hashlib.sha256()
@@ -79,6 +82,10 @@ for case in args.cases:
     if case == 'walking-bare':
         for planet in scene['scenario']['planets']:
             planet.setdefault('foliage', {})['enabled'] = False
+    elif case == 'walking-far-only':
+        for planet in scene['scenario']['planets']:
+            if 'foliage' in planet:
+                planet['foliage']['near_enabled'] = False
     source = case_dir / 'input.json'
     source.write_text(json.dumps(scene, indent=2) + '\n')
     image, trace = case_dir / 'capture.png', case_dir / 'frames.csv'
@@ -86,12 +93,19 @@ for case in args.cases:
                '--render-size', *map(str, args.size), '--benchmark-frames', str(args.frames),
                '--benchmark-step', '0', '--benchmark-walk-step',
                str(0 if case == 'stationary' else args.walk_step), '--performance-trace', str(trace)]
+    if args.cpu_trace:
+        command += ['--cpu-trace', str(case_dir / 'cpu-trace.json')]
     with (case_dir / 'capture.log').open('w') as log:
         subprocess.run(command, cwd=runtime, stdout=log, stderr=subprocess.STDOUT, check=True)
     with trace.open() as stream:
         rows = sorted(csv.DictReader(stream), key=lambda row: int(row['frame']))
     assert len(rows) == args.frames
     summary = summarize(rows)
+    summary['renderer'] = json.loads(Path(str(image) + '.json').read_text())['render']['renderer']
+    if args.cpu_trace:
+        from cpu_report import write_report
+        write_report(json.loads((case_dir / 'cpu-trace.json').read_text()),
+                     case_dir / 'cpu-report', args.warmup, args.frames - args.warmup - 1)
     summary['command'] = command
     summary['input_sha256'] = hashlib.sha256(source.read_bytes()).hexdigest()
     report['cases'][case] = summary

@@ -2,6 +2,8 @@
 #include <cstddef>
 #include <GL/glew.h>
 #include "rendering/Shader.h"
+#include "rendering/foliage/GrassStats.h"
+#include "rendering/foliage/horizon/HorizonGrass.h"
 #include <array>
 #include <cstdint>
 #include <vector>
@@ -13,10 +15,6 @@ namespace config { struct PlanetConfig; }
 namespace rendering {
 struct GrassBlade;
 struct GrassLodPlan;
-struct GrassPreparationStats {
-    double placementMs = 0, sortMs = 0, uploadMs = 0;
-    unsigned rebuilds = 0;
-};
 struct GrassDrawStats {
     std::size_t blades=0, vertices=0, triangles=0, batches=0, instanceBytes=0;
 };
@@ -32,6 +30,7 @@ class GrassRenderer {
     std::vector<Patch> patches_;
     static void upload(Patch& patch, const GrassLodPlan& plan);
 public:
+    HorizonGrass horizon;
     Shader shader{"shaders/foliage/grass.vert","shaders/foliage/grass.frag",
                   "shaders/terrain/terrain_shadow.glsl","shaders/atmosphere/atmosphere.glsl"};
     GrassRenderer() = default;

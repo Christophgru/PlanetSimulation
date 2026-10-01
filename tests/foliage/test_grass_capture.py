@@ -42,7 +42,7 @@ assert 1000 < metadata['foliage_blades'] <= scene['planets'][0]['foliage']['max_
 paused, _, _, rows = capture('paused', 4)
 assert paused == on, 'Paused grass moved or frame reuse changed its image'
 assert all(int(r['scene_reuses']) == 1 for r in rows[1:]), rows
-assert int(rows[0]['foliage_rebuilds']) == 1
+assert int(rows[0]['foliage_rebuilds']) == 2  # Detailed and GPU horizon patches.
 assert float(rows[0]['foliage_placement_ms']) > 0
 assert float(rows[0]['foliage_sort_ms']) > 0
 assert float(rows[0]['foliage_upload_ms']) > 0
@@ -55,6 +55,11 @@ assert sum(int(r['foliage_rebuilds']) for r in walking) >= 2, walking
 start = json.loads((out / 'grass.png.json').read_text())['surface_camera']
 end = json.loads((out / 'walking.png.json').read_text())['surface_camera']
 assert (start['latitude_deg'], start['longitude_deg']) != (end['latitude_deg'], end['longitude_deg'])
+scene['planets'][0]['foliage']['near_enabled'] = False
+_, far_metadata, far_triangles, far_rows = capture('far-only')
+assert far_metadata['foliage_blades'] == 0 and far_metadata['horizon_foliage_candidates'] > 0
+assert int(far_rows[0]['foliage_rebuilds']) == 1 and far_triangles == triangles
+scene['planets'][0]['foliage']['near_enabled'] = True
 scene['planets'][0]['foliage']['enabled'] = False
 off, metadata, bare_triangles, _ = capture('bare')
 assert on != off, 'Grass did not change the rendered view'
