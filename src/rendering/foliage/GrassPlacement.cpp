@@ -1,4 +1,5 @@
 #include "rendering/foliage/GrassPlacement.h"
+#include "rendering/diagnostics/tracing/CpuTrace.h"
 #include "config/ScenarioConfig.h"
 #include "rendering/geometry/Terrain.h"
 #include <algorithm>
@@ -23,6 +24,7 @@ double grassRebuildDistance(const config::FoliageConfig& settings) {
 std::vector<GrassBlade> placeGrass(const std::vector<float>& vertices,
         const std::vector<unsigned>& indices, const config::PlanetConfig& planet,
         double metersPerWorldUnit, const glm::dvec3& eyeBody) {
+    CpuTrace::Scope scope("placeGrass");
     std::vector<GrassBlade> result;
     const auto& settings = planet.foliage;
     if (!settings.enabled || vertices.empty()) return result;

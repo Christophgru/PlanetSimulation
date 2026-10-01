@@ -149,6 +149,12 @@ add_test(NAME MoonlightRenderIntegration COMMAND PlanetSimulation
 set_tests_properties(MoonlightRenderIntegration PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
+add_executable(cpu_trace_tests diagnostics/tracing/test_cpu_trace.cpp)
+target_link_libraries(cpu_trace_tests PRIVATE planet_diagnostics GTest::gtest_main nlohmann_json::nlohmann_json)
+target_compile_definitions(cpu_trace_tests PRIVATE PLANET_CPU_TRACE_TEST="${CMAKE_BINARY_DIR}/cpu-trace-test.json")
+add_test(NAME CpuTraceTests COMMAND cpu_trace_tests)
+add_test(NAME CpuTraceReportTests COMMAND ${Python3_EXECUTABLE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/diagnostics/tracing/test_cpu_report.py)
 add_test(NAME GrassCaptureIntegration COMMAND ${Python3_EXECUTABLE}
     ${CMAKE_CURRENT_SOURCE_DIR}/foliage/test_grass_capture.py --binary $<TARGET_FILE:PlanetSimulation>
     --output-dir ${CMAKE_BINARY_DIR}/grass-captures)

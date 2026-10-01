@@ -9,12 +9,14 @@ Renderer::Renderer(app::CommandLineOptions options)
     : impl_(std::make_unique<Impl>(std::move(options))) {}
 Renderer::~Renderer() = default;
 int Renderer::run() {
+    CpuTrace::Thread traceThread(&impl_->cpuTrace, "render");
+    CpuTrace::Scope runScope("Renderer::run");
     impl_->context.makeCurrent();
     return impl_->options.renderTestMode ? impl_->capture() : impl_->interact();
 }
 
 Renderer::Impl::Impl(app::CommandLineOptions arguments)
-    : options(std::move(arguments)), source(options), context(options), window(context.get()),
+    : options(std::move(arguments)), cpuTrace(options.cpuTrace), source(options), context(options), window(context.get()),
       scene(config::ScenarioConfig{config::Config{nlohmann::json(source.document)}}),
       profiler(options.performanceTrace), meshes(scene.scenario.planets.size()),
       meshReady(scene.scenario.planets.size(), false),

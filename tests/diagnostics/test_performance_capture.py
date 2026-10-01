@@ -3,6 +3,7 @@
 import argparse
 import csv
 import hashlib
+import json
 from pathlib import Path
 import subprocess
 
@@ -15,7 +16,7 @@ out = args.output_dir.resolve()
 out.mkdir(parents=True, exist_ok=True)
 
 
-def capture(name, frames, step, full_resolution=False):
+def capture(name, frames, step, full_resolution=False, cpu_trace=False):
     image, trace = out / f'{name}.png', out / f'{name}.csv'
     command = [str(args.binary.resolve()), '--config', 'tests/scenarios/atmosphere/base.json',
                '--surface-capture', str(image), '--render-size', '320', '240',
@@ -23,10 +24,18 @@ def capture(name, frames, step, full_resolution=False):
                '--benchmark-step', str(step), '--performance-trace', str(trace)]
     if full_resolution:
         command.append("--atmosphere-full-resolution")
+    if cpu_trace:
+        command += ['--cpu-trace', str(out / f'{name}.cpu.json')]
     result = subprocess.run(command, cwd=root, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     (out / f'{name}.log').write_text(result.stdout)
     assert result.returncode == 0, result.stdout
     assert 'Shader compilation error' not in result.stdout and 'Shader linking error' not in result.stdout
+    if cpu_trace:
+        events = json.loads((out / f'{name}.cpu.json').read_text())['traceEvents']
+        calls = [e for e in events if e.get('ph') == 'X']
+        assert sum(e['name'] == 'capture.frame' for e in calls) == frames
+        assert any(e['name'] == 'TerrainSurface::buildGeometryForEye' for e in calls)
+        assert any(e['name'] == 'capture.readback' for e in calls)
     rows = sorted(csv.DictReader(trace.open()), key=lambda r: int(r['frame']))
     assert [int(r['frame']) for r in rows] == list(range(frames)), rows
     assert any(r['gpu_valid'] == '1' for r in rows)
@@ -40,7 +49,7 @@ def capture(name, frames, step, full_resolution=False):
 
 
 single, _ = capture('single', 1, 0)
-paused, paused_rows = capture('paused', 5, 0)
+paused, paused_rows = capture('paused', 5, 0, cpu_trace=True)
 assert single == paused, 'Reusing a paused frame changed the image'
 assert all(int(r['scene_reuses']) == 1 for r in paused_rows[1:]), paused_rows
 assert float(paused_rows[0]['terrain_build_ms']) > 0

@@ -21,6 +21,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                  bool recordObjects, rendering::FrameProfiler* profiler,
                  bool forceHdr, GLuint outputFramebuffer,
                  rendering::GrassRenderer* grass, double sceneTime) {
+    CpuTrace::Scope sceneScope("renderScene");
     using Stage = rendering::FrameStage;
     using Scope = rendering::FrameProfiler::Scope;
     Scope lightingScope(profiler, Stage::Lighting, false);
@@ -77,6 +78,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                         static_cast<float>(value.z));
     };
     const auto setBodyLighting = [&](const Shader& target, std::size_t index, float radiusScale = 1.0f) {
+        CpuTrace::Scope scope("setBodyLighting");
         const auto& light = lighting.planets[index];
         setRgb(target, "uSunDirection", light.sunDirection);
         setRgb(target, "uSunlight", light.sunlight);

@@ -1,10 +1,12 @@
 #include "rendering/geometry/Terrain.h"
+#include "rendering/diagnostics/tracing/CpuTrace.h"
 #include <algorithm>
 #include <cmath>
 #include <map>
 
 namespace rendering {
 void TerrainSurface::refineShoreline(TerrainGeometry& geometry, const glm::dvec3& eyeBody) const {
+    CpuTrace::Scope scope("TerrainSurface::refineShoreline");
     const double scale = radius_*metersPerUnit_;
     const int originalCount = geometry.triangleCount();
     // Shared edge decisions split both neighbors, including the coarse side

@@ -3,6 +3,7 @@
 namespace rendering {
 void Renderer::Impl::installLandMesh(std::size_t index, TerrainGeometry geometry,
     const glm::dvec3& radial, int localMask) {
+    CpuTrace::Scope scope("Renderer::installLandMesh");
     meshZoneFaces[index] = geometry.zoneFaces;
     meshTriangles[index] = geometry.triangleCount();
     meshSteepRefinedFaces[index] = geometry.steepRefinedFaces;
@@ -15,6 +16,7 @@ void Renderer::Impl::installLandMesh(std::size_t index, TerrainGeometry geometry
 }
 
 void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalking) {
+    CpuTrace::Scope scope("Renderer::preparePlanetMeshes");
     for (std::size_t i = 0; i < scene.scenario.planets.size(); ++i) {
         const auto& planet = scene.scenario.planets[i];
         const glm::dvec3 localEye = scene.bodies[i + 1].toLocalPoint(eye);
@@ -45,6 +47,7 @@ void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalkin
         auto buildMeshes = [surface=scene.terrainSurfaces[i], planet,
                             zones=lastFaceZones[i], localEye,
                             meters=scene.scenario.metersPerWorldUnit()]() {
+            CpuTrace::Scope scope("terrain.build_land_and_water");
             const auto start=std::chrono::steady_clock::now();
             auto land=surface.buildGeometryForEye(localEye, glm::dvec3(0.0),
                 zones.empty() ? nullptr : &zones, 20.0);
@@ -68,7 +71,11 @@ void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalkin
         if (asyncWalking && meshReady[i] && localMask == lastLocalMask[i]) {
             pendingTerrain[i].eyeRadial = radial;
             pendingTerrain[i].localMask = localMask;
-            pendingTerrain[i].geometry = std::async(std::launch::async,std::move(buildMeshes));
+            pendingTerrain[i].geometry = std::async(std::launch::async,
+                [trace=&cpuTrace, build=std::move(buildMeshes)]() {
+                    CpuTrace::Thread thread(trace, "terrain worker");
+                    return build();
+                });
             continue;
         }
         auto built=buildMeshes();

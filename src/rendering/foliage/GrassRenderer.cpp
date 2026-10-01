@@ -4,10 +4,12 @@
 #include "rendering/geometry/Mesh.h"
 #include "config/ScenarioConfig.h"
 #include <chrono>
+#include "rendering/diagnostics/tracing/CpuTrace.h"
 
 namespace rendering {
 
 void GrassRenderer::upload(Patch& patch, const GrassLodPlan& plan) {
+    CpuTrace::Scope scope("GrassRenderer::upload");
     if (!patch.buffer) glGenBuffers(1,&patch.buffer);
     glBindBuffer(GL_ARRAY_BUFFER,patch.buffer);
     // One contiguous instance upload per planet. GL 3.3 lacks base-instance
@@ -51,6 +53,7 @@ void GrassRenderer::clear() {
 
 GrassPreparationStats GrassRenderer::prepare(std::size_t index,const Mesh& mesh,const config::PlanetConfig& planet,
              double metersPerWorldUnit,const glm::dvec3& eyeBody) {
+    CpuTrace::Scope scope("GrassRenderer::prepare");
     if (patches_.size()<=index) patches_.resize(index+1);
     auto& patch=patches_[index];
     if (!planet.foliage.enabled || !mesh.hasVertexColors) {
@@ -92,6 +95,7 @@ GrassDrawStats GrassRenderer::drawStats(std::size_t index) const {
 }
 
 void GrassRenderer::draw(std::size_t index) const {
+    CpuTrace::Scope scope("GrassRenderer::draw");
     if (index>=patches_.size()) return;
     const bool culled=glIsEnabled(GL_CULL_FACE);
     glDisable(GL_CULL_FACE); // Two-sided blades, without duplicate geometry.

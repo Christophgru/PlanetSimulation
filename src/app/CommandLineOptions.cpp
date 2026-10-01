@@ -23,6 +23,11 @@ CommandLineOptions CommandLineOptions::parse(int argc, char** argv) {
             } catch (...) {
                 throw std::invalid_argument("--video-memory-mb needs 32..65536 MiB");
             }
+        } else if (std::string(argv[i]) == "--cpu-trace") {
+            if (i + 1 >= argc || std::string(argv[i + 1]).empty() ||
+                std::string(argv[i + 1]).starts_with("--"))
+                throw std::invalid_argument("--cpu-trace needs an output JSON path");
+            options.cpuTrace = argv[++i];
         } else if (std::string(argv[i]) == "--performance-trace" && i + 1 < argc) {
             options.performanceTrace = argv[++i];
         } else if (std::string(argv[i]) == "--benchmark-frames" && i + 1 < argc) {

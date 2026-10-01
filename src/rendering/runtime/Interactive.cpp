@@ -28,7 +28,8 @@ int Renderer::Impl::interact() {
     double configChangedAt = 0.0;
     double nextConfigCheckAt = previousFrameTime;
     while (!glfwWindowShouldClose(window)) {
-        glfwPollEvents();
+        CpuTrace::Scope frameScope("interactive.frame");
+        { CpuTrace::Scope scope("glfwPollEvents"); glfwPollEvents(); }
         const bool statsVisible = inputContext.statsVisible ||
             glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS;
         profiler.beginFrame(simulationClock.seconds(), statsVisible);
@@ -50,6 +51,7 @@ int Renderer::Impl::interact() {
             }
         }
         if (inputContext.reloadRequested) {
+            CpuTrace::Scope reloadScope("scene.reload");
             inputContext.reloadRequested = false;
             configChangePending = false;
             watchError.clear();
@@ -136,7 +138,8 @@ int Renderer::Impl::interact() {
             glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS,
             glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS
         };
-        cameraInput.update(cameraTransition.active() ? WalkKeys{} : keys, elapsedSeconds);
+        { CpuTrace::Scope scope("CameraInput::update");
+          cameraInput.update(cameraTransition.active() ? WalkKeys{} : keys, elapsedSeconds); }
         if (cameraInput.mode() == CameraMode::Surface && displayedMode != CameraMode::Surface)
             cameraTransition.start(displayedPose, frameTime);
         if (cameraInput.mode() != CameraMode::Surface) cameraTransition.cancel();

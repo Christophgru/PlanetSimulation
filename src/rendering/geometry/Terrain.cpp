@@ -1,4 +1,5 @@
 #include "rendering/geometry/Terrain.h"
+#include "rendering/diagnostics/tracing/CpuTrace.h"
 #include <algorithm>
 #include <cmath>
 #include <map>
@@ -176,6 +177,7 @@ TerrainGeometry TerrainSurface::buildGeometryForEye(const glm::dvec3& eyeWorld,
                                     const glm::dvec3& planetCenter,
                                     const std::vector<int>* previousFaceZones,
                                     double zoneHysteresisMeters) const {
+    CpuTrace::Scope scope("TerrainSurface::buildGeometryForEye");
     const glm::dvec3 offset = eyeWorld - planetCenter;
     const double cameraDistance = glm::length(offset);
     if (!std::isfinite(cameraDistance) || cameraDistance <= 0.0)

@@ -282,6 +282,34 @@ columns to identify rendering costs. `gpu_ms` sums the measured GPU passes;
 it excludes presentation idle time. CPU and GPU times overlap and must not be
 added together.
 
+For nested CPU calls, worker lanes and thread CPU time, add `--cpu-trace`:
+
+~~~bash
+./build/PlanetSimulation --cpu-trace build/cpu.json --performance-trace build/performance.csv
+python3 scripts/benchmarks/cpu_report.py build/cpu.json --output-dir build/cpu-report
+~~~
+
+Close the application normally to finish the JSON stream. The trace can also
+be opened in a Chrome trace viewer or Perfetto. The standalone
+`build/cpu-report/report.html` includes a chronological timeline, expandable
+top-down call paths, self-time rankings and reversed callee-to-caller paths.
+CSV and SVG versions are saved beside it. `--skip-frames N --frames M` selects
+complete frames for reports; worker jobs crossing the selected interval are
+excluded. Keep the unsliced trace to inspect complete background jobs.
+
+Scopes cover simulation/camera updates, terrain/shoreline construction, mesh
+installation, grass placement/batching/upload, render passes, presentation and
+capture completion/readback/PNG writing. The trace starts in `Renderer::run`,
+after constructor startup. Self time includes uninstrumented callees and tracing
+overhead; inclusive times must not be summed. Per-thread CPU time excludes
+other threads, including software-driver workers, and is omitted on platforms
+without a thread CPU clock. Streaming uses bounded memory and serializes writes;
+disabled tracing does not read clocks or write events. It adds no GPU waits.
+
+The [CPU profiling study](docs/journal/benchmarks/cpu-profiling.md) pairs these
+native timings with Callgrind function/caller instruction counts, reports
+profiler-environment limitations, and includes top-down and bottom-up graphics.
+
 For a repeatable, uncapped benchmark with a final capture:
 
 ~~~bash

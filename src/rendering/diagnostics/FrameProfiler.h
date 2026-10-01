@@ -7,6 +7,7 @@
 #include <string>
 #include <stdexcept>
 #include <GL/glew.h>
+#include "rendering/diagnostics/tracing/CpuTrace.h"
 
 namespace rendering {
 // Wall-clock presentation rate, averaged over a short window (not 1/CPU time).
@@ -125,16 +126,18 @@ public:
     double gpuMilliseconds = 0;
     class Scope {
     public:
-        Scope(FrameProfiler* owner, FrameStage stage, bool gpu = true) : owner_(owner) {
+        Scope(FrameProfiler* owner, FrameStage stage, bool gpu = true)
+            : owner_(owner), cpuScope_(frameStageNames[static_cast<int>(stage)]) {
             if (owner_) token_ = owner_->beginStage(stage, gpu);
         }
         ~Scope() { stop(); }
-        void stop() { if (owner_ && token_ >= 0) owner_->endStage(token_); owner_ = nullptr; }
+        void stop() { if (owner_ && token_ >= 0) owner_->endStage(token_); owner_ = nullptr; cpuScope_.stop(); }
         Scope(const Scope&) = delete;
         Scope& operator=(const Scope&) = delete;
     private:
         FrameProfiler* owner_;
         int token_ = -1;
+        CpuTrace::Scope cpuScope_;
     };
 private:
     std::array<Frame, 8> frames_{};

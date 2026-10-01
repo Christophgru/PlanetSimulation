@@ -18,6 +18,7 @@ struct CommandLineOptions {
     std::string configPath = "configs/scenarios/solar_system.json";
     std::string replayPath;
     std::string performanceTrace;
+    std::string cpuTrace;
     bool atmosphereFullResolution = false;
     bool explicitAtmosphereQuality = false;
     bool benchmarkOverlay = false;

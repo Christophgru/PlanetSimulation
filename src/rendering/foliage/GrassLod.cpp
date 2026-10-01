@@ -1,4 +1,5 @@
 #include "rendering/foliage/GrassLod.h"
+#include "rendering/diagnostics/tracing/CpuTrace.h"
 #include <algorithm>
 #include <cmath>
 
@@ -20,6 +21,7 @@ int grassLodLevel(double distance, double drawDistance) {
 }
 GrassLodPlan batchGrass(const std::vector<GrassBlade>& blades, const glm::dvec3& eye,
                        double metersPerRadius, double drawDistance, double movementMargin) {
+    CpuTrace::Scope scope("batchGrass");
     struct Key { std::size_t index; double distance; };
     std::vector<Key> keys;
     keys.reserve(blades.size());

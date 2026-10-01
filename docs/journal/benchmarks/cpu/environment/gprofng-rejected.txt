@@ -1,0 +1,79 @@
+Experiment: build-codex/probe.er
+No errors
+*** Collector Warning: Collection interval timer period was changed (5000 -> 0); profile data may be unreliable
+*** Warning: system has variable clock frequency, which may cause variable execution times and inaccurate conversions of cycle counts into time.
+No archive command run
+
+Target command (64-bit): 'build-codex/tests/foliage_benchmark docs/journal/benchmarks/lod/input.json'
+Process pid 411, ppid 408, pgrp 408, sid 408
+Current working directory: /workspace
+Collector version: `2.40.00'; experiment version 12.4 (64-bit)
+Host `1dde848ef45b', OS `Linux 7.0.0-34-generic', page size 4096, architecture `x86_64'
+  8 CPUs, with clocks ranging from 899 to 3600 MHz.; max of 3600 MHz. assumed
+  Memory: 10220841 pages @  4096 = 39925 MB.
+Data collection parameters:
+  Clock-profiling, interval = 5000 microsecs.
+  Periodic sampling, 1 secs.
+  Follow descendant processes from: fork|exec|combo
+
+Experiment started Wed Sep 30 21:53:20 2026
+
+Experiment Ended: 4.554427130
+Data Collection Duration: 4.554427130
+Experiment: build-codex/probe.er
+        Aggregated statistics for selected samples
+
+                                       Start Label: Total
+                                         End Label: Total
+                                 Start Time (sec.): 0.000
+                                   End Time (sec.): 4.554
+                                   Duration (sec.): 4.554
+                          Total Thread Time (sec.): 4.554
+                         Average number of Threads: 1.000
+
+                              Process Times (sec.):
+                                          User CPU: 4.391 ( 96.4%)
+                                        System CPU: 0.142 (  3.1%)
+                                          Trap CPU: 0.    (  0. %)
+                                         User Lock: 0.    (  0. %)
+                                   Data Page Fault: 0.    (  0. %)
+                                   Text Page Fault: 0.    (  0. %)
+                                 Kernel Page Fault: 0.    (  0. %)
+                                           Stopped: 0.    (  0. %)
+                                          Wait CPU: 0.    (  0. %)
+                                             Sleep: 0.021 (  0.5%)
+
+                                 Minor Page Faults: 23102
+                                 Major Page Faults:    10
+                                     Process swaps:     0
+                                      Input blocks:  1024
+                                     Output blocks:   272
+                                     Messages sent:     0
+                                 Messages received:     0
+                                   Signals handled:     0
+                        Voluntary context switches:    14
+                      Involuntary context switches:   456
+                                      System calls:     0
+                                 Characters of I/O:     0
+
+Functions sorted by metric: Exclusive Total CPU Time
+
+Excl. Total   Incl. Total    Name
+CPU           CPU
+ sec.      %   sec.      %
+0.225 100.00  0.225 100.00   <Total>
+0.060  26.67  0.070  31.11   rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const
+0.030  13.33  0.030  13.33   simulation::OrbitalSystem::OrbitalSystem(config::ScenarioConfig const&)
+0.015   6.67  0.015   6.67   <static>@0x6cb51 (<libm.so.6>)
+0.015   6.67  0.015   6.67   lround
+0.015   6.67  0.015   6.67   nlohmann::json_abi_v3_11_3::detail::invalid_iterator nlohmann::json_abi_v3_11_3::detail::invalid_iterator::create<nlohmann::json_abi_v3_11_3::basic_json<std::map, std::vector, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, long, unsigned long, double, std::allocator, nlohmann::json_abi_v3_11_3::adl_serializer, std::vector<unsigned char, std::allocator<unsigned char> >, void> const*, 0>(int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, nlohmann::json_abi_v3_11_3::basic_json<std::map, std::vector, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >, bool, long, unsigned long, double, std::allocator, nlohmann::json_abi_v3_11_3::adl_serializer, std::vector<unsigned char, std::allocator<unsigned char> >, void> const*) [clone .isra.0]
+0.010   4.44  0.015   6.67   __gnu_cxx::__normal_iterator<rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::Edge**, std::vector<rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::Edge*, std::allocator<rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::Edge*> > > std::_V2::__rotate<__gnu_cxx::__normal_iterator<rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::Edge**, std::vector<rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::Edge*, std::allocator<rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::Edge*> > > >(__gnu_cxx::__normal_iterator<rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::Edge**, std::vector<rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::Edge*, std::allocator<rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::Edge*> > >, __gnu_cxx::__normal_iterator<rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::Edge**, std::vector<rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::Edge*, std::allocator<rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::Edge*> > >, __gnu_cxx::__normal_iterator<rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::Edge**, std::vector<rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::Edge*, std::allocator<rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::Edge*> > >, std::random_access_iterator_tag) [clone .constprop.0]
+0.010   4.44  0.040  17.78   rendering::TerrainSurface::landscapeColorFactors(double, double, double, double, double, config::PlanetConfig::TerrainMaterial const&)
+0.010   4.44  0.025  11.11   rendering::placeGrass(std::vector<float, std::allocator<float> > const&, std::vector<unsigned int, std::allocator<unsigned int> > const&, config::PlanetConfig const&, double, glm::vec<3, double, (glm::qualifier)0> const&)
+0.010   4.44  0.020   8.89   std::_Rb_tree<std::pair<std::array<long, 3ul>, std::array<long, 3ul> >, std::pair<std::pair<std::array<long, 3ul>, std::array<long, 3ul> > const, rendering::TerrainSurface::EdgeInfo>, std::_Select1st<std::pair<std::pair<std::array<long, 3ul>, std::array<long, 3ul> > const, rendering::TerrainSurface::EdgeInfo> >, std::less<std::pair<std::array<long, 3ul>, std::array<long, 3ul> > >, std::allocator<std::pair<std::pair<std::array<long, 3ul>, std::array<long, 3ul> > const, rendering::TerrainSurface::EdgeInfo> > >::_M_get_insert_unique_pos(std::pair<std::array<long, 3ul>, std::array<long, 3ul> > const&)
+0.010   4.44  0.010   4.44   std::_Rb_tree_insert_and_rebalance(bool, std::_Rb_tree_node_base*, std::_Rb_tree_node_base*, std::_Rb_tree_node_base&)
+0.010   4.44  0.015   6.67   void std::__merge_adaptive<__gnu_cxx::__normal_iterator<rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::Edge**, std::vector<rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::Edge*, std::allocator<rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::Edge*> > >, long, rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::Edge**, __gnu_cxx::__ops::_Iter_comp_iter<rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::{lambda(rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::Edge const*, rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::Edge const*)#2}> >(__gnu_cxx::__normal_iterator<rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::Edge**, std::vector<rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::Edge*, std::allocator<rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::Edge*> > >, __gnu_cxx::__normal_iterator<rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::Edge**, std::vector<rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::Edge*, std::allocator<rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::Edge*> > >, __gnu_cxx::__normal_iterator<rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::Edge**, std::vector<rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::Edge*, std::allocator<rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::Edge*> > >, long, long, rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::Edge**, long, __gnu_cxx::__ops::_Iter_comp_iter<rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::{lambda(rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::Edge const*, rendering::TerrainSurface::refineShoreline(rendering::TerrainGeometry&, glm::vec<3, double, (glm::qualifier)0> const&) const::Edge const*)#2}>) [clone .isra.0]
+0.005   2.22  0.005   2.22   <static>@0x96063 (<libc.so.6>)
+0.005   2.22  0.020   8.89   config::ScenarioConfig::orbitalParents() const
+0.005   2.22  0.005   2.22   munmap
+

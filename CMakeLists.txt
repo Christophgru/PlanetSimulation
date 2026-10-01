@@ -42,12 +42,16 @@ add_library(planet_config STATIC
 target_include_directories(planet_config PUBLIC ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(planet_config PUBLIC nlohmann_json::nlohmann_json)
 
+add_library(planet_diagnostics STATIC src/rendering/diagnostics/tracing/CpuTrace.cpp)
+target_include_directories(planet_diagnostics PUBLIC ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(planet_diagnostics PRIVATE nlohmann_json::nlohmann_json)
+
 add_library(planet_geometry STATIC
     src/rendering/geometry/Terrain.cpp
     src/rendering/geometry/TerrainShoreline.cpp
     src/rendering/foliage/GrassPlacement.cpp
     src/rendering/foliage/GrassLod.cpp)
-target_link_libraries(planet_geometry PUBLIC planet_config glm::glm)
+target_link_libraries(planet_geometry PUBLIC planet_config planet_diagnostics glm::glm)
 
 add_library(planet_rendering STATIC
     src/rendering/Shader.cpp

@@ -33,3 +33,10 @@ interactive background path and does not claim a hardware FPS improvement.
 The [grass LOD study](benchmarks/grass-lod.md) measures the later single-tip
 strips, shared instance buffer, eight distance levels and gradual sinking,
 including the extra draw submissions and reduced distant density.
+
+The [CPU profiling study](benchmarks/cpu-profiling.md) adds nested wall/thread-CPU
+traces, top-down timelines and caller trees, bottom-up self-cost reports, and
+independent Callgrind instruction attribution. Its
+[standalone walking report](benchmarks/cpu/walking/report/report.html) is
+interactive. The study records rejected gprofng sampling and the limits of
+software-renderer measurements.

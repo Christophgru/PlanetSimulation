@@ -231,6 +231,34 @@ The median walking frame remains nearly unchanged, at 872 versus 869 ms. Renderi
 
 Reproduction commands, complete per-pass tables, frozen inputs, raw CSVs, executable hashes and caveats are retained in `docs/journal/benchmarks/camera-movement.md` and its `movement/` data directory. Live traces now expose foliage placement, sorting, upload and rebuild counts separately. No end-to-end hardware FPS improvement is claimed from this single paired software-rendering run.
 
+== Nested CPU tracing and function-level profiling
+
+The optional `--cpu-trace` records nested scopes with elapsed wall time and, where available, calling-thread CPU time. Render and terrain-worker lanes are separate. The standalone HTML report provides expandable caller trees, a chronological SVG timeline, self-time rankings, and reversed callee-to-caller paths. Self time subtracts immediate children; it still includes uninstrumented calls, driver work, waits, and tracing overhead. Inclusive times must not be added across ancestors and descendants. Recording begins in `Renderer::run`, after constructor startup.
+
+A frozen 60 m grass scene was measured on 2026-09-30 with GCC 12.2, Xvfb and two llvmpipe workers, at 640 × 360 pixels. Fourteen frames advance the walking camera by 2 m per frame with simulation time paused; the first three and final frame are excluded. The ten retained walking frames average 4216.18 ms, versus 4179.30 ms with CPU tracing disabled; their final PNGs are byte-identical. This single pair includes host variation and does not establish an overhead bound. Stationary paused-image reuse averages 131.36 ms; walking without grass averages 2021.34 ms. These are software-renderer diagnostics, not hardware FPS measurements.
+
+#table(
+  columns: (2.6fr, 1fr, 1fr), inset: 5pt,
+  table.header([Scope over ten walking frames], [Wall (ms)], [Thread CPU (ms)]),
+  [Grass draws, main + reflection], [16059.27], [16050.88],
+  [Atmosphere, main + reflection], [18452.14], [36.81],
+  [Terrain construction], [4313.86], [4312.70],
+  [Shoreline refinement (inside terrain)], [3683.14], [3682.22],
+  [Grass placement], [421.21], [421.17],
+  [Grass LOD batching], [150.42], [150.37],
+  [Grass upload], [7.99], [7.99],
+)
+
+Grass draws consume about 38.1% of scoped frame wall time and 72.1% of the render thread's CPU time, including software OpenGL work. Atmosphere takes 43.8% of frame wall time but little calling-thread CPU time, indicating blocking or scheduling while other driver workers may execute. Terrain construction contributes 10.2%; shoreline refinement is 85.4% of terrain time. Placement, batching and upload together contribute 1.4%, about 145 ms per rebuild. Capture terrain construction is synchronous; the interactive path uses a worker, so capture costs are not interactive render-thread stalls.
+
+The independent Callgrind run records 7,473,993,658 instructions for one terrain build followed by twelve placement/batching iterations, including benchmark checksums. Its exported self and caller/callee reports identify placement, terrain noise, shoreline ordered-map comparisons, rounding and sorting as construction costs. Instruction shares are not time shares; optimized source attribution can split one function across several file entries. This focused CPU workload excludes rendering. Kernel sampling was restricted, and GNU gprofng warned that its interval timer changed; its inconsistent sampled times were rejected. A suitable target-GPU host is still needed for reliable function-level sampled CPU times and hardware optimization conclusions.
+
+#figure(image("benchmarks/cpu/walking/detail/top-down.svg", width: 100%), caption: [Top-down nested CPU scope timeline for three frozen walking frames on llvmpipe. Width represents wall time, including waits.])
+
+#figure(image("benchmarks/cpu/walking/report/bottom-up.svg", width: 100%), caption: [Bottom-up self wall time over ten walking frames. Immediate child scopes are subtracted; uninstrumented work and waits remain.])
+
+The retained study is described in `docs/journal/benchmarks/cpu-profiling.md`. It motivates investigating rendered grass/reflection work, atmosphere execution and shoreline construction before assuming that partial placement updates solve the frame-time problem.
+
 = Visibility, exposure, and interactive constraints
 
 == Diagnostics, dependency boundaries and adaptive quality

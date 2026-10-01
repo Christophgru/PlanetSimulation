@@ -15,7 +15,7 @@ document the progress and add comments such that when interrupted you can contin
 |Task |State|Comment|
 |:--:|:--:|:--:|
 |Let's apply some optimisations from this repo: https://github.com/vercidium-patreon/glvertexid namely triangle optimisations, batching and 8 lods with sinking. Not all is applicable to our current setup 1:1 but these methods in general seem applicable, so let's apply them as well as possible.|t| Adapted to grass: single-tip strips, one instance upload, eight guarded LODs and smooth sinking, with compatible levels merged. Frozen view submits 26.8% fewer vertices and 31.5% fewer triangles, uploads 10.0% fewer bytes. One paired software-renderer run reduces walking mean by 7.2%; no hardware FPS guarantee. All 43 tests pass; journal/PDF and 17 gallery images refreshed, visually inspected and hashes verified. |
-|Add more timing traces especially on the cpu side, how much time is spent in what functions, use a dedicated debugger/tool for the runtime analysis. Add reports of the rundtime analysis in top down and bottom up visualisation (how the time is divided/which functions are called when vs how much time is spent in what functions). Return and report if the environment doesn't provide a suitable context.|||
+|Add more timing traces especially on the cpu side, how much time is spent in what functions, use a dedicated debugger/tool for the runtime analysis. Add reports of the rundtime analysis in top down and bottom up visualisation (how the time is divided/which functions are called when vs how much time is spent in what functions). Return and report if the environment doesn't provide a suitable context.|t| Nested wall/thread-CPU traces, interactive top-down/bottom-up reports and Callgrind instruction study published with verified artifacts and journal/PDF. All 40 available tests pass (197.24 s); five GUI tests require missing xdotool/ImageMagick (prior container run: 45/45). gprofng timings rejected; no hardware FPS claim. |
 |Do 8 LODs also for the landscape of the planet implement sinking, such that always the most precise landscape is highest, remove the rest from the scene. |||
 |The Goal must be that we can cover the whole horizon with grass with reasonable fps. For that lets add grass foliage for high distance, reduce the placement accuracy, move the random placement from cpu to shader, and apply further techniques that seem suitable. |||
 |Add the perlin noise parameter to the json config|||
@@ -57,8 +57,54 @@ if environmental changes are needed inside the container, let the user know by a
 
 - PNG writing requires `libpng-dev` (already available here).
 - Headless input/capture checks use `xvfb`, `xauth`, `xdotool`, and `imagemagick`.
+- Function-level CPU instruction profiling uses optional `valgrind` (installed
+  for the CPU study; apt also installs `libc6-dbg`). It is not a build/runtime
+  dependency. The existing GNU gprofng probe reported an unreliable timer.
+
+```sh
+apt-get update
+apt-get install --no-install-recommends -y valgrind xdotool imagemagick
+```
+
+On the resumed host, `xdotool` and ImageMagick (`import`, `convert`) are
+missing, so CMake omits five live X11 tests. The install command above also
+restores those existing test dependencies; reconfigure before running them.
+Valgrind is only needed to recollect the independent instruction profile.
+
+## Progress checkpoint — 2026-10-01
+
+- Resumed CPU profiling: all 42 saved capture/Callgrind artifacts, source,
+  shaders and replay match their collection hashes. Published the full study
+  under `docs/journal/benchmarks/cpu/`, including interactive HTML, SVGs,
+  CSVs, raw traces and Callgrind data. Journal source includes the findings.
+  Corrected frame slicing to exclude children of incomplete worker jobs;
+  all five Python report tests pass. gprofng samples were rejected because
+  its interval timer changed; Callgrind instruction counts are valid but
+  are not function CPU times. No hardware FPS claim.
+- The current host differs from the collection container. `build-codex` is
+  retained evidence, with its old `/workspace` CMake cache. Fresh validation
+  uses `build-cpu` (GCC 13.3, RelWithDebInfo, local dependencies from
+  `build/_deps`), logs `build-cpu/cpu-{configure,build,tests}.log`.
+  All 40 registered tests pass in 197.24 s, including trace/report and exact
+  capture checks. Five X11 tests are omitted because xdotool/ImageMagick are
+  missing; the original container's 45-test pass is retained separately in
+  `benchmarks/cpu/environment/collection-tests.txt`. Both journal charts were
+  visually inspected, PDF compiled, and all 17 existing gallery hashes checked.
+  Root-owned profiling files were made editable by the user. The sandbox
+  runner still fails during bubblewrap startup, so approved commands run
+  outside it. CPU profiling is t; next is eight terrain LODs with sinking.
+  Preserve the user's 60 m grass draw distance.
 
 ## Progress checkpoint — 2026-09-30
+
+- CPU profiling in progress: `--cpu-trace` writes nested wall/thread-CPU scopes,
+  including explicit terrain-worker lanes. `scripts/benchmarks/cpu_report.py`
+  generates timeline SVG, bottom-up SVG, scope CSV and a standalone expandable
+  HTML report. GNU gprofng 2.40 captured stacks but its collector warns that
+  the timer changed and samples may be unreliable. Valgrind 3.19 was installed
+  for independent instruction counts instead. Build/check logs: `build-codex/cpu-*.log`.
+  Next: finish focused tests, collect frozen 60 m walking traces and profiler
+  reports, document measured findings in the journal/PDF, run full tests, commit.
 
 - glvertexid adaptation is implemented: `GrassLod` builds eight guarded distance
   ranges, stable density retirement tiers and one front-to-back instance buffer.

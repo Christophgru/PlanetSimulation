@@ -29,6 +29,7 @@ struct Renderer::Impl {
     ClipPlanes planetOrbitClip(const glm::dvec3& eye) const;
 
     app::CommandLineOptions options;
+    CpuTrace cpuTrace;
     app::SceneSource source;
     // Reverse member destruction keeps the context alive through every GPU owner,
     // including when a later member or the constructor body throws.

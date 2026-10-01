@@ -9,6 +9,7 @@
 
 namespace rendering {
 int Renderer::Impl::capture() {
+    CpuTrace::Scope captureScope("Renderer::capture");
     glfwPollEvents();
     int width = 0;
     int height = 0;
@@ -23,6 +24,7 @@ int Renderer::Impl::capture() {
     const double benchmarkStart = simulationTime;
     double lastBenchmarkFrame = glfwGetTime();
     for (int frame = 0; frame < options.benchmarkFrames; ++frame) {
+        CpuTrace::Scope frameScope("capture.frame");
         frameRate.sample(glfwGetTime()-lastBenchmarkFrame); lastBenchmarkFrame=glfwGetTime();
         simulationTime = benchmarkStart + frame * options.benchmarkStep;
         profiler.beginFrame(simulationTime);
@@ -83,7 +85,7 @@ int Renderer::Impl::capture() {
     }
 
     // Call glFinish() before reading framebuffer
-    glFinish();
+    { CpuTrace::Scope scope("capture.gpu_finish"); glFinish(); }
     profiler.collect();
     const auto renderEnd = std::chrono::steady_clock::now();
     std::cout << "Mesh preparation: "
@@ -104,11 +106,13 @@ int Renderer::Impl::capture() {
 
     // Read rendered framebuffer (account for vertical flip)
     std::vector<unsigned char> pixels(width * height * 4);
+    CpuTrace::Scope readbackScope("capture.readback");
     glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
     std::vector<float> depthPixels(width * height);
     glReadPixels(0, 0, width, height, GL_DEPTH_COMPONENT, GL_FLOAT, depthPixels.data());
     std::vector<unsigned char> objectPixels(width * height);
     glReadPixels(0, 0, width, height, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, objectPixels.data());
+    readbackScope.stop();
 
     // Check for OpenGL errors after reading
     GLenum err;
@@ -196,7 +200,8 @@ int Renderer::Impl::capture() {
     if (diagnosticPlanet.water.enabled)
         printBounds("Blue water-like pixels", analysis.waterLike);
 
-    rendering::writePng(options.outputImagePath, width, height, 4, flippedPixels);
+    { CpuTrace::Scope scope("capture.write_png");
+      rendering::writePng(options.outputImagePath, width, height, 4, flippedPixels); }
 
     if (options.surfaceRenderMode) {
         const auto snapshot = SurfaceCameraTelemetry::capture(*scene.surfaceCamera, scene.scenario.surface_camera,

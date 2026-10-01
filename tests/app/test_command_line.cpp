@@ -17,7 +17,7 @@ TEST(CommandLineOptions, CaptureAndExplicitOverridesSurviveExtraction) {
     const auto options = parse({"--surface-capture", "out.png", "--replay", "view.json",
         "--config", "scene.json", "--render-size", "960", "540", "--simulation-time", "-12.5",
         "--atmosphere-full-resolution", "--benchmark-frames", "2", "--benchmark-step", "0",
-        "--benchmark-overlay", "--performance-trace", "trace.jsonl", "--video-memory-mb", "128"});
+        "--benchmark-overlay", "--performance-trace", "trace.csv", "--cpu-trace", "cpu.json", "--video-memory-mb", "128"});
     EXPECT_TRUE(options.renderTestMode && options.surfaceRenderMode && options.captureOnly);
     EXPECT_FALSE(options.planetRenderMode);
     EXPECT_TRUE(options.explicitRenderSize && options.explicitAtmosphereQuality);
@@ -25,7 +25,8 @@ TEST(CommandLineOptions, CaptureAndExplicitOverridesSurviveExtraction) {
     EXPECT_EQ(options.outputImagePath, "out.png");
     EXPECT_EQ(options.replayPath, "view.json");
     EXPECT_EQ(options.configPath, "scene.json");
-    EXPECT_EQ(options.performanceTrace, "trace.jsonl");
+    EXPECT_EQ(options.performanceTrace, "trace.csv");
+    EXPECT_EQ(options.cpuTrace, "cpu.json");
     EXPECT_EQ(options.renderTestWidth, 960);
     EXPECT_EQ(options.renderTestHeight, 540);
     EXPECT_EQ(options.commandLineTime, -12.5);
@@ -35,6 +36,8 @@ TEST(CommandLineOptions, CaptureAndExplicitOverridesSurviveExtraction) {
 }
 
 TEST(CommandLineOptions, InvalidValuesFailBeforeWindowStartup) {
+    EXPECT_THROW(parse({"--cpu-trace"}), std::invalid_argument);
+    EXPECT_THROW(parse({"--cpu-trace", "--benchmark-overlay"}), std::invalid_argument);
     EXPECT_THROW(parse({"--simulation-time", "nan"}), std::invalid_argument);
     EXPECT_THROW(parse({"--simulation-time", "1second"}), std::invalid_argument);
     EXPECT_THROW(parse({"--render-size", "63", "600"}), std::invalid_argument);
