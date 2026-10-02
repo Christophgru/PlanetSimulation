@@ -1,0 +1,31 @@
+{
+  "date_utc": "2026-10-02",
+  "audited_revision": "c464cd3",
+  "audited_application_version": "0.0.1",
+  "typst": "0.15.1",
+  "pdf_compiled": true,
+  "layout_page_count": 2,
+  "page_count_command": "typst query --root . docs/journal/portability/wasm.typ '<memo-page-count>' --field value",
+  "page_previews": {
+    "page-1-of-2.png": "569bd42eb2e8174b68e88ef6d8c3363001627844f18edeee952a3b92e66ed3e2",
+    "page-2-of-2.png": "0f930a665f3051b900e9f703c9d046622311cc5c448681b61646860ec55b6de9"
+  },
+  "source_sha256": "6b1f92da2355a29fd3c3a787402973845705abf9ad7ad8f8ee9f4a5c36bb3d0f",
+  "pdf_sha256": "f6176460a806d1784c91fc05ee2fcf95653b5574314bece6d2c089e09c73c709",
+  "primary_sources_checked": [
+    "https://developer.chrome.com/docs/capabilities/web-apis/gpu-compute",
+    "https://emscripten.org/docs/api_reference/Filesystem-API.html",
+    "https://emscripten.org/docs/api_reference/emscripten.h.html#emscripten-set-main-loop",
+    "https://emscripten.org/docs/compiling/Building-Projects.html",
+    "https://emscripten.org/docs/porting/multimedia_and_graphics/OpenGL-support.html",
+    "https://emscripten.org/docs/porting/multimedia_and_graphics/WebGPU-support.html",
+    "https://emscripten.org/docs/porting/pthreads.html",
+    "https://github.com/pongasoft/emscripten-glfw/blob/master/docs/Usage.md",
+    "https://registry.khronos.org/webgl/extensions/EXT_color_buffer_float/",
+    "https://registry.khronos.org/webgl/extensions/EXT_disjoint_timer_query_webgl2/",
+    "https://registry.khronos.org/webgl/extensions/OES_texture_float_linear/",
+    "https://registry.khronos.org/webgl/specs/2.0.0/"
+  ],
+  "browser_build_performed": false,
+  "scope": "Feasibility memo only; source audit and primary API documentation, no Wasm executable or browser performance measurement."
+}

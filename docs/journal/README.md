@@ -54,3 +54,6 @@ the remaining download and skeleton-inspection requirements.
 
 The [sand material study](materials/sand.md) documents pale granular beaches,
 centimetre wind-ripple normal relief, distance filtering and shoreline captures.
+
+The [two-page WebAssembly memo](portability/wasm.pdf) assesses a browser port,
+with compilation/runtime diagrams, dependency changes and WebGL/WebGPU tradeoffs.

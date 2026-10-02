@@ -1,0 +1,2 @@
+warning: the `typst query` subcommand is deprecated
+ = hint: use `typst eval 'query(<memo-page-count>).map(it => it.value)' --in docs/journal/portability/wasm.typ` instead

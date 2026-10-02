@@ -7,6 +7,8 @@ for each README image’s last generation date, version and reproduction details
 The [illustrated engineering journal](docs/journal/paper.pdf) traces the project
 from its first commit through the current renderer; its editable source is
 [written in Typst](docs/journal/paper.typ).
+The [two-page WebAssembly feasibility memo](docs/journal/portability/wasm.pdf)
+assesses browser dependencies, graphics changes and deployment tradeoffs.
 
 | Solar overview (compact test scene) | Planet surface (20 s) | Planet orbit (3000 s) |
 |:--:|:--:|:--:|
