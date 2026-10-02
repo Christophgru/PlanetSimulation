@@ -24,7 +24,7 @@ document the progress and add comments such that when interrupted you can contin
 |Make foliage movement independant of planetary movement, such that if pressed t only the planet movement stop, but local grass movement keeps going|t| Wall-clock foliage time is independent of T pause and Y/U orbital speed. Added native GLFW test with completed-transition readiness, visible-grass guard, changing paused-time frames, zero-speed freeze and paused reload. Clean 50/50 CTest entries pass in 333.81 s; native images/CSV/evidence, README and journal/PDF updated. |
 |The quick grass demo mentioned something like 6 poly grass if close and 1 pol grass if far away, is this already active? if not add it.|t| Already active: six-segment strips (six quads, 14 vertices/12 triangles) close and one tapered quad (4 vertices/2 triangles) far. Configurable transition, fixed roots, no hot-swap upload and matching fragment shading validated on both GPU paths. Clean 50/50 suite passes; README and procedural-grass journal explain polygon accounting. |
 |Lets add a render Mode, where rendering might take arbitrary long but foliage is generated for a radius up to 20x the normal distance, high poly is loaded for the moon and sun, and lens flaring is simulated. |t| Implemented --offline-render/--offline-quality: 1–20x single-layer radius, bounded candidate growth, full-resolution atmosphere, finer Moon/Sun meshes and visible-Sun lens flare. Exact replay, invalid replay rejection, CPU bounds and both GPU root paths pass. Clean 51/51 CTest run (308.44 s); journal/PDF and 21 gallery images refreshed, inspected and hashes/fingerprint verified. |
-|Lets give the grass (ground, not foliage ) a more brown and grey tinted color, such that it looks more like the foliage.|||
+|Lets give the grass (ground, not foliage ) a more brown and grey tinted color, such that it looks more like the foliage.|t| Superseded by the later user correction to match foliage tips. Ground shares midpoint tip albedo (linear RGB 0.634375, 0.74375, 0.284375), with grain and slope shading. Neutral-light GPU channel-ratio and beach-band regression passes in clean 51/51 suite; journal documents the correction and 21 gallery captures are refreshed/verified. |
 |Lets adjust the foliage wind noise such that the grass stays pressed down on the trail where the small astronaut walked along, add jumping motion, that lets the astronaut jump higher or lower depending on the planets gravity, based on mass and diameter of the planet minus its rotation velocity.|p| Gravity-dependent jumping is implemented and tested with the astronaut feature, including the radial centrifugal term from configured spin. Grass trail deformation remains unstarted. |
 |Make the Sand more white and add some granularity to it (foliage or roughness/reflection map maybe in combination with tiny elevation noise that creates tiny dunes (only some cm high, as reference take image USER_IO/user_artifacts/image copy 2.png) that are often visible in sand in windy areas)|||
 |Prepare a short journal in typst on wether its feasable to port the current application to a web assembly application and evaluate the advantages and disadvantages in a short 2 page memo. Add some graphics on how the compilation process works, what runtime dependencies there are and where the main caviats might lie.|||
@@ -93,8 +93,11 @@ instruction profile.
   regenerated and inspected, hashes/source fingerprint verified; journal PDF
   compiled. Evidence: `docs/journal/benchmarks/offline/`.
   Run `build-resume/PlanetSimulation --offline-render build/offline.png`.
-- Next row: reconcile the older brown/gray ground request with the later
-  user correction to match foliage tips, then implement astronaut grass trails.
+- Ground-color row reconciled with the later foliage-tip palette correction;
+  neutral-light channel-ratio/shore regression passes in the clean 51-entry run.
+- Next row: astronaut grass trail deformation. Gravity-dependent jump and
+  jetpack remain implemented; trails have not been started. Preserve the
+  user's added astronaut/model tasks and completed-row reordering in todo.md.
 
 ## Astronaut checkpoint — 2026-10-02
 

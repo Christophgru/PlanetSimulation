@@ -102,6 +102,12 @@ The terrain grass biome and foliage now share `shaders/foliage/palette.glsl`.
 Ground uses midpoint tip variation, linear RGB (0.634375, 0.74375, 0.284375).
 This matches the unlit center of a typical blade tip. Terrain grain, slope
 shading and distinct foliage lighting can still change their displayed colors.
+The later user correction to match foliage tips supersedes the older brown/gray
+ground TODO. `TerrainMaterialRender.BeachBandIsNarrowInsideCoarseTriangles`
+checks the midpoint palette channel ratios under neutral indirect light while
+keeping the beach narrow. The clean 51/51 run and refreshed 21-image gallery
+validate this ground-color checkpoint.
+
 Beach, snow and seabed retain their existing planet tint. CPU terrain color
 factors remain biome classification data so this appearance change does not
 change placement or terrain tessellation.
