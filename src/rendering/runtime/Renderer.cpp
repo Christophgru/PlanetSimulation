@@ -1,6 +1,7 @@
 #include "rendering/runtime/RendererState.h"
 #include "config/SceneReplay.h"
 #include "rendering/diagnostics/VideoMemory.h"
+#include "rendering/quality/OfflineQuality.h"
 #include <GLFW/glfw3.h>
 #include <iostream>
 
@@ -17,7 +18,7 @@ int Renderer::run() {
 
 Renderer::Impl::Impl(app::CommandLineOptions arguments)
     : options(std::move(arguments)), cpuTrace(options.cpuTrace), source(options), context(options), window(context.get()),
-      scene(config::ScenarioConfig{config::Config{nlohmann::json(source.document)}}),
+      scene(offlineScenario(config::ScenarioConfig{config::Config{nlohmann::json(source.document)}}, options)),
       profiler(options.performanceTrace), meshes(scene.scenario.planets.size()),
       meshReady(scene.scenario.planets.size(), false),
       lastLocalMask(scene.scenario.planets.size(), 0),
@@ -51,8 +52,8 @@ Renderer::Impl::Impl(app::CommandLineOptions arguments)
             glm::length(scene.surfaceCamera->position() - scene.sunPosition),
             scene.scenario.sun.radius);
     }
-    // Keep the working Sun sphere geometry.
-    meshes.sunMesh.generateSphere(32);
+    meshes.sunMesh.generateSphere(sunSphereSegments(options.offlineQuality));
+    if (options.offlineQuality && options.lensFlare) lensFlare=std::make_unique<LensFlare>();
     meshes.skyboxMesh.generateCube();
 
     std::cout << "PlanetSimulation v" << PLANET_VERSION << " initialized\n";
@@ -74,6 +75,9 @@ Renderer::Impl::Impl(app::CommandLineOptions arguments)
     }
 
     if (options.renderTestMode) {
+        if (options.offlineQuality)
+            std::cout << "Offline quality: " << options.foliageDistanceMultiplier
+                      << "x foliage radius, full-resolution atmosphere, high-detail bodies\n";
         std::cout << (options.surfaceRenderMode ? "Surface render test mode enabled\n" :
                       options.planetRenderMode ? "Planet orbit render test mode enabled\n" :
                                          "Render test mode enabled\n");

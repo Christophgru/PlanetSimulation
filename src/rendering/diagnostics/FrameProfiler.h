@@ -29,10 +29,10 @@ private:
 };
 
 enum class FrameStage { Update, Mesh, Lighting, Foliage, Tables, Shadows, Opaque, Reflection,
-                        ReflectionAtmosphere, Water, Atmosphere, CachedPresentation, Overlay, Present, Count };
+                        ReflectionAtmosphere, Water, Atmosphere, CachedPresentation, LensFlare, Overlay, Present, Count };
 inline constexpr std::array<const char*, static_cast<int>(FrameStage::Count)> frameStageNames{
     "update", "mesh", "lighting", "foliage", "tables", "shadows", "opaque", "reflection",
-    "reflection_atmosphere", "water", "atmosphere", "cached_present", "overlay", "present"};
+    "reflection_atmosphere", "water", "atmosphere", "cached_present", "lens_flare", "overlay", "present"};
 
 class FrameProfiler {
     using Clock = std::chrono::steady_clock;

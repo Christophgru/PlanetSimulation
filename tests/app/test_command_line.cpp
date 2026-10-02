@@ -73,3 +73,18 @@ TEST(CommandLineOptions, CharacterBenchmarksValidateTheirClockAndInputOrder) {
     EXPECT_THROW(parse({"--surface-capture","jet.png","--benchmark-frames","8",
         "--benchmark-jump-frame","0"}),std::invalid_argument);
 }
+TEST(CommandLineOptions, OfflineCaptureControlsValidateBeforeOpeningAWindow) {
+    const auto options=parse({"--offline-render","studio.png","--foliage-distance-multiplier","12.5","--no-lens-flare"});
+    EXPECT_TRUE(options.offlineQuality && options.surfaceRenderMode && options.captureOnly);
+    EXPECT_TRUE(options.atmosphereFullResolution);
+    EXPECT_EQ(options.foliageDistanceMultiplier,12.5);
+    EXPECT_FALSE(options.lensFlare);
+    EXPECT_THROW(parse({"--offline-render"}),std::invalid_argument);
+    EXPECT_THROW(parse({"--offline-render","--render-size"}),std::invalid_argument);
+    EXPECT_THROW(parse({"--offline-quality"}),std::invalid_argument);
+    EXPECT_THROW(parse({"--offline-render","out.png","--foliage-distance-multiplier","nan"}),std::invalid_argument);
+    EXPECT_THROW(parse({"--offline-render","out.png","--foliage-distance-multiplier","21"}),std::invalid_argument);
+    EXPECT_THROW(parse({"--offline-render","out.png","--foliage-distance-multiplier","0"}),std::invalid_argument);
+    EXPECT_THROW(parse({"--offline-render","out.png","--foliage-distance-multiplier","2x"}),std::invalid_argument);
+    EXPECT_THROW(parse({"--no-lens-flare"}),std::invalid_argument);
+}

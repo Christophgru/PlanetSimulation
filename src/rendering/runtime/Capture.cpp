@@ -56,7 +56,7 @@ int Renderer::Impl::capture() {
           if (!options.thirdPersonRenderMode) preparePlanetMeshes(eyeWorld); }
         if (frame == 0) meshEnd = std::chrono::steady_clock::now();
         const auto revisions=geometryRevisions();
-        if (rendering::hasAtmosphere(scene.scenario) && frameReuse.matches(view,fov,width,height,simulationTime,revisions,options.benchmarkStep==0,options.thirdPersonRenderMode,eyeWorld,options.surfaceRenderMode ? 1 : options.planetRenderMode ? 2 : 0)) {
+        if (!options.offlineQuality && rendering::hasAtmosphere(scene.scenario) && frameReuse.matches(view,fov,width,height,simulationTime,revisions,options.benchmarkStep==0,options.thirdPersonRenderMode,eyeWorld,options.surfaceRenderMode ? 1 : options.planetRenderMode ? 2 : 0)) {
             rendering::FrameProfiler::Scope scope(&profiler,rendering::FrameStage::CachedPresentation);
             atmosphere.presentCached(atmosphereShader); profiler.sceneReuse();
         } else {
@@ -70,6 +70,14 @@ int Renderer::Impl::capture() {
                         (options.surfaceRenderMode || options.planetRenderMode) ? std::optional<std::size_t>(scene.orbitPlanetIndex) : std::nullopt,
                         true, &profiler, false, 0, &grass, simulationTime,options.thirdPersonRenderMode ? &astronaut : nullptr);
             frameReuse.remember(view,fov,width,height,simulationTime,revisions,eyeWorld,options.surfaceRenderMode ? 1 : options.planetRenderMode ? 2 : 0);
+        }
+        if (lensFlare) {
+            CpuTrace::Scope trace("capture.lens_flare");
+            FrameProfiler::Scope scope(&profiler,FrameStage::LensFlare);
+            const auto clip=options.surfaceRenderMode ? surfaceClip : options.planetRenderMode ? planetOrbitClip(eyeWorld) : ClipPlanes{};
+            flareEvidence=lensFlare->draw(view,perspectiveProjection(fov,float(width)/height,clip),
+                eyeWorld,scene.bodies[0].position,scene.scenario.sun.radius,
+                glm::vec3(scene.scenario.sun.color[0],scene.scenario.sun.color[1],scene.scenario.sun.color[2]),width,height);
         }
         { rendering::FrameProfiler::Scope scope(&profiler, rendering::FrameStage::Overlay);
           performanceOverlay.draw(options.benchmarkOverlay,width,height,frameRate.fps,frameRate.milliseconds,
@@ -282,6 +290,14 @@ int Renderer::Impl::capture() {
                 {"sky_interior_mean_display_luminance", metrics.skyInteriorMeanLuminance},
                 {"non_background_pixels", analysis.drawn.count}}}
         };
+        metadata["render"]["offline"]={{"enabled",options.offlineQuality},
+            {"foliage_distance_multiplier",options.foliageDistanceMultiplier}, {"lens_flare",options.lensFlare}};
+        metadata["render"]["effective_foliage_distance_m"]=scene.scenario.planets[scene.orbitPlanetIndex].foliage.draw_distance_m;
+        metadata["render"]["effective_foliage_budget"]=scene.scenario.planets[scene.orbitPlanetIndex].foliage.max_blades;
+        metadata["render"]["sun_mesh_triangles"]=meshes.sunMesh.indices.size()/3;
+        metadata["render"]["body_mesh_triangles"]=meshTriangles;
+        metadata["render"]["lens_flare_visible_sun_pixels"]=flareEvidence.visibleSunPixels;
+        metadata["render"]["lens_flare_strength"]=flareEvidence.strength;
         if (options.thirdPersonRenderMode) {
             const auto visible=std::count(flippedObjects.begin(),flippedObjects.end(),4);
             metadata["render"]["camera_mode"]="third_person";
@@ -316,11 +332,11 @@ int Renderer::Impl::capture() {
         std::cerr << "Planet orbit render test FAILED: Nearby terrain zone is absent\n";
         return 1;
     }
-    if (!options.surfaceRenderMode && !options.planetRenderMode && !analysis.bodiesVisible()) {
+    if (!options.captureOnly && !options.surfaceRenderMode && !options.planetRenderMode && !analysis.bodiesVisible()) {
         std::cerr << "Render test FAILED: Sun or planet is not visible\n";
         return 1;
     }
-    if (!options.surfaceRenderMode && !options.planetRenderMode && !analysis.bodiesSeparate()) {
+    if (!options.captureOnly && !options.surfaceRenderMode && !options.planetRenderMode && !analysis.bodiesSeparate()) {
         std::cerr << "Render test FAILED: Sun and planet overlap in the image\n";
         return 1;
     }

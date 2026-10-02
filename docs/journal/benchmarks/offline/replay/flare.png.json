@@ -1,0 +1,256 @@
+{
+  "application_version": "0.0.1",
+  "render": {
+    "atmosphere_downsample": 1,
+    "atmosphere_liquid_water_g_m3": 0.0,
+    "atmosphere_refraction_enabled": false,
+    "atmosphere_refractive_index": 1.0,
+    "atmosphere_relative_humidity": 0.0,
+    "atmospheric_illuminance": 0.0,
+    "body_mesh_triangles": [
+      99732,
+      86400
+    ],
+    "direct_illuminance": 3.170243832524396,
+    "effective_foliage_budget": 409600,
+    "effective_foliage_distance_m": 600.0,
+    "exposure": 1.0,
+    "foliage_blades": 409600,
+    "foliage_candidates": 409600,
+    "foliage_gpu_compute": true,
+    "foliage_gpu_drawn_blades": 30744,
+    "foliage_gpu_triangles": 66068,
+    "foliage_gpu_vertices": 127556,
+    "foliage_gpu_working_bytes": 52428832,
+    "foliage_patch_bytes": 366744,
+    "foliage_patches": 91686,
+    "height": 270,
+    "lens_flare_strength": 0.9798645743893438,
+    "lens_flare_visible_sun_pixels": 6199,
+    "metered_illuminance": 3.370243832524396,
+    "non_background_pixels": 44475,
+    "offline": {
+      "enabled": true,
+      "foliage_distance_multiplier": 20.0,
+      "lens_flare": true
+    },
+    "reflected_illuminance": 0.0,
+    "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+    "samples": 4,
+    "sky_interior_blue": 0.013661825253511034,
+    "sky_interior_green": 0.00589662060250004,
+    "sky_interior_mean_display_luminance": 0.006500626793941894,
+    "sky_interior_pixels": 98124,
+    "sky_interior_red": 0.006100564232049127,
+    "sky_mean_display_luminance": 0.006592087236772533,
+    "sky_pixels": 101337,
+    "sky_sensitivity": 1.0,
+    "sun_mesh_triangles": 131072,
+    "terrain_luminance_stddev": 0.20586976657644995,
+    "terrain_max_display_luminance": 0.9862266666666666,
+    "terrain_mean_display_luminance": 0.6538714038185716,
+    "terrain_pixels": 21019,
+    "white_clipped_fraction": 0.04783179012345679,
+    "white_clipped_pixels": 6199,
+    "width": 480
+  },
+  "scenario": {
+    "camera": {
+      "fov": 60.0,
+      "position": [
+        15.0,
+        15.0,
+        8.0
+      ],
+      "target": [
+        5.0,
+        0.0,
+        0.0
+      ]
+    },
+    "distance_unit": "km",
+    "lighting": {
+      "ambient_light": 0.2,
+      "auto_exposure": {
+        "enabled": false
+      },
+      "exposure": 1.0,
+      "reference_distance": 10.0,
+      "reflections_enabled": false,
+      "shadows": {
+        "enabled": false
+      }
+    },
+    "planets": [
+      {
+        "atmosphere": {
+          "enabled": false
+        },
+        "color": [
+          0.2,
+          0.6,
+          0.1
+        ],
+        "foliage": {
+          "density_per_m2": 30.72,
+          "draw_distance_m": 30,
+          "enabled": true,
+          "height_m": 1.5,
+          "max_blades": 1024,
+          "seed": 7321,
+          "width_m": 0.1,
+          "wind_strength": 0
+        },
+        "mass_kg": 6.338938161361669e+17,
+        "name": "earth",
+        "orbit": {
+          "ascending_node_deg": 0.0,
+          "inclination_deg": 0.0,
+          "mean_anomaly_deg": 0.0,
+          "parent": "sun",
+          "periapsis_deg": 0.0,
+          "semi_major_axis": 10,
+          "semi_minor_axis": 10
+        },
+        "radius": 1,
+        "reflection": {
+          "color": [
+            0.3,
+            0.5,
+            1.0
+          ],
+          "geometric_albedo": 0.3
+        },
+        "rotation": {
+          "axial_tilt_deg": 0,
+          "period_seconds": 60.0,
+          "phase_deg": 0
+        },
+        "surface_noise": [],
+        "terrain_landscape": {
+          "enabled": false
+        },
+        "terrain_lod": {
+          "base_edge_segments": 1,
+          "lod_far_diameters": 8.0,
+          "lod_near_diameters": 2.0,
+          "max_edge_segments": 16,
+          "max_triangle_budget": 10000,
+          "medium_edge_segments": 8,
+          "mid_surface_distance_m": 1000.0,
+          "near_surface_distance_m": 300.0,
+          "shoreline_edge_m": 0,
+          "sink_depth_m": 0,
+          "steep_edge_segments": 32,
+          "steep_slope_threshold": 0.3
+        },
+        "water": {
+          "enabled": false
+        }
+      },
+      {
+        "color": [
+          0.62,
+          0.6,
+          0.56
+        ],
+        "mass_kg": 792367270170208.0,
+        "name": "moon",
+        "orbit": {
+          "ascending_node_deg": 0.0,
+          "inclination_deg": 20.0,
+          "mean_anomaly_deg": 180.0,
+          "parent": "earth",
+          "periapsis_deg": 0.0,
+          "semi_major_axis": 2.5,
+          "semi_minor_axis": 2.45
+        },
+        "radius": 0.27,
+        "reflection": {
+          "color": [
+            0.95,
+            0.95,
+            1.0
+          ],
+          "geometric_albedo": 0.12
+        },
+        "rotation": {
+          "axial_tilt_deg": 20.0,
+          "period_seconds": 60.0,
+          "phase_deg": 0.0
+        },
+        "surface_noise": []
+      }
+    ],
+    "scenario_name": "Solar System",
+    "skybox": {
+      "background_color": [
+        0.002,
+        0.004,
+        0.012
+      ],
+      "enabled": false,
+      "seed": 7429,
+      "star_brightness": 1.4,
+      "star_color": [
+        0.82,
+        0.9,
+        1.0
+      ],
+      "star_density": 0.0003,
+      "star_scale": 700.0
+    },
+    "sun": {
+      "absolute_magnitude": 3.1,
+      "color": [
+        1.0,
+        0.99,
+        0.97
+      ],
+      "mass_kg": 1.2194532287919512e+19,
+      "name": "sun",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "radius": 2.5
+    },
+    "surface_camera": {
+      "altitude": 0.002,
+      "direction_ned": [
+        0,
+        1,
+        -0.5
+      ],
+      "fov": 80,
+      "latitude_deg": 0,
+      "longitude_deg": 135,
+      "planet_index": 0,
+      "reference_frame": "planet_spherical_ned",
+      "simulation_time_seconds": 0,
+      "walk_speed_mps": 80.0
+    }
+  },
+  "schema_version": 1,
+  "surface_camera": {
+    "altitude": 0.002,
+    "direction_ned": [
+      0.0,
+      0.8944271909999161,
+      -0.4472135954999581
+    ],
+    "fov": 80.0,
+    "latitude_deg": 0.0,
+    "longitude_deg": 135.0,
+    "planet_index": 0,
+    "reference_frame": "planet_spherical_ned",
+    "simulation_time_seconds": 0.0,
+    "up_ned": [
+      0.0,
+      -0.4472135954999583,
+      -0.8944271909999159
+    ],
+    "walk_speed_mps": 80.0
+  }
+}

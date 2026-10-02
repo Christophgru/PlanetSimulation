@@ -7,7 +7,13 @@
     "atmosphere_refractive_index": 1.0007045962354635,
     "atmosphere_relative_humidity": 0.0,
     "atmospheric_illuminance": 0.07200125194833631,
+    "body_mesh_triangles": [
+      100000,
+      960
+    ],
     "direct_illuminance": 0.0,
+    "effective_foliage_budget": 100000,
+    "effective_foliage_distance_m": 40.0,
     "exposure": 9.258969665907383,
     "foliage_blades": 0,
     "foliage_candidates": 0,
@@ -19,8 +25,15 @@
     "foliage_patch_bytes": 0,
     "foliage_patches": 0,
     "height": 720,
+    "lens_flare_strength": 0.0,
+    "lens_flare_visible_sun_pixels": 0,
     "metered_illuminance": 0.07200225194833632,
     "non_background_pixels": 921595,
+    "offline": {
+      "enabled": false,
+      "foliage_distance_multiplier": 20.0,
+      "lens_flare": true
+    },
     "reflected_illuminance": 0.0,
     "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
     "samples": 0,
@@ -32,6 +45,7 @@
     "sky_mean_display_luminance": 0.29377058452715354,
     "sky_pixels": 123839,
     "sky_sensitivity": 0.14467140102980286,
+    "sun_mesh_triangles": 2048,
     "terrain_luminance_stddev": 0.008937567829592883,
     "terrain_max_display_luminance": 0.054799215686274515,
     "terrain_mean_display_luminance": 0.03612122991400588,
@@ -466,7 +480,7 @@
       "reference_frame": "planet_spherical_ned",
       "simulation_time_seconds": 0.0,
       "up_ned": [
-        0.005642867970074409,
+        0.0056428679700743604,
         0.09418814306884687,
         -0.9955384230386665
       ],
@@ -488,8 +502,8 @@
     "reference_frame": "planet_spherical_ned",
     "simulation_time_seconds": 0.0,
     "up_ned": [
-      0.0056428679700743604,
-      0.09418814306884687,
+      0.005642867970074312,
+      0.09418814306884686,
       -0.9955384230386665
     ],
     "walk_speed_mps": 80.0

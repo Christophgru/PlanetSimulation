@@ -19,6 +19,18 @@ SceneSource::SceneSource(CommandLineOptions& options)
             }
             if (replay.contains("render") && replay["render"].value("camera_mode",std::string{})=="third_person")
                 options.thirdPersonRenderMode=true;
+            if (options.renderTestMode && replay.contains("render") && replay["render"].contains("offline")) {
+                const auto& saved=replay["render"]["offline"];
+                if (!saved.is_object() || !saved.at("enabled").is_boolean() ||
+                    !saved.at("lens_flare").is_boolean() || !saved.at("foliage_distance_multiplier").is_number())
+                    throw std::invalid_argument("Invalid offline replay quality");
+                const double multiplier=saved.at("foliage_distance_multiplier").get<double>();
+                if (!std::isfinite(multiplier) || multiplier<1 || multiplier>20)
+                    throw std::invalid_argument("Offline replay multiplier must be in 1..20");
+                options.offlineQuality=options.offlineQuality || saved.at("enabled").get<bool>();
+                if (!options.explicitFoliageDistance) options.foliageDistanceMultiplier=multiplier;
+                if (!options.explicitLensFlare) options.lensFlare=saved.at("lens_flare").get<bool>();
+            }
             if (!options.explicitAtmosphereQuality && replay.contains("render") &&
                 replay["render"].contains("atmosphere_downsample")) {
                 const auto& raw = replay["render"]["atmosphere_downsample"];
@@ -26,7 +38,10 @@ SceneSource::SceneSource(CommandLineOptions& options)
                     throw std::invalid_argument("Replay atmosphere_downsample must be 1 or 4");
                 options.atmosphereFullResolution = raw == 1;
             }
+            if (options.offlineQuality) options.atmosphereFullResolution=options.captureOnly=true;
         }
+        if (!options.offlineQuality && (options.explicitFoliageDistance || options.explicitLensFlare))
+            throw std::invalid_argument("Offline controls require an offline capture or replay");
     } catch (const std::exception& error) {
         throw std::invalid_argument(std::string("Invalid scenario or replay: ") + error.what());
     }

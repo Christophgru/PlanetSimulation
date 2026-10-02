@@ -21,7 +21,7 @@ image to prove grass was visible. Normal window shutdown flushes the CSV.
 ![Paused orbit, live wind first sample](wind/images/animated-a.png)
 ![Paused orbit, live wind one second later](wind/images/animated-b.png)
 
-The clean full suite passes **50/50 CTest entries in 333.81 s** (GCC 13,
+The clean full suite passes **50/50 CTest entries in 333.81 s** (GCC 12.2,
 RelWithDebInfo, Mesa llvmpipe, two driver threads). In this run, 11,178 RGB
 channels change between the animated frames while 89 completed frames share
 orbital time 20.2094061 s. Frozen frames differ in zero channels, and 31

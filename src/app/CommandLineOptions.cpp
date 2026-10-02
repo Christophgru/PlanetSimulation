@@ -7,7 +7,27 @@ CommandLineOptions CommandLineOptions::parse(int argc, char** argv) {
     CommandLineOptions options;
     // Parse command-line arguments
     for (int i = 1; i < argc; i++) {
-        if (std::string(argv[i]) == "--atmosphere-full-resolution") {
+        if (std::string(argv[i]) == "--offline-render") {
+            if (i+1>=argc || std::string(argv[i+1]).empty() || std::string(argv[i+1]).starts_with("--"))
+                throw std::invalid_argument("--offline-render needs an output PNG path");
+            options.offlineQuality = options.renderTestMode = options.surfaceRenderMode = options.captureOnly = true;
+            options.outputImagePath = argv[++i];
+        } else if (std::string(argv[i]) == "--offline-quality") {
+            options.offlineQuality = true;
+        } else if (std::string(argv[i]) == "--no-lens-flare") {
+            options.lensFlare = false;
+            options.explicitLensFlare = true;
+        } else if (std::string(argv[i]) == "--foliage-distance-multiplier") {
+            try {
+                if (i+1>=argc) throw std::invalid_argument("missing");
+                const std::string value=argv[++i]; std::size_t used=0;
+                options.foliageDistanceMultiplier=std::stod(value,&used);
+                if (used!=value.size() || !std::isfinite(options.foliageDistanceMultiplier) ||
+                    options.foliageDistanceMultiplier<1 || options.foliageDistanceMultiplier>20)
+                    throw std::invalid_argument("range");
+                options.explicitFoliageDistance=true;
+            } catch (...) { throw std::invalid_argument("--foliage-distance-multiplier needs 1..20"); }
+        } else if (std::string(argv[i]) == "--atmosphere-full-resolution") {
             options.atmosphereFullResolution = true;
             options.explicitAtmosphereQuality = true;
         } else if (std::string(argv[i]) == "--benchmark-overlay") {
@@ -115,6 +135,14 @@ CommandLineOptions CommandLineOptions::parse(int argc, char** argv) {
         }
     }
 
+    if (options.offlineQuality && !options.renderTestMode)
+        throw std::invalid_argument("--offline-quality requires a render/capture output");
+    if (!options.offlineQuality && (options.explicitFoliageDistance || options.explicitLensFlare) && options.replayPath.empty())
+        throw std::invalid_argument("Offline distance and flare options require --offline-render or --offline-quality");
+    if (options.offlineQuality) {
+        options.captureOnly=true;
+        options.atmosphereFullResolution=true;
+    }
     if (options.benchmarkFrames > 1 && !options.renderTestMode) {
         throw std::invalid_argument("--benchmark-frames requires a render/capture output");
     }

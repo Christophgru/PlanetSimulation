@@ -11,6 +11,11 @@ struct CommandLineOptions {
     bool planetRenderMode = false;
     bool thirdPersonRenderMode = false;
     bool captureOnly = false;
+    bool offlineQuality = false;
+    bool lensFlare = true;
+    double foliageDistanceMultiplier = 20.0;
+    bool explicitFoliageDistance = false;
+    bool explicitLensFlare = false;
     bool explicitRenderSize = false;
     std::string outputImagePath;
     int renderTestWidth = 800;

@@ -7,7 +7,13 @@
     "atmosphere_refractive_index": 1.0002899200095918,
     "atmosphere_relative_humidity": 0.8684600670525447,
     "atmospheric_illuminance": 0.14762439299197938,
+    "body_mesh_triangles": [
+      100000,
+      960
+    ],
     "direct_illuminance": 3.538208087504875,
+    "effective_foliage_budget": 2000000,
+    "effective_foliage_distance_m": 150.0,
     "exposure": 0.18087233574260958,
     "foliage_blades": 1999246,
     "foliage_candidates": 1999246,
@@ -19,8 +25,15 @@
     "foliage_patch_bytes": 109984,
     "foliage_patches": 27496,
     "height": 600,
+    "lens_flare_strength": 0.0,
+    "lens_flare_visible_sun_pixels": 0,
     "metered_illuminance": 3.6858409768941494,
     "non_background_pixels": 479998,
+    "offline": {
+      "enabled": false,
+      "foliage_distance_multiplier": 20.0,
+      "lens_flare": true
+    },
     "reflected_illuminance": 7.496397295090353e-06,
     "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
     "samples": 0,
@@ -32,6 +45,7 @@
     "sky_mean_display_luminance": 0.11456515781608503,
     "sky_pixels": 258353,
     "sky_sensitivity": 0.0028261302459782747,
+    "sun_mesh_triangles": 2048,
     "terrain_luminance_stddev": 0.13902263947953014,
     "terrain_max_display_luminance": 0.6802172549019606,
     "terrain_mean_display_luminance": 0.29348334852177765,

@@ -86,6 +86,7 @@ add_library(planet_rendering STATIC
 target_sources(planet_rendering PRIVATE src/rendering/foliage/procedural/ProceduralGrass.cpp)
 target_sources(planet_rendering PRIVATE src/rendering/foliage/procedural/GrassCompute.cpp)
 target_sources(planet_rendering PRIVATE src/rendering/character/AstronautRenderer.cpp)
+target_sources(planet_rendering PRIVATE src/rendering/postprocessing/LensFlare.cpp)
 target_link_libraries(planet_rendering PUBLIC planet_geometry planet_character OpenGL::GL GLEW::GLEW)
 
 add_library(planet_app STATIC

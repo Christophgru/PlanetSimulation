@@ -681,7 +681,7 @@ ctest --output-on-failure
 cd ..
 ~~~
 
-The suite has 50 CTest entries covering unit tests, GPU shadows, scene captures,
+The suite has 51 CTest entries covering unit tests, GPU shadows, scene captures,
 lighting scenarios, exact replay, and renderer lifecycle/failure recovery.
 Renderer lifecycle checks cover repeated construction, partial startup failure,
 capture write failure, and GPU deletion before context teardown.
@@ -1165,6 +1165,45 @@ For resolution diagnostics, append `--render-size WIDTH HEIGHT` to any render
 test command. The output reports mesh preparation and GPU-complete render time;
 the actual framebuffer dimensions are printed because a window manager may
 resize the hidden window.
+
+For offline quality, use a configured surface camera and save a single PNG:
+
+~~~bash
+./build/PlanetSimulation --config configs/scenarios/solar_system.json \
+  --offline-render build/offline.png --render-size 1920 1080
+~~~
+
+`--offline-render` waits for synchronous terrain construction and complete GPU
+rendering, with no frame-rate target or adaptive resolution reduction. It uses
+full-resolution atmosphere, a 256-segment Sun (131,072 submitted triangles),
+up to 32 terrain edge segments, and a 100,000-triangle budget per body. Bodies
+other than the surface-camera planet, including the Moon, use at least ten
+base segments (86,400 triangles before optional local refinement).
+
+The single grass layer extends to **20× its configured radius** by default.
+`--foliage-distance-multiplier 1..20` selects a smaller factor. Candidate budget
+grows with area, with automatic growth capped at two million candidates
+(about 256 MB for compute queues); larger explicit JSON budgets are retained.
+Density, biomes, the Gaussian distribution and frustum rejection still apply,
+so expanded radius does not promise uniform density across the entire horizon.
+The validated normal scene and its saved JSON remain the replay source.
+
+Lens flare adds a solar halo, streak and colored aperture ghosts in display
+space. Visible Sun stencil pixels and their brightness attenuate the effect;
+a fully terrain-occluded Sun produces none. This is an artistic optical
+approximation. `--no-lens-flare` disables it; `--offline-quality` applies the
+profile to another capture command, including `--astronaut-capture`.
+Replay sidecars retain the profile and normal scene separately, applying the
+multiplier once. Explicit distance/flare overrides also work with an offline
+replay. Performance traces include a separate `lens_flare` stage.
+
+![Offline grass, detailed Sun/Moon and aperture flare](docs/screenshots/offline-render.png)
+
+Controlled airless fixture: 600 m grass radius and a Moon partly covering the Sun.
+
+The [offline quality study](docs/journal/benchmarks/offline-rendering.md) contains
+controlled normal/offline and visible/occluded comparisons, exact replay checks
+and submitted mesh counts.
 
 Append `--simulation-time 37` to capture the moving scene at a deterministic
 time in seconds. The test suite captures both the initial scene and the surface

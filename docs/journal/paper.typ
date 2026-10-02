@@ -234,6 +234,19 @@ The JSON `foliage.wind_noise` block controls gust, direction and flutter frequen
 
 The live-wind checkpoint subsequently passes all 50 CTest entries in one clean 333.81 s run on the same host. Its native frames change 11,178 RGB channels while 89 completed frames share orbital time 20.2094061 s; zero-speed frames are identical and reload remains paused at 20 s. Evidence is in `benchmarks/wind/validation/`.
 
+== Offline capture: bounded detail without a frame-time target
+
+The `--offline-render` command captures a resolved surface camera at requested native resolution. An independent in-memory profile expands the single grass radius by 1–20 times (20 by default), uses full-resolution atmosphere, raises terrain edge segments to 32 under a 100,000-triangle ceiling, and uses a 256-segment Sun sphere. Other bodies, including a distant Moon, receive a ten-segment base; the camera planet retains its original coarse base to reserve triangles for nearby terrain. Offline sinking is zero. The source scene remains separately stored in the sidecar, so replay applies the profile once. Candidate growth follows area but automatic growth caps at two million (about 256 MB of compute queues); larger explicit scene budgets are retained. Density and biome rejection still apply. This sacrifices a frame-time target while retaining finite memory and tessellation bounds.
+
+A controlled airless capture expands radius from 30 to 600 m and raises submitted Sun triangles from 2,048 to 131,072, Moon triangles from 960 to 86,400, and the camera planet from 9,964 to 99,732. Its 409,600 reserved grass candidates stay within the derived budget; they are not all visible blades. Production transform feedback on compute and vertex paths verifies visible roots beyond the normal cutoff. Actual scene coverage remains conditional on budget, Gaussian density, view and terrain suitability.
+
+A final OpenGL 3.3 pass adds a solar halo, streak and four colored aperture ghosts along the Sun–image-center axis. Synchronous stencil readback measures depth-tested Sun visibility, and visible pixel brightness attenuates the contribution through atmospheric extinction. Fully terrain-hidden Suns contribute zero; partial visibility scales an approximate projected-disk area. The pass adds display-space color after tone mapping and preserves depth/stencil. This is an artistic lens approximation, not spectral lens ray tracing or calibrated diffraction. Its own `lens_flare` trace stage includes the accepted readback cost. Normal/offline on/off captures, zero contribution behind terrain, explicit override checks, invalid replay rejection before window startup and byte-identical self-contained replay are documented in `benchmarks/offline-rendering.md`.
+
+#figure(grid(columns: (1fr, 1fr), gutter: 8pt,
+  image("benchmarks/offline/images/normal.png", width: 100%),
+  image("benchmarks/offline/images/flare.png", width: 100%)),
+  caption: [Controlled airless view: normal radius/detail (left), offline 20× radius with finer bodies and lens flare (right). The Moon partly covers the Sun. Images show a quality profile, not a matched-density performance comparison.])
+
 == Camera movement and grass preparation: measured costs
 
 The following measurements predate the Perlin wind change; their recorded executable hashes and captures identify the earlier sine-wind workload.
@@ -338,13 +351,15 @@ The actor receives terrain shadows and participates in HDR, atmosphere and water
 
 The requested Ava Turing model is not downloadable on Sketchfab. The catalog search favors Muko_Art's rigged stylized astronaut (11,718 triangles, one uploaded clip, CC BY 4.0). A logged-in download and inspection of skeleton, skin weights and retargeting remain necessary before replacing the procedural model. The shortlist and provenance are recorded in `character/sketchfab-models.md`; no external model is currently redistributed. Grass trail deformation remains a separate unfinished task.
 
+The offline checkpoint passes all 51 CTest entries in a clean 308.44 s run on GCC 12.2 / Mesa llvmpipe under Xvfb. Raw logs and compiler/executable identity are retained in `benchmarks/offline/validation/`.
+
 = Evaluation and model boundaries
 
 == What the evidence establishes
 
-The repository contains 49 CTest entries covering configuration and orbital invariants; terrain, camera and astronaut behavior; lighting, shadows, atmosphere and refraction on OpenGL; renderer captures; adaptive quality; and real GLFW input under Xvfb. The 20 README images are checked against their SHA-256 manifest. These checks establish specific numerical and rendered behaviors on the tested software renderer. They do not establish physical fidelity, portability to every GPU driver, or a guaranteed 20 FPS for arbitrary scenes.
+The repository contains 51 CTest entries covering configuration and orbital invariants; terrain, camera and astronaut behavior; lighting, shadows, atmosphere and refraction on OpenGL; renderer captures; adaptive quality; and real GLFW input under Xvfb. The 21 README images are checked against their SHA-256 manifest. These checks establish specific numerical and rendered behaviors on the tested software renderer. They do not establish physical fidelity, portability to every GPU driver, or a guaranteed 20 FPS for arbitrary scenes.
 
-The October 2 continuation checkpoint passes all 49 entries in a clean 286.14 s run on GCC 13 and Mesa llvmpipe/Xvfb. The frozen grass view uploads 34,664 bytes of triangle IDs; cached frames upload zero grass-buffer bytes. Culling enabled/disabled and exact replay produce identical images. The October 1 paired compute/vertex benchmark remains a historical measurement on its original EGL host; this validation does not add a hardware timing claim. Evidence is retained in `benchmarks/procedural/validation/`.
+The October 2 continuation checkpoint passes all 49 entries in a clean 286.14 s run on GCC 12.2 and Mesa llvmpipe/Xvfb. The frozen grass view uploads 34,664 bytes of triangle IDs; cached frames upload zero grass-buffer bytes. Culling enabled/disabled and exact replay produce identical images. The October 1 paired compute/vertex benchmark remains a historical measurement on its original EGL host; this validation does not add a hardware timing claim. Evidence is retained in `benchmarks/procedural/validation/`.
 
 The model boundaries are deliberate. Orbits are prescribed two-body ellipses with hierarchical recoil. Terrain is a deterministic synthetic height field with bounded tessellation. Atmospheric scale heights are chosen relative to shell size; the model does not solve hydrostatic temperature profiles, cloud dynamics, weather, or multiple scattering. Refraction bends view rays and reprojects available distant imagery but keeps near opaque geometry and direct shadow rays straight. Atmospheric temperature is read from JSON rather than evolved from sunlight and orbit. These limits define what a visual comparison can support.
 

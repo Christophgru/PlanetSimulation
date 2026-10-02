@@ -1,0 +1,9 @@
+{
+  "compiler": "c++ (Debian 12.2.0-14+deb12u1) 12.2.0",
+  "build_type": "RelWithDebInfo",
+  "cmake_cache": "build-resume/CMakeCache.txt",
+  "binary_sha256": "59fe32ed7d0c45eff2e1c7019be6a3703de9656c0c237e6e7bb42b6d22cccd10",
+  "validation_display": "Xvfb",
+  "renderer": "Mesa llvmpipe (LLVM 15.0.6)",
+  "driver_threads": 2
+}

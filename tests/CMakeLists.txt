@@ -16,7 +16,7 @@ FetchContent_MakeAvailable(googletest)
 set(PLANET_FIXTURE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/fixtures/development")
 set(PLANET_FIXTURE_CONFIG "${PLANET_FIXTURE_ROOT}/configs/scenarios/solar_system.json")
 
-add_executable(renderer_lifecycle_tests app/test_renderer_lifecycle.cpp app/test_command_line.cpp)
+add_executable(renderer_lifecycle_tests app/test_renderer_lifecycle.cpp app/test_command_line.cpp app/test_offline_quality.cpp)
 target_link_libraries(renderer_lifecycle_tests PRIVATE planet_app GTest::gtest_main)
 target_compile_definitions(renderer_lifecycle_tests PRIVATE
     PLANET_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
@@ -158,6 +158,11 @@ find_package(Python3 REQUIRED COMPONENTS Interpreter)
 add_test(NAME AstronautCaptureIntegration COMMAND ${Python3_EXECUTABLE}
     ${CMAKE_CURRENT_SOURCE_DIR}/character/test_astronaut_capture.py --binary $<TARGET_FILE:PlanetSimulation>
     --output-dir ${CMAKE_BINARY_DIR}/astronaut-captures)
+add_test(NAME OfflineCaptureIntegration COMMAND ${Python3_EXECUTABLE}
+    ${CMAKE_SOURCE_DIR}/tests/quality/test_offline_capture.py
+    --binary $<TARGET_FILE:PlanetSimulation>
+    --output-dir ${CMAKE_BINARY_DIR}/offline-captures)
+set_tests_properties(OfflineCaptureIntegration PROPERTIES TIMEOUT 180)
 set_tests_properties(AstronautCaptureIntegration PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 180)
 add_executable(cpu_trace_tests diagnostics/tracing/test_cpu_trace.cpp)
 target_link_libraries(cpu_trace_tests PRIVATE planet_diagnostics GTest::gtest_main nlohmann_json::nlohmann_json)

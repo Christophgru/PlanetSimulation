@@ -1,0 +1,27 @@
+{
+  "visible_strength": 0.9798645743893438,
+  "visible_sun_pixels": 6199,
+  "normal_body_triangles": [
+    9964,
+    960
+  ],
+  "offline_body_triangles": [
+    99732,
+    86400
+  ],
+  "normal_sun_triangles": 2048,
+  "offline_sun_triangles": 131072,
+  "normal_radius_m": 30.0,
+  "offline_radius_m": 600.0,
+  "offline_candidate_budget": 409600,
+  "offline_candidates": 409600,
+  "png_sha256": {
+    "flare.png": "54992d1dfec15ea68c826e6d484c6d8940b88501386c3c5e1fc4a157ad5c41c1",
+    "no-flare.png": "a9cebc5e0894def393fe301743be1ee39ce7c7f5a30a662cc8778f9de4ba86f8",
+    "normal.png": "688e69f9aa0ae4747c7834bf6726e2066b9b05a1b67bacd4b219c24acc0020bd",
+    "occluded-off.png": "61b6cb5c84e3439d37f15d2897d0a5bdc31cb4b94abf8a3529251f4f75128f87",
+    "occluded.png": "61b6cb5c84e3439d37f15d2897d0a5bdc31cb4b94abf8a3529251f4f75128f87",
+    "override.png": "05f35467c5c7de5c5d24af339edf1c7164356d7133095820a057a9588645155a",
+    "replay.png": "54992d1dfec15ea68c826e6d484c6d8940b88501386c3c5e1fc4a157ad5c41c1"
+  }
+}

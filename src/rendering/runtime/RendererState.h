@@ -13,6 +13,7 @@
 #include "rendering/diagnostics/AdaptiveQuality.h"
 #include "rendering/diagnostics/FrameReuse.h"
 #include "rendering/character/AstronautRenderer.h"
+#include "rendering/postprocessing/LensFlare.h"
 #include <array>
 #include <future>
 #include <limits>
@@ -88,6 +89,8 @@ struct Renderer::Impl {
     GpuUtilization gpuUtilization;
     FrameRate frameRate;
     FrameReuse frameReuse;
+    std::unique_ptr<LensFlare> lensFlare;
+    FlareEvidence flareEvidence;
     OwnedShader skyboxShader{"shaders/skybox/skybox.vert", "shaders/skybox/skybox.frag"};
     WaterReflectionTarget waterReflection;
     WaterReflectionTarget qualityTarget;

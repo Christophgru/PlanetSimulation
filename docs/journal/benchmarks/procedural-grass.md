@@ -157,7 +157,7 @@ The recorded October 1 benchmark used Mesa llvmpipe through the EGL test-window
 harness while that host's managed sandbox blocked X11 sockets. Those timing
 measurements have not been rerun on the current host.
 
-Fresh October 2 validation uses GCC 13, RelWithDebInfo and Mesa llvmpipe under
+Fresh October 2 validation uses GCC 12.2, RelWithDebInfo and Mesa llvmpipe under
 native GLFW/Xvfb with two driver threads. All **49 CTest entries pass in one
 clean run (286.14 s)**, including native camera controls, astronaut input/reload,
 the full grass/HDR/reflection capture and terrain-shadow checks. The previous

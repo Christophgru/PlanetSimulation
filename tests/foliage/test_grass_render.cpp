@@ -2,6 +2,7 @@
 #include "rendering/foliage/GrassWind.h"
 #include "rendering/geometry/Mesh.h"
 #include "config/ScenarioConfig.h"
+#include "rendering/quality/OfflineQuality.h"
 #include <gtest/gtest.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -324,5 +325,34 @@ TEST(ProceduralGrassRender, ConfigurableQuadDistanceChangesGeometryWithoutReplac
             EXPECT_EQ(counts[distance==1 ? 0 : 1],0u);
             EXPECT_EQ(counts[distance==1 ? 1 : 0],fallback.size());
         }
+    }
+}
+
+TEST(ProceduralGrassRender, OfflineRadiusGeneratesVisibleRootsBeyondTheNormalCutoff) {
+    GrassProbe probe;
+    probe.planet.foliage.draw_distance_m=30;
+    probe.planet.foliage.max_blades=128;
+    config::ScenarioConfig scene; scene.planets={probe.planet};
+    app::CommandLineOptions options; options.offlineQuality=options.renderTestMode=true;
+    const auto offline=rendering::offlineScenario(scene,options);
+    const auto farRoots=[&](const config::PlanetConfig& planet,bool compute) {
+        probe.planet=planet;
+        probe.grass.clear();
+        probe.grass.prepare(0,probe.mesh,planet,100,{0,0,1.02});
+        probe.grass.shader.use();
+        probe.grass.shader.setFloat("uDrawDistance",planet.foliage.draw_distance_m);
+        probe.grass.shader.setFloat("uGaussianSigma",planet.foliage.draw_distance_m/3);
+        const auto vertices=probe.capture(0,compute);
+        std::size_t found=0;
+        for (std::size_t i=0;i<vertices.size();i+=10) {
+            const glm::dvec3 root(vertices[i],vertices[i+1],vertices[i+2]);
+            if (vertices[i+9]>0 && glm::length(root-glm::dvec3(0,0,1.02))*100>31) ++found;
+        }
+        return found;
+    };
+    for (bool compute:{false,true}) {
+        if (compute && !GLEW_VERSION_4_3) continue;
+        EXPECT_EQ(farRoots(scene.planets[0],compute),0u);
+        EXPECT_GT(farRoots(offline.planets[0],compute),0u);
     }
 }

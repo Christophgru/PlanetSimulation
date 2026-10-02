@@ -1,0 +1,2 @@
+[1/2] Building CXX object tests/CMakeFiles/terrain_shadow_render_tests.dir/foliage/test_grass_render.cpp.o
+[2/2] Linking CXX executable tests/terrain_shadow_render_tests

@@ -1,0 +1,34 @@
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 0.0 s
+Sun radius: 2.5
+Planets: 2
+Surface camera position: (11.0057, -3.5199e-19, -1.28114e-19)
+Offline quality: 20x foliage radius, full-resolution atmosphere, high-detail bodies
+Surface render test mode enabled
+Output image: /workspace/build-resume/offline-captures/occluded-off.png
+Planet 0 terrain: 99910 triangles; far/middle/near faces: 279/21/20; steep-refined faces: 0 (budget 100000); foliage blades: 409597; water triangles: 0
+Planet 0 terrain LOD faces (coarse to fine): 279/0/0/0/1/16/4/20; mesh bytes: 11989200
+Planet 0 foliage candidate bounds per pass: 1651188 vertices; 831994 triangles; 13 batches; instance bytes: 367536
+Planet 0 GPU grass draws: 756 detailed; 143 quads; 11156 vertices; 9358 triangles; GPU working bytes: 52428448
+Planet 1 terrain: 86400 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 100000); foliage blades: 0; water triangles: 0
+Planet 1 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 10368000
+Planet 1 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Mesh preparation: 341.553 ms; GPU-complete render: 1149.71 ms
+earth lighting: direct RGB (4.52557, 4.48032, 4.3898), reflected RGB (0, 0, 0)
+moon lighting: direct RGB (9.22629, 9.13403, 8.94951), reflected RGB (0, 0, 0)
+Image size: 480x270
+Background pixel: (3, 10, 1)
+Non-background pixels: 129580, bounding box: (0, 0)-(479, 269)
+Sun-colored pixels: 0
+Planet pixels (color/depth): 129580, bounding box: (0, 0)-(479, 269)
+Camera exposure: 1; sky sensitivity: 1
+Simulation time: 0.0 s
+Surface camera position (world, km): [11.005742189411428,-3.519899279098915e-19,-1.2811385652070686e-19]
+Surface camera direction (world, unit vector): [-0.9805806756909201,0.0,0.19611613513818402]
+Surface camera position (planet LLA): latitude=0.0 deg, longitude=0.0 deg, altitude=2.0 m above reference sphere
+Surface camera ground clearance: 2.0 m
+surface_camera start value: {"altitude":0.002,"direction_ned":[0.19611613513818402,0.0,0.9805806756909201],"fov":80.0,"latitude_deg":0.0,"longitude_deg":0.0,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":0.0,"up_ned":[0.9805806756909202,0.0,-0.19611613513818413],"walk_speed_mps":80.0}
+White-clipped pixels (RGB >= 250): 0 (0%)
+Render test completed successfully
+Output image: /workspace/build-resume/offline-captures/occluded-off.png

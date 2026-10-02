@@ -68,6 +68,7 @@ capture('shoreline-detail.png', ['--replay', str(replays / 'terrain' / 'shorelin
 capture('grass-detail.png', ['--replay', str(replays / 'foliage' / 'grass-detail.png.json')])
 for name in ('astronaut.png', 'astronaut-front.png', 'astronaut-jetpack.png'):
     capture(name, ['--replay', str(replays / 'character' / (name + '.json'))])
+capture('offline-render.png', ['--replay', str(replays / 'offline' / 'offline-render.png.json')])
 capture('performance-overlay.png', [*scene, '--simulation-time', '20', '--render-size', '1280', '720', '--benchmark-frames', '20', '--benchmark-overlay'])
 for group, mapping in (
     ('atmosphere', {'standard_air': 'atmosphere-day.png', 'sunset': 'atmosphere-sunset.png', 'mist': 'atmosphere-mist.png', 'heavy_dust': 'atmosphere-dust.png'}),
@@ -92,6 +93,8 @@ for name, source, command, timestamp in records:
             replay_dir = replays / 'foliage'
         if name.startswith('astronaut'):
             replay_dir = replays / 'character'
+        if name == 'offline-render.png':
+            replay_dir = replays / 'offline'
         replay_dir.mkdir(parents=True, exist_ok=True)
         publish_copy(sidecar, replay_dir / (name + '.json'))
     rows.append({'image': name, 'version': version, 'generated_utc': timestamp,
@@ -125,6 +128,7 @@ log += ['', 'Exact commands, image SHA-256 hashes and renderer details are in [g
         'The solar overview uses the frozen compact fixture; the surface and orbit gallery use the current working scene.',
         'Night images preserve their airless lighting controls. Atmosphere, shadow and twilight images use regression fixtures.', '',
         'Astronaut images preserve camera 4, planted-foot or airborne pose, and bubble phase from the character regression fixture.', '',
+        'The offline image preserves the controlled 20x grass radius, high-detail bodies and partially visible Sun flare.', '',
        'To regenerate after building with `BUILD_TESTING=ON`:', '', '~~~bash',
         'cmake --build build --target PlanetSimulation terrain_shadow_render_tests',
         'LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a -s "-screen 0 1280x720x24" python3 scripts/generate_readme_images.py --build-dir build',

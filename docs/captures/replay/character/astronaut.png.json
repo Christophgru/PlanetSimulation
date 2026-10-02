@@ -131,8 +131,14 @@
     "atmosphere_refractive_index": 1.0002899200095918,
     "atmosphere_relative_humidity": 0.8684600670525447,
     "atmospheric_illuminance": 0.19519243682195875,
+    "body_mesh_triangles": [
+      100000,
+      960
+    ],
     "camera_mode": "third_person",
     "direct_illuminance": 3.611535003024524,
+    "effective_foliage_budget": 100000,
+    "effective_foliage_distance_m": 40.0,
     "exposure": 0.17512816171969284,
     "foliage_blades": 0,
     "foliage_candidates": 0,
@@ -144,8 +150,15 @@
     "foliage_patch_bytes": 0,
     "foliage_patches": 0,
     "height": 360,
+    "lens_flare_strength": 0.0,
+    "lens_flare_visible_sun_pixels": 0,
     "metered_illuminance": 3.806735936243778,
     "non_background_pixels": 230072,
+    "offline": {
+      "enabled": false,
+      "foliage_distance_multiplier": 20.0,
+      "lens_flare": true
+    },
     "reflected_illuminance": 7.496397295090353e-06,
     "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
     "samples": 0,
@@ -157,6 +170,7 @@
     "sky_mean_display_luminance": 0.0,
     "sky_pixels": 0,
     "sky_sensitivity": 0.0027363775268702006,
+    "sun_mesh_triangles": 2048,
     "terrain_luminance_stddev": 0.06654344428620168,
     "terrain_max_display_luminance": 0.5776901960784313,
     "terrain_mean_display_luminance": 0.5126778594143419,
@@ -391,7 +405,7 @@
       "direction_ned": [
         0.04977897425745842,
         0.9955794851491649,
-        -0.07964635881193316
+        -0.07964635881193322
       ],
       "fov": 65.0,
       "latitude_deg": -21.409888069265286,
@@ -400,8 +414,8 @@
       "reference_frame": "planet_spherical_ned",
       "simulation_time_seconds": 20.0,
       "up_ned": [
-        -0.0039773493573256324,
-        -0.07954698714652225,
+        -0.00397734935732541,
+        -0.07954698714652228,
         -0.9968231826798577
       ],
       "walk_speed_mps": 80.0
@@ -412,7 +426,7 @@
     "altitude": 0.003,
     "direction_ned": [
       0.04977897425745842,
-      0.9955794851491649,
+      0.9955794851491648,
       -0.07964635881193322
     ],
     "fov": 65.0,
@@ -422,9 +436,9 @@
     "reference_frame": "planet_spherical_ned",
     "simulation_time_seconds": 20.0,
     "up_ned": [
-      -0.00397734935732541,
-      -0.07954698714652228,
-      -0.9968231826798577
+      -0.003977349357325355,
+      -0.07954698714652236,
+      -0.9968231826798576
     ],
     "walk_speed_mps": 80.0
   }
