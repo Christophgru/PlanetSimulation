@@ -33,6 +33,22 @@ That is GPU working memory, not transfer. Interactive rendering never reads the
 counts back; capture diagnostics do. Core OpenGL 3.3 retains procedural vertex
 generation, and `compute_placement=false` selects it explicitly.
 
+The current frozen capture independently confirms 100,000 reserved candidates,
+8,666 patch IDs, 10,984 drawn blades, 130,716 vertices and 108,748 triangles.
+Its initial grass upload is 34,664 bytes and the next three cached frames upload
+zero bytes. The indirect queues reserve 12,800,032 bytes; that allocation is
+distinct from CPU-to-GPU traffic. Culling on/off and replay PNG hashes match on
+the current Xvfb host. The [checkpoint evidence](procedural/validation/todo-grass-evidence.json)
+preserves these counts and hashes.
+
+At the frozen scene's 100,000-triangle land ceiling, the interleaved land mesh
+and indices upload 12,000,000 bytes: about 346 times its grass patch list.
+Grass is only 0.288% of that combined land-plus-grass buffer payload. This
+comparison excludes water, uniforms and driver overhead. It supports focusing
+future transfer work on persistent terrain tiles and partial mesh updates,
+while the existing timing study points to atmosphere and opaque grass execution
+for frame-time improvements. Lower buffer traffic alone is not an FPS result.
+
 The user subsequently removed the separate horizon tuft layer and all its
 configuration controls. The sole grass layer uses `enabled`, `draw_distance_m`
 and `max_blades`; the working scene retains its configured cutoff. The shared terrain
