@@ -1040,7 +1040,8 @@ these rules on the GPU. Invalid values are rejected before a scene reload.
 
 Grass geometry now hot-swaps between a **six-segment strip** (14 vertices,
 12 triangles) and a **single tapered quad** (4 vertices, 2 triangles), following
-Quick_Grass's high/low geometry selection. A narrow top edge keeps both low
+Quick_Grass's high/low geometry selection: six quads close to the camera and
+one quad farther away, each quad made from two triangles. A narrow top edge keeps both low
 triangles nondegenerate. The camera-to-triangle bound selects geometry every
 rendered frame, without regenerating or uploading roots. Blades straighten
 between half of `quad_distance_m` and that threshold. The default `0` selects

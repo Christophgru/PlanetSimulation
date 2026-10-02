@@ -61,7 +61,14 @@ six-segment strips use 14 vertices/12 triangles, and distant tapered quads use
 4 vertices/2 triangles. A top edge at 10% of root width makes both low triangles
 nondegenerate. Current triangle bounds select high/low geometry every rendered
 frame, including movement within a cached plan. No root regeneration or buffer
-upload is required for a geometry swap. A triangle stays detailed until its
+upload is required for a geometry swap. The October 2 clean 50/50 CTest run also validates this geometry checkpoint.
+`GPUGeneratedNearRootsHotSwapWithoutAnUpload` and
+`ConfigurableQuadDistanceChangesGeometryWithoutReplacingRoots` exercise the
+production GPU paths; full-blade pixel checks cover interior shading agreement.
+The requested six/one polygon convention counts quads: the actual rasterized
+counts are twelve/two triangles. The existing geometry is already active.
+
+A triangle stays detailed until its
 nearest possible root has passed the detail threshold; by then all blades are
 straight, so removing intermediate vertices preserves their shape. Reflection
 passes share the main camera's geometry choice.
