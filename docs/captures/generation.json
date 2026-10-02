@@ -2,7 +2,7 @@
   "source_sha256": "95d395225a3316c3989b2164e9fc6b07e363bd5281aaa07635ce4089a604fff8",
   "version": "0.0.1",
   "base_revision": "b7cf4aa12875e91490caee1029b5fb39bbdc7578",
-  "source_state": "working tree at capture time; see source_sha256",
+  "source_state": "Mixed capture generations: per-image source_sha256/base_revision override the gallery defaults for refreshed standing views; other 20 captures retain their original provenance.",
   "renderer": "name of display: :99\ndisplay: :99  screen: 0\ndirect rendering: Yes\nExtended renderer info (GLX_MESA_query_renderer):\n    Vendor: Mesa/X.org (0xffffffff)\n    Device: llvmpipe (LLVM 15.0.6, 256 bits) (0xffffffff)\n    Version: 22.3.6\n    Accelerated: no\n    Video memory: 39925MB\n    Unified memory: yes\n    Preferred profile: core (0x1)\n    Max core profile version: 4.5\n    Max compat profile version: 4.5\n    Max GLES1 profile version: 1.1\n    Max GLES[23] profile version: 3.2\nOpenGL vendor string: Mesa/X.org\nOpenGL renderer string: llvmpipe (LLVM 15.0.6, 256 bits)\nOpenGL core profile version string: 4.5 (Core Profile) Mesa 22.3.6\nOpenGL core profile shading language version string: 4.50\nOpenGL core profile context flags: (none)\nOpenGL core profile profile mask: core profile\n\nOpenGL version string: 4.5 (Compatibility Profile) Mesa 22.3.6\nOpenGL shading language version string: 4.50\nOpenGL context flags: (none)\nOpenGL profile mask: compatibility profile\n\nOpenGL ES profile version string: OpenGL ES 3.2 Mesa 22.3.6\nOpenGL ES profile shading language version string: OpenGL ES GLSL ES 3.20\n\n",
   "display": "GL window/Xvfb",
   "images": [
@@ -79,16 +79,22 @@
     {
       "image": "astronaut.png",
       "version": "0.0.1",
-      "generated_utc": "2026-10-02T17:01:50+00:00",
-      "sha256": "19b788f1f32fd19d258319dee6d831411be7778dc8c092327bbe925d6690915d",
-      "command": "/workspace/build-resume/PlanetSimulation --replay /workspace/docs/captures/replay/character/astronaut.png.json --surface-capture /workspace/build-resume/readme-captures/astronaut.png"
+      "generated_utc": "2026-10-02T19:50:10+00:00",
+      "sha256": "0fe8b2ececc371eb638cbf6748723ee7949fe1124ca9dcf0f7398d6aeb6815d8",
+      "command": "/workspace/build-resume/PlanetSimulation --replay /workspace/docs/journal/character/standing/replay/astronaut-input.json --astronaut-capture /workspace/build-resume/standing/astronaut.png --render-size 640 360",
+      "source_sha256": "d8218b326f4898f0bab98354ebad9aeea8afe36abff7b74424dccf50d4bd81e7",
+      "base_revision": "d77ef01bd3696df1f61c54e1851448f9e5cf63c6",
+      "source_state": "standing update working tree; per-image source fingerprint overrides the gallery default"
     },
     {
       "image": "astronaut-front.png",
       "version": "0.0.1",
-      "generated_utc": "2026-10-02T17:01:58+00:00",
-      "sha256": "354d700837040d301ee12d5e6672ca792eb46540855f6d009418f01fcdd36586",
-      "command": "/workspace/build-resume/PlanetSimulation --replay /workspace/docs/captures/replay/character/astronaut-front.png.json --surface-capture /workspace/build-resume/readme-captures/astronaut-front.png"
+      "generated_utc": "2026-10-02T19:50:10+00:00",
+      "sha256": "7cd2005d12374fea69eb7bb8c1950eee6a4845c7714c610deded497a5d082317",
+      "command": "/workspace/build-resume/PlanetSimulation --replay /workspace/docs/journal/character/standing/replay/astronaut-front-input.json --astronaut-capture /workspace/build-resume/standing/astronaut-front.png --render-size 640 360",
+      "source_sha256": "d8218b326f4898f0bab98354ebad9aeea8afe36abff7b74424dccf50d4bd81e7",
+      "base_revision": "d77ef01bd3696df1f61c54e1851448f9e5cf63c6",
+      "source_state": "standing update working tree; per-image source fingerprint overrides the gallery default"
     },
     {
       "image": "astronaut-jetpack.png",

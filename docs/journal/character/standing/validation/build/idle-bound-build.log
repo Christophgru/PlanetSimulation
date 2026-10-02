@@ -1,0 +1,10 @@
+[1/10] Building CXX object CMakeFiles/planet_character.dir/src/rendering/character/AstronautMotion.cpp.o
+[2/10] Linking CXX static library libplanet_character.a
+[3/10] Linking CXX executable PlanetSimulation
+[4/10] Linking CXX executable tests/renderer_lifecycle_tests
+[5/10] Linking CXX executable tests/mesh_geometry_tests
+[6/10] Linking CXX executable tests/terrain_shadow_render_tests
+[7/10] Linking CXX executable tests/foliage_benchmark
+[8/10] Linking CXX executable tests/atmosphere_render_tests
+[9/10] Building CXX object tests/CMakeFiles/astronaut_motion_tests.dir/character/test_astronaut_motion.cpp.o
+[10/10] Linking CXX executable tests/astronaut_motion_tests

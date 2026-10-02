@@ -15,7 +15,8 @@ nlohmann::json Renderer::Impl::astronautState() const {
         {"forward",vector(p.forward)},{"right",vector(p.right)},{"arm_swing",p.armSwing},{"walked_m",p.walkedMeters},
         {"height_m",p.flightHeight},{"vertical_velocity_mps",p.verticalVelocity},{"effect_s",p.effectSeconds},
         {"boost_pulse_s",p.boostPulse},{"airborne",p.airborne},{"jetpack_armed",p.jetpackArmed},{"boosting",p.boosting},
-        {"velocity_mps",vector(p.velocity)},{"suit_up",vector(p.suitUp)},{"thrust_n",p.thrustN}};
+        {"velocity_mps",vector(p.velocity)},{"suit_up",vector(p.suitUp)},{"thrust_n",p.thrustN},
+        {"body_offset_m",vector(p.bodyOffset)}};
     result["flight_physics"]={{"mass_kg",JetpackPhysics::massKg},{"drag_area_cd_m2",JetpackPhysics::dragArea},
         {"commanded_horizontal_speed_mps",JetpackPhysics::speedTarget},{"maximum_thrust_n",astronaut.motion.maximumThrust()},
         {"air_pressure_pa",astronaut.motion.airPressure()},{"air_density_kg_m3",astronaut.motion.airDensity()},
@@ -92,6 +93,7 @@ void Renderer::Impl::prepareAstronaut(double elapsed) {
             p.velocity=j.contains("velocity_mps") ? vector(j.at("velocity_mps")) : p.up*p.verticalVelocity;
             p.suitUp=j.contains("suit_up") ? vector(j.at("suit_up")) : p.up;
             p.thrustN=j.value("thrust_n",0.0);
+            p.bodyOffset=j.contains("body_offset_m") ? vector(j.at("body_offset_m")) : glm::dvec3(0);
             if (!j.at("feet").is_array() || j.at("feet").size()!=2)
                 throw std::invalid_argument("Astronaut replay needs two feet");
             for (int i=0;i<2;++i) {

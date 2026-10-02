@@ -1,0 +1,25 @@
+Internal ctest changing into directory: /workspace/build-resume
+Test project /workspace/build-resume
+    Start  4: CameraInputTests
+1/7 Test  #4: CameraInputTests .................   Passed    0.01 sec
+    Start  5: AstronautMotionTests
+2/7 Test  #5: AstronautMotionTests .............   Passed    0.03 sec
+    Start 23: PlanetSurfaceCameraTests
+3/7 Test #23: PlanetSurfaceCameraTests .........   Passed    0.01 sec
+    Start 25: RenderSceneIntegration
+4/7 Test #25: RenderSceneIntegration ...........   Passed    1.98 sec
+    Start 31: AstronautCaptureIntegration
+5/7 Test #31: AstronautCaptureIntegration ......***Timeout 180.11 sec
+
+    Start 45: AstronautInputIntegration
+6/7 Test #45: AstronautInputIntegration ........   Passed   14.87 sec
+    Start 50: RepositoryLayout
+7/7 Test #50: RepositoryLayout .................   Passed    0.29 sec
+
+86% tests passed, 1 tests failed out of 7
+
+Total Test time (real) = 197.33 sec
+
+The following tests FAILED:
+	 31 - AstronautCaptureIntegration (Timeout)
+Errors while running CTest

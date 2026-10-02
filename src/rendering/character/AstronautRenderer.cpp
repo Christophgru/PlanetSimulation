@@ -46,21 +46,25 @@ void AstronautRenderer::draw(const glm::dvec3& planetCenter,const glm::dmat3& or
         const glm::dmat3 rotation(x,y,glm::cross(x,y));
         part((a+b)*.5,{width,glm::length(span)*.5+width*.35,width},color,rotation);
     };
-    part({0,1.01,0},{.28,.30,.19},grey); // Suit torso.
-    part({0,.76,0},{.25,.15,.18},blue);
-    part({0,1.12,.22},{.22,.26,.12},dark); // Backpack behind the actor.
-    part({-.23,1.1,.23},{.055,.23,.065},blue);
-    part({.23,1.1,.23},{.055,.23,.065},blue);
-    part({0,1.02,-.18},{.14,.13,.055},blue); // Chest control panel.
-    part({-.045,1.06,-.225},{.035,.035,.012},dark);
-    part({.045,1.06,-.225},{.022,.022,.012},grey);
-    part({0,1.30,0},{.22,.06,.20},dark); // Neck seal.
-    part({0,1.48,0},{.34,.32,.32},grey);
-    part({0,1.49,-.23},{.285,.215,.145},dark); // Visor seal.
-    part({0,1.49,-.263},{.255,.183,.13},visor,glm::dmat3(1),1);
-    part({-.095,1.565,-.370},{.08,.025,.009},grey); // Comic glint.
-    part({-.33,1.46,0},{.04,.095,.095},blue);
-    part({.33,1.46,0},{.04,.095,.095},blue);
+    const auto upperPart=[&](const glm::dvec3& center,const glm::dvec3& scale,const glm::vec3& color,
+                             const glm::dmat3& rotation=glm::dmat3(1),float shine=0,float glow=0) {
+        part(center+pose.bodyOffset,scale,color,rotation,shine,glow);
+    };
+    upperPart({0,1.01,0},{.28,.30,.19},grey); // Suit torso.
+    upperPart({0,.76,0},{.25,.15,.18},blue);
+    upperPart({0,1.12,.22},{.22,.26,.12},dark); // Backpack behind the actor.
+    upperPart({-.23,1.1,.23},{.055,.23,.065},blue);
+    upperPart({.23,1.1,.23},{.055,.23,.065},blue);
+    upperPart({0,1.02,-.18},{.14,.13,.055},blue); // Chest control panel.
+    upperPart({-.045,1.06,-.225},{.035,.035,.012},dark);
+    upperPart({.045,1.06,-.225},{.022,.022,.012},grey);
+    upperPart({0,1.30,0},{.22,.06,.20},dark); // Neck seal.
+    upperPart({0,1.48,0},{.34,.32,.32},grey);
+    upperPart({0,1.49,-.23},{.285,.215,.145},dark); // Visor seal.
+    upperPart({0,1.49,-.263},{.255,.183,.13},visor,glm::dmat3(1),1);
+    upperPart({-.095,1.565,-.370},{.08,.025,.009},grey); // Comic glint.
+    upperPart({-.33,1.46,0},{.04,.095,.095},blue);
+    upperPart({.33,1.46,0},{.04,.095,.095},blue);
     for (int leg=0;leg<2;++leg) {
         const auto hip=inverse*(pose.hips[leg]-pose.root);
         const auto knee=inverse*(pose.knees[leg]-pose.root);
@@ -76,9 +80,9 @@ void AstronautRenderer::draw(const glm::dvec3& planetCenter,const glm::dmat3& or
         const auto bootCenter=inverse*(foot.contact.position+up*.09-pose.root);
         part(bootCenter,{.12,.09,.21},dark,inverse*footBasis);
         const double sign=leg==0 ? -1 : 1;
-        const glm::dvec3 shoulder(sign*.28,1.16,0);
-        const glm::dvec3 elbow(sign*.36,.93,sign*pose.armSwing);
-        const glm::dvec3 hand(sign*.34,.72,-.04+sign*pose.armSwing);
+        const auto shoulder=glm::dvec3(sign*.28,1.16,0)+pose.bodyOffset;
+        const auto elbow=glm::dvec3(sign*.36,.93,sign*pose.armSwing)+pose.bodyOffset;
+        const auto hand=glm::dvec3(sign*.34,.72,-.04+sign*pose.armSwing)+pose.bodyOffset;
         part(shoulder,{.13,.13,.13},blue);
         limb(shoulder,elbow,.095,grey); limb(elbow,hand,.08,grey);
         part(hand,{.095,.11,.095},blue);
@@ -99,8 +103,8 @@ void AstronautRenderer::draw(const glm::dvec3& planetCenter,const glm::dmat3& or
     }
     // Two nozzles beneath the backpack. Bubbles are procedural, bounded and
     // use the same local animation phase in main and reflected views.
-    part({-.12,.82,.23},{.065,.07,.065},blue);
-    part({.12,.82,.23},{.065,.07,.065},blue);
+    upperPart({-.12,.82,.23},{.065,.07,.065},blue);
+    upperPart({.12,.82,.23},{.065,.07,.065},blue);
     if (pose.boosting) {
         const bool blended=glIsEnabled(GL_BLEND);
         GLboolean writes; glGetBooleanv(GL_DEPTH_WRITEMASK,&writes);

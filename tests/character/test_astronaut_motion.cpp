@@ -10,6 +10,10 @@ rendering::GroundContact sphere(const glm::dvec3& v) {
     return {1000.0*radial,radial};
 }
 glm::dvec3 point(double distance) { return {0,1000*std::cos(distance/1000),-1000*std::sin(distance/1000)}; }
+double straightness(const rendering::AstronautPose& p,int leg) {
+    return glm::dot(glm::normalize(p.knees[leg]-p.hips[leg]),
+                    glm::normalize(p.ankles[leg]-p.knees[leg]));
+}
 }
 TEST(AstronautMotion, RestingFeetRemainFixedAndIKReachesBothSoles) {
     rendering::AstronautMotion motion;
@@ -24,7 +28,73 @@ TEST(AstronautMotion, RestingFeetRemainFixedAndIKReachesBothSoles) {
         EXPECT_LT(glm::length(p.ankles[leg]-(p.feet[leg].contact.position+p.feet[leg].contact.normal*.09)),1e-5);
         EXPECT_NEAR(glm::length(p.knees[leg]-p.hips[leg]),std::hypot(.47,.10),1e-6);
         EXPECT_NEAR(glm::length(p.ankles[leg]-p.knees[leg]),std::hypot(.47,.10),1e-6);
+        EXPECT_GT(straightness(p,leg),.99999);
     }
+    EXPECT_GT(motion.pose().bodyOffset.y,.29);
+}
+TEST(AstronautMotion, StoppingExtendsKneesWithFixedSolesAndFiniteTransitions) {
+    rendering::AstronautMotion motion;
+    for (int i=0;i<50;++i) motion.update(sphere(point(i*.04)),{0,0,-1},.02,sphere);
+    const auto root=sphere(motion.pose().root);
+    for (int i=0;i<30;++i) motion.update(root,{0,0,-1},.02,sphere);
+    ASSERT_FALSE(motion.animating());
+    const auto feet=motion.pose().feet;
+    const auto saved=motion.pose();
+    rendering::AstronautMotion replay; replay.restore(saved);
+    for (int i=0;i<100;++i) {
+        const auto before=motion.pose().bodyOffset;
+        motion.update(root,{0,0,-1},.02,sphere);
+        replay.update(root,{0,0,-1},.02,sphere);
+        EXPECT_LT(glm::length(motion.pose().bodyOffset-before),.05);
+        EXPECT_EQ(motion.pose().bodyOffset,replay.pose().bodyOffset);
+        EXPECT_EQ(motion.pose().knees,replay.pose().knees);
+        for (int leg=0;leg<2;++leg) EXPECT_EQ(motion.pose().feet[leg].contact.position,feet[leg].contact.position);
+    }
+    for (int leg=0;leg<2;++leg) {
+        const auto& p=motion.pose();
+        // The locked stride spans curved ground; allow at most two degrees
+        // of residual bend while preserving both contacts and segment lengths.
+        EXPECT_GT(straightness(p,leg),std::cos(glm::radians(2.0)));
+        EXPECT_NEAR(glm::length(p.knees[leg]-p.hips[leg]),std::hypot(.47,.10),1e-6);
+        EXPECT_NEAR(glm::length(p.ankles[leg]-p.knees[leg]),std::hypot(.47,.10),1e-6);
+        EXPECT_TRUE(p.legReached[leg]);
+    }
+}
+TEST(AstronautMotion, UnevenStandingPreservesReachInsteadOfOverstretchingALeg) {
+    const rendering::GroundQuery slope=[](const glm::dvec3& p) {
+        const auto radial=glm::normalize(p);
+        return rendering::GroundContact{radial*(1000+radial.x*300),glm::normalize(radial-glm::dvec3(.3,0,0))};
+    };
+    rendering::AstronautMotion motion;
+    motion.update(slope(point(0)),{0,0,-1},0,slope);
+    const auto feet=motion.pose().feet;
+    for (int i=0;i<50;++i) motion.update(slope(point(0)),{0,0,-1},.02,slope);
+    const auto& p=motion.pose();
+    EXPECT_GT(std::max(straightness(p,0),straightness(p,1)),.99999);
+    EXPECT_LT(std::min(straightness(p,0),straightness(p,1)),.99);
+    for (int leg=0;leg<2;++leg) {
+        EXPECT_EQ(p.feet[leg].contact.position,feet[leg].contact.position);
+        EXPECT_TRUE(p.legReached[leg]);
+        EXPECT_LT(glm::length(p.ankles[leg]-(feet[leg].contact.position+feet[leg].contact.normal*.09)),1e-5);
+        EXPECT_NEAR(glm::length(p.knees[leg]-p.hips[leg]),std::hypot(.47,.10),1e-6);
+        EXPECT_NEAR(glm::length(p.ankles[leg]-p.knees[leg]),std::hypot(.47,.10),1e-6);
+    }
+}
+TEST(AstronautMotion, UnreachableCliffContactDoesNotPullTheBodyBelowGround) {
+    const rendering::GroundQuery cliff=[](const glm::dvec3& p) {
+        const auto radial=glm::normalize(p);
+        return rendering::GroundContact{radial*(p.x<-.1 ? 990.0 : 1000.0),radial};
+    };
+    rendering::AstronautMotion motion;
+    motion.update(cliff(point(0)),{0,0,-1},0,cliff);
+    EXPECT_GE(motion.pose().bodyOffset.y,-.25);
+    EXPECT_LE(glm::length(motion.pose().bodyOffset),.75);
+    EXPECT_FALSE(motion.pose().legReached[0]);
+    EXPECT_TRUE(motion.pose().legReached[1]);
+    EXPECT_NEAR(glm::length(motion.pose().root),1000,1e-9);
+    EXPECT_NEAR(glm::length(motion.pose().feet[0].contact.position),990,1e-9);
+    rendering::AstronautMotion replay;
+    EXPECT_NO_THROW(replay.restore(motion.pose()));
 }
 TEST(AstronautMotion, WalkingAlternatesLiftedFeetWithoutSlidingTheStanceContact) {
     rendering::AstronautMotion motion;
@@ -109,8 +179,11 @@ TEST(AstronautMotion, ReplayValidatesAndRestoresTheCompleteWalkingPose) {
     replay.restore(p);
     EXPECT_EQ(replay.pose().root,p.root);
     EXPECT_EQ(replay.pose().knees,p.knees);
+    EXPECT_EQ(replay.pose().bodyOffset,p.bodyOffset);
     EXPECT_EQ(replay.pose().feet[0].contact.position,p.feet[0].contact.position);
     auto bad=p; bad.feet[0].progress=std::numeric_limits<double>::quiet_NaN();
+    EXPECT_THROW(replay.restore(bad),std::invalid_argument);
+    bad=p; bad.bodyOffset.x=std::numeric_limits<double>::infinity();
     EXPECT_THROW(replay.restore(bad),std::invalid_argument);
 }
 TEST(AstronautMotion, WalkingAndSprintingAtSixAndTwelveMetersKeepStanceFeetLocked) {

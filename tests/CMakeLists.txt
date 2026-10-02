@@ -166,7 +166,9 @@ add_test(NAME OfflineCaptureIntegration COMMAND ${Python3_EXECUTABLE}
     --binary $<TARGET_FILE:PlanetSimulation>
     --output-dir ${CMAKE_BINARY_DIR}/offline-captures)
 set_tests_properties(OfflineCaptureIntegration PROPERTIES TIMEOUT 180)
-set_tests_properties(AstronautCaptureIntegration PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 180)
+# Standing, gait, flight and grass-trail captures each include exact replay.
+# Allow their complete HDR/reflection sequence plus software-GL shader startup.
+set_tests_properties(AstronautCaptureIntegration PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 300)
 add_executable(cpu_trace_tests diagnostics/tracing/test_cpu_trace.cpp)
 target_link_libraries(cpu_trace_tests PRIVATE planet_diagnostics GTest::gtest_main nlohmann_json::nlohmann_json)
 target_compile_definitions(cpu_trace_tests PRIVATE PLANET_CPU_TRACE_TEST="${CMAKE_BINARY_DIR}/cpu-trace-test.json")

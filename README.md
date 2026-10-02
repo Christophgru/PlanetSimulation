@@ -739,7 +739,8 @@ active. Esc releases the mouse in either walking camera.
 
 The procedural astronaut wears a grey suit with blue details and small German
 flags on the upper arms. Planet-local planted feet and ozz two-bone IK provide
-an initial gait. Jump gravity derives from planet mass, radius and spin;
+an initial gait. At rest, the body rises into straight knees while the boots
+stay planted; uneven ground retains the bend needed for contact. Jump gravity derives from planet mass, radius and spin;
 flight uses atmospheric drag and a shared thrust limit, with a 100 m/s
 horizontal command target. See the
 [implementation and validation notes](docs/journal/character/astronaut.md) and

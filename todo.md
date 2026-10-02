@@ -29,6 +29,8 @@ document the progress and add comments such that when interrupted you can contin
 |Make the Sand more white and add some granularity to it (foliage or roughness/reflection map maybe in combination with tiny elevation noise that creates tiny dunes (only some cm high, as reference take image USER_IO/user_artifacts/image copy 2.png) that are often visible in sand in windy areas)|t| Pale granular sand with filtered, planet-fixed 18 cm wind ripples and bounded 1.4 cm normal relief; no extra triangles or collision changes. Clean 52/52 CTest suite (530.86 s); 22 gallery images, shoreline comparison, journal/PDF and capture hashes updated/verified. |
 |Prepare a short journal in typst on wether its feasable to port the current application to a web assembly application and evaluate the advantages and disadvantages in a short 2 page memo. Add some graphics on how the compilation process works, what runtime dependencies there are and where the main caviats might lie.|t| Two-page Typst/PDF feasibility memo with compilation/runtime diagrams, audited dependency and renderer changes, threading/storage/HDR caveats, WebGL/WebGPU tradeoffs and acceptance gates. Compiles to exactly two pages; visually reviewed, layout/whitespace and artifact hashes verified. Feasibility assessment only; no browser port or FPS claim. |
 |Make the astronaut not move his arms during jetpack phase, also in jetpack, wasd go on acceleration, calculate some upper speed limit of 100m/s for horizontal movement on sea level on the main planet (calc air pessure) but should be the same also on other planets, what power the jetpack would need to have. Falling should also be physically sound and bound by wind resistance. Assume the Astronaut is 100kg and the jetpack can thrust only down, so its thrust must be directed in the direction we want to fly in.  |t| Single-axis tilted thrust, quiet arms, 100 kg rotating-frame gravity and pressure-dependent drag; WASD commands acceleration toward 100 m/s with one main-planet-sized engine on every planet. Reproducible 8.29 kN / conditional 6.91 MW power study. All 52 entries validated via full run (51 passed) plus atmosphere timeout recheck; 19 CPU cases, exact upright/tilted replay, native input, 22 verified gallery images and journal/PDF updated.|
+|The Knees of the astronaut are also always bent, make him stand with straigh knees if hes nor walking.|t| Settled standing raises the pelvis over fixed soles; torso/arms/backpack and chase camera follow the replayable offset. Original bone lengths retained; terrain/cliff reach bounded. Clean 8/8 focused checks (133.62 s), including 22 CPU cases, standing/walking/flight/trail exact replay and native input. Two standing gallery views, comparison, journal/PDF and verified capture provenance updated.|
+|Make jetpack flight controls fire thrust whenever a movement button is pressed: WASD supplies directional thrust even without Space, Space supplies upward thrust, and looking down while pressing W allows descent. Keep orientation aligned to the nearby planet within 1.2 body diameters; outside that boundary switch to free outer-space orientation, allow flight to the Moon, and align to the destination body when entering its 1.2-diameter boundary. In outer-space mode always calculate gravity from the three closest celestial bodies.| |Queued on user request and extended with space-flight requirements. Interpret the boundary as centre distance = 1.2 diameters = 2.4 radii. Directional input ignites thrust without Space; W/S follow the 3D camera look direction, including descent. Plan continuous world-space position/velocity and smooth frame changes, destination selection/hysteresis, camera following and local atmospheric drag. Outer-space gravity sums inverse-square vector contributions from the three nearest celestial bodies (or all available if fewer than three), updated as proximity changes. Retain shared engine/nozzle bounds and test directional-only thrust, ascent/descent, planet exit, Moon approach, destination reorientation, nearest-body selection and replay.|
 |Improve the offline / raytracing example in README.md: increase foliage count and use the initial surface position from the production config; consider rendering narrower vertical columns with higher terrain/foliage budgets and assembling them into the final image; make lens flare visibly apparent. Start after the preceding tasks are finished.| |Queued on user request; evaluate strip projection, overlap and image assembly while preserving full-frame lighting/exposure and flare placement. No renderer changes for this task yet.|
 |Form a terrain/atmosphere CPU–GPU implementation plan before starting GPU terrain work. Audit the existing pipeline and evaluate hexagonal planet panels, seams/poles and alternatives. Define CPU ownership of subdivision/LOD/sinking and GPU ownership of noise, surface shape and atmospheric fields, including ground contacts, shadows/reflections, supported GPU paths and validation/performance budgets.| |Planning prerequisite for the following terrain/atmosphere tasks. Document CPU/GPU ownership before implementation, and assess seams, poles and spherical exceptions for hexagonal panels.|
 |Implement highly optimized GPU terrain shaping according to the completed CPU–GPU plan. Pass noise/shape parameters and minimal panel/topology descriptors; calculate surface positions/normals/material inputs on the GPU. Keep CPU subdivision and sinking where the plan calls for them.| |Depends on the architecture plan. Preserve planetary coordinates, camera/astronaut contacts, water/shadow/reflection agreement, deterministic replay and a documented compatible fallback; measure transfers and generation costs.|
@@ -81,6 +83,31 @@ current terrain-validation container has these tools and registers all 45
 tests. The install command above restores them on hosts where they are absent;
 reconfigure afterwards. Valgrind is only needed to recollect the independent
 instruction profile.
+
+## Standing checkpoint — 2026-10-02
+
+- Completed the straight-idle-knees row. Settled grounded poses raise the
+  pelvis over fixed soles; suit, arms/backpack and chase camera share a
+  replayable suit-local offset. Bone lengths and 6/12 m/s walking remain.
+  Uneven ground preserves needed bend; cliff contacts cannot sink the torso.
+- Clean final 8/8 focused checks pass in 133.62 s, with 22 CPU motion cases,
+  HDR/reflection standing/gait/flight/trail replay, lifecycle and native input.
+  This is scoped validation, not a fresh full 52-entry run. An earlier capture
+  sequence exceeded 180 s; bounded allowance is now 300 s, final pass 115.28 s.
+- Two standing gallery examples freshly posed/rendered and visually reviewed;
+  all 22 PNG hashes and both new per-image source fingerprints verified. Other
+  20 captures retain their original provenance. Legacy front pose replays
+  byte-identically. Journal PDF rebuilt after publication and reviewed.
+- Comparison, replays and logs: `docs/journal/character/standing/`;
+  explanation: `docs/journal/character/standing.md`.
+- User's next jetpack task is queued: directional input fires without Space,
+  W follows the full look direction (including descent), Space is up; align
+  locally within centre distance 1.2 diameters (2.4 radii), free flight outside,
+  Moon/destination alignment on approach, gravity from three nearest bodies.
+  Plan continuous world velocity, overlapping influence regions and frame
+  transitions before implementation. These new flight controls are not yet built.
+- Commit standing work before starting that flight row. Preserve other queued
+  astronaut/model tasks, user history reordering and the added sand-noise row.
 
 ## Jetpack checkpoint — 2026-10-02
 

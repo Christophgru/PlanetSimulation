@@ -29,6 +29,17 @@ targets sample the ground and use a smooth interpolation plus 15 cm lift.
 Cadence increases with movement speed; substeps bound time and displacement
 before solving the joints. Boots align to their contact normals.
 
+On level ground, settled standing extends both knees and raises the pelvis
+approximately 30 cm, preserving the existing leg lengths and locked soles.
+The torso, arms, backpack and chase camera follow this suit-local adjustment.
+The body settles over the two ankle targets with a 0.10 s response time once
+the final walking swing finishes. Walking lowers the pelvis for joint reach;
+flight retains its tucked-leg pose. Uneven ground limits extension to the
+lower ankle's reach, allowing the other knee to bend. Fully extended chains
+use an analytic collinear midpoint to avoid a singular float IK bend plane.
+Replay stores the body offset; old sidecars default to their original offset.
+See the [standing comparison and validation](standing.md).
+
 Contacts intersect the resident rendered terrain triangles, including their
 LOD sinking. A small triangle cache avoids repeated whole-mesh scans for
 stationary feet. Mesh replacement invalidates the cache and resamples stance

@@ -1,0 +1,22 @@
+Internal ctest changing into directory: /workspace/build-resume
+Test project /workspace/build-resume
+    Start  1: RendererLifecycleTests
+1/8 Test  #1: RendererLifecycleTests ...........   Passed    7.53 sec
+    Start  4: CameraInputTests
+2/8 Test  #4: CameraInputTests .................   Passed    0.01 sec
+    Start  5: AstronautMotionTests
+3/8 Test  #5: AstronautMotionTests .............   Passed    0.02 sec
+    Start 23: PlanetSurfaceCameraTests
+4/8 Test #23: PlanetSurfaceCameraTests .........   Passed    0.01 sec
+    Start 25: RenderSceneIntegration
+5/8 Test #25: RenderSceneIntegration ...........   Passed    1.40 sec
+    Start 31: AstronautCaptureIntegration
+6/8 Test #31: AstronautCaptureIntegration ......   Passed  115.28 sec
+    Start 45: AstronautInputIntegration
+7/8 Test #45: AstronautInputIntegration ........   Passed    9.19 sec
+    Start 50: RepositoryLayout
+8/8 Test #50: RepositoryLayout .................   Passed    0.17 sec
+
+100% tests passed, 0 tests failed out of 8
+
+Total Test time (real) = 133.62 sec

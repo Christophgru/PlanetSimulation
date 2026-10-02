@@ -3,36 +3,31 @@
   "astronaut_pose": {
     "airborne": false,
     "arm_swing": 0.0,
-    "body_offset_m": [
-      -0.0033694337001039104,
-      0.29119629959368554,
-      0.023694316400527528
-    ],
     "boost_pulse_s": 0.0,
     "boosting": false,
     "effect_s": 0.0,
     "feet": [
       {
         "ankle": [
-          -210.07065346233782,
-          910.0596537810866,
-          -366.028112942903
+          -210.07065344679674,
+          910.0596536660781,
+          -366.02811289450676
         ],
         "duration_s": 0.24,
         "forward": [
-          -0.9772550365913875,
-          -0.2069085014887216,
-          0.046491563411631354
+          -0.9772550365913876,
+          -0.20690850148872164,
+          0.04649156341163122
         ],
         "hip": [
-          -210.27192220442262,
-          910.9314444816728,
-          -366.3789289457181
+          -210.23398059973488,
+          910.6611537759564,
+          -366.27466280717204
         ],
         "knee": [
-          -210.1712878333802,
-          910.4955491313797,
-          -366.2035209443105
+          -210.48608695121322,
+          910.278178726687,
+          -366.1308834791116
         ],
         "normal": [
           0.05414557246472426,
@@ -59,25 +54,25 @@
       },
       {
         "ankle": [
-          -210.06207893026215,
-          909.9470356776536,
-          -366.3490772920096
+          -210.06207890076658,
+          909.9470355661949,
+          -366.3490772444243
         ],
         "duration_s": 0.24,
         "forward": [
-          -0.9772550365913875,
-          -0.2069085014887216,
-          0.046491563411631354
+          -0.9772550365913876,
+          -0.20690850148872164,
+          0.04649156341163122
         ],
         "hip": [
-          -210.26058137181082,
-          910.8068442318568,
-          -366.69507157691714
+          -210.22263976712307,
+          910.5365535261406,
+          -366.5908054383711
         ],
         "knee": [
-          -210.23891703915743,
-          910.3604924575501,
-          -366.5184342358287
+          -210.48217692525773,
+          910.1578396394987,
+          -366.44897364705633
         ],
         "normal": [
           0.05414557246472426,
@@ -113,17 +108,17 @@
       "maximum_thrust_n": 8292.659299840343
     },
     "forward": [
-      -0.9772550365913875,
-      -0.2069085014887216,
-      0.046491563411631354
+      -0.9772550365913876,
+      -0.20690850148872164,
+      0.04649156341163122
     ],
     "grass_trail": [],
     "height_m": 0.0,
     "jetpack_armed": false,
     "right": [
-      0.033355390034693025,
+      0.03335539003469315,
       -0.36647132298796187,
-      -0.9298312682326223
+      -0.9298312682326222
     ],
     "root": [
       -210.07123931910502,
@@ -147,30 +142,30 @@
       -0.36503745992494496
     ],
     "velocity_mps": [
+      -0.0,
       0.0,
-      0.0,
-      0.0
+      -0.0
     ],
     "vertical_velocity_mps": 0.0,
     "walked_m": 0.0
   },
   "render": {
-    "astronaut_pixels": 4704,
+    "astronaut_pixels": 4504,
     "atmosphere_downsample": 4,
     "atmosphere_liquid_water_g_m3": 0.0,
     "atmosphere_refraction_enabled": true,
     "atmosphere_refractive_index": 1.0002899200095918,
     "atmosphere_relative_humidity": 0.8684600670525447,
-    "atmospheric_illuminance": 0.1929380761463335,
+    "atmospheric_illuminance": 0.19519243682195717,
     "body_mesh_triangles": [
       100000,
       960
     ],
     "camera_mode": "third_person",
-    "direct_illuminance": 3.617669472053162,
+    "direct_illuminance": 3.6176597757132924,
     "effective_foliage_budget": 100000,
     "effective_foliage_distance_m": 40.0,
-    "exposure": 0.17494983983284207,
+    "exposure": 0.17484684533710854,
     "foliage_blades": 0,
     "foliage_candidates": 0,
     "foliage_gpu_compute": false,
@@ -183,8 +178,8 @@
     "height": 360,
     "lens_flare_strength": 0.0,
     "lens_flare_visible_sun_pixels": 0,
-    "metered_illuminance": 3.8106160445967907,
-    "non_background_pixels": 230053,
+    "metered_illuminance": 3.812860708932545,
+    "non_background_pixels": 230073,
     "offline": {
       "enabled": false,
       "foliage_distance_multiplier": 20.0,
@@ -193,19 +188,19 @@
     "reflected_illuminance": 7.496397295090353e-06,
     "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
     "samples": 0,
-    "sky_interior_blue": 0.1464107656567382,
-    "sky_interior_green": 0.13278572202353864,
-    "sky_interior_mean_display_luminance": 0.1267965443011725,
-    "sky_interior_pixels": 65160,
-    "sky_interior_red": 0.0999874817943635,
-    "sky_mean_display_luminance": 0.12762074603329457,
-    "sky_pixels": 65912,
-    "sky_sensitivity": 0.0027335912473881573,
+    "sky_interior_blue": 0.1460667174219905,
+    "sky_interior_green": 0.13278300614997005,
+    "sky_interior_mean_display_luminance": 0.12677331033800718,
+    "sky_interior_pixels": 64361,
+    "sky_interior_red": 0.10000417376122624,
+    "sky_mean_display_luminance": 0.1276043838345669,
+    "sky_pixels": 65103,
+    "sky_sensitivity": 0.002731981958392321,
     "sun_mesh_triangles": 2048,
-    "terrain_luminance_stddev": 0.03780051243876521,
+    "terrain_luminance_stddev": 0.036159282403123175,
     "terrain_max_display_luminance": 0.6006533333333333,
-    "terrain_mean_display_luminance": 0.5474643929155011,
-    "terrain_pixels": 159784,
+    "terrain_mean_display_luminance": 0.5496453401407072,
+    "terrain_pixels": 160793,
     "white_clipped_fraction": 0.0,
     "white_clipped_pixels": 0,
     "width": 640

@@ -3,6 +3,7 @@
 import argparse
 import hashlib
 import json
+import math
 from pathlib import Path
 import subprocess
 
@@ -38,6 +39,14 @@ def capture(name, frames=1, walk=0, replay=None, extra=()):
     return hashlib.sha256(path.read_bytes()).hexdigest(), metadata
 
 idle, first = capture('idle')
+def straightness(foot):
+    upper = [k-h for k,h in zip(foot['knee'],foot['hip'])]
+    lower = [a-k for a,k in zip(foot['ankle'],foot['knee'])]
+    return sum(a*b for a,b in zip(upper,lower))/math.sqrt(sum(a*a for a in upper)*sum(b*b for b in lower))
+assert max(straightness(f) for f in first['astronaut_pose']['feet']) > .99999, 'Settled stance still crouches'
+assert first['astronaut_pose']['body_offset_m'][1] > .15
+idle_replay, standing = capture('idle-replay', replay=out / 'idle.png.json')
+assert idle_replay == idle and standing['astronaut_pose'] == first['astronaut_pose'], 'Standing body offset did not replay exactly'
 walking, moved = capture('walking', frames=9, walk=.06)
 assert walking != idle, 'Walking did not change the image'
 assert moved['astronaut_pose']['root'] != first['astronaut_pose']['root']

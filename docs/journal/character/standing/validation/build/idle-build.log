@@ -1,0 +1,20 @@
+[1/20] Building CXX object CMakeFiles/planet_rendering.dir/src/rendering/character/AstronautRenderer.cpp.o
+[2/20] Building CXX object CMakeFiles/planet_character.dir/src/rendering/character/AstronautMotion.cpp.o
+[3/20] Linking CXX static library libplanet_character.a
+[4/20] Linking CXX static library libplanet_rendering.a
+[5/20] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/TerrainMeshes.cpp.o
+[6/20] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/Renderer.cpp.o
+[7/20] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/ScenePass.cpp.o
+[8/20] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/Capture.cpp.o
+[9/20] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/Character.cpp.o
+[10/20] Linking CXX executable tests/mesh_geometry_tests
+[11/20] Building CXX object tests/CMakeFiles/astronaut_motion_tests.dir/character/test_astronaut_motion.cpp.o
+[12/20] Building CXX object tests/CMakeFiles/astronaut_motion_tests.dir/character/test_jetpack_physics.cpp.o
+[13/20] Linking CXX executable tests/astronaut_motion_tests
+[14/20] Linking CXX executable tests/terrain_shadow_render_tests
+[15/20] Linking CXX executable tests/atmosphere_render_tests
+[16/20] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/Interactive.cpp.o
+[17/20] Linking CXX static library libplanet_app.a
+[18/20] Linking CXX executable PlanetSimulation
+[19/20] Linking CXX executable tests/renderer_lifecycle_tests
+[20/20] Linking CXX executable tests/foliage_benchmark

@@ -56,7 +56,8 @@ void AstronautMotion::restore(const AstronautPose& pose) {
         !std::isfinite(pose.flightHeight) || pose.flightHeight<0 || !std::isfinite(pose.verticalVelocity) ||
         !std::isfinite(pose.effectSeconds) || !std::isfinite(pose.boostPulse) || pose.boostPulse<0 ||
         !valid(pose.velocity) || !valid(pose.suitUp) || std::abs(glm::length(pose.suitUp)-1)>1e-6 ||
-        !std::isfinite(pose.thrustN) || pose.thrustN<0)
+        !std::isfinite(pose.thrustN) || pose.thrustN<0 ||
+        !valid(pose.bodyOffset) || glm::length(pose.bodyOffset)>.75)
         throw std::invalid_argument("Invalid astronaut replay basis");
     for (int leg=0;leg<2;++leg) {
         const auto& f=pose.feet[leg];
@@ -103,12 +104,14 @@ void AstronautMotion::update(const GroundContact& root,const glm::dvec3& lookFor
     const double distance=ready_ && !pose_.airborne ? glm::length(delta-up*glm::dot(delta,up)) : 0;
     // Explicit camera relocation/scene reload is a new placement, not a step.
     if (ready_ && distance>1.5) ready_=false;
+    const bool newlyPlaced=!ready_;
     if (!ready_) {
         const auto fallback=glm::normalize(glm::cross(up,std::abs(up.z)<.9 ? glm::dvec3(0,0,1) : glm::dvec3(0,1,0)));
         pose_.forward=tangent(lookForward,up,fallback);
         pose_.flightHeight=pose_.verticalVelocity=pose_.effectSeconds=pose_.boostPulse=0;
         pose_.airborne=pose_.jetpackArmed=pose_.boosting=false;
         pose_.velocity=glm::dvec3(0); pose_.suitUp=up; pose_.thrustN=0;
+        pose_.bodyOffset=glm::dvec3(0);
     } else pose_.forward=tangent(distance>1e-6 ? delta : pose_.forward,up,pose_.forward);
     pose_.root=pose_.airborne ? previous : root.position; pose_.up=up;
     pose_.right=glm::normalize(glm::cross(pose_.forward,up));
@@ -184,7 +187,7 @@ void AstronautMotion::update(const GroundContact& root,const glm::dvec3& lookFor
             foot.contact={pose_.root+suit[0]*(leg==0 ? -.17 : .17)+suit[2]*.06,suit[1]};
             foot.forward=-suit[2]; foot.progress=.5;
         }
-        solveLegs();
+        solveLegs(false,elapsed);
         return;
     }
     if (wasAirborne) for (int leg=0;leg<2;++leg) {
@@ -214,26 +217,67 @@ void AstronautMotion::update(const GroundContact& root,const glm::dvec3& lookFor
             foot.duration=std::clamp(.40/std::max(2.0,elapsed>0 ? distance/elapsed : 2.0),.02,.24);
         }
     }
-    solveLegs();
+    solveLegs(!moving && !animating(),elapsed,newlyPlaced);
 }
-void AstronautMotion::solveLegs() {
+void AstronautMotion::solveLegs(bool standing,double elapsed,bool newlyPlaced) {
     const auto basis=pose_.suitBasis();
     const auto inverse=glm::transpose(basis);
+    const double legLength=2*std::hypot(.47,.10);
+    glm::dvec3 targets[2];
+    for (int leg=0;leg<2;++leg)
+        targets[leg]=inverse*(pose_.feet[leg].contact.position+
+            pose_.feet[leg].contact.normal*.09-pose_.root);
+    const auto supportHeight=[&](const glm::dvec3& offset) {
+        double height=.5;
+        for (int leg=0;leg<2;++leg) {
+            const auto span=targets[leg]-glm::dvec3(leg==0 ? -.17 : .17,.75,0)-offset;
+            height=std::min(height,targets[leg].y-.75+
+                std::sqrt(std::max(0.0,legLength*legLength-span.x*span.x-span.z*span.z)));
+        }
+        // A cliff can put a locked foot beyond IK reach. Keep the pelvis near
+        // the ground anchor; report unreachable instead of pulling it below ground.
+        return std::clamp(height,-.25,.5);
+    };
+    // Centre the pelvis over the locked ankles, then extend only as far as
+    // both legs can reach. On uneven ground the higher boot still needs bend.
+    glm::dvec3 desired(0);
+    if (standing) {
+        desired=(targets[0]+targets[1])*.5; desired.y=0;
+        if (glm::length(desired)>.5) desired*=.5/glm::length(desired);
+        desired.y=std::clamp(supportHeight(desired),0.0,.5);
+    }
+    if (pose_.airborne) pose_.bodyOffset=glm::dvec3(0);
+    else {
+        const double blend=newlyPlaced ? 1 : 1-std::exp(-elapsed/.10);
+        pose_.bodyOffset=glm::mix(pose_.bodyOffset,desired,blend);
+        // Lower immediately when a new step needs reach; rising into idle is
+        // smooth. Never slide a planted boot to accommodate the torso.
+        pose_.bodyOffset.y=std::min(pose_.bodyOffset.y,supportHeight(pose_.bodyOffset));
+    }
     // The rest chain is slightly bent, with knees pointing toward local -Z.
     // Work near the actor origin before converting to the library's floats.
     for (int leg=0;leg<2;++leg) {
-        const glm::dvec3 hip(leg==0 ? -.17 : .17,.75,0);
+        const auto hip=glm::dvec3(leg==0 ? -.17 : .17,.75,0)+pose_.bodyOffset;
         const glm::dvec3 thigh(0,-.47,-.10), shin(0,-.47,.10);
         const auto knee=hip+thigh, ankle=knee+shin;
         const auto start=ozz::math::Float4x4::Translation(simd(hip));
         const auto middle=ozz::math::Float4x4::Translation(simd(knee));
         const auto end=ozz::math::Float4x4::Translation(simd(ankle));
-        const auto target=pose_.feet[leg].contact.position+
-            pose_.feet[leg].contact.normal*.09;
+        const auto target=targets[leg];
+        const auto span=target-hip;
+        if (std::abs(glm::length(span)-legLength)<1e-7) {
+            // Exact extension has no unique bend plane. Avoid a float IK
+            // singularity while preserving both bone lengths and the ankle.
+            pose_.hips[leg]=pose_.root+basis*hip;
+            pose_.knees[leg]=pose_.root+basis*(hip+span*.5);
+            pose_.ankles[leg]=pose_.root+basis*target;
+            pose_.legReached[leg]=true;
+            continue;
+        }
         ozz::math::SimdQuaternion q0,q1;
         ozz::animation::IKTwoBoneJob job;
         job.start_joint=&start; job.mid_joint=&middle; job.end_joint=&end;
-        job.target=simd(inverse*(target-pose_.root));
+        job.target=simd(target);
         job.pole_vector=simd({0,0,-1}); job.mid_axis=ozz::math::simd_float4::x_axis();
         job.start_joint_correction=&q0; job.mid_joint_correction=&q1;
         bool reached=false; job.reached=&reached;
@@ -252,8 +296,9 @@ ChasePose AstronautMotion::chase(const glm::dvec3& lookDirection,const GroundQue
     const auto radial=pose_.up;
     const auto forward=tangent(lookDirection,radial,pose_.forward);
     const double pitch=std::clamp(glm::dot(glm::normalize(lookDirection),radial),-.65,.65);
-    const auto target=pose_.root+radial*.95;
-    auto eye=pose_.root-forward*4.0+radial*(2.6-pitch*3.0);
+    const auto bodyOffset=pose_.suitBasis()*pose_.bodyOffset;
+    const auto target=pose_.root+bodyOffset+radial*.95;
+    auto eye=pose_.root+bodyOffset-forward*4.0+radial*(2.6-pitch*3.0);
     const auto floor=ground(eye);
     if (glm::length(eye)<glm::length(floor.position)+.45)
         eye=glm::normalize(eye)*(glm::length(floor.position)+.45);

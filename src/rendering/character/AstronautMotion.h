@@ -24,6 +24,7 @@ struct AstronautPose {
     bool airborne = false, jetpackArmed = false, boosting = false;
     glm::dvec3 velocity{0}, suitUp{0,1,0}; // Rotating-body-frame SI velocity and exhaust axis.
     double thrustN=0;
+    glm::dvec3 bodyOffset{0}; // Suit-local pelvis adjustment; ground root and boots stay fixed.
     glm::dmat3 suitBasis() const {
         auto facing=forward-suitUp*glm::dot(forward,suitUp);
         if (glm::length(facing)<1e-8) facing=glm::cross(right,suitUp);
@@ -58,7 +59,7 @@ public:
     double airDensity() const { return JetpackPhysics::density(flightEnvironment_,pose_.root); }
     static double surfaceGravity(double massKg,double radiusMeters,double spinPeriod,double latitudeRadians);
 private:
-    void solveLegs();
+    void solveLegs(bool standing,double elapsed,bool newlyPlaced=false);
     AstronautPose pose_;
     bool ready_=false;
     int nextFoot_=0;
