@@ -51,3 +51,6 @@ foot IK, camera 4, 6/12 m/s movement, gravity-dependent jumping, jetpack control
 and deterministic replay. The [Sketchfab shortlist](character/sketchfab-models.md)
 compares downloadable rigs with the requested Ava Turing reference and records
 the remaining download and skeleton-inspection requirements.
+
+The [sand material study](materials/sand.md) documents pale granular beaches,
+centimetre wind-ripple normal relief, distance filtering and shoreline captures.

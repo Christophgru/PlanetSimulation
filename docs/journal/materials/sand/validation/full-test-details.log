@@ -1,0 +1,2177 @@
+Start testing: Oct 02 12:31 UTC
+----------------------------------------------------------
+1/52 Testing: RendererLifecycleTests
+1/52 Test: RendererLifecycleTests
+Command: "/workspace/build-resume/tests/renderer_lifecycle_tests"
+Directory: /workspace
+"RendererLifecycleTests" start time: Oct 02 12:31 UTC
+Output:
+----------------------------------------------------------
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 12 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 5 tests from RendererLifecycle
+[ RUN      ] RendererLifecycle.ConstructAndDestroyWithoutRunningTwice
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 0.0 s
+Sun radius: 2.5
+Planets: 2
+Camera position: (15, 15, 8)
+Render test mode enabled
+Output image: /workspace/build-resume/renderer-lifecycle/capture.png
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 0.0 s
+Sun radius: 2.5
+Planets: 2
+Camera position: (15, 15, 8)
+Render test mode enabled
+Output image: /workspace/build-resume/renderer-lifecycle/capture.png
+[       OK ] RendererLifecycle.ConstructAndDestroyWithoutRunningTwice (1756 ms)
+[ RUN      ] RendererLifecycle.LateConstructorFailureReleasesContextAndCanRecover
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 0.0 s
+Sun radius: 2.5
+Planets: 2
+Camera position: (15, 15, 8)
+Render test mode enabled
+Output image: /workspace/build-resume/renderer-lifecycle/capture.png
+Planet 0 terrain: 8640 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 100000); foliage blades: 0; water triangles: 960
+Planet 0 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 1036800
+Planet 0 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Planet 1 terrain: 960 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 60000); foliage blades: 0; water triangles: 0
+Planet 1 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 115200
+Planet 1 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Mesh preparation: 59.3685 ms; GPU-complete render: 3066.31 ms
+earth lighting: direct RGB (4.49562, 4.45067, 4.36076), reflected RGB (0, 0, 0)
+moon lighting: direct RGB (9.13931, 9.04791, 8.86513), reflected RGB (0.0112579, 0.0185755, 0.0364004)
+Image size: 800x600
+Background pixel: (1, 1, 3)
+Non-background pixels: 14779, bounding box: (1, 1)-(794, 598)
+Sun-colored pixels: 10975, bounding box: (267, 171)-(384, 288)
+Planet pixels (color/depth): 3471, bounding box: (463, 359)-(529, 425)
+Camera exposure: 1; sky sensitivity: 1
+Star-like pixels: 150, bounding box: (1, 1)-(794, 598)
+Blue water-like pixels: 111, bounding box: (428, 326)-(500, 393)
+Render test completed successfully
+Output image: /workspace/build-resume/renderer-lifecycle/capture.png
+[       OK ] RendererLifecycle.LateConstructorFailureReleasesContextAndCanRecover (4745 ms)
+[ RUN      ] RendererLifecycle.CaptureWriteFailureUnwindsAndCanRecover
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 0.0 s
+Sun radius: 2.5
+Planets: 2
+Camera position: (15, 15, 8)
+Render test mode enabled
+Output image: /workspace/build-resume/renderer-lifecycle/missing-parent/capture.png
+Planet 0 terrain: 8640 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 100000); foliage blades: 0; water triangles: 960
+Planet 0 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 1036800
+Planet 0 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Planet 1 terrain: 960 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 60000); foliage blades: 0; water triangles: 0
+Planet 1 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 115200
+Planet 1 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Mesh preparation: 65.5001 ms; GPU-complete render: 1444.86 ms
+earth lighting: direct RGB (4.49562, 4.45067, 4.36076), reflected RGB (0, 0, 0)
+moon lighting: direct RGB (9.13931, 9.04791, 8.86513), reflected RGB (0.0112579, 0.0185755, 0.0364004)
+Image size: 800x600
+Background pixel: (1, 1, 3)
+Non-background pixels: 14779, bounding box: (1, 1)-(794, 598)
+Sun-colored pixels: 10975, bounding box: (267, 171)-(384, 288)
+Planet pixels (color/depth): 3471, bounding box: (463, 359)-(529, 425)
+Camera exposure: 1; sky sensitivity: 1
+Star-like pixels: 150, bounding box: (1, 1)-(794, 598)
+Blue water-like pixels: 111, bounding box: (428, 326)-(500, 393)
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 0.0 s
+Sun radius: 2.5
+Planets: 2
+Camera position: (15, 15, 8)
+Render test mode enabled
+Output image: /workspace/build-resume/renderer-lifecycle/recovered.png
+Planet 0 terrain: 8640 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 100000); foliage blades: 0; water triangles: 960
+Planet 0 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 1036800
+Planet 0 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Planet 1 terrain: 960 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 60000); foliage blades: 0; water triangles: 0
+Planet 1 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 115200
+Planet 1 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Mesh preparation: 53.7769 ms; GPU-complete render: 1338.4 ms
+earth lighting: direct RGB (4.49562, 4.45067, 4.36076), reflected RGB (0, 0, 0)
+moon lighting: direct RGB (9.13931, 9.04791, 8.86513), reflected RGB (0.0112579, 0.0185755, 0.0364004)
+Image size: 800x600
+Background pixel: (1, 1, 3)
+Non-background pixels: 14779, bounding box: (1, 1)-(794, 598)
+Sun-colored pixels: 10975, bounding box: (267, 171)-(384, 288)
+Planet pixels (color/depth): 3471, bounding box: (463, 359)-(529, 425)
+Camera exposure: 1; sky sensitivity: 1
+Star-like pixels: 150, bounding box: (1, 1)-(794, 598)
+Blue water-like pixels: 111, bounding box: (428, 326)-(500, 393)
+Render test completed successfully
+Output image: /workspace/build-resume/renderer-lifecycle/recovered.png
+[       OK ] RendererLifecycle.CaptureWriteFailureUnwindsAndCanRecover (4582 ms)
+[ RUN      ] RendererLifecycle.GpuOwnersDeleteObjectsWhileContextRemainsAlive
+[       OK ] RendererLifecycle.GpuOwnersDeleteObjectsWhileContextRemainsAlive (795 ms)
+[ RUN      ] RendererLifecycle.ShaderCompileFailureThrowsAndLeavesContextUsable
+[       OK ] RendererLifecycle.ShaderCompileFailureThrowsAndLeavesContextUsable (749 ms)
+[----------] 5 tests from RendererLifecycle (12628 ms total)
+
+[----------] 5 tests from CommandLineOptions
+[ RUN      ] CommandLineOptions.CaptureAndExplicitOverridesSurviveExtraction
+[       OK ] CommandLineOptions.CaptureAndExplicitOverridesSurviveExtraction (0 ms)
+[ RUN      ] CommandLineOptions.InvalidValuesFailBeforeWindowStartup
+[       OK ] CommandLineOptions.InvalidValuesFailBeforeWindowStartup (0 ms)
+[ RUN      ] CommandLineOptions.AstronautCaptureUsesSurfaceReplayAndWalkingBenchmarks
+[       OK ] CommandLineOptions.AstronautCaptureUsesSurfaceReplayAndWalkingBenchmarks (0 ms)
+[ RUN      ] CommandLineOptions.CharacterBenchmarksValidateTheirClockAndInputOrder
+[       OK ] CommandLineOptions.CharacterBenchmarksValidateTheirClockAndInputOrder (0 ms)
+[ RUN      ] CommandLineOptions.OfflineCaptureControlsValidateBeforeOpeningAWindow
+[       OK ] CommandLineOptions.OfflineCaptureControlsValidateBeforeOpeningAWindow (0 ms)
+[----------] 5 tests from CommandLineOptions (1 ms total)
+
+[----------] 2 tests from OfflineQuality
+[ RUN      ] OfflineQuality.NormalSettingsRemainExactAndOfflineRulesAreDerivedOnce
+[       OK ] OfflineQuality.NormalSettingsRemainExactAndOfflineRulesAreDerivedOnce (0 ms)
+[ RUN      ] OfflineQuality.DistantMoonActuallyBuildsMoreTrianglesWithinItsBudget
+[       OK ] OfflineQuality.DistantMoonActuallyBuildsMoreTrianglesWithinItsBudget (122 ms)
+[----------] 2 tests from OfflineQuality (122 ms total)
+
+[----------] Global test environment tear-down
+[==========] 12 tests from 3 test suites ran. (12752 ms total)
+[  PASSED  ] 12 tests.
+<end of output>
+Test time =  12.79 sec
+----------------------------------------------------------
+Test Passed.
+"RendererLifecycleTests" end time: Oct 02 12:31 UTC
+"RendererLifecycleTests" time elapsed: 00:00:12
+----------------------------------------------------------
+
+2/52 Testing: ConfigTests
+2/52 Test: ConfigTests
+Command: "/workspace/build-resume/tests/config_tests"
+Directory: /workspace/build-resume/tests
+"ConfigTests" start time: Oct 02 12:31 UTC
+Output:
+----------------------------------------------------------
+[==========] Running 35 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 8 tests from ConfigTest
+[ RUN      ] ConfigTest.GetDouble
+[       OK ] ConfigTest.GetDouble (0 ms)
+[ RUN      ] ConfigTest.GetInt
+[       OK ] ConfigTest.GetInt (0 ms)
+[ RUN      ] ConfigTest.GetBool
+[       OK ] ConfigTest.GetBool (0 ms)
+[ RUN      ] ConfigTest.GetArray
+[       OK ] ConfigTest.GetArray (0 ms)
+[ RUN      ] ConfigTest.GetString
+[       OK ] ConfigTest.GetString (0 ms)
+[ RUN      ] ConfigTest.LoadFile
+[       OK ] ConfigTest.LoadFile (0 ms)
+[ RUN      ] ConfigTest.MissingFileAndMalformedJsonReportErrors
+[       OK ] ConfigTest.MissingFileAndMalformedJsonReportErrors (0 ms)
+[ RUN      ] ConfigTest.WrongTypesUseDocumentedFallbacksOrThrow
+[       OK ] ConfigTest.WrongTypesUseDocumentedFallbacksOrThrow (0 ms)
+[----------] 8 tests from ConfigTest (1 ms total)
+
+[----------] 27 tests from ScenarioConfigTest
+[ RUN      ] ScenarioConfigTest.ParseSun
+[       OK ] ScenarioConfigTest.ParseSun (0 ms)
+[ RUN      ] ScenarioConfigTest.ParsePlanet
+[       OK ] ScenarioConfigTest.ParsePlanet (0 ms)
+[ RUN      ] ScenarioConfigTest.ParseMultiplePlanets
+[       OK ] ScenarioConfigTest.ParseMultiplePlanets (0 ms)
+[ RUN      ] ScenarioConfigTest.DevelopmentSceneUsesPlanetListAndTerrainSettings
+[       OK ] ScenarioConfigTest.DevelopmentSceneUsesPlanetListAndTerrainSettings (1 ms)
+[ RUN      ] ScenarioConfigTest.SurfaceCameraCanSelectSecondPlanetFromList
+[       OK ] ScenarioConfigTest.SurfaceCameraCanSelectSecondPlanetFromList (0 ms)
+[ RUN      ] ScenarioConfigTest.RejectsUnboundedOrPhysicallyInvalidTerrainSettings
+[       OK ] ScenarioConfigTest.RejectsUnboundedOrPhysicallyInvalidTerrainSettings (0 ms)
+[ RUN      ] ScenarioConfigTest.NoiseListKeepsLegacySeedWhenSeedIsOmitted
+[       OK ] ScenarioConfigTest.NoiseListKeepsLegacySeedWhenSeedIsOmitted (0 ms)
+[ RUN      ] ScenarioConfigTest.ExplicitRidgedSeedOverridesPlanetFallback
+[       OK ] ScenarioConfigTest.ExplicitRidgedSeedOverridesPlanetFallback (0 ms)
+[ RUN      ] ScenarioConfigTest.RejectsInvalidLandscapeZonesAndWater
+[       OK ] ScenarioConfigTest.RejectsInvalidLandscapeZonesAndWater (0 ms)
+[ RUN      ] ScenarioConfigTest.TerrainMaterialSlopeRangeIsPerPlanetAndValidated
+[       OK ] ScenarioConfigTest.TerrainMaterialSlopeRangeIsPerPlanetAndValidated (0 ms)
+[ RUN      ] ScenarioConfigTest.DefaultValues
+[       OK ] ScenarioConfigTest.DefaultValues (0 ms)
+[ RUN      ] ScenarioConfigTest.ParsesAndValidatesProceduralSkybox
+[       OK ] ScenarioConfigTest.ParsesAndValidatesProceduralSkybox (0 ms)
+[ RUN      ] ScenarioConfigTest.ParseSunAndPlanet
+[       OK ] ScenarioConfigTest.ParseSunAndPlanet (0 ms)
+[ RUN      ] ScenarioConfigTest.ShortPositionAndColorArraysRetainSafeDefaults
+[       OK ] ScenarioConfigTest.ShortPositionAndColorArraysRetainSafeDefaults (0 ms)
+[ RUN      ] ScenarioConfigTest.PlanetArrayTakesPrecedenceOverSingularPlanet
+[       OK ] ScenarioConfigTest.PlanetArrayTakesPrecedenceOverSingularPlanet (0 ms)
+[ RUN      ] ScenarioConfigTest.PlanetMetadataParsesWithoutAddingSimulationMotion
+[       OK ] ScenarioConfigTest.PlanetMetadataParsesWithoutAddingSimulationMotion (0 ms)
+[ RUN      ] ScenarioConfigTest.EmptyPlanetArrayDoesNotInventABody
+[       OK ] ScenarioConfigTest.EmptyPlanetArrayDoesNotInventABody (0 ms)
+[ RUN      ] ScenarioConfigTest.LoadsTheDevelopmentSunAndPlanetFromDisk
+[       OK ] ScenarioConfigTest.LoadsTheDevelopmentSunAndPlanetFromDisk (2 ms)
+[ RUN      ] ScenarioConfigTest.ReloadableOrbitViewReadsCameraEditsAndRejectsBadValues
+[       OK ] ScenarioConfigTest.ReloadableOrbitViewReadsCameraEditsAndRejectsBadValues (0 ms)
+[ RUN      ] ScenarioConfigTest.DistanceUnitAcceptsMetersAndRejectsUnknownUnits
+[       OK ] ScenarioConfigTest.DistanceUnitAcceptsMetersAndRejectsUnknownUnits (0 ms)
+[ RUN      ] ScenarioConfigTest.ParsesPlanetMountedSurfaceReferenceFrame
+[       OK ] ScenarioConfigTest.ParsesPlanetMountedSurfaceReferenceFrame (0 ms)
+[ RUN      ] ScenarioConfigTest.SurfaceCameraIsOptionalForExistingScenarios
+[       OK ] ScenarioConfigTest.SurfaceCameraIsOptionalForExistingScenarios (0 ms)
+[ RUN      ] ScenarioConfigTest.RejectsUnknownOrUnattachedSurfaceFrames
+[       OK ] ScenarioConfigTest.RejectsUnknownOrUnattachedSurfaceFrames (0 ms)
+[ RUN      ] ScenarioConfigTest.SurfaceCameraRequiresAPlanetAndObjectConfig
+[       OK ] ScenarioConfigTest.SurfaceCameraRequiresAPlanetAndObjectConfig (0 ms)
+[ RUN      ] ScenarioConfigTest.SavedNedDirectionIsOptionalAndParsesPrecisely
+[       OK ] ScenarioConfigTest.SavedNedDirectionIsOptionalAndParsesPrecisely (0 ms)
+[ RUN      ] ScenarioConfigTest.RejectsMissingOrAlignedSavedUpVectors
+[       OK ] ScenarioConfigTest.RejectsMissingOrAlignedSavedUpVectors (0 ms)
+[ RUN      ] ScenarioConfigTest.RejectsMalformedSavedNedDirections
+[       OK ] ScenarioConfigTest.RejectsMalformedSavedNedDirections (0 ms)
+[----------] 27 tests from ScenarioConfigTest (7 ms total)
+
+[----------] Global test environment tear-down
+[==========] 35 tests from 2 test suites ran. (9 ms total)
+[  PASSED  ] 35 tests.
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"ConfigTests" end time: Oct 02 12:31 UTC
+"ConfigTests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+3/52 Testing: OrbitCameraTests
+3/52 Test: OrbitCameraTests
+Command: "/workspace/build-resume/tests/orbit_camera_tests"
+Directory: /workspace/build-resume/tests
+"OrbitCameraTests" start time: Oct 02 12:31 UTC
+Output:
+----------------------------------------------------------
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 6 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 6 tests from OrbitCameraTest
+[ RUN      ] OrbitCameraTest.StartsAtTheExistingView
+[       OK ] OrbitCameraTest.StartsAtTheExistingView (0 ms)
+[ RUN      ] OrbitCameraTest.DragOrbitsWithoutChangingDistanceOrReachingAPole
+[       OK ] OrbitCameraTest.DragOrbitsWithoutChangingDistanceOrReachingAPole (0 ms)
+[ RUN      ] OrbitCameraTest.DragDirectionsAreInverted
+[       OK ] OrbitCameraTest.DragDirectionsAreInverted (0 ms)
+[ RUN      ] OrbitCameraTest.ScrollZoomStaysOutsideTheSunAndWithinViewRange
+[       OK ] OrbitCameraTest.ScrollZoomStaysOutsideTheSunAndWithinViewRange (0 ms)
+[ RUN      ] OrbitCameraTest.WheelStepsAreSmallAndEaseOverSeveralFrames
+[       OK ] OrbitCameraTest.WheelStepsAreSmallAndEaseOverSeveralFrames (0 ms)
+[ RUN      ] OrbitCameraTest.PlanetSettingsAllowCloseOrbitWithSafeLimits
+[       OK ] OrbitCameraTest.PlanetSettingsAllowCloseOrbitWithSafeLimits (0 ms)
+[----------] 6 tests from OrbitCameraTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 6 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 6 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"OrbitCameraTests" end time: Oct 02 12:31 UTC
+"OrbitCameraTests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+4/52 Testing: CameraInputTests
+4/52 Test: CameraInputTests
+Command: "/workspace/build-resume/tests/camera_input_tests"
+Directory: /workspace/build-resume/tests
+"CameraInputTests" start time: Oct 02 12:31 UTC
+Output:
+----------------------------------------------------------
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 16 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 16 tests from CameraInputTest
+[ RUN      ] CameraInputTest.DragEventsApplyTheInvertedDirections
+[       OK ] CameraInputTest.DragEventsApplyTheInvertedDirections (0 ms)
+[ RUN      ] CameraInputTest.SwitchingViewsCancelsDragAndSuspendsOrbitInput
+[       OK ] CameraInputTest.SwitchingViewsCancelsDragAndSuspendsOrbitInput (0 ms)
+[ RUN      ] CameraInputTest.UnconfiguredSurfaceModeCannotBeSelected
+[       OK ] CameraInputTest.UnconfiguredSurfaceModeCannotBeSelected (0 ms)
+[ RUN      ] CameraInputTest.SceneReloadRebindsSurfaceAndKeepsTheSelectedMode
+[       OK ] CameraInputTest.SceneReloadRebindsSurfaceAndKeepsTheSelectedMode (0 ms)
+[ RUN      ] CameraInputTest.SceneReloadDropsUnavailablePlanetOrbitMode
+[       OK ] CameraInputTest.SceneReloadDropsUnavailablePlanetOrbitMode (0 ms)
+[ RUN      ] CameraInputTest.ScrollControlsZoomOnlyInOrbitMode
+[       OK ] CameraInputTest.ScrollControlsZoomOnlyInOrbitMode (0 ms)
+[ RUN      ] CameraInputTest.PlanetOrbitUsesItsOwnDragAndSoftZoom
+[       OK ] CameraInputTest.PlanetOrbitUsesItsOwnDragAndSoftZoom (0 ms)
+[ RUN      ] CameraInputTest.PlanetOrbitAutoEntersSurfaceNearPlanet
+[       OK ] CameraInputTest.PlanetOrbitAutoEntersSurfaceNearPlanet (0 ms)
+[ RUN      ] CameraInputTest.PlanetOrbitNeedsAConfiguredPlanetCamera
+[       OK ] CameraInputTest.PlanetOrbitNeedsAConfiguredPlanetCamera (0 ms)
+[ RUN      ] CameraInputTest.ReturningFromSurfaceOrbitsCurrentPlanetLocation
+[       OK ] CameraInputTest.ReturningFromSurfaceOrbitsCurrentPlanetLocation (0 ms)
+[ RUN      ] CameraInputTest.SurfaceMouseLookNeedsNoDragButton
+[       OK ] CameraInputTest.SurfaceMouseLookNeedsNoDragButton (0 ms)
+[ RUN      ] CameraInputTest.EscapeReleasesSurfaceCursorWithoutChangingViewOrWalking
+[       OK ] CameraInputTest.EscapeReleasesSurfaceCursorWithoutChangingViewOrWalking (0 ms)
+[ RUN      ] CameraInputTest.SurfaceCursorReleaseSurvivesReloadAndEscapeKeepsPlanetOrbit
+[       OK ] CameraInputTest.SurfaceCursorReleaseSurvivesReloadAndEscapeKeepsPlanetOrbit (0 ms)
+[ RUN      ] CameraInputTest.WalkingKeysAreActiveOnlyInSurfaceMode
+[       OK ] CameraInputTest.WalkingKeysAreActiveOnlyInSurfaceMode (0 ms)
+[ RUN      ] CameraInputTest.ProximityEnablesSurfaceModeAtOnePointOneDiameters
+[       OK ] CameraInputTest.ProximityEnablesSurfaceModeAtOnePointOneDiameters (0 ms)
+[ RUN      ] CameraInputTest.ExplicitOrbitSelectionCanLeaveTheProximityZone
+[       OK ] CameraInputTest.ExplicitOrbitSelectionCanLeaveTheProximityZone (0 ms)
+[----------] 16 tests from CameraInputTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 16 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 16 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"CameraInputTests" end time: Oct 02 12:31 UTC
+"CameraInputTests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+5/52 Testing: AstronautMotionTests
+5/52 Test: AstronautMotionTests
+Command: "/workspace/build-resume/tests/astronaut_motion_tests"
+Directory: /workspace/build-resume/tests
+"AstronautMotionTests" start time: Oct 02 12:31 UTC
+Output:
+----------------------------------------------------------
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 13 tests from 4 test suites.
+[----------] Global test environment set-up.
+[----------] 7 tests from AstronautMotion
+[ RUN      ] AstronautMotion.RestingFeetRemainFixedAndIKReachesBothSoles
+[       OK ] AstronautMotion.RestingFeetRemainFixedAndIKReachesBothSoles (0 ms)
+[ RUN      ] AstronautMotion.WalkingAlternatesLiftedFeetWithoutSlidingTheStanceContact
+[       OK ] AstronautMotion.WalkingAlternatesLiftedFeetWithoutSlidingTheStanceContact (0 ms)
+[ RUN      ] AstronautMotion.MovementAndPoseStayFiniteAcrossBothPolesAndDirectionChanges
+[       OK ] AstronautMotion.MovementAndPoseStayFiniteAcrossBothPolesAndDirectionChanges (0 ms)
+[ RUN      ] AstronautMotion.GroundRevisionAdjustsHeightWhilePreservingTheSurfaceLocation
+[       OK ] AstronautMotion.GroundRevisionAdjustsHeightWhilePreservingTheSurfaceLocation (0 ms)
+[ RUN      ] AstronautMotion.ChaseClearsTheGroundAndShortensAtInterveningMountains
+[       OK ] AstronautMotion.ChaseClearsTheGroundAndShortensAtInterveningMountains (0 ms)
+[ RUN      ] AstronautMotion.ReplayValidatesAndRestoresTheCompleteWalkingPose
+[       OK ] AstronautMotion.ReplayValidatesAndRestoresTheCompleteWalkingPose (0 ms)
+[ RUN      ] AstronautMotion.WalkingAndSprintingAtSixAndTwelveMetersKeepStanceFeetLocked
+[       OK ] AstronautMotion.WalkingAndSprintingAtSixAndTwelveMetersKeepStanceFeetLocked (1 ms)
+[----------] 7 tests from AstronautMotion (3 ms total)
+
+[----------] 3 tests from AstronautFlight
+[ RUN      ] AstronautFlight.JumpUsesGravityAndHoldingTheFirstPressDoesNotEngageTheJetpack
+[       OK ] AstronautFlight.JumpUsesGravityAndHoldingTheFirstPressDoesNotEngageTheJetpack (1 ms)
+[ RUN      ] AstronautFlight.SecondSpaceEnablesBoostAndReleaseFallsBackToALanding
+[       OK ] AstronautFlight.SecondSpaceEnablesBoostAndReleaseFallsBackToALanding (3 ms)
+[ RUN      ] AstronautFlight.SpinReducesRadialGravityAndRaisedTerrainStopsTheDescent
+[       OK ] AstronautFlight.SpinReducesRadialGravityAndRaisedTerrainStopsTheDescent (0 ms)
+[----------] 3 tests from AstronautFlight (4 ms total)
+
+[----------] 2 tests from AstronautInput
+[ RUN      ] AstronautInput.ShiftDoublesOnlyCameraFourWalkingSpeed
+[       OK ] AstronautInput.ShiftDoublesOnlyCameraFourWalkingSpeed (0 ms)
+[ RUN      ] AstronautInput.CameraFourSharesPositionButWalksAtItsOwnSpeedAndReloadsSafely
+[       OK ] AstronautInput.CameraFourSharesPositionButWalksAtItsOwnSpeedAndReloadsSafely (0 ms)
+[----------] 2 tests from AstronautInput (0 ms total)
+
+[----------] 1 test from SurfaceContact
+[ RUN      ] SurfaceContact.UsesRenderedTriangleHeightAndNormalsAndInvalidatesItsCache
+[       OK ] SurfaceContact.UsesRenderedTriangleHeightAndNormalsAndInvalidatesItsCache (0 ms)
+[----------] 1 test from SurfaceContact (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 13 tests from 4 test suites ran. (8 ms total)
+[  PASSED  ] 13 tests.
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"AstronautMotionTests" end time: Oct 02 12:31 UTC
+"AstronautMotionTests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+6/52 Testing: CameraTransitionTests
+6/52 Test: CameraTransitionTests
+Command: "/workspace/build-resume/tests/camera_transition_tests"
+Directory: /workspace/build-resume/tests
+"CameraTransitionTests" start time: Oct 02 12:31 UTC
+Output:
+----------------------------------------------------------
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 3 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 3 tests from CameraTransition
+[ RUN      ] CameraTransition.StartsAtRenderedOrbitPoseAndFinishesExactlyAfterOneWallSecond
+[       OK ] CameraTransition.StartsAtRenderedOrbitPoseAndFinishesExactlyAfterOneWallSecond (0 ms)
+[ RUN      ] CameraTransition.StaysAboveTerrainOnAntipodalDescent
+[       OK ] CameraTransition.StaysAboveTerrainOnAntipodalDescent (0 ms)
+[ RUN      ] CameraTransition.FollowsMovingSurfaceTargetAndCanBeCancelled
+[       OK ] CameraTransition.FollowsMovingSurfaceTargetAndCanBeCancelled (0 ms)
+[----------] 3 tests from CameraTransition (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 3 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 3 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"CameraTransitionTests" end time: Oct 02 12:31 UTC
+"CameraTransitionTests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+7/52 Testing: SceneTransformsTests
+7/52 Test: SceneTransformsTests
+Command: "/workspace/build-resume/tests/scene_transforms_tests"
+Directory: /workspace/build-resume/tests
+"SceneTransformsTests" start time: Oct 02 12:31 UTC
+Output:
+----------------------------------------------------------
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 9 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 9 tests from SceneTransformsTest
+[ RUN      ] SceneTransformsTest.SphereCenterStaysAtItsConfiguredPosition
+[       OK ] SceneTransformsTest.SphereCenterStaysAtItsConfiguredPosition (0 ms)
+[ RUN      ] SceneTransformsTest.SpherePixelBoundsContainProjectedDiskAndRejectOffscreenSun
+[       OK ] SceneTransformsTest.SpherePixelBoundsContainProjectedDiskAndRejectOffscreenSun (0 ms)
+[ RUN      ] SceneTransformsTest.SphereRadiusScalesAroundItsOwnCenter
+[       OK ] SceneTransformsTest.SphereRadiusScalesAroundItsOwnCenter (0 ms)
+[ RUN      ] SceneTransformsTest.ProjectionMapsNearAndFarPlanesToOpenGLDepthRange
+[       OK ] SceneTransformsTest.ProjectionMapsNearAndFarPlanesToOpenGLDepthRange (0 ms)
+[ RUN      ] SceneTransformsTest.CurrentSunAndPlanetCentersAreVisibleAndSeparate
+[       OK ] SceneTransformsTest.CurrentSunAndPlanetCentersAreVisibleAndSeparate (0 ms)
+[ RUN      ] SceneTransformsTest.SurfaceProjectionUsesLocalClearanceForNearAndKeepsSunFar
+[       OK ] SceneTransformsTest.SurfaceProjectionUsesLocalClearanceForNearAndKeepsSunFar (0 ms)
+[ RUN      ] SceneTransformsTest.PlaneReflectionMirrorsPointsAndVectors
+[       OK ] SceneTransformsTest.PlaneReflectionMirrorsPointsAndVectors (0 ms)
+[ RUN      ] SceneTransformsTest.WaterReflectionViewMirrorsEyeAndDirectionAtTangentPlane
+[       OK ] SceneTransformsTest.WaterReflectionViewMirrorsEyeAndDirectionAtTangentPlane (0 ms)
+[ RUN      ] SceneTransformsTest.DirectionalBrightnessFollowsTheSunWithAmbientBacklight
+[       OK ] SceneTransformsTest.DirectionalBrightnessFollowsTheSunWithAmbientBacklight (0 ms)
+[----------] 9 tests from SceneTransformsTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 9 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 9 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"SceneTransformsTests" end time: Oct 02 12:31 UTC
+"SceneTransformsTests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+8/52 Testing: OrbitPathsTests
+8/52 Test: OrbitPathsTests
+Command: "/workspace/build-resume/tests/orbit_paths_tests"
+Directory: /workspace/build-resume/tests
+"OrbitPathsTests" start time: Oct 02 12:31 UTC
+Output:
+----------------------------------------------------------
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from OrbitPaths
+[ RUN      ] OrbitPaths.SamplesTenPastRevolutionsOfMovingHierarchy
+[       OK ] OrbitPaths.SamplesTenPastRevolutionsOfMovingHierarchy (7 ms)
+[ RUN      ] OrbitPaths.SurfaceTintAveragesRenderedVertexColors
+[       OK ] OrbitPaths.SurfaceTintAveragesRenderedVertexColors (0 ms)
+[----------] 2 tests from OrbitPaths (8 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (8 ms total)
+[  PASSED  ] 2 tests.
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"OrbitPathsTests" end time: Oct 02 12:31 UTC
+"OrbitPathsTests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+9/52 Testing: OrbitalSystemTests
+9/52 Test: OrbitalSystemTests
+Command: "/workspace/build-resume/tests/orbital_system_tests"
+Directory: /workspace/build-resume/tests
+"OrbitalSystemTests" start time: Oct 02 12:31 UTC
+Output:
+----------------------------------------------------------
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 44 tests from 11 test suites.
+[----------] Global test environment set-up.
+[----------] 8 tests from SimulationClock
+[ RUN      ] SimulationClock.AdvancesInRealSecondsRegardlessOfFrameCadence
+[       OK ] SimulationClock.AdvancesInRealSecondsRegardlessOfFrameCadence (0 ms)
+[ RUN      ] SimulationClock.PauseFreezesEveryBodyAndSpinAndResumeHasNoCatchUp
+[       OK ] SimulationClock.PauseFreezesEveryBodyAndSpinAndResumeHasNoCatchUp (2 ms)
+[ RUN      ] SimulationClock.RepeatedTogglesAndReloadPreservePauseState
+[       OK ] SimulationClock.RepeatedTogglesAndReloadPreservePauseState (0 ms)
+[ RUN      ] SimulationClock.RejectsInvalidAndReversedWallTimeWithoutChangingState
+[       OK ] SimulationClock.RejectsInvalidAndReversedWallTimeWithoutChangingState (0 ms)
+[ RUN      ] SimulationClock.SpeedChangesApplyAfterTheKeyPressWithoutAnOrbitalPhaseJump
+[       OK ] SimulationClock.SpeedChangesApplyAfterTheKeyPressWithoutAnOrbitalPhaseJump (1 ms)
+[ RUN      ] SimulationClock.RepeatedSpeedStepsAndPauseRetainTheSelectedSpeedAcrossReload
+[       OK ] SimulationClock.RepeatedSpeedStepsAndPauseRetainTheSelectedSpeedAcrossReload (0 ms)
+[ RUN      ] SimulationClock.RepeatedSpeedKeysStayBoundedAndCanReverseAwayFromTheLimits
+[       OK ] SimulationClock.RepeatedSpeedKeysStayBoundedAndCanReverseAwayFromTheLimits (0 ms)
+[ RUN      ] SimulationClock.InvalidSpeedChangesLeaveTimeAndSpeedIntact
+[       OK ] SimulationClock.InvalidSpeedChangesLeaveTimeAndSpeedIntact (0 ms)
+[----------] 8 tests from SimulationClock (3 ms total)
+
+[----------] 7 tests from KeplerOrbit
+[ RUN      ] KeplerOrbit.CircularQuarterTurnsHaveConstantSpeed
+[       OK ] KeplerOrbit.CircularQuarterTurnsHaveConstantSpeed (0 ms)
+[ RUN      ] KeplerOrbit.EllipseUsesFocusAndCorrectPeriapsisAndApoapsisSpeeds
+[       OK ] KeplerOrbit.EllipseUsesFocusAndCorrectPeriapsisAndApoapsisSpeeds (0 ms)
+[ RUN      ] KeplerOrbit.MassAndMajorAxisDeterminePeriodWhileMinorAxisDeterminesShape
+[       OK ] KeplerOrbit.MassAndMajorAxisDeterminePeriodWhileMinorAxisDeterminesShape (0 ms)
+[ RUN      ] KeplerOrbit.MetersAndKilometersRepresentTheSamePhysicalOrbit
+[       OK ] KeplerOrbit.MetersAndKilometersRepresentTheSamePhysicalOrbit (0 ms)
+[ RUN      ] KeplerOrbit.VelocityAndAccelerationAgreeWithIndependentFiniteDifferences
+[       OK ] KeplerOrbit.VelocityAndAccelerationAgreeWithIndependentFiniteDifferences (0 ms)
+[ RUN      ] KeplerOrbit.OrientationAnglesAndInitialPhaseHaveIndependentEffects
+[       OK ] KeplerOrbit.OrientationAnglesAndInitialPhaseHaveIndependentEffects (0 ms)
+[ RUN      ] KeplerOrbit.NegativeTimeAndManyPeriodsRemainStableAndIndependentOfEvaluationOrder
+[       OK ] KeplerOrbit.NegativeTimeAndManyPeriodsRemainStableAndIndependentOfEvaluationOrder (5 ms)
+[----------] 7 tests from KeplerOrbit (5 ms total)
+
+[----------] 6 tests from OrbitalSystem
+[ RUN      ] OrbitalSystem.UsesWholeDescendantMassInOuterSpeedAndNoDoubleCountingInInnerSpeed
+[       OK ] OrbitalSystem.UsesWholeDescendantMassInOuterSpeedAndNoDoubleCountingInInnerSpeed (0 ms)
+[ RUN      ] OrbitalSystem.EarthWobblesOppositeMoonByTheMassRatioAtEveryPhase
+[       OK ] OrbitalSystem.EarthWobblesOppositeMoonByTheMassRatioAtEveryPhase (14 ms)
+[ RUN      ] OrbitalSystem.EqualMassBinarySharesItsOrbitEqually
+[       OK ] OrbitalSystem.EqualMassBinarySharesItsOrbitEqually (0 ms)
+[ RUN      ] OrbitalSystem.SunAlsoRecoilsAndTotalCenterOfMassAndMomentumAreConserved
+[       OK ] OrbitalSystem.SunAlsoRecoilsAndTotalCenterOfMassAndMomentumAreConserved (13 ms)
+[ RUN      ] OrbitalSystem.PlanetOrderDoesNotAffectPhysics
+[       OK ] OrbitalSystem.PlanetOrderDoesNotAffectPhysics (0 ms)
+[ RUN      ] OrbitalSystem.IsTranslationInvariantAndSupportsAnEmptyPlanetList
+[       OK ] OrbitalSystem.IsTranslationInvariantAndSupportsAnEmptyPlanetList (0 ms)
+[----------] 6 tests from OrbitalSystem (29 ms total)
+
+[----------] 1 test from DevelopmentOrbits
+[ RUN      ] DevelopmentOrbits.RequestedPeriodsAndTwentyDegreeEquatorialMoonOrbit
+[       OK ] DevelopmentOrbits.RequestedPeriodsAndTwentyDegreeEquatorialMoonOrbit (8 ms)
+[----------] 1 test from DevelopmentOrbits (8 ms total)
+
+[----------] 1 test from Rotation
+[ RUN      ] Rotation.QuarterTurnTiltPhaseRetrogradeAndDisabledSpin
+[       OK ] Rotation.QuarterTurnTiltPhaseRetrogradeAndDisabledSpin (0 ms)
+[----------] 1 test from Rotation (0 ms total)
+
+[----------] 2 tests from MovingPlanetFrame
+[ RUN      ] MovingPlanetFrame.LatLonNedAndModelTransformAgreeUnderSpinAndTilt
+[       OK ] MovingPlanetFrame.LatLonNedAndModelTransformAgreeUnderSpinAndTilt (1 ms)
+[ RUN      ] MovingPlanetFrame.RejectsScalingReflectionAndNonfiniteOrientations
+[       OK ] MovingPlanetFrame.RejectsScalingReflectionAndNonfiniteOrientations (0 ms)
+[----------] 2 tests from MovingPlanetFrame (1 ms total)
+
+[----------] 1 test from MovingSurfaceCamera
+[ RUN      ] MovingSurfaceCamera.TerrainClearanceLocationAndSavedViewRemainAttachedAcrossOrbits
+[       OK ] MovingSurfaceCamera.TerrainClearanceLocationAndSavedViewRemainAttachedAcrossOrbits (10 ms)
+[----------] 1 test from MovingSurfaceCamera (10 ms total)
+
+[----------] 1 test from MovingOrbitCamera
+[ RUN      ] MovingOrbitCamera.FollowPreservesDistanceAndUserOrbitAndZoom
+[       OK ] MovingOrbitCamera.FollowPreservesDistanceAndUserOrbitAndZoom (0 ms)
+[----------] 1 test from MovingOrbitCamera (0 ms total)
+
+[----------] 5 tests from OrbitalConfig
+[ RUN      ] OrbitalConfig.LegacyDefaultsStillAttachEveryBodyToSunAndDeriveCircularAxes
+[       OK ] OrbitalConfig.LegacyDefaultsStillAttachEveryBodyToSunAndDeriveCircularAxes (0 ms)
+[ RUN      ] OrbitalConfig.RejectsMissingDuplicateSelfReferencingAndCyclicParents
+[       OK ] OrbitalConfig.RejectsMissingDuplicateSelfReferencingAndCyclicParents (0 ms)
+[ RUN      ] OrbitalConfig.RejectsSwappedDegenerateAndNumericallyUnrepresentableEllipses
+[       OK ] OrbitalConfig.RejectsSwappedDegenerateAndNumericallyUnrepresentableEllipses (0 ms)
+[ RUN      ] OrbitalConfig.RejectsMalformedObjectsAndWrongTypes
+[       OK ] OrbitalConfig.RejectsMalformedObjectsAndWrongTypes (0 ms)
+[ RUN      ] OrbitalConfig.RejectsNonfiniteAnglesSpinTimeAndUnitScale
+[       OK ] OrbitalConfig.RejectsNonfiniteAnglesSpinTimeAndUnitScale (4 ms)
+[----------] 5 tests from OrbitalConfig (6 ms total)
+
+[----------] 7 tests from CircularThroughHighlyEccentric/EllipticalInvariants
+[ RUN      ] CircularThroughHighlyEccentric/EllipticalInvariants.ShapeVisVivaEnergyAngularMomentumAndKeplersEquation/0
+[       OK ] CircularThroughHighlyEccentric/EllipticalInvariants.ShapeVisVivaEnergyAngularMomentumAndKeplersEquation/0 (2 ms)
+[ RUN      ] CircularThroughHighlyEccentric/EllipticalInvariants.ShapeVisVivaEnergyAngularMomentumAndKeplersEquation/1
+[       OK ] CircularThroughHighlyEccentric/EllipticalInvariants.ShapeVisVivaEnergyAngularMomentumAndKeplersEquation/1 (6 ms)
+[ RUN      ] CircularThroughHighlyEccentric/EllipticalInvariants.ShapeVisVivaEnergyAngularMomentumAndKeplersEquation/2
+[       OK ] CircularThroughHighlyEccentric/EllipticalInvariants.ShapeVisVivaEnergyAngularMomentumAndKeplersEquation/2 (6 ms)
+[ RUN      ] CircularThroughHighlyEccentric/EllipticalInvariants.ShapeVisVivaEnergyAngularMomentumAndKeplersEquation/3
+[       OK ] CircularThroughHighlyEccentric/EllipticalInvariants.ShapeVisVivaEnergyAngularMomentumAndKeplersEquation/3 (7 ms)
+[ RUN      ] CircularThroughHighlyEccentric/EllipticalInvariants.ShapeVisVivaEnergyAngularMomentumAndKeplersEquation/4
+[       OK ] CircularThroughHighlyEccentric/EllipticalInvariants.ShapeVisVivaEnergyAngularMomentumAndKeplersEquation/4 (7 ms)
+[ RUN      ] CircularThroughHighlyEccentric/EllipticalInvariants.ShapeVisVivaEnergyAngularMomentumAndKeplersEquation/5
+[       OK ] CircularThroughHighlyEccentric/EllipticalInvariants.ShapeVisVivaEnergyAngularMomentumAndKeplersEquation/5 (8 ms)
+[ RUN      ] CircularThroughHighlyEccentric/EllipticalInvariants.ShapeVisVivaEnergyAngularMomentumAndKeplersEquation/6
+[       OK ] CircularThroughHighlyEccentric/EllipticalInvariants.ShapeVisVivaEnergyAngularMomentumAndKeplersEquation/6 (9 ms)
+[----------] 7 tests from CircularThroughHighlyEccentric/EllipticalInvariants (48 ms total)
+
+[----------] 5 tests from InvalidNumbers/InvalidPositiveValue
+[ RUN      ] InvalidNumbers/InvalidPositiveValue.RejectsInvalidMassAndAxes/0
+[       OK ] InvalidNumbers/InvalidPositiveValue.RejectsInvalidMassAndAxes/0 (0 ms)
+[ RUN      ] InvalidNumbers/InvalidPositiveValue.RejectsInvalidMassAndAxes/1
+[       OK ] InvalidNumbers/InvalidPositiveValue.RejectsInvalidMassAndAxes/1 (0 ms)
+[ RUN      ] InvalidNumbers/InvalidPositiveValue.RejectsInvalidMassAndAxes/2
+[       OK ] InvalidNumbers/InvalidPositiveValue.RejectsInvalidMassAndAxes/2 (0 ms)
+[ RUN      ] InvalidNumbers/InvalidPositiveValue.RejectsInvalidMassAndAxes/3
+[       OK ] InvalidNumbers/InvalidPositiveValue.RejectsInvalidMassAndAxes/3 (0 ms)
+[ RUN      ] InvalidNumbers/InvalidPositiveValue.RejectsInvalidMassAndAxes/4
+[       OK ] InvalidNumbers/InvalidPositiveValue.RejectsInvalidMassAndAxes/4 (0 ms)
+[----------] 5 tests from InvalidNumbers/InvalidPositiveValue (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 44 tests from 11 test suites ran. (115 ms total)
+[  PASSED  ] 44 tests.
+<end of output>
+Test time =   0.12 sec
+----------------------------------------------------------
+Test Passed.
+"OrbitalSystemTests" end time: Oct 02 12:31 UTC
+"OrbitalSystemTests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+10/52 Testing: CelestialLightingTests
+10/52 Test: CelestialLightingTests
+Command: "/workspace/build-resume/tests/celestial_lighting_tests"
+Directory: /workspace/build-resume/tests
+"CelestialLightingTests" start time: Oct 02 12:31 UTC
+Output:
+----------------------------------------------------------
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 18 tests from 5 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from AbsoluteMagnitude
+[ RUN      ] AbsoluteMagnitude.UsesIauBolometricZeroPointAndSolarLuminosity
+[       OK ] AbsoluteMagnitude.UsesIauBolometricZeroPointAndSolarLuminosity (0 ms)
+[ RUN      ] AbsoluteMagnitude.ChangesSunEmissionDirectAndReflectedLightTogether
+[       OK ] AbsoluteMagnitude.ChangesSunEmissionDirectAndReflectedLightTogether (0 ms)
+[----------] 2 tests from AbsoluteMagnitude (0 ms total)
+
+[----------] 10 tests from CelestialLighting
+[ RUN      ] CelestialLighting.SunlightHasInverseSquareFalloffAndSharedDirection
+[       OK ] CelestialLighting.SunlightHasInverseSquareFalloffAndSharedDirection (0 ms)
+[ RUN      ] CelestialLighting.FullMoonReflectsSourceColorAlbedoRadiusAndSphereAverage
+[       OK ] CelestialLighting.FullMoonReflectsSourceColorAlbedoRadiusAndSphereAverage (0 ms)
+[ RUN      ] CelestialLighting.NewQuarterAndFullPhaseUseSunReflectorReceiverGeometry
+[       OK ] CelestialLighting.NewQuarterAndFullPhaseUseSunReflectorReceiverGeometry (0 ms)
+[ RUN      ] CelestialLighting.PhaseIsFiniteBoundedAndMonotonicAcrossTheWholeCycle
+[       OK ] CelestialLighting.PhaseIsFiniteBoundedAndMonotonicAcrossTheWholeCycle (1 ms)
+[ RUN      ] CelestialLighting.ReflectionFallsOffOnBothLegsOfTheLightPath
+[       OK ] CelestialLighting.ReflectionFallsOffOnBothLegsOfTheLightPath (0 ms)
+[ RUN      ] CelestialLighting.ReflectedPowerScalesWithAlbedoAndReflectorArea
+[       OK ] CelestialLighting.ReflectedPowerScalesWithAlbedoAndReflectorArea (0 ms)
+[ RUN      ] CelestialLighting.MultipleReflectorsAddOneBounceWithoutRecursiveAmplification
+[       OK ] CelestialLighting.MultipleReflectorsAddOneBounceWithoutRecursiveAmplification (0 ms)
+[ RUN      ] CelestialLighting.ReflectionToggleLeavesSunlightUnchanged
+[       OK ] CelestialLighting.ReflectionToggleLeavesSunlightUnchanged (0 ms)
+[ RUN      ] CelestialLighting.UnitConversionTranslationAndPlanetOrderDoNotChangeIllumination
+[       OK ] CelestialLighting.UnitConversionTranslationAndPlanetOrderDoNotChangeIllumination (0 ms)
+[ RUN      ] CelestialLighting.SingleBodyAndCoincidentCentersRemainFinite
+[       OK ] CelestialLighting.SingleBodyAndCoincidentCentersRemainFinite (0 ms)
+[----------] 10 tests from CelestialLighting (3 ms total)
+
+[----------] 1 test from LightingDisplay
+[ RUN      ] LightingDisplay.ExposureIsMonotonicPreservesBlackAndBoundsHighlights
+[       OK ] LightingDisplay.ExposureIsMonotonicPreservesBlackAndBoundsHighlights (0 ms)
+[----------] 1 test from LightingDisplay (0 ms total)
+
+[----------] 4 tests from LightingConfig
+[ RUN      ] LightingConfig.ParsesNewFieldsAndRetainsLegacyAmbientFallback
+[       OK ] LightingConfig.ParsesNewFieldsAndRetainsLegacyAmbientFallback (0 ms)
+[ RUN      ] LightingConfig.RejectsInvalidMagnitudeAlbedoExposureDistanceAndColor
+[       OK ] LightingConfig.RejectsInvalidMagnitudeAlbedoExposureDistanceAndColor (1 ms)
+[ RUN      ] LightingConfig.DescriptionMetadataDoesNotChangeParsingOrPhysics
+[       OK ] LightingConfig.DescriptionMetadataDoesNotChangeParsingOrPhysics (2 ms)
+[ RUN      ] LightingConfig.EveryDevelopmentParameterHasAnInlineDescription
+[       OK ] LightingConfig.EveryDevelopmentParameterHasAnInlineDescription (1 ms)
+[----------] 4 tests from LightingConfig (6 ms total)
+
+[----------] 1 test from DevelopmentLighting
+[ RUN      ] DevelopmentLighting.BrighterWhiterSunAndVisiblePhaseDependentMoonlight
+[       OK ] DevelopmentLighting.BrighterWhiterSunAndVisiblePhaseDependentMoonlight (9 ms)
+[----------] 1 test from DevelopmentLighting (9 ms total)
+
+[----------] Global test environment tear-down
+[==========] 18 tests from 5 test suites ran. (19 ms total)
+[  PASSED  ] 18 tests.
+<end of output>
+Test time =   0.03 sec
+----------------------------------------------------------
+Test Passed.
+"CelestialLightingTests" end time: Oct 02 12:31 UTC
+"CelestialLightingTests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+11/52 Testing: CameraExposureTests
+11/52 Test: CameraExposureTests
+Command: "/workspace/build-resume/tests/camera_exposure_tests"
+Directory: /workspace/build-resume/tests
+"CameraExposureTests" start time: Oct 02 12:31 UTC
+Output:
+----------------------------------------------------------
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 7 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 7 tests from CameraExposure
+[ RUN      ] CameraExposure.MoonlitNightIsMoreSensitiveThanDayAndHasVisibleTerrain
+[       OK ] CameraExposure.MoonlitNightIsMoreSensitiveThanDayAndHasVisibleTerrain (0 ms)
+[ RUN      ] CameraExposure.MoonlessNightStaysDarkEvenAtMaximumSensitivity
+[       OK ] CameraExposure.MoonlessNightStaysDarkEvenAtMaximumSensitivity (0 ms)
+[ RUN      ] CameraExposure.IsStatelessAndMetersLocalHorizonContinuouslyAcrossSunset
+[       OK ] CameraExposure.IsStatelessAndMetersLocalHorizonContinuouslyAcrossSunset (0 ms)
+[ RUN      ] CameraExposure.RespectsManualModeCompensationLimitsAndTranslation
+[       OK ] CameraExposure.RespectsManualModeCompensationLimitsAndTranslation (0 ms)
+[ RUN      ] CameraExposure.ParsesOverridesAndRejectsInvalidBoundsAndMeterInputs
+[       OK ] CameraExposure.ParsesOverridesAndRejectsInvalidBoundsAndMeterInputs (0 ms)
+[ RUN      ] CameraExposure.HighlightLimitPreservesSmallHighlightsAndDarkFrames
+[       OK ] CameraExposure.HighlightLimitPreservesSmallHighlightsAndDarkFrames (0 ms)
+[ RUN      ] CameraExposure.HighlightLimitProtectsAtLeast95PercentIncludingTiesAndSmallImages
+[       OK ] CameraExposure.HighlightLimitProtectsAtLeast95PercentIncludingTiesAndSmallImages (0 ms)
+[----------] 7 tests from CameraExposure (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 7 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 7 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"CameraExposureTests" end time: Oct 02 12:31 UTC
+"CameraExposureTests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+12/52 Testing: SceneReplayTests
+12/52 Test: SceneReplayTests
+Command: "/workspace/build-resume/tests/scene_replay_tests"
+Directory: /workspace/build-resume/tests
+"SceneReplayTests" start time: Oct 02 12:31 UTC
+Output:
+----------------------------------------------------------
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 5 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 5 tests from SceneReplay
+[ RUN      ] SceneReplay.SimulationTimestampOverridesDefaultsAndCliOverridesSnapshot
+[       OK ] SceneReplay.SimulationTimestampOverridesDefaultsAndCliOverridesSnapshot (0 ms)
+[ RUN      ] SceneReplay.SnapshotReconstructsPoseAndLightingTimeAfterSpinAndOrbit
+[       OK ] SceneReplay.SnapshotReconstructsPoseAndLightingTimeAfterSpinAndOrbit (0 ms)
+[ RUN      ] SceneReplay.ReportsSimulationClockInsteadOfWallTimeUnderPauseAndSpeedChanges
+[       OK ] SceneReplay.ReportsSimulationClockInsteadOfWallTimeUnderPauseAndSpeedChanges (0 ms)
+[ RUN      ] SceneReplay.ImageSidecarRestoresResolvedSceneInsteadOfEditedWorkingConfig
+[       OK ] SceneReplay.ImageSidecarRestoresResolvedSceneInsteadOfEditedWorkingConfig (0 ms)
+[ RUN      ] SceneReplay.RejectsMalformedSnapshotsAndNonfiniteTime
+[       OK ] SceneReplay.RejectsMalformedSnapshotsAndNonfiniteTime (0 ms)
+[----------] 5 tests from SceneReplay (2 ms total)
+
+[----------] Global test environment tear-down
+[==========] 5 tests from 1 test suite ran. (2 ms total)
+[  PASSED  ] 5 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"SceneReplayTests" end time: Oct 02 12:31 UTC
+"SceneReplayTests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+13/52 Testing: TerrainShadowProjectionTests
+13/52 Test: TerrainShadowProjectionTests
+Command: "/workspace/build-resume/tests/terrain_shadow_projection_tests"
+Directory: /workspace/build-resume/tests
+"TerrainShadowProjectionTests" start time: Oct 02 12:31 UTC
+Output:
+----------------------------------------------------------
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 8 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 4 tests from TerrainShadowProjection
+[ RUN      ] TerrainShadowProjection.EnclosesTerrainForAllSunDirectionsIncludingPoles
+[       OK ] TerrainShadowProjection.EnclosesTerrainForAllSunDirectionsIncludingPoles (0 ms)
+[ RUN      ] TerrainShadowProjection.CloserMountainWinsTheSameLightRay
+[       OK ] TerrainShadowProjection.CloserMountainWinsTheSameLightRay (0 ms)
+[ RUN      ] TerrainShadowProjection.LocalSunDirectionFollowsBodySpinAndTilt
+[       OK ] TerrainShadowProjection.LocalSunDirectionFollowsBodySpinAndTilt (0 ms)
+[ RUN      ] TerrainShadowProjection.RejectsInvalidDirectionAndExtent
+[       OK ] TerrainShadowProjection.RejectsInvalidDirectionAndExtent (0 ms)
+[----------] 4 tests from TerrainShadowProjection (0 ms total)
+
+[----------] 2 tests from TerrainShadowConfig
+[ RUN      ] TerrainShadowConfig.DefaultsAndOverrides
+[       OK ] TerrainShadowConfig.DefaultsAndOverrides (0 ms)
+[ RUN      ] TerrainShadowConfig.RejectsMalformedAndUnboundedSettings
+[       OK ] TerrainShadowConfig.RejectsMalformedAndUnboundedSettings (0 ms)
+[----------] 2 tests from TerrainShadowConfig (0 ms total)
+
+[----------] 2 tests from TerrainShadowCache
+[ RUN      ] TerrainShadowCache.ReusesSubTexelChangesButAccumulatedMotionInvalidates
+[       OK ] TerrainShadowCache.ReusesSubTexelChangesButAccumulatedMotionInvalidates (0 ms)
+[ RUN      ] TerrainShadowCache.GeometryExtentAndResolutionAlwaysInvalidate
+[       OK ] TerrainShadowCache.GeometryExtentAndResolutionAlwaysInvalidate (0 ms)
+[----------] 2 tests from TerrainShadowCache (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 8 tests from 3 test suites ran. (1 ms total)
+[  PASSED  ] 8 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"TerrainShadowProjectionTests" end time: Oct 02 12:31 UTC
+"TerrainShadowProjectionTests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+14/52 Testing: TerrainShadowRenderIntegration
+14/52 Test: TerrainShadowRenderIntegration
+Command: "/workspace/build-resume/tests/terrain_shadow_render_tests"
+Directory: /workspace
+"TerrainShadowRenderIntegration" start time: Oct 02 12:31 UTC
+Output:
+----------------------------------------------------------
+[==========] Running 29 tests from 6 test suites.
+[----------] Global test environment set-up.
+[----------] 4 tests from TerrainMaterialRender
+[ RUN      ] TerrainMaterialRender.DetailPreservesGeometryAndFollowsTheBody
+[       OK ] TerrainMaterialRender.DetailPreservesGeometryAndFollowsTheBody (208 ms)
+[ RUN      ] TerrainMaterialRender.BeachBandIsNarrowInsideCoarseTriangles
+[       OK ] TerrainMaterialRender.BeachBandIsNarrowInsideCoarseTriangles (36 ms)
+[ RUN      ] TerrainMaterialRender.SandGrainsAndRipplesFilterWithoutChangingDepth
+[       OK ] TerrainMaterialRender.SandGrainsAndRipplesFilterWithoutChangingDepth (276 ms)
+[ RUN      ] TerrainMaterialRender.WaterKeepsSmoothSharpReflections
+[       OK ] TerrainMaterialRender.WaterKeepsSmoothSharpReflections (40 ms)
+[----------] 4 tests from TerrainMaterialRender (561 ms total)
+
+[----------] 2 tests from GrassRender
+[ RUN      ] GrassRender.WindMovesBladesWhileNightAndClippingRemainDark
+[       OK ] GrassRender.WindMovesBladesWhileNightAndClippingRemainDark (279 ms)
+[ RUN      ] GrassRender.QuadSwapPreservesInteriorShadingAcrossTheWholeBlade
+[       OK ] GrassRender.QuadSwapPreservesInteriorShadingAcrossTheWholeBlade (38 ms)
+[----------] 2 tests from GrassRender (318 ms total)
+
+[----------] 6 tests from TerrainShadowRender
+[ RUN      ] TerrainShadowRender.ForegroundRidgeBlocksSunFacingRearRidge
+[       OK ] TerrainShadowRender.ForegroundRidgeBlocksSunFacingRearRidge (1126 ms)
+[ RUN      ] TerrainShadowRender.ShadowPreservesReflectedAndAmbientColor
+[       OK ] TerrainShadowRender.ShadowPreservesReflectedAndAmbientColor (29 ms)
+[ RUN      ] TerrainShadowRender.ShadowsWaterAndAccountsForItsDifferentRadius
+[       OK ] TerrainShadowRender.ShadowsWaterAndAccountsForItsDifferentRadius (80 ms)
+[ RUN      ] TerrainShadowRender.NightOceanDoesNotMirrorBrightDayScene
+[       OK ] TerrainShadowRender.NightOceanDoesNotMirrorBrightDayScene (31 ms)
+[ RUN      ] TerrainShadowRender.SunMotionResolutionReloadAndOtherBodiesDoNotLeaveStaleMaps
+[       OK ] TerrainShadowRender.SunMotionResolutionReloadAndOtherBodiesDoNotLeaveStaleMaps (122 ms)
+[ RUN      ] TerrainShadowRender.GrazingSunCannotLeakThroughAnOpaqueForegroundWall
+[       OK ] TerrainShadowRender.GrazingSunCannotLeakThroughAnOpaqueForegroundWall (1608 ms)
+[----------] 6 tests from TerrainShadowRender (2999 ms total)
+
+[----------] 4 tests from GrassWind
+[ RUN      ] GrassWind.CoverageRetirementNeverSinksAndLowQuadsKeepBothTopVertices
+[       OK ] GrassWind.CoverageRetirementNeverSinksAndLowQuadsKeepBothTopVertices (42 ms)
+[ RUN      ] GrassWind.ConfiguredSeedAndFrequenciesChangeNoiseAndKeepRootsFixed
+[       OK ] GrassWind.ConfiguredSeedAndFrequenciesChangeNoiseAndKeepRootsFixed (7 ms)
+[ RUN      ] GrassWind.GradientFieldIsContinuousAtLatticeAndPeriodBoundaries
+[       OK ] GrassWind.GradientFieldIsContinuousAtLatticeAndPeriodBoundaries (15 ms)
+[ RUN      ] GrassWind.BladesStayRootedAndMoveSmoothlyThroughClockWrapAtBothPoles
+[       OK ] GrassWind.BladesStayRootedAndMoveSmoothlyThroughClockWrapAtBothPoles (7 ms)
+[----------] 4 tests from GrassWind (74 ms total)
+
+[----------] 12 tests from ProceduralGrassRender
+[ RUN      ] ProceduralGrassRender.CachedPlansRebuildOnlyForMovementOrMeshRevision
+[       OK ] ProceduralGrassRender.CachedPlansRebuildOnlyForMovementOrMeshRevision (30 ms)
+[ RUN      ] ProceduralGrassRender.WaterSnowAndDistanceRejectBladesBeforeWindWork
+[       OK ] ProceduralGrassRender.WaterSnowAndDistanceRejectBladesBeforeWindWork (28 ms)
+[ RUN      ] ProceduralGrassRender.ConfiguredShapeFadeAndBiomeControlsReachTheGPU
+[       OK ] ProceduralGrassRender.ConfiguredShapeFadeAndBiomeControlsReachTheGPU (30 ms)
+[ RUN      ] ProceduralGrassRender.WindIsBodyLocalAndContinuousAtTheClockWrapAndPoles
+[       OK ] ProceduralGrassRender.WindIsBodyLocalAndContinuousAtTheClockWrapAndPoles (110 ms)
+[ RUN      ] ProceduralGrassRender.GPUGeneratedNearRootsHotSwapWithoutAnUpload
+[       OK ] ProceduralGrassRender.GPUGeneratedNearRootsHotSwapWithoutAnUpload (28 ms)
+[ RUN      ] ProceduralGrassRender.FrustumRejectionIncludesBladeReachAndChecksTheActivePass
+[       OK ] ProceduralGrassRender.FrustumRejectionIncludesBladeReachAndChecksTheActivePass (29 ms)
+[ RUN      ] ProceduralGrassRender.RootsReadResidentTerrainBuffersAndRespondToGPUReupload
+[       OK ] ProceduralGrassRender.RootsReadResidentTerrainBuffersAndRespondToGPUReupload (24 ms)
+[ RUN      ] ProceduralGrassRender.GrowingCandidateBatchesRetainsExistingBlades
+[       OK ] ProceduralGrassRender.GrowingCandidateBatchesRetainsExistingBlades (1537 ms)
+[ RUN      ] ProceduralGrassRender.ConfigurableQuadDistanceChangesGeometryWithoutReplacingRoots
+[       OK ] ProceduralGrassRender.ConfigurableQuadDistanceChangesGeometryWithoutReplacingRoots (44 ms)
+[ RUN      ] ProceduralGrassRender.OfflineRadiusGeneratesVisibleRootsBeyondTheNormalCutoff
+[       OK ] ProceduralGrassRender.OfflineRadiusGeneratesVisibleRootsBeyondTheNormalCutoff (41 ms)
+[ RUN      ] ProceduralGrassRender.PersistentTrailsFlattenTipsKeepRootsAndSuppressWindOnBothPaths
+[       OK ] ProceduralGrassRender.PersistentTrailsFlattenTipsKeepRootsAndSuppressWindOnBothPaths (331 ms)
+[ RUN      ] ProceduralGrassRender.PressedTipsFollowRisingGroundInsteadOfDisappearingBelowIt
+[       OK ] ProceduralGrassRender.PressedTipsFollowRisingGroundInsteadOfDisappearingBelowIt (41 ms)
+[----------] 12 tests from ProceduralGrassRender (2281 ms total)
+
+[----------] 1 test from ProceduralGrassCompute
+[ RUN      ] ProceduralGrassCompute.CompactedRootsAndWindMatchTheVertexFallbackAtBothPoles
+[       OK ] ProceduralGrassCompute.CompactedRootsAndWindMatchTheVertexFallbackAtBothPoles (283 ms)
+[----------] 1 test from ProceduralGrassCompute (283 ms total)
+
+[----------] Global test environment tear-down
+[==========] 29 tests from 6 test suites ran. (6518 ms total)
+[  PASSED  ] 29 tests.
+<end of output>
+Test time =   6.97 sec
+----------------------------------------------------------
+Test Passed.
+"TerrainShadowRenderIntegration" end time: Oct 02 12:31 UTC
+"TerrainShadowRenderIntegration" time elapsed: 00:00:06
+----------------------------------------------------------
+
+15/52 Testing: RenderDiagnosticsTests
+15/52 Test: RenderDiagnosticsTests
+Command: "/workspace/build-resume/tests/render_diagnostics_tests"
+Directory: /workspace/build-resume/tests
+"RenderDiagnosticsTests" start time: Oct 02 12:31 UTC
+Output:
+----------------------------------------------------------
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 18 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 18 tests from RenderDiagnosticsTest
+[ RUN      ] RenderDiagnosticsTest.CountsBothBodiesAndTheirSeparateBounds
+[       OK ] RenderDiagnosticsTest.CountsBothBodiesAndTheirSeparateBounds (0 ms)
+[ RUN      ] RenderDiagnosticsTest.ColorToleranceAcceptsFramebufferRoundingButRejectsOtherColors
+[       OK ] RenderDiagnosticsTest.ColorToleranceAcceptsFramebufferRoundingButRejectsOtherColors (0 ms)
+[ RUN      ] RenderDiagnosticsTest.MissingOrOverlappingBodiesFailVisibilityCheck
+[       OK ] RenderDiagnosticsTest.MissingOrOverlappingBodiesFailVisibilityCheck (0 ms)
+[ RUN      ] RenderDiagnosticsTest.InvalidFramebufferDimensionsAreRejected
+[       OK ] RenderDiagnosticsTest.InvalidFramebufferDimensionsAreRejected (0 ms)
+[ RUN      ] RenderDiagnosticsTest.ShortColorArrayCannotBeMistakenForABody
+[       OK ] RenderDiagnosticsTest.ShortColorArrayCannotBeMistakenForABody (0 ms)
+[ RUN      ] RenderDiagnosticsTest.DetectsDarkAndLightTerrainPixelsAsPlanetColored
+[       OK ] RenderDiagnosticsTest.DetectsDarkAndLightTerrainPixelsAsPlanetColored (0 ms)
+[ RUN      ] RenderDiagnosticsTest.RecognizesLandscapePaletteAndWaterLikePixels
+[       OK ] RenderDiagnosticsTest.RecognizesLandscapePaletteAndWaterLikePixels (0 ms)
+[ RUN      ] RenderDiagnosticsTest.ConfiguredBackgroundAndStarsDoNotBecomePlanetPixels
+[       OK ] RenderDiagnosticsTest.ConfiguredBackgroundAndStarsDoNotBecomePlanetPixels (0 ms)
+[ RUN      ] RenderDiagnosticsTest.WhiteSunIsRestrictedToItsProjectedRegionAndNotCountedAsStars
+[       OK ] RenderDiagnosticsTest.WhiteSunIsRestrictedToItsProjectedRegionAndNotCountedAsStars (0 ms)
+[ RUN      ] RenderDiagnosticsTest.DepthIdentifiesShadowedTerrainWithoutConfusingBackgroundOrSun
+[       OK ] RenderDiagnosticsTest.DepthIdentifiesShadowedTerrainWithoutConfusingBackgroundOrSun (0 ms)
+[ RUN      ] RenderDiagnosticsTest.DepthDoesNotMakeEmptyOrBlackFramesPass
+[       OK ] RenderDiagnosticsTest.DepthDoesNotMakeEmptyOrBlackFramesPass (0 ms)
+[ RUN      ] RenderDiagnosticsTest.InvalidDepthDimensionsAreRejected
+[       OK ] RenderDiagnosticsTest.InvalidDepthDimensionsAreRejected (0 ms)
+[ RUN      ] RenderDiagnosticsTest.LightingMetricsIncludeBlackTerrainButExcludeSunMoonAndSky
+[       OK ] RenderDiagnosticsTest.LightingMetricsIncludeBlackTerrainButExcludeSunMoonAndSky (0 ms)
+[ RUN      ] RenderDiagnosticsTest.LightingMetricsRejectMissingBuffersAndDoNotInventTerrain
+[       OK ] RenderDiagnosticsTest.LightingMetricsRejectMissingBuffersAndDoNotInventTerrain (0 ms)
+[ RUN      ] RenderDiagnosticsTest.PeakTerrainLuminanceDetectsIsolatedBrightPixelsWithoutCountingStars
+[       OK ] RenderDiagnosticsTest.PeakTerrainLuminanceDetectsIsolatedBrightPixelsWithoutCountingStars (0 ms)
+[ RUN      ] RenderDiagnosticsTest.SkyInteriorExcludesMultisampleBodyEdgesButRetainsStars
+[       OK ] RenderDiagnosticsTest.SkyInteriorExcludesMultisampleBodyEdgesButRetainsStars (0 ms)
+[ RUN      ] RenderDiagnosticsTest.AtmosphereMetricsMeasureTerrainContrastAndSkyColorSeparately
+[       OK ] RenderDiagnosticsTest.AtmosphereMetricsMeasureTerrainContrastAndSkyColorSeparately (0 ms)
+[ RUN      ] RenderDiagnosticsTest.WhiteClippingCountsTheWholeScreenAtNearWhiteThreshold
+[       OK ] RenderDiagnosticsTest.WhiteClippingCountsTheWholeScreenAtNearWhiteThreshold (0 ms)
+[----------] 18 tests from RenderDiagnosticsTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 18 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 18 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"RenderDiagnosticsTests" end time: Oct 02 12:31 UTC
+"RenderDiagnosticsTests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+16/52 Testing: StarFieldTests
+16/52 Test: StarFieldTests
+Command: "/workspace/build-resume/tests/star_field_tests"
+Directory: /workspace/build-resume/tests
+"StarFieldTests" start time: Oct 02 12:31 UTC
+Output:
+----------------------------------------------------------
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 3 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 3 tests from StarFieldTest
+[ RUN      ] StarFieldTest.HashIsRepeatableAndSeedChangesTheField
+[       OK ] StarFieldTest.HashIsRepeatableAndSeedChangesTheField (0 ms)
+[ RUN      ] StarFieldTest.DensitySelectsAStableSparseSubsetOfCells
+[       OK ] StarFieldTest.DensitySelectsAStableSparseSubsetOfCells (0 ms)
+[ RUN      ] StarFieldTest.ZeroDensityIsEmptyAndInvalidDensityIsRejected
+[       OK ] StarFieldTest.ZeroDensityIsEmptyAndInvalidDensityIsRejected (0 ms)
+[----------] 3 tests from StarFieldTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 3 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 3 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"StarFieldTests" end time: Oct 02 12:31 UTC
+"StarFieldTests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+17/52 Testing: MeshGeometryTests
+17/52 Test: MeshGeometryTests
+Command: "/workspace/build-resume/tests/mesh_geometry_tests"
+Directory: /workspace/build-resume/tests
+"MeshGeometryTests" start time: Oct 02 12:31 UTC
+Output:
+----------------------------------------------------------
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 6 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 6 tests from MeshGeometryTest
+[ RUN      ] MeshGeometryTest.SphereHasExpectedVertexAndTriangleCounts
+[       OK ] MeshGeometryTest.SphereHasExpectedVertexAndTriangleCounts (0 ms)
+[ RUN      ] MeshGeometryTest.EveryPositionAndNormalLiesOnTheUnitSphere
+[       OK ] MeshGeometryTest.EveryPositionAndNormalLiesOnTheUnitSphere (0 ms)
+[ RUN      ] MeshGeometryTest.TriangleIndicesStayInsideVertexBuffer
+[       OK ] MeshGeometryTest.TriangleIndicesStayInsideVertexBuffer (0 ms)
+[ RUN      ] MeshGeometryTest.LongitudeSeamClosesAtEveryLatitude
+[       OK ] MeshGeometryTest.LongitudeSeamClosesAtEveryLatitude (0 ms)
+[ RUN      ] MeshGeometryTest.RebuildingReplacesOldGeometryAndRejectsTooFewSegments
+[       OK ] MeshGeometryTest.RebuildingReplacesOldGeometryAndRejectsTooFewSegments (0 ms)
+[ RUN      ] MeshGeometryTest.SkyboxCubeHasEightCornersAndTwelveTriangles
+[       OK ] MeshGeometryTest.SkyboxCubeHasEightCornersAndTwelveTriangles (0 ms)
+[----------] 6 tests from MeshGeometryTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 6 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 6 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"MeshGeometryTests" end time: Oct 02 12:31 UTC
+"MeshGeometryTests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+18/52 Testing: TerrainTests
+18/52 Test: TerrainTests
+Command: "/workspace/build-resume/tests/terrain_tests"
+Directory: /workspace/build-resume/tests
+"TerrainTests" start time: Oct 02 12:31 UTC
+Output:
+----------------------------------------------------------
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 25 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 19 tests from TerrainTest
+[ RUN      ] TerrainTest.ShoreSettingsParseAndBoundRefinementWork
+[       OK ] TerrainTest.ShoreSettingsParseAndBoundRefinementWork (0 ms)
+[ RUN      ] TerrainTest.ShoreRefinementIsLocalWatertightAndBudgeted
+[       OK ] TerrainTest.ShoreRefinementIsLocalWatertightAndBudgeted (244 ms)
+[ RUN      ] TerrainTest.NoiseIsDeterministicContinuousAndBoundedByAmplitude
+[       OK ] TerrainTest.NoiseIsDeterministicContinuousAndBoundedByAmplitude (0 ms)
+[ RUN      ] TerrainTest.LandscapeSeedChangesBroadTerrainEvenWithFixedSurfaceNoiseSeeds
+[       OK ] TerrainTest.LandscapeSeedChangesBroadTerrainEvenWithFixedSurfaceNoiseSeeds (0 ms)
+[ RUN      ] TerrainTest.LandscapeRidgeSmoothingRoundsCrestsWithinConfiguredAmplitude
+[       OK ] TerrainTest.LandscapeRidgeSmoothingRoundsCrestsWithinConfiguredAmplitude (4 ms)
+[ RUN      ] TerrainTest.LandscapePaletteUsesWaterRelativeBeachGreenSnowAndDarkSlopes
+[       OK ] TerrainTest.LandscapePaletteUsesWaterRelativeBeachGreenSnowAndDarkSlopes (0 ms)
+[ RUN      ] TerrainTest.OverlappingFunctionsAddTheirIndependentHeightFields
+[       OK ] TerrainTest.OverlappingFunctionsAddTheirIndependentHeightFields (0 ms)
+[ RUN      ] TerrainTest.RidgedSeedChangesTerrainElevationAndMeshPositions
+[       OK ] TerrainTest.RidgedSeedChangesTerrainElevationAndMeshPositions (16 ms)
+[ RUN      ] TerrainTest.RejectsInvalidDirectNoiseAndLodSettings
+[       OK ] TerrainTest.RejectsInvalidDirectNoiseAndLodSettings (0 ms)
+[ RUN      ] TerrainTest.EdgeSegmentsGiveFineDensityStepsWithAHardTriangleCap
+[       OK ] TerrainTest.EdgeSegmentsGiveFineDensityStepsWithAHardTriangleCap (185 ms)
+[ RUN      ] TerrainTest.LodGetsDenserNearCameraAndRemainsCapped
+[       OK ] TerrainTest.LodGetsDenserNearCameraAndRemainsCapped (0 ms)
+[ RUN      ] TerrainTest.TrianglesCarrySampledHeightsAndSmoothSharedCornerTint
+[       OK ] TerrainTest.TrianglesCarrySampledHeightsAndSmoothSharedCornerTint (18 ms)
+[ RUN      ] TerrainTest.DevelopmentLandscapeHasPlainsCliffsLandAndOceanBasins
+[       OK ] TerrainTest.DevelopmentLandscapeHasPlainsCliffsLandAndOceanBasins (14 ms)
+[ RUN      ] TerrainTest.LocalZonesAreDenserWatertightAndStayWithinBudget
+[       OK ] TerrainTest.LocalZonesAreDenserWatertightAndStayWithinBudget (1255 ms)
+[ RUN      ] TerrainTest.SteepFacesUseSpareTriangleBudgetForExtraDetail
+[       OK ] TerrainTest.SteepFacesUseSpareTriangleBudgetForExtraDetail (612 ms)
+[ RUN      ] TerrainTest.ZoneHysteresisRetainsDetailWhenEyeCrossesABoundary
+[       OK ] TerrainTest.ZoneHysteresisRetainsDetailWhenEyeCrossesABoundary (1409 ms)
+[ RUN      ] TerrainTest.TerrainVerticesStayFixedWhenWalkingWithinTheSameZones
+[       OK ] TerrainTest.TerrainVerticesStayFixedWhenWalkingWithinTheSameZones (927 ms)
+[ RUN      ] TerrainTest.TriangleBudgetDowngradesDistantFineFaces
+[       OK ] TerrainTest.TriangleBudgetDowngradesDistantFineFaces (2176 ms)
+[ RUN      ] TerrainTest.SteepNearbyMeshDoesNotRiseThroughTwoMeterEyeAtFaceCenters
+[       OK ] TerrainTest.SteepNearbyMeshDoesNotRiseThroughTwoMeterEyeAtFaceCenters (545 ms)
+[----------] 19 tests from TerrainTest (7412 ms total)
+
+[----------] 6 tests from TerrainLod
+[ RUN      ] TerrainLod.EightMonotoneLevelsKeepConfigAnchorsAndExactBoundaries
+[       OK ] TerrainLod.EightMonotoneLevelsKeepConfigAnchorsAndExactBoundaries (0 ms)
+[ RUN      ] TerrainLod.SinkingIsConfiguredAndValidated
+[       OK ] TerrainLod.SinkingIsConfiguredAndValidated (0 ms)
+[ RUN      ] TerrainLod.AllEightLevelsFormOneWatertightShellAtEquatorAndPoles
+[       OK ] TerrainLod.AllEightLevelsFormOneWatertightShellAtEquatorAndPoles (599 ms)
+[ RUN      ] TerrainLod.CoarseVerticesSinkAndFinestVerticesKeepTheirSampledHeight
+[       OK ] TerrainLod.CoarseVerticesSinkAndFinestVerticesKeepTheirSampledHeight (77 ms)
+[ RUN      ] TerrainLod.ShoreRefinementPreservesTheSunkShellAndBudget
+[       OK ] TerrainLod.ShoreRefinementPreservesTheSunkShellAndBudget (1043 ms)
+[ RUN      ] TerrainLod.InvalidPreviousLevelsAreRejectedIncludingDistantViews
+[       OK ] TerrainLod.InvalidPreviousLevelsAreRejectedIncludingDistantViews (0 ms)
+[----------] 6 tests from TerrainLod (1720 ms total)
+
+[----------] Global test environment tear-down
+[==========] 25 tests from 2 test suites ran. (9133 ms total)
+[  PASSED  ] 25 tests.
+<end of output>
+Test time =   9.15 sec
+----------------------------------------------------------
+Test Passed.
+"TerrainTests" end time: Oct 02 12:32 UTC
+"TerrainTests" time elapsed: 00:00:09
+----------------------------------------------------------
+
+19/52 Testing: GrassPlanTests
+19/52 Test: GrassPlanTests
+Command: "/workspace/build-resume/tests/grass_plan_tests"
+Directory: /workspace/build-resume/tests
+"GrassPlanTests" start time: Oct 02 12:32 UTC
+Output:
+----------------------------------------------------------
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 6 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 6 tests from ProceduralGrassPlan
+[ RUN      ] ProceduralGrassPlan.EveryCandidateAndPatchIsCoveredByAHardSubmittedWorkBudget
+[       OK ] ProceduralGrassPlan.EveryCandidateAndPatchIsCoveredByAHardSubmittedWorkBudget (1 ms)
+[ RUN      ] ProceduralGrassPlan.SameMeshHasStableSeedsAndCornersAcrossSmallCameraMovement
+[       OK ] ProceduralGrassPlan.SameMeshHasStableSeedsAndCornersAcrossSmallCameraMovement (0 ms)
+[ RUN      ] ProceduralGrassPlan.DisabledGrayEmptyAndDistantScenesDoNotAllocateCandidates
+[       OK ] ProceduralGrassPlan.DisabledGrayEmptyAndDistantScenesDoNotAllocateCandidates (0 ms)
+[ RUN      ] ProceduralGrassPlan.PlacementControlsParseAndValidateTogether
+[       OK ] ProceduralGrassPlan.PlacementControlsParseAndValidateTogether (0 ms)
+[ RUN      ] ProceduralGrassPlan.DetailedDescriptorsRespectHardBudgetsAndRetainCornersAndSeeds
+[       OK ] ProceduralGrassPlan.DetailedDescriptorsRespectHardBudgetsAndRetainCornersAndSeeds (0 ms)
+[ RUN      ] ProceduralGrassPlan.WindNoiseConfigValidatesScaleSeedAndSpeed
+[       OK ] ProceduralGrassPlan.WindNoiseConfigValidatesScaleSeedAndSpeed (0 ms)
+[----------] 6 tests from ProceduralGrassPlan (3 ms total)
+
+[----------] Global test environment tear-down
+[==========] 6 tests from 1 test suite ran. (3 ms total)
+[  PASSED  ] 6 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"GrassPlanTests" end time: Oct 02 12:32 UTC
+"GrassPlanTests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+20/52 Testing: GrassTrailTests
+20/52 Test: GrassTrailTests
+Command: "/workspace/build-resume/tests/grass_trail_tests"
+Directory: /workspace/build-resume/tests
+"GrassTrailTests" start time: Oct 02 12:32 UTC
+Output:
+----------------------------------------------------------
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 4 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 4 tests from GrassTrail
+[ RUN      ] GrassTrail.GroundedMotionPersistsAcrossIdleButFlightAndRelocationBreakPaths
+[       OK ] GrassTrail.GroundedMotionPersistsAcrossIdleButFlightAndRelocationBreakPaths (0 ms)
+[ RUN      ] GrassTrail.BoundedHistoryRetainsLatestMarksAndRestoresExactly
+[       OK ] GrassTrail.BoundedHistoryRetainsLatestMarksAndRestoresExactly (6 ms)
+[ RUN      ] GrassTrail.ReplayRejectsNonfiniteOversizedAndTeleportSegments
+[       OK ] GrassTrail.ReplayRejectsNonfiniteOversizedAndTeleportSegments (0 ms)
+[ RUN      ] GrassTrail.HierarchyMatchesCapsuleDistancesAndPrunesDistantMarksAtPlanetScale
+[       OK ] GrassTrail.HierarchyMatchesCapsuleDistancesAndPrunesDistantMarksAtPlanetScale (0 ms)
+[----------] 4 tests from GrassTrail (7 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 1 test suite ran. (7 ms total)
+[  PASSED  ] 4 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"GrassTrailTests" end time: Oct 02 12:32 UTC
+"GrassTrailTests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+21/52 Testing: GrassPlacementTests
+21/52 Test: GrassPlacementTests
+Command: "/workspace/build-resume/tests/grass_placement_tests"
+Directory: /workspace/build-resume/tests
+"GrassPlacementTests" start time: Oct 02 12:32 UTC
+Output:
+----------------------------------------------------------
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 10 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 6 tests from GrassPlacement
+[ RUN      ] GrassPlacement.DeterministicBoundedAndAttachedToRenderedGround
+[       OK ] GrassPlacement.DeterministicBoundedAndAttachedToRenderedGround (7 ms)
+[ RUN      ] GrassPlacement.RejectsWaterCliffsSnowDisabledAndDistantViews
+[       OK ] GrassPlacement.RejectsWaterCliffsSnowDisabledAndDistantViews (3 ms)
+[ RUN      ] GrassPlacement.GaussianDensityFallsWithDistanceAndFollowsTheEye
+[       OK ] GrassPlacement.GaussianDensityFallsWithDistanceAndFollowsTheEye (4 ms)
+[ RUN      ] GrassPlacement.ConfigControlsRootVariationAndNearLayerIndependently
+[       OK ] GrassPlacement.ConfigControlsRootVariationAndNearLayerIndependently (2 ms)
+[ RUN      ] GrassPlacement.BothPolesUseTheSameBodyLocalPlacement
+[       OK ] GrassPlacement.BothPolesUseTheSameBodyLocalPlacement (2 ms)
+[ RUN      ] GrassPlacement.ShoreBiomeUsesRootHeightInsteadOfCoarseVertexTint
+[       OK ] GrassPlacement.ShoreBiomeUsesRootHeightInsteadOfCoarseVertexTint (0 ms)
+[----------] 6 tests from GrassPlacement (20 ms total)
+
+[----------] 2 tests from GrassConfig
+[ RUN      ] GrassConfig.ParsesAndRejectsUnboundedOrNonfiniteWork
+[       OK ] GrassConfig.ParsesAndRejectsUnboundedOrNonfiniteWork (0 ms)
+[ RUN      ] GrassConfig.QuadDistanceDefaultsValidatesAndClampsToDrawDistance
+[       OK ] GrassConfig.QuadDistanceDefaultsValidatesAndClampsToDrawDistance (0 ms)
+[----------] 2 tests from GrassConfig (0 ms total)
+
+[----------] 2 tests from GrassLod
+[ RUN      ] GrassLod.EightContiguousSortedBatchesRetainAttributesAndReduceVertices
+[       OK ] GrassLod.EightContiguousSortedBatchesRetainAttributesAndReduceVertices (5 ms)
+[ RUN      ] GrassLod.GuardBandCannotRemoveVisibleBladesOrUndersampleAfterMovement
+[       OK ] GrassLod.GuardBandCannotRemoveVisibleBladesOrUndersampleAfterMovement (1 ms)
+[----------] 2 tests from GrassLod (6 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 3 test suites ran. (27 ms total)
+[  PASSED  ] 10 tests.
+<end of output>
+Test time =   0.03 sec
+----------------------------------------------------------
+Test Passed.
+"GrassPlacementTests" end time: Oct 02 12:32 UTC
+"GrassPlacementTests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+22/52 Testing: PlanetLocalFrameTests
+22/52 Test: PlanetLocalFrameTests
+Command: "/workspace/build-resume/tests/planet_local_frame_tests"
+Directory: /workspace/build-resume/tests
+"PlanetLocalFrameTests" start time: Oct 02 12:32 UTC
+Output:
+----------------------------------------------------------
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 6 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 6 tests from PlanetLocalFrameTest
+[ RUN      ] PlanetLocalFrameTest.PositionsFollowThePlanetCenterAndCardinalCoordinates
+[       OK ] PlanetLocalFrameTest.PositionsFollowThePlanetCenterAndCardinalCoordinates (0 ms)
+[ RUN      ] PlanetLocalFrameTest.Longitude180FacesTheDevelopmentSun
+[       OK ] PlanetLocalFrameTest.Longitude180FacesTheDevelopmentSun (0 ms)
+[ RUN      ] PlanetLocalFrameTest.WorldCoordinatesRoundTripWithAltitude
+[       OK ] PlanetLocalFrameTest.WorldCoordinatesRoundTripWithAltitude (0 ms)
+[ RUN      ] PlanetLocalFrameTest.NedIsOrthonormalAndRightHandedAtEquatorAndPoles
+[       OK ] PlanetLocalFrameTest.NedIsOrthonormalAndRightHandedAtEquatorAndPoles (0 ms)
+[ RUN      ] PlanetLocalFrameTest.NedVectorsConvertBothWays
+[       OK ] PlanetLocalFrameTest.NedVectorsConvertBothWays (0 ms)
+[ RUN      ] PlanetLocalFrameTest.InvalidLocationsAndCentersAreRejected
+[       OK ] PlanetLocalFrameTest.InvalidLocationsAndCentersAreRejected (0 ms)
+[----------] 6 tests from PlanetLocalFrameTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 6 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 6 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"PlanetLocalFrameTests" end time: Oct 02 12:32 UTC
+"PlanetLocalFrameTests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+23/52 Testing: PlanetSurfaceCameraTests
+23/52 Test: PlanetSurfaceCameraTests
+Command: "/workspace/build-resume/tests/planet_surface_camera_tests"
+Directory: /workspace/build-resume/tests
+"PlanetSurfaceCameraTests" start time: Oct 02 12:32 UTC
+Output:
+----------------------------------------------------------
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 19 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 19 tests from PlanetSurfaceCameraTest
+[ RUN      ] PlanetSurfaceCameraTest.ElevatedGroundUsesTwoMeterClearanceForClipping
+[       OK ] PlanetSurfaceCameraTest.ElevatedGroundUsesTwoMeterClearanceForClipping (0 ms)
+[ RUN      ] PlanetSurfaceCameraTest.MountedPositionLooksAtTheSunWithNorthUp
+[       OK ] PlanetSurfaceCameraTest.MountedPositionLooksAtTheSunWithNorthUp (0 ms)
+[ RUN      ] PlanetSurfaceCameraTest.MovingThePlanetMovesTheMountedCamera
+[       OK ] PlanetSurfaceCameraTest.MovingThePlanetMovesTheMountedCamera (0 ms)
+[ RUN      ] PlanetSurfaceCameraTest.LookingAlongNorthKeepsRadialUpAndFiniteView
+[       OK ] PlanetSurfaceCameraTest.LookingAlongNorthKeepsRadialUpAndFiniteView (0 ms)
+[ RUN      ] PlanetSurfaceCameraTest.SunAndCameraCannotCoincide
+[       OK ] PlanetSurfaceCameraTest.SunAndCameraCannotCoincide (0 ms)
+[ RUN      ] PlanetSurfaceCameraTest.MouseLookUsesIndependentHeadingAndPitch
+[       OK ] PlanetSurfaceCameraTest.MouseLookUsesIndependentHeadingAndPitch (0 ms)
+[ RUN      ] PlanetSurfaceCameraTest.VerticalLookStopsAtNinetyDegreesWithoutSpinning
+[       OK ] PlanetSurfaceCameraTest.VerticalLookStopsAtNinetyDegreesWithoutSpinning (0 ms)
+[ RUN      ] PlanetSurfaceCameraTest.LookingDownEventuallyFacesThePlanetWithoutEnteringIt
+[       OK ] PlanetSurfaceCameraTest.LookingDownEventuallyFacesThePlanetWithoutEnteringIt (0 ms)
+[ RUN      ] PlanetSurfaceCameraTest.WalkingFollowsTheSphereAndKeepsAltitudeAndLocalDown
+[       OK ] PlanetSurfaceCameraTest.WalkingFollowsTheSphereAndKeepsAltitudeAndLocalDown (0 ms)
+[ RUN      ] PlanetSurfaceCameraTest.WalkingRightAndDiagonalUseTangentDirections
+[       OK ] PlanetSurfaceCameraTest.WalkingRightAndDiagonalUseTangentDirections (0 ms)
+[ RUN      ] PlanetSurfaceCameraTest.AutomaticEntryClampsAnInsidePositionAboveTheSphere
+[       OK ] PlanetSurfaceCameraTest.AutomaticEntryClampsAnInsidePositionAboveTheSphere (0 ms)
+[ RUN      ] PlanetSurfaceCameraTest.SavedNedDirectionRestoresAViewAwayFromTheSun
+[       OK ] PlanetSurfaceCameraTest.SavedNedDirectionRestoresAViewAwayFromTheSun (0 ms)
+[ RUN      ] PlanetSurfaceCameraTest.RejectsInvalidSavedViewDirection
+[       OK ] PlanetSurfaceCameraTest.RejectsInvalidSavedViewDirection (0 ms)
+[ RUN      ] PlanetSurfaceCameraTest.SavedUpRestoresRollAtAVerticalView
+[       OK ] PlanetSurfaceCameraTest.SavedUpRestoresRollAtAVerticalView (0 ms)
+[ RUN      ] PlanetSurfaceCameraTest.TwoMeterPerSecondWalkOnFiftyMeterPlanet
+[       OK ] PlanetSurfaceCameraTest.TwoMeterPerSecondWalkOnFiftyMeterPlanet (0 ms)
+[ RUN      ] PlanetSurfaceCameraTest.TerrainMountAndWalkingKeepTwoMetersAboveSampledGround
+[       OK ] PlanetSurfaceCameraTest.TerrainMountAndWalkingKeepTwoMetersAboveSampledGround (0 ms)
+[ RUN      ] PlanetSurfaceCameraTest.EnteringSurfaceModeSnapsToTerrainClearance
+[       OK ] PlanetSurfaceCameraTest.EnteringSurfaceModeSnapsToTerrainClearance (0 ms)
+[ RUN      ] PlanetSurfaceCameraTest.WaterSupportsEyeWhenTerrainIsSubmerged
+[       OK ] PlanetSurfaceCameraTest.WaterSupportsEyeWhenTerrainIsSubmerged (0 ms)
+[ RUN      ] PlanetSurfaceCameraTest.WalkingAcrossEitherPoleKeepsViewAndMotionContinuous
+[       OK ] PlanetSurfaceCameraTest.WalkingAcrossEitherPoleKeepsViewAndMotionContinuous (0 ms)
+[----------] 19 tests from PlanetSurfaceCameraTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 19 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 19 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"PlanetSurfaceCameraTests" end time: Oct 02 12:32 UTC
+"PlanetSurfaceCameraTests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+24/52 Testing: SurfaceCameraTelemetryTests
+24/52 Test: SurfaceCameraTelemetryTests
+Command: "/workspace/build-resume/tests/surface_camera_telemetry_tests"
+Directory: /workspace/build-resume/tests
+"SurfaceCameraTelemetryTests" start time: Oct 02 12:32 UTC
+Output:
+----------------------------------------------------------
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 8 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 8 tests from SurfaceCameraTelemetryTest
+[ RUN      ] SurfaceCameraTelemetryTest.PrintsOnEntryThenAtFiveSecondIntervals
+[       OK ] SurfaceCameraTelemetryTest.PrintsOnEntryThenAtFiveSecondIntervals (0 ms)
+[ RUN      ] SurfaceCameraTelemetryTest.LeavingAndReenteringResetsTheClock
+[       OK ] SurfaceCameraTelemetryTest.LeavingAndReenteringResetsTheClock (0 ms)
+[ RUN      ] SurfaceCameraTelemetryTest.LongFrameStallProducesOneCurrentSnapshot
+[       OK ] SurfaceCameraTelemetryTest.LongFrameStallProducesOneCurrentSnapshot (0 ms)
+[ RUN      ] SurfaceCameraTelemetryTest.InvalidClockTimeDoesNotPrintOrHoldOldCadence
+[       OK ] SurfaceCameraTelemetryTest.InvalidClockTimeDoesNotPrintOrHoldOldCadence (0 ms)
+[ RUN      ] SurfaceCameraTelemetryTest.PrintedPositionAndDirectionAreValidJsonNumbers
+[       OK ] SurfaceCameraTelemetryTest.PrintedPositionAndDirectionAreValidJsonNumbers (0 ms)
+[ RUN      ] SurfaceCameraTelemetryTest.LabelsPlanetPositionInDegreesAndMeters
+[       OK ] SurfaceCameraTelemetryTest.LabelsPlanetPositionInDegreesAndMeters (0 ms)
+[ RUN      ] SurfaceCameraTelemetryTest.ConfigSnippetRestoresWalkedAndTurnedCamera
+[       OK ] SurfaceCameraTelemetryTest.ConfigSnippetRestoresWalkedAndTurnedCamera (0 ms)
+[ RUN      ] SurfaceCameraTelemetryTest.TerrainSnapshotReportsSphereAltitudeAndTwoMeterClearance
+[       OK ] SurfaceCameraTelemetryTest.TerrainSnapshotReportsSphereAltitudeAndTwoMeterClearance (0 ms)
+[----------] 8 tests from SurfaceCameraTelemetryTest (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 8 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 8 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"SurfaceCameraTelemetryTests" end time: Oct 02 12:32 UTC
+"SurfaceCameraTelemetryTests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+25/52 Testing: RenderSceneIntegration
+25/52 Test: RenderSceneIntegration
+Command: "/workspace/build-resume/PlanetSimulation" "--config" "/workspace/tests/fixtures/development/configs/scenarios/solar_system.json" "--render-test" "/workspace/build-resume/render-test.png"
+Directory: /workspace
+"RenderSceneIntegration" start time: Oct 02 12:32 UTC
+Output:
+----------------------------------------------------------
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 0.0 s
+Sun radius: 2.5
+Planets: 2
+Camera position: (15, 15, 8)
+Render test mode enabled
+Output image: /workspace/build-resume/render-test.png
+Planet 0 terrain: 8640 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 100000); foliage blades: 0; water triangles: 960
+Planet 0 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 1036800
+Planet 0 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Planet 1 terrain: 960 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 60000); foliage blades: 0; water triangles: 0
+Planet 1 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 115200
+Planet 1 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Mesh preparation: 55.7368 ms; GPU-complete render: 511.709 ms
+earth lighting: direct RGB (4.49562, 4.45067, 4.36076), reflected RGB (0, 0, 0)
+moon lighting: direct RGB (9.13931, 9.04791, 8.86513), reflected RGB (0.0112579, 0.0185755, 0.0364004)
+Image size: 800x600
+Background pixel: (1, 1, 3)
+Non-background pixels: 14779, bounding box: (1, 1)-(794, 598)
+Sun-colored pixels: 10975, bounding box: (267, 171)-(384, 288)
+Planet pixels (color/depth): 3471, bounding box: (463, 359)-(529, 425)
+Camera exposure: 1; sky sensitivity: 1
+Star-like pixels: 150, bounding box: (1, 1)-(794, 598)
+Blue water-like pixels: 111, bounding box: (428, 326)-(500, 393)
+Render test completed successfully
+Output image: /workspace/build-resume/render-test.png
+<end of output>
+Test time =   1.43 sec
+----------------------------------------------------------
+Test Passed.
+"RenderSceneIntegration" end time: Oct 02 12:32 UTC
+"RenderSceneIntegration" time elapsed: 00:00:01
+----------------------------------------------------------
+
+26/52 Testing: SurfaceRenderIntegration
+26/52 Test: SurfaceRenderIntegration
+Command: "/workspace/build-resume/PlanetSimulation" "--config" "/workspace/tests/fixtures/development/configs/scenarios/solar_system.json" "--surface-render-test" "/workspace/build-resume/surface-render-test.png"
+Directory: /workspace
+"SurfaceRenderIntegration" start time: Oct 02 12:32 UTC
+Output:
+----------------------------------------------------------
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 0.0 s
+Sun radius: 2.5
+Planets: 2
+Surface camera position: (10.1661, 1.02149, -0.0283284)
+Surface render test mode enabled
+Output image: /workspace/build-resume/surface-render-test.png
+Planet 0 terrain: 100000 triangles; far/middle/near faces: 221/81/18; steep-refined faces: 14 (budget 100000); foliage blades: 0; water triangles: 60000
+Planet 0 terrain LOD faces (coarse to fine): 221/16/16/15/13/11/10/18; mesh bytes: 12000000
+Planet 0 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Planet 1 terrain: 960 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 60000); foliage blades: 0; water triangles: 0
+Planet 1 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 115200
+Planet 1 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Mesh preparation: 1850.08 ms; GPU-complete render: 1850.91 ms
+earth lighting: direct RGB (4.49562, 4.45067, 4.36076), reflected RGB (0, 0, 0)
+moon lighting: direct RGB (9.13931, 9.04791, 8.86513), reflected RGB (0.0112579, 0.0185755, 0.0364004)
+Image size: 800x600
+Background pixel: (1, 1, 3)
+Non-background pixels: 210991, bounding box: (0, 6)-(799, 599)
+Sun-colored pixels: 4555, bounding box: (363, 259)-(521, 308)
+Planet pixels (color/depth): 206358, bounding box: (0, 295)-(799, 599)
+Camera exposure: 1; sky sensitivity: 1
+Star-like pixels: 78, bounding box: (3, 6)-(783, 378)
+Blue water-like pixels: 0
+Simulation time: 0.0 s
+Surface camera position (world, km): [10.166100131793629,1.0214853052259667,-0.02832844765981052]
+Surface camera direction (world, unit vector): [-0.9936105211003526,0.0334173564522236,0.10780265602679273]
+Surface camera position (planet LLA): latitude=-21.409888069265286 deg, longitude=82.26311950013215 deg, altitude=30.0 m above reference sphere
+Surface camera ground clearance: 30.0 m
+surface_camera start value: {"altitude":0.03,"direction_ned":[0.05953655123133629,0.9937565852932968,0.09435702546013867],"fov":80.0,"latitude_deg":-21.409888069265286,"longitude_deg":82.26311950013215,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":0.0,"up_ned":[0.005642867970075138,0.09418814306884685,-0.9955384230386665],"walk_speed_mps":80.0}
+White-clipped pixels (RGB >= 250): 4571 (0.952292%)
+Render test completed successfully
+Output image: /workspace/build-resume/surface-render-test.png
+<end of output>
+Test time =   4.67 sec
+----------------------------------------------------------
+Test Passed.
+"SurfaceRenderIntegration" end time: Oct 02 12:32 UTC
+"SurfaceRenderIntegration" time elapsed: 00:00:04
+----------------------------------------------------------
+
+27/52 Testing: PlanetOrbitRenderIntegration
+27/52 Test: PlanetOrbitRenderIntegration
+Command: "/workspace/build-resume/PlanetSimulation" "--config" "/workspace/tests/fixtures/development/configs/scenarios/solar_system.json" "--planet-render-test" "/workspace/build-resume/planet-render-test.png"
+Directory: /workspace
+"PlanetOrbitRenderIntegration" start time: Oct 02 12:32 UTC
+Output:
+----------------------------------------------------------
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 0.0 s
+Sun radius: 2.5
+Planets: 2
+Planet orbit camera position: (10.3879, 2.77685, -0.0770097)
+Planet orbit render test mode enabled
+Output image: /workspace/build-resume/planet-render-test.png
+Planet 0 terrain: 97314 triangles; far/middle/near faces: 221/81/18; steep-refined faces: 23 (budget 100000); foliage blades: 0; water triangles: 2096
+Planet 0 terrain LOD faces (coarse to fine): 221/16/16/15/13/11/10/18; mesh bytes: 11677680
+Planet 0 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Planet 1 terrain: 960 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 60000); foliage blades: 0; water triangles: 0
+Planet 1 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 115200
+Planet 1 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Mesh preparation: 484.196 ms; GPU-complete render: 2094.04 ms
+earth lighting: direct RGB (4.49562, 4.45067, 4.36076), reflected RGB (0, 0, 0)
+moon lighting: direct RGB (9.13931, 9.04791, 8.86513), reflected RGB (0.0112579, 0.0185755, 0.0364004)
+Image size: 800x600
+Background pixel: (1, 1, 3)
+Non-background pixels: 147087, bounding box: (0, 3)-(793, 587)
+Sun-colored pixels: 0
+Planet pixels (color/depth): 146978, bounding box: (168, 68)-(623, 522)
+Camera exposure: 1; sky sensitivity: 1
+Star-like pixels: 109, bounding box: (0, 3)-(793, 587)
+Blue water-like pixels: 3678, bounding box: (224, 114)-(576, 222)
+Render test completed successfully
+Output image: /workspace/build-resume/planet-render-test.png
+<end of output>
+Test time =   3.55 sec
+----------------------------------------------------------
+Test Passed.
+"PlanetOrbitRenderIntegration" end time: Oct 02 12:32 UTC
+"PlanetOrbitRenderIntegration" time elapsed: 00:00:03
+----------------------------------------------------------
+
+28/52 Testing: MovingSurfaceRenderIntegration
+28/52 Test: MovingSurfaceRenderIntegration
+Command: "/workspace/build-resume/PlanetSimulation" "--config" "/workspace/tests/fixtures/development/configs/scenarios/solar_system.json" "--surface-render-test" "/workspace/build-resume/moving-surface-render-test.png" "--simulation-time" "37"
+Directory: /workspace
+"MovingSurfaceRenderIntegration" start time: Oct 02 12:32 UTC
+Output:
+----------------------------------------------------------
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 37.0 s
+Sun radius: 2.5
+Planets: 2
+Surface camera position: (5.70819, 8.78009, -0.614174)
+Surface render test mode enabled
+Output image: /workspace/build-resume/moving-surface-render-test.png
+Planet 0 terrain: 100000 triangles; far/middle/near faces: 221/81/18; steep-refined faces: 14 (budget 100000); foliage blades: 0; water triangles: 60000
+Planet 0 terrain LOD faces (coarse to fine): 221/16/16/15/13/11/10/18; mesh bytes: 12000000
+Planet 0 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Planet 1 terrain: 960 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 60000); foliage blades: 0; water triangles: 0
+Planet 1 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 115200
+Planet 1 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Mesh preparation: 1849.79 ms; GPU-complete render: 1874.46 ms
+earth lighting: direct RGB (3.71393, 3.67679, 3.60252), reflected RGB (6.35444e-05, 6.29089e-05, 6.48821e-05)
+moon lighting: direct RGB (5.51202, 5.4569, 5.34666), reflected RGB (0.012483, 0.0205969, 0.0403616)
+Image size: 800x600
+Background pixel: (1, 1, 3)
+Non-background pixels: 206452, bounding box: (0, 7)-(799, 599)
+Sun-colored pixels: 0
+Planet pixels (color/depth): 206357, bounding box: (0, 295)-(799, 599)
+Camera exposure: 1; sky sensitivity: 1
+Star-like pixels: 95, bounding box: (9, 7)-(799, 366)
+Blue water-like pixels: 19769, bounding box: (299, 374)-(667, 599)
+Simulation time: 37.0 s
+Surface camera position (world, km): [5.7081945515892665,8.78008875931386,-0.6141735484591155]
+Surface camera direction (world, unit vector): [0.7840798859210358,0.5463447831865942,0.29449297169686184]
+Surface camera position (planet LLA): latitude=-21.409888069265286 deg, longitude=82.26311950013215 deg, altitude=30.0 m above reference sphere
+Surface camera ground clearance: 30.0 m
+surface_camera start value: {"altitude":0.03,"direction_ned":[0.05953655123133622,0.9937565852932966,0.09435702546013872],"fov":80.0,"latitude_deg":-21.409888069265286,"longitude_deg":82.26311950013215,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":37.0,"up_ned":[0.005642867970075127,0.09418814306884676,-0.9955384230386665],"walk_speed_mps":80.0}
+White-clipped pixels (RGB >= 250): 29 (0.00604167%)
+Render test completed successfully
+Output image: /workspace/build-resume/moving-surface-render-test.png
+<end of output>
+Test time =   4.83 sec
+----------------------------------------------------------
+Test Passed.
+"MovingSurfaceRenderIntegration" end time: Oct 02 12:32 UTC
+"MovingSurfaceRenderIntegration" time elapsed: 00:00:04
+----------------------------------------------------------
+
+29/52 Testing: MovingPlanetRenderIntegration
+29/52 Test: MovingPlanetRenderIntegration
+Command: "/workspace/build-resume/PlanetSimulation" "--config" "/workspace/tests/fixtures/development/configs/scenarios/solar_system.json" "--planet-render-test" "/workspace/build-resume/moving-planet-render-test.png" "--simulation-time" "37"
+Directory: /workspace
+"MovingPlanetRenderIntegration" start time: Oct 02 12:32 UTC
+Output:
+----------------------------------------------------------
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 37.0 s
+Sun radius: 2.5
+Planets: 2
+Planet orbit camera position: (5.51926, 12.1731, -0.0668144)
+Planet orbit render test mode enabled
+Output image: /workspace/build-resume/moving-planet-render-test.png
+Planet 0 terrain: 99962 triangles; far/middle/near faces: 219/85/16; steep-refined faces: 25 (budget 100000); foliage blades: 0; water triangles: 2050
+Planet 0 terrain LOD faces (coarse to fine): 219/17/18/15/13/9/13/16; mesh bytes: 11995440
+Planet 0 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Planet 1 terrain: 960 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 60000); foliage blades: 0; water triangles: 0
+Planet 1 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 115200
+Planet 1 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Mesh preparation: 491.611 ms; GPU-complete render: 2043.16 ms
+earth lighting: direct RGB (3.71393, 3.67679, 3.60252), reflected RGB (6.35444e-05, 6.29089e-05, 6.48821e-05)
+moon lighting: direct RGB (5.51202, 5.4569, 5.34666), reflected RGB (0.012483, 0.0205969, 0.0403616)
+Image size: 800x600
+Background pixel: (1, 1, 3)
+Non-background pixels: 149516, bounding box: (0, 3)-(793, 587)
+Sun-colored pixels: 6199, bounding box: (364, 55)-(541, 138)
+Planet pixels (color/depth): 143212, bounding box: (192, 80)-(619, 529)
+Camera exposure: 1; sky sensitivity: 1
+Star-like pixels: 105, bounding box: (0, 3)-(793, 587)
+Blue water-like pixels: 0
+Render test completed successfully
+Output image: /workspace/build-resume/moving-planet-render-test.png
+<end of output>
+Test time =   3.51 sec
+----------------------------------------------------------
+Test Passed.
+"MovingPlanetRenderIntegration" end time: Oct 02 12:32 UTC
+"MovingPlanetRenderIntegration" time elapsed: 00:00:03
+----------------------------------------------------------
+
+30/52 Testing: MoonlightRenderIntegration
+30/52 Test: MoonlightRenderIntegration
+Command: "/workspace/build-resume/PlanetSimulation" "--config" "/workspace/tests/configs/moonlight.json" "--surface-render-test" "/workspace/build-resume/moonlight-render-test.png"
+Directory: /workspace
+"MoonlightRenderIntegration" start time: Oct 02 12:32 UTC
+Output:
+----------------------------------------------------------
+PlanetSimulation v0.0.1 initialized
+Scenario: Moonlight render regression
+Simulation time: 0.0 s
+Sun radius: 1
+Planets: 2
+Surface camera position: (10.965, 0, 0)
+Surface render test mode enabled
+Output image: /workspace/build-resume/moonlight-render-test.png
+Planet 0 terrain: 5352 triangles; far/middle/near faces: 314/0/6; steep-refined faces: 0 (budget 60000); foliage blades: 0; water triangles: 0
+Planet 0 terrain LOD faces (coarse to fine): 314/0/0/0/0/0/0/6; mesh bytes: 642240
+Planet 0 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Planet 1 terrain: 960 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 60000); foliage blades: 0; water triangles: 0
+Planet 1 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 115200
+Planet 1 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Mesh preparation: 14.4454 ms; GPU-complete render: 510.114 ms
+earth lighting: direct RGB (3.15661, 3.15661, 3.15661), reflected RGB (0.00155385, 0.00155385, 0.00155385)
+moon lighting: direct RGB (1.86462, 1.86462, 1.86462), reflected RGB (0, 0, 0)
+Image size: 800x600
+Background pixel: (0, 0, 0)
+Non-background pixels: 373584, bounding box: (0, 130)-(799, 599)
+Sun-colored pixels: 0
+Planet pixels (color/depth): 373584, bounding box: (0, 130)-(799, 599)
+Camera exposure: 50; sky sensitivity: 1
+Simulation time: 0.0 s
+Surface camera position (world, km): [10.964962962962964,0.0,0.0]
+Surface camera direction (world, unit vector): [-0.3713906763541037,0.0,0.9284766908852594]
+Surface camera position (planet LLA): latitude=0.0 deg, longitude=0.0 deg, altitude=2.0 m above reference sphere
+Surface camera ground clearance: 2.0 m
+surface_camera start value: {"altitude":0.002,"direction_ned":[0.9284766908852594,0.0,0.3713906763541037],"fov":60.0,"latitude_deg":0.0,"longitude_deg":0.0,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":0.0,"up_ned":[0.3713906763541038,0.0,-0.9284766908852594],"walk_speed_mps":8.0}
+White-clipped pixels (RGB >= 250): 0 (0%)
+Render test completed successfully
+Output image: /workspace/build-resume/moonlight-render-test.png
+<end of output>
+Test time =   1.47 sec
+----------------------------------------------------------
+Test Passed.
+"MoonlightRenderIntegration" end time: Oct 02 12:32 UTC
+"MoonlightRenderIntegration" time elapsed: 00:00:01
+----------------------------------------------------------
+
+31/52 Testing: AstronautCaptureIntegration
+31/52 Test: AstronautCaptureIntegration
+Command: "/usr/bin/python3" "/workspace/tests/character/test_astronaut_capture.py" "--binary" "/workspace/build-resume/PlanetSimulation" "--output-dir" "/workspace/build-resume/astronaut-captures"
+Directory: /workspace
+"AstronautCaptureIntegration" start time: Oct 02 12:32 UTC
+Output:
+----------------------------------------------------------
+Validated visible HDR astronaut, grounded IK, walking, jump/jetpack bubbles and exact gait/flight replay
+Validated grounded trail recording, no airborne marks and exact grass/HDR/reflection replay
+<end of output>
+Test time =  98.34 sec
+----------------------------------------------------------
+Test Passed.
+"AstronautCaptureIntegration" end time: Oct 02 12:33 UTC
+"AstronautCaptureIntegration" time elapsed: 00:01:38
+----------------------------------------------------------
+
+32/52 Testing: OfflineCaptureIntegration
+32/52 Test: OfflineCaptureIntegration
+Command: "/usr/bin/python3" "/workspace/tests/quality/test_offline_capture.py" "--binary" "/workspace/build-resume/PlanetSimulation" "--output-dir" "/workspace/build-resume/offline-captures"
+Directory: /workspace/build-resume/tests
+"OfflineCaptureIntegration" start time: Oct 02 12:33 UTC
+Output:
+----------------------------------------------------------
+Validated offline distance/detail, gated lens flare, option overrides and exact replay
+<end of output>
+Test time =  16.18 sec
+----------------------------------------------------------
+Test Passed.
+"OfflineCaptureIntegration" end time: Oct 02 12:34 UTC
+"OfflineCaptureIntegration" time elapsed: 00:00:16
+----------------------------------------------------------
+
+33/52 Testing: CpuTraceTests
+33/52 Test: CpuTraceTests
+Command: "/workspace/build-resume/tests/cpu_trace_tests"
+Directory: /workspace/build-resume/tests
+"CpuTraceTests" start time: Oct 02 12:34 UTC
+Output:
+----------------------------------------------------------
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 3 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 3 tests from CpuTrace
+[ RUN      ] CpuTrace.NestedScopesWorkerBindingAndUnwindingProduceValidJson
+[       OK ] CpuTrace.NestedScopesWorkerBindingAndUnwindingProduceValidJson (1 ms)
+[ RUN      ] CpuTrace.DisabledNestedBindingRestoresOuterTrace
+[       OK ] CpuTrace.DisabledNestedBindingRestoresOuterTrace (0 ms)
+[ RUN      ] CpuTrace.BadOutputPathFailsImmediately
+[       OK ] CpuTrace.BadOutputPathFailsImmediately (0 ms)
+[----------] 3 tests from CpuTrace (2 ms total)
+
+[----------] Global test environment tear-down
+[==========] 3 tests from 1 test suite ran. (2 ms total)
+[  PASSED  ] 3 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"CpuTraceTests" end time: Oct 02 12:34 UTC
+"CpuTraceTests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+34/52 Testing: CpuTraceReportTests
+34/52 Test: CpuTraceReportTests
+Command: "/usr/bin/python3" "/workspace/tests/diagnostics/tracing/test_cpu_report.py"
+Directory: /workspace/build-resume/tests
+"CpuTraceReportTests" start time: Oct 02 12:34 UTC
+Output:
+----------------------------------------------------------
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.006s
+
+OK
+<end of output>
+Test time =   0.21 sec
+----------------------------------------------------------
+Test Passed.
+"CpuTraceReportTests" end time: Oct 02 12:34 UTC
+"CpuTraceReportTests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+35/52 Testing: GrassCaptureIntegration
+35/52 Test: GrassCaptureIntegration
+Command: "/usr/bin/python3" "/workspace/tests/foliage/test_grass_capture.py" "--binary" "/workspace/build-resume/PlanetSimulation" "--output-dir" "/workspace/build-resume/grass-captures"
+Directory: /workspace/build-resume/tests
+"GrassCaptureIntegration" start time: Oct 02 12:34 UTC
+Output:
+----------------------------------------------------------
+Validated visible grass, bounded instances, unchanged terrain, paused reuse and exact replay
+<end of output>
+Test time =  65.93 sec
+----------------------------------------------------------
+Test Passed.
+"GrassCaptureIntegration" end time: Oct 02 12:35 UTC
+"GrassCaptureIntegration" time elapsed: 00:01:05
+----------------------------------------------------------
+
+36/52 Testing: LightingScenariosRenderIntegration
+36/52 Test: LightingScenariosRenderIntegration
+Command: "/usr/bin/python3" "/workspace/tests/lighting/render_lighting_scenarios.py" "--binary" "/workspace/build-resume/PlanetSimulation" "--output-dir" "/workspace/build-resume/lighting-scenarios"
+Directory: /workspace
+"LightingScenariosRenderIntegration" start time: Oct 02 12:35 UTC
+Output:
+----------------------------------------------------------
+daylight: t=20s, exposure=0.195, terrain luminance=0.5479, terrain pixels=83281
+daylight_no_moon: t=20s, exposure=0.195, terrain luminance=0.5479, terrain pixels=83281
+night_moon: t=120s, exposure=2059.676, terrain luminance=0.6142, terrain pixels=83281
+night_no_moon: t=120s, exposure=4096.000, terrain luminance=0.0000, terrain pixels=83281
+night_new_moon: t=0s, exposure=4096.000, terrain luminance=0.0000, terrain pixels=136445
+night_manual_exposure: t=120s, exposure=1.000, terrain luminance=0.0031, terrain pixels=83281
+Validated 6 lighting scenarios; artifacts: /workspace/build-resume/lighting-scenarios
+<end of output>
+Test time =  41.54 sec
+----------------------------------------------------------
+Test Passed.
+"LightingScenariosRenderIntegration" end time: Oct 02 12:36 UTC
+"LightingScenariosRenderIntegration" time elapsed: 00:00:41
+----------------------------------------------------------
+
+37/52 Testing: TwilightScenariosRenderIntegration
+37/52 Test: TwilightScenariosRenderIntegration
+Command: "/usr/bin/python3" "/workspace/tests/lighting/render_lighting_scenarios.py" "--binary" "/workspace/build-resume/PlanetSimulation" "--manifest" "/workspace/tests/scenarios/twilight/manifest.json" "--output-dir" "/workspace/build-resume/twilight-scenarios"
+Directory: /workspace
+"TwilightScenariosRenderIntegration" start time: Oct 02 12:36 UTC
+Output:
+----------------------------------------------------------
+twilight_before: t=2707.52s, exposure=4096.000, terrain luminance=0.0500, terrain pixels=235901
+twilight_reported: t=2707.62s, exposure=4096.000, terrain luminance=0.0505, terrain pixels=235892
+twilight_after: t=2707.72s, exposure=4096.000, terrain luminance=0.0510, terrain pixels=235893
+Validated 3 lighting scenarios; artifacts: /workspace/build-resume/twilight-scenarios
+<end of output>
+Test time =  23.42 sec
+----------------------------------------------------------
+Test Passed.
+"TwilightScenariosRenderIntegration" end time: Oct 02 12:36 UTC
+"TwilightScenariosRenderIntegration" time elapsed: 00:00:23
+----------------------------------------------------------
+
+38/52 Testing: AtmosphereTests
+38/52 Test: AtmosphereTests
+Command: "/workspace/build-resume/tests/atmosphere_tests"
+Directory: /workspace/build-resume/tests
+"AtmosphereTests" start time: Oct 02 12:36 UTC
+Output:
+----------------------------------------------------------
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 15 tests from 6 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from AtmosphereConfig
+[ RUN      ] AtmosphereConfig.OptionalBlockAndLegacyMetadataPreserveAirlessScenes
+[       OK ] AtmosphereConfig.OptionalBlockAndLegacyMetadataPreserveAirlessScenes (0 ms)
+[ RUN      ] AtmosphereConfig.RejectsInvalidCompositionAndPhysicalInputs
+[       OK ] AtmosphereConfig.RejectsInvalidCompositionAndPhysicalInputs (0 ms)
+[----------] 2 tests from AtmosphereConfig (0 ms total)
+
+[----------] 4 tests from AtmosphereOptics
+[ RUN      ] AtmosphereOptics.RayleighIsBlueAndDensityIsLinearRatherThanSquared
+[       OK ] AtmosphereOptics.RayleighIsBlueAndDensityIsLinearRatherThanSquared (0 ms)
+[ RUN      ] AtmosphereOptics.CompositionAndTemperatureChangeRefractionAndScattering
+[       OK ] AtmosphereOptics.CompositionAndTemperatureChangeRefractionAndScattering (0 ms)
+[ RUN      ] AtmosphereOptics.WaterVaporCondensesOnlyAboveSaturationAndDependsOnTemperature
+[       OK ] AtmosphereOptics.WaterVaporCondensesOnlyAboveSaturationAndDependsOnTemperature (0 ms)
+[ RUN      ] AtmosphereOptics.RedDustWarmsTransmissionAndHeavyDustExtinguishesIt
+[       OK ] AtmosphereOptics.RedDustWarmsTransmissionAndHeavyDustExtinguishesIt (0 ms)
+[----------] 4 tests from AtmosphereOptics (0 ms total)
+
+[----------] 2 tests from AtmosphereClimate
+[ RUN      ] AtmosphereClimate.SolarForcingFollowsIncidenceAndInverseSquareDistance
+[       OK ] AtmosphereClimate.SolarForcingFollowsIncidenceAndInverseSquareDistance (0 ms)
+[ RUN      ] AtmosphereClimate.LocalCloudWaterCanOverrideTheInitialCondensationEstimate
+[       OK ] AtmosphereClimate.LocalCloudWaterCanOverrideTheInitialCondensationEstimate (0 ms)
+[----------] 2 tests from AtmosphereClimate (0 ms total)
+
+[----------] 1 test from AtmosphereReplay
+[ RUN      ] AtmosphereReplay.ResolvedScenePreservesCompositionWhenWorkingConfigChanges
+[       OK ] AtmosphereReplay.ResolvedScenePreservesCompositionWhenWorkingConfigChanges (0 ms)
+[----------] 1 test from AtmosphereReplay (0 ms total)
+
+[----------] 1 test from AtmosphereExposure
+[ RUN      ] AtmosphereExposure.TwilightSkylightIsMeteredWithoutInventingLightAtDeepNight
+[       OK ] AtmosphereExposure.TwilightSkylightIsMeteredWithoutInventingLightAtDeepNight (0 ms)
+[----------] 1 test from AtmosphereExposure (0 ms total)
+
+[----------] 5 tests from AtmosphereRefraction
+[ RUN      ] AtmosphereRefraction.VacuumDisabledAndRadialRaysRemainStraight
+[       OK ] AtmosphereRefraction.VacuumDisabledAndRadialRaysRemainStraight (0 ms)
+[ RUN      ] AtmosphereRefraction.GrazingRaysBendTowardDenseAirAndConserveSphericalSnellInvariant
+[       OK ] AtmosphereRefraction.GrazingRaysBendTowardDenseAirAndConserveSphericalSnellInvariant (0 ms)
+[ RUN      ] AtmosphereRefraction.JsonTemperatureControlsBendingStrength
+[       OK ] AtmosphereRefraction.JsonTemperatureControlsBendingStrength (0 ms)
+[ RUN      ] AtmosphereRefraction.OrbitalLimbRaysAreReciprocalAndMissedShellsDoNotBend
+[       OK ] AtmosphereRefraction.OrbitalLimbRaysAreReciprocalAndMissedShellsDoNotBend (0 ms)
+[ RUN      ] AtmosphereRefraction.ShellEdgeHasNoArtificialIndexJump
+[       OK ] AtmosphereRefraction.ShellEdgeHasNoArtificialIndexJump (0 ms)
+[----------] 5 tests from AtmosphereRefraction (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 15 tests from 6 test suites ran. (2 ms total)
+[  PASSED  ] 15 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"AtmosphereTests" end time: Oct 02 12:36 UTC
+"AtmosphereTests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+39/52 Testing: AtmosphereScenariosRenderIntegration
+39/52 Test: AtmosphereScenariosRenderIntegration
+Command: "/usr/bin/python3" "/workspace/tests/lighting/render_lighting_scenarios.py" "--binary" "/workspace/build-resume/PlanetSimulation" "--manifest" "/workspace/tests/scenarios/atmosphere/manifest.json" "--output-dir" "/workspace/build-resume/atmosphere-scenarios"
+Directory: /workspace
+"AtmosphereScenariosRenderIntegration" start time: Oct 02 12:36 UTC
+Output:
+----------------------------------------------------------
+airless: t=20s, exposure=9.532, terrain luminance=0.5353, terrain pixels=132020
+standard_air: t=20s, exposure=9.358, terrain luminance=0.4505, terrain pixels=132263
+heavy_dust: t=20s, exposure=6.117, terrain luminance=0.0000, terrain pixels=132263
+mist: t=20s, exposure=9.012, terrain luminance=0.2965, terrain pixels=132263
+night: t=45s, exposure=4096.000, terrain luminance=0.0171, terrain pixels=132261
+moonlit_night: t=45s, exposure=4096.000, terrain luminance=0.1816, terrain pixels=132261
+sunset: t=34s, exposure=509.071, terrain luminance=0.0573, terrain pixels=139429
+orbital_view: t=3000s, exposure=72.143, terrain luminance=0.3121, terrain pixels=26526
+night_without_stars: t=45s, exposure=4096.000, terrain luminance=0.0171, terrain pixels=132261
+Validated 9 lighting scenarios; artifacts: /workspace/build-resume/atmosphere-scenarios
+<end of output>
+Test time = 120.51 sec
+----------------------------------------------------------
+Test Passed.
+"AtmosphereScenariosRenderIntegration" end time: Oct 02 12:38 UTC
+"AtmosphereScenariosRenderIntegration" time elapsed: 00:02:00
+----------------------------------------------------------
+
+40/52 Testing: AtmosphereRefractionRenderIntegration
+40/52 Test: AtmosphereRefractionRenderIntegration
+Command: "/workspace/build-resume/tests/atmosphere_render_tests"
+Directory: /workspace
+"AtmosphereRefractionRenderIntegration" start time: Oct 02 12:38 UTC
+Output:
+----------------------------------------------------------
+[==========] Running 11 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 11 tests from AtmosphereRender
+[ RUN      ] AtmosphereRender.TerrainShadowBlocksDirectScatteringButPreservesAmbient
+[       OK ] AtmosphereRender.TerrainShadowBlocksDirectScatteringButPreservesAmbient (581 ms)
+[ RUN      ] AtmosphereRender.TerrainShadowMapBindsForAtmosphereAndCanBeDisabled
+[       OK ] AtmosphereRender.TerrainShadowMapBindsForAtmosphereAndCanBeDisabled (19 ms)
+[ RUN      ] AtmosphereRender.SurfaceAndOrbitalSkyDisplacementMatchesReferenceRay
+[       OK ] AtmosphereRender.SurfaceAndOrbitalSkyDisplacementMatchesReferenceRay (731 ms)
+[ RUN      ] AtmosphereRender.RasterizedDistantBodyKeepsItsSilhouette
+[       OK ] AtmosphereRender.RasterizedDistantBodyKeepsItsSilhouette (274 ms)
+[ RUN      ] AtmosphereRender.JsonTemperatureChangesRenderedSkyDisplacement
+[       OK ] AtmosphereRender.JsonTemperatureChangesRenderedSkyDisplacement (651 ms)
+[ RUN      ] AtmosphereRender.VacuumMissedShellAndNearGeometryStayUnwarped
+[       OK ] AtmosphereRender.VacuumMissedShellAndNearGeometryStayUnwarped (476 ms)
+[ RUN      ] AtmosphereRender.DenseAtmosphereDoesNotLeakTrappedRaysToBackground
+[       OK ] AtmosphereRender.DenseAtmosphereDoesNotLeakTrappedRaysToBackground (189 ms)
+[ RUN      ] AtmosphereRender.PerformanceOverlayIsVisibleOnlyWhileRequested
+[       OK ] AtmosphereRender.PerformanceOverlayIsVisibleOnlyWhileRequested (315 ms)
+[ RUN      ] AtmosphereRender.ProfilerWritesEveryFrameAndResolvesGpuQueriesWithoutPollingWaits
+[       OK ] AtmosphereRender.ProfilerWritesEveryFrameAndResolvesGpuQueriesWithoutPollingWaits (15 ms)
+[ RUN      ] AtmosphereRender.ReducedAtmosphereAndLookupPreserveSharpDepthEdges
+[       OK ] AtmosphereRender.ReducedAtmosphereAndLookupPreserveSharpDepthEdges (700 ms)
+[ RUN      ] AtmosphereRender.HighlightProtectionLimitsWhitePixelsAndPreservesCachedExposure
+[       OK ] AtmosphereRender.HighlightProtectionLimitsWhitePixelsAndPreservesCachedExposure (216 ms)
+[----------] 11 tests from AtmosphereRender (4174 ms total)
+
+[----------] Global test environment tear-down
+[==========] 11 tests from 1 test suite ran. (4174 ms total)
+[  PASSED  ] 11 tests.
+<end of output>
+Test time =   4.61 sec
+----------------------------------------------------------
+Test Passed.
+"AtmosphereRefractionRenderIntegration" end time: Oct 02 12:38 UTC
+"AtmosphereRefractionRenderIntegration" time elapsed: 00:00:04
+----------------------------------------------------------
+
+41/52 Testing: FrameReuseTests
+41/52 Test: FrameReuseTests
+Command: "/workspace/build-resume/tests/frame_reuse_tests"
+Directory: /workspace/build-resume/tests
+"FrameReuseTests" start time: Oct 02 12:38 UTC
+Output:
+----------------------------------------------------------
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 3 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from FrameRate
+[ RUN      ] FrameRate.MeasuresWallTimeAndIgnoresInvalidSamples
+[       OK ] FrameRate.MeasuresWallTimeAndIgnoresInvalidSamples (0 ms)
+[----------] 1 test from FrameRate (0 ms total)
+
+[----------] 2 tests from FrameReuse
+[ RUN      ] FrameReuse.RequiresStoppedSimulationAndIdenticalCameraGeometryAndSize
+[       OK ] FrameReuse.RequiresStoppedSimulationAndIdenticalCameraGeometryAndSize (0 ms)
+[ RUN      ] FrameReuse.PreciseEyeAndCameraModeInvalidateEvenWithTheSameFloatView
+[       OK ] FrameReuse.PreciseEyeAndCameraModeInvalidateEvenWithTheSameFloatView (0 ms)
+[----------] 2 tests from FrameReuse (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 3 tests from 2 test suites ran. (0 ms total)
+[  PASSED  ] 3 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"FrameReuseTests" end time: Oct 02 12:38 UTC
+"FrameReuseTests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+42/52 Testing: PerformanceCaptureIntegration
+42/52 Test: PerformanceCaptureIntegration
+Command: "/usr/bin/python3" "/workspace/tests/diagnostics/test_performance_capture.py" "--binary" "/workspace/build-resume/PlanetSimulation" "--output-dir" "/workspace/build-resume/performance-capture-tests"
+Directory: /workspace
+"PerformanceCaptureIntegration" start time: Oct 02 12:38 UTC
+Output:
+----------------------------------------------------------
+Validated traced frames, paused image identity, and moving shadow reuse
+Validated exact replay of full-resolution atmosphere capture
+<end of output>
+Test time =  26.43 sec
+----------------------------------------------------------
+Test Passed.
+"PerformanceCaptureIntegration" end time: Oct 02 12:38 UTC
+"PerformanceCaptureIntegration" time elapsed: 00:00:26
+----------------------------------------------------------
+
+43/52 Testing: GpuUtilizationTests
+43/52 Test: GpuUtilizationTests
+Command: "/workspace/build-resume/tests/gpu_utilization_tests"
+Directory: /workspace/build-resume/tests
+"GpuUtilizationTests" start time: Oct 02 12:38 UTC
+Output:
+----------------------------------------------------------
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 4 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 4 tests from GpuUtilization
+[ RUN      ] GpuUtilization.MatchesUniqueRendererAndRejectsAmbiguity
+[       OK ] GpuUtilization.MatchesUniqueRendererAndRejectsAmbiguity (0 ms)
+[ RUN      ] GpuUtilization.SoftwareRendererIsUnavailable
+[       OK ] GpuUtilization.SoftwareRendererIsUnavailable (0 ms)
+[ RUN      ] GpuUtilization.UsesDriverPercentageAndDiscardsFailedOrInvalidReadings
+[       OK ] GpuUtilization.UsesDriverPercentageAndDiscardsFailedOrInvalidReadings (0 ms)
+[ RUN      ] GpuUtilization.InitializationFailureAndDuplicateAdaptersAreUnavailable
+[       OK ] GpuUtilization.InitializationFailureAndDuplicateAdaptersAreUnavailable (0 ms)
+[----------] 4 tests from GpuUtilization (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 1 test suite ran. (1 ms total)
+[  PASSED  ] 4 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"GpuUtilizationTests" end time: Oct 02 12:38 UTC
+"GpuUtilizationTests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+44/52 Testing: GrassWindInputIntegration
+44/52 Test: GrassWindInputIntegration
+Command: "/usr/bin/python3" "/workspace/tests/foliage/integration/test_grass_input.py" "--binary" "/workspace/build-resume/PlanetSimulation" "--output-dir" "/workspace/build-resume/grass-wind-input"
+Directory: /workspace/build-resume/tests
+"GrassWindInputIntegration" start time: Oct 02 12:38 UTC
+Output:
+----------------------------------------------------------
+Validated T-paused live wind, orbital speed keys, zero-speed wind freeze, visible grass and paused reload
+<end of output>
+Test time =  18.47 sec
+----------------------------------------------------------
+Test Passed.
+"GrassWindInputIntegration" end time: Oct 02 12:39 UTC
+"GrassWindInputIntegration" time elapsed: 00:00:18
+----------------------------------------------------------
+
+45/52 Testing: AstronautInputIntegration
+45/52 Test: AstronautInputIntegration
+Command: "/usr/bin/python3" "/workspace/tests/character/test_astronaut_input.py" "--binary" "/workspace/build-resume/PlanetSimulation"
+Directory: /workspace/build-resume/tests
+"AstronautInputIntegration" start time: Oct 02 12:39 UTC
+Output:
+----------------------------------------------------------
+Validated camera-4 input, paused walking/jump/jetpack, cursor release, switching and reload
+<end of output>
+Test time =   7.13 sec
+----------------------------------------------------------
+Test Passed.
+"AstronautInputIntegration" end time: Oct 02 12:39 UTC
+"AstronautInputIntegration" time elapsed: 00:00:07
+----------------------------------------------------------
+
+46/52 Testing: PerformanceOverlayInputIntegration
+46/52 Test: PerformanceOverlayInputIntegration
+Command: "/usr/bin/python3" "/workspace/tests/diagnostics/test_overlay_input.py" "--binary" "/workspace/build-resume/PlanetSimulation"
+Directory: /workspace/build-resume/tests
+"PerformanceOverlayInputIntegration" start time: Oct 02 12:39 UTC
+Output:
+----------------------------------------------------------
+Validated I toggle/repeat, camera switch, Tab hold/release and border pixels
+<end of output>
+Test time =  17.90 sec
+----------------------------------------------------------
+Test Passed.
+"PerformanceOverlayInputIntegration" end time: Oct 02 12:39 UTC
+"PerformanceOverlayInputIntegration" time elapsed: 00:00:17
+----------------------------------------------------------
+
+47/52 Testing: OrbitOverlayInputIntegration
+47/52 Test: OrbitOverlayInputIntegration
+Command: "/usr/bin/python3" "/workspace/tests/geometry/test_orbit_input.py" "--binary" "/workspace/build-resume/PlanetSimulation"
+Directory: /workspace/build-resume/tests
+"OrbitOverlayInputIntegration" start time: Oct 02 12:39 UTC
+Output:
+----------------------------------------------------------
+Validated O paths/labels and planet-camera hiding (60207 changed channels)
+<end of output>
+Test time =  22.58 sec
+----------------------------------------------------------
+Test Passed.
+"OrbitOverlayInputIntegration" end time: Oct 02 12:40 UTC
+"OrbitOverlayInputIntegration" time elapsed: 00:00:22
+----------------------------------------------------------
+
+48/52 Testing: CameraTransitionInputIntegration
+48/52 Test: CameraTransitionInputIntegration
+Command: "/usr/bin/python3" "/workspace/tests/camera/test_camera_transition_input.py" "--binary" "/workspace/build-resume/PlanetSimulation"
+Directory: /workspace/build-resume/tests
+"CameraTransitionInputIntegration" start time: Oct 02 12:40 UTC
+Output:
+----------------------------------------------------------
+Validated intermediate orbital-to-surface frame (2764580 and 131318 changed channels)
+<end of output>
+Test time =   5.47 sec
+----------------------------------------------------------
+Test Passed.
+"CameraTransitionInputIntegration" end time: Oct 02 12:40 UTC
+"CameraTransitionInputIntegration" time elapsed: 00:00:05
+----------------------------------------------------------
+
+49/52 Testing: CameraClippingInputIntegration
+49/52 Test: CameraClippingInputIntegration
+Command: "/usr/bin/python3" "/workspace/tests/camera/test_camera_clipping_input.py" "--binary" "/workspace/build-resume/PlanetSimulation" "--output-dir" "/workspace/build-resume/camera-clipping-test"
+Directory: /workspace/build-resume/tests
+"CameraClippingInputIntegration" start time: Oct 02 12:40 UTC
+Output:
+----------------------------------------------------------
+Validated live elevated-ground clipping against capture (mean error 0.011)
+<end of output>
+Test time =   9.49 sec
+----------------------------------------------------------
+Test Passed.
+"CameraClippingInputIntegration" end time: Oct 02 12:40 UTC
+"CameraClippingInputIntegration" time elapsed: 00:00:09
+----------------------------------------------------------
+
+50/52 Testing: RepositoryLayout
+50/52 Test: RepositoryLayout
+Command: "/usr/bin/python3" "/workspace/scripts/check_layout.py"
+Directory: /workspace/build-resume/tests
+"RepositoryLayout" start time: Oct 02 12:40 UTC
+Output:
+----------------------------------------------------------
+Validated folder limits, image-only gallery and README capture links
+<end of output>
+Test time =   0.17 sec
+----------------------------------------------------------
+Test Passed.
+"RepositoryLayout" end time: Oct 02 12:40 UTC
+"RepositoryLayout" time elapsed: 00:00:00
+----------------------------------------------------------
+
+51/52 Testing: AdaptiveQualityTests
+51/52 Test: AdaptiveQualityTests
+Command: "/workspace/build-resume/tests/adaptive_quality_tests"
+Directory: /workspace/build-resume/tests
+"AdaptiveQualityTests" start time: Oct 02 12:40 UTC
+Output:
+----------------------------------------------------------
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 3 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 3 tests from AdaptiveQuality
+[ RUN      ] AdaptiveQuality.LimitsPixelDetailToAvailableMemory
+[       OK ] AdaptiveQuality.LimitsPixelDetailToAvailableMemory (0 ms)
+[ RUN      ] AdaptiveQuality.ReducesDetailAfterSustainedSlowFramesAndRecoversWithHysteresis
+[       OK ] AdaptiveQuality.ReducesDetailAfterSustainedSlowFramesAndRecoversWithHysteresis (0 ms)
+[ RUN      ] AdaptiveQuality.PausedSceneDoesNotDriveQualityAndWindowCanResize
+[       OK ] AdaptiveQuality.PausedSceneDoesNotDriveQualityAndWindowCanResize (0 ms)
+[----------] 3 tests from AdaptiveQuality (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 3 tests from 1 test suite ran. (0 ms total)
+[  PASSED  ] 3 tests.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"AdaptiveQualityTests" end time: Oct 02 12:40 UTC
+"AdaptiveQualityTests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+52/52 Testing: AdaptiveQualityRenderIntegration
+52/52 Test: AdaptiveQualityRenderIntegration
+Command: "/usr/bin/python3" "/workspace/tests/diagnostics/test_adaptive_render.py" "--binary" "/workspace/build-resume/PlanetSimulation"
+Directory: /workspace/build-resume/tests
+"AdaptiveQualityRenderIntegration" start time: Oct 02 12:40 UTC
+Output:
+----------------------------------------------------------
+Rendered nonblack memory-limited interactive scene
+Scene render resolution: 320x180 (25%)
+<end of output>
+Test time =   3.61 sec
+----------------------------------------------------------
+Test Passed.
+"AdaptiveQualityRenderIntegration" end time: Oct 02 12:40 UTC
+"AdaptiveQualityRenderIntegration" time elapsed: 00:00:03
+----------------------------------------------------------
+
+End testing: Oct 02 12:40 UTC

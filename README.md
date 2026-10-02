@@ -864,7 +864,7 @@ development value `0.25` softens high-angle ridge peaks. Areas below the water
 level form ocean basins.
 The landscape palette uses each fragment's height for green plains, pale
 heights, narrow beaches, and dark seabed. Beach colors therefore follow the
-waterline inside triangles; grass placement uses the same height palette.
+waterline inside triangles; grass placement uses the same height boundaries.
 Steeper slopes blend toward gray rock. Planet-fixed procedural
 textures add mottled color and matte roughness; a two-scale height field
 perturbs the smooth surface normals to reveal centimetre-scale relief under
@@ -872,6 +872,14 @@ Sun and Moon light. These details add no triangles and do not change collision
 height or silhouettes. Both texture scales fade before becoming smaller than
 a pixel, including in orbital views. The three-dimensional mapping follows
 planet rotation and has no UV seam at either pole.
+
+Sand uses a pale, slightly warm albedo with fine grains and wind ripples spaced
+about 18 cm apart. Their bounded normal relief is about 1.4 cm from crest to
+trough; millimetre-scale grit adds matte roughness. Triplanar mapping follows
+the planet through rotation and filters out unresolved detail. As with the
+other material relief, collision height and silhouettes use the terrain mesh.
+The [sand study](docs/journal/materials/sand.md) records the reference, GPU
+checks and shoreline comparison.
 
 Each planet's optional `terrain_material` controls when grass gives way to
 rock. The defaults keep grass on slopes up to 35° and smoothly blend to full

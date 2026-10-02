@@ -46,9 +46,9 @@
     "sky_pixels": 101337,
     "sky_sensitivity": 1.0,
     "sun_mesh_triangles": 131072,
-    "terrain_luminance_stddev": 0.20586976657644995,
+    "terrain_luminance_stddev": 0.2058697431778428,
     "terrain_max_display_luminance": 0.9862266666666666,
-    "terrain_mean_display_luminance": 0.6538714038185716,
+    "terrain_mean_display_luminance": 0.6538713641532453,
     "terrain_pixels": 21019,
     "white_clipped_fraction": 0.04783179012345679,
     "white_clipped_pixels": 6199,
@@ -221,7 +221,7 @@
       "direction_ned": [
         0.0,
         0.894427190999916,
-        -0.4472135954999581
+        -0.4472135954999582
       ],
       "fov": 80.0,
       "latitude_deg": 0.0,
@@ -231,7 +231,7 @@
       "simulation_time_seconds": 0.0,
       "up_ned": [
         0.0,
-        -0.4472135954999581,
+        -0.4472135954999582,
         -0.894427190999916
       ],
       "walk_speed_mps": 80.0
@@ -253,8 +253,8 @@
     "simulation_time_seconds": 0.0,
     "up_ned": [
       0.0,
-      -0.4472135954999582,
-      -0.894427190999916
+      -0.4472135954999583,
+      -0.8944271909999159
     ],
     "walk_speed_mps": 80.0
   }

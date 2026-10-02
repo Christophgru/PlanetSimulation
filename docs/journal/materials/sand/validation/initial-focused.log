@@ -1,0 +1,25 @@
+Note: Google Test filter = TerrainMaterialRender.*
+[==========] Running 4 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 4 tests from TerrainMaterialRender
+[ RUN      ] TerrainMaterialRender.DetailPreservesGeometryAndFollowsTheBody
+[       OK ] TerrainMaterialRender.DetailPreservesGeometryAndFollowsTheBody (1080 ms)
+[ RUN      ] TerrainMaterialRender.BeachBandIsNarrowInsideCoarseTriangles
+[       OK ] TerrainMaterialRender.BeachBandIsNarrowInsideCoarseTriangles (24 ms)
+[ RUN      ] TerrainMaterialRender.SandGrainsAndRipplesFilterWithoutChangingDepth
+/workspace/tests/lighting/test_terrain_shadow_render.cpp:345: Failure
+Expected: (range(render(2,true,0,true,pole))) > (20), actual: 18 vs 20
+/workspace/tests/lighting/test_terrain_shadow_render.cpp:345: Failure
+Expected: (range(render(2,true,0,true,pole))) > (20), actual: 6 vs 20
+[  FAILED  ] TerrainMaterialRender.SandGrainsAndRipplesFilterWithoutChangingDepth (264 ms)
+[ RUN      ] TerrainMaterialRender.WaterKeepsSmoothSharpReflections
+[       OK ] TerrainMaterialRender.WaterKeepsSmoothSharpReflections (36 ms)
+[----------] 4 tests from TerrainMaterialRender (1406 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 1 test suite ran. (1406 ms total)
+[  PASSED  ] 3 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] TerrainMaterialRender.SandGrainsAndRipplesFilterWithoutChangingDepth
+
+ 1 FAILED TEST

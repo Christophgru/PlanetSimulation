@@ -1,0 +1,11 @@
+{
+  "source_sha256": "607045b66f0904719e9f756cce6501071e6396cc9db10489e2b2c4807aad621c",
+  "capture": {
+    "image": "shoreline-detail.png",
+    "version": "0.0.1",
+    "generated_utc": "2026-10-02T12:00:59+00:00",
+    "sha256": "a872941634f60a1de2dfdf4d85bb1c08fcc8a8c0ba27108cd9106c26d0fcc352",
+    "command": "/workspace/build-resume/PlanetSimulation --replay /workspace/docs/captures/replay/terrain/shoreline-detail.png.json --surface-capture /workspace/build-resume/readme-captures/shoreline-detail.png"
+  },
+  "note": "Historical before capture copied from the previous validated gallery; not a new baseline render."
+}

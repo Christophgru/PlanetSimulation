@@ -54,16 +54,38 @@ vec3 displayColor(vec3 radiance) {
 
 // Evaluate the biome at the actual fragment height. Interpolating a beach
 // tint from distant vertices can spread a 10 cm shore band over whole faces.
+float beachWeight(float height) {
+    float water=uLandscapeLevels.x, width=uLandscapeLevels.y;
+    float beachTop=water+width;
+    float aboveWater=smoothstep(water-max(0.05,0.05*width),water+max(0.02,0.02*width),height);
+    return aboveWater*(1.0-smoothstep(beachTop,beachTop+max(0.15,0.15*width),height));
+}
+
+// Triplanar ripples have no longitude seam or pole singularity. A bounded
+// height field (1.4 cm peak-to-peak plus sub-mm grit) perturbs lighting only.
+// Filter each projected wavelength before differentiating the relief.
+vec2 sandDetail(vec3 p, vec3 normal, float footprint) {
+    float warp=(terrainNoise(p*0.65)-0.5)*1.6;
+    vec3 phase=vec3(dot(p.yz,vec2(0.8,0.6)),
+                    dot(p.zx,vec2(0.8,0.6)),
+                    dot(p.xy,vec2(0.8,0.6)))*(6.2831853/0.18)+warp;
+    vec3 visible=1.0-smoothstep(vec3(0.7),vec3(2.4),fwidth(phase));
+    vec3 weight=pow(abs(normal),vec3(4.0));
+    weight/=max(dot(weight,vec3(1.0)),1e-6);
+    float ripple=dot(weight,cos(phase)*visible);
+    float grainVisibility=1.0-smoothstep(0.35,1.0,footprint*180.0);
+    float grain=(terrainNoise(p*180.0)-0.5)*grainVisibility;
+    return vec2(ripple*0.007+grain*0.0007,grain);
+}
+
 vec3 landscapeColor(float height, float rock) {
     float water=uLandscapeLevels.x, width=uLandscapeLevels.y;
     float beachTop=water+width;
     float snowStart=max(beachTop+1.0,water+0.25*max(1.0,uLandscapeLevels.z-water));
     float snowEnd=max(snowStart+1.0,water+0.40*max(1.0,uLandscapeLevels.z-water));
-    float aboveWater=smoothstep(water-max(0.05,0.05*width),water+max(0.02,0.02*width),height);
-    float beach=aboveWater*(1.0-smoothstep(beachTop,beachTop+max(0.15,0.15*width),height));
     // Biome classification retains the terrain factors on CPU; rendering uses
     // the same linear albedo as the center of a typical foliage tip.
-    vec3 land=mix(grassTipColor(.5),vec3(4.20,1.90,0.18)*uColor,beach);
+    vec3 land=mix(grassTipColor(.5),vec3(0.86,0.83,0.75),beachWeight(height));
     land=mix(land,vec3(4.60,2.30,0.92)*uColor,smoothstep(snowStart,snowEnd,height));
     land*=mix(1.0,0.50,rock);
     float submerged=1.0-smoothstep(water-max(0.5,0.05*width),water+max(0.02,0.02*width),height);
@@ -83,8 +105,9 @@ void main() {
             vec3 bodyNormal = normalize(vBodyNormal);
             float rock = smoothstep(uTerrainRockRange.x, uTerrainRockRange.y,
                 1.0 - dot(bodyNormal, normalize(vBodyPosition)));
+            float height=(length(vBodyPosition)-1.0)*uTerrainMetersPerRadius;
             if (uLandscapeEnabled)
-                albedo=landscapeColor((length(vBodyPosition)-1.0)*uTerrainMetersPerRadius,rock);
+                albedo=landscapeColor(height,rock);
             float footprint = max(max(fwidth(p.x), fwidth(p.y)), fwidth(p.z));
             float coarseVisibility = 1.0 - smoothstep(0.35, 1.0, footprint * 0.45);
             float coarse = mix(0.5, terrainNoise(p * 0.45), coarseVisibility);
@@ -93,6 +116,15 @@ void main() {
             float fine = mix(0.5, terrainNoise(p * 1.8), fineVisibility);
             float reliefMeters = (coarse - 0.5) * mix(0.025, 0.09, rock) +
                                  (fine - 0.5) * 0.012;
+            float sand=0.0;
+            vec2 sandSurface=vec2(0.0);
+            // This branch is uniform: derivatives must be evaluated even at
+            // fragments outside the beach, then blended across its boundary.
+            if (uLandscapeEnabled) {
+                sand=beachWeight(height)*(1.0-rock);
+                sandSurface=sandDetail(p,bodyNormal,footprint);
+                reliefMeters=mix(reliefMeters,sandSurface.x,sand);
+            }
             // Screen derivatives turn sub-polygon relief into a normal map.
             // The geometry and depth stay stable while light reveals grit.
             // Use body-local metres and perturb the smooth sampled normal;
@@ -105,10 +137,12 @@ void main() {
                 normal = normalize(mat3(model) * normalize(bodyNormal - gradient));
             }
             float grain = (coarse - 0.5) * 0.30 + (fine - 0.5) * 0.15;
+            grain=mix(grain,sandSurface.y*0.16,sand);
             albedo *= 1.0 + grain;
             float luminance = dot(albedo, vec3(0.2126, 0.7152, 0.0722));
             albedo = mix(albedo, vec3(luminance * 0.84), rock);
             roughness = mix(0.55, 0.9, rock) + (fine - 0.5) * 0.1;
+            roughness=mix(roughness,0.88+sandSurface.y*0.04,sand);
         }
         float diffuse = max(dot(normal, uSunDirection), 0.0);
         float visibility = sunlightVisibility(max(dot(normalize(vWorldNormal), uSunDirection), 0.0));

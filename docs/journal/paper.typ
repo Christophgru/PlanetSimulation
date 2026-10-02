@@ -185,6 +185,14 @@ The project's recorded Quadro M1000M benchmark at 1280×720 reported 208 ms mean
 
 A profiler now records CPU stage times and asynchronous GPU timestamp results without blocking for each query. CPU frame time, GPU pass time, and swap/presentation delay answer different questions; adding CPU and GPU times would double-count overlap. A completed HDR scene may be reused if camera, time, viewport, geometry, and pending-terrain state match. The HUD remains separately drawn so input can reveal or hide it immediately.
 
+== Pale sand with centimetre wind ripples
+
+The sand reference requests pale grains and low wind ripples. Beaches now use linear RGB (0.86, 0.83, 0.75), independent of the planet tint, while their fragment-height boundary and grass placement remain unchanged. A body-fixed triplanar wave field has 18 cm spacing, a noise-warped phase and a bounded 7 mm amplitude. Grain at 180 cells per metre adds neutral colour variation, matte roughness and up to 0.7 mm additional height range. Screen derivatives convert this field into normal relief; projection-specific footprint filtering removes unresolved waves and grains. Geometry, depth, collision and shadow silhouettes retain the original mesh. This models the appearance of centimetre dunes rather than transported sand or geometric dune silhouettes.
+
+#figure(image("materials/sand/images/material-patches.png", width: 82%), caption: [Production-shader diagnostic: fine grain across a 16 cm patch under indirect light (left), and wind ripples across a 2 m patch under grazing sunlight (right). Two triangles per patch, with unchanged depth; scales and lighting differ deliberately.]) <fig:sand-material>
+
+GPU checks cover pale colour under a green planet tint, narrow beach boundaries, grain and ripple visibility, distant filtering, rotation, both poles and unchanged depth. The retained shoreline comparison and validation are in `materials/sand.md`. The additional two value-noise samples and three projected waves increase fragment work without increasing geometry or transfers; no hardware timing improvement is claimed.
+
 == Perlin wind on a rotating planet
 
 Grass wind now samples three advected 3D Perlin gradient fields, replacing the earlier overlapping sine waves. The field input is each root in body-local metres, so orbital translation and rotation do not change the local deformation. Gust cells span 12.5 m, direction cells 50 m, and flutter cells approximately 1.4 m. The implementation blends gradient dot products at eight cell corners with the quintic fade $6t^5-15t^4+10t^3$, following the construction in #link("https://cs.nyu.edu/~perlin/noise/")[Ken Perlin's improved-noise reference]. Integer hashing selects corner gradients instead of a permutation table. This is a visual wind model, not a fluid simulation.

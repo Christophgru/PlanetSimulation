@@ -1,0 +1,60 @@
+{
+  "full_ctest": {
+    "entries": 52,
+    "passed": 52,
+    "seconds": 530.86,
+    "log": "full-tests.log"
+  },
+  "gallery": {
+    "images": 22,
+    "source_sha256": "63ded4dae3ad3e6168d03c58f656e39b048b4210d684b84cafc00af623479233",
+    "sha256_verified": true,
+    "changed_images": [
+      "solar-view.png",
+      "surface-view.png",
+      "planet-orbit.png",
+      "moonlit-night.png",
+      "moonless-night.png",
+      "refraction-extreme-on.png",
+      "refraction-extreme-off.png",
+      "terrain-detail.png",
+      "shoreline-detail.png",
+      "astronaut.png",
+      "offline-render.png",
+      "performance-overlay.png",
+      "atmosphere-day.png",
+      "atmosphere-sunset.png",
+      "atmosphere-mist.png",
+      "twilight.png"
+    ]
+  },
+  "shoreline": {
+    "camera_numeric_tolerance": 1e-12,
+    "maximum_numeric_difference": 2.220446049250313e-16,
+    "unchanged_geometry_and_payload": {
+      "body_mesh_triangles": [
+        100000,
+        960
+      ],
+      "foliage_candidates": 199870,
+      "foliage_gpu_drawn_blades": 8243,
+      "foliage_gpu_triangles": 63506,
+      "foliage_gpu_vertices": 79992,
+      "foliage_gpu_working_bytes": 25583392,
+      "foliage_patch_bytes": 46540
+    }
+  },
+  "image_sha256": {
+    "material-patches.png": "68045fe2d8a9397435b0f18323cb0955b560600d7a85fd0b25d076818ca6abcb",
+    "shoreline-after.png": "442663c847316e3daf696f3fe92d7ddf1422043750eb79ca081b79a601df68f7",
+    "shoreline-before.png": "a872941634f60a1de2dfdf4d85bb1c08fcc8a8c0ba27108cd9106c26d0fcc352"
+  },
+  "binary_sha256": "3a43b2cbde2b7a2164c89e586d0906c0f8ab32774d1f3b828618843051461276",
+  "environment": {
+    "compiler": "GCC 12.2",
+    "build": "RelWithDebInfo",
+    "renderer": "name of display: :99\ndisplay: :99  screen: 0\ndirect rendering: Yes\nExtended renderer info (GLX_MESA_query_renderer):\n    Vendor: Mesa/X.org (0xffffffff)\n    Device: llvmpipe (LLVM 15.0.6, 256 bits) (0xffffffff)\n    Version: 22.3.6\n    Accelerated: no\n    Video memory: 39925MB\n    Unified memory: yes\n    Preferred profile: core (0x1)\n    Max core profile version: 4.5\n    Max compat profile version: 4.5\n    Max GLES1 profile version: 1.1\n    Max GLES[23] profile version: 3.2\nOpenGL vendor string: Mesa/X.org\nOpenGL renderer string: llvmpipe (LLVM 15.0.6, 256 bits)\nOpenGL core profile version string: 4.5 (Core Profile) Mesa 22.3.6\nOpenGL core profile shading language version string: 4.50\nOpenGL core profile context flags: (none)\nOpenGL core profile profile mask: core profile\n\nOpenGL version string: 4.5 (Compatibility Profile) Mesa 22.3.6\nOpenGL shading language version string: 4.50\nOpenGL context flags: (none)\nOpenGL profile mask: compatibility profile\n\nOpenGL ES profile version string: OpenGL ES 3.2 Mesa 22.3.6\nOpenGL ES profile shading language version string: OpenGL ES GLSL ES 3.20\n\n",
+    "software_workers": 2
+  },
+  "journal_compiled": true
+}

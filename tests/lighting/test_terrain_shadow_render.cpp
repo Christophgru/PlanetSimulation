@@ -2,6 +2,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <array>
+#include <filesystem>
 #include <vector>
 #include "rendering/diagnostics/PngWriter.h"
 #include "rendering/geometry/Mesh.h"
@@ -257,7 +258,8 @@ TEST(TerrainMaterialRender, BeachBandIsNarrowInsideCoarseTriangles) {
     Image image(size*size*3);
     glReadPixels(0,0,size,size,GL_RGB,GL_UNSIGNED_BYTE,image.data());
     const auto sand=pixel(image,.08), grass=pixel(image,.7), seabed=pixel(image,-.7);
-    EXPECT_GT(sand[0],sand[1]); EXPECT_LT(sand[2],grass[2]);
+    EXPECT_GT(sand[2],grass[2]*2); // Pale sand, independent of the green body tint.
+    EXPECT_GT(sand[0],180); EXPECT_LT(sand[0]-sand[2],40);
     // Ground matches midpoint foliage-tip albedo under neutral indirect light.
     // Grain scales every channel equally, preserving these color ratios.
     EXPECT_NEAR(float(grass[0])/grass[1],.634375f/.74375f,.01f);
@@ -266,10 +268,88 @@ TEST(TerrainMaterialRender, BeachBandIsNarrowInsideCoarseTriangles) {
     int sandPixels=0;
     for (int x=0;x<size;++x) {
         const auto offset=(size/2*size+x)*3;
-        if (image[offset]>image[offset+1]) ++sandPixels;
+        if (image[offset]>image[offset+1] && image[offset+2]>150) ++sandPixels;
     }
     EXPECT_GT(sandPixels,3); EXPECT_LT(sandPixels,25);
     EXPECT_EQ(patch.indices.size(),6u);
+    patch.destroy();
+}
+
+TEST(TerrainMaterialRender, SandGrainsAndRipplesFilterWithoutChangingDepth) {
+    ShadowScene scene;
+    Mesh patch;
+    auto render = [&](float spanMeters, bool direct, float rotation=0.f,
+                      bool detail=true, glm::vec3 axis={0,0,1}) {
+        const auto tangent=glm::normalize(glm::cross(std::abs(axis.y)>.9f ?
+            glm::vec3(1,0,0) : glm::vec3(0,1,0),axis));
+        const glm::mat3 orientation(tangent,glm::cross(axis,tangent),axis);
+        const float half=spanMeters/2000.f;
+        patch.vertices.clear(); patch.indices.clear();
+        for (auto p : {glm::vec3(-half,-half,1.0002f),glm::vec3(half,-half,1.0002f),
+                       glm::vec3(half,half,1.0002f),glm::vec3(-half,half,1.0002f)}) {
+            p=orientation*p;
+            patch.addVertex(p.x,p.y,p.z,axis.x,axis.y,axis.z);
+        }
+        patch.addTriangle(0,1,2); patch.addTriangle(0,2,3); patch.upload();
+        const auto model=glm::rotate(glm::mat4(1),rotation,glm::vec3(0,1,0));
+        const auto frame=glm::mat4(orientation);
+        auto& shader=scene.terrain; shader.use();
+        glBindFramebuffer(GL_FRAMEBUFFER,scene.framebuffer);
+        glViewport(0,0,size,size); glEnable(GL_DEPTH_TEST); glDisable(GL_BLEND);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        shader.setMat4("model",glm::value_ptr(model));
+        shader.setMat4("view",glm::value_ptr(glm::lookAt(glm::vec3(0,0,3),glm::vec3(0),glm::vec3(0,1,0))*glm::inverse(model*frame)));
+        shader.setMat4("projection",glm::value_ptr(glm::ortho(-half,half,-half,half,.1f,10.f)));
+        shader.setInt("uLinearOutput",1); shader.setInt("uShadowsEnabled",0);
+        shader.setFloat("uClipRadius",-1); shader.setFloat("uEmissive",0);
+        shader.setFloat("uTerrainMetersPerRadius",detail ? 1000 : 0);
+        shader.setFloat2("uTerrainRockRange",.18,.42);
+        const auto eye=orientation*glm::vec3(0,0,3);
+        shader.setFloat3("uTerrainEyeBody",eye.x,eye.y,eye.z);
+        shader.setFloat3("uColor",.1,.2,.1);
+        shader.setFloat3("uIndirectLight",direct ? .1 : 1,direct ? .1 : 1,direct ? .1 : 1);
+        shader.setFloat3("uSunlight",direct ? 1 : 0,direct ? 1 : 0,direct ? 1 : 0);
+        const auto sun=glm::mat3(model*frame)*glm::normalize(glm::vec3(.8,.6,.35));
+        shader.setFloat3("uSunDirection",sun.x,sun.y,sun.z);
+        shader.setInt("uLandscapeEnabled",1); shader.setFloat3("uLandscapeLevels",0,10,40);
+        patch.draw();
+        Image result(size*size*3);
+        glReadPixels(0,0,size,size,GL_RGB,GL_UNSIGNED_BYTE,result.data());
+        EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+        return result;
+    };
+    auto range = [](const Image& image) {
+        int low=255,high=0;
+        for (std::size_t i=0;i<image.size();i+=3) {
+            low=std::min(low,int(image[i])); high=std::max(high,int(image[i]));
+        }
+        return high-low;
+    };
+    render(2,true,0,false);
+    std::vector<float> plainDepth(size*size),detailDepth(size*size);
+    glReadPixels(0,0,size,size,GL_DEPTH_COMPONENT,GL_FLOAT,plainDepth.data());
+    const auto ripples=render(2,true);
+    glReadPixels(0,0,size,size,GL_DEPTH_COMPONENT,GL_FLOAT,detailDepth.data());
+    EXPECT_EQ(plainDepth,detailDepth);
+    EXPECT_EQ(patch.indices.size(),6u);
+    EXPECT_GT(range(ripples),20); // Centimetre relief shows in grazing sunlight.
+    EXPECT_LE(range(render(2,false)),1); // Ripples change normals, not painted stripes.
+    const auto grains=render(.16,false);
+    EXPECT_GT(range(grains),5); // Millimetre grains become visible up close.
+    EXPECT_LE(range(render(100,false)),1); // Unresolved detail becomes neutral sand.
+    const auto rotated=render(2,true,.45f);
+    double error=0;
+    for (std::size_t i=0;i<ripples.size();++i) error+=std::abs(int(ripples[i])-int(rotated[i]));
+    EXPECT_LT(error/ripples.size(),.15); // Pattern stays attached during planetary spin.
+    for (auto pole : {glm::vec3(0,0,-1),glm::vec3(1,0,0),glm::vec3(0,1,0)})
+        EXPECT_GT(range(render(2,true,0,true,pole)),3); // Contrast depends on ridge/light alignment.
+    Image comparison(size*size*6);
+    for (int y=0;y<size;++y) {
+        std::copy_n(grains.data()+y*size*3,size*3,comparison.data()+y*size*6);
+        std::copy_n(ripples.data()+y*size*3,size*3,comparison.data()+y*size*6+size*3);
+    }
+    const auto imagePath=std::filesystem::path(PLANET_SHADOW_IMAGE).parent_path()/"sand-material-test.png";
+    EXPECT_NO_THROW(rendering::writePng(imagePath.string(),2*size,size,3,comparison));
     patch.destroy();
 }
 
