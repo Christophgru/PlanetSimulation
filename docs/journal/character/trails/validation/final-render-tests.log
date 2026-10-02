@@ -1,0 +1,10 @@
+Internal ctest changing into directory: /workspace/build-resume
+Test project /workspace/build-resume
+    Start 14: TerrainShadowRenderIntegration
+1/2 Test #14: TerrainShadowRenderIntegration ...   Passed   28.93 sec
+    Start 31: AstronautCaptureIntegration
+2/2 Test #31: AstronautCaptureIntegration ......   Passed   93.41 sec
+
+100% tests passed, 0 tests failed out of 2
+
+Total Test time (real) = 122.35 sec

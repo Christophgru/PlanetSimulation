@@ -1,0 +1,697 @@
+{
+  "application_version": "0.0.1",
+  "astronaut_pose": {
+    "airborne": false,
+    "arm_swing": -0.06761357676221726,
+    "boost_pulse_s": 0.0,
+    "boosting": false,
+    "effect_s": 1.0000000000000007,
+    "feet": [
+      {
+        "ankle": [
+          -215.82628336786075,
+          910.4379734031004,
+          -366.38185736464527
+        ],
+        "duration_s": 0.06685793497731503,
+        "forward": [
+          -0.9761559936733283,
+          -0.2116092953137253,
+          0.04838369717648205
+        ],
+        "hip": [
+          -216.4752785139022,
+          911.0871380721397,
+          -366.666445668527
+        ],
+        "knee": [
+          -216.15078089205497,
+          910.762555786993,
+          -366.5241515345966
+        ],
+        "normal": [
+          0.13100758694631107,
+          0.9430589068280794,
+          -0.30573993918808307
+        ],
+        "position": [
+          -215.82887062222318,
+          910.3438922799822,
+          -366.35030500911586
+        ],
+        "progress": 1.0,
+        "reached": false,
+        "start": [
+          -214.94575227183998,
+          910.2442180186175,
+          -366.2793410906703
+        ],
+        "target": [
+          -215.82887062222315,
+          910.3438922799822,
+          -366.35030500911586
+        ]
+      },
+      {
+        "ankle": [
+          -216.23608660703792,
+          910.4128216851643,
+          -366.7522766390261
+        ],
+        "duration_s": 0.06686020178621085,
+        "forward": [
+          -0.976066502549542,
+          -0.21198694238924903,
+          0.048535748239438056
+        ],
+        "hip": [
+          -216.4639376812909,
+          910.9625378223237,
+          -366.9825882997261
+        ],
+        "knee": [
+          -216.6854087919087,
+          910.5642068991793,
+          -366.83032856956356
+        ],
+        "normal": [
+          0.13100758694631107,
+          0.9430589068280794,
+          -0.30573993918808307
+        ],
+        "position": [
+          -216.24787728528665,
+          910.327946466886,
+          -366.72476007723105
+        ],
+        "progress": 0.8973948387390943,
+        "reached": true,
+        "start": [
+          -215.38035425790466,
+          910.1881425695635,
+          -366.6385306995018
+        ],
+        "target": [
+          -216.26364121641882,
+          910.2878358331692,
+          -366.70950825277606
+        ]
+      }
+    ],
+    "forward": [
+      -0.9759896712061535,
+      -0.21231056716918265,
+      0.048666053540475575
+    ],
+    "grass_plan_eye": [
+      -0.2122795858875483,
+      0.9132604387434681,
+      -0.3675553202810422
+    ],
+    "grass_trail": [
+      [
+        [
+          -210.07123931910502,
+          909.9185049916763,
+          -366.15895602782786
+        ],
+        [
+          -210.38069185639503,
+          909.9307197829589,
+          -366.1748710452138
+        ]
+      ],
+      [
+        [
+          -210.38069185639503,
+          909.9307197829589,
+          -366.1748710452138
+        ],
+        [
+          -210.69017035083365,
+          909.9429355988289,
+          -366.19078739756526
+        ]
+      ],
+      [
+        [
+          -210.69017035083365,
+          909.9429355988289,
+          -366.19078739756526
+        ],
+        [
+          -210.9996743942645,
+          909.9551524231755,
+          -366.20670506389126
+        ]
+      ],
+      [
+        [
+          -210.9996743942645,
+          909.9551524231755,
+          -366.20670506389126
+        ],
+        [
+          -211.30920359227537,
+          909.9673702404299,
+          -366.2226240239069
+        ]
+      ],
+      [
+        [
+          -211.30920359227537,
+          909.9673702404299,
+          -366.2226240239069
+        ],
+        [
+          -211.6187575640974,
+          909.9795890355631,
+          -366.238544258029
+        ]
+      ],
+      [
+        [
+          -211.6187575640974,
+          909.9795890355631,
+          -366.238544258029
+        ],
+        [
+          -211.92833594249828,
+          909.9918087940789,
+          -366.25446574737197
+        ]
+      ],
+      [
+        [
+          -211.92833594249828,
+          909.9918087940789,
+          -366.25446574737197
+        ],
+        [
+          -212.23793837367694,
+          910.0040295020121,
+          -366.27038847373933
+        ]
+      ],
+      [
+        [
+          -212.23793837367694,
+          910.0040295020121,
+          -366.27038847373933
+        ],
+        [
+          -212.54756550561189,
+          910.0162553780068,
+          -366.2863141230557
+        ]
+      ],
+      [
+        [
+          -212.54756550561189,
+          910.0162553780068,
+          -366.2863141230557
+        ],
+        [
+          -212.85765301543785,
+          910.0303504406011,
+          -366.30299298362087
+        ]
+      ],
+      [
+        [
+          -212.85765301543785,
+          910.0303504406011,
+          -366.30299298362087
+        ],
+        [
+          -213.16776490491878,
+          910.0444466113754,
+          -366.319673155509
+        ]
+      ],
+      [
+        [
+          -213.16776490491878,
+          910.0444466113754,
+          -366.319673155509
+        ],
+        [
+          -213.47790087265003,
+          910.0585438766295,
+          -366.33635462250794
+        ]
+      ],
+      [
+        [
+          -213.47790087265003,
+          910.0585438766295,
+          -366.33635462250794
+        ],
+        [
+          -213.78963637707412,
+          910.07935000784,
+          -366.35573761207235
+        ]
+      ],
+      [
+        [
+          -213.78963637707412,
+          910.07935000784,
+          -366.35573761207235
+        ],
+        [
+          -214.10291718373935,
+          910.1066067827852,
+          -366.37771840640556
+        ]
+      ],
+      [
+        [
+          -214.10291718373935,
+          910.1066067827852,
+          -366.37771840640556
+        ],
+        [
+          -214.41623053235887,
+          910.13386638902,
+          -366.3997014839873
+        ]
+      ],
+      [
+        [
+          -214.41623053235887,
+          910.13386638902,
+          -366.3997014839873
+        ],
+        [
+          -214.7310612521226,
+          910.1674235236619,
+          -366.42422101754084
+        ]
+      ],
+      [
+        [
+          -214.7310612521226,
+          910.1674235236619,
+          -366.42422101754084
+        ],
+        [
+          -215.0464083765431,
+          910.2030155677893,
+          -366.44956108797686
+        ]
+      ],
+      [
+        [
+          -215.0464083765431,
+          910.2030155677893,
+          -366.44956108797686
+        ],
+        [
+          -215.3617932728656,
+          910.2386118750894,
+          -366.4749041936166
+        ]
+      ],
+      [
+        [
+          -215.3617932728656,
+          910.2386118750894,
+          -366.4749041936166
+        ],
+        [
+          -215.67721570746596,
+          910.2742124191936,
+          -366.500250315686
+        ]
+      ],
+      [
+        [
+          -215.67721570746596,
+          910.2742124191936,
+          -366.500250315686
+        ],
+        [
+          -215.9926754573361,
+          910.3098171749322,
+          -366.5255994362659
+        ]
+      ],
+      [
+        [
+          -215.9926754573361,
+          910.3098171749322,
+          -366.5255994362659
+        ],
+        [
+          -216.30817230987978,
+          910.34542611831,
+          -366.5509515382721
+        ]
+      ]
+    ],
+    "height_m": 0.0,
+    "jetpack_armed": false,
+    "right": [
+      0.03335539003321446,
+      -0.36647132298828483,
+      -0.9298312682325479
+    ],
+    "root": [
+      -216.30817230987978,
+      910.34542611831,
+      -366.5509515382721
+    ],
+    "terrain_plan_eye_world_units": [
+      -0.21068755608434053,
+      0.9125880661912108,
+      -0.3672332101907134
+    ],
+    "up": [
+      -0.2152477169556895,
+      0.9058824385622651,
+      -0.3647539278059212
+    ],
+    "vertical_velocity_mps": 0.0,
+    "walked_m": 5.982596729313473
+  },
+  "render": {
+    "astronaut_pixels": 11405,
+    "atmosphere_downsample": 4,
+    "atmosphere_liquid_water_g_m3": 0.0,
+    "atmosphere_refraction_enabled": true,
+    "atmosphere_refractive_index": 1.0002899200095918,
+    "atmosphere_relative_humidity": 0.8684600670525447,
+    "atmospheric_illuminance": 0.1812414079567136,
+    "body_mesh_triangles": [
+      100000,
+      960
+    ],
+    "camera_mode": "third_person",
+    "direct_illuminance": 3.6107827643077823,
+    "effective_foliage_budget": 100000,
+    "effective_foliage_distance_m": 12.0,
+    "exposure": 0.17580720550646878,
+    "foliage_blades": 21841,
+    "foliage_candidates": 21841,
+    "foliage_gpu_compute": true,
+    "foliage_gpu_drawn_blades": 977,
+    "foliage_gpu_triangles": 11684,
+    "foliage_gpu_vertices": 13638,
+    "foliage_gpu_working_bytes": 2795680,
+    "foliage_patch_bytes": 2684,
+    "foliage_patches": 671,
+    "height": 540,
+    "lens_flare_strength": 0.0,
+    "lens_flare_visible_sun_pixels": 0,
+    "metered_illuminance": 3.792032668661791,
+    "non_background_pixels": 516960,
+    "offline": {
+      "enabled": false,
+      "foliage_distance_multiplier": 20.0,
+      "lens_flare": true
+    },
+    "reflected_illuminance": 7.496397295090353e-06,
+    "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+    "samples": 0,
+    "sky_interior_blue": 0.0,
+    "sky_interior_green": 0.0,
+    "sky_interior_mean_display_luminance": 0.0,
+    "sky_interior_pixels": 0,
+    "sky_interior_red": 0.0,
+    "sky_mean_display_luminance": 0.0,
+    "sky_pixels": 0,
+    "sky_sensitivity": 0.0027469875860385747,
+    "sun_mesh_triangles": 2048,
+    "terrain_luminance_stddev": 0.15618631936665195,
+    "terrain_max_display_luminance": 0.642118431372549,
+    "terrain_mean_display_luminance": 0.4419498762701088,
+    "terrain_pixels": 506995,
+    "white_clipped_fraction": 0.0,
+    "white_clipped_pixels": 0,
+    "width": 960
+  },
+  "scenario": {
+    "camera": {
+      "fov": 60.0,
+      "position": [
+        15.0,
+        15.0,
+        8.0
+      ],
+      "target": [
+        5.0,
+        0.0,
+        0.0
+      ]
+    },
+    "distance_unit": "km",
+    "lighting": {
+      "ambient_light": 1e-06,
+      "auto_exposure": {
+        "enabled": true,
+        "max_exposure": 4096.0,
+        "min_exposure": 0.02,
+        "star_exposure": 64.0,
+        "target_luminance": 0.12
+      },
+      "exposure": 1.0,
+      "reference_distance": 10.0,
+      "reflections_enabled": true,
+      "shadows": {
+        "bias_texels": 0.5,
+        "enabled": true,
+        "resolution": 2048
+      }
+    },
+    "planets": [
+      {
+        "atmosphere": {
+          "droplet_radius_um": 10.0,
+          "enabled": true,
+          "gas-contents": {
+            "nitrogen": 70.0,
+            "oxygen": 25.0,
+            "red_dust": 0.0001,
+            "water": 2.0
+          },
+          "radius_multiplier": 1.1,
+          "refraction_enabled": true,
+          "surface_pressure_pa": 101325.0,
+          "suspended_water_fraction": 0.001,
+          "temperature_k": 293.15
+        },
+        "color": [
+          0.2,
+          0.4,
+          1.0
+        ],
+        "foliage": {
+          "density_per_m2": 30.72,
+          "draw_distance_m": 12,
+          "enabled": true,
+          "height_m": 0.8,
+          "max_blades": 100000,
+          "seed": 7321,
+          "width_m": 0.1,
+          "wind_strength": 1.0
+        },
+        "mass_kg": 6.338938161361669e+17,
+        "name": "earth",
+        "orbit": {
+          "ascending_node_deg": 0.0,
+          "inclination_deg": 0.0,
+          "mean_anomaly_deg": 0.0,
+          "parent": "sun",
+          "periapsis_deg": 0.0,
+          "semi_major_axis": 15.5,
+          "semi_minor_axis": 14.24744871391589
+        },
+        "radius": 1,
+        "reflection": {
+          "color": [
+            0.3,
+            0.5,
+            1.0
+          ],
+          "geometric_albedo": 0.3
+        },
+        "rotation": {
+          "axial_tilt_deg": 20.0,
+          "period_seconds": 60.0,
+          "phase_deg": 0.0
+        },
+        "surface_noise": [
+          {
+            "amplitude_m": 68,
+            "frequency": 3.0,
+            "lacunarity": 2.0,
+            "octaves": 4,
+            "persistence": 0.5,
+            "seed": 90,
+            "type": "value_fbm"
+          },
+          {
+            "amplitude_m": 40,
+            "frequency": 8.0,
+            "lacunarity": 2.0,
+            "octaves": 3,
+            "persistence": 0.45,
+            "seed": 35,
+            "type": "ridged_fbm"
+          }
+        ],
+        "terrain_landscape": {
+          "cliff_amplitude_m": 120.0,
+          "cliff_frequency": 7.0,
+          "cliff_threshold": 0.62,
+          "continent_amplitude_m": 10.0,
+          "continent_frequency": 1.6,
+          "elevation_offset_m": -1.5,
+          "plain_threshold": 0.48,
+          "ridge_smoothing": 0.25,
+          "seed": 1
+        },
+        "terrain_lod": {
+          "base_edge_segments": 3,
+          "lod_far_diameters": 8.0,
+          "lod_near_diameters": 2.0,
+          "max_edge_segments": 16,
+          "max_triangle_budget": 100000,
+          "medium_edge_segments": 8,
+          "mid_surface_distance_m": 1000.0,
+          "near_surface_distance_m": 300.0,
+          "steep_edge_segments": 32,
+          "steep_slope_threshold": 0.3
+        },
+        "water": {
+          "color": [
+            0.06,
+            0.31,
+            0.56
+          ],
+          "enabled": true,
+          "level_m": 0,
+          "opacity": 0.5,
+          "reflection_fraction": 0.5
+        }
+      },
+      {
+        "color": [
+          0.62,
+          0.6,
+          0.56
+        ],
+        "mass_kg": 792367270170208.0,
+        "name": "moon",
+        "orbit": {
+          "ascending_node_deg": 0.0,
+          "inclination_deg": 20.0,
+          "mean_anomaly_deg": 180.0,
+          "parent": "earth",
+          "periapsis_deg": 0.0,
+          "semi_major_axis": 2.5,
+          "semi_minor_axis": 2.45
+        },
+        "radius": 0.27,
+        "reflection": {
+          "color": [
+            0.95,
+            0.95,
+            1.0
+          ],
+          "geometric_albedo": 0.12
+        },
+        "rotation": {
+          "axial_tilt_deg": 20.0,
+          "period_seconds": 60.0,
+          "phase_deg": 0.0
+        },
+        "surface_noise": [
+          {
+            "amplitude_m": 8.0,
+            "frequency": 8.0,
+            "octaves": 3,
+            "seed": 71,
+            "type": "ridged_fbm"
+          }
+        ]
+      }
+    ],
+    "scenario_name": "Solar System",
+    "skybox": {
+      "background_color": [
+        0.002,
+        0.004,
+        0.012
+      ],
+      "enabled": true,
+      "seed": 7429,
+      "star_brightness": 1.4,
+      "star_color": [
+        0.82,
+        0.9,
+        1.0
+      ],
+      "star_density": 0.0003,
+      "star_scale": 700.0
+    },
+    "sun": {
+      "absolute_magnitude": 3.1,
+      "color": [
+        1.0,
+        0.99,
+        0.97
+      ],
+      "mass_kg": 1.2194532287919512e+19,
+      "name": "sun",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "radius": 2.5
+    },
+    "surface_camera": {
+      "altitude": 0.003,
+      "direction_ned": [
+        0.0521010035420576,
+        0.9954606687146964,
+        -0.07964635881193696
+      ],
+      "fov": 65.0,
+      "latitude_deg": -21.39243978861784,
+      "longitude_deg": 103.3662436258429,
+      "planet_index": 0,
+      "reference_frame": "planet_spherical_ned",
+      "simulation_time_seconds": 20.0,
+      "up_ned": [
+        -0.004162879931641217,
+        -0.07953749369118007,
+        -0.9968231826798573
+      ],
+      "walk_speed_mps": 80.0
+    }
+  },
+  "schema_version": 1,
+  "surface_camera": {
+    "altitude": 0.003,
+    "direction_ned": [
+      0.05210100354205757,
+      0.9954606687146966,
+      -0.07964635881193702
+    ],
+    "fov": 65.0,
+    "latitude_deg": -21.39243978861784,
+    "longitude_deg": 103.3662436258429,
+    "planet_index": 0,
+    "reference_frame": "planet_spherical_ned",
+    "simulation_time_seconds": 20.0,
+    "up_ned": [
+      -0.004162879931641272,
+      -0.07953749369118018,
+      -0.9968231826798573
+    ],
+    "walk_speed_mps": 80.0
+  }
+}

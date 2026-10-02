@@ -6,6 +6,7 @@
 #include <chrono>
 #include <algorithm>
 #include <cstddef>
+#include <cmath>
 
 namespace rendering {
 ProceduralGrass::ProceduralGrass() :
@@ -78,6 +79,10 @@ void ProceduralGrass::clear() {
         glDeleteVertexArrays(patch.gpuVaos.size(),patch.gpuVaos.data());
     }
     patches_.clear();
+    for (const auto& [index,data]:trails_) {
+        glDeleteBuffers(1,&data.buffer); glDeleteTextures(1,&data.texture);
+    }
+    trails_.clear(); replayPlanEyes_.clear();
 }
 GrassPreparationStats ProceduralGrass::prepare(std::size_t index,const Mesh& mesh,const config::PlanetConfig& planet,
     double metersPerWorldUnit,const glm::dvec3& eyeBody) {
@@ -114,11 +119,16 @@ GrassPreparationStats ProceduralGrass::prepare(std::size_t index,const Mesh& mes
     glActiveTexture(GL_TEXTURE0);
     patch.seed=planet.foliage.seed;
     const auto start=std::chrono::steady_clock::now();
-    const auto plan=planGrass(mesh.vertices,mesh.indices,planet,metersPerWorldUnit,eyeBody);
+    auto planningEye=eyeBody;
+    const auto savedEye=replayPlanEyes_.find(index);
+    if (savedEye!=replayPlanEyes_.end()) {
+        planningEye=savedEye->second; replayPlanEyes_.erase(savedEye);
+    }
+    const auto plan=planGrass(mesh.vertices,mesh.indices,planet,metersPerWorldUnit,planningEye);
     const auto planned=std::chrono::steady_clock::now();
     upload(patch,plan);
     const auto uploaded=std::chrono::steady_clock::now();
-    patch.eye=eyeBody; patch.revision=mesh.revision; patch.ready=true;
+    patch.eye=planningEye; patch.revision=mesh.revision; patch.ready=true;
     updateDraws(patch,scale,planet.foliage.quadDistanceMeters(),eyeBody);
     return {std::chrono::duration<double,std::milli>(planned-start).count(),0,
         std::chrono::duration<double,std::milli>(uploaded-planned).count(),1,
@@ -139,6 +149,16 @@ ProceduralGrassStats ProceduralGrass::stats(std::size_t index) const {
     }
     return result;
 }
+std::optional<glm::dvec3> ProceduralGrass::planningEye(std::size_t index) const {
+    if (index>=patches_.size() || !patches_[index].ready) return std::nullopt;
+    return patches_[index].eye;
+}
+void ProceduralGrass::restorePlanningEye(std::size_t index,const glm::dvec3& eye) {
+    if (!std::isfinite(eye.x)||!std::isfinite(eye.y)||!std::isfinite(eye.z))
+        throw std::invalid_argument("Grass replay planning eye must be finite");
+    replayPlanEyes_[index]=eye;
+    if (index<patches_.size()) patches_[index].ready=false;
+}
 bool ProceduralGrass::usesCompute(std::size_t index) const {
     return index<patches_.size() && patches_[index].computeUsed;
 }
@@ -147,6 +167,7 @@ void ProceduralGrass::draw(std::size_t index,const GrassPass* pass) const {
     if (index>=patches_.size()) return;
     const bool culled=glIsEnabled(GL_CULL_FACE); glDisable(GL_CULL_FACE);
     const auto& patch=patches_[index];
+    bindTrail(index,patch.scale);
     shader.setFloat("uQuadDistance",patch.settings.quadDistanceMeters());
     patch.computeUsed=pass && patch.settings.compute_placement && GLEW_VERSION_4_3;
     if (patch.computeUsed) {

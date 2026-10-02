@@ -66,7 +66,7 @@ for name in ('refraction-extreme-on.png', 'refraction-extreme-off.png'):
 capture('terrain-detail.png', ['--replay', str(replays / 'terrain' / 'terrain-detail.png.json')])
 capture('shoreline-detail.png', ['--replay', str(replays / 'terrain' / 'shoreline-detail.png.json')])
 capture('grass-detail.png', ['--replay', str(replays / 'foliage' / 'grass-detail.png.json')])
-for name in ('astronaut.png', 'astronaut-front.png', 'astronaut-jetpack.png'):
+for name in ('astronaut.png', 'astronaut-front.png', 'astronaut-jetpack.png', 'astronaut-trail.png'):
     capture(name, ['--replay', str(replays / 'character' / (name + '.json'))])
 capture('offline-render.png', ['--replay', str(replays / 'offline' / 'offline-render.png.json')])
 capture('performance-overlay.png', [*scene, '--simulation-time', '20', '--render-size', '1280', '720', '--benchmark-frames', '20', '--benchmark-overlay'])
@@ -127,7 +127,7 @@ log += ['', 'Exact commands, image SHA-256 hashes and renderer details are in [g
         'Available [replay sidecars](replay/) preserve resolved scenes and cameras.', '',
         'The solar overview uses the frozen compact fixture; the surface and orbit gallery use the current working scene.',
         'Night images preserve their airless lighting controls. Atmosphere, shadow and twilight images use regression fixtures.', '',
-        'Astronaut images preserve camera 4, planted-foot or airborne pose, and bubble phase from the character regression fixture.', '',
+        'Astronaut images preserve camera 4, planted-foot or airborne pose, bubble phase and persistent grass trail from the character regression fixture.', '',
         'The offline image preserves the controlled 20x grass radius, high-detail bodies and partially visible Sun flare.', '',
        'To regenerate after building with `BUILD_TESTING=ON`:', '', '~~~bash',
         'cmake --build build --target PlanetSimulation terrain_shadow_render_tests',

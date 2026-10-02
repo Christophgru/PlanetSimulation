@@ -22,6 +22,13 @@ nlohmann::json Renderer::Impl::astronautState() const {
             {"progress",f.progress},{"duration_s",f.duration},{"hip",vector(p.hips[i])},{"knee",vector(p.knees[i])},
             {"ankle",vector(p.ankles[i])},{"reached",p.legReached[i]}});
     }
+    const auto* trail=grass.procedural.existingTrail(astronaut.planetIndex);
+    result["terrain_plan_eye_world_units"]=vector(captureTerrainEye);
+    result["grass_trail"]=nlohmann::json::array();
+    if (trail) for (const auto& segment:trail->segments())
+        result["grass_trail"].push_back({vector(segment.start),vector(segment.end)});
+    if (const auto eye=grass.procedural.planningEye(astronaut.planetIndex))
+        result["grass_plan_eye"]=vector(*eye);
     return result;
 }
 void Renderer::Impl::prepareAstronaut(double elapsed) {
@@ -83,8 +90,25 @@ void Renderer::Impl::prepareAstronaut(double elapsed) {
             }
             if (glm::length(glm::normalize(p.root)*glm::length(root.position)-root.position)<.1)
                 astronaut.motion.restore(p);
+            if (j.contains("grass_plan_eye"))
+                grass.procedural.restorePlanningEye(index,vector(j.at("grass_plan_eye")));
+            if (j.contains("grass_trail")) {
+                const auto& entries=j.at("grass_trail");
+                if (!entries.is_array() || entries.size()>GrassTrail::capacity)
+                    throw std::invalid_argument("Astronaut grass trail replay exceeds capacity");
+                std::vector<TrailSegment> segments;
+                for (const auto& entry:entries) {
+                    if (!entry.is_array() || entry.size()!=2)
+                        throw std::invalid_argument("Astronaut grass trail replay needs segment pairs");
+                    segments.push_back({vector(entry.at(0)),vector(entry.at(1))});
+                }
+                grass.procedural.trail(index).restore(segments);
+            }
         }
     }
+    const auto& pose=astronaut.motion.pose();
+    grass.procedural.trail(index).observe(pose.root,!pose.airborne &&
+        (!planet.water.enabled || glm::length(root.position)>radius+planet.water.level_m+.001));
     const auto chase=astronaut.motion.chase(direction,ground);
     astronautView={body.position+body.orientation*chase.eye/units,
                    body.position+body.orientation*chase.target/units,

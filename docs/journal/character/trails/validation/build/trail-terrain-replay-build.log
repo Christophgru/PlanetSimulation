@@ -1,0 +1,9 @@
+[1/9] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/TerrainMeshes.cpp.o
+[2/9] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/Renderer.cpp.o
+[3/9] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/Character.cpp.o
+[4/9] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/Capture.cpp.o
+[5/9] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/Interactive.cpp.o
+[6/9] Linking CXX static library libplanet_app.a
+[7/9] Linking CXX executable PlanetSimulation
+[8/9] Linking CXX executable tests/renderer_lifecycle_tests
+[9/9] Linking CXX executable tests/foliage_benchmark

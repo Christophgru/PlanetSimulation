@@ -154,8 +154,10 @@ int Renderer::Impl::interact() {
         if (cameraInput.mode() == CameraMode::Surface && displayedMode != CameraMode::Surface &&
             displayedMode != CameraMode::ThirdPerson)
             cameraTransition.start(displayedPose, frameTime);
-        if (cameraInput.mode()==CameraMode::ThirdPerson && displayedMode!=CameraMode::ThirdPerson)
+        if (cameraInput.mode()==CameraMode::ThirdPerson && displayedMode!=CameraMode::ThirdPerson) {
             astronaut.motion.reset();
+            grass.procedural.trail(scene.scenario.surface_camera.planet_index).breakPath();
+        }
         if (cameraInput.mode() != CameraMode::Surface) cameraTransition.cancel();
         if (cameraInput.mode()!=CameraMode::ThirdPerson) inputContext.spacePresses=0;
         const bool wantsCursorCapture = cameraInput.walkingMode() &&

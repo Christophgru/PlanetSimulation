@@ -42,6 +42,7 @@ walking, moved = capture('walking', frames=9, walk=.06)
 assert walking != idle, 'Walking did not change the image'
 assert moved['astronaut_pose']['root'] != first['astronaut_pose']['root']
 assert any(f['progress'] < 1 for f in moved['astronaut_pose']['feet']), 'No lifted walking foot'
+assert moved['astronaut_pose']['grass_trail'], 'Grounded walking left no persistent marks'
 replayed, restored = capture('walking-replay', replay=out / 'walking.png.json')
 assert replayed == walking, 'Replay did not restore the saved astronaut gait and camera'
 assert restored['astronaut_pose'] == moved['astronaut_pose']
@@ -51,8 +52,20 @@ flight, flying = capture('jetpack', frames=8, extra=('--benchmark-character-step
     '--benchmark-jump-frame','0','--benchmark-boost-frame','3'))
 assert flying['astronaut_pose']['airborne'] and flying['astronaut_pose']['boosting']
 assert flying['astronaut_pose']['height_m'] > 1
+assert flying['astronaut_pose']['grass_trail'] == [], 'Airborne motion left grass marks'
 assert flight != idle
 flight_replay, restored = capture('jetpack-replay', replay=out / 'jetpack.png.json')
 assert flight_replay == flight, 'Airborne pose and bubble phase did not replay exactly'
 assert restored['astronaut_pose'] == flying['astronaut_pose']
 print('Validated visible HDR astronaut, grounded IK, walking, jump/jetpack bubbles and exact gait/flight replay')
+
+# Exercise grass plus HDR/reflections and retain the entire trail in replay.
+scene['planets'][0]['foliage']['enabled'] = True
+scene['planets'][0]['foliage']['max_blades'] = 4096
+config.write_text(json.dumps(scene, indent=2) + '\n')
+trail_image, marks = capture('grass-trail', frames=9, walk=.06)
+assert marks['astronaut_pose']['grass_trail']
+trail_replay, replay_marks = capture('grass-trail-replay', replay=out / 'grass-trail.png.json')
+assert trail_replay == trail_image, 'Persistent grass trail did not replay exactly'
+assert replay_marks['astronaut_pose'] == marks['astronaut_pose']
+print('Validated grounded trail recording, no airborne marks and exact grass/HDR/reflection replay')

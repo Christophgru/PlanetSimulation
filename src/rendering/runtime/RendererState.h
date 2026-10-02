@@ -71,6 +71,7 @@ struct Renderer::Impl {
     AstronautRenderer astronaut;
     SurfaceContact astronautGround;
     ChasePose astronautView; // World coordinates; motion/contacts stay body-local.
+    glm::dvec3 captureTerrainEye{0}; // Selected terrain build anchor, body-local world units.
     std::uint64_t astronautGroundRevision=0;
     bool astronautReplayRestored=false;
     bool astronautBenchmarkBoost=false;

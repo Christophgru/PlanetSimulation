@@ -349,7 +349,19 @@ Space launches at 10 m/s. Radial gravity uses $g = max(0.25, G m / r^2 - omega^2
 
 The actor receives terrain shadows and participates in HDR, atmosphere and water reflections. Local contact darkening helps anchor the feet; a full dynamic body shadow remains future work. CPU checks cover fixed stance contacts, joint reach, poles, mesh revision, chase clearance, 6/12 m/s movement, gravity and landing. GL captures check visible actor pixels and byte-identical gait and airborne replays; native input exercises camera switching, walking, jumping, boost and reload. These checks establish reproducibility and specific movement invariants on the tested renderer, not the naturalness of a sprint animation.
 
-The requested Ava Turing model is not downloadable on Sketchfab. The catalog search favors Muko_Art's rigged stylized astronaut (11,718 triangles, one uploaded clip, CC BY 4.0). A logged-in download and inspection of skeleton, skin weights and retargeting remain necessary before replacing the procedural model. The shortlist and provenance are recorded in `character/sketchfab-models.md`; no external model is currently redistributed. Grass trail deformation remains a separate unfinished task.
+The requested Ava Turing model is not downloadable on Sketchfab. The catalog search favors Muko_Art's rigged stylized astronaut (11,718 triangles, one uploaded clip, CC BY 4.0). A logged-in download and inspection of skeleton, skin weights and retargeting remain necessary before replacing the procedural model. The shortlist and provenance are recorded in `character/sketchfab-models.md`; no external model is currently redistributed.
+
+Grounded walking now leaves persistent grass trails. Body-local metre segments survive camera changes and planet transforms. A stackless radius-expanded BVH in an RGBA32F buffer texture selects nearby segments on both placement paths. Blades within 25 cm of the path centre lie at 8% height above the sloped walking path, extending 95% of their length along the walking direction; the effect fades smoothly to zero at 60 cm. Wind cannot lift centre blades again, while candidate roots, density, visibility and LOD remain unchanged. Airborne movement and water break path continuity, and relocation never draws a bridge between distant placements. Reload clears the history; a FIFO bound of 2,048 segments limits memory and eventually removes the oldest marks. This is geometric deformation, not a grass elasticity or recovery simulation.
+
+#figure(
+  grid(columns: (1fr, 1fr), gutter: 5pt,
+    image("character/trails/images/control.png", width: 100%),
+    image("character/trails/images/pressed.png", width: 100%)),
+  caption: [Identical pose, terrain, foliage roots and wind phase: unpressed control (left), persistent walking trail (right). The six-metre walk records 20 segments with 977 GPU-submitted blades; its replay is byte-identical.])
+
+Replay sidecars save the complete trail. CPU checks cover history bounds, discontinuities, invalid replay values and BVH distances at planet scale. Production-shader feedback checks fixed roots, flattened height, wind suppression, untouched surroundings, pole traversal, both geometry levels and both placement paths. Actual astronaut captures retain foliage, HDR and reflections and must replay byte-identically. Details and retained evidence are in `character/trails.md`.
+
+The trail checkpoint combines a 52-entry full run (51 passed in 516.46 s, with RepositoryLayout waiting for the new gallery image) and targeted rechecks. Both final renderer/capture entries pass after the slope correction (122.35 s); RepositoryLayout passes after publishing the gallery. All 52 entries have passing results; this is a full run plus targeted checks, not a second clean full run. All 22 README images are regenerated and hash/fingerprint-verified, with the previous 21 PNGs unchanged. Evidence is retained under `character/trails/validation/`.
 
 The offline checkpoint passes all 51 CTest entries in a clean 308.44 s run on GCC 12.2 / Mesa llvmpipe under Xvfb. Raw logs and compiler/executable identity are retained in `benchmarks/offline/validation/`.
 
@@ -357,7 +369,7 @@ The offline checkpoint passes all 51 CTest entries in a clean 308.44 s run on GC
 
 == What the evidence establishes
 
-The repository contains 51 CTest entries covering configuration and orbital invariants; terrain, camera and astronaut behavior; lighting, shadows, atmosphere and refraction on OpenGL; renderer captures; adaptive quality; and real GLFW input under Xvfb. The 21 README images are checked against their SHA-256 manifest. These checks establish specific numerical and rendered behaviors on the tested software renderer. They do not establish physical fidelity, portability to every GPU driver, or a guaranteed 20 FPS for arbitrary scenes.
+The repository contains 52 CTest entries covering configuration and orbital invariants; terrain, camera and astronaut behavior; lighting, shadows, atmosphere and refraction on OpenGL; renderer captures; adaptive quality; and real GLFW input under Xvfb. The 22 README images are checked against their SHA-256 manifest. These checks establish specific numerical and rendered behaviors on the tested software renderer. They do not establish physical fidelity, portability to every GPU driver, or a guaranteed 20 FPS for arbitrary scenes.
 
 The October 2 continuation checkpoint passes all 49 entries in a clean 286.14 s run on GCC 12.2 and Mesa llvmpipe/Xvfb. The frozen grass view uploads 34,664 bytes of triangle IDs; cached frames upload zero grass-buffer bytes. Culling enabled/disabled and exact replay produce identical images. The October 1 paired compute/vertex benchmark remains a historical measurement on its original EGL host; this validation does not add a hardware timing claim. Evidence is retained in `benchmarks/procedural/validation/`.
 

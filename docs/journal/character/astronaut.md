@@ -76,7 +76,7 @@ bubble phase. `--astronaut-capture` selects camera 4. For deterministic flight:
   --astronaut-capture build/jetpack-replay.png
 ```
 
-Focused validation passed on GCC 13 and Mesa llvmpipe/Xvfb: 13 CPU tests check
+Focused validation passed on GCC 12.2 and Mesa llvmpipe/Xvfb: 13 CPU tests check
 planted feet, joint reach, pole traversal, mesh revisions, chase clearance,
 6/12 m/s controls, gravity, boost and landing. Render integration checks visible
 character pixels and byte-identical walking and airborne replays. Native GLFW
@@ -100,4 +100,4 @@ fingerprint. The updated Typst journal PDF compiles successfully.
 The current gait is an approximation with rapidly alternating steps at high
 speed. Natural running, animation blending, planted-foot yaw limits and robust
 climbing over steep ledges need a skinned model and further locomotion work.
-The grass-trail deformation TODO remains separate and unfinished.
+Persistent grass trail deformation is now implemented; see [trail behavior, limits and validation](trails.md).

@@ -143,6 +143,38 @@ float biomeVisibility(vec3 root,vec3 up,uint seed) {
     float slope=1.0-dot(normalize(aPatchNormal),up);
     return grassRandom(seed+17u)<smoothstep(uTerrainRockRange.x,uTerrainRockRange.y,slope) ? 0.0 : 1.0;
 }
+// Stackless, radius-expanded segment hierarchy shared by both placement paths.
+// No trail data changes candidate generation, roots, density or LOD retention.
+uniform samplerBuffer uTrailTree;
+uniform int uTrailNodes=0;
+uniform vec3 uTrailOrigin;
+vec4 trailInfluence(vec3 root,vec3 up) {
+    vec3 p=(root-uTrailOrigin)*uMetersPerRadius;
+    float closest=.6; vec3 direction=vec3(0);
+    int node=0;
+    while (node<uTrailNodes) {
+        vec4 lo=texelFetch(uTrailTree,node*4),hi=texelFetch(uTrailTree,node*4+1);
+        if (any(lessThan(p,lo.xyz)) || any(greaterThan(p,hi.xyz))) {
+            node=int(lo.w); continue;
+        }
+        if (hi.w>0.0) {
+            vec3 a=texelFetch(uTrailTree,node*4+2).xyz;
+            vec3 b=texelFetch(uTrailTree,node*4+3).xyz;
+            vec3 step=b-a;
+            float t=clamp(dot(p-a,step)/max(dot(step,step),1e-8),0.0,1.0);
+            float distance=length(p-a-step*t);
+            if (distance<closest) {
+                closest=distance;
+                // Contact segments already follow the terrain slope. Removing
+                // their radial component would push flattened tips below hills.
+                direction=step;
+            }
+        }
+        ++node;
+    }
+    float strength=1.0-smoothstep(.25,.6,closest);
+    return vec4(length(direction)>1e-6 ? normalize(direction) : vec3(0),strength);
+}
 void main() {
     vec3 root=aRoot, rootUp=aUp;
     vec4 variation=aVariation;
@@ -215,7 +247,16 @@ void main() {
     vec3 local=axisRotation(vec3(1,0,0),curve)*vec3((side-.5)*width,t*height,0);
     mat3 bend=frame*wind*turn;
     // Fade coverage in the fragment shader; roots and height never sink.
-    vec3 body=root+bend*local/uMetersPerRadius;
+    vec3 offset=bend*local;
+    if (uTrailNodes>0) {
+        vec4 trail=trailInfluence(root,up);
+        // Lay blades along the walking direction, retaining their root and
+        // width. At the centre wind cannot lift them again; edges blend softly.
+        vec3 flattened=trail.xyz*(t*height*.95)+up*(t*height*.08)+
+            frame*turn*vec3((side-.5)*width,0,0);
+        offset=mix(offset,flattened,trail.w);
+    }
+    vec3 body=root+offset/uMetersPerRadius;
     float derivative=-2.0*lean*t*(1.0-low);
     vec3 tangent=normalize(vec3(0,cos(curve)-t*sin(curve)*derivative,sin(curve)+t*cos(curve)*derivative));
     vec3 bladeNormal=vec3(0,-tangent.z,tangent.y);

@@ -19,7 +19,20 @@ void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalkin
     CpuTrace::Scope scope("Renderer::preparePlanetMeshes");
     for (std::size_t i = 0; i < scene.scenario.planets.size(); ++i) {
         const auto& planet = scene.scenario.planets[i];
-        const glm::dvec3 localEye = scene.bodies[i + 1].toLocalPoint(eye);
+        glm::dvec3 localEye = scene.bodies[i + 1].toLocalPoint(eye);
+        if (options.renderTestMode && options.thirdPersonRenderMode && !meshReady[i] &&
+            i==scene.scenario.surface_camera.planet_index && !options.replayPath.empty()) {
+            const auto replay=config::Config::load(options.replayPath).data();
+            if (replay.contains("astronaut_pose") &&
+                replay.at("astronaut_pose").contains("terrain_plan_eye_world_units")) {
+                const auto& saved=replay.at("astronaut_pose").at("terrain_plan_eye_world_units");
+                if (!saved.is_array() || saved.size()!=3)
+                    throw std::invalid_argument("Astronaut terrain replay requires a three-vector eye");
+                localEye={saved.at(0).get<double>(),saved.at(1).get<double>(),saved.at(2).get<double>()};
+                if (!std::isfinite(localEye.x)||!std::isfinite(localEye.y)||!std::isfinite(localEye.z))
+                    throw std::invalid_argument("Astronaut terrain replay eye must be finite");
+            }
+        }
         const glm::dvec3 offset = localEye;
         const double distance = glm::length(offset);
         if (!std::isfinite(distance) || distance <= 0.0)
@@ -80,6 +93,8 @@ void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalkin
             continue;
         }
         auto built=buildMeshes();
+        if (options.renderTestMode && i==scene.scenario.surface_camera.planet_index)
+            captureTerrainEye=localEye;
         profiler.terrainBuild(built.milliseconds);
         if (built.water) {
             meshes.waterMeshes[i].loadTerrain(std::move(*built.water));

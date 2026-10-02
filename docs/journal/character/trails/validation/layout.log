@@ -1,0 +1,9 @@
+Validated folder limits, image-only gallery and README capture links
+Internal ctest changing into directory: /workspace/build-resume
+Test project /workspace/build-resume
+    Start 50: RepositoryLayout
+1/1 Test #50: RepositoryLayout .................   Passed    0.17 sec
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   0.18 sec

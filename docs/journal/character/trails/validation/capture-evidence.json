@@ -1,0 +1,75 @@
+{
+  "commands": [
+    [
+      "/workspace/build-resume/PlanetSimulation",
+      "--config",
+      "/workspace/build-resume/trail-study-final/scene.json",
+      "--astronaut-capture",
+      "/workspace/build-resume/trail-study-final/walking.png",
+      "--render-size",
+      "960",
+      "540",
+      "--benchmark-step",
+      "0",
+      "--benchmark-frames",
+      "21",
+      "--benchmark-walk-step",
+      ".3"
+    ],
+    [
+      "/workspace/build-resume/PlanetSimulation",
+      "--config",
+      "/workspace/build-resume/trail-study-final/scene.json",
+      "--astronaut-capture",
+      "/workspace/build-resume/trail-study-final/pressed.png",
+      "--render-size",
+      "960",
+      "540",
+      "--benchmark-step",
+      "0",
+      "--replay",
+      "/workspace/build-resume/trail-study-final/walking.png.json"
+    ],
+    [
+      "/workspace/build-resume/PlanetSimulation",
+      "--config",
+      "/workspace/build-resume/trail-study-final/scene.json",
+      "--astronaut-capture",
+      "/workspace/build-resume/trail-study-final/control.png",
+      "--render-size",
+      "960",
+      "540",
+      "--benchmark-step",
+      "0",
+      "--replay",
+      "/workspace/build-resume/trail-study-final/control-input.json"
+    ],
+    [
+      "/workspace/build-resume/PlanetSimulation",
+      "--config",
+      "/workspace/build-resume/trail-study-final/scene.json",
+      "--astronaut-capture",
+      "/workspace/build-resume/trail-study-final/pressed-replay.png",
+      "--render-size",
+      "960",
+      "540",
+      "--benchmark-step",
+      "0",
+      "--replay",
+      "/workspace/build-resume/trail-study-final/pressed.png.json"
+    ]
+  ],
+  "images": {
+    "walking": "ab77800ed2e2a0717e11f79478d47a717395658346ad63264889ba37cc0b00df",
+    "pressed": "ab77800ed2e2a0717e11f79478d47a717395658346ad63264889ba37cc0b00df",
+    "control": "cc30d3c980502854c0081b51485e2413abf6c3d7f2788432f81e1ea58da39093",
+    "pressed-replay": "ab77800ed2e2a0717e11f79478d47a717395658346ad63264889ba37cc0b00df"
+  },
+  "walking_replays_exactly": true,
+  "segments": 20,
+  "walked_m": 5.982596729313473,
+  "visible_blades": 977,
+  "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+  "normal_speed_mps": 6,
+  "sprint_speed_mps": 12
+}

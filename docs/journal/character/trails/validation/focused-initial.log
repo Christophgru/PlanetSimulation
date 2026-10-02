@@ -1,0 +1,23 @@
+Internal ctest changing into directory: /workspace/build-resume
+Test project /workspace/build-resume
+    Start 14: TerrainShadowRenderIntegration
+1/3 Test #14: TerrainShadowRenderIntegration ...   Passed   31.14 sec
+    Start 20: GrassTrailTests
+2/3 Test #20: GrassTrailTests ..................   Passed    0.01 sec
+    Start 31: AstronautCaptureIntegration
+3/3 Test #31: AstronautCaptureIntegration ......***Failed   95.69 sec
+Validated visible HDR astronaut, grounded IK, walking, jump/jetpack bubbles and exact gait/flight replay
+Traceback (most recent call last):
+  File "/workspace/tests/character/test_astronaut_capture.py", line 69, in <module>
+    assert trail_replay == trail_image, 'Persistent grass trail did not replay exactly'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Persistent grass trail did not replay exactly
+
+
+67% tests passed, 1 tests failed out of 3
+
+Total Test time (real) = 126.85 sec
+
+The following tests FAILED:
+	 31 - AstronautCaptureIntegration (Failed)
+Errors while running CTest

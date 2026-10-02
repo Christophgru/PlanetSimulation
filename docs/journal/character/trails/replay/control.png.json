@@ -2,119 +2,124 @@
   "application_version": "0.0.1",
   "astronaut_pose": {
     "airborne": false,
-    "arm_swing": 0.0,
+    "arm_swing": -0.06761357676221726,
     "boost_pulse_s": 0.0,
     "boosting": false,
-    "effect_s": 0.0,
+    "effect_s": 1.0000000000000007,
     "feet": [
       {
         "ankle": [
-          -210.07065344679674,
-          910.0596536660781,
-          -366.02811289450676
+          -215.82628336786075,
+          910.4379734031004,
+          -366.38185736464527
         ],
-        "duration_s": 0.24,
+        "duration_s": 0.06685793497731503,
         "forward": [
-          -0.9772550365913876,
-          -0.20690850148872164,
-          0.04649156341163122
+          -0.9761559936733283,
+          -0.2116092953137253,
+          0.04838369717648205
         ],
         "hip": [
-          -210.23398059973488,
-          910.6611537759564,
-          -366.27466280717204
+          -216.4752785139022,
+          911.0871380721397,
+          -366.666445668527
         ],
         "knee": [
-          -210.48608695121322,
-          910.278178726687,
-          -366.1308834791116
+          -216.15078089205497,
+          910.762555786993,
+          -366.5241515345966
         ],
         "normal": [
-          0.05414557246472426,
-          0.9426676353736199,
-          -0.3293113818281649
+          0.13100758694631107,
+          0.9430589068280794,
+          -0.30573993918808307
         ],
         "position": [
-          -210.07552656385965,
-          909.974813693903,
-          -365.9984749185385
+          -215.82887062222318,
+          910.3438922799822,
+          -366.35030500911586
         ],
         "progress": 1.0,
-        "reached": true,
+        "reached": false,
         "start": [
-          0.0,
-          0.0,
-          0.0
+          -214.94575227183998,
+          910.2442180186175,
+          -366.2793410906703
         ],
         "target": [
-          0.0,
-          0.0,
-          0.0
+          -215.82887062222315,
+          910.3438922799822,
+          -366.35030500911586
         ]
       },
       {
         "ankle": [
-          -210.06207890076658,
-          909.9470355661949,
-          -366.3490772444243
+          -216.23608660703792,
+          910.4128216851643,
+          -366.7522766390261
         ],
-        "duration_s": 0.24,
+        "duration_s": 0.06686020178621085,
         "forward": [
-          -0.9772550365913876,
-          -0.20690850148872164,
-          0.04649156341163122
+          -0.976066502549542,
+          -0.21198694238924903,
+          0.048535748239438056
         ],
         "hip": [
-          -210.22263976712307,
-          910.5365535261406,
-          -366.5908054383711
+          -216.4639376812909,
+          910.9625378223237,
+          -366.9825882997261
         ],
         "knee": [
-          -210.48217692525773,
-          910.1578396394987,
-          -366.44897364705633
+          -216.6854087919087,
+          910.5642068991793,
+          -366.83032856956356
         ],
         "normal": [
-          0.05414557246472426,
-          0.9426676353736199,
-          -0.3293113818281649
+          0.13100758694631107,
+          0.9430589068280794,
+          -0.30573993918808307
         ],
         "position": [
-          -210.06695201789412,
-          909.8621955479533,
-          -366.3194392503988
+          -216.24787728528665,
+          910.327946466886,
+          -366.72476007723105
         ],
-        "progress": 1.0,
+        "progress": 0.8973948387390943,
         "reached": true,
         "start": [
-          0.0,
-          0.0,
-          0.0
+          -215.38035425790466,
+          910.1881425695635,
+          -366.6385306995018
         ],
         "target": [
-          0.0,
-          0.0,
-          0.0
+          -216.26364121641882,
+          910.2878358331692,
+          -366.70950825277606
         ]
       }
     ],
     "forward": [
-      -0.9772550365913876,
-      -0.20690850148872164,
-      0.04649156341163122
+      -0.9759896712061535,
+      -0.21231056716918265,
+      0.048666053540475575
+    ],
+    "grass_plan_eye": [
+      -0.2122795858875483,
+      0.9132604387434681,
+      -0.3675553202810422
     ],
     "grass_trail": [],
     "height_m": 0.0,
     "jetpack_armed": false,
     "right": [
-      0.03335539003469315,
-      -0.36647132298796187,
-      -0.9298312682326222
+      0.03335539003321446,
+      -0.36647132298828483,
+      -0.9298312682325479
     ],
     "root": [
-      -210.07123931910502,
-      909.9185049916763,
-      -366.15895602782786
+      -216.30817230987978,
+      910.34542611831,
+      -366.5509515382721
     ],
     "terrain_plan_eye_world_units": [
       -0.21068755608434053,
@@ -122,44 +127,44 @@
       -0.3672332101907134
     ],
     "up": [
-      -0.20942781909860864,
-      0.9071315458295696,
-      -0.36503745992494496
+      -0.2152477169556895,
+      0.9058824385622651,
+      -0.3647539278059212
     ],
     "vertical_velocity_mps": 0.0,
-    "walked_m": 0.0
+    "walked_m": 5.982596729313473
   },
   "render": {
-    "astronaut_pixels": 4700,
+    "astronaut_pixels": 11101,
     "atmosphere_downsample": 4,
     "atmosphere_liquid_water_g_m3": 0.0,
     "atmosphere_refraction_enabled": true,
     "atmosphere_refractive_index": 1.0002899200095918,
     "atmosphere_relative_humidity": 0.8684600670525447,
-    "atmospheric_illuminance": 0.19519243682195875,
+    "atmospheric_illuminance": 0.1812414079567136,
     "body_mesh_triangles": [
       100000,
       960
     ],
     "camera_mode": "third_person",
-    "direct_illuminance": 3.611535003024524,
+    "direct_illuminance": 3.6107827643077823,
     "effective_foliage_budget": 100000,
-    "effective_foliage_distance_m": 40.0,
-    "exposure": 0.17512816171969284,
-    "foliage_blades": 0,
-    "foliage_candidates": 0,
-    "foliage_gpu_compute": false,
-    "foliage_gpu_drawn_blades": 0,
-    "foliage_gpu_triangles": 0,
-    "foliage_gpu_vertices": 0,
-    "foliage_gpu_working_bytes": 0,
-    "foliage_patch_bytes": 0,
-    "foliage_patches": 0,
-    "height": 360,
+    "effective_foliage_distance_m": 12.0,
+    "exposure": 0.17580720550646878,
+    "foliage_blades": 21841,
+    "foliage_candidates": 21841,
+    "foliage_gpu_compute": true,
+    "foliage_gpu_drawn_blades": 977,
+    "foliage_gpu_triangles": 11684,
+    "foliage_gpu_vertices": 13638,
+    "foliage_gpu_working_bytes": 2795680,
+    "foliage_patch_bytes": 2684,
+    "foliage_patches": 671,
+    "height": 540,
     "lens_flare_strength": 0.0,
     "lens_flare_visible_sun_pixels": 0,
-    "metered_illuminance": 3.806735936243778,
-    "non_background_pixels": 230072,
+    "metered_illuminance": 3.792032668661791,
+    "non_background_pixels": 516960,
     "offline": {
       "enabled": false,
       "foliage_distance_multiplier": 20.0,
@@ -175,15 +180,15 @@
     "sky_interior_red": 0.0,
     "sky_mean_display_luminance": 0.0,
     "sky_pixels": 0,
-    "sky_sensitivity": 0.0027363775268702006,
+    "sky_sensitivity": 0.0027469875860385747,
     "sun_mesh_triangles": 2048,
-    "terrain_luminance_stddev": 0.06654344428620168,
-    "terrain_max_display_luminance": 0.5776901960784313,
-    "terrain_mean_display_luminance": 0.5126778594143419,
-    "terrain_pixels": 225700,
+    "terrain_luminance_stddev": 0.1566125812940117,
+    "terrain_max_display_luminance": 0.642118431372549,
+    "terrain_mean_display_luminance": 0.441271811950234,
+    "terrain_pixels": 507299,
     "white_clipped_fraction": 0.0,
     "white_clipped_pixels": 0,
-    "width": 640
+    "width": 960
   },
   "scenario": {
     "camera": {
@@ -242,9 +247,9 @@
         ],
         "foliage": {
           "density_per_m2": 30.72,
-          "draw_distance_m": 40.0,
-          "enabled": false,
-          "height_m": 1.5,
+          "draw_distance_m": 12,
+          "enabled": true,
+          "height_m": 0.8,
           "max_blades": 100000,
           "seed": 7321,
           "width_m": 0.1,
@@ -409,20 +414,20 @@
     "surface_camera": {
       "altitude": 0.003,
       "direction_ned": [
-        0.04977897425745842,
-        0.9955794851491648,
-        -0.07964635881193322
+        0.05210100354205757,
+        0.9954606687146966,
+        -0.07964635881193702
       ],
       "fov": 65.0,
-      "latitude_deg": -21.409888069265286,
-      "longitude_deg": 103.0,
+      "latitude_deg": -21.39243978861784,
+      "longitude_deg": 103.3662436258429,
       "planet_index": 0,
       "reference_frame": "planet_spherical_ned",
       "simulation_time_seconds": 20.0,
       "up_ned": [
-        -0.003977349357325355,
-        -0.07954698714652236,
-        -0.9968231826798576
+        -0.004162879931641272,
+        -0.07953749369118018,
+        -0.9968231826798573
       ],
       "walk_speed_mps": 80.0
     }
@@ -431,20 +436,20 @@
   "surface_camera": {
     "altitude": 0.003,
     "direction_ned": [
-      0.04977897425745853,
-      0.9955794851491649,
-      -0.07964635881193324
+      0.05210100354205749,
+      0.9954606687146964,
+      -0.07964635881193705
     ],
     "fov": 65.0,
-    "latitude_deg": -21.409888069265286,
-    "longitude_deg": 103.0,
+    "latitude_deg": -21.39243978861784,
+    "longitude_deg": 103.3662436258429,
     "planet_index": 0,
     "reference_frame": "planet_spherical_ned",
     "simulation_time_seconds": 20.0,
     "up_ned": [
-      -0.003977349357325244,
-      -0.07954698714652234,
-      -0.9968231826798577
+      -0.004162879931641383,
+      -0.07953749369118016,
+      -0.9968231826798575
     ],
     "walk_speed_mps": 80.0
   }

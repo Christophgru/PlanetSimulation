@@ -744,9 +744,20 @@ The [Sketchfab model shortlist](docs/journal/character/sketchfab-models.md)
 compares downloadable rigs against the requested Ava Turing reference.
 An external skinned model has not yet been integrated.
 
+Grounded walking leaves persistent flattened grass along a 1.2 m wide path.
+Wind is suppressed at its centre and blends back at the edges. Marks follow
+planet rotation, remain when changing cameras, and appear in water reflections.
+Jumping, jetpack flight and walking over water leave no marks. The latest
+2,048 short path segments are retained until scene reload; old marks disappear
+only when this bound is reached. Capture sidecars preserve the trail for replay.
+[Trail validation and limits](docs/journal/character/trails.md) describe the
+bounded history and GPU checks.
+
 | Follow camera and planted feet | Grey/blue suit and arm flag | Airborne jetpack bubbles |
 |:--:|:--:|:--:|
 | <a href="docs/screenshots/astronaut.png"><img src="docs/screenshots/astronaut.png" width="220" alt="Astronaut standing on the planet in camera 4"></a> | <a href="docs/screenshots/astronaut-front.png"><img src="docs/screenshots/astronaut-front.png" width="220" alt="Grey and blue astronaut with a German upper-arm flag"></a> | <a href="docs/screenshots/astronaut-jetpack.png"><img src="docs/screenshots/astronaut-jetpack.png" width="220" alt="Flying astronaut with blue bubbles below the backpack"></a> |
+
+<a href="docs/screenshots/astronaut-trail.png"><img src="docs/screenshots/astronaut-trail.png" width="660" alt="Astronaut leaving a persistent pressed grass path"></a>
 
 Selecting `2` from either orbit view, or automatically reaching the surface
 entry distance, starts a one-second camera descent. The eye moves around the
@@ -1008,7 +1019,9 @@ textures. Only a four-byte triangle ID per selected patch is uploaded, plus
 small uniforms for density, seed, camera, shape and wind rules. GLSL generates
 barycentric root positions, blade variation, Gaussian acceptance and biome
 rejection; no individual grass positions, blade meshes, random arrays or
-Perlin-noise fields cross from CPU to GPU. Cached frames upload no grass buffers.
+Perlin-noise fields cross from CPU to GPU. Astronaut trails upload a separate
+bounded segment hierarchy when a new mark is recorded; unchanged trails upload
+nothing. Cached grass plans upload no placement buffers.
 The planner caps submitted candidate work, including GPU rejection, and groups
 triangle IDs by candidate slots. A triangle supports up to 65536 candidate slots (powers of two, rounded down
 from `max_candidates_per_triangle`). The separate distant tuft layer has been
@@ -1059,7 +1072,7 @@ grain still apply, so ground and blades share albedo rather than identical
 screen pixels. Beach, snow, seabed and rock transitions retain their materials.
 
 Eight stable retention tiers and the outer-quarter distance fade reduce pixel
-coverage using deterministic screen-space dithering. All grass retains their height and ground roots during fading: **grass never sinks**.
+coverage using deterministic screen-space dithering. All grass retains its height and ground roots during distance fading: **grass never sinks**. Astronaut trails bend blades while keeping those roots fixed.
 Terrain retains its independent eight LODs and configured sinking. A cached
 plan includes the walking margin and only uploads triangle IDs when the camera
 moves past its rebuild threshold or the terrain mesh changes. Adjacent patches

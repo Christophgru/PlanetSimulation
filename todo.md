@@ -25,9 +25,17 @@ document the progress and add comments such that when interrupted you can contin
 |The quick grass demo mentioned something like 6 poly grass if close and 1 pol grass if far away, is this already active? if not add it.|t| Already active: six-segment strips (six quads, 14 vertices/12 triangles) close and one tapered quad (4 vertices/2 triangles) far. Configurable transition, fixed roots, no hot-swap upload and matching fragment shading validated on both GPU paths. Clean 50/50 suite passes; README and procedural-grass journal explain polygon accounting. |
 |Lets add a render Mode, where rendering might take arbitrary long but foliage is generated for a radius up to 20x the normal distance, high poly is loaded for the moon and sun, and lens flaring is simulated. |t| Implemented --offline-render/--offline-quality: 1–20x single-layer radius, bounded candidate growth, full-resolution atmosphere, finer Moon/Sun meshes and visible-Sun lens flare. Exact replay, invalid replay rejection, CPU bounds and both GPU root paths pass. Clean 51/51 CTest run (308.44 s); journal/PDF and 21 gallery images refreshed, inspected and hashes/fingerprint verified. |
 |Lets give the grass (ground, not foliage ) a more brown and grey tinted color, such that it looks more like the foliage.|t| Superseded by the later user correction to match foliage tips. Ground shares midpoint tip albedo (linear RGB 0.634375, 0.74375, 0.284375), with grain and slope shading. Neutral-light GPU channel-ratio and beach-band regression passes in clean 51/51 suite; journal documents the correction and 21 gallery captures are refreshed/verified. |
-|Lets adjust the foliage wind noise such that the grass stays pressed down on the trail where the small astronaut walked along, add jumping motion, that lets the astronaut jump higher or lower depending on the planets gravity, based on mass and diameter of the planet minus its rotation velocity.|p| Gravity-dependent jumping is implemented and tested with the astronaut feature, including the radial centrifugal term from configured spin. Grass trail deformation remains unstarted. |
+|Lets adjust the foliage wind noise such that the grass stays pressed down on the trail where the small astronaut walked along, add jumping motion, that lets the astronaut jump higher or lower depending on the planets gravity, based on mass and diameter of the planet minus its rotation velocity.|t| Gravity-dependent jumping and persistent trails implemented. Body-local bounded history, fixed roots, wind suppression and slope conformance work on both GPU paths; complete trail and cached planning anchors replay exactly. All 52 CTest entries have passing results via full run plus final renderer/layout checks; 22 gallery images, journal/PDF and retained evidence updated. |
 |Make the Sand more white and add some granularity to it (foliage or roughness/reflection map maybe in combination with tiny elevation noise that creates tiny dunes (only some cm high, as reference take image USER_IO/user_artifacts/image copy 2.png) that are often visible in sand in windy areas)|||
 |Prepare a short journal in typst on wether its feasable to port the current application to a web assembly application and evaluate the advantages and disadvantages in a short 2 page memo. Add some graphics on how the compilation process works, what runtime dependencies there are and where the main caviats might lie.|||
+|Improve the offline / raytracing example in README.md: increase foliage count and use the initial surface position from the production config; consider rendering narrower vertical columns with higher terrain/foliage budgets and assembling them into the final image; make lens flare visibly apparent. Start after the preceding tasks are finished.| |Queued on user request; evaluate strip projection, overlap and image assembly while preserving full-frame lighting/exposure and flare placement. No renderer changes for this task yet.|
+|Form a terrain/atmosphere CPU–GPU implementation plan before starting GPU terrain work. Audit the existing pipeline and evaluate hexagonal planet panels, seams/poles and alternatives. Define CPU ownership of subdivision/LOD/sinking and GPU ownership of noise, surface shape and atmospheric fields, including ground contacts, shadows/reflections, supported GPU paths and validation/performance budgets.| |Planning prerequisite for the following terrain/atmosphere tasks. Document CPU/GPU ownership before implementation, and assess seams, poles and spherical exceptions for hexagonal panels.|
+|Implement highly optimized GPU terrain shaping according to the completed CPU–GPU plan. Pass noise/shape parameters and minimal panel/topology descriptors; calculate surface positions/normals/material inputs on the GPU. Keep CPU subdivision and sinking where the plan calls for them.| |Depends on the architecture plan. Preserve planetary coordinates, camera/astronaut contacts, water/shadow/reflection agreement, deterministic replay and a documented compatible fallback; measure transfers and generation costs.|
+|Implement the planned GPU atmosphere calculations and remaining planet field work. Reuse calculations already on the GPU and move remaining suitable per-sample work there, passing parameters rather than generated field arrays.| |Depends on the architecture plan and relevant terrain interfaces. Validate optical appearance, atmosphere/terrain boundary agreement and measured CPU/GPU cost.|
+|Adapt foliage allocation to measured GPU usage and available VRAM. Preserve the configured density near the planet camera; automatically choose the falloff from required density, maximum foliage distance, other foliage parameters and remaining memory/render budget.| |Plan the budgeting policy before implementation. Give near-camera density priority, account for terrain/atmosphere/reflections and other GPU allocations, use stable bounded adjustments and predictable fallbacks when usage/VRAM telemetry is unavailable, and validate density/coverage and memory bounds.|
+|Fade grass trails smoothly back to their normal wind motion near history eviction. As the bounded history fills, progressively reduce deformation through the oldest 10% of retained trail segments so old marks disappear without a sudden pop.| |Queued on user request. Preserve normal wind phase and fixed roots; use a continuous history-age weight shared by both GPU paths and reflections, and retain the weights/state in replay.|
+|Evaluate BSON storage for long trails and expensive computed results. Profile the most time-consuming calculations and compare recomputation with serialization, storage size and read/write cost; identify which results actually benefit from persistence.| |Measure candidates such as trail history and terrain/atmosphere caches before choosing what to store. Document dependencies, cache keys, ownership and invalidation; avoid persisting cheap results without a measured benefit.|
+|Implement beneficial BSON persistence selected by the storage evaluation, with explicit application/cache versions and steadily maintained program version increments. Erase or rebuild cached storage when a newer/incompatible program version invalidates it so stored results remain consistent.| |Depends on the storage evaluation. Validate version, schema, scene/noise/quality inputs and relevant backend dependencies; handle missing/corrupt files and interrupted writes safely. Document the version-bump policy and test cache invalidation and exact restored results.|
 
 
 # environmental issues :
@@ -95,9 +103,24 @@ instruction profile.
   Run `build-resume/PlanetSimulation --offline-render build/offline.png`.
 - Ground-color row reconciled with the later foliage-tip palette correction;
   neutral-light channel-ratio/shore regression passes in the clean 51-entry run.
-- Next row: astronaut grass trail deformation. Gravity-dependent jump and
-  jetpack remain implemented; trails have not been started. Preserve the
-  user's added astronaut/model tasks and completed-row reordering in todo.md.
+- Grass trail row complete: bounded 2,048-segment body-local history, stackless
+  GPU hierarchy, fixed roots, wind suppression and slope-following deformation
+  on both placement paths. Replay retains trail plus grass/terrain anchors.
+- Validation: full 52-entry run passed 51 in 516.46 s; its layout check waited
+  for the new screenshot. Final renderer/capture checks pass in 122.35 s after
+  the slope correction; layout passes after gallery publication. All 52 have
+  passing results (full run plus targeted checks, not a second clean full run).
+- All 22 README images regenerated, inspected and hash/fingerprint verified;
+  previous 21 PNGs remain unchanged. Journal PDF compiled. Six-metre trail
+  capture records 20 segments and 977 GPU-submitted blades with exact replay.
+  Evidence: `docs/journal/character/trails/`.
+- Next row: white/granular sand and centimetre dunes. Preserve production
+  settings, the user's added astronaut/model rows and TODO reordering.
+- Eight newly requested tasks are queued after the previous rows: offline
+  density/initial position/column assembly/visible flare; a CPU/GPU architecture
+  plan followed by terrain, atmosphere and adaptive foliage budgets; oldest-10%
+  trail fading; BSON evaluation and conditional versioned persistence. Form
+  the architecture/storage plans before their corresponding implementations.
 
 ## Astronaut checkpoint — 2026-10-02
 
@@ -108,7 +131,7 @@ instruction profile.
   procedural comic model and locked body-local foot contacts, following the
   selected planet through translation, spin and pole traversal.
 - Fresh validation tree: `build-resume`, local GLM/JSON/GoogleTest sources,
-  GCC 13, RelWithDebInfo. ozz-animation 0.16.0 sources are at
+  GCC 12.2, RelWithDebInfo. ozz-animation 0.16.0 sources are at
   `build-resume/ozz-src`; CMake now requires 3.24 for upstream compatibility.
 - Implemented camera 4, actual rendered-triangle foot contacts, stance locking,
   two-bone IK and chase terrain clearance. Latest user speeds are 6 m/s walking

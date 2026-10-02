@@ -1,0 +1,100 @@
+Internal ctest changing into directory: /workspace/build-resume
+Test project /workspace/build-resume
+      Start  1: RendererLifecycleTests
+ 1/52 Test  #1: RendererLifecycleTests ..................   Passed    8.30 sec
+      Start  2: ConfigTests
+ 2/52 Test  #2: ConfigTests .............................   Passed    0.01 sec
+      Start  3: OrbitCameraTests
+ 3/52 Test  #3: OrbitCameraTests ........................   Passed    0.01 sec
+      Start  4: CameraInputTests
+ 4/52 Test  #4: CameraInputTests ........................   Passed    0.01 sec
+      Start  5: AstronautMotionTests
+ 5/52 Test  #5: AstronautMotionTests ....................   Passed    0.02 sec
+      Start  6: CameraTransitionTests
+ 6/52 Test  #6: CameraTransitionTests ...................   Passed    0.01 sec
+      Start  7: SceneTransformsTests
+ 7/52 Test  #7: SceneTransformsTests ....................   Passed    0.01 sec
+      Start  8: OrbitPathsTests
+ 8/52 Test  #8: OrbitPathsTests .........................   Passed    0.02 sec
+      Start  9: OrbitalSystemTests
+ 9/52 Test  #9: OrbitalSystemTests ......................   Passed    0.12 sec
+      Start 10: CelestialLightingTests
+10/52 Test #10: CelestialLightingTests ..................   Passed    0.03 sec
+      Start 11: CameraExposureTests
+11/52 Test #11: CameraExposureTests .....................   Passed    0.01 sec
+      Start 12: SceneReplayTests
+12/52 Test #12: SceneReplayTests ........................   Passed    0.01 sec
+      Start 13: TerrainShadowProjectionTests
+13/52 Test #13: TerrainShadowProjectionTests ............   Passed    0.01 sec
+      Start 14: TerrainShadowRenderIntegration
+14/52 Test #14: TerrainShadowRenderIntegration ..........   Passed    6.82 sec
+      Start 15: RenderDiagnosticsTests
+15/52 Test #15: RenderDiagnosticsTests ..................   Passed    0.01 sec
+      Start 16: StarFieldTests
+16/52 Test #16: StarFieldTests ..........................   Passed    0.01 sec
+      Start 17: MeshGeometryTests
+17/52 Test #17: MeshGeometryTests .......................   Passed    0.02 sec
+      Start 18: TerrainTests
+18/52 Test #18: TerrainTests ............................   Passed    9.49 sec
+      Start 19: GrassPlanTests
+19/52 Test #19: GrassPlanTests ..........................   Passed    0.01 sec
+      Start 20: GrassTrailTests
+20/52 Test #20: GrassTrailTests .........................   Passed    0.01 sec
+      Start 21: GrassPlacementTests
+21/52 Test #21: GrassPlacementTests .....................   Passed    0.04 sec
+      Start 22: PlanetLocalFrameTests
+22/52 Test #22: PlanetLocalFrameTests ...................   Passed    0.01 sec
+      Start 23: PlanetSurfaceCameraTests
+23/52 Test #23: PlanetSurfaceCameraTests ................   Passed    0.01 sec
+      Start 24: SurfaceCameraTelemetryTests
+24/52 Test #24: SurfaceCameraTelemetryTests .............   Passed    0.01 sec
+      Start 25: RenderSceneIntegration
+25/52 Test #25: RenderSceneIntegration ..................   Passed    1.43 sec
+      Start 26: SurfaceRenderIntegration
+26/52 Test #26: SurfaceRenderIntegration ................   Passed    4.75 sec
+      Start 27: PlanetOrbitRenderIntegration
+27/52 Test #27: PlanetOrbitRenderIntegration ............   Passed    3.47 sec
+      Start 28: MovingSurfaceRenderIntegration
+28/52 Test #28: MovingSurfaceRenderIntegration ..........   Passed    4.81 sec
+      Start 29: MovingPlanetRenderIntegration
+29/52 Test #29: MovingPlanetRenderIntegration ...........   Passed    3.43 sec
+      Start 30: MoonlightRenderIntegration
+30/52 Test #30: MoonlightRenderIntegration ..............   Passed    1.48 sec
+      Start 31: AstronautCaptureIntegration
+31/52 Test #31: AstronautCaptureIntegration .............***Failed   92.33 sec
+Validated visible HDR astronaut, grounded IK, walking, jump/jetpack bubbles and exact gait/flight replay
+Traceback (most recent call last):
+  File "/workspace/tests/character/test_astronaut_capture.py", line 69, in <module>
+    assert trail_replay == trail_image, 'Persistent grass trail did not replay exactly'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Persistent grass trail did not replay exactly
+
+      Start 32: OfflineCaptureIntegration
+32/52 Test #32: OfflineCaptureIntegration ...............   Passed   16.05 sec
+      Start 33: CpuTraceTests
+33/52 Test #33: CpuTraceTests ...........................   Passed    0.01 sec
+      Start 34: CpuTraceReportTests
+34/52 Test #34: CpuTraceReportTests .....................   Passed    0.22 sec
+      Start 35: GrassCaptureIntegration
+35/52 Test #35: GrassCaptureIntegration .................   Passed   65.78 sec
+      Start 36: LightingScenariosRenderIntegration
+36/52 Test #36: LightingScenariosRenderIntegration ......   Passed   40.55 sec
+      Start 37: TwilightScenariosRenderIntegration
+37/52 Test #37: TwilightScenariosRenderIntegration ......   Passed   22.97 sec
+      Start 38: AtmosphereTests
+38/52 Test #38: AtmosphereTests .........................   Passed    0.01 sec
+      Start 39: AtmosphereScenariosRenderIntegration
+39/52 Test #39: AtmosphereScenariosRenderIntegration ....   Passed  119.05 sec
+      Start 40: AtmosphereRefractionRenderIntegration
+40/52 Test #40: AtmosphereRefractionRenderIntegration ...   Passed    4.86 sec
+      Start 41: FrameReuseTests
+41/52 Test #41: FrameReuseTests .........................   Passed    0.01 sec
+      Start 42: PerformanceCaptureIntegration
+42/52 Test #42: PerformanceCaptureIntegration ...........   Passed   26.58 sec
+      Start 43: GpuUtilizationTests
+43/52 Test #43: GpuUtilizationTests .....................   Passed    0.01 sec
+      Start 44: GrassWindInputIntegration
+44/52 Test #44: GrassWindInputIntegration ...............   Passed   17.18 sec
+      Start 45: AstronautInputIntegration
+45/52 Test #45: AstronautInputIntegration ...............   Passed    7.12 sec
+      Start 46: PerformanceOverlayInputIntegration

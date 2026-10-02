@@ -4,6 +4,9 @@
 #include "rendering/foliage/procedural/GrassPlan.h"
 #include "config/FoliageConfig.h"
 #include <memory>
+#include <map>
+#include <optional>
+#include "rendering/foliage/trails/GrassTrail.h"
 class Mesh;
 namespace rendering {
 struct GrassPass {
@@ -44,6 +47,16 @@ class ProceduralGrass {
         bool ready=false;
     };
     std::vector<Patch> patches_;
+    struct TrailData {
+        GrassTrail history;
+        mutable GLuint buffer=0, texture=0;
+        mutable std::uint64_t uploadedRevision=0;
+        mutable glm::dvec3 origin{0};
+        mutable int nodes=0;
+    };
+    std::map<std::size_t,TrailData> trails_;
+    std::map<std::size_t,glm::dvec3> replayPlanEyes_;
+    void bindTrail(std::size_t index,double scale) const;
     mutable std::unique_ptr<Shader> compute_;
     void upload(Patch& patch,const GrassPlan& plan);
     void updateDraws(Patch& patch,double scale,double nearDistance,const glm::dvec3& eyeBody);
@@ -51,6 +64,13 @@ class ProceduralGrass {
     void drawComputed(const Patch& patch,const GrassPass& pass) const;
 public:
     Shader shader;
+    std::optional<glm::dvec3> planningEye(std::size_t index) const;
+    void restorePlanningEye(std::size_t index,const glm::dvec3& eye);
+    GrassTrail& trail(std::size_t index) { return trails_[index].history; }
+    const GrassTrail* existingTrail(std::size_t index) const {
+        const auto found=trails_.find(index);
+        return found==trails_.end() ? nullptr : &found->second.history;
+    }
     ProceduralGrass();
     ProceduralGrass(const ProceduralGrass&)=delete;
     ProceduralGrass& operator=(const ProceduralGrass&)=delete;

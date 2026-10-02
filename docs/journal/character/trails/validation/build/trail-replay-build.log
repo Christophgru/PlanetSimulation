@@ -1,0 +1,20 @@
+[1/20] Building CXX object CMakeFiles/planet_rendering.dir/src/rendering/foliage/GrassRenderer.cpp.o
+[2/20] Building CXX object CMakeFiles/planet_rendering.dir/src/rendering/foliage/procedural/ProceduralGrass.cpp.o
+[3/20] Building CXX object CMakeFiles/planet_rendering.dir/src/rendering/foliage/procedural/GrassCompute.cpp.o
+[4/20] Building CXX object CMakeFiles/planet_rendering.dir/src/rendering/foliage/trails/TrailUpload.cpp.o
+[5/20] Linking CXX static library libplanet_rendering.a
+[6/20] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/TerrainMeshes.cpp.o
+[7/20] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/Renderer.cpp.o
+[8/20] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/ScenePass.cpp.o
+[9/20] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/Character.cpp.o
+[10/20] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/Capture.cpp.o
+[11/20] Linking CXX executable tests/mesh_geometry_tests
+[12/20] Building CXX object tests/CMakeFiles/terrain_shadow_render_tests.dir/lighting/test_terrain_shadow_render.cpp.o
+[13/20] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/Interactive.cpp.o
+[14/20] Linking CXX static library libplanet_app.a
+[15/20] Linking CXX executable PlanetSimulation
+[16/20] Linking CXX executable tests/renderer_lifecycle_tests
+[17/20] Linking CXX executable tests/foliage_benchmark
+[18/20] Linking CXX executable tests/atmosphere_render_tests
+[19/20] Building CXX object tests/CMakeFiles/terrain_shadow_render_tests.dir/foliage/test_grass_render.cpp.o
+[20/20] Linking CXX executable tests/terrain_shadow_render_tests

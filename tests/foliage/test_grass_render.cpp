@@ -356,3 +356,103 @@ TEST(ProceduralGrassRender, OfflineRadiusGeneratesVisibleRootsBeyondTheNormalCut
         EXPECT_GT(farRoots(offline.planets[0],compute),0u);
     }
 }
+
+TEST(ProceduralGrassRender, PersistentTrailsFlattenTipsKeepRootsAndSuppressWindOnBothPaths) {
+    for (float pole:{-1.f,1.f}) for (double quadDistance:{1.,100.}) {
+        GrassProbe probe(pole);
+        probe.planet.foliage.quad_distance_m=quadDistance;
+        probe.grass.prepare(0,probe.mesh,probe.planet,100,{0,0,pole*1.02});
+        const auto original=probe.capture(0);
+        glm::dvec3 chosen(0); bool found=false;
+        for (std::size_t i=0;i<original.size();i+=10) if (original[i+9]>.5) {
+            chosen={original[i],original[i+1],original[i+2]}; found=true; break;
+        }
+        ASSERT_TRUE(found);
+        const auto up=glm::normalize(chosen);
+        const auto along=glm::normalize(glm::cross(up,glm::dvec3(0,1,0)));
+        auto& trail=probe.grass.trail(0);
+        trail.observe(chosen*100.0-along*.3,true);
+        trail.observe(chosen*100.0+along*.3,true);
+        unsigned checked=0,unchanged=0;
+        for (bool compute:{false,true}) {
+            if (compute && !GLEW_VERSION_4_3) continue;
+            const auto pressed=probe.capture(0,compute),windy=probe.capture(3,compute);
+            const auto centre=[&](const std::vector<float>& data) {
+                std::vector<std::array<float,3>> positions;
+                for (std::size_t i=0;i<data.size();i+=10) {
+                    const glm::dvec3 root(data[i],data[i+1],data[i+2]);
+                    if (glm::length(root-chosen)<1e-6 && data[i+9]>0) {
+                        const glm::dvec3 body(data[i+3],data[i+4],data[i+5]);
+                        EXPECT_LT(glm::dot(body-root,up)*100,.14);
+                        positions.push_back({data[i+3],data[i+4],data[i+5]});
+                    }
+                }
+                std::sort(positions.begin(),positions.end()); return positions;
+            };
+            const auto a=centre(pressed),b=centre(windy);
+            ASSERT_FALSE(a.empty()); EXPECT_EQ(a,b); checked+=a.size();
+            if (!compute) {
+                ASSERT_EQ(original.size(),pressed.size());
+                for (std::size_t i=0;i<original.size();i+=10) {
+                    for (int c=0;c<3;++c) EXPECT_EQ(original[i+c],pressed[i+c]);
+                    EXPECT_EQ(original[i+9],pressed[i+9]);
+                    const glm::dvec3 root(original[i],original[i+1],original[i+2]);
+                    if (glm::length(root-chosen)*100>1 && original[i+9]>0) {
+                        for (int c=3;c<6;++c) EXPECT_EQ(original[i+c],pressed[i+c]);
+                        ++unchanged;
+                    }
+                }
+            }
+        }
+        EXPECT_GT(checked,0); EXPECT_GT(unchanged,0);
+        const auto local=probe.capture(0);
+        const auto reflection=glm::rotate(glm::translate(glm::mat4(1),{12,-8,3}),.7f,glm::vec3(0,1,0));
+        probe.grass.shader.setMat4("model",glm::value_ptr(reflection));
+        const auto transformed=probe.capture(0);
+        for (std::size_t i=0;i<local.size();i+=10) {
+            for (int c=0;c<6;++c) EXPECT_EQ(local[i+c],transformed[i+c]);
+            if (local[i+9]<=0) continue;
+            const auto expected=reflection*glm::vec4(local[i+3],local[i+4],local[i+5],1);
+            for (int c=0;c<3;++c) EXPECT_NEAR(transformed[i+6+c],expected[c],.00001f);
+        }
+        // The same saved marks survive CPU plan/terrain revision changes.
+        const auto revision=trail.revision(); ++probe.mesh.revision;
+        probe.grass.prepare(0,probe.mesh,probe.planet,100,{0,0,pole*1.02});
+        EXPECT_EQ(trail.revision(),revision); EXPECT_EQ(probe.capture(0),transformed);
+    }
+}
+
+TEST(ProceduralGrassRender, PressedTipsFollowRisingGroundInsteadOfDisappearingBelowIt) {
+    GrassProbe probe;
+    const glm::dvec3 normal=glm::normalize(glm::dvec3(0,-.5,1));
+    for (std::size_t i=0;i<probe.mesh.vertices.size();i+=9) {
+        probe.mesh.vertices[i+2]+=probe.mesh.vertices[i+1]*.5f;
+        for (int c=0;c<3;++c) probe.mesh.vertices[i+3+c]=normal[c];
+    }
+    probe.mesh.upload(); ++probe.mesh.revision;
+    probe.grass.prepare(0,probe.mesh,probe.planet,100,{0,0,1.02});
+    const auto original=probe.capture();
+    glm::dvec3 chosen(0); bool found=false;
+    for (std::size_t i=0;i<original.size();i+=10) if (original[i+9]>.5) {
+        chosen={original[i],original[i+1],original[i+2]}; found=true; break;
+    }
+    ASSERT_TRUE(found);
+    const auto along=glm::normalize(glm::dvec3(0,1,.5));
+    probe.grass.trail(0).observe(chosen*100.0-along*.3,true);
+    probe.grass.trail(0).observe(chosen*100.0+along*.3,true);
+    for (bool compute:{false,true}) {
+        if (compute && !GLEW_VERSION_4_3) continue;
+        const auto data=probe.capture(3,compute);
+        unsigned tips=0;
+        for (std::size_t i=0;i<data.size();i+=10) {
+            const glm::dvec3 root(data[i],data[i+1],data[i+2]);
+            if (glm::length(root-chosen)>1e-6 || data[i+9]<=0) continue;
+            const glm::dvec3 offset=(glm::dvec3(data[i+3],data[i+4],data[i+5])-root)*100.0;
+            if (glm::dot(offset,along)<.6) continue;
+            EXPECT_GT(glm::dot(offset,normal),.01); // Clear of the actual slope.
+            EXPECT_LT(glm::dot(offset,normal),.14); // Still pressed against it.
+            ++tips;
+        }
+        EXPECT_GT(tips,0);
+    }
+}

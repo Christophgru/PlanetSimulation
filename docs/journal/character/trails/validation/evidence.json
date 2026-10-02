@@ -1,0 +1,45 @@
+{
+  "compiler": "c++ (Debian 12.2.0-14+deb12u1) 12.2.0",
+  "build_type": "RelWithDebInfo",
+  "renderer": "name of display: :99\ndisplay: :99  screen: 0\ndirect rendering: Yes\nExtended renderer info (GLX_MESA_query_renderer):\n    Vendor: Mesa/X.org (0xffffffff)\n    Device: llvmpipe (LLVM 15.0.6, 256 bits) (0xffffffff)\n    Version: 22.3.6\n    Accelerated: no\n    Video memory: 39925MB\n    Unified memory: yes\n    Preferred profile: core (0x1)\n    Max core profile version: 4.5\n    Max compat profile version: 4.5\n    Max GLES1 profile version: 1.1\n    Max GLES[23] profile version: 3.2\nOpenGL vendor string: Mesa/X.org\nOpenGL renderer string: llvmpipe (LLVM 15.0.6, 256 bits)\nOpenGL core profile version string: 4.5 (Core Profile) Mesa 22.3.6\nOpenGL core profile shading language version string: 4.50\nOpenGL core profile context flags: (none)\nOpenGL core profile profile mask: core profile\n\nOpenGL version string: 4.5 (Compatibility Profile) Mesa 22.3.6\nOpenGL shading language version string: 4.50\nOpenGL context flags: (none)\nOpenGL profile mask: compatibility profile\n\nOpenGL ES profile version string: OpenGL ES 3.2 Mesa 22.3.6\nOpenGL ES profile shading language version string: OpenGL ES GLSL ES 3.20\n\n",
+  "executable_sha256": "3a43b2cbde2b7a2164c89e586d0906c0f8ab32774d1f3b828618843051461276",
+  "source_sha256": "607045b66f0904719e9f756cce6501071e6396cc9db10489e2b2c4807aad621c",
+  "full_run": {
+    "entries": 52,
+    "passed": 51,
+    "failed": [
+      "RepositoryLayout"
+    ],
+    "seconds": 516.46,
+    "note": "New screenshot had not yet been published; run preceded final slope correction."
+  },
+  "final_renderer_checks": {
+    "entries": [
+      "TerrainShadowRenderIntegration",
+      "AstronautCaptureIntegration"
+    ],
+    "passed": true,
+    "seconds": 122.35
+  },
+  "repository_layout_recheck": {
+    "passed": true,
+    "log": "layout.log"
+  },
+  "all_52_entries_have_passing_results": true,
+  "gallery": {
+    "images": 22,
+    "hashes_verified": true,
+    "source_fingerprint_verified": true,
+    "inspected": true,
+    "previous_21_images_unchanged": true
+  },
+  "typst_pdf_compiled": true,
+  "trail": {
+    "capacity": 2048,
+    "radius_m": 0.6,
+    "max_gpu_payload_bytes": 262080,
+    "replay_exact": true,
+    "slope_conformance_checked": true
+  },
+  "validation_strategy": "Full run plus targeted renderer and layout rechecks; not a second clean full-suite run."
+}

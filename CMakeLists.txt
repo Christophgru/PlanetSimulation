@@ -70,7 +70,8 @@ add_library(planet_geometry STATIC
     src/rendering/geometry/TerrainShoreline.cpp
     src/rendering/foliage/GrassPlacement.cpp
     src/rendering/foliage/GrassLod.cpp)
-target_sources(planet_geometry PRIVATE src/rendering/foliage/procedural/GrassPlan.cpp)
+target_sources(planet_geometry PRIVATE src/rendering/foliage/procedural/GrassPlan.cpp
+    src/rendering/foliage/trails/GrassTrail.cpp)
 target_link_libraries(planet_geometry PUBLIC planet_config planet_diagnostics glm::glm)
 
 add_library(planet_character STATIC
@@ -84,7 +85,8 @@ add_library(planet_rendering STATIC
     src/rendering/geometry/Mesh.cpp
     src/rendering/foliage/GrassRenderer.cpp)
 target_sources(planet_rendering PRIVATE src/rendering/foliage/procedural/ProceduralGrass.cpp)
-target_sources(planet_rendering PRIVATE src/rendering/foliage/procedural/GrassCompute.cpp)
+target_sources(planet_rendering PRIVATE src/rendering/foliage/procedural/GrassCompute.cpp
+    src/rendering/foliage/trails/TrailUpload.cpp)
 target_sources(planet_rendering PRIVATE src/rendering/character/AstronautRenderer.cpp)
 target_sources(planet_rendering PRIVATE src/rendering/postprocessing/LensFlare.cpp)
 target_link_libraries(planet_rendering PUBLIC planet_geometry planet_character OpenGL::GL GLEW::GLEW)
