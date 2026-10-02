@@ -1,5 +1,6 @@
 #include "rendering/runtime/ScenePass.h"
 #include "rendering/foliage/GrassWind.h"
+#include "rendering/character/AstronautRenderer.h"
 #include <glm/gtc/type_ptr.hpp>
 
 namespace rendering {
@@ -20,7 +21,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                  std::optional<std::size_t> meteredPlanet,
                  bool recordObjects, rendering::FrameProfiler* profiler,
                  bool forceHdr, GLuint outputFramebuffer,
-                 rendering::GrassRenderer* grass, double sceneTime) {
+                 rendering::GrassRenderer* grass, double sceneTime, AstronautRenderer* astronaut) {
     CpuTrace::Scope sceneScope("renderScene");
     using Stage = rendering::FrameStage;
     using Scope = rendering::FrameProfiler::Scope;
@@ -153,6 +154,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                          static_cast<float>(sun.color[2]));
         shader.setFloat("uEmissive", 1.0f);
         shader.setFloat("uTerrainMetersPerRadius", 0.0f);
+        shader.setInt("uCharacterContacts",0);
         sunMesh.draw();
 
         for (std::size_t i = 0; i < scenario.planets.size(); ++i) {
@@ -180,6 +182,17 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                 (glm::dvec3(glm::inverse(passView)[3]) - bodies[i + 1].position) / planet.radius;
             setRgb(shader, "uTerrainEyeBody", materialEye);
             setBodyLighting(shader, i);
+            const bool contactShadow=astronaut && astronaut->motion.ready() && astronaut->planetIndex==i;
+            shader.setInt("uCharacterContacts",contactShadow);
+            if (contactShadow) {
+                const auto& p=astronaut->motion.pose();
+                const double scale=planet.radius*scenario.metersPerWorldUnit();
+                setRgb(shader,"uContactFeet[0]",p.feet[0].contact.position/scale);
+                setRgb(shader,"uContactFeet[1]",p.feet[1].contact.position/scale);
+                shader.setFloat("uContactRadius",.24/scale);
+                shader.setFloat2("uContactWeights",p.feet[0].planted() ? 1 : .2,
+                                                   p.feet[1].planted() ? 1 : .2);
+            }
             planetMeshes[i].draw();
             if (grass && grass->count(i)) {
                 const auto& settings=planet.foliage;
@@ -220,6 +233,19 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                 grass->draw(i,&grassPass);
             }
 
+        }
+        if (astronaut && astronaut->motion.ready()) {
+            const auto i=astronaut->planetIndex;
+            const auto& body=bodies[i+1];
+            if (record) glStencilFunc(GL_ALWAYS,4,0xff);
+            auto& target=astronaut->shader;
+            target.use();
+            target.setFloat3("uClipCenter",clipCenter.x,clipCenter.y,clipCenter.z);
+            target.setFloat("uClipRadius",clipRadius);
+            setRgb(target,"uEyeWorld",glm::dvec3(glm::inverse(passView)[3]));
+            setBodyLighting(target,i);
+            astronaut->draw(body.position,body.orientation,scenario.planets[i].radius,
+                            scenario.metersPerWorldUnit(),passView,passProjection);
         }
         if (record) glDisable(GL_STENCIL_TEST);
     };
@@ -268,7 +294,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                 return renderScene(scenario, bodies, view, fov, eyeWorld, shader, waterShader, skyboxShader,
                     reflectionTarget, shadowShader, shadows, atmosphereShader, atmosphere, reflectionAtmosphere,
                     atmosphereColumns, sunMesh, skyboxMesh, planetMeshes, waterMeshes, width, height,
-                    clip, meteredPlanet, recordObjects, profiler, true, outputFramebuffer, grass, sceneTime);
+                    clip, meteredPlanet, recordObjects, profiler, true, outputFramebuffer, grass, sceneTime, astronaut);
         }
         return exposure;
     };

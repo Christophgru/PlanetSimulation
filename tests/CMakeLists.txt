@@ -90,6 +90,9 @@ enable_testing()
 add_test(NAME ConfigTests COMMAND config_tests)
 add_test(NAME OrbitCameraTests COMMAND orbit_camera_tests)
 add_test(NAME CameraInputTests COMMAND camera_input_tests)
+add_executable(astronaut_motion_tests character/test_astronaut_motion.cpp character/test_surface_contact.cpp)
+target_link_libraries(astronaut_motion_tests PRIVATE planet_geometry planet_character GTest::gtest_main)
+add_test(NAME AstronautMotionTests COMMAND astronaut_motion_tests)
 add_test(NAME CameraTransitionTests COMMAND camera_transition_tests)
 add_test(NAME SceneTransformsTests COMMAND scene_transforms_tests)
 add_test(NAME OrbitPathsTests COMMAND orbit_paths_tests)
@@ -152,6 +155,10 @@ add_test(NAME MoonlightRenderIntegration COMMAND PlanetSimulation
 set_tests_properties(MoonlightRenderIntegration PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
+add_test(NAME AstronautCaptureIntegration COMMAND ${Python3_EXECUTABLE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/character/test_astronaut_capture.py --binary $<TARGET_FILE:PlanetSimulation>
+    --output-dir ${CMAKE_BINARY_DIR}/astronaut-captures)
+set_tests_properties(AstronautCaptureIntegration PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 180)
 add_executable(cpu_trace_tests diagnostics/tracing/test_cpu_trace.cpp)
 target_link_libraries(cpu_trace_tests PRIVATE planet_diagnostics GTest::gtest_main nlohmann_json::nlohmann_json)
 target_compile_definitions(cpu_trace_tests PRIVATE PLANET_CPU_TRACE_TEST="${CMAKE_BINARY_DIR}/cpu-trace-test.json")
@@ -227,6 +234,9 @@ find_program(XDOTOOL_EXECUTABLE xdotool)
 find_program(IMAGEMAGICK_IMPORT_EXECUTABLE import)
 find_program(IMAGEMAGICK_CONVERT_EXECUTABLE convert)
 if(UNIX AND XDOTOOL_EXECUTABLE AND IMAGEMAGICK_IMPORT_EXECUTABLE AND IMAGEMAGICK_CONVERT_EXECUTABLE)
+    add_test(NAME AstronautInputIntegration COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/character/test_astronaut_input.py --binary $<TARGET_FILE:PlanetSimulation>)
+    set_tests_properties(AstronautInputIntegration PROPERTIES TIMEOUT 60 RUN_SERIAL TRUE)
     add_test(NAME PerformanceOverlayInputIntegration COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_CURRENT_SOURCE_DIR}/diagnostics/test_overlay_input.py --binary $<TARGET_FILE:PlanetSimulation>)
     set_tests_properties(PerformanceOverlayInputIntegration PROPERTIES TIMEOUT 120)

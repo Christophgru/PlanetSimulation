@@ -10,6 +10,7 @@
 #include "rendering/diagnostics/FrameProfiler.h"
 
 namespace rendering {
+class AstronautRenderer;
 rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                  const std::vector<simulation::BodyState>& bodies,
                  const glm::mat4& view, float fov,
@@ -27,5 +28,6 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                  std::optional<std::size_t> meteredPlanet = std::nullopt,
                  bool recordObjects = false, rendering::FrameProfiler* profiler = nullptr,
                  bool forceHdr = false, GLuint outputFramebuffer = 0,
-                 rendering::GrassRenderer* grass = nullptr, double sceneTime = 0);
+                 rendering::GrassRenderer* grass = nullptr, double sceneTime = 0,
+                 AstronautRenderer* astronaut = nullptr);
 }

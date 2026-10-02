@@ -20,12 +20,12 @@ document the progress and add comments such that when interrupted you can contin
 |The Goal must be that we can cover the whole horizon with grass with reasonable fps. For that lets add grass foliage for high distance, reduce the placement accuracy, move the random placement from cpu to shader, and apply further techniques that seem suitable. |p| Superseded by user correction: remove the separate horizon layer and its controls. One procedural grass layer remains, with GPU placement/wind, quads and no grass sinking. Validation in progress; working scene settings preserved. |
 |Add the perlin noise parameter to the json config|p| JSON wind_noise rules and GPU-only random roots/Perlin evaluation implemented; validating the single layer and measuring actual transfer. |
 |If not already implemented add frustum culling (for the foliage I think it could be difficult for the light simulation, but you may reduce triangle quality in the non camera viewed parts.), compute shaders and gpu instancing to be able to viaualize more foliage and finer landscape. Benchmark and calculate what data is sent from cpu to gpu, then add a section in the journal that identifies techniques most promising to reduce the largest delays. |||
-|Lets add a third person camera "4" and a actor on the same position as cam 2 that follows a small astronaut that can walk around the planet. Create a 3d model of the astronaut or download some nice MIT licensed one online (comic style). Create Walking movement such that the feet stay on the ground and dont slide over it. Search if tere is a nice library for that movement. If not, approvximate the foor movement for now and we will coma back later to that.|||
+|Lets add a third person camera "4" and a actor on the same position as cam 2 that follows a small astronaut that can walk around the planet. Create a 3d model of the astronaut or download some nice MIT licensed one online (comic style). Create Walking movement such that the feet stay on the ground and dont slide over it. Search if tere is a nice library for that movement. If not, approvximate the foor movement for now and we will coma back later to that.|t| Procedural grey/blue astronaut with German arm patches, camera 4, locked planet-local contacts and MIT ozz-animation IK. Walk 6, Shift sprint 12 m/s; Space jump then jetpack boost/bubbles. All 49 entries validated via full run (48 passed) plus corrected input check (four consecutive passes); journal/PDF and 20 gallery images refreshed, inspected and hashes verified. Sketchfab shortlist recorded; an external model is not yet integrated. |
 |Make foliage movement independant of planetary movement, such that if pressed t only the planet movement stop, but local grass movement keeps going|||
 |The quick grass demo mentioned something like 6 poly grass if close and 1 pol grass if far away, is this already active? if not add it.|||
 |Lets add a render Mode, where rendering might take arbitrary long but foliage is generated for a radius up to 20x the normal distance, high poly is loaded for the moon and sun, and lens flaring is simulated. |||
 |Lets give the grass (ground, not foliage ) a more brown and grey tinted color, such that it looks more like the foliage.|||
-|Lets adjust the foliage wind noise such that the grass stays pressed down on the trail where the small astronaut walked along, add jumping motion, that lets the astronaut jump higher or lower depending on the planets gravity, based on mass and diameter of the planet minus its rotation velocity.|||
+|Lets adjust the foliage wind noise such that the grass stays pressed down on the trail where the small astronaut walked along, add jumping motion, that lets the astronaut jump higher or lower depending on the planets gravity, based on mass and diameter of the planet minus its rotation velocity.|p| Gravity-dependent jumping is implemented and tested with the astronaut feature, including the radial centrifugal term from configured spin. Grass trail deformation remains unstarted. |
 |Make the Sand more white and add some granularity to it (foliage or roughness/reflection map maybe in combination with tiny elevation noise that creates tiny dunes (only some cm high, as reference take image USER_IO/user_artifacts/image copy 2.png) that are often visible in sand in windy areas)|||
 |Prepare a short journal in typst on wether its feasable to port the current application to a web assembly application and evaluate the advantages and disadvantages in a short 2 page memo. Add some graphics on how the compilation process works, what runtime dependencies there are and where the main caviats might lie.|||
 
@@ -72,6 +72,44 @@ current terrain-validation container has these tools and registers all 45
 tests. The install command above restores them on hosts where they are absent;
 reconfigure afterwards. Valgrind is only needed to recollect the independent
 instruction profile.
+
+## Astronaut checkpoint — 2026-10-02
+
+- File and command access restored. Current authorized task is the astronaut
+  row. Preserve working scene settings and the existing single grass layer.
+- ozz-animation's MIT-licensed foot-IK sample provides two-bone and ankle IK;
+  stance locking and step selection still need application logic. Use a
+  procedural comic model and locked body-local foot contacts, following the
+  selected planet through translation, spin and pole traversal.
+- Fresh validation tree: `build-resume`, local GLM/JSON/GoogleTest sources,
+  GCC 13, RelWithDebInfo. ozz-animation 0.16.0 sources are at
+  `build-resume/ozz-src`; CMake now requires 3.24 for upstream compatibility.
+- Implemented camera 4, actual rendered-triangle foot contacts, stance locking,
+  two-bone IK and chase terrain clearance. Latest user speeds are 6 m/s walking
+  and 12 m/s with Shift. Space jumps; release/press while airborne arms the
+  jetpack, holding sustains thrust and blue bubbles below the backpack. Grey
+  and blue details and small black/red/gold upper-arm patches are visible.
+- Focused validation passed four CTest entries in 88.48 s, including 13 CPU
+  tests, real HDR/reflection captures, byte-identical gait/flight replay and
+  native GLFW input/reload. Logs are in
+  `build/resume-astronaut-*.log`, captures in `build-resume/astronaut-captures`.
+- Latest user request: Sketchfab search prioritizes animatable rigs with an
+  Ava Turing appearance. `docs/journal/character/sketchfab-models.md` records
+  the shortlist and public API verification. Ava is not downloadable. Muko_Art
+  is the recommended 11,718-triangle rigged candidate (one clip, CC BY 4.0).
+  Authenticated download is required; actual skeleton/weights remain unchecked.
+  No third-party model has been installed. Preserve the procedural fallback.
+- Full run: 48/49 passed in 366.51 s; the new native input screenshot assertion
+  failed. Replaced fixed screenshot delay with bounded input/frame observation;
+  it passed a targeted run and three consecutive repetitions. The application
+  binary stayed unchanged. Evidence/logs are in
+  `docs/journal/character/validation/`. This is full-run plus targeted recheck,
+  not a second clean full-suite run.
+- All 20 gallery images regenerated, visually inspected and matched their
+  SHA-256 manifest; renderer/test/script source fingerprint also verified.
+  Journal PDF compiled successfully. The procedural astronaut row is t.
+  External model replacement needs an authenticated asset download and actual
+  skeleton/weight inspection; the search itself is documented and complete.
 
 ## Current checkpoint — single procedural grass layer and matching ground color
 

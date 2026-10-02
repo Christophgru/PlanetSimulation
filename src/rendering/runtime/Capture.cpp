@@ -35,19 +35,28 @@ int Renderer::Impl::capture() {
                   scene.surfaceCamera->walk(1, 0, options.benchmarkWalkStep /
                       (scene.surfaceCamera->walkSpeed() * scene.scenario.metersPerWorldUnit()));
           } }
-        const glm::mat4 view = options.surfaceRenderMode ? scene.surfaceCamera->getViewMatrix() :
+        if (options.thirdPersonRenderMode) {
+            FrameProfiler::Scope scope(&profiler,FrameStage::Mesh,false);
+            preparePlanetMeshes(scene.surfaceCamera->position());
+            if (frame==options.benchmarkJumpFrame || frame==options.benchmarkBoostFrame) ++inputContext.spacePresses;
+            astronautBenchmarkBoost=options.benchmarkBoostFrame>=0 && frame>=options.benchmarkBoostFrame;
+            prepareAstronaut(frame>0 ? (options.benchmarkCharacterStep>0 ? options.benchmarkCharacterStep : options.benchmarkWalkStep/6.0) : 0);
+        }
+        const glm::mat4 view = options.thirdPersonRenderMode ? glm::mat4(glm::lookAt(astronautView.eye,astronautView.target,astronautView.up)) :
+                               options.surfaceRenderMode ? scene.surfaceCamera->getViewMatrix() :
                                options.planetRenderMode ? scene.planetOrbitCamera->getViewMatrix() :
                                                   scene.sunCamera.getViewMatrix();
         const float fov = options.surfaceRenderMode ? scene.surfaceCamera->fov() :
                           options.planetRenderMode ? scene.planetOrbitCamera->fov : scene.sunCamera.fov;
-        const glm::dvec3 eyeWorld = options.surfaceRenderMode ? scene.surfaceCamera->position() :
+        const glm::dvec3 eyeWorld = options.thirdPersonRenderMode ? astronautView.eye :
+                                     options.surfaceRenderMode ? scene.surfaceCamera->position() :
                                      options.planetRenderMode ? glm::dvec3(scene.planetOrbitCamera->position) :
                                                         glm::dvec3(scene.sunCamera.position);
         { rendering::FrameProfiler::Scope scope(&profiler, rendering::FrameStage::Mesh, false);
-          preparePlanetMeshes(eyeWorld); }
+          if (!options.thirdPersonRenderMode) preparePlanetMeshes(eyeWorld); }
         if (frame == 0) meshEnd = std::chrono::steady_clock::now();
         const auto revisions=geometryRevisions();
-        if (rendering::hasAtmosphere(scene.scenario) && frameReuse.matches(view,fov,width,height,simulationTime,revisions,options.benchmarkStep==0,false,eyeWorld,options.surfaceRenderMode ? 1 : options.planetRenderMode ? 2 : 0)) {
+        if (rendering::hasAtmosphere(scene.scenario) && frameReuse.matches(view,fov,width,height,simulationTime,revisions,options.benchmarkStep==0,options.thirdPersonRenderMode,eyeWorld,options.surfaceRenderMode ? 1 : options.planetRenderMode ? 2 : 0)) {
             rendering::FrameProfiler::Scope scope(&profiler,rendering::FrameStage::CachedPresentation);
             atmosphere.presentCached(atmosphereShader); profiler.sceneReuse();
         } else {
@@ -58,7 +67,8 @@ int Renderer::Impl::capture() {
                         options.surfaceRenderMode ? surfaceClip :
                         options.planetRenderMode ? planetOrbitClip(eyeWorld) :
                                            rendering::ClipPlanes{},
-                        (options.surfaceRenderMode || options.planetRenderMode) ? std::optional<std::size_t>(scene.orbitPlanetIndex) : std::nullopt, true, &profiler, false, 0, &grass, simulationTime);
+                        (options.surfaceRenderMode || options.planetRenderMode) ? std::optional<std::size_t>(scene.orbitPlanetIndex) : std::nullopt,
+                        true, &profiler, false, 0, &grass, simulationTime,options.thirdPersonRenderMode ? &astronaut : nullptr);
             frameReuse.remember(view,fov,width,height,simulationTime,revisions,eyeWorld,options.surfaceRenderMode ? 1 : options.planetRenderMode ? 2 : 0);
         }
         { rendering::FrameProfiler::Scope scope(&profiler, rendering::FrameStage::Overlay);
@@ -110,9 +120,9 @@ int Renderer::Impl::capture() {
               << std::chrono::duration<double, std::milli>(renderEnd - meshEnd).count()
               << " ms\n";
 
-    const glm::dvec3 eyeWorld = options.surfaceRenderMode ? scene.surfaceCamera->position() :
+    const glm::dvec3 eyeWorld = options.thirdPersonRenderMode ? astronautView.eye : options.surfaceRenderMode ? scene.surfaceCamera->position() :
         options.planetRenderMode ? glm::dvec3(scene.planetOrbitCamera->position) : glm::dvec3(scene.sunCamera.position);
-    const glm::mat4 view = options.surfaceRenderMode ? scene.surfaceCamera->getViewMatrix() :
+    const glm::mat4 view = options.thirdPersonRenderMode ? glm::mat4(glm::lookAt(astronautView.eye,astronautView.target,astronautView.up)) : options.surfaceRenderMode ? scene.surfaceCamera->getViewMatrix() :
         options.planetRenderMode ? scene.planetOrbitCamera->getViewMatrix() : scene.sunCamera.getViewMatrix();
     const float fov = options.surfaceRenderMode ? scene.surfaceCamera->fov() :
         options.planetRenderMode ? scene.planetOrbitCamera->fov : scene.sunCamera.fov;
@@ -234,7 +244,7 @@ int Renderer::Impl::capture() {
             scene.scenario.planets[scene.orbitPlanetIndex].radius * scene.scenario.metersPerWorldUnit(),
             simulation::referenceAir(atmosphereConfig));
         const auto drawnGrass=grass.procedural.computedCounts(scene.orbitPlanetIndex);
-        const nlohmann::json metadata{
+        nlohmann::json metadata{
             {"schema_version", 1}, {"application_version", PLANET_VERSION}, {"scenario", source.document},
             {"surface_camera", snapshot.startConfig},
             {"render", {{"width", width}, {"height", height}, {"samples", frameExposure.hdrOutput ? 0 : samples},
@@ -272,6 +282,14 @@ int Renderer::Impl::capture() {
                 {"sky_interior_mean_display_luminance", metrics.skyInteriorMeanLuminance},
                 {"non_background_pixels", analysis.drawn.count}}}
         };
+        if (options.thirdPersonRenderMode) {
+            const auto visible=std::count(flippedObjects.begin(),flippedObjects.end(),4);
+            metadata["render"]["camera_mode"]="third_person";
+            metadata["render"]["astronaut_pixels"]=visible;
+            metadata["astronaut_pose"]=astronautState();
+            std::cout << "Astronaut pixels: " << visible << '\n';
+            if (!visible) throw std::runtime_error("Astronaut capture has no visible astronaut");
+        }
         std::ofstream sidecar(options.outputImagePath + ".json");
         sidecar << metadata.dump(2) << '\n';
         if (!sidecar) throw std::runtime_error("Failed to write capture metadata");

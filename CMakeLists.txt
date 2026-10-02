@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.24)
 project(PlanetSimulation VERSION 0.0.1 LANGUAGES CXX)
 
 # Interactive terrain/foliage preparation needs an optimized default build.
@@ -31,6 +31,19 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(glm)
 
+# Only the MIT-licensed animation runtime is needed for astronaut leg IK.
+# Pin the release commit; do not build asset importers, samples or library tests.
+set(ozz_build_tools OFF CACHE BOOL "" FORCE)
+set(ozz_build_samples OFF CACHE BOOL "" FORCE)
+set(ozz_build_howtos OFF CACHE BOOL "" FORCE)
+set(ozz_build_tests OFF CACHE BOOL "" FORCE)
+FetchContent_Declare(ozz_animation
+    GIT_REPOSITORY https://github.com/guillaumeblanc/ozz-animation.git
+    GIT_TAG ca6328f51d857fa516edf915f3cde92eb6c90ad2)
+FetchContent_MakeAvailable(ozz_animation)
+# Upstream also defines offline libraries. Build only targets pulled in by IK.
+set_property(DIRECTORY "${ozz_animation_SOURCE_DIR}" PROPERTY EXCLUDE_FROM_ALL TRUE)
+
 # Find GLFW and GLEW
 find_package(glfw3 REQUIRED)
 find_package(GLEW REQUIRED)
@@ -60,13 +73,20 @@ add_library(planet_geometry STATIC
 target_sources(planet_geometry PRIVATE src/rendering/foliage/procedural/GrassPlan.cpp)
 target_link_libraries(planet_geometry PUBLIC planet_config planet_diagnostics glm::glm)
 
+add_library(planet_character STATIC
+    src/rendering/character/AstronautMotion.cpp
+    src/rendering/character/SurfaceContact.cpp)
+target_include_directories(planet_character PUBLIC ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(planet_character PUBLIC glm::glm PRIVATE ozz_animation)
+
 add_library(planet_rendering STATIC
     src/rendering/Shader.cpp
     src/rendering/geometry/Mesh.cpp
     src/rendering/foliage/GrassRenderer.cpp)
 target_sources(planet_rendering PRIVATE src/rendering/foliage/procedural/ProceduralGrass.cpp)
 target_sources(planet_rendering PRIVATE src/rendering/foliage/procedural/GrassCompute.cpp)
-target_link_libraries(planet_rendering PUBLIC planet_geometry OpenGL::GL GLEW::GLEW)
+target_sources(planet_rendering PRIVATE src/rendering/character/AstronautRenderer.cpp)
+target_link_libraries(planet_rendering PUBLIC planet_geometry planet_character OpenGL::GL GLEW::GLEW)
 
 add_library(planet_app STATIC
     src/app/CommandLineOptions.cpp
@@ -78,6 +98,7 @@ add_library(planet_app STATIC
     src/rendering/runtime/TerrainMeshes.cpp
     src/rendering/runtime/ScenePass.cpp
     src/rendering/runtime/Capture.cpp
+    src/rendering/runtime/Character.cpp
     src/rendering/runtime/Interactive.cpp)
 target_compile_definitions(planet_app PRIVATE PLANET_VERSION="${PROJECT_VERSION}")
 

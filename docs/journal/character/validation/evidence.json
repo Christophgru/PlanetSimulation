@@ -1,0 +1,34 @@
+{
+  "environment": {
+    "compiler": "GCC 13",
+    "build_type": "RelWithDebInfo",
+    "display": "Xvfb",
+    "renderer": "Mesa llvmpipe",
+    "LP_NUM_THREADS": 2
+  },
+  "focused": {
+    "passed": 4,
+    "total": 4,
+    "seconds": 88.48
+  },
+  "initial_full_run": {
+    "passed": 48,
+    "total": 49,
+    "seconds": 366.51,
+    "failed": "AstronautInputIntegration screenshot observation"
+  },
+  "after_test_fix": {
+    "native_input_passes": 4,
+    "separate_run_seconds": 7.52,
+    "three_repeat_seconds": 23.21
+  },
+  "executable_sha256": "c55cb99024accc8dac01f7582e8e31d60e99b73b8bc7a2ee58418d8ce216a3e8",
+  "scope": "Full run and focused checks cover the same application binary. Only native input test synchronization changed after the full run; source controls did not change.",
+  "artifacts": {
+    "gallery_images": 20,
+    "sha256_verified": true,
+    "source_fingerprint_verified": true,
+    "visually_inspected": true,
+    "journal_pdf_compiled": true
+  }
+}

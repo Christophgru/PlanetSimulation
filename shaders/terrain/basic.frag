@@ -22,6 +22,10 @@ uniform mat4 model;
 uniform bool uLandscapeEnabled;
 uniform vec3 uLandscapeLevels; // sea level, beach width, maximum relief (metres)
 uniform vec3 uColor;
+uniform bool uCharacterContacts;
+uniform vec3 uContactFeet[2];
+uniform vec2 uContactWeights;
+uniform float uContactRadius;
 
 out vec4 fColor;
 
@@ -126,6 +130,18 @@ void main() {
         indirect *= atmosphereLightTransmittance(vBodyPosition, normalize(vBodyPosition));
 #endif
         radiance = albedo * (indirect + sunlight * diffuse * visibility);
+        if (uCharacterContacts) {
+            // Local contact occlusion grounds the boots even when a whole-
+            // planet shadow texel is wider than the character. Raised feet
+            // fade their contact patch; this is not a full character shadow.
+            float occlusion=0;
+            for (int foot=0;foot<2;++foot) {
+                float radius=max(uContactRadius,1e-8);
+                float d=distance(vBodyPosition,uContactFeet[foot])/radius;
+                occlusion=max(occlusion,exp(-d*d*3.0)*uContactWeights[foot]);
+            }
+            radiance*=1.0-.5*occlusion;
+        }
     }
     fColor = vec4(uLinearOutput ? radiance : displayColor(radiance), 1.0);
 }

@@ -312,11 +312,30 @@ Orbit-to-surface entry is a one-second wall-clock transition. The starting pose 
 
 #figure(image("figures/interaction/transition.svg", width: 100%), caption: [Orbit-to-surface descent. The curve shows the implemented smoothstep parameter; the spatial path is schematic because the actual start, target, and terrain vary by scene.]) <fig:transition>
 
+= Planet-local astronaut locomotion
+
+Camera 4 follows an original procedural astronaut at the same surface location as camera 2. Normal movement is 6 m/s; either Shift key raises it to 12 m/s. The grey and blue suit carries small German upper-arm patches. Body-local contacts follow planet translation and spin, while the chase camera clears the ground and shortens its arm at intervening terrain.
+
+An alternating gait preserves the stance foot and moves only the swinging foot, using a smooth ground-projected trajectory with 15 cm lift. Contacts intersect the installed terrain triangles, including LOD sinking, and resample height after mesh replacement without changing radial location. The MIT-licensed ozz-animation 0.16.0 runtime supplies two-bone leg IK near the actor origin. This combines procedural step selection with a tested joint solver; it is an initial locomotion approximation rather than a motion-captured running cycle.
+
+Space launches at 10 m/s. Radial gravity uses $g = max(0.25, G m / r^2 - omega^2 r cos^2(phi))$, where $r$ is reference radius, $phi$ is latitude and $omega$ is configured spin rate. The floor is a playability choice; altitude-dependent gravity, Coriolis acceleration and drag are omitted. Pressing Space again in flight enables a jetpack: an 8 m/s impulse and a short pulse, or a sustained net upward acceleration of 20 m/s² while held. Vertical velocity is capped between −50 and 35 m/s. These are arcade flight controls, not a rocket model. Blue bubbles emerge below the backpack during thrust; landing resets the boost state.
+
+#figure(
+  grid(columns: (1fr, 1fr, 1fr), gutter: 5pt,
+    image("../screenshots/astronaut.png", width: 100%),
+    image("../screenshots/astronaut-front.png", width: 100%),
+    image("../screenshots/astronaut-jetpack.png", width: 100%)),
+  caption: [Actual renderer captures: planted feet and chase view, suit details and arm patch, airborne jetpack bubbles. Full pose and local effect phase are preserved in the replay sidecars.])
+
+The actor receives terrain shadows and participates in HDR, atmosphere and water reflections. Local contact darkening helps anchor the feet; a full dynamic body shadow remains future work. CPU checks cover fixed stance contacts, joint reach, poles, mesh revision, chase clearance, 6/12 m/s movement, gravity and landing. GL captures check visible actor pixels and byte-identical gait and airborne replays; native input exercises camera switching, walking, jumping, boost and reload. These checks establish reproducibility and specific movement invariants on the tested renderer, not the naturalness of a sprint animation.
+
+The requested Ava Turing model is not downloadable on Sketchfab. The catalog search favors Muko_Art's rigged stylized astronaut (11,718 triangles, one uploaded clip, CC BY 4.0). A logged-in download and inspection of skeleton, skin weights and retargeting remain necessary before replacing the procedural model. The shortlist and provenance are recorded in `character/sketchfab-models.md`; no external model is currently redistributed. Grass trail deformation remains a separate unfinished task.
+
 = Evaluation and model boundaries
 
 == What the evidence establishes
 
-The repository contains 43 CTest entries covering configuration and orbital invariants; terrain and camera behavior; lighting, shadows, atmosphere and refraction on OpenGL; renderer captures; adaptive quality; and real GLFW input under Xvfb. The 17 README images are checked against their SHA-256 manifest. These checks establish specific numerical and rendered behaviors on the tested software renderer. They do not establish physical fidelity, portability to every GPU driver, or a guaranteed 20 FPS for arbitrary scenes.
+The repository contains 49 CTest entries covering configuration and orbital invariants; terrain, camera and astronaut behavior; lighting, shadows, atmosphere and refraction on OpenGL; renderer captures; adaptive quality; and real GLFW input under Xvfb. The 20 README images are checked against their SHA-256 manifest. These checks establish specific numerical and rendered behaviors on the tested software renderer. They do not establish physical fidelity, portability to every GPU driver, or a guaranteed 20 FPS for arbitrary scenes.
 
 The model boundaries are deliberate. Orbits are prescribed two-body ellipses with hierarchical recoil. Terrain is a deterministic synthetic height field with bounded tessellation. Atmospheric scale heights are chosen relative to shell size; the model does not solve hydrostatic temperature profiles, cloud dynamics, weather, or multiple scattering. Refraction bends view rays and reprojects available distant imagery but keeps near opaque geometry and direct shadow rays straight. Atmospheric temperature is read from JSON rather than evolved from sunlight and orbit. These limits define what a visual comparison can support.
 
@@ -362,4 +381,5 @@ R6. NASA Glenn Research Center, #link("https://www.grc.nasa.gov/www/k-12/Numbers
   [Temperature-controlled bend], [`src/simulation/Atmosphere.h`], [`AtmosphereTests`, GPU render test],
   [Adaptive scene scale], [`src/rendering/diagnostics/AdaptiveQuality.h`], [`AdaptiveQualityTests`, live render],
   [One-second descent], [`src/rendering/camera/CameraTransition.h`], [`CameraTransitionTests`, X11 input],
+  [Planted feet and local flight], [`src/rendering/character/`], [`AstronautMotionTests`, capture and X11 input],
 )

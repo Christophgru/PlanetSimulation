@@ -1,0 +1,113 @@
+{
+  "checked_utc": "2026-10-02T09:35:42+00:00",
+  "source": "Sketchfab official public model data API; counts and download/license declarations, no downloaded geometry",
+  "models": [
+    {
+      "uid": "3dea4809201645a69e97214c048bd856",
+      "name": "Ava Turing - The Turing Test",
+      "viewerUrl": "https://sketchfab.com/3d-models/ava-turing-the-turing-test-3dea4809201645a69e97214c048bd856",
+      "isDownloadable": false,
+      "animationCount": 0,
+      "vertexCount": 12781,
+      "faceCount": 13548,
+      "license": {},
+      "api_url": "https://api.sketchfab.com/v3/models/3dea4809201645a69e97214c048bd856",
+      "creator": "tbelgrave"
+    },
+    {
+      "uid": "c8daa753952e454eb3c6195446751e88",
+      "name": "Astronaut character stylized rigged free model",
+      "viewerUrl": "https://sketchfab.com/3d-models/astronaut-character-stylized-rigged-free-model-c8daa753952e454eb3c6195446751e88",
+      "isDownloadable": true,
+      "animationCount": 1,
+      "vertexCount": 6062,
+      "faceCount": 11718,
+      "license": {
+        "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+        "label": "CC Attribution",
+        "fullName": "Creative Commons Attribution",
+        "requirements": "Author must be credited. Commercial use is allowed.",
+        "url": "http://creativecommons.org/licenses/by/4.0/",
+        "slug": "by"
+      },
+      "api_url": "https://api.sketchfab.com/v3/models/c8daa753952e454eb3c6195446751e88",
+      "creator": "Muko_Art"
+    },
+    {
+      "uid": "df27a4d72cc74c5080bb95289f5778ca",
+      "name": "Low-poly Falling Astronaut - 3December",
+      "viewerUrl": "https://sketchfab.com/3d-models/low-poly-falling-astronaut-3december-df27a4d72cc74c5080bb95289f5778ca",
+      "isDownloadable": true,
+      "animationCount": 1,
+      "vertexCount": 5045,
+      "faceCount": 9030,
+      "license": {
+        "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+        "label": "CC Attribution",
+        "fullName": "Creative Commons Attribution",
+        "requirements": "Author must be credited. Commercial use is allowed.",
+        "url": "http://creativecommons.org/licenses/by/4.0/",
+        "slug": "by"
+      },
+      "api_url": "https://api.sketchfab.com/v3/models/df27a4d72cc74c5080bb95289f5778ca",
+      "creator": "Šimon Ustal"
+    },
+    {
+      "uid": "f45039084a674080b42f5e171fd4f04c",
+      "name": "Astronaut rigged and animated",
+      "viewerUrl": "https://sketchfab.com/3d-models/astronaut-rigged-and-animated-f45039084a674080b42f5e171fd4f04c",
+      "isDownloadable": true,
+      "animationCount": 1,
+      "vertexCount": 6779,
+      "faceCount": 12656,
+      "license": {
+        "uri": "https://api.sketchfab.com/v3/licenses/72eb2b1960364637901eacce19283624",
+        "label": "Free Standard",
+        "fullName": "Free Standard",
+        "requirements": "Under basic restrictions, use worldwide, on all types of media, commercially or not, and in all types of derivative works",
+        "url": "https://sketchfab.com/licenses",
+        "slug": "free-st"
+      },
+      "api_url": "https://api.sketchfab.com/v3/models/f45039084a674080b42f5e171fd4f04c",
+      "creator": "assetfactory"
+    },
+    {
+      "uid": "9c55bc97e009454cb768e3c9c84dbac4",
+      "name": "💫To the Stars💫 || Astronaut",
+      "viewerUrl": "https://sketchfab.com/3d-models/to-the-stars-astronaut-9c55bc97e009454cb768e3c9c84dbac4",
+      "isDownloadable": true,
+      "animationCount": 0,
+      "vertexCount": 68629,
+      "faceCount": 124946,
+      "license": {
+        "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+        "label": "CC Attribution",
+        "fullName": "Creative Commons Attribution",
+        "requirements": "Author must be credited. Commercial use is allowed.",
+        "url": "http://creativecommons.org/licenses/by/4.0/",
+        "slug": "by"
+      },
+      "api_url": "https://api.sketchfab.com/v3/models/9c55bc97e009454cb768e3c9c84dbac4",
+      "creator": "dark_igorek"
+    },
+    {
+      "uid": "482bf87662fd4b378bcb3a2931d59ca3",
+      "name": "astronaut",
+      "viewerUrl": "https://sketchfab.com/3d-models/astronaut-482bf87662fd4b378bcb3a2931d59ca3",
+      "isDownloadable": true,
+      "animationCount": 5,
+      "vertexCount": 9864,
+      "faceCount": 19584,
+      "license": {
+        "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+        "label": "CC Attribution",
+        "fullName": "Creative Commons Attribution",
+        "requirements": "Author must be credited. Commercial use is allowed.",
+        "url": "http://creativecommons.org/licenses/by/4.0/",
+        "slug": "by"
+      },
+      "api_url": "https://api.sketchfab.com/v3/models/482bf87662fd4b378bcb3a2931d59ca3",
+      "creator": "Antropik"
+    }
+  ]
+}

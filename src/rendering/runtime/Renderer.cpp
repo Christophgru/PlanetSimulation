@@ -37,7 +37,9 @@ Renderer::Impl::Impl(app::CommandLineOptions arguments)
       gpuUtilization(reinterpret_cast<const char*>(glGetString(GL_VENDOR)),
                      reinterpret_cast<const char*>(glGetString(GL_RENDERER))) {
     scene.updateSimulation(simulationTime);
+    cameraInput.setThirdPersonWalkSpeed(6.0/scene.scenario.metersPerWorldUnit());
     if (!options.replayPath.empty() && scene.surfaceCamera) cameraInput.selectSurface();
+    if (options.thirdPersonRenderMode && scene.surfaceCamera) cameraInput.selectThirdPerson();
     if (options.surfaceRenderMode && !scene.surfaceCamera) {
         throw std::runtime_error("Surface render test requires surface_camera config");
     }
@@ -45,7 +47,7 @@ Renderer::Impl::Impl(app::CommandLineOptions arguments)
         throw std::runtime_error("Planet orbit render test requires a configured planet");
     if (scene.surfaceCamera) {
         surfaceClip = rendering::surfaceClipPlanes(
-            scene.surfaceCamera->configuredClearance(),
+            options.thirdPersonRenderMode ? .2/scene.scenario.metersPerWorldUnit() : scene.surfaceCamera->configuredClearance(),
             glm::length(scene.surfaceCamera->position() - scene.sunPosition),
             scene.scenario.sun.radius);
     }
@@ -87,10 +89,11 @@ Renderer::Impl::Impl(app::CommandLineOptions arguments)
                       << scene.scenario.surface_camera.walk_speed_mps << " m/s)";
         }
         if (scene.planetOrbitCamera) std::cout << ", 3 for planet orbit";
+        if (scene.surfaceCamera) std::cout << ", 4 to follow the astronaut (WASD at 6 m/s; Space to jump, then boost the jetpack)";
         std::cout << ". Press T to pause/resume orbits and spin. "
                   << "Press O for ten past orbit paths and body labels. "
                   << "Press Y to halve or U to double simulation speed. "
-                  << "Press Esc to release the surface cursor and 2 to capture it again. " << source.watchedScenePath
+                  << "Press Esc to release the walking cursor and 2 or 4 to capture it again. " << source.watchedScenePath
                   << " reloads on save; press R to reload manually."
                   << " Close the window to exit.\n";
     }

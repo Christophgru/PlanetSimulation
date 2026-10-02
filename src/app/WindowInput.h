@@ -10,6 +10,7 @@ struct InputContext {
     bool reloadRequested = false;
     bool statsVisible = false;
     bool orbitsVisible = false;
+    unsigned spacePresses = 0;
 };
 
 void bindWindowInput(GLFWwindow* window, InputContext& input);

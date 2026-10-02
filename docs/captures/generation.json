@@ -1,129 +1,150 @@
 {
-  "source_sha256": "45bbb3da4f0e00d4be75952434d04b8621ce7a7bb888b67cfcad5bc51f26adee",
+  "source_sha256": "997f5133fc3c23fa5d46d7dab6bb2472f2ae9d2ec37f00d85f33cf273b1686b2",
   "version": "0.0.1",
-  "base_revision": "fdcfbbea42b61d4407c940deb570f8ac6283d789",
+  "base_revision": "940c6982027fb2c92359f096827fbd58502978b9",
   "source_state": "working tree at capture time; see source_sha256",
-  "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
-  "display": "Mesa EGL pbuffer harness",
+  "renderer": "name of display: :99\ndisplay: :99  screen: 0\ndirect rendering: Yes\nExtended renderer info (GLX_MESA_query_renderer):\n    Vendor: Mesa/X.org (0xffffffff)\n    Device: llvmpipe (LLVM 15.0.6, 256 bits) (0xffffffff)\n    Version: 22.3.6\n    Accelerated: no\n    Video memory: 39925MB\n    Unified memory: yes\n    Preferred profile: core (0x1)\n    Max core profile version: 4.5\n    Max compat profile version: 4.5\n    Max GLES1 profile version: 1.1\n    Max GLES[23] profile version: 3.2\nOpenGL vendor string: Mesa/X.org\nOpenGL renderer string: llvmpipe (LLVM 15.0.6, 256 bits)\nOpenGL core profile version string: 4.5 (Core Profile) Mesa 22.3.6\nOpenGL core profile shading language version string: 4.50\nOpenGL core profile context flags: (none)\nOpenGL core profile profile mask: core profile\n\nOpenGL version string: 4.5 (Compatibility Profile) Mesa 22.3.6\nOpenGL shading language version string: 4.50\nOpenGL context flags: (none)\nOpenGL profile mask: compatibility profile\n\nOpenGL ES profile version string: OpenGL ES 3.2 Mesa 22.3.6\nOpenGL ES profile shading language version string: OpenGL ES GLSL ES 3.20\n\n",
+  "display": "GL window/Xvfb",
   "images": [
     {
       "image": "solar-view.png",
       "version": "0.0.1",
-      "generated_utc": "2026-10-01T21:54:23+00:00",
-      "sha256": "a6ab708bebed3943bfc171565f982a5bb24accd43739c4f04e14604dd9e336d3",
-      "command": "/d/Programmieren/Projects/PlanetSimulation/build-grass/PlanetSimulation --config tests/fixtures/development/configs/scenarios/solar_system.json --render-test /d/Programmieren/Projects/PlanetSimulation/build-grass/readme-captures/solar-view.png"
+      "generated_utc": "2026-10-02T09:35:02+00:00",
+      "sha256": "44ed6f62579f1eb768cd922d061db0bdf029cfc05d8b207080cc59964c7ef214",
+      "command": "/workspace/build-resume/PlanetSimulation --config tests/fixtures/development/configs/scenarios/solar_system.json --render-test /workspace/build-resume/readme-captures/solar-view.png"
     },
     {
       "image": "surface-view.png",
       "version": "0.0.1",
-      "generated_utc": "2026-10-01T21:54:33+00:00",
-      "sha256": "cc06af1c2e4d6d967148f57c7669b014cc7889dc078c4f91e3c2ad695a34caad",
-      "command": "/d/Programmieren/Projects/PlanetSimulation/build-grass/PlanetSimulation --config configs/scenarios/solar_system.json --simulation-time 20 --surface-capture /d/Programmieren/Projects/PlanetSimulation/build-grass/readme-captures/surface-view.png"
+      "generated_utc": "2026-10-02T09:35:16+00:00",
+      "sha256": "c54f34f8e5c4bd89ec4dc7c94b4579b803df8ceaff07bfda137f7cda4ebdca86",
+      "command": "/workspace/build-resume/PlanetSimulation --config configs/scenarios/solar_system.json --simulation-time 20 --surface-capture /workspace/build-resume/readme-captures/surface-view.png"
     },
     {
       "image": "planet-orbit.png",
       "version": "0.0.1",
-      "generated_utc": "2026-10-01T21:54:37+00:00",
-      "sha256": "7bd6d64a0ef83b2be671a1a2b04fdae76cc80e732c3472da985d66182ddf2642",
-      "command": "/d/Programmieren/Projects/PlanetSimulation/build-grass/PlanetSimulation --config configs/scenarios/solar_system.json --simulation-time 3000 --planet-render-test /d/Programmieren/Projects/PlanetSimulation/build-grass/readme-captures/planet-orbit.png"
+      "generated_utc": "2026-10-02T09:35:20+00:00",
+      "sha256": "5c8701c18e1e7ea66352d4311d6d729fcb9b0b9d9624a3f657e0ba9604157e7a",
+      "command": "/workspace/build-resume/PlanetSimulation --config configs/scenarios/solar_system.json --simulation-time 3000 --planet-render-test /workspace/build-resume/readme-captures/planet-orbit.png"
     },
     {
       "image": "moonlit-night.png",
       "version": "0.0.1",
-      "generated_utc": "2026-10-01T21:54:41+00:00",
-      "sha256": "df30753415e8b3a49eedb53f27a5ac11bae51e1eae5f262f4c879f6fbbcf13a0",
-      "command": "/d/Programmieren/Projects/PlanetSimulation/build-grass/PlanetSimulation --replay /d/Programmieren/Projects/PlanetSimulation/docs/captures/replay/moonlit-night.png.json --surface-capture /d/Programmieren/Projects/PlanetSimulation/build-grass/readme-captures/moonlit-night.png"
+      "generated_utc": "2026-10-02T09:35:25+00:00",
+      "sha256": "e2bb6a1d1629428c3249d2d4dbc83dbdaca02cd1778f3df6ac9c3530ffd33500",
+      "command": "/workspace/build-resume/PlanetSimulation --replay /workspace/docs/captures/replay/moonlit-night.png.json --surface-capture /workspace/build-resume/readme-captures/moonlit-night.png"
     },
     {
       "image": "moonless-night.png",
       "version": "0.0.1",
-      "generated_utc": "2026-10-01T21:54:45+00:00",
-      "sha256": "a3b44705fcf9753c48b20e45e4a382d86a6c55c309db6e8127e923d6b58da16a",
-      "command": "/d/Programmieren/Projects/PlanetSimulation/build-grass/PlanetSimulation --replay /d/Programmieren/Projects/PlanetSimulation/docs/captures/replay/moonless-night.png.json --surface-capture /d/Programmieren/Projects/PlanetSimulation/build-grass/readme-captures/moonless-night.png"
+      "generated_utc": "2026-10-02T09:35:30+00:00",
+      "sha256": "7e8ab3ca49dbd25388299538f606e23774248d186fa7a705af3b95310642347f",
+      "command": "/workspace/build-resume/PlanetSimulation --replay /workspace/docs/captures/replay/moonless-night.png.json --surface-capture /workspace/build-resume/readme-captures/moonless-night.png"
     },
     {
       "image": "refraction-extreme-on.png",
       "version": "0.0.1",
-      "generated_utc": "2026-10-01T21:55:10+00:00",
-      "sha256": "b584883ab84011876ea5ab7fe2e7a1211a0b1ee073f98724dda30a2f9b1072b1",
-      "command": "/d/Programmieren/Projects/PlanetSimulation/build-grass/PlanetSimulation --replay /d/Programmieren/Projects/PlanetSimulation/docs/captures/replay/refraction/refraction-extreme-on.png.json --surface-capture /d/Programmieren/Projects/PlanetSimulation/build-grass/readme-captures/refraction-extreme-on.png"
+      "generated_utc": "2026-10-02T09:36:00+00:00",
+      "sha256": "f97da809e5fc6a322bcc9992962e600618ceaf675abb9c910bbe64a489d81597",
+      "command": "/workspace/build-resume/PlanetSimulation --replay /workspace/docs/captures/replay/refraction/refraction-extreme-on.png.json --surface-capture /workspace/build-resume/readme-captures/refraction-extreme-on.png"
     },
     {
       "image": "refraction-extreme-off.png",
       "version": "0.0.1",
-      "generated_utc": "2026-10-01T21:55:25+00:00",
-      "sha256": "f99095dd22634ff99f10619b5481a350e7461834433bfb8d4fbc15a2f904d115",
-      "command": "/d/Programmieren/Projects/PlanetSimulation/build-grass/PlanetSimulation --replay /d/Programmieren/Projects/PlanetSimulation/docs/captures/replay/refraction/refraction-extreme-off.png.json --surface-capture /d/Programmieren/Projects/PlanetSimulation/build-grass/readme-captures/refraction-extreme-off.png"
+      "generated_utc": "2026-10-02T09:36:18+00:00",
+      "sha256": "2b1d66cc65e7d249eacd5d68ec67ae583ad38b9050aae7bec8d0099e64f3711e",
+      "command": "/workspace/build-resume/PlanetSimulation --replay /workspace/docs/captures/replay/refraction/refraction-extreme-off.png.json --surface-capture /workspace/build-resume/readme-captures/refraction-extreme-off.png"
     },
     {
       "image": "terrain-detail.png",
       "version": "0.0.1",
-      "generated_utc": "2026-10-01T21:55:42+00:00",
-      "sha256": "b9523d2610726e2c2f4f50f9259da644b24c3b07438d7ddb6ee283616e0384cc",
-      "command": "/d/Programmieren/Projects/PlanetSimulation/build-grass/PlanetSimulation --replay /d/Programmieren/Projects/PlanetSimulation/docs/captures/replay/terrain/terrain-detail.png.json --surface-capture /d/Programmieren/Projects/PlanetSimulation/build-grass/readme-captures/terrain-detail.png"
+      "generated_utc": "2026-10-02T09:36:35+00:00",
+      "sha256": "cd25a1826d53a3dd5be71d90abe178bb0c4372c613617eb22f7b1a493ba13c10",
+      "command": "/workspace/build-resume/PlanetSimulation --replay /workspace/docs/captures/replay/terrain/terrain-detail.png.json --surface-capture /workspace/build-resume/readme-captures/terrain-detail.png"
     },
     {
       "image": "shoreline-detail.png",
       "version": "0.0.1",
-      "generated_utc": "2026-10-01T21:55:49+00:00",
-      "sha256": "21dff2037b4a3b55360dae180aace4b5bd425f8d3d0c2ad7d8f911b8346108d5",
-      "command": "/d/Programmieren/Projects/PlanetSimulation/build-grass/PlanetSimulation --replay /d/Programmieren/Projects/PlanetSimulation/docs/captures/replay/terrain/shoreline-detail.png.json --surface-capture /d/Programmieren/Projects/PlanetSimulation/build-grass/readme-captures/shoreline-detail.png"
+      "generated_utc": "2026-10-02T09:36:44+00:00",
+      "sha256": "a872941634f60a1de2dfdf4d85bb1c08fcc8a8c0ba27108cd9106c26d0fcc352",
+      "command": "/workspace/build-resume/PlanetSimulation --replay /workspace/docs/captures/replay/terrain/shoreline-detail.png.json --surface-capture /workspace/build-resume/readme-captures/shoreline-detail.png"
     },
     {
       "image": "grass-detail.png",
       "version": "0.0.1",
-      "generated_utc": "2026-10-01T21:56:04+00:00",
-      "sha256": "80c65054baac8f508c5d3ad4dd905a9401ec64f68672f659ea00d440e7ad73c7",
-      "command": "/d/Programmieren/Projects/PlanetSimulation/build-grass/PlanetSimulation --replay /d/Programmieren/Projects/PlanetSimulation/docs/captures/replay/foliage/grass-detail.png.json --surface-capture /d/Programmieren/Projects/PlanetSimulation/build-grass/readme-captures/grass-detail.png"
+      "generated_utc": "2026-10-02T09:37:00+00:00",
+      "sha256": "72a878cfd6ec23faf3a36e7a86203a88e5ead9525ddbf9cfc521c9a0a7cbf60a",
+      "command": "/workspace/build-resume/PlanetSimulation --replay /workspace/docs/captures/replay/foliage/grass-detail.png.json --surface-capture /workspace/build-resume/readme-captures/grass-detail.png"
+    },
+    {
+      "image": "astronaut.png",
+      "version": "0.0.1",
+      "generated_utc": "2026-10-02T09:37:06+00:00",
+      "sha256": "f80227057d5c5a89332d7a23ad66023293627ef2ceae18fc0c65333283837ce8",
+      "command": "/workspace/build-resume/PlanetSimulation --replay /workspace/docs/captures/replay/character/astronaut.png.json --surface-capture /workspace/build-resume/readme-captures/astronaut.png"
+    },
+    {
+      "image": "astronaut-front.png",
+      "version": "0.0.1",
+      "generated_utc": "2026-10-02T09:37:11+00:00",
+      "sha256": "354d700837040d301ee12d5e6672ca792eb46540855f6d009418f01fcdd36586",
+      "command": "/workspace/build-resume/PlanetSimulation --replay /workspace/docs/captures/replay/character/astronaut-front.png.json --surface-capture /workspace/build-resume/readme-captures/astronaut-front.png"
+    },
+    {
+      "image": "astronaut-jetpack.png",
+      "version": "0.0.1",
+      "generated_utc": "2026-10-02T09:37:17+00:00",
+      "sha256": "9f1a4dfe63f75e4ca8f0aa87de81cf7f7fdf7450dc106a9eff2d9cee8cddd8c2",
+      "command": "/workspace/build-resume/PlanetSimulation --replay /workspace/docs/captures/replay/character/astronaut-jetpack.png.json --surface-capture /workspace/build-resume/readme-captures/astronaut-jetpack.png"
     },
     {
       "image": "performance-overlay.png",
       "version": "0.0.1",
-      "generated_utc": "2026-10-01T21:58:30+00:00",
-      "sha256": "2e4e7100eddb5ed3e6c8a3c376cb857d5bbeb602f884ccf4861f4013e1ff8520",
-      "command": "/d/Programmieren/Projects/PlanetSimulation/build-grass/PlanetSimulation --config configs/scenarios/solar_system.json --simulation-time 20 --render-size 1280 720 --benchmark-frames 20 --benchmark-overlay --surface-capture /d/Programmieren/Projects/PlanetSimulation/build-grass/readme-captures/performance-overlay.png"
+      "generated_utc": "2026-10-02T09:41:30+00:00",
+      "sha256": "b6ba92ce0cbb072240b3de8406e4bee70639e2fdb20038caeec541adf20787f5",
+      "command": "/workspace/build-resume/PlanetSimulation --config configs/scenarios/solar_system.json --simulation-time 20 --render-size 1280 720 --benchmark-frames 20 --benchmark-overlay --surface-capture /workspace/build-resume/readme-captures/performance-overlay.png"
     },
     {
       "image": "atmosphere-day.png",
       "version": "0.0.1",
-      "generated_utc": "2026-10-01T21:58:49+00:00",
-      "sha256": "93c8236b032feca80680466c334c5d1062230d242bb8c94e7482b4e9d3f2b79a",
-      "command": "python3 tests/lighting/render_lighting_scenarios.py --binary /d/Programmieren/Projects/PlanetSimulation/build-grass/PlanetSimulation --manifest tests/scenarios/atmosphere/manifest.json --case standard_air --output-dir /d/Programmieren/Projects/PlanetSimulation/build-grass/readme-captures/standard_air"
+      "generated_utc": "2026-10-02T09:41:46+00:00",
+      "sha256": "d4f19c910d3bcbb6c567e07ad64a73d3ab06d37be63c0f2aad29d408522e1754",
+      "command": "python3 tests/lighting/render_lighting_scenarios.py --binary /workspace/build-resume/PlanetSimulation --manifest tests/scenarios/atmosphere/manifest.json --case standard_air --output-dir /workspace/build-resume/readme-captures/standard_air"
     },
     {
       "image": "atmosphere-sunset.png",
       "version": "0.0.1",
-      "generated_utc": "2026-10-01T21:59:02+00:00",
-      "sha256": "03c37bde6e367b1bebb6f8bfed1bd46961d69860fbb773d6b2719cf4f769a792",
-      "command": "python3 tests/lighting/render_lighting_scenarios.py --binary /d/Programmieren/Projects/PlanetSimulation/build-grass/PlanetSimulation --manifest tests/scenarios/atmosphere/manifest.json --case sunset --output-dir /d/Programmieren/Projects/PlanetSimulation/build-grass/readme-captures/sunset"
+      "generated_utc": "2026-10-02T09:42:03+00:00",
+      "sha256": "8fe51486263f19a3ad0859b2539e644f767cef4be9727f8ce65f249856983d54",
+      "command": "python3 tests/lighting/render_lighting_scenarios.py --binary /workspace/build-resume/PlanetSimulation --manifest tests/scenarios/atmosphere/manifest.json --case sunset --output-dir /workspace/build-resume/readme-captures/sunset"
     },
     {
       "image": "atmosphere-mist.png",
       "version": "0.0.1",
-      "generated_utc": "2026-10-01T21:59:17+00:00",
-      "sha256": "23e8773032e6c6c0827daaa24d6fca01d72e5227deed10c21c0d3c4e89d946c3",
-      "command": "python3 tests/lighting/render_lighting_scenarios.py --binary /d/Programmieren/Projects/PlanetSimulation/build-grass/PlanetSimulation --manifest tests/scenarios/atmosphere/manifest.json --case mist --output-dir /d/Programmieren/Projects/PlanetSimulation/build-grass/readme-captures/mist"
+      "generated_utc": "2026-10-02T09:42:20+00:00",
+      "sha256": "693957f5e690ab862e1f6ed10587adae235d44631365bc408f3729186730d511",
+      "command": "python3 tests/lighting/render_lighting_scenarios.py --binary /workspace/build-resume/PlanetSimulation --manifest tests/scenarios/atmosphere/manifest.json --case mist --output-dir /workspace/build-resume/readme-captures/mist"
     },
     {
       "image": "atmosphere-dust.png",
       "version": "0.0.1",
-      "generated_utc": "2026-10-01T21:59:30+00:00",
+      "generated_utc": "2026-10-02T09:42:36+00:00",
       "sha256": "3c0456207eb6a352ef8d4e6a81ecfbe7232e976caf35938995eb8dd0a1694aa5",
-      "command": "python3 tests/lighting/render_lighting_scenarios.py --binary /d/Programmieren/Projects/PlanetSimulation/build-grass/PlanetSimulation --manifest tests/scenarios/atmosphere/manifest.json --case heavy_dust --output-dir /d/Programmieren/Projects/PlanetSimulation/build-grass/readme-captures/heavy_dust"
+      "command": "python3 tests/lighting/render_lighting_scenarios.py --binary /workspace/build-resume/PlanetSimulation --manifest tests/scenarios/atmosphere/manifest.json --case heavy_dust --output-dir /workspace/build-resume/readme-captures/heavy_dust"
     },
     {
       "image": "twilight.png",
       "version": "0.0.1",
-      "generated_utc": "2026-10-01T21:59:42+00:00",
-      "sha256": "aba104ec8578f26b3ecbed7cb0b238fc3b406e99e3675ab6cbf65ff8e05fda73",
-      "command": "python3 tests/lighting/render_lighting_scenarios.py --binary /d/Programmieren/Projects/PlanetSimulation/build-grass/PlanetSimulation --manifest tests/scenarios/twilight/manifest.json --case twilight_reported --output-dir /d/Programmieren/Projects/PlanetSimulation/build-grass/readme-captures/twilight_reported"
+      "generated_utc": "2026-10-02T09:42:51+00:00",
+      "sha256": "68bb01a2a22d383903a0ac48609452ad52392b8538f9cb1368b7f9aaaca188ec",
+      "command": "python3 tests/lighting/render_lighting_scenarios.py --binary /workspace/build-resume/PlanetSimulation --manifest tests/scenarios/twilight/manifest.json --case twilight_reported --output-dir /workspace/build-resume/readme-captures/twilight_reported"
     },
     {
       "image": "terrain-shadows.png",
       "version": "0.0.1",
-      "generated_utc": "2026-10-01T21:59:47+00:00",
+      "generated_utc": "2026-10-02T09:43:01+00:00",
       "sha256": "4388620431c971ef173b5513e2d9498d15f95ba35da18e363e044bc9e9e3f8ee",
-      "command": "ctest --test-dir /d/Programmieren/Projects/PlanetSimulation/build-grass --output-on-failure -R '^TerrainShadowRenderIntegration$'"
+      "command": "ctest --test-dir /workspace/build-resume --output-on-failure -R '^TerrainShadowRenderIntegration$'"
     }
   ]
 }

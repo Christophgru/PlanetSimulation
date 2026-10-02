@@ -1,0 +1,14 @@
+Internal ctest changing into directory: /workspace/build-resume
+Test project /workspace/build-resume
+    Start  1: RendererLifecycleTests
+1/4 Test  #1: RendererLifecycleTests ...........   Passed   11.69 sec
+    Start  5: AstronautMotionTests
+2/4 Test  #5: AstronautMotionTests .............   Passed    0.02 sec
+    Start 30: AstronautCaptureIntegration
+3/4 Test #30: AstronautCaptureIntegration ......   Passed   69.39 sec
+    Start 42: AstronautInputIntegration
+4/4 Test #42: AstronautInputIntegration ........   Passed    7.37 sec
+
+100% tests passed, 0 tests failed out of 4
+
+Total Test time (real) =  88.48 sec

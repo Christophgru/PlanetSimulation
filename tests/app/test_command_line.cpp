@@ -56,3 +56,20 @@ TEST(CommandLineOptions, InvalidValuesFailBeforeWindowStartup) {
     EXPECT_EQ(walk.benchmarkWalkStep, 2);
     EXPECT_EQ(walk.benchmarkStep, 0);
 }
+TEST(CommandLineOptions, AstronautCaptureUsesSurfaceReplayAndWalkingBenchmarks) {
+    const auto options=parse({"--astronaut-capture","astronaut.png","--benchmark-frames","6",
+                              "--benchmark-walk-step","0.08","--benchmark-step","0"});
+    EXPECT_TRUE(options.thirdPersonRenderMode && options.surfaceRenderMode && options.captureOnly);
+    EXPECT_EQ(options.benchmarkWalkStep,.08);
+}
+TEST(CommandLineOptions, CharacterBenchmarksValidateTheirClockAndInputOrder) {
+    const auto options=parse({"--astronaut-capture","jet.png","--benchmark-frames","8",
+        "--benchmark-character-step",".04","--benchmark-jump-frame","0","--benchmark-boost-frame","3"});
+    EXPECT_EQ(options.benchmarkJumpFrame,0); EXPECT_EQ(options.benchmarkBoostFrame,3);
+    EXPECT_EQ(options.benchmarkCharacterStep,.04);
+    EXPECT_THROW(parse({"--benchmark-character-step","nan"}),std::invalid_argument);
+    EXPECT_THROW(parse({"--astronaut-capture","jet.png","--benchmark-frames","8",
+        "--benchmark-jump-frame","5","--benchmark-boost-frame","2"}),std::invalid_argument);
+    EXPECT_THROW(parse({"--surface-capture","jet.png","--benchmark-frames","8",
+        "--benchmark-jump-frame","0"}),std::invalid_argument);
+}

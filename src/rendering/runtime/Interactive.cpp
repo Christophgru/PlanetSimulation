@@ -107,6 +107,10 @@ int Renderer::Impl::interact() {
                 pendingTerrain.swap(nextPendingTerrain);
                 cameraInput.rebind(scene.surfaceCamera ? &*scene.surfaceCamera : nullptr,
                                    scene.planetOrbitCamera ? &*scene.planetOrbitCamera : nullptr);
+                cameraInput.setThirdPersonWalkSpeed(6.0/scene.scenario.metersPerWorldUnit());
+                astronaut.motion.reset(); astronautGround.clear(); astronautGroundRevision=0;
+                astronautReplayRestored=false;
+                inputContext.spacePresses=0;
                 cameraTransition.cancel();
                 displayedMode = cameraInput.mode();
                 displayedPose = rendering::CameraPose::fromView(
@@ -141,14 +145,20 @@ int Renderer::Impl::interact() {
             glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS,
             glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS,
             glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS,
-            glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS
+            glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS,
+            glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS ||
+                glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS
         };
         { CpuTrace::Scope scope("CameraInput::update");
           cameraInput.update(cameraTransition.active() ? WalkKeys{} : keys, elapsedSeconds); }
-        if (cameraInput.mode() == CameraMode::Surface && displayedMode != CameraMode::Surface)
+        if (cameraInput.mode() == CameraMode::Surface && displayedMode != CameraMode::Surface &&
+            displayedMode != CameraMode::ThirdPerson)
             cameraTransition.start(displayedPose, frameTime);
+        if (cameraInput.mode()==CameraMode::ThirdPerson && displayedMode!=CameraMode::ThirdPerson)
+            astronaut.motion.reset();
         if (cameraInput.mode() != CameraMode::Surface) cameraTransition.cancel();
-        const bool wantsCursorCapture = cameraInput.mode() == CameraMode::Surface &&
+        if (cameraInput.mode()!=CameraMode::ThirdPerson) inputContext.spacePresses=0;
+        const bool wantsCursorCapture = cameraInput.walkingMode() &&
                                         cameraInput.surfacePointerCaptured() &&
                                         !cameraTransition.active();
         if (wantsCursorCapture != cursorCaptured) {
@@ -161,7 +171,7 @@ int Renderer::Impl::interact() {
         }
         if (scene.surfaceCamera) {
             const auto snapshot = telemetry.sample(
-                cameraInput.mode() == CameraMode::Surface && !cameraTransition.active(),
+                cameraInput.walkingMode() && !cameraTransition.active(),
                 frameTime, *scene.surfaceCamera, scene.scenario.surface_camera,
                 scene.scenario.metersPerWorldUnit(), scene.scenario.distance_unit, simulationClock.seconds());
             if (snapshot) std::cout << snapshot->format() << std::flush;
@@ -171,14 +181,22 @@ int Renderer::Impl::interact() {
         glfwGetFramebufferSize(window, &width, &height);
         if (width > 0 && height > 0) {
             const bool onSurface = cameraInput.mode() == CameraMode::Surface && scene.surfaceCamera;
+            const bool onThird = cameraInput.mode()==CameraMode::ThirdPerson && scene.surfaceCamera;
             const bool onPlanetOrbit = cameraInput.mode() == CameraMode::PlanetOrbit &&
                                        scene.planetOrbitCamera;
-            const glm::mat4 targetView = onSurface ? scene.surfaceCamera->getViewMatrix() :
+            if (onThird) {
+                FrameProfiler::Scope scope(&profiler,FrameStage::Mesh,false);
+                preparePlanetMeshes(scene.surfaceCamera->position(),true);
+                prepareAstronaut(elapsedSeconds);
+            }
+            const glm::mat4 targetView = onThird ? glm::mat4(glm::lookAt(astronautView.eye,astronautView.target,astronautView.up)) :
+                                   onSurface ? scene.surfaceCamera->getViewMatrix() :
                                    onPlanetOrbit ? scene.planetOrbitCamera->getViewMatrix() :
                                                    scene.sunCamera.getViewMatrix();
-            const float targetFov = onSurface ? scene.surfaceCamera->fov() :
+            const float targetFov = (onSurface || onThird) ? scene.surfaceCamera->fov() :
                               onPlanetOrbit ? scene.planetOrbitCamera->fov : scene.sunCamera.fov;
-            const glm::dvec3 targetEye = onSurface ? scene.surfaceCamera->position() :
+            const glm::dvec3 targetEye = onThird ? astronautView.eye :
+                                         onSurface ? scene.surfaceCamera->position() :
                                          onPlanetOrbit ? glm::dvec3(scene.planetOrbitCamera->position) :
                                                          glm::dvec3(scene.sunCamera.position);
             const rendering::CameraPose targetPose = rendering::CameraPose::fromView(
@@ -205,14 +223,14 @@ int Renderer::Impl::interact() {
             // sphere includes the mountain underneath us. Using it
             // here clips away nearby ground and exposes the interior.
             // Keep this small near plane throughout the descent too.
-            const rendering::ClipPlanes clip = onSurface
+            const rendering::ClipPlanes clip = (onSurface || onThird)
                 ? rendering::surfaceClipPlanes(
-                      scene.surfaceCamera->configuredClearance(),
+                      onThird ? .2/scene.scenario.metersPerWorldUnit() : scene.surfaceCamera->configuredClearance(),
                       glm::length(eyeWorld - scene.sunPosition),
                       scene.scenario.sun.radius)
                 : onPlanetOrbit ? planetOrbitClip(eyeWorld) : rendering::ClipPlanes{};
             { rendering::FrameProfiler::Scope scope(&profiler, rendering::FrameStage::Mesh, false);
-              preparePlanetMeshes(eyeWorld, true); }
+              if (!onThird) preparePlanetMeshes(eyeWorld, true); }
             const auto revisions=geometryRevisions();
             adaptiveQuality.observe(frameTime, frameRate.milliseconds,
                 !simulationClock.paused());
@@ -233,7 +251,8 @@ int Renderer::Impl::interact() {
                            planet.foliage.wind_noise.speed_multiplier>0;
                 });
             if (rendering::hasAtmosphere(scene.scenario) && frameReuse.matches(view,fov,sceneWidth,sceneHeight,
-                    simulationClock.seconds(),revisions,simulationClock.paused(),pending || windAnimating,eyeWorld,static_cast<int>(cameraInput.mode()))) {
+                    simulationClock.seconds(),revisions,simulationClock.paused(),pending || windAnimating ||
+                    onThird,eyeWorld,static_cast<int>(cameraInput.mode()))) {
                 rendering::FrameProfiler::Scope scope(&profiler,rendering::FrameStage::CachedPresentation);
                 atmosphere.presentCached(atmosphereShader, sceneOutput); profiler.sceneReuse();
             } else {
@@ -241,7 +260,8 @@ int Renderer::Impl::interact() {
                             skyboxShader, waterReflection, shadowShader, terrainShadows,
                             atmosphereShader, atmosphere, reflectionAtmosphere, atmosphereColumns, meshes.sunMesh, meshes.skyboxMesh,
                             meshes.planetMeshes, meshes.waterMeshes, sceneWidth, sceneHeight,
-                            clip, (onSurface || onPlanetOrbit) ? std::optional<std::size_t>(scene.orbitPlanetIndex) : std::nullopt, false, &profiler, false, sceneOutput, &grass, foliageTime);
+                            clip, (onSurface || onThird || onPlanetOrbit) ? std::optional<std::size_t>(scene.orbitPlanetIndex) : std::nullopt,
+                            false, &profiler, false, sceneOutput, &grass, foliageTime,onThird ? &astronaut : nullptr);
                 frameReuse.remember(view,fov,sceneWidth,sceneHeight,simulationClock.seconds(),revisions,eyeWorld,static_cast<int>(cameraInput.mode()));
             }
             const bool showOrbits = inputContext.orbitsVisible && cameraInput.mode() == CameraMode::Orbit;

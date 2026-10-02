@@ -45,3 +45,9 @@ The [terrain LOD study](benchmarks/terrain-lod.md) describes eight surface
 levels, shared inward offsets, a single closed mesh and fixed before/after
 shoreline and grass captures. It records triangle and transfer budgets and
 the limits of spatial sinking.
+
+The [astronaut implementation study](character/astronaut.md) records planted
+foot IK, camera 4, 6/12 m/s movement, gravity-dependent jumping, jetpack controls
+and deterministic replay. The [Sketchfab shortlist](character/sketchfab-models.md)
+compares downloadable rigs with the requested Ava Turing reference and records
+the remaining download and skeleton-inspection requirements.

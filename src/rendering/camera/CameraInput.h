@@ -3,13 +3,14 @@
 #include "rendering/camera/OrbitCamera.h"
 #include "rendering/camera/PlanetSurfaceCamera.h"
 
-enum class CameraMode { Orbit, Surface, PlanetOrbit };
+enum class CameraMode { Orbit, Surface, PlanetOrbit, ThirdPerson };
 
 struct WalkKeys {
     bool forward = false;
     bool backward = false;
     bool left = false;
     bool right = false;
+    bool sprint = false;
 };
 
 class CameraInput {
@@ -22,9 +23,15 @@ public:
     bool dragging() const { return dragging_; }
     bool autoActivated() const { return autoActivated_; }
     bool surfacePointerCaptured() const { return surfacePointerCaptured_; }
+    bool walkingMode() const { return mode_==CameraMode::Surface || mode_==CameraMode::ThirdPerson; }
+    void setThirdPersonWalkSpeed(double worldUnitsPerSecond) {
+        if (!std::isfinite(worldUnitsPerSecond) || worldUnitsPerSecond<=0)
+            throw std::invalid_argument("Astronaut walk speed must be finite and positive");
+        thirdPersonWalkSpeed_=worldUnitsPerSecond;
+    }
 
     void releaseCursor() {
-        if (mode_ == CameraMode::Surface) {
+        if (walkingMode()) {
             surfacePointerCaptured_ = false;
             pointerKnown_ = false;
         }
@@ -35,10 +42,10 @@ public:
     void rebind(PlanetSurfaceCamera* surfaceCamera, OrbitCamera* planetOrbitCamera) {
         surface_ = surfaceCamera;
         planetOrbit_ = planetOrbitCamera;
-        if ((mode_ == CameraMode::Surface && !surface_) ||
+        if ((walkingMode() && !surface_) ||
             (mode_ == CameraMode::PlanetOrbit && !planetOrbit_))
             mode_ = CameraMode::Orbit;
-        if (mode_ != CameraMode::Surface) surfacePointerCaptured_ = false;
+        if (!walkingMode()) surfacePointerCaptured_ = false;
         dragging_ = false;
         pointerKnown_ = false;
         autoActivated_ = false;
@@ -58,7 +65,7 @@ public:
 
     void selectPlanetOrbit() {
         if (!planetOrbit_) return;
-        if (mode_ == CameraMode::Surface && surface_)
+        if (walkingMode() && surface_)
             planetOrbit_->alignRadial(glm::vec3(
                 surface_->position() - surface_->frame().center()));
         mode_ = CameraMode::PlanetOrbit;
@@ -79,8 +86,14 @@ public:
         }
     }
 
+    void selectThirdPerson() {
+        if (!surface_) return;
+        selectSurface();
+        mode_=CameraMode::ThirdPerson;
+    }
+
     void beginDrag(double x, double y) {
-        if (mode_ == CameraMode::Surface) return;
+        if (walkingMode()) return;
         dragging_ = true;
         lastX_ = x;
         lastY_ = y;
@@ -89,7 +102,7 @@ public:
     void endDrag() { dragging_ = false; }
 
     void moveCursor(double x, double y) {
-        if (mode_ == CameraMode::Surface && surface_ && surfacePointerCaptured_) {
+        if (walkingMode() && surface_ && surfacePointerCaptured_) {
             if (pointerKnown_) surface_->look(x - lastX_, y - lastY_);
             pointerKnown_ = true;
         } else if (dragging_) {
@@ -125,10 +138,11 @@ public:
                 autoActivated_ = true;
             }
         }
-        if (mode_ == CameraMode::Surface && surface_) {
+        if (walkingMode() && surface_) {
             surface_->walk(static_cast<int>(keys.forward) - static_cast<int>(keys.backward),
                            static_cast<int>(keys.right) - static_cast<int>(keys.left),
-                           elapsedSeconds);
+                           elapsedSeconds*(mode_==CameraMode::ThirdPerson ?
+                               thirdPersonWalkSpeed_*(keys.sprint ? 2.0 : 1.0)/surface_->walkSpeed() : 1.0));
         }
     }
 
@@ -157,4 +171,5 @@ private:
     bool surfacePointerCaptured_ = false;
     double lastX_ = 0.0;
     double lastY_ = 0.0;
+    double thirdPersonWalkSpeed_ = 2.0;
 };

@@ -17,6 +17,8 @@ SceneSource::SceneSource(CommandLineOptions& options)
                 if (options.renderTestWidth < 64 || options.renderTestWidth > 8192 || options.renderTestHeight < 64 || options.renderTestHeight > 8192)
                     throw std::invalid_argument("Replay render dimensions must be in 64..8192");
             }
+            if (replay.contains("render") && replay["render"].value("camera_mode",std::string{})=="third_person")
+                options.thirdPersonRenderMode=true;
             if (!options.explicitAtmosphereQuality && replay.contains("render") &&
                 replay["render"].contains("atmosphere_downsample")) {
                 const auto& raw = replay["render"]["atmosphere_downsample"];

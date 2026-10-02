@@ -624,7 +624,7 @@ borrow the renderer's camera and clock state.
 
 ## Prerequisites
 
-- CMake 3.16 or newer, Git, and a C++20 compiler
+- CMake 3.24 or newer, Git, and a C++20 compiler
 - Python 3 for lighting and replay integration tests when `BUILD_TESTING=ON`
 - OpenGL 3.3 support, GLFW 3, GLEW, and libpng development libraries
 - A graphical display for GLFW, including the hidden-window render test
@@ -658,6 +658,12 @@ headers forward-declare `Config`; code that reads JSON includes
 `config/Config.h` explicitly. This keeps JSON parsing out of geometry and
 camera compilation.
 
+`planet_character` shares the astronaut's motion and terrain-contact code with
+its tests. CMake fetches the pinned MIT-licensed ozz-animation 0.16.0 runtime
+for two-bone leg IK; its tools, importers and examples are disabled.
+The upstream license and integration notes are in
+[external/ozz-animation](external/ozz-animation/README.md).
+
 `planet_app` compiles the application and renderer implementation separately
 from the small executable entry point and shares it with lifecycle tests.
 
@@ -675,7 +681,7 @@ ctest --output-on-failure
 cd ..
 ~~~
 
-The suite has 43 CTest entries covering unit tests, GPU shadows, scene captures,
+The suite has 49 CTest entries covering unit tests, GPU shadows, scene captures,
 lighting scenarios, exact replay, and renderer lifecycle/failure recovery.
 Renderer lifecycle checks cover repeated construction, partial startup failure,
 capture write failure, and GPU deletion before context teardown.
@@ -719,6 +725,29 @@ button and `W`, `A`, `S`, `D` walk along the planet while maintaining clearance
 above ground or water at the configured `walk_speed_mps` (80 m/s in the
 development scene). Returning to planet orbit from the surface keeps the
 camera on the same side of the planet.
+
+Press **4** to follow a small astronaut at the surface camera's current
+location. WASD walks at **6 m/s**; holding either **Shift** key sprints at
+**12 m/s**. Mouse look controls the chase camera. Press **Space** to jump,
+then release and press it again while airborne to engage the jetpack. Hold
+Space for sustained upward boost; blue bubbles stream from underneath the
+backpack. WASD also steers in flight. Release Space to coast and fall; landing
+resets the jetpack. T pauses planetary motion while these controls remain
+active. Esc releases the mouse in either walking camera.
+
+The procedural astronaut wears a grey suit with blue details and small German
+flags on the upper arms. Planet-local planted feet and ozz two-bone IK provide
+an initial gait. Jump gravity derives from planet mass, radius and spin;
+the jetpack uses arcade thrust and speed limits. See the
+[implementation and validation notes](docs/journal/character/astronaut.md).
+The [Sketchfab model shortlist](docs/journal/character/sketchfab-models.md)
+compares downloadable rigs against the requested Ava Turing reference.
+An external skinned model has not yet been integrated.
+
+| Follow camera and planted feet | Grey/blue suit and arm flag | Airborne jetpack bubbles |
+|:--:|:--:|:--:|
+| <a href="docs/screenshots/astronaut.png"><img src="docs/screenshots/astronaut.png" width="220" alt="Astronaut standing on the planet in camera 4"></a> | <a href="docs/screenshots/astronaut-front.png"><img src="docs/screenshots/astronaut-front.png" width="220" alt="Grey and blue astronaut with a German upper-arm flag"></a> | <a href="docs/screenshots/astronaut-jetpack.png"><img src="docs/screenshots/astronaut-jetpack.png" width="220" alt="Flying astronaut with blue bubbles below the backpack"></a> |
+
 Selecting `2` from either orbit view, or automatically reaching the surface
 entry distance, starts a one-second camera descent. The eye moves around the
 planet above sampled terrain and water while its view direction and field of

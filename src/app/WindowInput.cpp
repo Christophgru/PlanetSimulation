@@ -37,6 +37,11 @@ void onScroll(GLFWwindow* window, double, double yOffset) {
 void onKey(GLFWwindow* window, int key, int, int action, int) {
     if (action != GLFW_PRESS) return;
     auto* context = static_cast<InputContext*>(glfwGetWindowUserPointer(window));
+    if (key==GLFW_KEY_SPACE && context && context->camera && context->camera->mode()==CameraMode::ThirdPerson) {
+        ++context->spacePresses;
+        std::cout << "Astronaut Space: jump / airborne jetpack boost\n" << std::flush;
+        return;
+    }
     if (key == GLFW_KEY_I && context) {
         // GLFW_REPEAT is filtered above so holding I toggles only once.
         context->statsVisible = !context->statsVisible;
@@ -71,6 +76,10 @@ void onKey(GLFWwindow* window, int key, int, int action, int) {
         input->selectSurface();
     } else if (key == GLFW_KEY_3) {
         input->selectPlanetOrbit();
+    } else if (key == GLFW_KEY_4) {
+        input->selectThirdPerson();
+        if (input->mode()==CameraMode::ThirdPerson)
+            std::cout << "Camera 4: following the astronaut at 6 m/s; Space to jump, then boost\n" << std::flush;
     } else if (key == GLFW_KEY_ESCAPE) {
         input->releaseCursor();
     }

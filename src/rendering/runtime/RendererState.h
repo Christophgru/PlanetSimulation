@@ -12,6 +12,7 @@
 #include "rendering/diagnostics/GpuUtilization.h"
 #include "rendering/diagnostics/AdaptiveQuality.h"
 #include "rendering/diagnostics/FrameReuse.h"
+#include "rendering/character/AstronautRenderer.h"
 #include <array>
 #include <future>
 #include <limits>
@@ -27,6 +28,8 @@ struct Renderer::Impl {
                          const glm::dvec3& radial, int localMask);
     std::vector<std::uint64_t> geometryRevisions() const;
     ClipPlanes planetOrbitClip(const glm::dvec3& eye) const;
+    void prepareAstronaut(double elapsed);
+    nlohmann::json astronautState() const;
 
     app::CommandLineOptions options;
     CpuTrace cpuTrace;
@@ -64,6 +67,12 @@ struct Renderer::Impl {
     OwnedShader shader{"shaders/terrain/basic.vert", "shaders/terrain/basic.frag", "shaders/terrain/terrain_shadow.glsl", "shaders/atmosphere/atmosphere.glsl", "shaders/foliage/palette.glsl"};
     OwnedShader waterShader{"shaders/water/water.vert", "shaders/water/water.frag", "shaders/terrain/terrain_shadow.glsl", "shaders/atmosphere/atmosphere.glsl"};
     GrassRenderer grass;
+    AstronautRenderer astronaut;
+    SurfaceContact astronautGround;
+    ChasePose astronautView; // World coordinates; motion/contacts stay body-local.
+    std::uint64_t astronautGroundRevision=0;
+    bool astronautReplayRestored=false;
+    bool astronautBenchmarkBoost=false;
     OwnedShader shadowShader{"shaders/terrain/terrain_shadow.vert", "shaders/terrain/terrain_shadow.frag"};
     TerrainShadowMaps terrainShadows;
     OwnedShader atmosphereShader{"shaders/atmosphere/atmosphere.vert", "shaders/atmosphere/atmosphere.frag", "shaders/atmosphere/atmosphere.glsl"};

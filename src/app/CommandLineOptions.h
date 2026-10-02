@@ -9,6 +9,7 @@ struct CommandLineOptions {
     bool renderTestMode = false;
     bool surfaceRenderMode = false;
     bool planetRenderMode = false;
+    bool thirdPersonRenderMode = false;
     bool captureOnly = false;
     bool explicitRenderSize = false;
     std::string outputImagePath;
@@ -26,6 +27,8 @@ struct CommandLineOptions {
     int benchmarkFrames = 1;
     double benchmarkStep = 1.0 / 60.0;
     double benchmarkWalkStep = 0.0; // Metres per frame, independent of orbit time.
+    double benchmarkCharacterStep = 0.0; // Explicit local flight/gait time for captures.
+    int benchmarkJumpFrame = -1, benchmarkBoostFrame = -1;
 
     static CommandLineOptions parse(int argc, char** argv);
 };

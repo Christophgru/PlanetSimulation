@@ -22,7 +22,7 @@
     "metered_illuminance": 0.10897950378474022,
     "non_background_pixels": 0,
     "reflected_illuminance": 9.204282442002274e-07,
-    "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+    "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
     "samples": 0,
     "sky_interior_blue": 0.0,
     "sky_interior_green": 0.0,

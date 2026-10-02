@@ -35,6 +35,24 @@ CommandLineOptions CommandLineOptions::parse(int argc, char** argv) {
             if (options.benchmarkFrames < 1 || options.benchmarkFrames > 100000) {
                 throw std::invalid_argument("--benchmark-frames needs 1..100000 frames");
             }
+        } else if (std::string(argv[i]) == "--benchmark-character-step") {
+            try {
+                if (i+1>=argc) throw std::invalid_argument("missing");
+                const std::string value=argv[++i]; std::size_t used=0;
+                options.benchmarkCharacterStep=std::stod(value,&used);
+                if (used!=value.size() || !std::isfinite(options.benchmarkCharacterStep) ||
+                    options.benchmarkCharacterStep<=0 || options.benchmarkCharacterStep>1)
+                    throw std::invalid_argument("range");
+            } catch (...) { throw std::invalid_argument("--benchmark-character-step needs 0..1 seconds, excluding zero"); }
+        } else if (std::string(argv[i]) == "--benchmark-jump-frame" || std::string(argv[i]) == "--benchmark-boost-frame") {
+            const bool boost=std::string(argv[i])=="--benchmark-boost-frame";
+            try {
+                if (i+1>=argc) throw std::invalid_argument("missing");
+                const std::string value=argv[++i]; std::size_t used=0;
+                const int frame=std::stoi(value,&used);
+                if (used!=value.size() || frame<0 || frame>=100000) throw std::invalid_argument("range");
+                (boost ? options.benchmarkBoostFrame : options.benchmarkJumpFrame)=frame;
+            } catch (...) { throw std::invalid_argument("Character input frame needs 0..99999"); }
         } else if (std::string(argv[i]) == "--benchmark-walk-step") {
             try {
                 if (i + 1 >= argc) throw std::invalid_argument("missing distance");
@@ -61,6 +79,9 @@ CommandLineOptions CommandLineOptions::parse(int argc, char** argv) {
             options.outputImagePath = argv[++i];
         } else if (std::string(argv[i]) == "--surface-capture" && i + 1 < argc) {
             options.renderTestMode = options.surfaceRenderMode = options.captureOnly = true;
+            options.outputImagePath = argv[++i];
+        } else if (std::string(argv[i]) == "--astronaut-capture" && i + 1 < argc) {
+            options.renderTestMode = options.surfaceRenderMode = options.captureOnly = options.thirdPersonRenderMode = true;
             options.outputImagePath = argv[++i];
         } else if (std::string(argv[i]) == "--planet-render-test" && i + 1 < argc) {
             options.renderTestMode = true;
@@ -100,6 +121,12 @@ CommandLineOptions CommandLineOptions::parse(int argc, char** argv) {
     if (options.benchmarkWalkStep > 0 &&
         (!options.surfaceRenderMode || options.benchmarkFrames < 2))
         throw std::invalid_argument("--benchmark-walk-step requires a surface capture and at least two frames");
+    if ((options.benchmarkCharacterStep>0 || options.benchmarkJumpFrame>=0 || options.benchmarkBoostFrame>=0) &&
+        (!options.thirdPersonRenderMode || options.benchmarkFrames<2))
+        throw std::invalid_argument("Character benchmarks require an astronaut capture with at least two frames");
+    if (options.benchmarkJumpFrame>=options.benchmarkFrames || options.benchmarkBoostFrame>=options.benchmarkFrames ||
+        (options.benchmarkBoostFrame>=0 && (options.benchmarkJumpFrame<0 || options.benchmarkBoostFrame<=options.benchmarkJumpFrame)))
+        throw std::invalid_argument("Jump must precede boost within the captured frames");
     return options;
 }
 }

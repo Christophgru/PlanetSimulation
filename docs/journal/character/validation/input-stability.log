@@ -1,0 +1,12 @@
+Internal ctest changing into directory: /workspace/build-resume
+Test project /workspace/build-resume
+    Start 42: AstronautInputIntegration
+    Test #42: AstronautInputIntegration ........   Passed    7.87 sec
+    Start 42: AstronautInputIntegration
+    Test #42: AstronautInputIntegration ........   Passed    7.51 sec
+    Start 42: AstronautInputIntegration
+1/1 Test #42: AstronautInputIntegration ........   Passed    7.83 sec
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =  23.21 sec
