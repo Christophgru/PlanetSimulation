@@ -1028,6 +1028,13 @@ while grass keeps moving. `Y`/`U` change orbital speed only. Setting
 `wind_noise.speed_multiplier` or `wind_strength` to zero freezes wind.
 Deterministic captures retain their explicit simulation-time wind phase.
 
+`wind_noise` is optional; omitted fields retain the defaults above. Its
+`gust_frequency`, `direction_frequency` and `flutter_frequency` accept
+0.001–100 cycles per metre in the rotating planet's local coordinates.
+`speed_multiplier` accepts 0–16 and `seed` is an integer independent of the
+placement seed. Both compute placement and the OpenGL 3.3 fallback consume
+these rules on the GPU. Invalid values are rejected before a scene reload.
+
 Grass geometry now hot-swaps between a **six-segment strip** (14 vertices,
 12 triangles) and a **single tapered quad** (4 vertices, 2 triangles), following
 Quick_Grass's high/low geometry selection. A narrow top edge keeps both low
