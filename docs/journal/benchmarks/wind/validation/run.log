@@ -1,0 +1,44 @@
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 20.0 s
+Sun radius: 2.5
+Planets: 1
+Camera position: (15.0894, 14.67, 8)
+Left-drag to orbit; scroll to zoom gently. Press 1 for Sun orbit, 2 for the planet surface view (free mouse look and WASD at 80 m/s), 3 for planet orbit, 4 to follow the astronaut (WASD at 6 m/s; Space to jump, then boost the jetpack). Press T to pause/resume orbits and spin. Press O for ten past orbit paths and body labels. Press Y to halve or U to double simulation speed. Press Esc to release the walking cursor and 2 or 4 to capture it again. /workspace/build-resume/grass-wind-input/scene.json reloads on save; press R to reload manually. Close the window to exit.
+Scene render resolution: 1280x720 (100%)
+Simulation paused (T to resume)
+Scene render resolution: 480x270 (100%)
+Simulation time: 20.209406137000002 s
+Surface camera position (world, km): [6.975088389237182,5.919783763686692,-0.5663683587459574]
+Surface camera direction (world, unit vector): [-0.18014017230032395,-0.49596428427304257,0.8494521452378224]
+Surface camera position (planet LLA): latitude=-21.409888069265286 deg, longitude=103.0 deg, altitude=2.0 m above reference sphere
+Surface camera ground clearance: 2.0 m
+surface_camera start value: {"altitude":0.002,"direction_ned":[0.9928768384869224,6.661338147750939e-16,0.11914522061842964],"fov":65.0,"latitude_deg":-21.409888069265286,"longitude_deg":103.0,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":20.209406137000002,"up_ned":[0.11914522061843191,6.800116025829084e-16,-0.992876838486922],"walk_speed_mps":80.0}
+Simulation time: 20.209406137000002 s
+Surface camera position (world, km): [6.975088389237182,5.919783763686692,-0.5663683587459574]
+Surface camera direction (world, unit vector): [-0.18014017230032475,-0.4959642842730458,0.8494521452378202]
+Surface camera position (planet LLA): latitude=-21.409888069265286 deg, longitude=103.0 deg, altitude=2.0 m above reference sphere
+Surface camera ground clearance: 2.0 m
+surface_camera start value: {"altitude":0.002,"direction_ned":[0.9928768384869225,2.8033131371785203e-15,0.1191452206184263],"fov":65.0,"latitude_deg":-21.409888069265286,"longitude_deg":103.0,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":20.209406137000002,"up_ned":[0.11914522061843602,2.9004576518332215e-15,-0.9928768384869215],"walk_speed_mps":80.0}
+Simulation speed: 2x (paused)
+Simulation speed: 1x (paused)
+Simulation time: 20.209406137000002 s
+Surface camera position (world, km): [6.975088389237182,5.919783763686692,-0.5663683587459574]
+Surface camera direction (world, unit vector): [-0.18014017230032553,-0.4959642842730489,0.8494521452378182]
+Surface camera position (planet LLA): latitude=-21.409888069265286 deg, longitude=103.0 deg, altitude=2.0 m above reference sphere
+Surface camera ground clearance: 2.0 m
+surface_camera start value: {"altitude":0.002,"direction_ned":[0.992876838486923,4.85722573273506e-15,0.11914522061842309],"fov":65.0,"latitude_deg":-21.409888069265286,"longitude_deg":103.0,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":20.209406137000002,"up_ned":[0.1191452206184399,4.98212582300539e-15,-0.9928768384869211],"walk_speed_mps":80.0}
+Reloaded /workspace/build-resume/grass-wind-input/scene.json: Solar System, 1 planet(s)
+Simulation time: 20.0 s
+Surface camera position (world, km): [6.994732775617633,5.875562165317092,-0.5613041345537658]
+Surface camera direction (world, unit vector): [-0.18394561650889218,-0.4922128704378496,0.8508175482102472]
+Surface camera position (planet LLA): latitude=-21.409888069265286 deg, longitude=103.0 deg, altitude=2.0 m above reference sphere
+Surface camera ground clearance: 2.0 m
+surface_camera start value: {"altitude":0.002,"direction_ned":[0.9928768384869222,5.551115123125783e-17,0.11914522061843069],"fov":65.0,"latitude_deg":-21.409888069265286,"longitude_deg":103.0,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":20.0,"up_ned":[0.11914522061843075,4.163336342344337e-17,-0.992876838486922],"walk_speed_mps":80.0}
+Reloaded /workspace/build-resume/grass-wind-input/scene.json: Solar System, 1 planet(s)
+Simulation time: 20.0 s
+Surface camera position (world, km): [6.994732775617633,5.875562165317092,-0.5613041345537658]
+Surface camera direction (world, unit vector): [-0.18394561650889218,-0.4922128704378496,0.8508175482102472]
+Surface camera position (planet LLA): latitude=-21.409888069265286 deg, longitude=103.0 deg, altitude=2.0 m above reference sphere
+Surface camera ground clearance: 2.0 m
+surface_camera start value: {"altitude":0.002,"direction_ned":[0.9928768384869222,5.551115123125783e-17,0.11914522061843069],"fov":65.0,"latitude_deg":-21.409888069265286,"longitude_deg":103.0,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":20.0,"up_ned":[0.11914522061843075,4.163336342344337e-17,-0.992876838486922],"walk_speed_mps":80.0}

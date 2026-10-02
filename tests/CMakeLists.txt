@@ -234,6 +234,10 @@ find_program(XDOTOOL_EXECUTABLE xdotool)
 find_program(IMAGEMAGICK_IMPORT_EXECUTABLE import)
 find_program(IMAGEMAGICK_CONVERT_EXECUTABLE convert)
 if(UNIX AND XDOTOOL_EXECUTABLE AND IMAGEMAGICK_IMPORT_EXECUTABLE AND IMAGEMAGICK_CONVERT_EXECUTABLE)
+    add_test(NAME GrassWindInputIntegration COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/foliage/integration/test_grass_input.py --binary $<TARGET_FILE:PlanetSimulation>
+        --output-dir ${CMAKE_BINARY_DIR}/grass-wind-input)
+    set_tests_properties(GrassWindInputIntegration PROPERTIES TIMEOUT 90 RUN_SERIAL TRUE)
     add_test(NAME AstronautInputIntegration COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_CURRENT_SOURCE_DIR}/character/test_astronaut_input.py --binary $<TARGET_FILE:PlanetSimulation>)
     set_tests_properties(AstronautInputIntegration PROPERTIES TIMEOUT 60 RUN_SERIAL TRUE)

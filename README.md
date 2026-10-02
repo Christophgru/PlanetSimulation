@@ -681,7 +681,7 @@ ctest --output-on-failure
 cd ..
 ~~~
 
-The suite has 49 CTest entries covering unit tests, GPU shadows, scene captures,
+The suite has 50 CTest entries covering unit tests, GPU shadows, scene captures,
 lighting scenarios, exact replay, and renderer lifecycle/failure recovery.
 Renderer lifecycle checks cover repeated construction, partial startup failure,
 capture write failure, and GPU deletion before context teardown.
@@ -1026,7 +1026,10 @@ OpenGL 3.3 or `compute_placement=false` uses procedural vertex generation.
 Interactive wind follows elapsed wall time: `T` pauses planetary orbits and spin,
 while grass keeps moving. `Y`/`U` change orbital speed only. Setting
 `wind_noise.speed_multiplier` or `wind_strength` to zero freezes wind.
-Deterministic captures retain their explicit simulation-time wind phase.
+Deterministic captures retain their explicit simulation-time wind phase. The native
+`GrassWindInputIntegration` check covers pause, orbital speed keys, zero-speed
+freeze and reload; [live-wind evidence](docs/journal/benchmarks/live-wind.md)
+includes its images and orbital-time trace.
 
 `wind_noise` is optional; omitted fields retain the defaults above. Its
 `gust_frequency`, `direction_frequency` and `flutter_frequency` accept

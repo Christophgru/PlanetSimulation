@@ -21,7 +21,7 @@ document the progress and add comments such that when interrupted you can contin
 |Add the perlin noise parameter to the json config|t| Optional foliage.wind_noise exposes gust/direction/flutter frequencies, clock multiplier and independent seed in JSON, with range/type validation. Both GPU paths consume the rules; captures preserve their explicit phase. Documented in README and procedural grass study. Covered by the clean 49/49 CTest run. |
 |If not already implemented add frustum culling (for the foliage I think it could be difficult for the light simulation, but you may reduce triangle quality in the non camera viewed parts.), compute shaders and gpu instancing to be able to viaualize more foliage and finer landscape. Benchmark and calculate what data is sent from cpu to gpu, then add a section in the journal that identifies techniques most promising to reduce the largest delays. |t| Conservative per-pass grass frustum rejection, GL 4.3 compute placement/compaction and indirect instancing; GL 3.3 procedural fallback retained. Culling/replay hashes match and compute/fallback parity tests pass. Verified 34,664-byte grass patch upload vs 12 MB land mesh; cached grass uploads zero. Journal reports the historical paired benchmark and remaining atmosphere/terrain bottlenecks. Clean 49/49 tests pass. |
 |Lets add a third person camera "4" and a actor on the same position as cam 2 that follows a small astronaut that can walk around the planet. Create a 3d model of the astronaut or download some nice MIT licensed one online (comic style). Create Walking movement such that the feet stay on the ground and dont slide over it. Search if tere is a nice library for that movement. If not, approvximate the foor movement for now and we will coma back later to that.|t| Procedural grey/blue astronaut with German arm patches, camera 4, locked planet-local contacts and MIT ozz-animation IK. Walk 6, Shift sprint 12 m/s; Space jump then jetpack boost/bubbles. All 49 entries validated via full run (48 passed) plus corrected input check (four consecutive passes); journal/PDF and 20 gallery images refreshed, inspected and hashes verified. Sketchfab shortlist recorded; an external model is not yet integrated. |
-|Make foliage movement independant of planetary movement, such that if pressed t only the planet movement stop, but local grass movement keeps going|||
+|Make foliage movement independant of planetary movement, such that if pressed t only the planet movement stop, but local grass movement keeps going|t| Wall-clock foliage time is independent of T pause and Y/U orbital speed. Added native GLFW test with completed-transition readiness, visible-grass guard, changing paused-time frames, zero-speed freeze and paused reload. Clean 50/50 CTest entries pass in 333.81 s; native images/CSV/evidence, README and journal/PDF updated. |
 |The quick grass demo mentioned something like 6 poly grass if close and 1 pol grass if far away, is this already active? if not add it.|||
 |Lets add a render Mode, where rendering might take arbitrary long but foliage is generated for a radius up to 20x the normal distance, high poly is loaded for the moon and sun, and lens flaring is simulated. |||
 |Lets give the grass (ground, not foliage ) a more brown and grey tinted color, such that it looks more like the foliage.|||
@@ -84,9 +84,12 @@ instruction profile.
   JSON wind rules; compute/frustum/transfer validation is complete too. The
   October 1 paired benchmark remains historical. Its PNG hashes and payload
   counts were audited; no new hardware timing claim is made.
-- Next behavior check is live grass wind while T pauses planetary motion.
-  Existing code advances `foliageTime` with wall time; captures deliberately
-  retain explicit simulation-time wind for reproducibility.
+- Live-wind row complete: native T/speed/reload check and clean full 50/50
+  suite pass in 333.81 s. Artifacts: `docs/journal/benchmarks/wind/`.
+  Native test waits for two completed surface-camera reports before sampling,
+  preventing startup/orbit-to-surface changes from passing as wind motion.
+- Next row: confirm the existing six-segment close / one-quad distant geometry,
+  then implement the offline render mode.
 
 ## Astronaut checkpoint — 2026-10-02
 

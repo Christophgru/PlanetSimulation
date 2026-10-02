@@ -1,0 +1,15 @@
+{
+  "animated_changed_channels": 11178,
+  "frozen_changed_channels": 0,
+  "animated_paused_frames": 89,
+  "animated_paused_simulation_s": 20.2094061,
+  "paused_reload_frames": 31,
+  "paused_reload_simulation_s": 20.0,
+  "png_sha256": {
+    "animated-a.png": "64e59716dc0e5371e11a6036557787518a4b995b9d2cdae3a9c6422edcb12a7c",
+    "animated-b.png": "8fe13f713142c39ef84e9527fabac4338a03ce9685fda41d6503322e89829020",
+    "bare.png": "396bcb86880c950a26b4157dec052269f0e05d139d7996b4743ecb37d70872de",
+    "frozen-a.png": "6ad76423ae8977f4538aaf7dc3010c1f8c1c2b97fe394758b09f4e6af3bac5b1",
+    "frozen-b.png": "6ad76423ae8977f4538aaf7dc3010c1f8c1c2b97fe394758b09f4e6af3bac5b1"
+  }
+}
