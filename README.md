@@ -730,12 +730,21 @@ camera on the same side of the planet.
 
 Press **4** to follow a small astronaut at the surface camera's current
 location. WASD walks at **6 m/s**; holding either **Shift** key sprints at
-**12 m/s**. Mouse look controls the chase camera. Press **Space** to jump,
-then release and press it again while airborne to engage the jetpack. Hold
-Space for sustained upward boost; blue bubbles stream from underneath the
-backpack. WASD commands acceleration in flight; the suit tilts to direct its thrust. Release Space to coast and fall; landing
-resets the jetpack. T pauses planetary motion while these controls remain
-active. Esc releases the mouse in either walking camera.
+**12 m/s**. Tap **Space** to jump. While airborne, WASD fires and directs the
+jetpack without Space; W follows your full look direction, so looking down
+and pressing W descends. Hold Space for upward thrust. The suit tilts to direct
+its single thrust axis, and blue bubbles appear underneath the backpack.
+Release the movement controls to coast under gravity and air resistance.
+T pauses planetary motion while these controls remain active. Esc releases
+the mouse in either walking camera.
+
+Within **1.2 body diameters from its centre (2.4 radii)**, orientation follows
+the nearby planet or moon. Beyond that region, free-space mouse look lets you
+fly toward another body; approaching the Moon selects its local frame smoothly.
+World position and velocity remain continuous. Flight always sums gravity from
+the **three closest celestial bodies**, including the Sun. Near a body the
+commanded speed is 100 m/s; space thrust has no artificial speed ceiling.
+See the [space-flight controls and validation](docs/journal/character/space-flight.md).
 
 The procedural astronaut wears a grey suit with blue details and small German
 flags on the upper arms. Planet-local planted feet and ozz two-bone IK provide

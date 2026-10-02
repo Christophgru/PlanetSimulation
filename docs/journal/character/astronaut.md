@@ -5,13 +5,16 @@ the astronaut at **6 m/s**, or **12 m/s** with either Shift key held. Mouse look
 controls the follow camera; Esc releases the cursor. T pauses orbit/spin, while
 walking and airborne motion continue on local elapsed time.
 
-Space on the ground launches a jump at 10 m/s. Release and press Space again
-while airborne to engage the jetpack; subsequent presses boost and holding
-Space sustains upward thrust. Two streams of blue bubbles emerge underneath
-the backpack during thrust. Release Space to coast, then fall under gravity.
-WASD commands acceleration in flight. The suit tilts along the single thrust
-axis; arms stay still throughout the armed jetpack phase. Landing clears the
-jetpack state.
+Space on the ground launches a jump at 10 m/s. In the airborne phase, WASD
+fires thrust without Space, W/S follows the full look direction (including
+look-down descent), and Space commands up. Releasing movement controls coasts
+under gravity and gas drag. Bubbles emerge underneath the tilted backpack;
+arms stay still throughout the armed jetpack phase. Landing clears flight.
+Within 1.2 diameters from a body's centre (2.4 radii), up aligns to that planet
+or moon; outside every such region, free space orientation allows unrestricted
+camera pitch and travel toward the Moon. Position and velocity persist in
+world space, and flight gravity always sums the three nearest bodies.
+See [space-flight behavior and validation](space-flight.md).
 
 ## Model and animation
 
@@ -47,7 +50,8 @@ height at the same radial direction. Missing mesh coverage falls back to the
 analytic terrain; enabled water remains a walkable floor, matching camera 2.
 This is radial surface collision, rather than arbitrary mesh physics.
 
-The model and contacts follow the selected planet's translation and spin.
+The grounded model and contacts follow the selected planet's translation and spin;
+airborne state remains inertial when that planet moves.
 Double precision is retained until the IK job is expressed near the actor
 origin. The chase camera aims near the torso, stays above terrain and shortens
 its arm when a ridge intervenes. It uses the surface field of view and a 20 cm
@@ -55,19 +59,14 @@ near plane. Orbit and first-person controls retain their existing behavior.
 
 ## Flight forces
 
-The 100 kg actor integrates altitude-dependent gravity, centrifugal and
-Coriolis acceleration, and quadratic atmospheric drag in planet-local metres.
-Pressure depends on configured gas composition, sea-level pressure and
-Kelvin temperature. Falling has a drag-dependent terminal speed, without
-an artificial vertical velocity clamp; vacuum has no drag terminal speed.
-
-Space arms a short thrust pulse; holding it sustains thrust. WASD commands
-a horizontal acceleration toward 100 m/s while boosting, bounded by one
-engine's thrust capacity. Releasing the controls preserves inertia and allows
-drag to slow the actor. The engine is sized from the main planet and reused
-on other planets; lower attainable speed is possible in dense air or high
-gravity. The nozzles emit along the tilted suit's downward axis; no independent
-sideways force bypasses the suit orientation. Arms remain still while armed.
+The 100 kg actor integrates world-space gravity from the three nearest celestial
+centres and quadratic drag relative to their translating/rotating air. Pressure
+depends on configured gas composition, sea-level pressure and temperature.
+Falling has no artificial velocity clamp; vacuum has no drag terminal speed.
+The near-body controller targets 100 m/s along the commanded 3D axis; free-space
+thrust requests acceleration without a speed ceiling. A shared main-planet-sized
+engine limits force along the smoothly tilted suit axis. Orbit pause/speed changes
+the prescribed bodies' motion while local character simulation continues.
 
 The [force model and power study](flight.md) gives the equations, numerical
 production-scene estimate and assumptions. Effective drag area, exhaust speed
@@ -85,7 +84,8 @@ The actor does not yet cast a full dynamic body shadow. Bubbles are a bounded
 
 Capture metadata stores the complete gait, joints, contacts, 3D velocity,
 suit thrust axis, thrust force, pressure/power diagnostics, flight state and
-bubble phase. `--astronaut-capture` selects camera 4. For deterministic flight:
+bubble phase. World navigation also stores inertial position, velocity, up,
+exhaust axis, reference body and mode. `--astronaut-capture` selects camera 4. For deterministic flight:
 
 ```sh
 ./build/PlanetSimulation --astronaut-capture build/jetpack.png \

@@ -44,19 +44,12 @@ double JetpackPhysics::maximumThrust(const FlightEnvironment& e) {
 }
 glm::dvec3 JetpackPhysics::requestedThrust(const FlightEnvironment& e,const glm::dvec3& p,
                                           const glm::dvec3& v,const glm::dvec3& input,double maximum) {
-    const auto up=glm::normalize(p);
-    const auto horizontal=v-up*glm::dot(v,up);
-    // Cartesian motion already creates v_t^2/r radial acceleration. Subtract
-    // it when requesting a radial climb acceleration on a curved planet.
-    glm::dvec3 force=up*massKg*(std::max(0.0,-glm::dot(gravity(e,p,v),up)-
-        glm::dot(horizontal,horizontal)/glm::length(p))+20);
-    if (glm::length(input)>1e-9) {
-        // A 100 m/s commanded speed governor changes force, never clips the
-        // velocity. Airless coasting has no invented terminal-speed clamp.
-        auto acceleration=(glm::normalize(input)*speedTarget-horizontal)*.3;
-        if (glm::length(acceleration)>30) acceleration=glm::normalize(acceleration)*30.0;
-        force+=massKg*(acceleration+dragCoefficient(e,p)*glm::length(v)*horizontal);
-    }
+    if (glm::length(input)<1e-9) return glm::dvec3(0);
+    const auto direction=glm::normalize(input);
+    // Steer the complete 3D velocity rather than imposing radial ascent.
+    auto acceleration=(direction*speedTarget-v)*.3;
+    if (glm::length(acceleration)>30) acceleration=glm::normalize(acceleration)*30.0;
+    auto force=massKg*(acceleration-gravity(e,p,v)+dragCoefficient(e,p)*glm::length(v)*v);
     if (glm::length(force)>maximum) force*=maximum/glm::length(force);
     return force;
 }

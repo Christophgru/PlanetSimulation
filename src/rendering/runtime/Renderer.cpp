@@ -23,7 +23,7 @@ Renderer::Impl::Impl(app::CommandLineOptions arguments)
       meshReady(scene.scenario.planets.size(), false),
       lastLocalMask(scene.scenario.planets.size(), 0),
       lastFaceZones(scene.scenario.planets.size()),
-      lastEyeRadial(scene.scenario.planets.size(), glm::dvec3(0.0)),
+      lastTerrainEyes(scene.scenario.planets.size(), glm::dvec3(0.0)),
       meshZoneFaces(scene.scenario.planets.size()),
       meshTriangles(scene.scenario.planets.size(), 0),
       meshSteepRefinedFaces(scene.scenario.planets.size(), 0),
@@ -93,7 +93,7 @@ Renderer::Impl::Impl(app::CommandLineOptions arguments)
                       << scene.scenario.surface_camera.walk_speed_mps << " m/s)";
         }
         if (scene.planetOrbitCamera) std::cout << ", 3 for planet orbit";
-        if (scene.surfaceCamera) std::cout << ", 4 to follow the astronaut (WASD at 6 m/s; Space to jump, then boost the jetpack)";
+        if (scene.surfaceCamera) std::cout << ", 4 to follow the astronaut (WASD at 6 m/s; Space to jump/upward thrust; airborne WASD directs thrust)";
         std::cout << ". Press T to pause/resume orbits and spin. "
                   << "Press O for ten past orbit paths and body labels. "
                   << "Press Y to halve or U to double simulation speed. "

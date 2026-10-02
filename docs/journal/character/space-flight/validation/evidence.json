@@ -1,0 +1,68 @@
+{
+  "date_utc": "2026-10-02T22:44:45+00:00",
+  "base_revision": "b4e3ebc013c758db0005268a010f96fb9b1f6b5f",
+  "renderer_source_sha256": "126f6a8867a7058b623ebcca3d6750225acfb20cd50401827cdf931fface6d6d",
+  "binary_sha256": "2847722f0945dba2d06417bdd07a172ebd78505d08fac1b93141cc4a07f5f650",
+  "build": "GCC 12.2 RelWithDebInfo; Mesa llvmpipe/Xvfb; two renderer workers",
+  "validation": {
+    "entries_passed": 53,
+    "entries_total": 53,
+    "elapsed_s": 764.2,
+    "cpu_motion_cases_passed": 41,
+    "exact_png_and_pose_replay": [
+      "space",
+      "moon",
+      "moon-settled",
+      "jetpack-steering"
+    ],
+    "native_wasd_only_ignition": true,
+    "capture_clipping_fix": "Recompute from actual chase eye on each frame; saved Moon handoff and replay otherwise used different Earth/Moon starting clip ranges"
+  },
+  "gallery": {
+    "new_images": [
+      "astronaut-jetpack.png"
+    ],
+    "retained_images": 21,
+    "all_22_hashes_verified": true,
+    "mixed_provenance_explicit": true
+  },
+  "boundary": "Centre distance 1.2 body diameters = 2.4 radii",
+  "gravity": "Vector sum from three nearest celestial centres; all if fewer than three",
+  "artifacts": {
+    "README.md": "0bdd14378d0c0fd5c83610873584c73cb22b84df10e734e783392f3c307fb4f9",
+    "docs/captures/GENERATION.md": "72bfa15113765b91c503ee5dfcbbaaaa348f9fa82cd7a3a6aa541f5730667f3e",
+    "docs/captures/generation.json": "49433b1c49639d7033a592cbe813416f8489dde0efa56936e1c4279a4196249d",
+    "docs/captures/replay/character/astronaut-jetpack.png.json": "7d600277f8aba69288e8d71ddce29485009d005a598673ce2d090aa2a95cf67b",
+    "docs/journal/character/space-flight/images/jetpack.png": "19bedac9d1ecbe3d100689b3e2e5ed357e60a36def344447dc0fe619dd3cf21b",
+    "docs/journal/character/space-flight/images/moon-settled.png": "9161f5dfceb957f70a56a0161740b357009341ff670bb8d4485a80adb18c76b3",
+    "docs/journal/character/space-flight/images/moon.png": "45631ca591b463def79f151a4bdb08cd4b47a2939d1912e71c7a5ac3e2a99f27",
+    "docs/journal/character/space-flight/images/space.png": "b82058d1faae85903460f4804d27c0f40f75d294ffc3cc9fddee21c588d0fe0d",
+    "docs/journal/character/space-flight/replay/jetpack.png.json": "7d600277f8aba69288e8d71ddce29485009d005a598673ce2d090aa2a95cf67b",
+    "docs/journal/character/space-flight/replay/launch.png.json": "15f534712cb440092bee3a5c4029be476c36fb1285f91dbfcf46ead69463b3ae",
+    "docs/journal/character/space-flight/replay/moon-input.json": "4cabc92c694d8646b8cf2bdb3e63ed6f7a0e677645ad9bbd9310efa5e3be159e",
+    "docs/journal/character/space-flight/replay/moon-settled.png.json": "9e2d2c9b54a7541cfe8bb2bc31a0c5b69f30b2f60045cb35616f27db4b37dfa2",
+    "docs/journal/character/space-flight/replay/moon.png.json": "967c78fb6bd7779415a18bfefaea7a4c2ccc9f3be497f9b626c68f7a8cbd1e66",
+    "docs/journal/character/space-flight/replay/scene.json": "732ecbd1847802aa3ec012bc12bb8be7fc678c0e17278c95cfc32c73141df2cc",
+    "docs/journal/character/space-flight/replay/space-input.json": "04c56785442d7ca79f424344b646f12b6d1e6f3ebbb4af066c020d55c59c6805",
+    "docs/journal/character/space-flight/replay/space.png.json": "12d91a1464f80dc9fb62911597d89aab7d40da9731e217a78cbc646810a538be",
+    "docs/journal/character/space-flight/validation/captures/jetpack-steering-replay.log": "592f71ad28e9e1b43fa224acefc4ff113ab409085a5a6a1c3a457bc7f934c01b",
+    "docs/journal/character/space-flight/validation/captures/jetpack-steering.log": "8b582f3d25bf8175ced3ae04cef79b6be2d12cd8be82e865553243ab1a6a473c",
+    "docs/journal/character/space-flight/validation/captures/moon-replay.log": "459f6932ad236f3d7b7d067f249f24b7bfbd1d5f8d15ee8facb5647fe11840f0",
+    "docs/journal/character/space-flight/validation/captures/moon-settled-replay.log": "14839be2bb55e07168287f9f5ca576030dee7c8cd037bfd7b0c01fd0e25a7f56",
+    "docs/journal/character/space-flight/validation/captures/moon-settled.log": "79904d6954546d939cdbd9131d37d0762bdc97049d0b190678b199ef723b155c",
+    "docs/journal/character/space-flight/validation/captures/moon.log": "15a1345312d1ea5e3059802a72a97a9a073ce50edea6334c18cdc98772a10792",
+    "docs/journal/character/space-flight/validation/captures/space-replay.log": "0388aef00248b46209c89c8b833bd1fd3ebdc6758a462d9595dce8515149f786",
+    "docs/journal/character/space-flight/validation/captures/space.log": "b788e4b425df5b548106ca1c95fd7ec643e89544713b9ecb62a737d7a3fde67d",
+    "docs/journal/character/space-flight/validation/final-checks.log": "0bc262bdb811ee631dfad1edfc0459dd30de6f45c9a93f8b39dc1be768bb982f",
+    "docs/journal/character/space-flight/validation/space-flight-clip-build.log": "bbd876a425892f42235db9958c82990be20a65ed28b28d24f68523c9f639c733",
+    "docs/journal/character/space-flight/validation/space-flight-clip-check.log": "c74233ec3af947c0e1d64646a93c2ef1b2d4b5da725574c3cc97aa097652781c",
+    "docs/journal/character/space-flight/validation/space-flight-cpu-cases.log": "eef68c5e646301bd1d9cc00c76134cdcc0111b633f9741ca6ced99743cbe8eb6",
+    "docs/journal/character/space-flight/validation/space-flight-full-tests.log": "53186bc1b47134b69ba45e94ac8943d8e424512fb3e8dc7282bc45b966f45e4d",
+    "docs/journal/character/space-flight/validation/typst.log": "b25d4c979aed21583ac4944a7ebac001134c3b1d655f4fe8d72bd5a467b1e9aa",
+    "docs/journal/character/space-flight.md": "283d70c475f64c5a7aabd571c6237d634990c31c6ab349413f602f2b6ab2f370",
+    "docs/journal/paper.pdf": "4af6ae303860683741e740aeb1be35eb408f2755a2ca9955d61ab188d0f48351",
+    "docs/journal/paper.typ": "4f52120ff204c5c9383baf2737fd8cbde3995028e2c06add8a0632a0aacaa369",
+    "docs/screenshots/astronaut-jetpack.png": "19bedac9d1ecbe3d100689b3e2e5ed357e60a36def344447dc0fe619dd3cf21b"
+  },
+  "journal": "Main PDF rebuilt after gallery publication; flight pages 20/21 and validation page 22 visually reviewed"
+}

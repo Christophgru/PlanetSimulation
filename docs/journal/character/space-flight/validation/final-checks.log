@@ -1,0 +1,6 @@
+Validated folder limits, image-only gallery and README capture links
+Verified all 22 gallery PNG hashes and refreshed jetpack source fingerprint.
+Verified renderer source and tested binary fingerprints.
+Verified exact space/Moon/settled PNG and complete pose replay.
+Typst PDF rebuilt; flight pages 20, 21 and validation page 22 visually reviewed.
+Git diff whitespace check passes.

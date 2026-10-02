@@ -79,6 +79,7 @@ public:
 
     void selectSurface() {
         if (surface_) {
+            surface_->endFlight();
             mode_ = CameraMode::Surface;
             surfacePointerCaptured_ = true;
             dragging_ = false;

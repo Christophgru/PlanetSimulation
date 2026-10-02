@@ -39,7 +39,7 @@ void onKey(GLFWwindow* window, int key, int, int action, int) {
     auto* context = static_cast<InputContext*>(glfwGetWindowUserPointer(window));
     if (key==GLFW_KEY_SPACE && context && context->camera && context->camera->mode()==CameraMode::ThirdPerson) {
         ++context->spacePresses;
-        std::cout << "Astronaut Space: jump / airborne jetpack boost\n" << std::flush;
+        std::cout << "Astronaut Space: jump / upward jetpack thrust\n" << std::flush;
         return;
     }
     if (key == GLFW_KEY_I && context) {
@@ -79,7 +79,7 @@ void onKey(GLFWwindow* window, int key, int, int action, int) {
     } else if (key == GLFW_KEY_4) {
         input->selectThirdPerson();
         if (input->mode()==CameraMode::ThirdPerson)
-            std::cout << "Camera 4: following the astronaut at 6 m/s; Space to jump, then boost\n" << std::flush;
+            std::cout << "Camera 4: following the astronaut at 6 m/s; Space to jump/upward thrust; airborne WASD directs thrust\n" << std::flush;
     } else if (key == GLFW_KEY_ESCAPE) {
         input->releaseCursor();
     }

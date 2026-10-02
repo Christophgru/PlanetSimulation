@@ -1,5 +1,10 @@
 # Directed astronaut flight and power estimate
 
+This records the directed-flight checkpoint before world-space navigation.
+Its force/engine sizing calculation remains the shared hardware reference.
+For current controls, three-body gravity and Moon travel, see
+[space-flight behavior and validation](space-flight.md).
+
 The 100 kg astronaut now flies under forces in the selected planet's rotating
 frame. WASD commands horizontal acceleration while the jetpack boosts, with a
 100 m/s target rather than a velocity clamp. The suit leans into its requested

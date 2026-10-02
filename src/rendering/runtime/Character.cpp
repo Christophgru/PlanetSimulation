@@ -1,5 +1,7 @@
 #include "rendering/runtime/RendererState.h"
 #include <GLFW/glfw3.h>
+#include <iostream>
+#include <bit>
 
 namespace rendering {
 namespace {
@@ -17,6 +19,18 @@ nlohmann::json Renderer::Impl::astronautState() const {
         {"boost_pulse_s",p.boostPulse},{"airborne",p.airborne},{"jetpack_armed",p.jetpackArmed},{"boosting",p.boosting},
         {"velocity_mps",vector(p.velocity)},{"suit_up",vector(p.suitUp)},{"thrust_n",p.thrustN},
         {"body_offset_m",vector(p.bodyOffset)}};
+    if (p.navigation) {
+        const auto& n=*p.navigation;
+        result["navigation"]={{"position_m",vector(n.position)},{"velocity_mps",vector(n.velocity)},
+            {"up",vector(n.up)},{"reference_body",n.referenceBody},{"outer_space",n.outerSpace},
+            {"suit_up",vector(n.suitUp)}};
+        const auto indices=astronaut.motion.gravitySourceIndices();
+        result["navigation"]["gravity_body_indices"]=indices;
+        for (auto i:indices) result["navigation"]["gravity_bodies"].push_back({
+            {"index",i},{"position_m",vector(scene.bodies[i].position*scene.scenario.metersPerWorldUnit())},
+            {"radius_m",(i==0 ? scene.scenario.sun.radius : scene.scenario.planets[i-1].radius)*scene.scenario.metersPerWorldUnit()},
+            {"mass_kg",i==0 ? scene.scenario.sun.mass_kg : scene.scenario.planets[i-1].mass_kg}});
+    }
     result["flight_physics"]={{"mass_kg",JetpackPhysics::massKg},{"drag_area_cd_m2",JetpackPhysics::dragArea},
         {"commanded_horizontal_speed_mps",JetpackPhysics::speedTarget},{"maximum_thrust_n",astronaut.motion.maximumThrust()},
         {"air_pressure_pa",astronaut.motion.airPressure()},{"air_density_kg_m3",astronaut.motion.airDensity()},
@@ -29,7 +43,25 @@ nlohmann::json Renderer::Impl::astronautState() const {
             {"ankle",vector(p.ankles[i])},{"reached",p.legReached[i]}});
     }
     const auto* trail=grass.procedural.existingTrail(astronaut.planetIndex);
-    result["terrain_plan_eye_world_units"]=vector(captureTerrainEye);
+    result["terrain_plan_eye_world_units"]=vector(p.navigation ? lastTerrainEyes[astronaut.planetIndex] : captureTerrainEye);
+    if (p.navigation) for (const auto& eye:lastTerrainEyes)
+        result["terrain_plan_eyes_world_units"].push_back(vector(eye));
+    if (p.navigation) {
+        result["terrain_face_zones"]=lastFaceZones;
+        result["flight_view_world"]={{"direction",vector(scene.surfaceCamera->direction())},
+            {"up",vector(scene.surfaceCamera->up())}};
+        result["chase_view_world"]={{"eye",vector(astronautView.eye)},
+            {"target",vector(astronautView.target)},{"up",vector(astronautView.up)}};
+        for (const auto& mesh:meshes.planetMeshes) {
+            std::uint64_t hash=14695981039346656037ULL;
+            const auto append=[&](std::uint32_t word) {
+                for (int byte=0;byte<4;++byte) { hash^=(word>>(8*byte))&255; hash*=1099511628211ULL; }
+            };
+            for (float value:mesh.vertices) append(std::bit_cast<std::uint32_t>(value));
+            for (auto value:mesh.indices) append(value);
+            result["terrain_mesh_fnv1a64"].push_back(std::to_string(hash));
+        }
+    }
     result["grass_trail"]=nlohmann::json::array();
     if (trail) for (const auto& segment:trail->segments())
         result["grass_trail"].push_back({vector(segment.start),vector(segment.end)});
@@ -62,6 +94,11 @@ void Renderer::Impl::prepareAstronaut(double elapsed) {
         astronaut.motion.refreshContacts(ground);
         astronautGroundRevision=mesh.revision;
     }
+    std::vector<FlightBody> flightBodies;
+    flightBodies.reserve(scene.bodies.size());
+    const double characterStep=options.benchmarkCharacterStep>0 ? options.benchmarkCharacterStep : options.benchmarkWalkStep/6.0;
+    const double orbitalRate=options.renderTestMode ?
+        (characterStep>0 ? options.benchmarkStep/characterStep : 0) : (simulationClock.paused() ? 0 : simulationClock.speed());
     const auto root=ground(body.toLocalPoint(camera.position()));
     const auto direction=glm::transpose(body.orientation)*camera.direction();
     const auto environment=[&](const config::PlanetConfig& bodyConfig) {
@@ -70,12 +107,42 @@ void Renderer::Impl::prepareAstronaut(double elapsed) {
         e.seaLevelMeters=bodyConfig.water.enabled ? bodyConfig.water.level_m : 0;
         e.atmosphere=bodyConfig.atmosphere; return e;
     };
+    for (std::size_t i=0;i<scene.bodies.size();++i) {
+        FlightBody b; b.position=scene.bodies[i].position*units;
+        b.velocity=scene.bodies[i].velocity*units*orbitalRate; b.orientation=scene.bodies[i].orientation;
+        b.orientable=i>0;
+        if (i==0) {
+            b.environment.radiusMeters=scene.scenario.sun.radius*units;
+            b.environment.planetMassKg=scene.scenario.sun.mass_kg;
+            b.environment.atmosphere.enabled=false;
+        } else {
+            b.environment=environment(scene.scenario.planets[i-1]);
+            b.angularVelocity=b.orientation*glm::dvec3(0,0,b.environment.spinRadiansPerSecond*orbitalRate);
+            b.ground=[this,i,units](const glm::dvec3& p) {
+                const auto radial=glm::normalize(p);
+                const auto& planet=scene.scenario.planets[i-1];
+                const double radius=planet.radius*units;
+                const GroundQuery fallback=[&](const glm::dvec3& r) {
+                    return GroundContact{r*(radius+scene.terrainSurfaces[i-1].heightAt(r)*units),r};
+                };
+                auto contact=astronaut.planetIndex==i-1 ? astronautGround.sample(radial,fallback) : fallback(radial);
+                if (planet.water.enabled && glm::length(contact.position)<radius+planet.water.level_m)
+                    contact={radial*(radius+planet.water.level_m),radial};
+                return contact;
+            };
+        }
+        flightBodies.push_back(std::move(b));
+    }
+    astronaut.motion.setFlightWorld(std::move(flightBodies),index+1);
+    astronaut.motion.setFlightViewUp(glm::transpose(body.orientation)*camera.up());
     astronaut.motion.setFlightEnvironment(environment(planet),JetpackPhysics::maximumThrust(environment(scene.scenario.planets.front())));
     astronaut.motion.setFlightControl(astronautFlightControl);
     while (inputContext.spacePresses) { astronaut.motion.pressSpace(); --inputContext.spacePresses; }
     astronaut.motion.holdBoost(options.renderTestMode ? astronautBenchmarkBoost :
         glfwGetKey(window,GLFW_KEY_SPACE)==GLFW_PRESS);
     const bool wasAirborne=astronaut.motion.ready() && astronaut.motion.pose().airborne;
+    const bool wasBoosting=astronaut.motion.ready() && astronaut.motion.pose().boosting;
+    const bool wasOuterSpace=astronaut.motion.ready() && astronaut.motion.pose().navigation && astronaut.motion.pose().navigation->outerSpace;
     astronaut.motion.update(root,direction,elapsed,ground);
     if (!astronautReplayRestored && !options.replayPath.empty()) {
         astronautReplayRestored=true;
@@ -93,6 +160,13 @@ void Renderer::Impl::prepareAstronaut(double elapsed) {
             p.velocity=j.contains("velocity_mps") ? vector(j.at("velocity_mps")) : p.up*p.verticalVelocity;
             p.suitUp=j.contains("suit_up") ? vector(j.at("suit_up")) : p.up;
             p.thrustN=j.value("thrust_n",0.0);
+            if (j.contains("navigation")) {
+                const auto& n=j.at("navigation");
+                p.navigation=FlightState{vector(n.at("position_m")),vector(n.at("velocity_mps")),vector(n.at("up")),
+                    n.at("reference_body").get<std::size_t>(),n.at("outer_space").get<bool>()};
+                p.navigation->suitUp=n.contains("suit_up") ? vector(n.at("suit_up")) :
+                    body.orientation*p.suitUp;
+            }
             p.bodyOffset=j.contains("body_offset_m") ? vector(j.at("body_offset_m")) : glm::dvec3(0);
             if (!j.at("feet").is_array() || j.at("feet").size()!=2)
                 throw std::invalid_argument("Astronaut replay needs two feet");
@@ -105,8 +179,12 @@ void Renderer::Impl::prepareAstronaut(double elapsed) {
                 p.hips[i]=vector(f.at("hip")); p.knees[i]=vector(f.at("knee"));
                 p.ankles[i]=vector(f.at("ankle")); p.legReached[i]=f.at("reached").get<bool>();
             }
-            if (glm::length(glm::normalize(p.root)*glm::length(root.position)-root.position)<.1)
+            if (p.navigation || glm::length(glm::normalize(p.root)*glm::length(root.position)-root.position)<.1)
                 astronaut.motion.restore(p);
+            if (p.navigation && j.contains("flight_view_world")) {
+                const auto& v=j.at("flight_view_world");
+                camera.setWorldView(vector(v.at("direction")),vector(v.at("up")));
+            }
             if (j.contains("grass_plan_eye"))
                 grass.procedural.restorePlanningEye(index,vector(j.at("grass_plan_eye")));
             if (j.contains("grass_trail")) {
@@ -123,14 +201,71 @@ void Renderer::Impl::prepareAstronaut(double elapsed) {
             }
         }
     }
+    const auto targetBody=astronaut.motion.pose().navigation ?
+        astronaut.motion.pose().navigation->referenceBody : astronaut.motion.referenceBody();
+    if (targetBody!=index+1) {
+        astronaut.motion.reframeFlight(targetBody);
+        const auto next=targetBody-1;
+        const auto& nextPlanet=scene.scenario.planets[next]; const auto& nextBody=scene.bodies[targetBody];
+        captureTerrainEye=nextBody.toLocalPoint(camera.position());
+        const auto worldRoot=nextBody.position+nextBody.orientation*astronaut.motion.pose().root/units;
+        if (const auto& nav=astronaut.motion.pose().navigation)
+            camera.followFlight(worldRoot,nav->up,nav->outerSpace);
+        const auto look=camera.direction(); const auto viewUp=camera.up();
+        const coordinates::PlanetLocalFrame frame(nextBody.position,nextPlanet.radius,nextBody.orientation);
+        const auto location=frame.fromWorld(worldRoot);
+        PlanetSurfaceCamera replacement(frame,location,scene.sunPosition,camera.fov(),camera.walkSpeed());
+        replacement.mountTerrain(scene.terrainSurfaces[next],camera.configuredClearance(),nextPlanet.water.enabled ?
+            std::optional<double>(nextPlanet.water.level_m/units) : std::nullopt);
+        const auto ned=frame.nedAt(replacement.location());
+        replacement.setDirectionNed(ned.fromWorld(look),ned.fromWorld(viewUp));
+        camera=std::move(replacement);
+        scene.scenario.surface_camera.planet_index=next;
+        scene.orbitPlanetIndex=next; scene.planetOrbitCenter=nextBody.position;
+        double height=nextPlanet.terrain_landscape.maximumAbsoluteHeightMeters();
+        for (const auto& noise:nextPlanet.surface_noise) height+=noise.amplitude_m;
+        scene.planetOrbitOuterRadius=nextPlanet.radius+std::max(height,nextPlanet.water.enabled ? nextPlanet.water.level_m : 0.0)/units;
+        if (scene.planetOrbitCamera) {
+            const float minimum=scene.planetOrbitOuterRadius+2/units;
+            const float initial=std::max(float(2.8*nextPlanet.radius),1.5f*minimum);
+            const float maximum=std::max(float(20*nextPlanet.radius),2*initial);
+            *scene.planetOrbitCamera=OrbitCamera(glm::vec3(nextBody.position),
+                glm::vec3(glm::normalize(worldRoot-nextBody.position)*double(initial)),
+                OrbitCamera::Settings{minimum,maximum,.96f});
+        }
+        astronaut.planetIndex=next; astronautGround.clear(); astronautGroundRevision=0;
+        astronaut.motion.setFlightEnvironment(environment(nextPlanet),JetpackPhysics::maximumThrust(environment(scene.scenario.planets.front())));
+        std::cout << "Astronaut destination: " << nextPlanet.name << "\n" << std::flush;
+    }
+    if (!options.renderTestMode) {
+        if (astronaut.motion.pose().boosting!=wasBoosting)
+            std::cout << "Astronaut jetpack thrust " << (astronaut.motion.pose().boosting ? "on" : "off") << "\n" << std::flush;
+        const bool outer=astronaut.motion.pose().navigation && astronaut.motion.pose().navigation->outerSpace;
+        if (outer!=wasOuterSpace)
+            std::cout << "Astronaut orientation: " << (outer ? "outer space" : "local planet") << "\n" << std::flush;
+    }
+    const auto current=astronaut.planetIndex;
+    const auto& currentBody=scene.bodies[current+1];
     const auto& pose=astronaut.motion.pose();
-    if (pose.airborne || wasAirborne)
-        camera.followSurfaceDirection(body.position+body.orientation*pose.root/units);
-    grass.procedural.trail(index).observe(pose.root,!pose.airborne &&
-        (!planet.water.enabled || glm::length(root.position)>radius+planet.water.level_m+.001));
-    const auto chase=astronaut.motion.chase(glm::transpose(body.orientation)*camera.direction(),ground);
-    astronautView={body.position+body.orientation*chase.eye/units,
-                   body.position+body.orientation*chase.target/units,
-                   body.orientation*chase.up};
+    if (pose.navigation) {
+        camera.followFlight(pose.navigation->position/units,pose.navigation->up,pose.navigation->outerSpace);
+    } else if (pose.airborne || wasAirborne) {
+        camera.endFlight();
+        camera.followSurfaceDirection(currentBody.position+currentBody.orientation*pose.root/units);
+    }
+    grass.procedural.trail(current).observe(pose.root,!pose.airborne &&
+        (!scene.scenario.planets[current].water.enabled || glm::length(pose.root)>
+            scene.scenario.planets[current].radius*units+scene.scenario.planets[current].water.level_m+.001));
+    const GroundQuery currentGround=[&](const glm::dvec3& p) {
+        const auto radial=glm::normalize(p); const auto& planet=scene.scenario.planets[current];
+        const double floor=planet.radius+std::max(scene.terrainSurfaces[current].heightAt(radial),
+            planet.water.enabled ? planet.water.level_m/units : -std::numeric_limits<double>::infinity());
+        return GroundContact{radial*floor*units,radial};
+    };
+    const auto chase=astronaut.motion.chase(glm::transpose(currentBody.orientation)*camera.direction(),
+        current==index ? ground : currentGround,glm::transpose(currentBody.orientation)*camera.up());
+    astronautView={currentBody.position+currentBody.orientation*chase.eye/units,
+                   currentBody.position+currentBody.orientation*chase.target/units,
+                   currentBody.orientation*chase.up};
 }
 }

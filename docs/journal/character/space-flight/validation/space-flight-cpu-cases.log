@@ -1,0 +1,106 @@
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 41 tests from 6 test suites.
+[----------] Global test environment set-up.
+[----------] 10 tests from AstronautMotion
+[ RUN      ] AstronautMotion.RestingFeetRemainFixedAndIKReachesBothSoles
+[       OK ] AstronautMotion.RestingFeetRemainFixedAndIKReachesBothSoles (0 ms)
+[ RUN      ] AstronautMotion.StoppingExtendsKneesWithFixedSolesAndFiniteTransitions
+[       OK ] AstronautMotion.StoppingExtendsKneesWithFixedSolesAndFiniteTransitions (1 ms)
+[ RUN      ] AstronautMotion.UnevenStandingPreservesReachInsteadOfOverstretchingALeg
+[       OK ] AstronautMotion.UnevenStandingPreservesReachInsteadOfOverstretchingALeg (0 ms)
+[ RUN      ] AstronautMotion.UnreachableCliffContactDoesNotPullTheBodyBelowGround
+[       OK ] AstronautMotion.UnreachableCliffContactDoesNotPullTheBodyBelowGround (0 ms)
+[ RUN      ] AstronautMotion.WalkingAlternatesLiftedFeetWithoutSlidingTheStanceContact
+[       OK ] AstronautMotion.WalkingAlternatesLiftedFeetWithoutSlidingTheStanceContact (1 ms)
+[ RUN      ] AstronautMotion.MovementAndPoseStayFiniteAcrossBothPolesAndDirectionChanges
+[       OK ] AstronautMotion.MovementAndPoseStayFiniteAcrossBothPolesAndDirectionChanges (1 ms)
+[ RUN      ] AstronautMotion.GroundRevisionAdjustsHeightWhilePreservingTheSurfaceLocation
+[       OK ] AstronautMotion.GroundRevisionAdjustsHeightWhilePreservingTheSurfaceLocation (0 ms)
+[ RUN      ] AstronautMotion.ChaseClearsTheGroundAndShortensAtInterveningMountains
+[       OK ] AstronautMotion.ChaseClearsTheGroundAndShortensAtInterveningMountains (0 ms)
+[ RUN      ] AstronautMotion.ReplayValidatesAndRestoresTheCompleteWalkingPose
+[       OK ] AstronautMotion.ReplayValidatesAndRestoresTheCompleteWalkingPose (0 ms)
+[ RUN      ] AstronautMotion.WalkingAndSprintingAtSixAndTwelveMetersKeepStanceFeetLocked
+[       OK ] AstronautMotion.WalkingAndSprintingAtSixAndTwelveMetersKeepStanceFeetLocked (2 ms)
+[----------] 10 tests from AstronautMotion (6 ms total)
+
+[----------] 4 tests from AstronautFlight
+[ RUN      ] AstronautFlight.TapJumpUsesGravityWithoutHeldOrDirectionalThrust
+[       OK ] AstronautFlight.TapJumpUsesGravityWithoutHeldOrDirectionalThrust (1 ms)
+[ RUN      ] AstronautFlight.SecondSpaceEnablesBoostAndReleaseFallsBackToALanding
+[       OK ] AstronautFlight.SecondSpaceEnablesBoostAndReleaseFallsBackToALanding (3 ms)
+[ RUN      ] AstronautFlight.SpinReducesRadialGravityAndRaisedTerrainStopsTheDescent
+[       OK ] AstronautFlight.SpinReducesRadialGravityAndRaisedTerrainStopsTheDescent (0 ms)
+[ RUN      ] AstronautFlight.TiltedAccelerationLocksArmsAndReplayContinuesDeterministically
+[       OK ] AstronautFlight.TiltedAccelerationLocksArmsAndReplayContinuesDeterministically (0 ms)
+[----------] 4 tests from AstronautFlight (6 ms total)
+
+[----------] 3 tests from AstronautInput
+[ RUN      ] AstronautInput.ShiftDoublesOnlyCameraFourWalkingSpeed
+[       OK ] AstronautInput.ShiftDoublesOnlyCameraFourWalkingSpeed (0 ms)
+[ RUN      ] AstronautInput.CameraFourSharesPositionButWalksAtItsOwnSpeedAndReloadsSafely
+[       OK ] AstronautInput.CameraFourSharesPositionButWalksAtItsOwnSpeedAndReloadsSafely (0 ms)
+[ RUN      ] AstronautInput.AirborneControlsDoNotWalkTheGroundCamera
+[       OK ] AstronautInput.AirborneControlsDoNotWalkTheGroundCamera (0 ms)
+[----------] 3 tests from AstronautInput (0 ms total)
+
+[----------] 1 test from SurfaceContact
+[ RUN      ] SurfaceContact.UsesRenderedTriangleHeightAndNormalsAndInvalidatesItsCache
+[       OK ] SurfaceContact.UsesRenderedTriangleHeightAndNormalsAndInvalidatesItsCache (0 ms)
+[----------] 1 test from SurfaceContact (0 ms total)
+
+[----------] 4 tests from JetpackPhysics
+[ RUN      ] JetpackPhysics.PressureAndDensityFollowGasTemperatureAltitudeAndVacuum
+[       OK ] JetpackPhysics.PressureAndDensityFollowGasTemperatureAltitudeAndVacuum (0 ms)
+[ RUN      ] JetpackPhysics.GravityIncludesAltitudeCentrifugalAndCoriolisTerms
+[       OK ] JetpackPhysics.GravityIncludesAltitudeCentrifugalAndCoriolisTerms (0 ms)
+[ RUN      ] JetpackPhysics.CommandedSpeedBalancesDragAndThrustHasASharedHardwareBound
+[       OK ] JetpackPhysics.CommandedSpeedBalancesDragAndThrustHasASharedHardwareBound (0 ms)
+[ RUN      ] JetpackPhysics.FallingConvergesToDragTerminalSpeedAndVacuumHasNoClamp
+[       OK ] JetpackPhysics.FallingConvergesToDragTerminalSpeedAndVacuumHasNoClamp (4 ms)
+[----------] 4 tests from JetpackPhysics (5 ms total)
+
+[----------] 19 tests from FlightNavigation
+[ RUN      ] FlightNavigation.ThreeNearestBodiesUseVectorGravityAndChangeWithPosition
+[       OK ] FlightNavigation.ThreeNearestBodiesUseVectorGravityAndChangeWithPosition (0 ms)
+[ RUN      ] FlightNavigation.ExitAtTwoPointFourRadiiKeepsInertialOrientationAndVelocity
+[       OK ] FlightNavigation.ExitAtTwoPointFourRadiiKeepsInertialOrientationAndVelocity (0 ms)
+[ RUN      ] FlightNavigation.MoonApproachReorientsSmoothlyWithoutTeleportingOrChangingVelocity
+[       OK ] FlightNavigation.MoonApproachReorientsSmoothlyWithoutTeleportingOrChangingVelocity (0 ms)
+[ RUN      ] FlightNavigation.OverlappingRegionsRetainCurrentBodyUntilAnotherIsMeaningfullyCloser
+[       OK ] FlightNavigation.OverlappingRegionsRetainCurrentBodyUntilAnotherIsMeaningfullyCloser (0 ms)
+[ RUN      ] FlightNavigation.DirectionalOnlyThrustDescendsAndReleaseCoastsInVacuum
+[       OK ] FlightNavigation.DirectionalOnlyThrustDescendsAndReleaseCoastsInVacuum (0 ms)
+[ RUN      ] FlightNavigation.UpwardThrustAndSpaceAccelerationAreNotVelocityClamped
+[       OK ] FlightNavigation.UpwardThrustAndSpaceAccelerationAreNotVelocityClamped (0 ms)
+[ RUN      ] FlightNavigation.DestinationLandingUsesItsOwnSurfaceAndMovingAirFrame
+[       OK ] FlightNavigation.DestinationLandingUsesItsOwnSurfaceAndMovingAirFrame (0 ms)
+[ RUN      ] FlightNavigation.FlightCameraDoesNotFollowDeparturePlanetAndCanPitchThroughVertical
+[       OK ] FlightNavigation.FlightCameraDoesNotFollowDeparturePlanetAndCanPitchThroughVertical (0 ms)
+[ RUN      ] FlightNavigation.MotionWorldReplayAndBodyReframingPreserveWorldPose
+[       OK ] FlightNavigation.MotionWorldReplayAndBodyReframingPreserveWorldPose (0 ms)
+[ RUN      ] FlightNavigation.PoweredJourneyLeavesDepartureFrameAndEntersMoonFrame
+[       OK ] FlightNavigation.PoweredJourneyLeavesDepartureFrameAndEntersMoonFrame (18 ms)
+[ RUN      ] FlightNavigation.OrientationBoundaryDoesNotSwitchAtmosphericDragOff
+[       OK ] FlightNavigation.OrientationBoundaryDoesNotSwitchAtmosphericDragOff (0 ms)
+[ RUN      ] FlightNavigation.MovingBodyIsSampledThroughoutSlowFramesWithoutFalseLanding
+[       OK ] FlightNavigation.MovingBodyIsSampledThroughoutSlowFramesWithoutFalseLanding (0 ms)
+[ RUN      ] FlightNavigation.CoastingSuitAxisStaysInertialWhileItsReferencePlanetSpins
+[       OK ] FlightNavigation.CoastingSuitAxisStaysInertialWhileItsReferencePlanetSpins (0 ms)
+[ RUN      ] FlightNavigation.NearBodyAirborneChaseDoesNotGoUndergroundWhenLookingUp
+[       OK ] FlightNavigation.NearBodyAirborneChaseDoesNotGoUndergroundWhenLookingUp (0 ms)
+[ RUN      ] FlightNavigation.CoastingAstronautAlsoAlignsItsSuitOnMoonApproach
+[       OK ] FlightNavigation.CoastingAstronautAlsoAlignsItsSuitOnMoonApproach (1 ms)
+[ RUN      ] FlightNavigation.MoonBoundarySelectsTheMoonEvenInsideItsLargerParentRegion
+[       OK ] FlightNavigation.MoonBoundarySelectsTheMoonEvenInsideItsLargerParentRegion (0 ms)
+[ RUN      ] FlightNavigation.CapturedWorldViewRestoresWithoutRenormalizingItsComponents
+[       OK ] FlightNavigation.CapturedWorldViewRestoresWithoutRenormalizingItsComponents (0 ms)
+[ RUN      ] FlightNavigation.LaunchIncludesBothOrbitalAndSpinVelocity
+[       OK ] FlightNavigation.LaunchIncludesBothOrbitalAndSpinVelocity (0 ms)
+[ RUN      ] FlightNavigation.NearBodySteeringControlsTheFullVelocityVector
+[       OK ] FlightNavigation.NearBodySteeringControlsTheFullVelocityVector (0 ms)
+[----------] 19 tests from FlightNavigation (23 ms total)
+
+[----------] Global test environment tear-down
+[==========] 41 tests from 6 test suites ran. (42 ms total)
+[  PASSED  ] 41 tests.

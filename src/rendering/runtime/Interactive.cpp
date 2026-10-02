@@ -71,7 +71,7 @@ int Renderer::Impl::interact() {
                 std::vector<bool> nextMeshReady(count, false);
                 std::vector<int> nextLocalMask(count, 0);
                 std::vector<std::vector<int>> nextFaceZones(count);
-                std::vector<glm::dvec3> nextEyeRadial(count, glm::dvec3(0.0));
+                std::vector<glm::dvec3> nextTerrainEyes(count, glm::dvec3(0.0));
                 std::vector<std::array<int, 3>> nextZoneFaces(count);
                 std::vector<int> nextTriangles(count, 0);
                 std::vector<int> nextSteepRefinedFaces(count, 0);
@@ -100,7 +100,7 @@ int Renderer::Impl::interact() {
                 meshReady.swap(nextMeshReady);
                 lastLocalMask.swap(nextLocalMask);
                 lastFaceZones.swap(nextFaceZones);
-                lastEyeRadial.swap(nextEyeRadial);
+                lastTerrainEyes.swap(nextTerrainEyes);
                 meshZoneFaces.swap(nextZoneFaces);
                 meshTriangles.swap(nextTriangles);
                 meshSteepRefinedFaces.swap(nextSteepRefinedFaces);
@@ -191,7 +191,10 @@ int Renderer::Impl::interact() {
             if (onThird) {
                 FrameProfiler::Scope scope(&profiler,FrameStage::Mesh,false);
                 preparePlanetMeshes(scene.surfaceCamera->position(),true);
-                prepareAstronaut(elapsedSeconds);
+                // World-space flight must account for the same elapsed wall
+                // time as moving celestial bodies. Ground walking stays capped.
+                prepareAstronaut(astronaut.motion.ready() && astronaut.motion.pose().airborne ?
+                    frameElapsed : elapsedSeconds);
             }
             const glm::mat4 targetView = onThird ? glm::mat4(glm::lookAt(astronautView.eye,astronautView.target,astronautView.up)) :
                                    onSurface ? scene.surfaceCamera->getViewMatrix() :

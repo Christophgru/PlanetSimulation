@@ -1,0 +1,35 @@
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 20.0 s
+Sun radius: 2.5
+Planets: 2
+Surface camera position: (7.67958, 6.35031, 1.09538)
+Surface render test mode enabled
+Output image: /workspace/build-resume/space-flight-captures/space-replay.png
+Planet 0 terrain: 8640 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 12000); foliage blades: 0; water triangles: 960
+Planet 0 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 1036800
+Planet 0 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Planet 1 terrain: 960 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 12000); foliage blades: 0; water triangles: 0
+Planet 1 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 115200
+Planet 1 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Mesh preparation: 92.6793 ms; GPU-complete render: 637.041 ms
+earth lighting: direct RGB (4.42966, 4.38536, 4.29677), reflected RGB (7.53886e-06, 7.46347e-06, 7.69757e-06)
+moon lighting: direct RGB (8.26617, 8.18351, 8.01819), reflected RGB (0.0122606, 0.02023, 0.0396426)
+Image size: 320x240
+Background pixel: (1, 1, 3)
+Non-background pixels: 76798, bounding box: (0, 0)-(319, 239)
+Sun-colored pixels: 0
+Planet pixels (color/depth): 0
+Camera exposure: 1844.82; sky sensitivity: 1
+Star-like pixels: 35, bounding box: (46, 9)-(316, 235)
+Blue water-like pixels: 405, bounding box: (141, 93)-(179, 162)
+Simulation time: 20.0 s
+Surface camera position (world, km): [7.679575327269233,6.350304407791551,4.000806857225155]
+Surface camera direction (world, unit vector): [0.6114639787943271,-0.7492822725452649,-0.2543381188229837]
+Surface camera position (planet LLA): latitude=70.00004846343177 deg, longitude=-29.999839012650373 deg, altitude=2999.995857469855 m above reference sphere
+Surface camera ground clearance: 3.0 m
+surface_camera start value: {"altitude":0.003,"direction_ned":[0.7492841021280644,-0.6114617560368953,0.25433807265609404],"fov":65.0,"latitude_deg":70.00004846343177,"longitude_deg":-29.999839012650373,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":20.0,"up_ned":[0.4134285462415031,0.7319127733373941,0.5416461292931039],"walk_speed_mps":80.0}
+White-clipped pixels (RGB >= 250): 1171 (1.52474%)
+Astronaut pixels: 2384
+Render test completed successfully
+Output image: /workspace/build-resume/space-flight-captures/space-replay.png

@@ -5,12 +5,16 @@
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
+#include <limits>
 
 namespace rendering {
 namespace {
 glm::dvec3 tangent(const glm::dvec3& v,const glm::dvec3& up,const glm::dvec3& fallback) {
     const auto t=v-up*glm::dot(v,up);
-    return glm::length(t)>1e-8 ? glm::normalize(t) : fallback;
+    if (glm::length(t)>1e-8) return glm::normalize(t);
+    const auto projected=fallback-up*glm::dot(fallback,up);
+    return glm::length(projected)>1e-8 ? glm::normalize(projected) :
+        glm::normalize(glm::cross(up,std::abs(up.x)<.9 ? glm::dvec3(1,0,0) : glm::dvec3(0,1,0)));
 }
 ozz::math::SimdFloat4 simd(const glm::dvec3& v) {
     return ozz::math::simd_float4::Load(v.x,v.y,v.z,0);
@@ -45,6 +49,36 @@ void AstronautMotion::setFlightEnvironment(const FlightEnvironment& environment,
     environment.atmosphere.validate();
     flightEnvironment_=environment; maximumThrust_=maximumThrust;
 }
+void AstronautMotion::setFlightWorld(std::vector<FlightBody> bodies,std::size_t referenceBody) {
+    if (referenceBody==0 || referenceBody>=bodies.size() || !bodies[referenceBody].orientable)
+        throw std::invalid_argument("Unknown astronaut reference body");
+    for (const auto& b:bodies) {
+        if (!std::isfinite(glm::length(b.position)) || !std::isfinite(glm::length(b.velocity)) ||
+            !std::isfinite(glm::length(b.angularVelocity)) || !std::isfinite(b.environment.radiusMeters) ||
+            b.environment.radiusMeters<=0 || !std::isfinite(b.environment.planetMassKg) || b.environment.planetMassKg<0 ||
+            !std::isfinite(glm::determinant(b.orientation)) || std::abs(glm::determinant(b.orientation)-1)>1e-6)
+            throw std::invalid_argument("Invalid celestial flight body");
+    }
+    flightBodies_=std::move(bodies); referenceBody_=referenceBody;
+}
+void AstronautMotion::reframeFlight(std::size_t referenceBody) {
+    if (referenceBody==0 || referenceBody>=flightBodies_.size() || !flightBodies_[referenceBody].orientable)
+        throw std::invalid_argument("Unknown flight destination");
+    if (referenceBody==referenceBody_) return;
+    const auto& from=flightBodies_[referenceBody_]; const auto& to=flightBodies_[referenceBody];
+    const auto rotation=glm::transpose(to.orientation)*from.orientation;
+    const auto point=[&](const glm::dvec3& p) { return to.localPoint(from.position+from.orientation*p); };
+    pose_.root=point(pose_.root);
+    pose_.up=rotation*pose_.up; pose_.forward=rotation*pose_.forward;
+    pose_.right=rotation*pose_.right; pose_.suitUp=rotation*pose_.suitUp;
+    for (int i=0;i<2;++i) {
+        pose_.hips[i]=point(pose_.hips[i]); pose_.knees[i]=point(pose_.knees[i]); pose_.ankles[i]=point(pose_.ankles[i]);
+        auto& f=pose_.feet[i]; f.contact.position=point(f.contact.position); f.contact.normal=rotation*f.contact.normal;
+        f.forward=rotation*f.forward; f.start=point(f.start); f.target=point(f.target);
+    }
+    if (pose_.navigation) pose_.velocity=glm::transpose(to.orientation)*(pose_.navigation->velocity-to.surfaceVelocity(pose_.navigation->position));
+    referenceBody_=referenceBody;
+}
 void AstronautMotion::restore(const AstronautPose& pose) {
     const auto valid=[](const glm::dvec3& v) { return std::isfinite(glm::length(v)); };
     if (!valid(pose.root) || glm::length(pose.root)<1e-6 ||
@@ -69,6 +103,11 @@ void AstronautMotion::restore(const AstronautPose& pose) {
             !std::isfinite(f.duration) || f.duration<.01 || f.duration>1)
             throw std::invalid_argument("Invalid astronaut replay contacts");
     }
+    if (pose.navigation) {
+        if (!pose.airborne) throw std::invalid_argument("Grounded astronaut cannot have a space flight state");
+        FlightNavigation::validate(*pose.navigation,flightBodies_.empty() ?
+            std::numeric_limits<std::size_t>::max() : flightBodies_.size());
+    }
     pose_=pose; ready_=true;
     walked_=pose.walkedMeters;
     if (!pose.feet[0].planted()) nextFoot_=1;
@@ -86,16 +125,46 @@ void AstronautMotion::refreshContacts(const GroundQuery& ground) {
 void AstronautMotion::update(const GroundContact& root,const glm::dvec3& lookForward,
                              double elapsed,const GroundQuery& ground) {
     if (!std::isfinite(elapsed) || elapsed<0 || !std::isfinite(glm::length(root.position)) ||
-        glm::length(root.position)<1e-6 || !std::isfinite(glm::length(lookForward)))
+        glm::length(root.position)<1e-6 || !std::isfinite(glm::length(lookForward)) || glm::length(lookForward)<1e-9)
         throw std::invalid_argument("Astronaut requires finite root, view and elapsed time");
+    if (!ready_ && elapsed>.010001) {
+        const auto queued=spacePresses_; spacePresses_=0;
+        update(root,lookForward,0,ground);
+        spacePresses_=queued;
+        update(root,lookForward,elapsed,ground);
+        return;
+    }
     // Substeps keep fast walking, jump collision and stance reach stable even
     // when presentation is slow. Ground/flight use local time, never orbit time.
     const double horizontalMove=ready_ && !pose_.airborne ? glm::length(root.position-glm::normalize(pose_.root)*glm::length(root.position)) : 0;
     if (ready_ && (elapsed>.010001 || horizontalMove>.060001) && horizontalMove<1.5) {
-        const int steps=std::min(500,int(std::ceil(std::max(elapsed/.01,horizontalMove/.06))));
+        const int steps=int(std::min(10000.0,std::ceil(std::max(elapsed/.01,horizontalMove/.06))));
         const auto start=ground(pose_.root).position;
-        for (int i=1;i<=steps;++i)
-            update(ground(pose_.airborne ? pose_.root : glm::mix(start,root.position,double(i)/steps)),lookForward,elapsed/steps,ground);
+        const bool worldFlight=!flightBodies_.empty() && (pose_.airborne || spacePresses_);
+        const auto targetBodies=worldFlight ? flightBodies_ : std::vector<FlightBody>{};
+        const auto viewUp=flightViewUp_;
+        const auto worldLook=worldFlight ? targetBodies[referenceBody_].orientation*lookForward : lookForward;
+        for (int i=1;i<=steps;++i) {
+            auto look=lookForward;
+            if (worldFlight) {
+                const double remaining=elapsed*(1-double(i)/steps);
+                for (std::size_t j=0;j<flightBodies_.size();++j) {
+                    auto& b=flightBodies_[j]; const auto& target=targetBodies[j];
+                    b.position=target.position-target.velocity*remaining;
+                    const double spin=glm::length(target.angularVelocity);
+                    b.orientation=spin>1e-12 ? glm::dmat3(glm::rotate(glm::dmat4(1),-spin*remaining,target.angularVelocity/spin))*target.orientation : target.orientation;
+                }
+                look=glm::transpose(flightBodies_[referenceBody_].orientation)*worldLook;
+                if (viewUp) flightViewUp_=glm::transpose(flightBodies_[referenceBody_].orientation)*
+                    targetBodies[referenceBody_].orientation*(*viewUp);
+            }
+            const auto reference=referenceBody_;
+            const bool airborneBefore=pose_.airborne;
+            update(ground(pose_.airborne ? pose_.root : glm::mix(start,root.position,double(i)/steps)),look,elapsed/steps,ground);
+            if (referenceBody_!=reference || (airborneBefore && !pose_.airborne)) break;
+        }
+        if (worldFlight) flightBodies_=targetBodies;
+        flightViewUp_=viewUp;
         return;
     }
     const auto up=glm::normalize(root.position);
@@ -111,7 +180,7 @@ void AstronautMotion::update(const GroundContact& root,const glm::dvec3& lookFor
         pose_.flightHeight=pose_.verticalVelocity=pose_.effectSeconds=pose_.boostPulse=0;
         pose_.airborne=pose_.jetpackArmed=pose_.boosting=false;
         pose_.velocity=glm::dvec3(0); pose_.suitUp=up; pose_.thrustN=0;
-        pose_.bodyOffset=glm::dvec3(0);
+        pose_.bodyOffset=glm::dvec3(0); pose_.navigation.reset();
     } else pose_.forward=tangent(distance>1e-6 ? delta : pose_.forward,up,pose_.forward);
     pose_.root=pose_.airborne ? previous : root.position; pose_.up=up;
     pose_.right=glm::normalize(glm::cross(pose_.forward,up));
@@ -139,43 +208,91 @@ void AstronautMotion::update(const GroundContact& root,const glm::dvec3& lookFor
             pose_.jetpackArmed=true; pose_.boostPulse=.18;
         }
     }
-    pose_.boosting=pose_.airborne && pose_.jetpackArmed && (boostHeld_ || pose_.boostPulse>0);
+    // Grounded WASD remains walking. Every airborne directional command or
+    // held Space ignites the engine, without a separate arming requirement.
+    const bool upward=boostHeld_ || pose_.boostPulse>0;
+    pose_.boosting=pose_.airborne && (upward || glm::length(flightControl_)>1e-9);
+    if (pose_.boosting) pose_.jetpackArmed=true;
     pose_.boostPulse=std::max(0.0,pose_.boostPulse-elapsed);
     pose_.effectSeconds+=elapsed;
     pose_.thrustN=0;
     if (pose_.airborne) {
-        const auto forward=tangent(lookForward,up,pose_.forward);
-        auto input=forward*flightControl_.x+glm::cross(forward,up)*flightControl_.y;
-        if (glm::length(input)>1) input=glm::normalize(input);
-        glm::dvec3 thrust(0);
-        if (pose_.boosting) {
-            const auto requested=JetpackPhysics::requestedThrust(flightEnvironment_,pose_.root,pose_.velocity,input,maximumThrust_);
-            const double blend=1-std::exp(-elapsed/.12);
-            pose_.suitUp=glm::normalize(glm::mix(pose_.suitUp,glm::normalize(requested),blend));
-            pose_.thrustN=glm::length(requested);
-            thrust=pose_.suitUp*pose_.thrustN;
-        } else pose_.suitUp=up;
-        const auto velocityBefore=pose_.velocity;
-        const auto acceleration=JetpackPhysics::gravity(flightEnvironment_,pose_.root,velocityBefore)+thrust/JetpackPhysics::massKg;
-        const auto kicked=velocityBefore+acceleration*elapsed;
-        // Exact drag-only update for quadratic isotropic resistance. Splitting
-        // force and drag keeps coarse frames dissipative without speed clamps.
-        pose_.velocity=kicked/(1+JetpackPhysics::dragCoefficient(flightEnvironment_,pose_.root)*glm::length(kicked)*elapsed);
-        pose_.root+=(velocityBefore+pose_.velocity)*(.5*elapsed);
-        const auto floor=ground(pose_.root);
-        pose_.up=glm::normalize(pose_.root);
-        pose_.verticalVelocity=glm::dot(pose_.velocity,pose_.up);
-        pose_.flightHeight=std::max(0.0,glm::length(pose_.root)-glm::length(floor.position));
-        if (glm::length(pose_.root)<=glm::length(floor.position)) {
-            pose_.root=floor.position;
-            if (pose_.verticalVelocity<=0) {
-                pose_.velocity=glm::dvec3(0); pose_.verticalVelocity=0; pose_.thrustN=0;
-                pose_.airborne=pose_.jetpackArmed=pose_.boosting=false;
-                pose_.suitUp=pose_.up;
+        if (!flightBodies_.empty()) {
+            const auto& frame=flightBodies_[referenceBody_];
+            if (!pose_.navigation) {
+                const auto position=frame.position+frame.orientation*pose_.root;
+                pose_.navigation=FlightState{position,frame.surfaceVelocity(position)+frame.orientation*pose_.velocity,
+                    frame.orientation*pose_.up,referenceBody_,false};
+                pose_.navigation->suitUp=frame.orientation*pose_.suitUp;
             }
+            auto& nav=*pose_.navigation;
+            const auto worldLook=glm::normalize(frame.orientation*lookForward);
+            auto worldRight=glm::cross(worldLook,flightViewUp_ ? frame.orientation*(*flightViewUp_) : nav.up);
+            if (glm::length(worldRight)<1e-8) worldRight=frame.orientation*pose_.right;
+            const auto step=FlightNavigation::advance(nav,flightBodies_,worldLook,glm::normalize(worldRight),
+                flightControl_,upward,nav.suitUp,maximumThrust_,elapsed);
+            const auto rotation=glm::transpose(frame.orientation);
+            pose_.root=frame.localPoint(nav.position); pose_.up=rotation*nav.up;
+            pose_.suitUp=rotation*step.suitUp; pose_.thrustN=step.thrust;
+            pose_.velocity=rotation*(nav.velocity-frame.surfaceVelocity(nav.position));
+            pose_.forward=tangent(rotation*worldLook,pose_.up,pose_.forward);
+            pose_.right=glm::normalize(glm::cross(pose_.forward,pose_.up));
+            pose_.verticalVelocity=glm::dot(pose_.velocity,pose_.up);
+            const auto& near=flightBodies_[nav.referenceBody];
+            const auto local=near.localPoint(nav.position);
+            const auto floor=near.ground ? near.ground(local) : GroundContact{glm::normalize(local)*near.environment.radiusMeters,glm::normalize(local)};
+            pose_.flightHeight=std::max(0.0,glm::length(local)-glm::length(floor.position));
+            if (step.landedBody) {
+                reframeFlight(*step.landedBody);
+                pose_.airborne=pose_.jetpackArmed=pose_.boosting=false;
+                pose_.velocity=glm::dvec3(0); pose_.verticalVelocity=pose_.flightHeight=0; pose_.suitUp=pose_.up;
+                pose_.navigation.reset();
+                for (int leg=0;leg<2;++leg) {
+                    auto& foot=pose_.feet[leg];
+                    const auto nominal=pose_.root+pose_.right*(leg==0 ? -.17 : .17);
+                    foot.contact=near.ground ? near.ground(nominal) : GroundContact{glm::normalize(nominal)*near.environment.radiusMeters,glm::normalize(nominal)};
+                    foot.forward=pose_.forward; foot.progress=1;
+                }
+                solveLegs(true,elapsed,true);
+                return;
+            }
+        } else {
+            const auto forward=glm::normalize(lookForward);
+            auto input=forward*flightControl_.x+pose_.right*flightControl_.y+(upward ? up : glm::dvec3(0));
+            if (glm::length(input)>1) input=glm::normalize(input);
+            glm::dvec3 thrust(0);
+            if (pose_.boosting && glm::length(input)>1e-9) {
+                const auto requested=JetpackPhysics::requestedThrust(flightEnvironment_,pose_.root,pose_.velocity,input,maximumThrust_);
+                if (glm::length(requested)<1e-9) { pose_.boosting=false; }
+                else {
+                    const double blend=1-std::exp(-elapsed/.12);
+                    pose_.suitUp=FlightNavigation::transport(pose_.suitUp,glm::normalize(requested),blend)*pose_.suitUp;
+                    pose_.thrustN=glm::length(requested);
+                    thrust=pose_.suitUp*pose_.thrustN;
+                }
+            } else pose_.suitUp=up;
+            const auto velocityBefore=pose_.velocity;
+            const auto acceleration=JetpackPhysics::gravity(flightEnvironment_,pose_.root,velocityBefore)+thrust/JetpackPhysics::massKg;
+            const auto kicked=velocityBefore+acceleration*elapsed;
+            // Exact drag-only update for quadratic isotropic resistance. Splitting
+            // force and drag keeps coarse frames dissipative without speed clamps.
+            pose_.velocity=kicked/(1+JetpackPhysics::dragCoefficient(flightEnvironment_,pose_.root)*glm::length(kicked)*elapsed);
+            pose_.root+=(velocityBefore+pose_.velocity)*(.5*elapsed);
+            const auto floor=ground(pose_.root);
+            pose_.up=glm::normalize(pose_.root);
+            pose_.verticalVelocity=glm::dot(pose_.velocity,pose_.up);
+            pose_.flightHeight=std::max(0.0,glm::length(pose_.root)-glm::length(floor.position));
+            if (glm::length(pose_.root)<=glm::length(floor.position)) {
+                pose_.root=floor.position;
+                if (pose_.verticalVelocity<=0) {
+                    pose_.velocity=glm::dvec3(0); pose_.verticalVelocity=0; pose_.thrustN=0;
+                    pose_.airborne=pose_.jetpackArmed=pose_.boosting=false;
+                    pose_.suitUp=pose_.up;
+                }
+            }
+            pose_.forward=tangent(forward,pose_.up,pose_.forward);
+            pose_.right=glm::normalize(glm::cross(pose_.forward,pose_.up));
         }
-        pose_.forward=tangent(forward,pose_.up,pose_.forward);
-        pose_.right=glm::normalize(glm::cross(pose_.forward,pose_.up));
     } else {
         pose_.suitUp=up; pose_.velocity=glm::dvec3(0);
     }
@@ -291,9 +408,30 @@ void AstronautMotion::solveLegs(bool standing,double elapsed,bool newlyPlaced) {
         pose_.legReached[leg]=reached;
     }
 }
-ChasePose AstronautMotion::chase(const glm::dvec3& lookDirection,const GroundQuery& ground) const {
+ChasePose AstronautMotion::chase(const glm::dvec3& lookDirection,const GroundQuery& ground,std::optional<glm::dvec3> viewUp) const {
     if (!ready_) throw std::logic_error("Chase camera requires a placed astronaut");
     const auto radial=pose_.up;
+    if (pose_.navigation) {
+        const auto look=glm::normalize(lookDirection);
+        const auto preferred=viewUp.value_or(radial);
+        auto cameraUp=preferred-look*glm::dot(preferred,look);
+        if (glm::length(cameraUp)<1e-8) cameraUp=pose_.forward-look*glm::dot(pose_.forward,look);
+        const auto target=pose_.root+radial*.95;
+        auto eye=target-look*4.0;
+        if (!pose_.navigation->outerSpace) {
+            const auto floor=ground(eye);
+            if (glm::length(eye)<glm::length(floor.position)+.45)
+                eye=glm::normalize(eye)*(glm::length(floor.position)+.45);
+            for (int i=1;i<=24;++i) {
+                const auto p=glm::mix(target,eye,double(i)/24);
+                if (glm::length(p)<glm::length(ground(p).position)+.20) {
+                    eye=glm::mix(target,eye,double(i-1)/24); break;
+                }
+            }
+            if (glm::length(eye-target)<.2) eye=target+radial*.5;
+        }
+        return {eye,target,glm::normalize(cameraUp)};
+    }
     const auto forward=tangent(lookDirection,radial,pose_.forward);
     const double pitch=std::clamp(glm::dot(glm::normalize(lookDirection),radial),-.65,.65);
     const auto bodyOffset=pose_.suitBasis()*pose_.bodyOffset;

@@ -1,12 +1,12 @@
 # README image generation log
 
-## Standing update — 2026-10-02 (UTC)
+## Directional space flight — 2026-10-02 (UTC)
 
-The two standing examples (`astronaut.png`, `astronaut-front.png`) were freshly posed and rendered. The other 20 images retain their previous captures and provenance; the complete gallery contains 22 images.
+The jetpack view (`astronaut-jetpack.png`) was freshly rendered with the new flight controller and verified against its exact replay. The other 21 images retain their previous captures and provenance: two standing views from the standing checkpoint and 19 from the earlier gallery generation. The gallery contains 22 images.
 
-New standing source fingerprint: `d8218b326f4898f0bab98354ebad9aeea8afe36abff7b74424dccf50d4bd81e7`. Per-image source fingerprints and base revisions override the gallery defaults in [generation.json](generation.json). The default fingerprint still identifies the older capture generation.
+New flight source fingerprint: `126f6a8867a7058b623ebcca3d6750225acfb20cd50401827cdf931fface6d6d`. Per-image source fingerprints and base revisions override the gallery defaults in [generation.json](generation.json).
 
-Build: GCC 12.2 RelWithDebInfo, Mesa llvmpipe/Xvfb. The performance panel remains its original software-renderer measurement.
+Build: GCC 12.2 RelWithDebInfo, Mesa llvmpipe/Xvfb, two software-renderer workers. The performance panel retains its original measurement.
 
 | Image | Last generated (UTC) |
 | --- | --- |
@@ -22,7 +22,7 @@ Build: GCC 12.2 RelWithDebInfo, Mesa llvmpipe/Xvfb. The performance panel remain
 | [grass-detail.png](../screenshots/grass-detail.png) | 2026-10-02T17:01:43+00:00 |
 | [astronaut.png](../screenshots/astronaut.png) | 2026-10-02T19:50:10+00:00 |
 | [astronaut-front.png](../screenshots/astronaut-front.png) | 2026-10-02T19:50:10+00:00 |
-| [astronaut-jetpack.png](../screenshots/astronaut-jetpack.png) | 2026-10-02T17:02:06+00:00 |
+| [astronaut-jetpack.png](../screenshots/astronaut-jetpack.png) | 2026-10-02T22:44:45+00:00 |
 | [astronaut-trail.png](../screenshots/astronaut-trail.png) | 2026-10-02T17:02:18+00:00 |
 | [offline-render.png](../screenshots/offline-render.png) | 2026-10-02T17:02:22+00:00 |
 | [performance-overlay.png](../screenshots/performance-overlay.png) | 2026-10-02T17:07:54+00:00 |
@@ -33,8 +33,8 @@ Build: GCC 12.2 RelWithDebInfo, Mesa llvmpipe/Xvfb. The performance panel remain
 | [twilight.png](../screenshots/twilight.png) | 2026-10-02T17:09:35+00:00 |
 | [terrain-shadows.png](../screenshots/terrain-shadows.png) | 2026-10-02T17:09:44+00:00 |
 
-Commands, image SHA-256 hashes, source provenance and renderer details are retained in [generation.json](generation.json). Resolved [replay sidecars](replay/) retain scenes and cameras.
+Commands, image SHA-256 hashes, source provenance and renderer details are retained in [generation.json](generation.json). Resolved [replay sidecars](replay/) retain scenes, cameras and character poses.
 
-The new poses store their body offset; an old front-view sidecar also replayed byte-identically with the updated application. [Standing study](../journal/character/standing.md) retains the comparison and validation.
+[Space-flight study](../journal/character/space-flight.md) retains free-space/Moon captures, numerical checks and exact replay evidence. The two standing views retain the [standing study](../journal/character/standing.md) provenance.
 
-For a full fresh generation after building, use `LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a python3 scripts/generate_readme_images.py --build-dir build-resume`. Commit images, sidecars and both generation records together.
+For a full fresh gallery generation, use `LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a python3 scripts/generate_readme_images.py --build-dir build-resume`. Commit images, sidecars and both generation records together.

@@ -38,11 +38,39 @@ public:
         if (!finite(sunPosition) || frame.radius() != frame_.radius())
             throw std::invalid_argument("Camera pose update requires the same planet radius");
         const glm::dmat3 transport = frame.orientation() * glm::transpose(frame_.orientation());
-        direction_ = glm::normalize(transport * direction_);
-        up_ = glm::normalize(transport * up_);
+        if (!flightView_) {
+            direction_ = glm::normalize(transport * direction_);
+            up_ = glm::normalize(transport * up_);
+        }
         frame_ = frame;
         sunPosition_ = sunPosition;
-        position_ = frame_.toWorld(location_);
+        if (!flightView_) position_ = frame_.toWorld(location_);
+    }
+
+    void followFlight(const glm::dvec3& position,const glm::dvec3& orientationUp,bool outerSpace) {
+        if (!finite(position) || !finite(orientationUp) || std::abs(glm::length(orientationUp)-1)>1e-6)
+            throw std::invalid_argument("Invalid flight camera pose");
+        if (flightView_) {
+            const auto rotation=flightTransport(flightUp_,orientationUp);
+            direction_=glm::normalize(rotation*direction_); up_=glm::normalize(rotation*up_);
+        }
+        flightView_=true; freeSpace_=outerSpace; flightUp_=orientationUp;
+        position_=position; location_=frame_.fromWorld(position_);
+    }
+    // Preserve the exact captured inertial view; a NED round trip can change
+    // low bits which become visible in finely sampled terrain materials.
+    void setWorldView(const glm::dvec3& direction,const glm::dvec3& up) {
+        if (!finite(direction) || !finite(up) || std::abs(glm::length(direction)-1)>1e-6 ||
+            std::abs(glm::length(up)-1)>1e-6 || std::abs(glm::dot(direction,up))>1e-6)
+            throw std::invalid_argument("Invalid world-space flight view");
+        direction_=direction; up_=up;
+        updateAnglesFromDirection();
+    }
+    void endFlight() {
+        if (!flightView_) return;
+        flightView_=false; freeSpace_=false;
+        if (terrain_) resampleTerrainHeight();
+        updateAnglesFromDirection(); updateUp(up_);
     }
 
     // A saved view direction is expressed in the planet's current NED frame.
@@ -90,6 +118,19 @@ public:
         if (!std::isfinite(deltaX) || !std::isfinite(deltaY)) return;
         deltaX = std::clamp(deltaX, -500.0, 500.0);
         deltaY = std::clamp(deltaY, -500.0, 500.0);
+        if (flightView_) {
+            const auto yaw=glm::dmat3(glm::rotate(glm::dmat4(1),-kMouseRadiansPerPixel*deltaX,flightUp_));
+            direction_=glm::normalize(yaw*direction_); up_=glm::normalize(yaw*up_);
+            const auto right=glm::normalize(glm::cross(direction_,up_));
+            double pitch=-kMouseRadiansPerPixel*deltaY;
+            if (!freeSpace_) {
+                const double current=std::asin(std::clamp(glm::dot(direction_,flightUp_),-1.0,1.0));
+                pitch=std::clamp(current+pitch,-kPitchLimitRadians,kPitchLimitRadians)-current;
+            }
+            const auto rotation=glm::dmat3(glm::rotate(glm::dmat4(1),pitch,right));
+            direction_=glm::normalize(rotation*direction_); up_=glm::normalize(rotation*up_);
+            return;
+        }
         heading_ = std::remainder(heading_ + kMouseRadiansPerPixel * deltaX,
                                   2.0 * glm::pi<double>());
         pitch_ = std::clamp(pitch_ - kMouseRadiansPerPixel * deltaY,
@@ -211,6 +252,14 @@ public:
     double walkSpeed() const { return walkSpeed_; }
 
 private:
+    static glm::dmat3 flightTransport(const glm::dvec3& from,const glm::dvec3& to) {
+        auto axis=glm::cross(from,to);
+        if (glm::length(axis)<1e-12) {
+            if (glm::dot(from,to)>0) return glm::dmat3(1);
+            axis=glm::cross(from,std::abs(from.x)<.9 ? glm::dvec3(1,0,0) : glm::dvec3(0,1,0));
+        }
+        return glm::dmat3(glm::rotate(glm::dmat4(1),std::acos(std::clamp(glm::dot(from,to),-1.0,1.0)),glm::normalize(axis)));
+    }
     static constexpr double kMouseRadiansPerPixel = 0.005;
     static constexpr double kPitchLimitRadians = glm::radians(89.9);
     static constexpr double kMinimumEyeHeightFraction = 0.02;
@@ -295,4 +344,6 @@ private:
     std::optional<rendering::TerrainSurface> terrain_;
     std::optional<double> waterLevel_;
     double clearance_ = 0.0;
+    bool flightView_=false, freeSpace_=false;
+    glm::dvec3 flightUp_{0,1,0};
 };

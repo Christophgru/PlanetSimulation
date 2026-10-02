@@ -26,7 +26,7 @@ struct Renderer::Impl {
     int interact();
     void preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalking = false);
     void installLandMesh(std::size_t index, TerrainGeometry geometry,
-                         const glm::dvec3& radial, int localMask);
+                         const glm::dvec3& localEye, int localMask);
     std::vector<std::uint64_t> geometryRevisions() const;
     ClipPlanes planetOrbitClip(const glm::dvec3& eye) const;
     void prepareAstronaut(double elapsed);
@@ -45,7 +45,7 @@ struct Renderer::Impl {
     std::vector<bool> meshReady;
     std::vector<int> lastLocalMask;
     std::vector<std::vector<int>> lastFaceZones;
-    std::vector<glm::dvec3> lastEyeRadial;
+    std::vector<glm::dvec3> lastTerrainEyes;
     std::vector<std::array<int, 3>> meshZoneFaces;
     std::vector<int> meshTriangles;
     std::vector<int> meshSteepRefinedFaces;
@@ -56,7 +56,7 @@ struct Renderer::Impl {
     };
     struct PendingTerrainBuild {
         std::future<TimedTerrainBuild> geometry;
-        glm::dvec3 eyeRadial{0.0};
+        glm::dvec3 eyeLocal{0.0};
         int localMask = 0;
     };
     std::vector<PendingTerrainBuild> pendingTerrain;

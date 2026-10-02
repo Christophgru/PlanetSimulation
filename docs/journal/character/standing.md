@@ -38,8 +38,9 @@ changed body height.
 | ![Previous standing pose](standing/images/before.png) | ![Straight-knee standing pose](standing/images/after.png) |
 
 Replay inputs and resolved snapshots live in [standing/replay/](standing/replay/).
-The production scenario is unchanged. The newly queued jetpack control and
-interplanetary-orientation task remains unimplemented.
+The production scenario is unchanged. The jetpack control and interplanetary
+orientation task was queued at this checkpoint; its later implementation is
+documented in [space-flight.md](space-flight.md).
 
 ## Validation
 

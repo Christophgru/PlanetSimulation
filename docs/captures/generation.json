@@ -2,7 +2,7 @@
   "source_sha256": "95d395225a3316c3989b2164e9fc6b07e363bd5281aaa07635ce4089a604fff8",
   "version": "0.0.1",
   "base_revision": "b7cf4aa12875e91490caee1029b5fb39bbdc7578",
-  "source_state": "Mixed capture generations: per-image source_sha256/base_revision override the gallery defaults for refreshed standing views; other 20 captures retain their original provenance.",
+  "source_state": "Mixed capture generations: the jetpack view uses the directional space-flight implementation; two standing views retain the standing checkpoint; other 19 captures retain the earlier gallery generation. Per-image source_sha256/base_revision override defaults.",
   "renderer": "name of display: :99\ndisplay: :99  screen: 0\ndirect rendering: Yes\nExtended renderer info (GLX_MESA_query_renderer):\n    Vendor: Mesa/X.org (0xffffffff)\n    Device: llvmpipe (LLVM 15.0.6, 256 bits) (0xffffffff)\n    Version: 22.3.6\n    Accelerated: no\n    Video memory: 39925MB\n    Unified memory: yes\n    Preferred profile: core (0x1)\n    Max core profile version: 4.5\n    Max compat profile version: 4.5\n    Max GLES1 profile version: 1.1\n    Max GLES[23] profile version: 3.2\nOpenGL vendor string: Mesa/X.org\nOpenGL renderer string: llvmpipe (LLVM 15.0.6, 256 bits)\nOpenGL core profile version string: 4.5 (Core Profile) Mesa 22.3.6\nOpenGL core profile shading language version string: 4.50\nOpenGL core profile context flags: (none)\nOpenGL core profile profile mask: core profile\n\nOpenGL version string: 4.5 (Compatibility Profile) Mesa 22.3.6\nOpenGL shading language version string: 4.50\nOpenGL context flags: (none)\nOpenGL profile mask: compatibility profile\n\nOpenGL ES profile version string: OpenGL ES 3.2 Mesa 22.3.6\nOpenGL ES profile shading language version string: OpenGL ES GLSL ES 3.20\n\n",
   "display": "GL window/Xvfb",
   "images": [
@@ -99,9 +99,12 @@
     {
       "image": "astronaut-jetpack.png",
       "version": "0.0.1",
-      "generated_utc": "2026-10-02T17:02:06+00:00",
-      "sha256": "3fddf919cbe4cf5e42948071d6ca510d4d34f20338ed4eebec00419c4a77e0a8",
-      "command": "/workspace/build-resume/PlanetSimulation --replay /workspace/docs/captures/replay/character/astronaut-jetpack.png.json --surface-capture /workspace/build-resume/readme-captures/astronaut-jetpack.png"
+      "generated_utc": "2026-10-02T22:44:45+00:00",
+      "sha256": "19bedac9d1ecbe3d100689b3e2e5ed357e60a36def344447dc0fe619dd3cf21b",
+      "command": "/workspace/build-resume/PlanetSimulation --replay /workspace/docs/captures/replay/character/astronaut-jetpack.png.json --astronaut-capture /workspace/build-resume/astronaut-jetpack.png --render-size 640 360",
+      "source_sha256": "126f6a8867a7058b623ebcca3d6750225acfb20cd50401827cdf931fface6d6d",
+      "base_revision": "b4e3ebc013c758db0005268a010f96fb9b1f6b5f",
+      "source_state": "Directional space-flight working tree; newly rendered steering pose from AstronautCaptureIntegration, exact replay verified"
     },
     {
       "image": "astronaut-trail.png",

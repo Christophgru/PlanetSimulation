@@ -1,7 +1,10 @@
 #pragma once
 #include "rendering/character/SurfaceContact.h"
 #include "rendering/character/flight/JetpackPhysics.h"
+#include "rendering/character/flight/FlightNavigation.h"
 #include <array>
+#include <cmath>
+#include <stdexcept>
 #include <glm/glm.hpp>
 
 namespace rendering {
@@ -25,6 +28,7 @@ struct AstronautPose {
     glm::dvec3 velocity{0}, suitUp{0,1,0}; // Rotating-body-frame SI velocity and exhaust axis.
     double thrustN=0;
     glm::dvec3 bodyOffset{0}; // Suit-local pelvis adjustment; ground root and boots stay fixed.
+    std::optional<FlightState> navigation;
     glm::dmat3 suitBasis() const {
         auto facing=forward-suitUp*glm::dot(forward,suitUp);
         if (glm::length(facing)<1e-8) facing=glm::cross(right,suitUp);
@@ -43,13 +47,25 @@ public:
                 double elapsed,const GroundQuery& ground);
     // Mesh revisions may change contact height, but never its surface direction.
     void refreshContacts(const GroundQuery& ground);
-    ChasePose chase(const glm::dvec3& lookDirection,const GroundQuery& ground) const;
+    ChasePose chase(const glm::dvec3& lookDirection,const GroundQuery& ground,
+                    std::optional<glm::dvec3> viewUp=std::nullopt) const;
     const AstronautPose& pose() const { return pose_; }
     void restore(const AstronautPose& pose);
     void pressSpace() { ++spacePresses_; }
     void holdBoost(bool held) { boostHeld_=held; }
     void setGravity(double metersPerSecondSquared);
     void setFlightEnvironment(const FlightEnvironment& environment,double maximumThrust);
+    void setFlightWorld(std::vector<FlightBody> bodies,std::size_t referenceBody);
+    void setFlightViewUp(const glm::dvec3& up) {
+        if (!std::isfinite(glm::length(up)) || std::abs(glm::length(up)-1)>1e-6)
+            throw std::invalid_argument("Invalid flight view up vector");
+        flightViewUp_=up;
+    }
+    void reframeFlight(std::size_t referenceBody);
+    std::size_t referenceBody() const { return referenceBody_; }
+    std::vector<std::size_t> gravitySourceIndices() const {
+        return pose_.navigation ? FlightNavigation::nearest(flightBodies_,pose_.navigation->position) : std::vector<std::size_t>{};
+    }
     void setFlightControl(const glm::dvec2& forwardRight) {
         if (!std::isfinite(glm::length(forwardRight))) throw std::invalid_argument("Flight input must be finite");
         flightControl_=forwardRight;
@@ -69,5 +85,8 @@ private:
     FlightEnvironment flightEnvironment_;
     double maximumThrust_=6000;
     glm::dvec2 flightControl_{0};
+    std::vector<FlightBody> flightBodies_;
+    std::size_t referenceBody_=1;
+    std::optional<glm::dvec3> flightViewUp_;
 };
 }

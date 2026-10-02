@@ -1,0 +1,34 @@
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 20.0 s
+Sun radius: 2.5
+Planets: 2
+Surface camera position: (5.58901, 4.55293, -0.370704)
+Surface render test mode enabled
+Output image: /workspace/build-resume/space-flight-captures/moon-settled-replay.png
+Planet 0 terrain: 11910 triangles; far/middle/near faces: 315/1/4; steep-refined faces: 0 (budget 12000); foliage blades: 0; water triangles: 2130
+Planet 0 terrain LOD faces (coarse to fine): 315/0/0/1/0/0/0/4; mesh bytes: 1429200
+Planet 0 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Planet 1 terrain: 11740 triangles; far/middle/near faces: 295/19/6; steep-refined faces: 0 (budget 12000); foliage blades: 0; water triangles: 0
+Planet 1 terrain LOD faces (coarse to fine): 295/1/0/6/6/1/5/6; mesh bytes: 1408800
+Planet 1 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Mesh preparation: 730.418 ms; GPU-complete render: 801.215 ms
+earth lighting: direct RGB (4.42966, 4.38536, 4.29677), reflected RGB (7.53886e-06, 7.46347e-06, 7.69757e-06)
+moon lighting: direct RGB (8.26617, 8.18351, 8.01819), reflected RGB (0.0122606, 0.02023, 0.0396426)
+Image size: 320x240
+Background pixel: (0, 0, 0)
+Non-background pixels: 2415, bounding box: (6, 6)-(308, 227)
+Sun-colored pixels: 0
+Planet pixels (color/depth): 0
+Camera exposure: 0.530966; sky sensitivity: 0.00829634
+Star-like pixels: 0
+Simulation time: 20.0 s
+Surface camera position (world, km): [5.582573230913928,4.547104162533027,-0.24185196581031057]
+Surface camera direction (world, unit vector): [0.33864196044842765,-0.9390132917362533,0.05979682739319574]
+Surface camera position (planet LLA): latitude=72.36465492999463 deg, longitude=-20.52501055948172 deg, altitude=137.8717219561818 m above reference sphere
+Surface camera ground clearance: 3.0 m
+surface_camera start value: {"altitude":0.003,"direction_ned":[0.9776666690871654,-0.19213332049517082,-0.08516261686624604],"fov":65.0,"latitude_deg":72.36465492999463,"longitude_deg":-20.52501055948172,"planet_index":1,"reference_frame":"planet_spherical_ned","simulation_time_seconds":20.0,"up_ned":[-0.08606139991080883,0.003678222381880758,-0.9962830451862068],"walk_speed_mps":80.0}
+White-clipped pixels (RGB >= 250): 0 (0%)
+Astronaut pixels: 2389
+Render test completed successfully
+Output image: /workspace/build-resume/space-flight-captures/moon-settled-replay.png

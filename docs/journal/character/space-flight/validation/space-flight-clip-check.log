@@ -1,0 +1,8 @@
+Internal ctest changing into directory: /workspace/build-resume
+Test project /workspace/build-resume
+    Start 32: SpaceFlightCaptureIntegration
+1/1 Test #32: SpaceFlightCaptureIntegration ....   Passed   48.43 sec
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =  48.43 sec

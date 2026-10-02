@@ -90,7 +90,7 @@ enable_testing()
 add_test(NAME ConfigTests COMMAND config_tests)
 add_test(NAME OrbitCameraTests COMMAND orbit_camera_tests)
 add_test(NAME CameraInputTests COMMAND camera_input_tests)
-add_executable(astronaut_motion_tests character/test_astronaut_motion.cpp character/test_surface_contact.cpp character/test_jetpack_physics.cpp)
+add_executable(astronaut_motion_tests character/test_astronaut_motion.cpp character/test_surface_contact.cpp character/test_jetpack_physics.cpp character/test_flight_navigation.cpp)
 target_link_libraries(astronaut_motion_tests PRIVATE planet_geometry planet_character GTest::gtest_main)
 add_test(NAME AstronautMotionTests COMMAND astronaut_motion_tests)
 add_test(NAME CameraTransitionTests COMMAND camera_transition_tests)
@@ -161,6 +161,10 @@ find_package(Python3 REQUIRED COMPONENTS Interpreter)
 add_test(NAME AstronautCaptureIntegration COMMAND ${Python3_EXECUTABLE}
     ${CMAKE_CURRENT_SOURCE_DIR}/character/test_astronaut_capture.py --binary $<TARGET_FILE:PlanetSimulation>
     --output-dir ${CMAKE_BINARY_DIR}/astronaut-captures)
+add_test(NAME SpaceFlightCaptureIntegration COMMAND ${Python3_EXECUTABLE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/character/test_space_flight_capture.py --binary $<TARGET_FILE:PlanetSimulation>
+    --output-dir ${CMAKE_BINARY_DIR}/space-flight-captures)
+set_tests_properties(SpaceFlightCaptureIntegration PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 180)
 add_test(NAME OfflineCaptureIntegration COMMAND ${Python3_EXECUTABLE}
     ${CMAKE_SOURCE_DIR}/tests/quality/test_offline_capture.py
     --binary $<TARGET_FILE:PlanetSimulation>

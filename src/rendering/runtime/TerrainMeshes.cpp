@@ -2,7 +2,7 @@
 
 namespace rendering {
 void Renderer::Impl::installLandMesh(std::size_t index, TerrainGeometry geometry,
-    const glm::dvec3& radial, int localMask) {
+    const glm::dvec3& localEye, int localMask) {
     CpuTrace::Scope scope("Renderer::installLandMesh");
     meshZoneFaces[index] = geometry.zoneFaces;
     meshTriangles[index] = geometry.triangleCount();
@@ -12,7 +12,7 @@ void Renderer::Impl::installLandMesh(std::size_t index, TerrainGeometry geometry
     profiler.meshUpload();
     meshReady[index] = true;
     lastLocalMask[index] = localMask;
-    lastEyeRadial[index] = radial;
+    lastTerrainEyes[index] = localEye;
 }
 
 void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalking) {
@@ -20,17 +20,31 @@ void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalkin
     for (std::size_t i = 0; i < scene.scenario.planets.size(); ++i) {
         const auto& planet = scene.scenario.planets[i];
         glm::dvec3 localEye = scene.bodies[i + 1].toLocalPoint(eye);
-        if (options.renderTestMode && options.thirdPersonRenderMode && !meshReady[i] &&
-            i==scene.scenario.surface_camera.planet_index && !options.replayPath.empty()) {
+        if (options.renderTestMode && options.thirdPersonRenderMode && !meshReady[i] && !options.replayPath.empty()) {
             const auto replay=config::Config::load(options.replayPath).data();
-            if (replay.contains("astronaut_pose") &&
-                replay.at("astronaut_pose").contains("terrain_plan_eye_world_units")) {
-                const auto& saved=replay.at("astronaut_pose").at("terrain_plan_eye_world_units");
-                if (!saved.is_array() || saved.size()!=3)
-                    throw std::invalid_argument("Astronaut terrain replay requires a three-vector eye");
-                localEye={saved.at(0).get<double>(),saved.at(1).get<double>(),saved.at(2).get<double>()};
-                if (!std::isfinite(localEye.x)||!std::isfinite(localEye.y)||!std::isfinite(localEye.z))
-                    throw std::invalid_argument("Astronaut terrain replay eye must be finite");
+            if (replay.contains("astronaut_pose")) {
+                const auto& pose=replay.at("astronaut_pose");
+                const nlohmann::json* saved=nullptr;
+                if (pose.contains("terrain_plan_eyes_world_units")) {
+                    const auto& eyes=pose.at("terrain_plan_eyes_world_units");
+                    if (!eyes.is_array() || eyes.size()!=scene.scenario.planets.size())
+                        throw std::invalid_argument("Astronaut replay requires one terrain anchor per planet");
+                    saved=&eyes.at(i);
+                } else if (i==scene.scenario.surface_camera.planet_index && pose.contains("terrain_plan_eye_world_units"))
+                    saved=&pose.at("terrain_plan_eye_world_units");
+                if (saved) {
+                    if (!saved->is_array() || saved->size()!=3)
+                        throw std::invalid_argument("Astronaut terrain replay requires a three-vector eye");
+                    localEye={saved->at(0).get<double>(),saved->at(1).get<double>(),saved->at(2).get<double>()};
+                    if (!std::isfinite(localEye.x)||!std::isfinite(localEye.y)||!std::isfinite(localEye.z))
+                        throw std::invalid_argument("Astronaut terrain replay eye must be finite");
+                }
+                if (pose.contains("terrain_face_zones")) {
+                    const auto& zones=pose.at("terrain_face_zones");
+                    if (!zones.is_array() || zones.size()!=scene.scenario.planets.size())
+                        throw std::invalid_argument("Astronaut replay requires terrain zones for each planet");
+                    lastFaceZones[i]=zones.at(i).get<std::vector<int>>();
+                }
             }
         }
         const glm::dvec3 offset = localEye;
@@ -48,12 +62,12 @@ void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalkin
                 meshes.waterMeshes[i].loadTerrain(std::move(*built.water));
             }
             installLandMesh(i, std::move(built.geometry),
-                            pendingTerrain[i].eyeRadial,
+                            pendingTerrain[i].eyeLocal,
                             pendingTerrain[i].localMask);
         }
         const double movedMeters = meshReady[i] ? planet.radius *
             scene.scenario.metersPerWorldUnit() * std::acos(std::clamp(
-                glm::dot(radial, lastEyeRadial[i]), -1.0, 1.0)) : 0.0;
+                glm::dot(radial, glm::normalize(lastTerrainEyes[i])), -1.0, 1.0)) : 0.0;
         if (meshReady[i] && localMask == lastLocalMask[i] &&
             (localMask == 0 || movedMeters < 10.0)) continue;
         // Land and the nearby ocean shell rebuild together off-thread.
@@ -83,7 +97,7 @@ void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalkin
                 std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count()};
         };
         if (asyncWalking && meshReady[i] && localMask == lastLocalMask[i]) {
-            pendingTerrain[i].eyeRadial = radial;
+            pendingTerrain[i].eyeLocal = localEye;
             pendingTerrain[i].localMask = localMask;
             pendingTerrain[i].geometry = std::async(std::launch::async,
                 [trace=&cpuTrace, build=std::move(buildMeshes)]() {
@@ -99,7 +113,7 @@ void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalkin
         if (built.water) {
             meshes.waterMeshes[i].loadTerrain(std::move(*built.water));
         }
-        installLandMesh(i, std::move(built.geometry), radial, localMask);
+        installLandMesh(i, std::move(built.geometry), localEye, localMask);
     }
 }
 

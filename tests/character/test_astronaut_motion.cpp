@@ -199,13 +199,13 @@ TEST(AstronautMotion, WalkingAndSprintingAtSixAndTwelveMetersKeepStanceFeetLocke
         }
     }
 }
-TEST(AstronautFlight, JumpUsesGravityAndHoldingTheFirstPressDoesNotEngageTheJetpack) {
+TEST(AstronautFlight, TapJumpUsesGravityWithoutHeldOrDirectionalThrust) {
     double maxima[2]={0,0};
     for (int run=0;run<2;++run) {
         rendering::AstronautMotion motion;
         motion.setGravity(run==0 ? 9.81 : 19.62);
         motion.update(sphere(point(0)),{0,0,-1},0,sphere);
-        motion.pressSpace(); motion.holdBoost(true);
+        motion.pressSpace(); motion.holdBoost(false);
         for (int i=0;i<300;++i) {
             motion.update(sphere(point(0)),{0,0,-1},.01,sphere);
             maxima[run]=std::max(maxima[run],motion.pose().flightHeight);

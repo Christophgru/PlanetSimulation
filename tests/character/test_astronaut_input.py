@@ -87,7 +87,13 @@ with tempfile.TemporaryDirectory(prefix='planet-astronaut-input-') as directory:
                 moved = changed_frame(idle, 500, 'Paused astronaut did not walk')
             finally:
                 subprocess.run(['xdotool','keyup','w'],check=True)
-            key('space'); wait_for_input('Astronaut Space:', 1); time.sleep(.15)
+            key('space'); wait_for_input('Astronaut Space:', 1)
+            # WASD alone must ignite in the airborne phase, after releasing Space.
+            subprocess.run(['xdotool','keydown','w'],check=True)
+            try:
+                wait_for_input('Astronaut jetpack thrust on')
+            finally:
+                subprocess.run(['xdotool','keyup','w'],check=True)
             subprocess.run(['xdotool','keydown','space'],check=True)
             wait_for_input('Astronaut Space:', 2)
             boosted = changed_frame(moved, 500, 'Jump and jetpack did not change the frame')

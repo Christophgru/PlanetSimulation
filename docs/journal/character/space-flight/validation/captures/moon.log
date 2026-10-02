@@ -1,0 +1,35 @@
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 20.0 s
+Sun radius: 2.5
+Planets: 2
+Surface camera position: (6.9946, 5.87567, -0.562738)
+Surface render test mode enabled
+Output image: /workspace/build-resume/space-flight-captures/moon.png
+Astronaut destination: moon
+Planet 0 terrain: 11910 triangles; far/middle/near faces: 315/1/4; steep-refined faces: 0 (budget 12000); foliage blades: 0; water triangles: 2130
+Planet 0 terrain LOD faces (coarse to fine): 315/0/0/1/0/0/0/4; mesh bytes: 1429200
+Planet 0 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Planet 1 terrain: 11068 triangles; far/middle/near faces: 295/19/6; steep-refined faces: 0 (budget 12000); foliage blades: 0; water triangles: 0
+Planet 1 terrain LOD faces (coarse to fine): 295/1/2/6/4/3/3/6; mesh bytes: 1328160
+Planet 1 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Mesh preparation: 1154.55 ms; GPU-complete benchmark: 2388.28 ms
+earth lighting: direct RGB (4.42966, 4.38536, 4.29677), reflected RGB (7.53886e-06, 7.46347e-06, 7.69757e-06)
+moon lighting: direct RGB (8.26617, 8.18351, 8.01819), reflected RGB (0.0122606, 0.02023, 0.0396426)
+Image size: 320x240
+Background pixel: (0, 0, 0)
+Non-background pixels: 9021, bounding box: (19, 0)-(319, 232)
+Sun-colored pixels: 0
+Planet pixels (color/depth): 6675, bounding box: (259, 0)-(319, 151)
+Camera exposure: 0.891881; sky sensitivity: 0.0139356
+Star-like pixels: 0
+Simulation time: 20.0 s
+Surface camera position (world, km): [5.602909064073449,4.565511736968937,-0.2437992710029645]
+Surface camera direction (world, unit vector): [0.5613227081079076,-0.7840258549948698,-0.2649910867594764]
+Surface camera position (planet LLA): latitude=70.00071180783243 deg, longitude=-29.997701155977687 deg, altitude=135.0005359290561 m above reference sphere
+Surface camera ground clearance: 3.0 m
+surface_camera start value: {"altitude":0.003,"direction_ned":[0.7840503098851639,-0.5612895113636699,0.2649890488343082],"fov":65.0,"latitude_deg":70.00071180783243,"longitude_deg":-29.997701155977687,"planet_index":1,"reference_frame":"planet_spherical_ned","simulation_time_seconds":20.0,"up_ned":[0.47191375523833184,0.8163741615894532,0.33291235469110064],"walk_speed_mps":80.0}
+White-clipped pixels (RGB >= 250): 165 (0.214844%)
+Astronaut pixels: 2330
+Render test completed successfully
+Output image: /workspace/build-resume/space-flight-captures/moon.png

@@ -42,6 +42,10 @@ int Renderer::Impl::capture() {
             astronautBenchmarkBoost=options.benchmarkBoostFrame>=0 && frame>=options.benchmarkBoostFrame;
             astronautFlightControl={options.benchmarkWalkStep>0 ? 1.0 : 0.0,0};
             prepareAstronaut(frame>0 ? (options.benchmarkCharacterStep>0 ? options.benchmarkCharacterStep : options.benchmarkWalkStep/6.0) : 0);
+            // A destination handoff changes the distance to the Sun. Derive
+            // clipping from the current chase eye, including on saved replay.
+            surfaceClip = rendering::surfaceClipPlanes(.2/scene.scenario.metersPerWorldUnit(),
+                glm::length(astronautView.eye-scene.sunPosition), scene.scenario.sun.radius);
         }
         const glm::mat4 view = options.thirdPersonRenderMode ? glm::mat4(glm::lookAt(astronautView.eye,astronautView.target,astronautView.up)) :
                                options.surfaceRenderMode ? scene.surfaceCamera->getViewMatrix() :
@@ -310,7 +314,7 @@ int Renderer::Impl::capture() {
         std::ofstream sidecar(options.outputImagePath + ".json");
         sidecar << metadata.dump(2) << '\n';
         if (!sidecar) throw std::runtime_error("Failed to write capture metadata");
-        if (options.captureOnly && metrics.terrainPixels == 0)
+        if (options.captureOnly && !options.thirdPersonRenderMode && metrics.terrainPixels == 0)
             throw std::runtime_error("Surface capture has no terrain geometry in view");
     }
 
