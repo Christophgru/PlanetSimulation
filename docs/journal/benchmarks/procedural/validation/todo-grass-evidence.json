@@ -1,0 +1,37 @@
+{
+  "ctest": {
+    "passed": 49,
+    "total": 49,
+    "seconds": 286.14
+  },
+  "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+  "grass_capture": {
+    "foliage_blades": 100000,
+    "foliage_candidates": 100000,
+    "foliage_gpu_compute": true,
+    "foliage_gpu_drawn_blades": 10984,
+    "foliage_gpu_triangles": 108748,
+    "foliage_gpu_vertices": 130716,
+    "foliage_gpu_working_bytes": 12800032,
+    "foliage_patch_bytes": 34664,
+    "foliage_patches": 8666
+  },
+  "cached_upload_bytes": [
+    34664,
+    0,
+    0,
+    0
+  ],
+  "culling_replay_hashes": {
+    "grass": "19416cc6058906aa733044b7b82431b070db1223385108b86ab3b7a0b40fc511",
+    "unculled": "19416cc6058906aa733044b7b82431b070db1223385108b86ab3b7a0b40fc511",
+    "replayed": "19416cc6058906aa733044b7b82431b070db1223385108b86ab3b7a0b40fc511"
+  },
+  "historical_pair": {
+    "vertex_png_sha256": "3d55c2fd5debd5a45aed3ddbcc09f07e305fa442132e58826623e50cd632df67",
+    "compute_png_sha256": "3d55c2fd5debd5a45aed3ddbcc09f07e305fa442132e58826623e50cd632df67",
+    "all_frame_payload_bytes": 105620,
+    "measured_frame_payload_bytes": 70956,
+    "timings_rerun": false
+  }
+}

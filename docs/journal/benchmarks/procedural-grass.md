@@ -130,9 +130,24 @@ check walking, unchanged terrain tessellation, exact paused replay and identical
 images with culling enabled/disabled. Terrain pixel tests check the shared tip
 palette's channel ratios under neutral light and the narrow beach transition.
 
-Rendering uses Mesa llvmpipe through the existing EGL test-window harness
-because the managed sandbox blocks X11 sockets. Native window/input and
-physical GPU behavior remain unverified in this environment.
+The recorded October 1 benchmark used Mesa llvmpipe through the EGL test-window
+harness while that host's managed sandbox blocked X11 sockets. Those timing
+measurements have not been rerun on the current host.
+
+Fresh October 2 validation uses GCC 13, RelWithDebInfo and Mesa llvmpipe under
+native GLFW/Xvfb with two driver threads. All **49 CTest entries pass in one
+clean run (286.14 s)**, including native camera controls, astronaut input/reload,
+the full grass/HDR/reflection capture and terrain-shadow checks. The previous
+astronaut screenshot timing failure does not recur. The raw
+[full-suite log](procedural/validation/todo-grass-validation-tests.log) and
+[audited payload evidence](procedural/validation/todo-grass-evidence.json) are
+preserved. Physical GPU performance remains unverified by this validation.
+
+The current 20-image gallery and its source fingerprint were refreshed in the
+astronaut commit; this checkpoint changes documentation only. The user removed
+the separate horizon layer, so validation covers the existing single layer at
+its configured draw distance. It does not claim whole-horizon coverage or a
+hardware frame-rate improvement.
 
 ## Paired walking benchmark
 
