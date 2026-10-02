@@ -26,7 +26,7 @@ p.add_argument('--frames', type=int, default=36)
 p.add_argument('--warmup', type=int, default=5)
 p.add_argument('--walk-step', type=float, default=2.0, help='metres per frame')
 p.add_argument('--size', type=int, nargs=2, default=[640, 360])
-p.add_argument('--cases', nargs='+', choices=['stationary', 'walking', 'walking-bare', 'walking-far-only'],
+p.add_argument('--cases', nargs='+', choices=['stationary', 'walking', 'walking-bare'],
                default=['stationary', 'walking', 'walking-bare'])
 p.add_argument('--cpu-trace', action='store_true', help='Save nested wall/thread CPU scopes and an HTML report per case')
 args = p.parse_args()
@@ -84,10 +84,6 @@ for case in args.cases:
     if case == 'walking-bare':
         for planet in scene['scenario']['planets']:
             planet.setdefault('foliage', {})['enabled'] = False
-    elif case == 'walking-far-only':
-        for planet in scene['scenario']['planets']:
-            if 'foliage' in planet:
-                planet['foliage']['near_enabled'] = False
     source = case_dir / 'input.json'
     source.write_text(json.dumps(scene, indent=2) + '\n')
     image, trace = case_dir / 'capture.png', case_dir / 'frames.csv'

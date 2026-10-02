@@ -36,10 +36,10 @@ void main() {
     indirect*=atmosphereLightTransmittance(vBodyPosition,normalize(vBodyPosition));
 #endif
     float ao=mix(.25,1.0,vBlade.x*vBlade.x);
-    float middle=1.0-smoothstep(0.0,.5,abs(vBlade.y-.5));
-    vec3 base=mix(vec3(.02,.075,.01),vec3(.025,.1,.01),vVariation);
-    vec3 tip=mix(vec3(.65,.8,.25),vec3(.8,.9,.4),vVariation);
-    vec3 color=mix(base,tip,pow(vBlade.x,4.0))*mix(.75,1.0,vVariation);
+    float widthRatio=mix(1.0-.9*vBlade.x*vBlade.x,1.0-.9*vBlade.x,1.0-vBlade.z);
+    float side=.5+vBlade.y/max(widthRatio,.1);
+    float middle=1.0-smoothstep(0.0,.5,abs(side-.5));
+    vec3 color=grassBladeColor(vBlade.x,vVariation);
     vec3 albedo=color*ao*mix(.85,1.0,middle);
     vec3 radiance=albedo*(indirect+direct*(wrap+scatter)*visibility);
     fColor=vec4(uLinearOutput ? radiance : displayColor(radiance),1);

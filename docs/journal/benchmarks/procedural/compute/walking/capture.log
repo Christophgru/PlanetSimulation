@@ -1,0 +1,37 @@
+EGL test context: llvmpipe (LLVM 20.1.2, 256 bits); GLEW status 4
+EGL harness: clean shutdown after 7 frames
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 20.0 s
+Sun radius: 2.5
+Planets: 2
+Surface camera position: (6.9946, 5.87568, -0.562742)
+Surface render test mode enabled
+Output image: /d/Programmieren/Projects/PlanetSimulation/docs/journal/benchmarks/procedural/compute/walking/capture.png
+Planet 0 terrain: 100000 triangles; far/middle/near faces: 219/83/18; steep-refined faces: 14 (budget 100000); foliage blades: 99832; water triangles: 60000
+Planet 0 terrain LOD faces (coarse to fine): 219/19/16/14/12/10/12/18; mesh bytes: 12000000
+Planet 0 foliage candidate bounds per pass: 757728 vertices; 558064 triangles; 21 batches; instance bytes: 39412
+Planet 0 GPU grass draws: 0 detailed; 217 quads; 868 vertices; 434 triangles; GPU working bytes: 12800032
+Planet 1 terrain: 960 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 60000); foliage blades: 0; water triangles: 0
+Planet 1 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 115200
+Planet 1 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Mesh preparation: 3005.85 ms; GPU-complete benchmark: 20842.3 ms
+earth lighting: direct RGB (4.42966, 4.38536, 4.29677), reflected RGB (7.53886e-06, 7.46347e-06, 7.69757e-06)
+moon lighting: direct RGB (8.26617, 8.18351, 8.01819), reflected RGB (0.0122606, 0.02023, 0.0396426)
+Image size: 640x360
+Background pixel: (7, 19, 5)
+Non-background pixels: 230399, bounding box: (0, 0)-(639, 359)
+Sun-colored pixels: 0
+Planet pixels (color/depth): 191853, bounding box: (0, 33)-(639, 359)
+Camera exposure: 0.176868; sky sensitivity: 0.00276357
+Star-like pixels: 15811, bounding box: (0, 0)-(639, 102)
+Blue water-like pixels: 22541, bounding box: (235, 0)-(639, 76)
+Simulation time: 20.0 s
+Surface camera position (world, km): [7.001095999786125,5.8636645568727115,-0.5680596338620258]
+Surface camera direction (world, unit vector): [0.6215712372217352,-0.7434674399727424,-0.2467901188439643]
+Surface camera position (planet LLA): latitude=-21.367984607511637 deg, longitude=103.85354702111778 deg, altitude=10.334028541614193 m above reference sphere
+Surface camera ground clearance: 3.0 m
+surface_camera start value: {"altitude":0.003,"direction_ned":[0.055187249718130715,0.9952943408844185,-0.07964635881193519],"fov":65.0,"latitude_deg":-21.367984607511637,"longitude_deg":103.85354702111778,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":20.0,"up_ned":[-0.004409471578577739,-0.07952420406641772,-0.9968231826798575],"walk_speed_mps":80.0}
+White-clipped pixels (RGB >= 250): 0 (0%)
+Render test completed successfully
+Output image: /d/Programmieren/Projects/PlanetSimulation/docs/journal/benchmarks/procedural/compute/walking/capture.png

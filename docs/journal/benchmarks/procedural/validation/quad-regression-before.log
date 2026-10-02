@@ -1,0 +1,21 @@
+EGL test context: llvmpipe (LLVM 20.1.2, 256 bits); GLEW status 4
+Note: Google Test filter = GrassRender.QuadSwapPreservesInteriorShadingAcrossTheWholeBlade
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from GrassRender
+[ RUN      ] GrassRender.QuadSwapPreservesInteriorShadingAcrossTheWholeBlade
+/d/Programmieren/Projects/PlanetSimulation/tests/lighting/test_terrain_shadow_render.cpp:388: Failure
+Expected: (error/quad.size()) < (.02), actual: 0.168925 vs 0.02
+/d/Programmieren/Projects/PlanetSimulation/tests/lighting/test_terrain_shadow_render.cpp:388: Failure
+Expected: (maximum) <= (1), actual: 13 vs 1
+[  FAILED  ] GrassRender.QuadSwapPreservesInteriorShadingAcrossTheWholeBlade (2569 ms)
+[----------] 1 test from GrassRender (2569 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (2569 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] GrassRender.QuadSwapPreservesInteriorShadingAcrossTheWholeBlade
+
+ 1 FAILED TEST
+EGL harness: clean shutdown after 0 frames

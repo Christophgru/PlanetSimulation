@@ -57,15 +57,15 @@ add_library(planet_geometry STATIC
     src/rendering/geometry/TerrainShoreline.cpp
     src/rendering/foliage/GrassPlacement.cpp
     src/rendering/foliage/GrassLod.cpp)
-target_sources(planet_geometry PRIVATE src/rendering/foliage/horizon/HorizonGrassPlan.cpp)
+target_sources(planet_geometry PRIVATE src/rendering/foliage/procedural/GrassPlan.cpp)
 target_link_libraries(planet_geometry PUBLIC planet_config planet_diagnostics glm::glm)
 
 add_library(planet_rendering STATIC
     src/rendering/Shader.cpp
     src/rendering/geometry/Mesh.cpp
     src/rendering/foliage/GrassRenderer.cpp)
-target_sources(planet_rendering PRIVATE src/rendering/foliage/horizon/HorizonGrass.cpp)
-target_sources(planet_rendering PRIVATE src/rendering/foliage/horizon/HorizonGrassCompute.cpp)
+target_sources(planet_rendering PRIVATE src/rendering/foliage/procedural/ProceduralGrass.cpp)
+target_sources(planet_rendering PRIVATE src/rendering/foliage/procedural/GrassCompute.cpp)
 target_link_libraries(planet_rendering PUBLIC planet_geometry OpenGL::GL GLEW::GLEW)
 
 add_library(planet_app STATIC

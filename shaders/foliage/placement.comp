@@ -6,15 +6,16 @@ struct Command { uint vertices, instances, first, base; };
 layout(std430,binding=1) buffer DrawCommands { Command commands[2]; };
 struct Blade { vec4 rootFade, upLow, variation, wind; };
 layout(std430,binding=2) buffer GeneratedBlades { Blade blades[]; };
-uniform bool uReset,uDetailed;
+uniform bool uReset;
+uniform float uQuadDistance=15.0;
 uniform int uCapacity,uFirstPatch,uCandidateCount,uSlotsPerPatch,uWindSeed=0;
 uniform mat4 model,view,projection;
-uniform vec3 uGrassEyeBody,uPlacementEyeBody,uPlanetColor,uLandscapeLevels;
+uniform vec3 uGrassEyeBody,uPlanetColor,uLandscapeLevels;
 uniform vec2 uTerrainRockRange,uHeightMultiplierRange,uLeanRange;
 uniform bool uLandscapeEnabled,uWaterEnabled;
-uniform float uMetersPerRadius,uTime,uWindStrength,uGrassHeight,uGrassWidth,uDrawDistance,uFarDistance;
-uniform float uGaussianSigma,uGreenRatio,uWaterClearance,uRootOffset,uPlacementMargin;
-uniform vec3 uWindFrequencies,uFarShape,uFarFadeFractions;
+uniform float uMetersPerRadius,uTime,uWindStrength,uGrassHeight,uGrassWidth,uDrawDistance;
+uniform float uGaussianSigma,uGreenRatio,uWaterClearance,uRootOffset;
+uniform vec3 uWindFrequencies;
 uint aTriangle;
 uniform samplerBuffer uTerrainVertices;
 uniform usamplerBuffer uTerrainIndices;
@@ -102,10 +103,10 @@ float grassLodFadeEnd(float variation) {
     float nearDistance=min(15.0,uDrawDistance*.25);
     return nearDistance+float((h&7u)+1u)*(uDrawDistance-nearDistance)/8.0;
 }
-uint horizonHash(uint h) {
+uint grassHash(uint h) {
     h^=h>>16; h*=0x7feb352du; h^=h>>15; h*=0x846ca68bu; return h^(h>>16);
 }
-float horizonRandom(uint h) { return float(horizonHash(h)>>8)* (1.0/16777216.0); }
+float grassRandom(uint h) { return float(grassHash(h)>>8)* (1.0/16777216.0); }
 float biomeVisibility(vec3 root,vec3 up,uint seed) {
     float height=(length(root)-1.0)*uMetersPerRadius;
     if (uWaterEnabled && height<=uLandscapeLevels.x+uWaterClearance) return 0.0;
@@ -123,7 +124,7 @@ float biomeVisibility(vec3 root,vec3 up,uint seed) {
     }
     if (tint.y<=uGreenRatio*max(tint.x,tint.z)) return 0.0;
     float slope=1.0-dot(normalize(aPatchNormal),up);
-    return horizonRandom(seed+17u)<smoothstep(uTerrainRockRange.x,uTerrainRockRange.y,slope) ? 0.0 : 1.0;
+    return grassRandom(seed+17u)<smoothstep(uTerrainRockRange.x,uTerrainRockRange.y,slope) ? 0.0 : 1.0;
 }
 void main() {
     uint id=gl_GlobalInvocationID.x;
@@ -134,55 +135,38 @@ void main() {
     if (id>=uint(uCandidateCount)) return;
     aTriangle=triangleIDs[uint(uFirstPatch)+id/uint(uSlotsPerPatch)];
     if (!loadTerrainPatch()) return;
-    uint seed=horizonHash(aPatchSeed ^ ((id%uint(uSlotsPerPatch))*0x9e3779b9u));
-    float a=sqrt(horizonRandom(seed+1u)), b=horizonRandom(seed+2u);
+    uint seed=grassHash(aPatchSeed ^ ((id%uint(uSlotsPerPatch))*0x9e3779b9u));
+    float a=sqrt(grassRandom(seed+1u)), b=grassRandom(seed+2u);
     vec3 root=aPatchA*(1.0-a)+aPatchB*(a*(1.0-b))+aPatchC*(a*b);
     if (length(root)<1e-9) return;
     vec3 up=normalize(root);
     float d=length(root-uGrassEyeBody)*uMetersPerRadius;
-    float fade=1.0, low=1.0;
-    uint queue=1u;
     vec3 center=(aPatchA+aPatchB+aPatchC)/3.0;
     float reach=max(max(length(aPatchA-center),length(aPatchB-center)),length(aPatchC-center));
-    if (uDetailed) {
-        float minimumDistance=max(0.0,(length(center-uPlacementEyeBody)-reach)*uMetersPerRadius-uPlacementMargin);
-        aExpectedCandidates=min(aExpectedCandidates*exp(-minimumDistance*minimumDistance/(2.0*uGaussianSigma*uGaussianSigma)),float(uSlotsPerPatch));
-        float acceptance=exp((minimumDistance*minimumDistance-d*d)/(2.0*uGaussianSigma*uGaussianSigma));
-        if (d>=uDrawDistance || horizonRandom(seed+3u)>=aExpectedCandidates/float(uSlotsPerPatch)*acceptance) return;
-        aPatchNormal=normalize(patchNormalA*(1.0-a)+patchNormalB*(a*(1.0-b))+patchNormalC*(a*b));
-        aPatchColor=patchColorA*(1.0-a)+patchColorB*(a*(1.0-b))+patchColorC*(a*b);
-        float nearDistance=min(15.0,uDrawDistance*.25);
-        low=smoothstep(nearDistance*.5,nearDistance,d);
-        if ((length(center-uGrassEyeBody)-reach)*uMetersPerRadius<nearDistance) queue=0u;
-        float end=grassLodFadeEnd(horizonRandom(seed+4u));
-        fade=min(1.0-smoothstep(end-(uDrawDistance-nearDistance)/8.0,end,d),
-            1.0-smoothstep(uDrawDistance*.75,uDrawDistance,d));
-    } else {
-        if (horizonRandom(seed+3u)>=min(aExpectedCandidates,float(uSlotsPerPatch))/float(uSlotsPerPatch)) return;
-        fade=smoothstep(uDrawDistance*uFarFadeFractions.x,uDrawDistance*uFarFadeFractions.y,d)*
-            (1.0-smoothstep(uFarDistance*uFarFadeFractions.z,uFarDistance,d));
-    }
+    float expected=aExpectedCandidates*exp(-d*d/(2.0*uGaussianSigma*uGaussianSigma));
+    float rank=float(id%uint(uSlotsPerPatch))+max(grassRandom(seed+3u),1e-5);
+    float densityFade=smoothstep(rank,rank*1.2,expected);
+    if (d>=uDrawDistance || densityFade<=0.0) return;
+    aPatchNormal=normalize(patchNormalA*(1.0-a)+patchNormalB*(a*(1.0-b))+patchNormalC*(a*b));
+    aPatchColor=patchColorA*(1.0-a)+patchColorB*(a*(1.0-b))+patchColorC*(a*b);
     if (biomeVisibility(root,up,seed)==0.0) return;
-    vec4 variation=vec4(horizonRandom(seed+6u)*6.28318530718,
-        mix(uLeanRange.x,uLeanRange.y,horizonRandom(seed+7u)),
-        mix(uHeightMultiplierRange.x,uHeightMultiplierRange.y,horizonRandom(seed+5u)),horizonRandom(seed+4u));
-    if (uDetailed) {
-        root+=aPatchNormal*(uRootOffset/uMetersPerRadius);
-        float shadingDistance=length(root-uGrassEyeBody)*uMetersPerRadius;
-        float nearDistance=min(15.0,uDrawDistance*.25);
-        low=smoothstep(nearDistance*.5,nearDistance,shadingDistance);
-        float end=grassLodFadeEnd(variation.w);
-        fade=min(1.0-smoothstep(end-(uDrawDistance-nearDistance)/8.0,end,shadingDistance),
-            1.0-smoothstep(uDrawDistance*.75,uDrawDistance,shadingDistance));
-    }
+    vec4 variation=vec4(grassRandom(seed+6u)*6.28318530718,
+        mix(uLeanRange.x,uLeanRange.y,grassRandom(seed+7u)),
+        mix(uHeightMultiplierRange.x,uHeightMultiplierRange.y,grassRandom(seed+5u)),grassRandom(seed+4u));
+    float nearDistance=min(15.0,uDrawDistance*.25);
+    uint queue=(length(center-uGrassEyeBody)-reach)*uMetersPerRadius<uQuadDistance+uRootOffset ? 0u : 1u;
+    root+=aPatchNormal*(uRootOffset/uMetersPerRadius);
+    float shadingDistance=length(root-uGrassEyeBody)*uMetersPerRadius;
+    float low=smoothstep(uQuadDistance*.5,uQuadDistance,shadingDistance);
+    float end=grassLodFadeEnd(variation.w);
+    float fade=min(1.0-smoothstep(end-(uDrawDistance-nearDistance)/8.0,end,shadingDistance),
+        1.0-smoothstep(uDrawDistance*.75,uDrawDistance,shadingDistance));
+    fade*=densityFade;
     if (fade<=0.0) return;
     vec3 p=root*uMetersPerRadius;
     float gust=clamp(.5+.5*grassPerlin(p*uWindFrequencies.x+uTime*vec3(.25,.125,0)),0.0,1.0);
-    float direction=0.0,flutter=0.0;
-    if (uDetailed) {
-        direction=grassPerlin(p*uWindFrequencies.y+vec3(19.3,7.1,43.7)+uTime*vec3(.03125,0,0));
-        flutter=grassPerlin(p*uWindFrequencies.z+vec3(5.2,31.8,11.4)+uTime*vec3(0,.5,0));
-    }
+    float direction=grassPerlin(p*uWindFrequencies.y+vec3(19.3,7.1,43.7)+uTime*vec3(.03125,0,0));
+    float flutter=grassPerlin(p*uWindFrequencies.z+vec3(5.2,31.8,11.4)+uTime*vec3(0,.5,0));
     // Submitted candidate counts are bounded by the CPU plan. Compaction can
     // only reduce them; each output queue has capacity for the entire plan.
     uint slot=atomicAdd(commands[queue].instances,1u)+queue*uint(uCapacity);

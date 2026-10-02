@@ -61,7 +61,7 @@ struct Renderer::Impl {
     CameraInput cameraInput;
     app::InputContext inputContext;
     ClipPlanes surfaceClip;
-    OwnedShader shader{"shaders/terrain/basic.vert", "shaders/terrain/basic.frag", "shaders/terrain/terrain_shadow.glsl", "shaders/atmosphere/atmosphere.glsl"};
+    OwnedShader shader{"shaders/terrain/basic.vert", "shaders/terrain/basic.frag", "shaders/terrain/terrain_shadow.glsl", "shaders/atmosphere/atmosphere.glsl", "shaders/foliage/palette.glsl"};
     OwnedShader waterShader{"shaders/water/water.vert", "shaders/water/water.frag", "shaders/terrain/terrain_shadow.glsl", "shaders/atmosphere/atmosphere.glsl"};
     GrassRenderer grass;
     OwnedShader shadowShader{"shaders/terrain/terrain_shadow.vert", "shaders/terrain/terrain_shadow.frag"};

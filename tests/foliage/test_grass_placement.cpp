@@ -107,9 +107,9 @@ TEST(GrassPlacement, ConfigControlsRootVariationAndNearLayerIndependently) {
         EXPECT_NEAR(blade.root.z,1.0002,1e-6);
         EXPECT_FLOAT_EQ(blade.variation.y,.25); EXPECT_FLOAT_EQ(blade.variation.z,1.1);
     }
-    p.foliage.near_enabled=false;
+    p.foliage.enabled=false;
     EXPECT_TRUE(rendering::placeGrass(patch(),indices,p,100,{0,0,1.02}).empty());
-    p.foliage.near_enabled=true; p.foliage.green_ratio=4;
+    p.foliage.enabled=true; p.foliage.green_ratio=4;
     EXPECT_TRUE(rendering::placeGrass(patch(),indices,p,100,{0,0,1.02}).empty());
 }
 TEST(GrassPlacement, BothPolesUseTheSameBodyLocalPlacement) {
@@ -153,10 +153,26 @@ TEST(GrassConfig, ParsesAndRejectsUnboundedOrNonfiniteWork) {
     EXPECT_FALSE(config::PlanetConfig{}.foliage.enabled);
     EXPECT_NO_THROW(config::FoliageConfig(config::Config{nlohmann::json::parse(R"({"density_per_m2":1200.72})")}));
     EXPECT_NO_THROW(config::FoliageConfig(config::Config{nlohmann::json::parse(R"({"draw_distance_m":400})")}));
-    for (const auto* raw : {R"({"max_blades":0})",R"({"max_blades":250001})",
+    for (const auto* raw : {R"({"max_blades":0})",R"({"max_blades":25000001})",
          R"({"density_per_m2":4097})",R"({"draw_distance_m":401})",R"({"width_m":0})",
          R"({"height_m":4})",R"({"wind_strength":-1})"})
         EXPECT_THROW(config::FoliageConfig(config::Config{nlohmann::json::parse(raw)}),std::invalid_argument);
     p.foliage.height_m=std::numeric_limits<double>::quiet_NaN();
     EXPECT_THROW(p.foliage.validate(),std::invalid_argument);
+}
+
+TEST(GrassConfig, QuadDistanceDefaultsValidatesAndClampsToDrawDistance) {
+    config::FoliageConfig defaults;
+    EXPECT_DOUBLE_EQ(defaults.quadDistanceMeters(),10);
+    config::FoliageConfig custom(config::Config{nlohmann::json::parse(
+        R"({"draw_distance_m":100,"quad_distance_m":30})")});
+    EXPECT_DOUBLE_EQ(custom.quad_distance_m,30);
+    EXPECT_DOUBLE_EQ(custom.quadDistanceMeters(),30);
+    custom.draw_distance_m=20;
+    EXPECT_DOUBLE_EQ(custom.quadDistanceMeters(),20);
+    for (double invalid:{-1.,401.,std::numeric_limits<double>::infinity(),
+                         std::numeric_limits<double>::quiet_NaN()}) {
+        custom.quad_distance_m=invalid;
+        EXPECT_THROW(custom.validate(),std::invalid_argument);
+    }
 }

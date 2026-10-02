@@ -1,0 +1,10 @@
+Internal ctest changing into directory: /d/Programmieren/Projects/PlanetSimulation/build-grass
+Test project /d/Programmieren/Projects/PlanetSimulation/build-grass
+    Start 13: TerrainShadowRenderIntegration
+1/2 Test #13: TerrainShadowRenderIntegration ...   Passed   24.94 sec
+    Start 31: GrassCaptureIntegration
+2/2 Test #31: GrassCaptureIntegration ..........   Passed   58.67 sec
+
+100% tests passed, 0 tests failed out of 2
+
+Total Test time (real) =  83.62 sec

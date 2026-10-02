@@ -219,48 +219,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                     grassWindTime(sceneTime*settings.wind_noise.speed_multiplier)};
                 grass->draw(i,&grassPass);
             }
-            if (grass && grass->horizon.stats(i).candidates) {
-                const auto& settings=planet.foliage;
-                auto& tuftShader=grass->horizon.shader;
-                tuftShader.use();
-                tuftShader.setMat4("model",glm::value_ptr(model));
-                tuftShader.setMat4("view",glm::value_ptr(passView));
-                tuftShader.setMat4("projection",glm::value_ptr(passProjection));
-                tuftShader.setFloat3("uClipCenter",clipCenter.x,clipCenter.y,clipCenter.z);
-                tuftShader.setFloat("uClipRadius",clipRadius);
-                tuftShader.setFloat("uMetersPerRadius",planet.radius*scenario.metersPerWorldUnit());
-                tuftShader.setFloat("uGrassHeight",settings.height_m);
-                tuftShader.setFloat("uGrassWidth",settings.width_m);
-                tuftShader.setFloat("uDrawDistance",settings.draw_distance_m);
-                tuftShader.setInt("uFrustumCull",settings.frustum_culling);
-                tuftShader.setFloat("uCullExtent",(settings.height_m*settings.height_multiplier_max*settings.far_height_scale*(1+.25*settings.wind_strength)+
-                    std::max(settings.far_min_width_m,settings.width_m*settings.far_width_scale))/(planet.radius*scenario.metersPerWorldUnit()));
-                tuftShader.setFloat("uFarDistance",grass->horizon.stats(i).distanceMeters);
-                tuftShader.setFloat2("uHeightMultiplierRange",settings.height_multiplier_min,settings.height_multiplier_max);
-                tuftShader.setFloat3("uFarShape",settings.far_height_scale,settings.far_width_scale,settings.far_min_width_m);
-                tuftShader.setFloat3("uFarFadeFractions",settings.far_fade_in_start_fraction,
-                    settings.far_fade_in_end_fraction,settings.far_fade_out_start_fraction);
-                tuftShader.setFloat("uGreenRatio",settings.green_ratio);
-                tuftShader.setFloat("uWaterClearance",settings.water_clearance_m);
-                tuftShader.setFloat("uWindStrength",settings.wind_strength);
-                tuftShader.setFloat("uTime",rendering::grassWindTime(sceneTime*settings.wind_noise.speed_multiplier));
-                tuftShader.setInt("uWindSeed",settings.wind_noise.seed);
-                tuftShader.setFloat3("uWindFrequencies",settings.wind_noise.gust_frequency,
-                    settings.wind_noise.direction_frequency,settings.wind_noise.flutter_frequency);
-                setRgb(tuftShader,"uGrassEyeBody",bodies[i+1].toLocalPoint(eyeWorld)/planet.radius);
-                setRgb(tuftShader,"uFacingEyeBody",materialEye);
-                setRgb(tuftShader,"uViewEyeWorld",glm::dvec3(glm::inverse(passView)[3]));
-                setRgb(tuftShader,"uPlanetColor",glm::dvec3(planet.color[0],planet.color[1],planet.color[2]));
-                tuftShader.setFloat2("uTerrainRockRange",rockRange[0],rockRange[1]);
-                tuftShader.setInt("uLandscapeEnabled",planet.terrain_landscape.enabled);
-                tuftShader.setInt("uWaterEnabled",planet.water.enabled);
-                tuftShader.setFloat3("uLandscapeLevels",planet.water.enabled ? planet.water.level_m : 0.0,
-                    .1,maximumHeight);
-                setBodyLighting(tuftShader,i);
-                const GrassPass grassPass{model,passView,passProjection,bodies[i+1].toLocalPoint(eyeWorld)/planet.radius,
-                    grassWindTime(sceneTime*settings.wind_noise.speed_multiplier)};
-                grass->horizon.draw(i,&grassPass);
-            }
+
         }
         if (record) glDisable(GL_STENCIL_TEST);
     };

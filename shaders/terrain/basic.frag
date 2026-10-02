@@ -57,11 +57,13 @@ vec3 landscapeColor(float height, float rock) {
     float snowEnd=max(snowStart+1.0,water+0.40*max(1.0,uLandscapeLevels.z-water));
     float aboveWater=smoothstep(water-max(0.05,0.05*width),water+max(0.02,0.02*width),height);
     float beach=aboveWater*(1.0-smoothstep(beachTop,beachTop+max(0.15,0.15*width),height));
-    vec3 land=mix(vec3(1.10,1.30,0.18),vec3(4.20,1.90,0.18),beach);
-    land=mix(land,vec3(4.60,2.30,0.92),smoothstep(snowStart,snowEnd,height));
+    // Biome classification retains the terrain factors on CPU; rendering uses
+    // the same linear albedo as the center of a typical foliage tip.
+    vec3 land=mix(grassTipColor(.5),vec3(4.20,1.90,0.18)*uColor,beach);
+    land=mix(land,vec3(4.60,2.30,0.92)*uColor,smoothstep(snowStart,snowEnd,height));
     land*=mix(1.0,0.50,rock);
     float submerged=1.0-smoothstep(water-max(0.5,0.05*width),water+max(0.02,0.02*width),height);
-    return mix(land,vec3(0.30,0.40,0.19),submerged)*uColor;
+    return mix(land,vec3(0.30,0.40,0.19)*uColor,submerged);
 }
 
 void main() {

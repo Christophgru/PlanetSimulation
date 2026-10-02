@@ -1,4 +1,4 @@
-#include "rendering/foliage/horizon/HorizonGrassPlan.h"
+#include "rendering/foliage/procedural/GrassPlan.h"
 #include "rendering/foliage/GrassPlacement.h"
 #include "rendering/diagnostics/tracing/CpuTrace.h"
 #include "config/ScenarioConfig.h"
@@ -16,44 +16,28 @@ double maximumGround(const config::PlanetConfig& planet) {
 }
 int bucket(double expected,int maxSlots) {
     int level=0;
-    while (level+1<int(horizonGrassSlots.size()) && horizonGrassSlots[level]<maxSlots && horizonGrassSlots[level]<expected) ++level;
+    while (level+1<int(grassCandidateSlots.size()) && grassCandidateSlots[level]<maxSlots && grassCandidateSlots[level]<expected) ++level;
     return level;
 }
 }
 
-double horizonGrassDistance(const config::PlanetConfig& planet, double metersPerWorldUnit,
-                            const glm::dvec3& eyeBody) {
-    const double radius=planet.radius*metersPerWorldUnit;
-    const double eyeRadius=glm::length(eyeBody)*radius;
-    if (!std::isfinite(radius) || radius<=0 || !std::isfinite(eyeRadius) || eyeRadius<=0)
-        throw std::invalid_argument("Invalid horizon foliage scale or eye");
-    if (planet.foliage.far_distance_m>0) return planet.foliage.far_distance_m;
-    // A lowest-ground sphere bounds occlusion; the tallest possible grass
-    // extends the far end. Their tangent angles bound visible radial extent.
-    const double relief=maximumGround(planet);
-    const double lower=std::max(radius-relief, radius*.001);
-    const double eyeAngle=std::acos(std::clamp(lower/eyeRadius,0.0,1.0));
-    const double topAngle=std::acos(std::clamp(lower/(radius+relief+
-        planet.foliage.height_multiplier_max*planet.foliage.height_m*planet.foliage.far_height_scale),0.0,1.0));
-    return std::max(planet.foliage.draw_distance_m*1.25,
-        std::min(std::acos(-1.0)*radius, radius*(eyeAngle+topAngle)));
-}
-
-HorizonGrassPlan planHorizonGrass(const std::vector<float>& vertices,
+GrassPlan planGrass(const std::vector<float>& vertices,
     const std::vector<unsigned>& indices, const config::PlanetConfig& planet,
-    double metersPerWorldUnit, const glm::dvec3& eyeBody, bool detailed) {
-    CpuTrace::Scope scope("planHorizonGrass");
-    HorizonGrassPlan result;
+    double metersPerWorldUnit, const glm::dvec3& eyeBody) {
+    CpuTrace::Scope scope("planGrass");
+    GrassPlan result;
     const auto& settings=planet.foliage;
-    if (!settings.enabled || !(detailed ? settings.near_enabled : settings.horizon_enabled) || vertices.empty()) return result;
+    if (!settings.enabled || vertices.empty()) return result;
     const double scale=planet.radius*metersPerWorldUnit;
-    result.distanceMeters=detailed ? settings.draw_distance_m : horizonGrassDistance(planet,metersPerWorldUnit,eyeBody);
-    const double margin=detailed ? grassRebuildDistance(settings) : settings.far_rebuild_distance_m;
+    if (!std::isfinite(scale) || scale<=0 || !std::isfinite(glm::length(eyeBody)) || glm::length(eyeBody)<=0)
+        throw std::invalid_argument("Invalid grass scale or eye");
+    result.distanceMeters=settings.draw_distance_m;
+    const double margin=grassRebuildDistance(settings);
     const double variance2=2*std::pow(settings.draw_distance_m*settings.gaussian_sigma_fraction,2);
     const double weightedArea=std::acos(-1.0)*variance2*(1-std::exp(-std::pow(result.distanceMeters+margin,2)/variance2));
-    const double requestedDensity=detailed ? std::min(settings.density_per_m2,
-        settings.budget_fraction*settings.max_blades/weightedArea) : settings.far_density_per_m2;
-    const int slotCap=int(std::bit_floor(unsigned(detailed ? settings.max_candidates_per_triangle : settings.far_max_candidates_per_patch)));
+    const double requestedDensity=std::min(settings.density_per_m2,
+        settings.budget_fraction*settings.max_blades/weightedArea);
+    const int slotCap=int(std::bit_floor(unsigned(settings.max_candidates_per_triangle)));
     const double maximumHeight=maximumGround(planet);
     const auto rockRange=planet.terrain_material.slopeMetricRange();
     const double water=planet.water.enabled ? planet.water.level_m : 0;
@@ -61,8 +45,7 @@ HorizonGrassPlan planHorizonGrass(const std::vector<float>& vertices,
     const double snowStart=std::max(water+1.1,water+.25*relief);
     const double snowEnd=std::max(snowStart+1,water+.4*relief);
     if ((glm::length(eyeBody)-1)*scale-maximumHeight>result.distanceMeters+margin) return result;
-    const double inner=detailed ? 0 : settings.draw_distance_m*settings.far_fade_in_start_fraction;
-    struct Candidate { HorizonGrassPatch patch; double area, distance; int level=0; };
+    struct Candidate { ProceduralGrassPatch patch; double area, distance; int level=0; };
     std::vector<Candidate> candidates;
     double totalArea=0;
     for (std::size_t t=0;t+2<indices.size();t+=3) {
@@ -76,7 +59,7 @@ HorizonGrassPlan planHorizonGrass(const std::vector<float>& vertices,
         const auto center=(p[0]+p[1]+p[2])/3.0;
         const double reach=std::max({glm::length(p[0]-center),glm::length(p[1]-center),glm::length(p[2]-center)});
         const double distance=glm::length(center-eyeBody)*scale;
-        if (distance-reach*scale>result.distanceMeters+margin || distance+reach*scale<inner-margin) continue;
+        if (distance-reach*scale>result.distanceMeters+margin) continue;
         const double area=glm::length(glm::cross(p[1]-p[0],p[2]-p[0]))*.5*scale*scale;
         if (!std::isfinite(area) || area<=1e-10 || glm::length(center)<1e-9) continue;
         for (int i=0;i<3;++i) {
@@ -103,17 +86,17 @@ HorizonGrassPlan planHorizonGrass(const std::vector<float>& vertices,
         // Landscape biome/altitude rejection is per GPU root. For bodies
         // without a landscape, their triangle tint is the coarse classifier.
         if (!planet.terrain_landscape.enabled && tint.y<=settings.green_ratio*std::max(tint.x,tint.z)) continue;
-        HorizonGrassPatch patch{glm::vec3(p[0]),glm::vec3(p[1]),glm::vec3(p[2]),
+        ProceduralGrassPatch patch{glm::vec3(p[0]),glm::vec3(p[1]),glm::vec3(p[2]),
             glm::vec3(normal),glm::vec3(tint),0,
             std::uint32_t(t/3)};
-        // Reserve only a conservative Gaussian upper bound. The shader uses
-        // this same cached eye/bound to accept the actual root probability.
+        // Reserve a conservative Gaussian bound for camera movement. The GPU
+        // evaluates actual density against stable candidate ranks.
         const double minimumDistance=std::max(0.0,distance-reach*scale-margin);
-        const double weighted=detailed ? area*std::exp(-minimumDistance*minimumDistance/variance2) : area;
+        const double weighted=area*std::exp(-minimumDistance*minimumDistance/variance2);
         if (weighted*requestedDensity<1e-6) continue;
         candidates.push_back({patch,weighted,distance}); totalArea+=weighted;
     }
-    const std::size_t budget=std::size_t(detailed ? settings.max_blades : settings.far_max_instances);
+    const std::size_t budget=std::size_t(settings.max_blades);
     if (candidates.size()>budget) {
         // A very small explicit budget cannot represent every triangle. Keep
         // a seed-stable sample instead of cutting coverage at a near distance.
@@ -123,7 +106,7 @@ HorizonGrassPlan planHorizonGrass(const std::vector<float>& vertices,
     }
     if (candidates.empty()) return result;
     double low=0, high=requestedDensity;
-    // Sorted areas turn each budget probe into seven binary searches instead
+    // Sorted areas turn each budget probe into binary searches over slot thresholds instead
     // of another full candidate scan. Keep the multiplication/comparison used
     // by bucket(), including exact power-of-two boundaries.
     std::vector<double> areas;
@@ -132,8 +115,8 @@ HorizonGrassPlan planHorizonGrass(const std::vector<float>& vertices,
     std::sort(areas.begin(),areas.end());
     const auto submitted=[&](double density) {
         std::size_t count=areas.size();
-        for (int slots:horizonGrassSlots) {
-            if (slots>=slotCap || slots==horizonGrassSlots.back()) break;
+        for (int slots:grassCandidateSlots) {
+            if (slots>=slotCap || slots==grassCandidateSlots.back()) break;
             const auto first=std::upper_bound(areas.begin(),areas.end(),double(slots),
                 [density](double limit,double area) { return limit<area*density; });
             count+=std::size_t(areas.end()-first)*slots;
@@ -155,20 +138,20 @@ HorizonGrassPlan planHorizonGrass(const std::vector<float>& vertices,
         candidate.level=bucket(candidate.area*high,slotCap);
         ++result.batches[candidate.level].count;
     }
-    std::array<std::size_t,horizonGrassSlots.size()> next{};
+    std::array<std::size_t,grassCandidateSlots.size()> next{};
     std::size_t patchCount=0;
-    for (std::size_t level=0;level<horizonGrassSlots.size();++level) {
+    for (std::size_t level=0;level<grassCandidateSlots.size();++level) {
         auto& batch=result.batches[level]; batch.first=patchCount;
         next[level]=patchCount; patchCount+=batch.count;
-        result.candidates+=batch.count*horizonGrassSlots[level];
+        result.candidates+=batch.count*grassCandidateSlots[level];
     }
     result.patches.resize(patchCount);
     for (auto& candidate:candidates) {
-        candidate.patch.expectedCandidates=float(std::min(candidate.area*high,double(horizonGrassSlots[candidate.level])));
+        candidate.patch.expectedCandidates=float(std::min(candidate.area*high,double(grassCandidateSlots[candidate.level])));
         result.patches[next[candidate.level]++]=candidate.patch;
     }
     result.density=high;
-    if (result.candidates>budget) throw std::logic_error("Horizon foliage budget exceeded");
+    if (result.candidates>budget) throw std::logic_error("Grass candidate budget exceeded");
     return result;
 }
 } // namespace rendering

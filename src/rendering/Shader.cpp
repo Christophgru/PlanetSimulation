@@ -24,7 +24,8 @@ Shader::Shader(const char* computePath) {
 
 Shader::Shader(const char* vertexPath, const char* fragmentPath,
        const char* fragmentLibraryPath,
-       const char* additionalFragmentLibraryPath) {
+       const char* additionalFragmentLibraryPath,
+       const char* paletteLibraryPath) {
     std::string vertexCode;
     std::string fragmentCode;
 
@@ -49,7 +50,7 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath,
     fragmentStream.seekg(0, std::ios::beg);
     fragmentStream.read(&fragmentCode[0], fragmentCode.size());
     // GLSL requires #version first; optional shared helpers follow it.
-    for (const char* libraryPath : {fragmentLibraryPath, additionalFragmentLibraryPath}) {
+    for (const char* libraryPath : {fragmentLibraryPath, additionalFragmentLibraryPath, paletteLibraryPath}) {
         if (!libraryPath) continue;
         std::ifstream library(libraryPath);
         if (!library.is_open())

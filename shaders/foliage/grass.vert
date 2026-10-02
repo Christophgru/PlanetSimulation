@@ -7,6 +7,7 @@ layout(location=2) in vec4 aVariation;
 uniform mat4 model,view,projection,uShadowMatrix;
 uniform vec3 uGrassEyeBody;
 uniform float uMetersPerRadius,uTime,uWindStrength,uGrassHeight,uGrassWidth,uDrawDistance;
+uniform float uQuadDistance=15.0;
 uniform int uSegments;
 // Descriptor attributes advance once per uSlotsPerPatch generated roots.
 layout(location=3) in uint aTriangle;
@@ -15,17 +16,17 @@ layout(location=4) in vec3 aWindSamples;
 layout(location=5) in float aCoverage;
 layout(location=6) in float aLow;
 uniform int uSlotsPerPatch,uWindSeed=0;
-uniform vec3 uPlacementEyeBody,uPlanetColor,uLandscapeLevels;
+uniform vec3 uPlanetColor,uLandscapeLevels;
 uniform vec2 uTerrainRockRange,uHeightMultiplierRange=vec2(.75,1.5),uLeanRange=vec2(.1,.4);
 uniform bool uLandscapeEnabled,uWaterEnabled;
-uniform float uGaussianSigma=13.333333,uGreenRatio=1.15,uWaterClearance=.15,uRootOffset=.005,uPlacementMargin=0;
+uniform float uGaussianSigma=13.333333,uGreenRatio=1.15,uWaterClearance=.15,uRootOffset=.005;
 uniform vec3 uWindFrequencies=vec3(.08,.02,.7);
 flat out float vFade,vVariation;
 out vec3 vRoot;
 out float vVisible;
 out vec3 vBodyPosition,vWorldPosition,vNormal,vUp,vColor;
 out vec4 vShadowPosition;
-out vec3 vBlade; // height fraction, side, detailed shading weight
+out vec3 vBlade; // height fraction, normalized lateral offset, detailed shading weight
 
 uniform samplerBuffer uTerrainVertices;
 uniform usamplerBuffer uTerrainIndices;
@@ -119,10 +120,10 @@ float grassLodFadeEnd(float variation) {
     float nearDistance=min(15.0,uDrawDistance*.25);
     return nearDistance+float((h&7u)+1u)*(uDrawDistance-nearDistance)/8.0;
 }
-uint horizonHash(uint h) {
+uint grassHash(uint h) {
     h^=h>>16; h*=0x7feb352du; h^=h>>15; h*=0x846ca68bu; return h^(h>>16);
 }
-float horizonRandom(uint h) { return float(horizonHash(h)>>8)* (1.0/16777216.0); }
+float grassRandom(uint h) { return float(grassHash(h)>>8)* (1.0/16777216.0); }
 float biomeVisibility(vec3 root,vec3 up,uint seed) {
     float height=(length(root)-1.0)*uMetersPerRadius;
     if (uWaterEnabled && height<=uLandscapeLevels.x+uWaterClearance) return 0.0;
@@ -140,11 +141,12 @@ float biomeVisibility(vec3 root,vec3 up,uint seed) {
     }
     if (tint.y<=uGreenRatio*max(tint.x,tint.z)) return 0.0;
     float slope=1.0-dot(normalize(aPatchNormal),up);
-    return horizonRandom(seed+17u)<smoothstep(uTerrainRockRange.x,uTerrainRockRange.y,slope) ? 0.0 : 1.0;
+    return grassRandom(seed+17u)<smoothstep(uTerrainRockRange.x,uTerrainRockRange.y,slope) ? 0.0 : 1.0;
 }
 void main() {
     vec3 root=aRoot, rootUp=aUp;
     vec4 variation=aVariation;
+    float densityFade=1.0;
     vFade=1.0; vVariation=variation.w; vRoot=root; vVisible=1.0;
     if (uProcedural) {
         if (!loadTerrainPatch()) {
@@ -152,8 +154,8 @@ void main() {
             vNormal=vec3(0,0,1); vUp=vNormal; vColor=vec3(0); vBlade=vec3(0);
             vShadowPosition=vec4(0,0,0,1); gl_Position=vec4(2,2,2,1); return;
         }
-        uint seed=horizonHash(aPatchSeed ^ (uint(gl_InstanceID % uSlotsPerPatch)*0x9e3779b9u));
-        float a=sqrt(horizonRandom(seed+1u)), b=horizonRandom(seed+2u);
+        uint seed=grassHash(aPatchSeed ^ (uint(gl_InstanceID % uSlotsPerPatch)*0x9e3779b9u));
+        float a=sqrt(grassRandom(seed+1u)), b=grassRandom(seed+2u);
         root=aPatchA*(1.0-a)+aPatchB*(a*(1.0-b))+aPatchC*(a*b);
         rootUp=normalize(root);
         aPatchNormal=normalize(patchNormalA*(1.0-a)+patchNormalB*(a*(1.0-b))+patchNormalC*(a*b));
@@ -162,20 +164,17 @@ void main() {
         vBodyPosition=root; vWorldPosition=(model*vec4(root,1)).xyz;
         vNormal=vec3(0,0,1); vUp=vNormal; vColor=vec3(0); vBlade=vec3(0);
         vShadowPosition=vec4(0,0,0,1); gl_Position=vec4(2,2,2,1);
-        // The conservative Gaussian bound matches the CPU planner. Only
-        // density rules are uniforms; every random sample is GLSL.
-        vec3 center=(aPatchA+aPatchB+aPatchC)/3.0;
-        float reach=max(max(length(aPatchA-center),length(aPatchB-center)),length(aPatchC-center));
-        float minimumDistance=max(0.0,(length(center-uPlacementEyeBody)-reach)*uMetersPerRadius-uPlacementMargin);
+        // A slot keeps its own density rank when candidate batches grow or
+        // shrink. Dividing acceptance by batch size used to reshuffle roots.
         float d=length(root-uGrassEyeBody)*uMetersPerRadius;
-        aExpectedCandidates=min(aExpectedCandidates*exp(-minimumDistance*minimumDistance/(2.0*uGaussianSigma*uGaussianSigma)),float(uSlotsPerPatch));
-        float acceptance=exp((minimumDistance*minimumDistance-d*d)/(2.0*uGaussianSigma*uGaussianSigma));
-        if (length(root)<1e-9 || d>=uDrawDistance ||
-            horizonRandom(seed+3u)>=aExpectedCandidates/float(uSlotsPerPatch)*acceptance ||
+        float expected=aExpectedCandidates*exp(-d*d/(2.0*uGaussianSigma*uGaussianSigma));
+        float rank=float(gl_InstanceID % uSlotsPerPatch)+max(grassRandom(seed+3u),1e-5);
+        densityFade=smoothstep(rank,rank*1.2,expected);
+        if (length(root)<1e-9 || d>=uDrawDistance || densityFade<=0.0 ||
             biomeVisibility(root,rootUp,seed)==0.0) return;
-        variation=vec4(horizonRandom(seed+6u)*6.28318530718,
-            mix(uLeanRange.x,uLeanRange.y,horizonRandom(seed+7u)),
-            mix(uHeightMultiplierRange.x,uHeightMultiplierRange.y,horizonRandom(seed+5u)),horizonRandom(seed+4u));
+        variation=vec4(grassRandom(seed+6u)*6.28318530718,
+            mix(uLeanRange.x,uLeanRange.y,grassRandom(seed+7u)),
+            mix(uHeightMultiplierRange.x,uHeightMultiplierRange.y,grassRandom(seed+5u)),grassRandom(seed+4u));
         root+=normalize(aPatchNormal)*(uRootOffset/uMetersPerRadius);
         vVisible=1.0; vVariation=variation.w;
     }
@@ -185,11 +184,12 @@ void main() {
     float side=float(gl_VertexID%2);
     float distanceToEye=length(root-uGrassEyeBody)*uMetersPerRadius;
     float nearDistance=min(15.0,uDrawDistance*.25);
-    float low=uGpuInstances ? aLow : smoothstep(nearDistance*.5,nearDistance,distanceToEye);
+    float low=uGpuInstances ? aLow : smoothstep(uQuadDistance*.5,uQuadDistance,distanceToEye);
     float fadeEnd=grassLodFadeEnd(variation.w);
     float tierWidth=(uDrawDistance-nearDistance)/8.0;
     vFade=min(1.0-smoothstep(fadeEnd-tierWidth,fadeEnd,distanceToEye),
               1.0-smoothstep(uDrawDistance*.75,uDrawDistance,distanceToEye));
+    vFade*=densityFade;
     if (uGpuInstances) vFade=aCoverage;
     vVisible=vFade;
     vec3 up=normalize(rootUp);
@@ -223,7 +223,9 @@ void main() {
     vNormal=normalize(mat3(model)*normalize(mix(up,bend*bladeNormal,.25*(1.0-low))));
     vUp=normalize(mat3(model)*up);
     vColor=vec3(1); // Shared fragment palette avoids interpolation-dependent LOD tint.
-    vBlade=vec3(t,side,1.0-low);
+    // Interpolate physical lateral offset, then recover side in the fragment.
+    // Interpolating side directly shades a tapered quad differently from strips.
+    vBlade=vec3(t,(side-.5)*mix(1.0-.9*t*t,1.0-.9*t,low),1.0-low);
     vBodyPosition=body;
     vec4 world=model*vec4(body,1);
     vWorldPosition=world.xyz;

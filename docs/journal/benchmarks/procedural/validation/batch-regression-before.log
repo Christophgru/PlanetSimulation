@@ -1,0 +1,32 @@
+EGL test context: llvmpipe (LLVM 20.1.2, 256 bits); GLEW status 4
+Note: Google Test filter = ProceduralGrassRender.GrowingCandidateBatchesRetainsExistingBlades
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from ProceduralGrassRender
+[ RUN      ] ProceduralGrassRender.GrowingCandidateBatchesRetainsExistingBlades
+/d/Programmieren/Projects/PlanetSimulation/tests/foliage/test_grass_render.cpp:286: Failure
+Value of: retained
+  Actual: false
+Expected: true
+Batch growth replaced a previously visible root
+/d/Programmieren/Projects/PlanetSimulation/tests/foliage/test_grass_render.cpp:286: Failure
+Value of: retained
+  Actual: false
+Expected: true
+Batch growth replaced a previously visible root
+/d/Programmieren/Projects/PlanetSimulation/tests/foliage/test_grass_render.cpp:286: Failure
+Value of: retained
+  Actual: false
+Expected: true
+Batch growth replaced a previously visible root
+[  FAILED  ] ProceduralGrassRender.GrowingCandidateBatchesRetainsExistingBlades (4541 ms)
+[----------] 1 test from ProceduralGrassRender (4541 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (4541 ms total)
+[  PASSED  ] 0 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] ProceduralGrassRender.GrowingCandidateBatchesRetainsExistingBlades
+
+ 1 FAILED TEST
+EGL harness: clean shutdown after 0 frames

@@ -113,7 +113,7 @@ target_include_directories(terrain_shadow_projection_tests PRIVATE ${CMAKE_SOURC
 add_test(NAME TerrainShadowProjectionTests COMMAND terrain_shadow_projection_tests)
 
 add_executable(terrain_shadow_render_tests lighting/test_terrain_shadow_render.cpp
-    foliage/test_grass_wind.cpp foliage/test_horizon_render.cpp)
+    foliage/test_grass_wind.cpp foliage/test_grass_render.cpp)
 target_link_libraries(terrain_shadow_render_tests PRIVATE planet_rendering GTest::gtest OpenGL::GL GLEW::GLEW glfw glm::glm nlohmann_json::nlohmann_json PNG::PNG)
 target_include_directories(terrain_shadow_render_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_compile_definitions(terrain_shadow_render_tests PRIVATE PLANET_SHADOW_IMAGE="${CMAKE_BINARY_DIR}/terrain-shadow-test.png")
@@ -126,9 +126,9 @@ add_test(NAME TerrainTests COMMAND terrain_tests)
 
 add_executable(grass_placement_tests foliage/test_grass_placement.cpp foliage/test_grass_lod.cpp)
 add_executable(foliage_benchmark foliage/benchmark_grass.cpp)
-add_executable(horizon_plan_tests foliage/test_horizon_plan.cpp)
-target_link_libraries(horizon_plan_tests PRIVATE planet_geometry GTest::gtest_main)
-add_test(NAME HorizonGrassPlanTests COMMAND horizon_plan_tests)
+add_executable(grass_plan_tests foliage/test_grass_plan.cpp)
+target_link_libraries(grass_plan_tests PRIVATE planet_geometry GTest::gtest_main)
+add_test(NAME GrassPlanTests COMMAND grass_plan_tests)
 target_link_libraries(foliage_benchmark PRIVATE planet_app)
 target_link_libraries(grass_placement_tests PRIVATE GTest::gtest_main glm::glm nlohmann_json::nlohmann_json)
 target_include_directories(grass_placement_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
@@ -161,7 +161,7 @@ add_test(NAME CpuTraceReportTests COMMAND ${Python3_EXECUTABLE}
 add_test(NAME GrassCaptureIntegration COMMAND ${Python3_EXECUTABLE}
     ${CMAKE_CURRENT_SOURCE_DIR}/foliage/test_grass_capture.py --binary $<TARGET_FILE:PlanetSimulation>
     --output-dir ${CMAKE_BINARY_DIR}/grass-captures)
-# Several real captures, including the distant GPU layer, incur shader JIT
+# Several real captures, including compute placement, incur shader JIT
 # startup on software GL. Keep a bounded allowance for the complete sequence.
 set_tests_properties(GrassCaptureIntegration PROPERTIES TIMEOUT 180)
 add_test(NAME LightingScenariosRenderIntegration COMMAND ${Python3_EXECUTABLE}

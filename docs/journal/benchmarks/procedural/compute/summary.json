@@ -1,0 +1,226 @@
+{
+  "utc": "2026-10-01T21:53:33.378335+00:00",
+  "platform": "Linux-7.0.0-34-generic-x86_64-with-glibc2.39",
+  "binary_sha256": "47daf2827088bf5aff25166d19cd0c0c54b73f147ab5d2abb1618d06609353a7",
+  "frames": 8,
+  "warmup": 2,
+  "size": [
+    640,
+    360
+  ],
+  "environment": {
+    "LIBGL_ALWAYS_SOFTWARE": "1",
+    "LP_NUM_THREADS": "2",
+    "LD_PRELOAD": "/d/Programmieren/Projects/PlanetSimulation/build/startup-egl-window.so",
+    "MESA_SHADER_CACHE_DIR": "/d/Programmieren/Projects/PlanetSimulation/build-grass/mesa-cache"
+  },
+  "terrain_mode": "synchronous capture; interactive walking builds terrain asynchronously",
+  "walk_step_m": 2.0,
+  "orbit_step_s": 0,
+  "cases": {
+    "walking": {
+      "measured_frames": 5,
+      "frame_ms": {
+        "mean": 2792.213148,
+        "median": 2092.55826,
+        "p95": 5594.64718
+      },
+      "gpu_ms": {
+        "mean": 2115.670736,
+        "median": 2091.90527,
+        "p95": 2239.00542
+      },
+      "terrain_build_ms": {
+        "mean": 664.151106,
+        "median": 0.0,
+        "p95": 3320.75553
+      },
+      "foliage_placement_ms": {
+        "mean": 10.0826188,
+        "median": 0.0,
+        "p95": 26.200408
+      },
+      "foliage_sort_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "foliage_upload_ms": {
+        "mean": 0.2612444,
+        "median": 0.0,
+        "p95": 0.709334
+      },
+      "cpu_update_ms": {
+        "mean": 0.040332,
+        "median": 0.035383,
+        "p95": 0.050103
+      },
+      "gpu_update_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "cpu_mesh_ms": {
+        "mean": 665.6279282,
+        "median": 0.002808,
+        "p95": 3328.12818
+      },
+      "gpu_mesh_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "cpu_lighting_ms": {
+        "mean": 0.0110834,
+        "median": 0.008717,
+        "p95": 0.017098
+      },
+      "gpu_lighting_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "cpu_foliage_ms": {
+        "mean": 10.5183386,
+        "median": 0.2396,
+        "p95": 27.102249
+      },
+      "gpu_foliage_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "cpu_tables_ms": {
+        "mean": 0.0103646,
+        "median": 0.00828,
+        "p95": 0.014773
+      },
+      "gpu_tables_ms": {
+        "mean": 0.000206,
+        "median": 0.000112,
+        "p95": 0.000364
+      },
+      "cpu_shadows_ms": {
+        "mean": 9.916278199999999,
+        "median": 0.003069,
+        "p95": 49.569236
+      },
+      "gpu_shadows_ms": {
+        "mean": 31.582375,
+        "median": 0.000343,
+        "p95": 157.910843
+      },
+      "cpu_opaque_ms": {
+        "mean": 479.6708004,
+        "median": 462.343731,
+        "p95": 557.254917
+      },
+      "gpu_opaque_ms": {
+        "mean": 711.7754074000001,
+        "median": 709.604339,
+        "p95": 725.32415
+      },
+      "cpu_reflection_ms": {
+        "mean": 462.041615,
+        "median": 461.205936,
+        "p95": 488.825516
+      },
+      "gpu_reflection_ms": {
+        "mean": 208.3649486,
+        "median": 198.3255,
+        "p95": 241.923844
+      },
+      "cpu_reflection_atmosphere_ms": {
+        "mean": 193.526237,
+        "median": 194.392501,
+        "p95": 196.613941
+      },
+      "gpu_reflection_atmosphere_ms": {
+        "mean": 193.59677680000001,
+        "median": 194.435056,
+        "p95": 196.765759
+      },
+      "cpu_water_ms": {
+        "mean": 26.2031508,
+        "median": 26.340568,
+        "p95": 28.573188
+      },
+      "gpu_water_ms": {
+        "mean": 47.1903334,
+        "median": 46.387684,
+        "p95": 52.452705
+      },
+      "cpu_atmosphere_ms": {
+        "mean": 929.2948246,
+        "median": 931.35987,
+        "p95": 956.840354
+      },
+      "gpu_atmosphere_ms": {
+        "mean": 923.1605674,
+        "median": 925.10137,
+        "p95": 950.236726
+      },
+      "cpu_cached_present_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "gpu_cached_present_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "cpu_overlay_ms": {
+        "mean": 0.003445,
+        "median": 0.003259,
+        "p95": 0.003916
+      },
+      "gpu_overlay_ms": {
+        "mean": 0.0001224,
+        "median": 0.000103,
+        "p95": 0.000166
+      },
+      "cpu_present_ms": {
+        "mean": 15.031883,
+        "median": 14.51085,
+        "p95": 16.15447
+      },
+      "gpu_present_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "scene_reuses": 0,
+      "mesh_uploads": 1,
+      "foliage_rebuilds": 2,
+      "shadow_updates": 1,
+      "shadow_reuses": 9,
+      "foliage_upload_bytes": 70956,
+      "foliage_rebuild_frame_mean_ms": 26.026992,
+      "gpu_measured_frames": 5,
+      "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+      "command": [
+        "/d/Programmieren/Projects/PlanetSimulation/build-grass/PlanetSimulation",
+        "--replay",
+        "/d/Programmieren/Projects/PlanetSimulation/docs/journal/benchmarks/procedural/compute/walking/input.json",
+        "--surface-capture",
+        "/d/Programmieren/Projects/PlanetSimulation/docs/journal/benchmarks/procedural/compute/walking/capture.png",
+        "--render-size",
+        "640",
+        "360",
+        "--benchmark-frames",
+        "8",
+        "--benchmark-step",
+        "0",
+        "--benchmark-walk-step",
+        "2.0",
+        "--performance-trace",
+        "/d/Programmieren/Projects/PlanetSimulation/docs/journal/benchmarks/procedural/compute/walking/frames.csv"
+      ],
+      "input_sha256": "4ac14eb40d9b44bb34317eb628a9c0efb8d342c25d95b07675a8380e5e6278c9"
+    }
+  },
+  "runtime_dir": "/d/Programmieren/Projects/PlanetSimulation",
+  "shader_sha256": "16810c3bf0cee679be172697d43336d78c3c6b77ad08c457fb867268b42577e3",
+  "graphics": "glxinfo unavailable"
+}

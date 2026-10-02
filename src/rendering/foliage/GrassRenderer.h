@@ -1,29 +1,18 @@
 #pragma once
 #include <cstddef>
-#include <GL/glew.h>
-#include "rendering/Shader.h"
-#include "rendering/foliage/GrassStats.h"
-#include "rendering/foliage/horizon/HorizonGrass.h"
-#include <array>
-#include <cstdint>
-#include <vector>
-#include <glm/glm.hpp>
+#include "rendering/foliage/procedural/ProceduralGrass.h"
 class Mesh;
 namespace config { struct PlanetConfig; }
 
-
 namespace rendering {
-struct GrassBlade;
-struct GrassLodPlan;
 struct GrassDrawStats {
     std::size_t blades=0, vertices=0, triangles=0, batches=0, instanceBytes=0;
 };
 class GrassRenderer {
 public:
-    // Both layers upload terrain descriptors; all random roots live on GPU.
-    HorizonGrass near{true};
-    HorizonGrass horizon;
-    Shader& shader=near.shader;
+    // Upload triangle IDs; placement and wind stay on the GPU.
+    ProceduralGrass procedural;
+    Shader& shader=procedural.shader;
     GrassRenderer() = default;
     GrassRenderer(const GrassRenderer&) = delete;
     GrassRenderer& operator=(const GrassRenderer&) = delete;

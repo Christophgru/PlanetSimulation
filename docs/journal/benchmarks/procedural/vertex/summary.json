@@ -1,0 +1,226 @@
+{
+  "utc": "2026-10-01T21:52:43.590238+00:00",
+  "platform": "Linux-7.0.0-34-generic-x86_64-with-glibc2.39",
+  "binary_sha256": "47daf2827088bf5aff25166d19cd0c0c54b73f147ab5d2abb1618d06609353a7",
+  "frames": 8,
+  "warmup": 2,
+  "size": [
+    640,
+    360
+  ],
+  "environment": {
+    "LIBGL_ALWAYS_SOFTWARE": "1",
+    "LP_NUM_THREADS": "2",
+    "LD_PRELOAD": "/d/Programmieren/Projects/PlanetSimulation/build/startup-egl-window.so",
+    "MESA_SHADER_CACHE_DIR": "/d/Programmieren/Projects/PlanetSimulation/build-grass/mesa-cache"
+  },
+  "terrain_mode": "synchronous capture; interactive walking builds terrain asynchronously",
+  "walk_step_m": 2.0,
+  "orbit_step_s": 0,
+  "cases": {
+    "walking": {
+      "measured_frames": 5,
+      "frame_ms": {
+        "mean": 3125.59507,
+        "median": 2439.38181,
+        "p95": 5918.64978
+      },
+      "gpu_ms": {
+        "mean": 2452.9264,
+        "median": 2428.27054,
+        "p95": 2583.67315
+      },
+      "terrain_build_ms": {
+        "mean": 660.067718,
+        "median": 0.0,
+        "p95": 3300.33859
+      },
+      "foliage_placement_ms": {
+        "mean": 10.1368782,
+        "median": 0.0,
+        "p95": 25.809083
+      },
+      "foliage_sort_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "foliage_upload_ms": {
+        "mean": 0.31113579999999996,
+        "median": 0.0,
+        "p95": 0.81097
+      },
+      "cpu_update_ms": {
+        "mean": 0.0448506,
+        "median": 0.045162,
+        "p95": 0.059793
+      },
+      "gpu_update_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "cpu_mesh_ms": {
+        "mean": 661.5415894,
+        "median": 0.002916,
+        "p95": 3307.69696
+      },
+      "gpu_mesh_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "cpu_lighting_ms": {
+        "mean": 0.0098602,
+        "median": 0.010843,
+        "p95": 0.012
+      },
+      "gpu_lighting_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "cpu_foliage_ms": {
+        "mean": 10.6972236,
+        "median": 0.278467,
+        "p95": 26.800541
+      },
+      "gpu_foliage_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "cpu_tables_ms": {
+        "mean": 0.0121122,
+        "median": 0.012034,
+        "p95": 0.016348
+      },
+      "gpu_tables_ms": {
+        "mean": 0.0001556,
+        "median": 0.000109,
+        "p95": 0.000296
+      },
+      "cpu_shadows_ms": {
+        "mean": 9.5445732,
+        "median": 0.003829,
+        "p95": 47.708015
+      },
+      "gpu_shadows_ms": {
+        "mean": 32.361533800000004,
+        "median": 0.000174,
+        "p95": 161.807058
+      },
+      "cpu_opaque_ms": {
+        "mean": 530.1684608,
+        "median": 509.871851,
+        "p95": 626.990893
+      },
+      "gpu_opaque_ms": {
+        "mean": 1071.5037459999999,
+        "median": 1072.64467,
+        "p95": 1080.92789
+      },
+      "cpu_reflection_ms": {
+        "mean": 361.631727,
+        "median": 331.773317,
+        "p95": 463.962144
+      },
+      "gpu_reflection_ms": {
+        "mean": 175.5553486,
+        "median": 176.067328,
+        "p95": 178.705725
+      },
+      "cpu_reflection_atmosphere_ms": {
+        "mean": 571.0414934,
+        "median": 609.858871,
+        "p95": 635.124416
+      },
+      "gpu_reflection_atmosphere_ms": {
+        "mean": 193.14019199999998,
+        "median": 194.161202,
+        "p95": 199.382522
+      },
+      "cpu_water_ms": {
+        "mean": 25.2300368,
+        "median": 25.133337,
+        "p95": 26.426836
+      },
+      "gpu_water_ms": {
+        "mean": 46.2854068,
+        "median": 45.504063,
+        "p95": 49.74603
+      },
+      "cpu_atmosphere_ms": {
+        "mean": 940.3741882,
+        "median": 938.295219,
+        "p95": 971.530192
+      },
+      "gpu_atmosphere_ms": {
+        "mean": 934.0799156,
+        "median": 932.1851,
+        "p95": 967.236742
+      },
+      "cpu_cached_present_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "gpu_cached_present_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "cpu_overlay_ms": {
+        "mean": 0.0030196,
+        "median": 0.003007,
+        "p95": 0.003508
+      },
+      "gpu_overlay_ms": {
+        "mean": 0.0001014,
+        "median": 0.000102,
+        "p95": 0.000103
+      },
+      "cpu_present_ms": {
+        "mean": 15.0985836,
+        "median": 14.653895,
+        "p95": 16.919994
+      },
+      "gpu_present_ms": {
+        "mean": 0.0,
+        "median": 0.0,
+        "p95": 0.0
+      },
+      "scene_reuses": 0,
+      "mesh_uploads": 1,
+      "foliage_rebuilds": 2,
+      "shadow_updates": 1,
+      "shadow_reuses": 9,
+      "foliage_upload_bytes": 70956,
+      "foliage_rebuild_frame_mean_ms": 26.397767,
+      "gpu_measured_frames": 5,
+      "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+      "command": [
+        "/d/Programmieren/Projects/PlanetSimulation/build-grass/PlanetSimulation",
+        "--replay",
+        "/d/Programmieren/Projects/PlanetSimulation/docs/journal/benchmarks/procedural/vertex/walking/input.json",
+        "--surface-capture",
+        "/d/Programmieren/Projects/PlanetSimulation/docs/journal/benchmarks/procedural/vertex/walking/capture.png",
+        "--render-size",
+        "640",
+        "360",
+        "--benchmark-frames",
+        "8",
+        "--benchmark-step",
+        "0",
+        "--benchmark-walk-step",
+        "2.0",
+        "--performance-trace",
+        "/d/Programmieren/Projects/PlanetSimulation/docs/journal/benchmarks/procedural/vertex/walking/frames.csv"
+      ],
+      "input_sha256": "94931df5bc01e9a4e4ee9c0ee545e13c5d258d6bc73451b2c721e3f5a59a97e1"
+    }
+  },
+  "runtime_dir": "/d/Programmieren/Projects/PlanetSimulation",
+  "shader_sha256": "16810c3bf0cee679be172697d43336d78c3c6b77ad08c457fb867268b42577e3",
+  "graphics": "glxinfo unavailable"
+}

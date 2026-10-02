@@ -1,0 +1,23 @@
+EGL test context: llvmpipe (LLVM 20.1.2, 256 bits); GLEW status 4
+Note: Google Test filter = GrassRender.QuadSwapPreservesInteriorShadingAcrossTheWholeBlade:ProceduralGrassRender.GrowingCandidateBatchesRetainsExistingBlades:ProceduralGrassCompute.*
+[==========] Running 3 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from GrassRender
+[ RUN      ] GrassRender.QuadSwapPreservesInteriorShadingAcrossTheWholeBlade
+[       OK ] GrassRender.QuadSwapPreservesInteriorShadingAcrossTheWholeBlade (2938 ms)
+[----------] 1 test from GrassRender (2938 ms total)
+
+[----------] 1 test from ProceduralGrassRender
+[ RUN      ] ProceduralGrassRender.GrowingCandidateBatchesRetainsExistingBlades
+[       OK ] ProceduralGrassRender.GrowingCandidateBatchesRetainsExistingBlades (4088 ms)
+[----------] 1 test from ProceduralGrassRender (4088 ms total)
+
+[----------] 1 test from ProceduralGrassCompute
+[ RUN      ] ProceduralGrassCompute.CompactedRootsAndWindMatchTheVertexFallbackAtBothPoles
+[       OK ] ProceduralGrassCompute.CompactedRootsAndWindMatchTheVertexFallbackAtBothPoles (7047 ms)
+[----------] 1 test from ProceduralGrassCompute (7047 ms total)
+
+[----------] Global test environment tear-down
+[==========] 3 tests from 3 test suites ran. (14073 ms total)
+[  PASSED  ] 3 tests.
+EGL harness: clean shutdown after 0 frames

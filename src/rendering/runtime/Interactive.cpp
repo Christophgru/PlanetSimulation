@@ -17,6 +17,9 @@ int Renderer::Impl::interact() {
         glm::dvec3(scene.sunCamera.position), scene.sunCamera.getViewMatrix(), scene.sunCamera.fov);
     CameraMode displayedMode = cameraInput.mode();
     double previousFrameTime = glfwGetTime();
+    // Local animation follows wall time, independently of orbital pause/speed.
+    // Captures keep their explicit simulation-time phase for exact replay.
+    double foliageTime = simulationTime;
     simulationClock.reset(simulationTime, previousFrameTime);
     if (!options.replayPath.empty()) simulationClock.togglePause(previousFrameTime);
     std::error_code watchError;
@@ -83,6 +86,7 @@ int Renderer::Impl::interact() {
                 previousFrameTime = glfwGetTime();
                 simulationTime = config::replayStartTime(scene.scenario, options.commandLineTime);
                 simulationClock.reset(simulationTime, previousFrameTime);
+                foliageTime = simulationTime;
                 scene.terrainSurfaces = std::move(staged.terrainSurfaces);
                 scene.sunCamera = std::move(staged.sunCamera);
                 scene.surfaceCamera = std::move(staged.surfaceCamera);
@@ -126,6 +130,7 @@ int Renderer::Impl::interact() {
         const double frameElapsed = std::max(0.0, frameTime - previousFrameTime);
         const double elapsedSeconds = std::min(frameElapsed, 0.05);
         previousFrameTime = frameTime;
+        foliageTime += frameElapsed;
         frameRate.sample(frameElapsed);
         // Orbit time uses actual elapsed wall time, independent of the
         // smaller movement step used to keep camera controls smooth.
@@ -222,8 +227,13 @@ int Renderer::Impl::interact() {
             const GLuint sceneOutput = scaledScene ? qualityTarget.framebuffer() : 0;
             const bool pending=std::any_of(pendingTerrain.begin(),pendingTerrain.end(),
                 [](const auto& task) { return task.geometry.valid(); });
+            const bool windAnimating=std::any_of(scene.scenario.planets.begin(),scene.scenario.planets.end(),
+                [](const auto& planet) {
+                    return planet.foliage.enabled && planet.foliage.wind_strength>0 &&
+                           planet.foliage.wind_noise.speed_multiplier>0;
+                });
             if (rendering::hasAtmosphere(scene.scenario) && frameReuse.matches(view,fov,sceneWidth,sceneHeight,
-                    simulationClock.seconds(),revisions,simulationClock.paused(),pending,eyeWorld,static_cast<int>(cameraInput.mode()))) {
+                    simulationClock.seconds(),revisions,simulationClock.paused(),pending || windAnimating,eyeWorld,static_cast<int>(cameraInput.mode()))) {
                 rendering::FrameProfiler::Scope scope(&profiler,rendering::FrameStage::CachedPresentation);
                 atmosphere.presentCached(atmosphereShader, sceneOutput); profiler.sceneReuse();
             } else {
@@ -231,7 +241,7 @@ int Renderer::Impl::interact() {
                             skyboxShader, waterReflection, shadowShader, terrainShadows,
                             atmosphereShader, atmosphere, reflectionAtmosphere, atmosphereColumns, meshes.sunMesh, meshes.skyboxMesh,
                             meshes.planetMeshes, meshes.waterMeshes, sceneWidth, sceneHeight,
-                            clip, (onSurface || onPlanetOrbit) ? std::optional<std::size_t>(scene.orbitPlanetIndex) : std::nullopt, false, &profiler, false, sceneOutput, &grass, simulationClock.seconds());
+                            clip, (onSurface || onPlanetOrbit) ? std::optional<std::size_t>(scene.orbitPlanetIndex) : std::nullopt, false, &profiler, false, sceneOutput, &grass, foliageTime);
                 frameReuse.remember(view,fov,sceneWidth,sceneHeight,simulationClock.seconds(),revisions,eyeWorld,static_cast<int>(cameraInput.mode()));
             }
             const bool showOrbits = inputContext.orbitsVisible && cameraInput.mode() == CameraMode::Orbit;

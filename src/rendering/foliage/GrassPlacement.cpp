@@ -27,7 +27,7 @@ std::vector<GrassBlade> placeGrass(const std::vector<float>& vertices,
     CpuTrace::Scope scope("placeGrass");
     std::vector<GrassBlade> result;
     const auto& settings = planet.foliage;
-    if (!settings.enabled || !settings.near_enabled || vertices.empty()) return result;
+    if (!settings.enabled || vertices.empty()) return result;
     const double metersPerRadius = planet.radius * metersPerWorldUnit;
     const double radius = settings.draw_distance_m + grassRebuildDistance(settings);
     double highestGround=planet.terrain_landscape.maximumAbsoluteHeightMeters();

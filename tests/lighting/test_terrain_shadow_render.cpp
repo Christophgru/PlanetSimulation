@@ -43,7 +43,7 @@ void buildRidges(Mesh& mesh, bool foreground) {
 
 class ShadowScene {
 public:
-    Shader terrain{"shaders/terrain/basic.vert", "shaders/terrain/basic.frag", "shaders/terrain/terrain_shadow.glsl"};
+    Shader terrain{"shaders/terrain/basic.vert", "shaders/terrain/basic.frag", "shaders/terrain/terrain_shadow.glsl", nullptr, "shaders/foliage/palette.glsl"};
     Shader water{"shaders/water/water.vert", "shaders/water/water.frag", "shaders/terrain/terrain_shadow.glsl"};
     Shader depth{"shaders/terrain/terrain_shadow.vert", "shaders/terrain/terrain_shadow.frag"};
     rendering::TerrainShadowMaps maps;
@@ -257,8 +257,12 @@ TEST(TerrainMaterialRender, BeachBandIsNarrowInsideCoarseTriangles) {
     Image image(size*size*3);
     glReadPixels(0,0,size,size,GL_RGB,GL_UNSIGNED_BYTE,image.data());
     const auto sand=pixel(image,.08), grass=pixel(image,.7), seabed=pixel(image,-.7);
-    EXPECT_GT(sand[0],sand[1]); EXPECT_GT(sand[0],2*grass[0]);
-    EXPECT_GT(grass[1],2*grass[0]); EXPECT_LT(seabed[0],grass[0]);
+    EXPECT_GT(sand[0],sand[1]); EXPECT_LT(sand[2],grass[2]);
+    // Ground matches midpoint foliage-tip albedo under neutral indirect light.
+    // Grain scales every channel equally, preserving these color ratios.
+    EXPECT_NEAR(float(grass[0])/grass[1],.634375f/.74375f,.01f);
+    EXPECT_NEAR(float(grass[2])/grass[1],.284375f/.74375f,.01f);
+    EXPECT_LT(seabed[0],grass[0]);
     int sandPixels=0;
     for (int x=0;x<size;++x) {
         const auto offset=(size/2*size+x)*3;
@@ -342,6 +346,47 @@ TEST(GrassRender, WindMovesBladesWhileNightAndClippingRemainDark) {
     EXPECT_EQ(*std::max_element(shadow.begin(),shadow.end()),0);
     glDeleteTextures(1,&occluder);
     grass.clear(); EXPECT_EQ(grass.count(0),0u);
+}
+
+TEST(GrassRender, QuadSwapPreservesInteriorShadingAcrossTheWholeBlade) {
+    ShadowScene scene;
+    rendering::GrassRenderer grass;
+    GLuint vao=0; glGenVertexArrays(1,&vao); glBindVertexArray(vao);
+    glVertexAttrib3f(0,0,0,1); glVertexAttrib3f(1,0,0,1);
+    glVertexAttrib4f(2,0,0,1,.5f);
+    glVertexAttrib3f(4,0,0,0); glVertexAttrib1f(5,1); glVertexAttrib1f(6,1);
+    auto& s=grass.shader; s.use();
+    s.setInt("uGpuInstances",1); s.setInt("uProcedural",0);
+    s.setInt("uTerrainVertices",8); s.setInt("uTerrainIndices",9);
+    s.setMat4("model",glm::value_ptr(glm::scale(glm::mat4(1),glm::vec3(100))));
+    s.setMat4("view",glm::value_ptr(glm::lookAt(glm::vec3(0,-2,100.5),glm::vec3(0,0,100.5),glm::vec3(0,0,1))));
+    s.setMat4("projection",glm::value_ptr(glm::ortho(-.2f,.2f,-.6f,.6f,.1f,10.f)));
+    s.setFloat("uMetersPerRadius",100); s.setFloat("uGrassHeight",1);
+    s.setFloat("uGrassWidth",.3f); s.setFloat("uDrawDistance",100);
+    s.setFloat3("uGrassEyeBody",0,-.2f,1); s.setFloat3("uViewEyeWorld",0,-2,100.5);
+    s.setFloat("uWindStrength",0); s.setFloat("uClipRadius",-1);
+    s.setFloat3("uSunDirection",0,0,1); s.setFloat3("uSunlight",0,0,0);
+    s.setFloat3("uIndirectLight",1,1,1);
+    s.setInt("uLinearOutput",1); s.setInt("uShadowsEnabled",0);
+    auto render=[&](int segments) {
+        glBindFramebuffer(GL_FRAMEBUFFER,scene.framebuffer); glViewport(0,0,size,size);
+        glDisable(GL_CULL_FACE); glDisable(GL_BLEND); glEnable(GL_DEPTH_TEST);
+        glClearColor(0,0,0,1); glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+        s.setInt("uSegments",segments);
+        glDrawArrays(GL_TRIANGLE_STRIP,0,2*segments+2);
+        Image result(size*size*3); glReadPixels(0,0,size,size,GL_RGB,GL_UNSIGNED_BYTE,result.data());
+        EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+        return result;
+    };
+    const auto detailed=render(6), quad=render(1);
+    EXPECT_GT(std::count_if(quad.begin(),quad.end(),[](auto c) { return c>20; }),1000);
+    double error=0; int maximum=0;
+    for (std::size_t i=0;i<quad.size();++i) {
+        const int difference=std::abs(int(quad[i])-int(detailed[i]));
+        error+=difference; maximum=std::max(maximum,difference);
+    }
+    EXPECT_LT(error/quad.size(),.02); EXPECT_LE(maximum,1);
+    glBindVertexArray(0); glDeleteVertexArrays(1,&vao);
 }
 
 TEST(TerrainShadowRender, ForegroundRidgeBlocksSunFacingRearRidge) {
