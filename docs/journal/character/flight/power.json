@@ -1,0 +1,45 @@
+{
+  "source": "configs/scenarios/solar_system.json",
+  "source_sha256": "f8dd8d33d9482f6072ca15cd9a6827179f0c625fdb2d746e6fa6509bbcd94ae0",
+  "planet": "earth",
+  "radius_sea_m": 1000,
+  "spin_rad_s": 0.10471975511965977,
+  "gravity_mps2": 42.307974970376186,
+  "equatorial_rest_gravity_mps2": 31.341747858054678,
+  "molar_mass_kg_mol": 0.029169239421239414,
+  "sea_density_kg_m3": 1.2126001957711314,
+  "sea_pressure_pa": 101325.0,
+  "mass_kg": 100,
+  "drag_area_cd_m2": 0.7,
+  "speed_mps": 100,
+  "drag_n": 4244.10068519896,
+  "useful_horizontal_power_w": 424410.06851989595,
+  "exhaust_speed_mps": 1000,
+  "efficiency": 0.6,
+  "maximum_thrust_n": 8292.805675462789,
+  "maximum_estimated_exhaust_input_w": 6910671.396218991,
+  "fixed_local_sea_density_terminal_speed_mps": 85.93473994119178,
+  "equatorial_level_flight": [
+    {
+      "heading": "east",
+      "support_n": 39.779683412272604,
+      "level_thrust_n": 4244.2871073148035,
+      "tilt_deg": 89.46298606037178,
+      "estimated_exhaust_input_w": 3536905.9227623367
+    },
+    {
+      "heading": "north",
+      "support_n": 2134.1747858054678,
+      "level_thrust_n": 4750.483411451311,
+      "tilt_deg": 63.304153564360995,
+      "estimated_exhaust_input_w": 3958736.1762094265
+    },
+    {
+      "heading": "west",
+      "support_n": 4228.569888198664,
+      "level_thrust_n": 5991.092882395226,
+      "tilt_deg": 45.10502569599944,
+      "estimated_exhaust_input_w": 4992577.401996022
+    }
+  ]
+}

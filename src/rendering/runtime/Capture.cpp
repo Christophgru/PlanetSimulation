@@ -31,7 +31,7 @@ int Renderer::Impl::capture() {
         { rendering::FrameProfiler::Scope scope(&profiler, rendering::FrameStage::Update, false);
           if (frame > 0) {
               scene.updateSimulation(simulationTime);
-              if (options.benchmarkWalkStep > 0)
+              if (options.benchmarkWalkStep > 0 && !(options.thirdPersonRenderMode && astronaut.motion.ready() && astronaut.motion.pose().airborne))
                   scene.surfaceCamera->walk(1, 0, options.benchmarkWalkStep /
                       (scene.surfaceCamera->walkSpeed() * scene.scenario.metersPerWorldUnit()));
           } }
@@ -40,6 +40,7 @@ int Renderer::Impl::capture() {
             preparePlanetMeshes(scene.surfaceCamera->position());
             if (frame==options.benchmarkJumpFrame || frame==options.benchmarkBoostFrame) ++inputContext.spacePresses;
             astronautBenchmarkBoost=options.benchmarkBoostFrame>=0 && frame>=options.benchmarkBoostFrame;
+            astronautFlightControl={options.benchmarkWalkStep>0 ? 1.0 : 0.0,0};
             prepareAstronaut(frame>0 ? (options.benchmarkCharacterStep>0 ? options.benchmarkCharacterStep : options.benchmarkWalkStep/6.0) : 0);
         }
         const glm::mat4 view = options.thirdPersonRenderMode ? glm::mat4(glm::lookAt(astronautView.eye,astronautView.target,astronautView.up)) :

@@ -28,6 +28,7 @@ document the progress and add comments such that when interrupted you can contin
 |Lets adjust the foliage wind noise such that the grass stays pressed down on the trail where the small astronaut walked along, add jumping motion, that lets the astronaut jump higher or lower depending on the planets gravity, based on mass and diameter of the planet minus its rotation velocity.|t| Gravity-dependent jumping and persistent trails implemented. Body-local bounded history, fixed roots, wind suppression and slope conformance work on both GPU paths; complete trail and cached planning anchors replay exactly. All 52 CTest entries have passing results via full run plus final renderer/layout checks; 22 gallery images, journal/PDF and retained evidence updated. |
 |Make the Sand more white and add some granularity to it (foliage or roughness/reflection map maybe in combination with tiny elevation noise that creates tiny dunes (only some cm high, as reference take image USER_IO/user_artifacts/image copy 2.png) that are often visible in sand in windy areas)|t| Pale granular sand with filtered, planet-fixed 18 cm wind ripples and bounded 1.4 cm normal relief; no extra triangles or collision changes. Clean 52/52 CTest suite (530.86 s); 22 gallery images, shoreline comparison, journal/PDF and capture hashes updated/verified. |
 |Prepare a short journal in typst on wether its feasable to port the current application to a web assembly application and evaluate the advantages and disadvantages in a short 2 page memo. Add some graphics on how the compilation process works, what runtime dependencies there are and where the main caviats might lie.|t| Two-page Typst/PDF feasibility memo with compilation/runtime diagrams, audited dependency and renderer changes, threading/storage/HDR caveats, WebGL/WebGPU tradeoffs and acceptance gates. Compiles to exactly two pages; visually reviewed, layout/whitespace and artifact hashes verified. Feasibility assessment only; no browser port or FPS claim. |
+|Make the astronaut not move his arms during jetpack phase, also in jetpack, wasd go on acceleration, calculate some upper speed limit of 100m/s for horizontal movement on sea level on the main planet (calc air pessure) but should be the same also on other planets, what power the jetpack would need to have. Falling should also be physically sound and bound by wind resistance. Assume the Astronaut is 100kg and the jetpack can thrust only down, so its thrust must be directed in the direction we want to fly in.  |t| Single-axis tilted thrust, quiet arms, 100 kg rotating-frame gravity and pressure-dependent drag; WASD commands acceleration toward 100 m/s with one main-planet-sized engine on every planet. Reproducible 8.29 kN / conditional 6.91 MW power study. All 52 entries validated via full run (51 passed) plus atmosphere timeout recheck; 19 CPU cases, exact upright/tilted replay, native input, 22 verified gallery images and journal/PDF updated.|
 |Improve the offline / raytracing example in README.md: increase foliage count and use the initial surface position from the production config; consider rendering narrower vertical columns with higher terrain/foliage budgets and assembling them into the final image; make lens flare visibly apparent. Start after the preceding tasks are finished.| |Queued on user request; evaluate strip projection, overlap and image assembly while preserving full-frame lighting/exposure and flare placement. No renderer changes for this task yet.|
 |Form a terrain/atmosphere CPU–GPU implementation plan before starting GPU terrain work. Audit the existing pipeline and evaluate hexagonal planet panels, seams/poles and alternatives. Define CPU ownership of subdivision/LOD/sinking and GPU ownership of noise, surface shape and atmospheric fields, including ground contacts, shadows/reflections, supported GPU paths and validation/performance budgets.| |Planning prerequisite for the following terrain/atmosphere tasks. Document CPU/GPU ownership before implementation, and assess seams, poles and spherical exceptions for hexagonal panels.|
 |Implement highly optimized GPU terrain shaping according to the completed CPU–GPU plan. Pass noise/shape parameters and minimal panel/topology descriptors; calculate surface positions/normals/material inputs on the GPU. Keep CPU subdivision and sinking where the plan calls for them.| |Depends on the architecture plan. Preserve planetary coordinates, camera/astronaut contacts, water/shadow/reflection agreement, deterministic replay and a documented compatible fallback; measure transfers and generation costs.|
@@ -80,6 +81,30 @@ current terrain-validation container has these tools and registers all 45
 tests. The install command above restores them on hosts where they are absent;
 reconfigure afterwards. Valgrind is only needed to recollect the independent
 instruction profile.
+
+## Jetpack checkpoint — 2026-10-02
+
+- Completed directed single-axis thrust, quiet arms, acceleration controls and
+  the 100 kg rotating-frame force/drag model. Shared hardware is sized from the
+  main planet; 100 m/s is the horizontal command target, with no velocity clamp.
+  Ground walking remains 6 m/s and Shift sprinting 12 m/s.
+- All 52 entries have passing results through full run plus targeted recheck:
+  51 passed in 814.46 s; atmosphere scenarios timed out at 180 s after eight
+  scenes. A bounded 300 s allowance rerun passed in 152.20 s, with unchanged
+  application binary and assertions. This is not a second clean full run.
+- 19 CPU cases pass, including actual vacuum falling beyond 50 m/s. Upright
+  and tilted flight replay byte-identically; native input also passes. Camera
+  chase uses its transported direction consistently in original and replay.
+- Force/power study: `docs/journal/character/flight.md`. Frozen production
+  inputs give 8.29 kN maximum thrust and 6.91 MW at assumed 1,000 m/s exhaust /
+  60% efficiency. Propellant depletion and grass-wind coupling remain future.
+- All 22 gallery images refreshed, visually reviewed and hashes/source
+  fingerprint verified. Only the tilted-flight PNG changed; it exactly replays
+  the study capture. Main journal PDF rebuilt after gallery publication and
+  visually reviewed. Evidence: `docs/journal/character/flight/validation/`.
+- Commit this feature before proceeding. Next unfinished worktree table item:
+  straighten the astronaut's knees when standing still. Preserve other queued
+  astronaut/model rows, the user's history reordering and added sand-noise row.
 
 ## WebAssembly memo checkpoint — 2026-10-02
 

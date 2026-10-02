@@ -346,14 +346,16 @@ Camera 4 follows an original procedural astronaut at the same surface location a
 
 An alternating gait preserves the stance foot and moves only the swinging foot, using a smooth ground-projected trajectory with 15 cm lift. Contacts intersect the installed terrain triangles, including LOD sinking, and resample height after mesh replacement without changing radial location. The MIT-licensed ozz-animation 0.16.0 runtime supplies two-bone leg IK near the actor origin. This combines procedural step selection with a tested joint solver; it is an initial locomotion approximation rather than a motion-captured running cycle.
 
-Space launches at 10 m/s. Radial gravity uses $g = max(0.25, G m / r^2 - omega^2 r cos^2(phi))$, where $r$ is reference radius, $phi$ is latitude and $omega$ is configured spin rate. The floor is a playability choice; altitude-dependent gravity, Coriolis acceleration and drag are omitted. Pressing Space again in flight enables a jetpack: an 8 m/s impulse and a short pulse, or a sustained net upward acceleration of 20 m/s² while held. Vertical velocity is capped between −50 and 35 m/s. These are arcade flight controls, not a rocket model. Blue bubbles emerge below the backpack during thrust; landing resets the boost state.
+Space launches at 10 m/s; pressing it again arms a pulse and holding it sustains thrust. A 100 kg actor integrates altitude-dependent gravity, centrifugal and Coriolis terms, and quadratic drag from configured pressure, gas composition and temperature. WASD requests horizontal acceleration toward 100 m/s while boosting, and the suit tilts to direct its single downward exhaust axis. Arms remain still while armed. Falling has no artificial velocity cap; drag determines the local terminal speed. Landing resets the flight state.
+
+The production main planet sizes a shared 8.29 kN engine, retained on other planets. At sea level, 100 m/s produces approximately 4.24 kN drag and 424 kW useful horizontal power. Assuming 1,000 m/s exhaust and 60% conversion efficiency, installed maximum thrust corresponds to about 6.91 MW exhaust input. These are explicit idealised choices, not measurements of a real jetpack. Attainable speed depends on gravity, air density and direction on the rapidly spinning miniature planet; the 100 m/s command changes force rather than clipping velocity. The reproducible calculation and limits are in `character/flight.md`. Fuel, thermal limits and wind coupling remain future work.
 
 #figure(
   grid(columns: (1fr, 1fr, 1fr), gutter: 5pt,
     image("../screenshots/astronaut.png", width: 100%),
     image("../screenshots/astronaut-front.png", width: 100%),
     image("../screenshots/astronaut-jetpack.png", width: 100%)),
-  caption: [Actual renderer captures: planted feet and chase view, suit details and arm patch, airborne jetpack bubbles. Full pose and local effect phase are preserved in the replay sidecars.])
+  caption: [Actual renderer captures: planted feet and chase view, suit details and arm patch, tilted jetpack thrust and bubbles. Full pose and local effect phase are preserved in the replay sidecars.])
 
 The actor receives terrain shadows and participates in HDR, atmosphere and water reflections. Local contact darkening helps anchor the feet; a full dynamic body shadow remains future work. CPU checks cover fixed stance contacts, joint reach, poles, mesh revision, chase clearance, 6/12 m/s movement, gravity and landing. GL captures check visible actor pixels and byte-identical gait and airborne replays; native input exercises camera switching, walking, jumping, boost and reload. These checks establish reproducibility and specific movement invariants on the tested renderer, not the naturalness of a sprint animation.
 
@@ -378,6 +380,8 @@ The offline checkpoint passes all 51 CTest entries in a clean 308.44 s run on GC
 == What the evidence establishes
 
 The repository contains 52 CTest entries covering configuration and orbital invariants; terrain, camera and astronaut behavior; lighting, shadows, atmosphere and refraction on OpenGL; renderer captures; adaptive quality; and real GLFW input under Xvfb. The 22 README images are checked against their SHA-256 manifest. These checks establish specific numerical and rendered behaviors on the tested software renderer. They do not establish physical fidelity, portability to every GPU driver, or a guaranteed 20 FPS for arbitrary scenes.
+
+The directed-flight checkpoint passed 51 of 52 entries in 814.46 s. The nine-scene atmosphere test reached its 180 s deadline after eight scenes; with a bounded 300 s allowance, its standalone rerun passed in 152.20 s on the same application binary. All 52 entries therefore have passing results through full run plus targeted recheck, not a second clean full run. The motion target contains 19 passing CPU cases, and upright and tilted flight captures replay byte-identically. Raw evidence is retained in `character/flight/validation/`.
 
 The October 2 continuation checkpoint passes all 49 entries in a clean 286.14 s run on GCC 12.2 and Mesa llvmpipe/Xvfb. The frozen grass view uploads 34,664 bytes of triangle IDs; cached frames upload zero grass-buffer bytes. Culling enabled/disabled and exact replay produce identical images. The October 1 paired compute/vertex benchmark remains a historical measurement on its original EGL host; this validation does not add a hardware timing claim. Evidence is retained in `benchmarks/procedural/validation/`.
 

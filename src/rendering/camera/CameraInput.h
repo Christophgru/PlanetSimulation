@@ -24,6 +24,7 @@ public:
     bool autoActivated() const { return autoActivated_; }
     bool surfacePointerCaptured() const { return surfacePointerCaptured_; }
     bool walkingMode() const { return mode_==CameraMode::Surface || mode_==CameraMode::ThirdPerson; }
+    void setThirdPersonAirborne(bool airborne) { thirdPersonAirborne_=airborne; }
     void setThirdPersonWalkSpeed(double worldUnitsPerSecond) {
         if (!std::isfinite(worldUnitsPerSecond) || worldUnitsPerSecond<=0)
             throw std::invalid_argument("Astronaut walk speed must be finite and positive");
@@ -138,7 +139,7 @@ public:
                 autoActivated_ = true;
             }
         }
-        if (walkingMode() && surface_) {
+        if (walkingMode() && surface_ && !(mode_==CameraMode::ThirdPerson && thirdPersonAirborne_)) {
             surface_->walk(static_cast<int>(keys.forward) - static_cast<int>(keys.backward),
                            static_cast<int>(keys.right) - static_cast<int>(keys.left),
                            elapsedSeconds*(mode_==CameraMode::ThirdPerson ?
@@ -172,4 +173,5 @@ private:
     double lastX_ = 0.0;
     double lastY_ = 0.0;
     double thirdPersonWalkSpeed_ = 2.0;
+    bool thirdPersonAirborne_=false;
 };

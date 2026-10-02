@@ -733,15 +733,17 @@ location. WASD walks at **6 m/s**; holding either **Shift** key sprints at
 **12 m/s**. Mouse look controls the chase camera. Press **Space** to jump,
 then release and press it again while airborne to engage the jetpack. Hold
 Space for sustained upward boost; blue bubbles stream from underneath the
-backpack. WASD also steers in flight. Release Space to coast and fall; landing
+backpack. WASD commands acceleration in flight; the suit tilts to direct its thrust. Release Space to coast and fall; landing
 resets the jetpack. T pauses planetary motion while these controls remain
 active. Esc releases the mouse in either walking camera.
 
 The procedural astronaut wears a grey suit with blue details and small German
 flags on the upper arms. Planet-local planted feet and ozz two-bone IK provide
 an initial gait. Jump gravity derives from planet mass, radius and spin;
-the jetpack uses arcade thrust and speed limits. See the
-[implementation and validation notes](docs/journal/character/astronaut.md).
+flight uses atmospheric drag and a shared thrust limit, with a 100 m/s
+horizontal command target. See the
+[implementation and validation notes](docs/journal/character/astronaut.md) and
+[jetpack force and power calculation](docs/journal/character/flight.md).
 The [Sketchfab model shortlist](docs/journal/character/sketchfab-models.md)
 compares downloadable rigs against the requested Ava Turing reference.
 An external skinned model has not yet been integrated.
@@ -755,7 +757,7 @@ only when this bound is reached. Capture sidecars preserve the trail for replay.
 [Trail validation and limits](docs/journal/character/trails.md) describe the
 bounded history and GPU checks.
 
-| Follow camera and planted feet | Grey/blue suit and arm flag | Airborne jetpack bubbles |
+| Follow camera and planted feet | Grey/blue suit and arm flag | Directed jetpack thrust |
 |:--:|:--:|:--:|
 | <a href="docs/screenshots/astronaut.png"><img src="docs/screenshots/astronaut.png" width="220" alt="Astronaut standing on the planet in camera 4"></a> | <a href="docs/screenshots/astronaut-front.png"><img src="docs/screenshots/astronaut-front.png" width="220" alt="Grey and blue astronaut with a German upper-arm flag"></a> | <a href="docs/screenshots/astronaut-jetpack.png"><img src="docs/screenshots/astronaut-jetpack.png" width="220" alt="Flying astronaut with blue bubbles below the backpack"></a> |
 

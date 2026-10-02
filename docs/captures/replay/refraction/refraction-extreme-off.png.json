@@ -480,8 +480,8 @@
       "reference_frame": "planet_spherical_ned",
       "simulation_time_seconds": 0.0,
       "up_ned": [
-        0.005642867970074263,
-        0.09418814306884686,
+        0.005642867970074215,
+        0.09418814306884687,
         -0.9955384230386665
       ],
       "walk_speed_mps": 80.0
@@ -502,8 +502,8 @@
     "reference_frame": "planet_spherical_ned",
     "simulation_time_seconds": 0.0,
     "up_ned": [
-      0.005642867970074215,
-      0.09418814306884687,
+      0.005642867970074166,
+      0.09418814306884689,
       -0.9955384230386665
     ],
     "walk_speed_mps": 80.0

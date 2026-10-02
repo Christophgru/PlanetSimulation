@@ -32,7 +32,18 @@ double AstronautMotion::surfaceGravity(double massKg,double radiusMeters,double 
 void AstronautMotion::setGravity(double value) {
     if (!std::isfinite(value) || value<0 || value>1e8)
         throw std::invalid_argument("Astronaut gravity must be finite and nonnegative");
-    gravity_=value;
+    flightEnvironment_.constantGravity=value;
+}
+void AstronautMotion::setFlightEnvironment(const FlightEnvironment& environment,double maximumThrust) {
+    if (!std::isfinite(environment.radiusMeters) || environment.radiusMeters<=0 ||
+        !std::isfinite(environment.planetMassKg) || environment.planetMassKg<0 ||
+        !std::isfinite(environment.spinRadiansPerSecond) ||
+        !std::isfinite(environment.seaLevelMeters) || environment.radiusMeters+environment.seaLevelMeters<=0 ||
+        !std::isfinite(environment.constantGravity) || environment.constantGravity<0 ||
+        !std::isfinite(maximumThrust) || maximumThrust<=0)
+        throw std::invalid_argument("Invalid astronaut flight environment");
+    environment.atmosphere.validate();
+    flightEnvironment_=environment; maximumThrust_=maximumThrust;
 }
 void AstronautMotion::restore(const AstronautPose& pose) {
     const auto valid=[](const glm::dvec3& v) { return std::isfinite(glm::length(v)); };
@@ -43,7 +54,9 @@ void AstronautMotion::restore(const AstronautPose& pose) {
         std::abs(glm::dot(pose.up,pose.right))>1e-6 || std::abs(glm::dot(pose.forward,pose.right))>1e-6 ||
         !std::isfinite(pose.armSwing) || !std::isfinite(pose.walkedMeters) || pose.walkedMeters<0 ||
         !std::isfinite(pose.flightHeight) || pose.flightHeight<0 || !std::isfinite(pose.verticalVelocity) ||
-        !std::isfinite(pose.effectSeconds) || !std::isfinite(pose.boostPulse) || pose.boostPulse<0)
+        !std::isfinite(pose.effectSeconds) || !std::isfinite(pose.boostPulse) || pose.boostPulse<0 ||
+        !valid(pose.velocity) || !valid(pose.suitUp) || std::abs(glm::length(pose.suitUp)-1)>1e-6 ||
+        !std::isfinite(pose.thrustN) || pose.thrustN<0)
         throw std::invalid_argument("Invalid astronaut replay basis");
     for (int leg=0;leg<2;++leg) {
         const auto& f=pose.feet[leg];
@@ -76,18 +89,18 @@ void AstronautMotion::update(const GroundContact& root,const glm::dvec3& lookFor
         throw std::invalid_argument("Astronaut requires finite root, view and elapsed time");
     // Substeps keep fast walking, jump collision and stance reach stable even
     // when presentation is slow. Ground/flight use local time, never orbit time.
-    const double horizontalMove=ready_ ? glm::length(root.position-glm::normalize(pose_.root)*glm::length(root.position)) : 0;
+    const double horizontalMove=ready_ && !pose_.airborne ? glm::length(root.position-glm::normalize(pose_.root)*glm::length(root.position)) : 0;
     if (ready_ && (elapsed>.010001 || horizontalMove>.060001) && horizontalMove<1.5) {
         const int steps=std::min(500,int(std::ceil(std::max(elapsed/.01,horizontalMove/.06))));
         const auto start=ground(pose_.root).position;
         for (int i=1;i<=steps;++i)
-            update(ground(glm::mix(start,root.position,double(i)/steps)),lookForward,elapsed/steps,ground);
+            update(ground(pose_.airborne ? pose_.root : glm::mix(start,root.position,double(i)/steps)),lookForward,elapsed/steps,ground);
         return;
     }
     const auto up=glm::normalize(root.position);
     const auto previous=pose_.root;
     const auto delta=root.position-previous;
-    const double distance=ready_ ? glm::length(delta-up*glm::dot(delta,up)) : 0;
+    const double distance=ready_ && !pose_.airborne ? glm::length(delta-up*glm::dot(delta,up)) : 0;
     // Explicit camera relocation/scene reload is a new placement, not a step.
     if (ready_ && distance>1.5) ready_=false;
     if (!ready_) {
@@ -95,8 +108,9 @@ void AstronautMotion::update(const GroundContact& root,const glm::dvec3& lookFor
         pose_.forward=tangent(lookForward,up,fallback);
         pose_.flightHeight=pose_.verticalVelocity=pose_.effectSeconds=pose_.boostPulse=0;
         pose_.airborne=pose_.jetpackArmed=pose_.boosting=false;
+        pose_.velocity=glm::dvec3(0); pose_.suitUp=up; pose_.thrustN=0;
     } else pose_.forward=tangent(distance>1e-6 ? delta : pose_.forward,up,pose_.forward);
-    pose_.root=root.position; pose_.up=up;
+    pose_.root=pose_.airborne ? previous : root.position; pose_.up=up;
     pose_.right=glm::normalize(glm::cross(pose_.forward,up));
     if (!ready_) {
         for (int leg=0;leg<2;++leg) {
@@ -111,44 +125,71 @@ void AstronautMotion::update(const GroundContact& root,const glm::dvec3& lookFor
     pose_.walkedMeters=walked_;
     pose_.armSwing=moving ? .16*std::sin(walked_*9) : 0;
     const bool wasAirborne=pose_.airborne;
-    if (wasAirborne) pose_.flightHeight+=glm::length(previous)-pose_.flightHeight-glm::length(root.position);
     while (spacePresses_) {
         --spacePresses_;
         if (!pose_.airborne) {
             pose_.airborne=true; pose_.verticalVelocity=10;
+            pose_.velocity=up*10.0+(elapsed>0 ? (delta-up*glm::dot(delta,up))/elapsed : glm::dvec3(0));
+            // An initial placement is not a walking launch velocity.
+            if (glm::length(delta)>1.5) pose_.velocity=up*10.0;
         } else {
             pose_.jetpackArmed=true; pose_.boostPulse=.18;
-            pose_.verticalVelocity=std::min(35.0,pose_.verticalVelocity+8);
         }
     }
     pose_.boosting=pose_.airborne && pose_.jetpackArmed && (boostHeld_ || pose_.boostPulse>0);
     pose_.boostPulse=std::max(0.0,pose_.boostPulse-elapsed);
     pose_.effectSeconds+=elapsed;
+    pose_.thrustN=0;
     if (pose_.airborne) {
-        const double acceleration=pose_.boosting ? 20.0 : -gravity_;
-        pose_.flightHeight+=pose_.verticalVelocity*elapsed+.5*acceleration*elapsed*elapsed;
-        pose_.verticalVelocity=std::clamp(pose_.verticalVelocity+acceleration*elapsed,-50.0,35.0);
-        if (pose_.flightHeight<=0) {
-            pose_.flightHeight=0;
+        const auto forward=tangent(lookForward,up,pose_.forward);
+        auto input=forward*flightControl_.x+glm::cross(forward,up)*flightControl_.y;
+        if (glm::length(input)>1) input=glm::normalize(input);
+        glm::dvec3 thrust(0);
+        if (pose_.boosting) {
+            const auto requested=JetpackPhysics::requestedThrust(flightEnvironment_,pose_.root,pose_.velocity,input,maximumThrust_);
+            const double blend=1-std::exp(-elapsed/.12);
+            pose_.suitUp=glm::normalize(glm::mix(pose_.suitUp,glm::normalize(requested),blend));
+            pose_.thrustN=glm::length(requested);
+            thrust=pose_.suitUp*pose_.thrustN;
+        } else pose_.suitUp=up;
+        const auto velocityBefore=pose_.velocity;
+        const auto acceleration=JetpackPhysics::gravity(flightEnvironment_,pose_.root,velocityBefore)+thrust/JetpackPhysics::massKg;
+        const auto kicked=velocityBefore+acceleration*elapsed;
+        // Exact drag-only update for quadratic isotropic resistance. Splitting
+        // force and drag keeps coarse frames dissipative without speed clamps.
+        pose_.velocity=kicked/(1+JetpackPhysics::dragCoefficient(flightEnvironment_,pose_.root)*glm::length(kicked)*elapsed);
+        pose_.root+=(velocityBefore+pose_.velocity)*(.5*elapsed);
+        const auto floor=ground(pose_.root);
+        pose_.up=glm::normalize(pose_.root);
+        pose_.verticalVelocity=glm::dot(pose_.velocity,pose_.up);
+        pose_.flightHeight=std::max(0.0,glm::length(pose_.root)-glm::length(floor.position));
+        if (glm::length(pose_.root)<=glm::length(floor.position)) {
+            pose_.root=floor.position;
             if (pose_.verticalVelocity<=0) {
-                pose_.verticalVelocity=0;
+                pose_.velocity=glm::dvec3(0); pose_.verticalVelocity=0; pose_.thrustN=0;
                 pose_.airborne=pose_.jetpackArmed=pose_.boosting=false;
+                pose_.suitUp=pose_.up;
             }
         }
+        pose_.forward=tangent(forward,pose_.up,pose_.forward);
+        pose_.right=glm::normalize(glm::cross(pose_.forward,pose_.up));
+    } else {
+        pose_.suitUp=up; pose_.velocity=glm::dvec3(0);
     }
-    pose_.root=root.position+up*pose_.flightHeight;
+    if (pose_.jetpackArmed) pose_.armSwing=0;
     if (pose_.airborne) {
+        const auto suit=pose_.suitBasis();
         for (int leg=0;leg<2;++leg) {
             auto& foot=pose_.feet[leg];
-            foot.contact={pose_.root+pose_.right*(leg==0 ? -.17 : .17)-pose_.forward*.06,up};
-            foot.forward=pose_.forward; foot.progress=.5;
+            foot.contact={pose_.root+suit[0]*(leg==0 ? -.17 : .17)+suit[2]*.06,suit[1]};
+            foot.forward=-suit[2]; foot.progress=.5;
         }
         solveLegs();
         return;
     }
     if (wasAirborne) for (int leg=0;leg<2;++leg) {
         auto& foot=pose_.feet[leg];
-        foot.contact=ground(root.position+pose_.right*(leg==0 ? -.17 : .17));
+        foot.contact=ground(pose_.root+pose_.right*(leg==0 ? -.17 : .17));
         foot.forward=pose_.forward; foot.progress=1;
     }
     // Only the swinging foot moves. Its opposite contact remains bit-identical
@@ -176,7 +217,7 @@ void AstronautMotion::update(const GroundContact& root,const glm::dvec3& lookFor
     solveLegs();
 }
 void AstronautMotion::solveLegs() {
-    const glm::dmat3 basis(pose_.right,pose_.up,-pose_.forward);
+    const auto basis=pose_.suitBasis();
     const auto inverse=glm::transpose(basis);
     // The rest chain is slightly bent, with knees pointing toward local -Z.
     // Work near the actor origin before converting to the library's floats.

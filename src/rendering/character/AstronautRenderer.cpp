@@ -17,7 +17,7 @@ void AstronautRenderer::draw(const glm::dvec3& planetCenter,const glm::dmat3& or
                              const glm::mat4& view,const glm::mat4& projection) {
     if (!motion.ready()) return;
     const auto& pose=motion.pose();
-    const glm::dmat3 basis(pose.right,pose.up,-pose.forward);
+    const auto basis=pose.suitBasis();
     const auto inverse=glm::transpose(basis);
     const glm::dmat4 actorWorld=glm::translate(glm::dmat4(1),planetCenter+orientation*pose.root/metersPerWorldUnit)*
         glm::dmat4(orientation*basis)*glm::scale(glm::dmat4(1),glm::dvec3(1/metersPerWorldUnit));

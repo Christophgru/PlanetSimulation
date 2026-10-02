@@ -14,7 +14,12 @@ nlohmann::json Renderer::Impl::astronautState() const {
     nlohmann::json result={{"root",vector(p.root)},{"up",vector(p.up)},
         {"forward",vector(p.forward)},{"right",vector(p.right)},{"arm_swing",p.armSwing},{"walked_m",p.walkedMeters},
         {"height_m",p.flightHeight},{"vertical_velocity_mps",p.verticalVelocity},{"effect_s",p.effectSeconds},
-        {"boost_pulse_s",p.boostPulse},{"airborne",p.airborne},{"jetpack_armed",p.jetpackArmed},{"boosting",p.boosting}};
+        {"boost_pulse_s",p.boostPulse},{"airborne",p.airborne},{"jetpack_armed",p.jetpackArmed},{"boosting",p.boosting},
+        {"velocity_mps",vector(p.velocity)},{"suit_up",vector(p.suitUp)},{"thrust_n",p.thrustN}};
+    result["flight_physics"]={{"mass_kg",JetpackPhysics::massKg},{"drag_area_cd_m2",JetpackPhysics::dragArea},
+        {"commanded_horizontal_speed_mps",JetpackPhysics::speedTarget},{"maximum_thrust_n",astronaut.motion.maximumThrust()},
+        {"air_pressure_pa",astronaut.motion.airPressure()},{"air_density_kg_m3",astronaut.motion.airDensity()},
+        {"estimated_exhaust_input_w",JetpackPhysics::exhaustPower(p.thrustN)}};
     for (int i=0;i<2;++i) {
         const auto& f=p.feet[i];
         result["feet"].push_back({{"position",vector(f.contact.position)},{"normal",vector(f.contact.normal)},
@@ -32,7 +37,7 @@ nlohmann::json Renderer::Impl::astronautState() const {
     return result;
 }
 void Renderer::Impl::prepareAstronaut(double elapsed) {
-    const auto& camera=*scene.surfaceCamera;
+    auto& camera=*scene.surfaceCamera;
     const std::size_t index=scene.scenario.surface_camera.planet_index;
     const auto& planet=scene.scenario.planets[index];
     const auto& body=scene.bodies[index+1];
@@ -58,11 +63,18 @@ void Renderer::Impl::prepareAstronaut(double elapsed) {
     }
     const auto root=ground(body.toLocalPoint(camera.position()));
     const auto direction=glm::transpose(body.orientation)*camera.direction();
-    astronaut.motion.setGravity(AstronautMotion::surfaceGravity(planet.mass_kg,radius,
-        planet.rotation.period_seconds,glm::radians(camera.location().latitudeDeg)));
+    const auto environment=[&](const config::PlanetConfig& bodyConfig) {
+        FlightEnvironment e; e.radiusMeters=bodyConfig.radius*units; e.planetMassKg=bodyConfig.mass_kg;
+        e.spinRadiansPerSecond=bodyConfig.rotation.period_seconds==0 ? 0 : 2*glm::pi<double>()/bodyConfig.rotation.period_seconds;
+        e.seaLevelMeters=bodyConfig.water.enabled ? bodyConfig.water.level_m : 0;
+        e.atmosphere=bodyConfig.atmosphere; return e;
+    };
+    astronaut.motion.setFlightEnvironment(environment(planet),JetpackPhysics::maximumThrust(environment(scene.scenario.planets.front())));
+    astronaut.motion.setFlightControl(astronautFlightControl);
     while (inputContext.spacePresses) { astronaut.motion.pressSpace(); --inputContext.spacePresses; }
     astronaut.motion.holdBoost(options.renderTestMode ? astronautBenchmarkBoost :
         glfwGetKey(window,GLFW_KEY_SPACE)==GLFW_PRESS);
+    const bool wasAirborne=astronaut.motion.ready() && astronaut.motion.pose().airborne;
     astronaut.motion.update(root,direction,elapsed,ground);
     if (!astronautReplayRestored && !options.replayPath.empty()) {
         astronautReplayRestored=true;
@@ -77,6 +89,9 @@ void Renderer::Impl::prepareAstronaut(double elapsed) {
             p.flightHeight=j.value("height_m",0.0); p.verticalVelocity=j.value("vertical_velocity_mps",0.0);
             p.effectSeconds=j.value("effect_s",0.0); p.boostPulse=j.value("boost_pulse_s",0.0);
             p.airborne=j.value("airborne",false); p.jetpackArmed=j.value("jetpack_armed",false); p.boosting=j.value("boosting",false);
+            p.velocity=j.contains("velocity_mps") ? vector(j.at("velocity_mps")) : p.up*p.verticalVelocity;
+            p.suitUp=j.contains("suit_up") ? vector(j.at("suit_up")) : p.up;
+            p.thrustN=j.value("thrust_n",0.0);
             if (!j.at("feet").is_array() || j.at("feet").size()!=2)
                 throw std::invalid_argument("Astronaut replay needs two feet");
             for (int i=0;i<2;++i) {
@@ -107,9 +122,11 @@ void Renderer::Impl::prepareAstronaut(double elapsed) {
         }
     }
     const auto& pose=astronaut.motion.pose();
+    if (pose.airborne || wasAirborne)
+        camera.followSurfaceDirection(body.position+body.orientation*pose.root/units);
     grass.procedural.trail(index).observe(pose.root,!pose.airborne &&
         (!planet.water.enabled || glm::length(root.position)>radius+planet.water.level_m+.001));
-    const auto chase=astronaut.motion.chase(direction,ground);
+    const auto chase=astronaut.motion.chase(glm::transpose(body.orientation)*camera.direction(),ground);
     astronautView={body.position+body.orientation*chase.eye/units,
                    body.position+body.orientation*chase.target/units,
                    body.orientation*chase.up};

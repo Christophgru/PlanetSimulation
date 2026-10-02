@@ -1,0 +1,20 @@
+Internal ctest changing into directory: /workspace/build-resume
+Test project /workspace/build-resume
+    Start 31: AstronautCaptureIntegration
+1/2 Test #31: AstronautCaptureIntegration ......   Passed  146.06 sec
+    Start 45: AstronautInputIntegration
+2/2 Test #45: AstronautInputIntegration ........***Failed    4.47 sec
+Traceback (most recent call last):
+  File "/workspace/tests/character/test_astronaut_input.py", line 87, in <module>
+    assert sum(a!=b for a,b in zip(idle,moved)) > 500, 'Paused astronaut did not walk'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Paused astronaut did not walk
+
+
+50% tests passed, 1 tests failed out of 2
+
+Total Test time (real) = 150.54 sec
+
+The following tests FAILED:
+	 45 - AstronautInputIntegration (Failed)
+Errors while running CTest

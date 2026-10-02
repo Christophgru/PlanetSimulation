@@ -76,7 +76,8 @@ target_link_libraries(planet_geometry PUBLIC planet_config planet_diagnostics gl
 
 add_library(planet_character STATIC
     src/rendering/character/AstronautMotion.cpp
-    src/rendering/character/SurfaceContact.cpp)
+    src/rendering/character/SurfaceContact.cpp
+    src/rendering/character/flight/JetpackPhysics.cpp)
 target_include_directories(planet_character PUBLIC ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(planet_character PUBLIC glm::glm PRIVATE ozz_animation)
 

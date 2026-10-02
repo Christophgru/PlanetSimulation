@@ -9,7 +9,9 @@ Space on the ground launches a jump at 10 m/s. Release and press Space again
 while airborne to engage the jetpack; subsequent presses boost and holding
 Space sustains upward thrust. Two streams of blue bubbles emerge underneath
 the backpack during thrust. Release Space to coast, then fall under gravity.
-WASD remains active in flight. Landing clears the jetpack state.
+WASD commands acceleration in flight. The suit tilts along the single thrust
+axis; arms stay still throughout the armed jetpack phase. Landing clears the
+jetpack state.
 
 ## Model and animation
 
@@ -40,22 +42,27 @@ origin. The chase camera aims near the torso, stays above terrain and shortens
 its arm when a ridge intervenes. It uses the surface field of view and a 20 cm
 near plane. Orbit and first-person controls retain their existing behavior.
 
-## Flight approximation
+## Flight forces
 
-Effective radial gravity uses
-`max(0.25, G × mass / radius² − ω² × radius × cos(latitude)²)` in SI units,
-where `ω = 2π / spin_period` (zero for a nonspinning planet). The 0.25 m/s² floor
-is a playability choice. The radius is the configured reference radius; the
-model omits altitude-dependent gravity, Coriolis acceleration and drag.
-With jetpack inactive, larger gravity shortens the same 10 m/s launch.
+The 100 kg actor integrates altitude-dependent gravity, centrifugal and
+Coriolis acceleration, and quadratic atmospheric drag in planet-local metres.
+Pressure depends on configured gas composition, sea-level pressure and
+Kelvin temperature. Falling has a drag-dependent terminal speed, without
+an artificial vertical velocity clamp; vacuum has no drag terminal speed.
 
-An airborne boost adds an 8 m/s impulse and a short thrust pulse. Sustained
-thrust supplies a net upward acceleration of 20 m/s², with upward velocity
-capped at 35 m/s and downward velocity capped at 50 m/s. These jetpack values
-are arcade controls, not a rocket or propellant model. Horizontal movement
-uses the existing spherical surface controller. The floor clamps airborne
-height when rising terrain intersects the actor; descent lands the actor and
-replants both feet.
+Space arms a short thrust pulse; holding it sustains thrust. WASD commands
+a horizontal acceleration toward 100 m/s while boosting, bounded by one
+engine's thrust capacity. Releasing the controls preserves inertia and allows
+drag to slow the actor. The engine is sized from the main planet and reused
+on other planets; lower attainable speed is possible in dense air or high
+gravity. The nozzles emit along the tilted suit's downward axis; no independent
+sideways force bypasses the suit orientation. Arms remain still while armed.
+
+The [force model and power study](flight.md) gives the equations, numerical
+production-scene estimate and assumptions. Effective drag area, exhaust speed
+and efficiency are explicit modelling choices. Propellant depletion, thermal
+limits and atmospheric wind coupling are not yet simulated. Surface collision
+remains radial; descent lands and replants both feet.
 
 ## Rendering and reproducibility
 
@@ -65,7 +72,8 @@ anchors planted feet where the planet-wide shadow texture is too coarse.
 The actor does not yet cast a full dynamic body shadow. Bubbles are a bounded
 32-sphere procedural effect using local time; the reflection shares the phase.
 
-Capture metadata stores the complete gait, joints, contacts, flight state and
+Capture metadata stores the complete gait, joints, contacts, 3D velocity,
+suit thrust axis, thrust force, pressure/power diagnostics, flight state and
 bubble phase. `--astronaut-capture` selects camera 4. For deterministic flight:
 
 ```sh
@@ -76,7 +84,9 @@ bubble phase. `--astronaut-capture` selects camera 4. For deterministic flight:
   --astronaut-capture build/jetpack-replay.png
 ```
 
-Focused validation passed on GCC 12.2 and Mesa llvmpipe/Xvfb: 13 CPU tests check
+## Initial locomotion validation (historical)
+
+Initial validation passed on GCC 12.2 and Mesa llvmpipe/Xvfb: 13 CPU tests check
 planted feet, joint reach, pole traversal, mesh revisions, chase clearance,
 6/12 m/s controls, gravity, boost and landing. Render integration checks visible
 character pixels and byte-identical walking and airborne replays. Native GLFW
@@ -101,3 +111,5 @@ The current gait is an approximation with rapidly alternating steps at high
 speed. Natural running, animation blending, planted-foot yaw limits and robust
 climbing over steep ledges need a skinned model and further locomotion work.
 Persistent grass trail deformation is now implemented; see [trail behavior, limits and validation](trails.md).
+
+The acceleration/drag update is validated separately in [the flight study](flight.md).

@@ -1,0 +1,8 @@
+Internal ctest changing into directory: /workspace/build-resume
+Test project /workspace/build-resume
+    Start 39: AtmosphereScenariosRenderIntegration
+1/1 Test #39: AtmosphereScenariosRenderIntegration ...   Passed  152.20 sec
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) = 152.20 sec

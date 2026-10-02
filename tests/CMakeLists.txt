@@ -90,7 +90,7 @@ enable_testing()
 add_test(NAME ConfigTests COMMAND config_tests)
 add_test(NAME OrbitCameraTests COMMAND orbit_camera_tests)
 add_test(NAME CameraInputTests COMMAND camera_input_tests)
-add_executable(astronaut_motion_tests character/test_astronaut_motion.cpp character/test_surface_contact.cpp)
+add_executable(astronaut_motion_tests character/test_astronaut_motion.cpp character/test_surface_contact.cpp character/test_jetpack_physics.cpp)
 target_link_libraries(astronaut_motion_tests PRIVATE planet_geometry planet_character GTest::gtest_main)
 add_test(NAME AstronautMotionTests COMMAND astronaut_motion_tests)
 add_test(NAME CameraTransitionTests COMMAND camera_transition_tests)
@@ -201,7 +201,9 @@ add_test(NAME AtmosphereScenariosRenderIntegration COMMAND ${Python3_EXECUTABLE}
     ${CMAKE_CURRENT_SOURCE_DIR}/lighting/render_lighting_scenarios.py --binary $<TARGET_FILE:PlanetSimulation>
     --manifest ${CMAKE_CURRENT_SOURCE_DIR}/scenarios/atmosphere/manifest.json
     --output-dir ${CMAKE_BINARY_DIR}/atmosphere-scenarios)
-set_tests_properties(AtmosphereScenariosRenderIntegration PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 180)
+# Nine scenes each render and replay HDR atmosphere frames. Software GL can
+# exceed three minutes; retain a bounded five-minute allowance for the suite.
+set_tests_properties(AtmosphereScenariosRenderIntegration PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 300)
 add_custom_target(render_atmosphere_scenarios
     COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/lighting/render_lighting_scenarios.py
         --binary $<TARGET_FILE:PlanetSimulation>

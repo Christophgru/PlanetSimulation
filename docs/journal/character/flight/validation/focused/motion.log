@@ -1,0 +1,59 @@
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 19 tests from 5 test suites.
+[----------] Global test environment set-up.
+[----------] 7 tests from AstronautMotion
+[ RUN      ] AstronautMotion.RestingFeetRemainFixedAndIKReachesBothSoles
+[       OK ] AstronautMotion.RestingFeetRemainFixedAndIKReachesBothSoles (0 ms)
+[ RUN      ] AstronautMotion.WalkingAlternatesLiftedFeetWithoutSlidingTheStanceContact
+[       OK ] AstronautMotion.WalkingAlternatesLiftedFeetWithoutSlidingTheStanceContact (0 ms)
+[ RUN      ] AstronautMotion.MovementAndPoseStayFiniteAcrossBothPolesAndDirectionChanges
+[       OK ] AstronautMotion.MovementAndPoseStayFiniteAcrossBothPolesAndDirectionChanges (0 ms)
+[ RUN      ] AstronautMotion.GroundRevisionAdjustsHeightWhilePreservingTheSurfaceLocation
+[       OK ] AstronautMotion.GroundRevisionAdjustsHeightWhilePreservingTheSurfaceLocation (0 ms)
+[ RUN      ] AstronautMotion.ChaseClearsTheGroundAndShortensAtInterveningMountains
+[       OK ] AstronautMotion.ChaseClearsTheGroundAndShortensAtInterveningMountains (0 ms)
+[ RUN      ] AstronautMotion.ReplayValidatesAndRestoresTheCompleteWalkingPose
+[       OK ] AstronautMotion.ReplayValidatesAndRestoresTheCompleteWalkingPose (0 ms)
+[ RUN      ] AstronautMotion.WalkingAndSprintingAtSixAndTwelveMetersKeepStanceFeetLocked
+[       OK ] AstronautMotion.WalkingAndSprintingAtSixAndTwelveMetersKeepStanceFeetLocked (1 ms)
+[----------] 7 tests from AstronautMotion (4 ms total)
+
+[----------] 4 tests from AstronautFlight
+[ RUN      ] AstronautFlight.JumpUsesGravityAndHoldingTheFirstPressDoesNotEngageTheJetpack
+[       OK ] AstronautFlight.JumpUsesGravityAndHoldingTheFirstPressDoesNotEngageTheJetpack (1 ms)
+[ RUN      ] AstronautFlight.SecondSpaceEnablesBoostAndReleaseFallsBackToALanding
+[       OK ] AstronautFlight.SecondSpaceEnablesBoostAndReleaseFallsBackToALanding (3 ms)
+[ RUN      ] AstronautFlight.SpinReducesRadialGravityAndRaisedTerrainStopsTheDescent
+[       OK ] AstronautFlight.SpinReducesRadialGravityAndRaisedTerrainStopsTheDescent (0 ms)
+[ RUN      ] AstronautFlight.TiltedAccelerationLocksArmsAndReplayContinuesDeterministically
+[       OK ] AstronautFlight.TiltedAccelerationLocksArmsAndReplayContinuesDeterministically (0 ms)
+[----------] 4 tests from AstronautFlight (6 ms total)
+
+[----------] 3 tests from AstronautInput
+[ RUN      ] AstronautInput.ShiftDoublesOnlyCameraFourWalkingSpeed
+[       OK ] AstronautInput.ShiftDoublesOnlyCameraFourWalkingSpeed (0 ms)
+[ RUN      ] AstronautInput.CameraFourSharesPositionButWalksAtItsOwnSpeedAndReloadsSafely
+[       OK ] AstronautInput.CameraFourSharesPositionButWalksAtItsOwnSpeedAndReloadsSafely (0 ms)
+[ RUN      ] AstronautInput.AirborneControlsDoNotWalkTheGroundCamera
+[       OK ] AstronautInput.AirborneControlsDoNotWalkTheGroundCamera (0 ms)
+[----------] 3 tests from AstronautInput (0 ms total)
+
+[----------] 1 test from SurfaceContact
+[ RUN      ] SurfaceContact.UsesRenderedTriangleHeightAndNormalsAndInvalidatesItsCache
+[       OK ] SurfaceContact.UsesRenderedTriangleHeightAndNormalsAndInvalidatesItsCache (0 ms)
+[----------] 1 test from SurfaceContact (0 ms total)
+
+[----------] 4 tests from JetpackPhysics
+[ RUN      ] JetpackPhysics.PressureAndDensityFollowGasTemperatureAltitudeAndVacuum
+[       OK ] JetpackPhysics.PressureAndDensityFollowGasTemperatureAltitudeAndVacuum (0 ms)
+[ RUN      ] JetpackPhysics.GravityIncludesAltitudeCentrifugalAndCoriolisTerms
+[       OK ] JetpackPhysics.GravityIncludesAltitudeCentrifugalAndCoriolisTerms (0 ms)
+[ RUN      ] JetpackPhysics.CommandedSpeedBalancesDragAndThrustHasASharedHardwareBound
+[       OK ] JetpackPhysics.CommandedSpeedBalancesDragAndThrustHasASharedHardwareBound (0 ms)
+[ RUN      ] JetpackPhysics.FallingConvergesToDragTerminalSpeedAndVacuumHasNoClamp
+[       OK ] JetpackPhysics.FallingConvergesToDragTerminalSpeedAndVacuumHasNoClamp (4 ms)
+[----------] 4 tests from JetpackPhysics (4 ms total)
+
+[----------] Global test environment tear-down
+[==========] 19 tests from 5 test suites ran. (15 ms total)
+[  PASSED  ] 19 tests.

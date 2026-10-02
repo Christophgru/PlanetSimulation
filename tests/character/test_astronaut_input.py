@@ -74,26 +74,28 @@ with tempfile.TemporaryDirectory(prefix='planet-astronaut-input-') as directory:
                     assert process.poll() is None, (directory / 'run.log').read_text()
                     time.sleep(.1)
                 raise AssertionError(message + '\n' + (directory / 'run.log').read_text())
-            key('t'); key('4'); time.sleep(1.5)
+            key('t'); wait_for_input('Simulation paused')
+            key('4'); wait_for_input('Camera 4: following the astronaut')
+            # The second telemetry report follows a completed camera-4 frame.
+            wait_for_input('surface_camera start value:', 2)
             idle = pixels()
             assert 'Camera 4: following the astronaut' in (directory / 'run.log').read_text(), (directory / 'run.log').read_text()
             key('Escape')
             # WASD remains available after releasing the pointer.
             subprocess.run(['xdotool','keydown','w'],check=True)
-            time.sleep(.45)
-            subprocess.run(['xdotool','keyup','w'],check=True)
-            time.sleep(.5)
-            moved = pixels()
-            assert sum(a!=b for a,b in zip(idle,moved)) > 500, 'Paused astronaut did not walk'
+            try:
+                moved = changed_frame(idle, 500, 'Paused astronaut did not walk')
+            finally:
+                subprocess.run(['xdotool','keyup','w'],check=True)
             key('space'); wait_for_input('Astronaut Space:', 1); time.sleep(.15)
             subprocess.run(['xdotool','keydown','space'],check=True)
             wait_for_input('Astronaut Space:', 2)
             boosted = changed_frame(moved, 500, 'Jump and jetpack did not change the frame')
             subprocess.run(['xdotool','keyup','space'],check=True)
-            key('2'); time.sleep(.4)
-            surface = pixels()
-            assert sum(a!=b for a,b in zip(surface,moved)) > 1000, 'Camera 2 did not replace chase view'
-            key('4'); time.sleep(.4); key('r'); time.sleep(1)
+            key('2')
+            surface = changed_frame(boosted, 1000, 'Camera 2 did not replace chase view')
+            key('4'); wait_for_input('Camera 4: following the astronaut', 2)
+            key('r'); wait_for_input('Reloaded ')
             assert process.poll() is None, (directory / 'run.log').read_text()
             text = (directory / 'run.log').read_text()
             assert 'Reloaded ' in text, text

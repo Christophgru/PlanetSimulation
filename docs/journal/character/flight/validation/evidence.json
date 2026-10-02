@@ -1,0 +1,58 @@
+{
+  "date_utc": "2026-10-02",
+  "base_revision": "b7cf4aa12875e91490caee1029b5fb39bbdc7578",
+  "renderer_source_sha256": "95d395225a3316c3989b2164e9fc6b07e363bd5281aaa07635ce4089a604fff8",
+  "binary_sha256": "a00536db2b8deba6ad4656413abe2a25de748abc5c28bfa7b88cff1aea80f44c",
+  "build": "GCC 12.2 RelWithDebInfo; Mesa llvmpipe / Xvfb; LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=2",
+  "cpu_motion_cases_passed": 19,
+  "full_suite": {
+    "entries": 52,
+    "passed": 51,
+    "elapsed_s": 814.46,
+    "timeout": "AtmosphereScenariosRenderIntegration (180 s)"
+  },
+  "targeted_recheck": {
+    "entry": "AtmosphereScenariosRenderIntegration",
+    "passed": true,
+    "elapsed_s": 152.2,
+    "timeout_s": 300,
+    "application_binary_and_assertions_unchanged": true
+  },
+  "validation_type": "full run plus targeted recheck; all 52 entries have passing results; not a second clean full run",
+  "gallery": {
+    "count": 22,
+    "all_png_hashes_verified": true,
+    "source_fingerprint_verified": true,
+    "changed_pngs": [
+      "astronaut-jetpack.png"
+    ],
+    "side_view_study_replay_byte_identical": true
+  },
+  "journal": "compiled after gallery publication",
+  "artifacts": {
+    "docs/journal/character/flight/images/steering.png": "3fddf919cbe4cf5e42948071d6ca510d4d34f20338ed4eebec00419c4a77e0a8",
+    "docs/journal/character/flight/power.json": "fd7a006af0634e0c70ceeaa1dd46fa39f59d71100d72ca2d3240de3a98fd8e15",
+    "docs/journal/character/flight/power.py": "9d3f048043c00b3af5eed7e7406fd969ca4973836af12fad039b492dc227c728",
+    "docs/journal/character/flight/replay/production.json": "f8dd8d33d9482f6072ca15cd9a6827179f0c625fdb2d746e6fa6509bbcd94ae0",
+    "docs/journal/character/flight/replay/steering-input.json": "ce8ca2fb6ea810511579ea02b3596a3ac58f21d57796612815765f8053e18310",
+    "docs/journal/character/flight/replay/steering.png.json": "27ff4381dfad9f71464fd539a7947ba151164b30c556d3ba51d67e28b3ccc4a3",
+    "docs/journal/character/flight/validation/atmosphere-recheck.log": "4ce67e9b845a3ac453df332e9400b18de176c356855b2fb7efe1e2df27b39284",
+    "docs/journal/character/flight/validation/build/flight-build.log": "b95ca398c1400c6eeb5e64789b8c8fa06fda7f9094fa32f06e0f937fcbfd032d",
+    "docs/journal/character/flight/validation/build/flight-final-build.log": "9685a0e014e5c24b29702c21e256c9cf5b598123777a37162c56cbc66a99eec8",
+    "docs/journal/character/flight/validation/build/flight-final-configure.log": "31e9a95b3acb501f03246b75b438db792dcfbcffa37e7f9a99e81f7dd933d7fb",
+    "docs/journal/character/flight/validation/build/flight-gallery-build.log": "8c35b1682f73592d30612d7b0fabdb384fcfff35cb5a076cb48b85b1368aa794",
+    "docs/journal/character/flight/validation/focused/focused-initial.log": "dac7ae8f97a0393490e202670e93aba14211cd14fe7e950d48f667077297ac2f",
+    "docs/journal/character/flight/validation/focused/input.log": "bd93b057d1e5d7af72b384d3003ef0b65aaecc805222c064c73a3b40beee1184",
+    "docs/journal/character/flight/validation/focused/motion.log": "0084d94ed749e0bd00262cd2bc60c5e9750509f70007ad974f0180f130d41896",
+    "docs/journal/character/flight/validation/full-tests.log": "37c647cc51ad1e0282cc52aaf9bb3c1bdf06e2ce28f99f223e23157005d10eaa",
+    "docs/journal/character/flight/validation/gallery.log": "c62ec817d05ae5c4e157d4bfa5990ce2f380d8817e021ae2c1ca5153bbd2e53a",
+    "docs/journal/character/flight/validation/layout.log": "edf9c1fd8dab37cd3c5912c732f237f16f1d0bc89052e4a5beda1d8d171f284a",
+    "docs/journal/character/flight/validation/steering.log": "86dc92d7ac193ef584710e6a05fe3df658eaf8df8040436bf6bdfb308325c111",
+    "docs/journal/character/flight/validation/typst.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/journal/paper.pdf": "7cc53262a521fe9a503946bcad47e30115232decb347ce87943bc7107725419d",
+    "docs/journal/character/flight.md": "d0109e221086c1463ed533bc448b29256248cd8416535e7ce789df59a3ef103f"
+  },
+  "journal_pages": 23,
+  "journal_visual_review": "all-page montage and astronaut page detail",
+  "published_log_normalization": "Trailing whitespace removed from configure log; original retained in build-resume/flight-final-configure.log"
+}

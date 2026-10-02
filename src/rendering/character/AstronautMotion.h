@@ -1,5 +1,6 @@
 #pragma once
 #include "rendering/character/SurfaceContact.h"
+#include "rendering/character/flight/JetpackPhysics.h"
 #include <array>
 #include <glm/glm.hpp>
 
@@ -21,6 +22,14 @@ struct AstronautPose {
     double walkedMeters = 0;
     double flightHeight = 0, verticalVelocity = 0, effectSeconds = 0, boostPulse = 0;
     bool airborne = false, jetpackArmed = false, boosting = false;
+    glm::dvec3 velocity{0}, suitUp{0,1,0}; // Rotating-body-frame SI velocity and exhaust axis.
+    double thrustN=0;
+    glm::dmat3 suitBasis() const {
+        auto facing=forward-suitUp*glm::dot(forward,suitUp);
+        if (glm::length(facing)<1e-8) facing=glm::cross(right,suitUp);
+        facing=glm::normalize(facing);
+        return {glm::normalize(glm::cross(facing,suitUp)),suitUp,-facing};
+    }
 };
 struct ChasePose { glm::dvec3 eye{0}, target{0}, up{0,1,0}; };
 
@@ -39,6 +48,14 @@ public:
     void pressSpace() { ++spacePresses_; }
     void holdBoost(bool held) { boostHeld_=held; }
     void setGravity(double metersPerSecondSquared);
+    void setFlightEnvironment(const FlightEnvironment& environment,double maximumThrust);
+    void setFlightControl(const glm::dvec2& forwardRight) {
+        if (!std::isfinite(glm::length(forwardRight))) throw std::invalid_argument("Flight input must be finite");
+        flightControl_=forwardRight;
+    }
+    double maximumThrust() const { return maximumThrust_; }
+    double airPressure() const { return JetpackPhysics::pressure(flightEnvironment_,pose_.root); }
+    double airDensity() const { return JetpackPhysics::density(flightEnvironment_,pose_.root); }
     static double surfaceGravity(double massKg,double radiusMeters,double spinPeriod,double latitudeRadians);
 private:
     void solveLegs();
@@ -46,8 +63,10 @@ private:
     bool ready_=false;
     int nextFoot_=0;
     double walked_=0;
-    double gravity_=9.81;
     unsigned spacePresses_=0;
     bool boostHeld_=false;
+    FlightEnvironment flightEnvironment_;
+    double maximumThrust_=6000;
+    glm::dvec2 flightControl_{0};
 };
 }

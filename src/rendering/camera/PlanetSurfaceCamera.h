@@ -132,6 +132,25 @@ public:
         updateUp(carriedUp);
     }
 
+    // Follow an independently integrated astronaut without changing clearance
+    // or aiming at a new target. Carry the view continuously across the poles.
+    void followSurfaceDirection(const glm::dvec3& worldPosition) {
+        if (!finite(worldPosition) || glm::length(worldPosition-frame_.center())<1e-12)
+            throw std::invalid_argument("Surface follow requires a finite radial position");
+        const auto before=glm::normalize(position_-frame_.center());
+        const auto after=glm::normalize(worldPosition-frame_.center());
+        const auto axis=glm::cross(before,after);
+        if (glm::length(axis)>1e-12) {
+            const double angle=std::atan2(glm::length(axis),glm::dot(before,after));
+            const glm::dmat3 rotation(glm::rotate(glm::dmat4(1),angle,glm::normalize(axis)));
+            direction_=glm::normalize(rotation*direction_); up_=glm::normalize(rotation*up_);
+        }
+        const double clearance=location_.altitude;
+        location_=frame_.fromWorld(worldPosition); location_.altitude=clearance;
+        if (terrain_) resampleTerrainHeight(); else position_=frame_.toWorld(location_);
+        updateAnglesFromDirection();
+    }
+
     // Automatic entry preserves an outside position and its aim. Positions
     // inside the sphere are lifted just above the surface.
     void enterFromWorld(const glm::dvec3& worldPosition,

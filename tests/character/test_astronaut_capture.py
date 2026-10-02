@@ -57,6 +57,17 @@ assert flight != idle
 flight_replay, restored = capture('jetpack-replay', replay=out / 'jetpack.png.json')
 assert flight_replay == flight, 'Airborne pose and bubble phase did not replay exactly'
 assert restored['astronaut_pose'] == flying['astronaut_pose']
+steered, steering = capture('jetpack-steering', frames=8, walk=.06,
+    extra=('--benchmark-character-step','.04','--benchmark-jump-frame','0','--benchmark-boost-frame','3'))
+pose = steering['astronaut_pose']
+assert pose['arm_swing'] == 0 and pose['thrust_n'] > 0
+assert sum(a*b for a,b in zip(pose['suit_up'],pose['up'])) < .999, 'Jetpack did not tilt to accelerate'
+assert sum(v*v for v in pose['velocity_mps']) > 0
+assert pose['flight_physics']['mass_kg'] == 100
+assert pose['flight_physics']['air_pressure_pa'] > 0
+steered_replay, saved = capture('jetpack-steering-replay', replay=out / 'jetpack-steering.png.json')
+assert steered_replay == steered, 'Tilted thrust/velocity/camera did not replay exactly'
+assert saved['astronaut_pose'] == pose
 print('Validated visible HDR astronaut, grounded IK, walking, jump/jetpack bubbles and exact gait/flight replay')
 
 # Exercise grass plus HDR/reflections and retain the entire trail in replay.

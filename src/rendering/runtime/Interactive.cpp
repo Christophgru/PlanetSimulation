@@ -149,6 +149,8 @@ int Renderer::Impl::interact() {
             glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS ||
                 glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS
         };
+        cameraInput.setThirdPersonAirborne(astronaut.motion.ready() && astronaut.motion.pose().airborne);
+        astronautFlightControl={int(keys.forward)-int(keys.backward),int(keys.right)-int(keys.left)};
         { CpuTrace::Scope scope("CameraInput::update");
           cameraInput.update(cameraTransition.active() ? WalkKeys{} : keys, elapsedSeconds); }
         if (cameraInput.mode() == CameraMode::Surface && displayedMode != CameraMode::Surface &&
