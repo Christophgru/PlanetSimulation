@@ -1,5 +1,9 @@
 # Offline rendering profile
 
+The later [dense production-start showcase](offline-showcase.md) replaces the
+README image and strengthens visible aperture ghosts. The controlled fixtures
+and test results below retain this earlier checkpoint's source provenance.
+
 `--offline-render image.png` captures the surface camera at native requested
 resolution. `--offline-quality` applies the same profile to existing capture
 commands. Terrain construction and GPU completion are synchronous; no adaptive

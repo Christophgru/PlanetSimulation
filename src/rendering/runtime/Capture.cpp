@@ -21,6 +21,7 @@ int Renderer::Impl::capture() {
     const auto meshStart = std::chrono::steady_clock::now();
     auto meshEnd = meshStart;
     rendering::CameraExposure frameExposure;
+    std::vector<std::array<std::size_t,2>> mainGrassCounts(scene.scenario.planets.size());
     const double benchmarkStart = simulationTime;
     double lastBenchmarkFrame = glfwGetTime();
     double windStart=benchmarkStart;
@@ -84,7 +85,7 @@ int Renderer::Impl::capture() {
                         options.planetRenderMode ? planetOrbitClip(eyeWorld) :
                                            rendering::ClipPlanes{},
                         (options.surfaceRenderMode || options.planetRenderMode) ? std::optional<std::size_t>(scene.orbitPlanetIndex) : std::nullopt,
-                        true, &profiler, false, 0, &grass, options.thirdPersonRenderMode ? characterWindTime : simulationTime,options.thirdPersonRenderMode ? &astronaut : nullptr);
+                        true, &profiler, false, 0, &grass, options.thirdPersonRenderMode ? characterWindTime : simulationTime,options.thirdPersonRenderMode ? &astronaut : nullptr,&mainGrassCounts);
             frameReuse.remember(view,fov,width,height,simulationTime,revisions,eyeWorld,options.surfaceRenderMode ? 1 : options.planetRenderMode ? 2 : 0);
         }
         if (lensFlare) {
@@ -125,7 +126,7 @@ int Renderer::Impl::capture() {
                   << " batches; instance bytes: " << stats.instanceBytes << '\n';
         const auto* layer=&grass.procedural;
         if (layer->usesCompute(i)) {
-            const auto counts=layer->computedCounts(i);
+            const auto counts=mainGrassCounts.at(i);
             std::cout << "Planet " << i
                 << " GPU grass draws: " << counts[0] << " detailed; " << counts[1]
                 << " quads; " << counts[0]*14+counts[1]*4 << " vertices; "
@@ -267,7 +268,8 @@ int Renderer::Impl::capture() {
         const auto optics = simulation::atmosphereOptics(atmosphereConfig,
             scene.scenario.planets[scene.orbitPlanetIndex].radius * scene.scenario.metersPerWorldUnit(),
             simulation::referenceAir(atmosphereConfig));
-        const auto drawnGrass=grass.procedural.computedCounts(scene.orbitPlanetIndex);
+        const auto drawnGrass=mainGrassCounts.at(scene.orbitPlanetIndex);
+        const auto lastPassGrass=grass.procedural.computedCounts(scene.orbitPlanetIndex);
         nlohmann::json metadata{
             {"schema_version", 1}, {"application_version", PLANET_VERSION}, {"scenario", source.document},
             {"surface_camera", snapshot.startConfig},
@@ -292,6 +294,8 @@ int Renderer::Impl::capture() {
                 {"foliage_patch_bytes", grass.procedural.stats(scene.orbitPlanetIndex).patchBytes},
                 {"foliage_gpu_compute", grass.procedural.usesCompute(scene.orbitPlanetIndex)},
                 {"foliage_gpu_drawn_blades", drawnGrass[0]+drawnGrass[1]},
+                {"foliage_gpu_count_view", "main"},
+                {"foliage_gpu_last_pass_drawn_blades", lastPassGrass[0]+lastPassGrass[1]},
                 {"foliage_gpu_vertices", drawnGrass[0]*14+drawnGrass[1]*4},
                 {"foliage_gpu_triangles", drawnGrass[0]*12+drawnGrass[1]*2},
                 {"foliage_gpu_working_bytes", grass.procedural.stats(scene.orbitPlanetIndex).gpuBytes},

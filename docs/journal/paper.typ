@@ -255,6 +255,15 @@ A final OpenGL 3.3 pass adds a solar halo, streak and four colored aperture ghos
   image("benchmarks/offline/images/flare.png", width: 100%)),
   caption: [Controlled airless view: normal radius/detail (left), offline 20× radius with finer bodies and lens flare (right). The Moon partly covers the Sun. Images show a quality profile, not a matched-density performance comparison.])
 
+The later README showcase retains the production initial surface location, direction, 2 m clearance and timestamp 0, including its atmosphere, water and lighting. At native 1920×1080, an explicit 12-million-candidate foliage budget, 0.05 Gaussian sigma fraction and 65,536 per-triangle slots produce 213,454 main-view submitted blades, versus 102,918 with the production foliage settings at the same camera. The 20× profile gives a 3 km cutoff and 150 m sigma. Its two compute queues occupy about 1.54 GB; hard budgeting and biome rules still reduce density. The backlit dusk foreground follows the initial production lighting.
+
+#figure(grid(columns: (1fr, 1fr), gutter: 7pt,
+  image("benchmarks/offline/showcase/images/dense.png", width: 100%),
+  image("benchmarks/offline/showcase/images/no-flare.png", width: 100%)),
+  caption: [Production-start dense offline view: stronger, spread aperture ghosts and solar streak (left), identical scene with flare disabled (right). The dense PNG replays byte-identically. These are direct native-resolution renderer captures.])
+
+A central 192×1080 probe submits 43,690 blades but retains the same candidate queue bytes and 100,000/86,400 Earth/Moon triangles. Current terrain and foliage plans depend on the eye rather than each column's frustum; narrower targets therefore cannot themselves load more geometry. Column assembly needs view-aware streaming with shared terrain boundaries, off-axis projections, stable root identities, one full-frame highlight/exposure solution, reflection coverage and a global flare pass after assembly. The current task records that decision instead of implementing a tiled image without allocation savings. Details, measured counts and replay/flare checks are in `benchmarks/offline-showcase.md`. Capture statistics now snapshot main-view queues before water reflections overwrite them, without adding interactive readbacks.
+
 == Camera movement and grass preparation: measured costs
 
 The following measurements predate the Perlin wind change; their recorded executable hashes and captures identify the earlier sine-wind workload.

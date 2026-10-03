@@ -545,7 +545,6 @@
     },
     "surface_camera": {
       "altitude": 0.002,
-      "description": "Planet-fixed spherical North-East-Down (NED) camera. The saved local position and view follow orbit, tilt and spin.",
       "direction_ned": [
         0.0595365512313363,
         0.9937565852932968,
@@ -554,21 +553,14 @@
       "fov": 80.0,
       "latitude_deg": -17.23072754436555,
       "longitude_deg": 79.39197457588234,
-      "parameter_descriptions": {
-        "altitude": "Requested eye clearance above terrain or water in distance_unit.",
-        "direction_ned": "Nonzero saved view direction [north,east,down] in the local tangent frame.",
-        "fov": "Vertical field of view in degrees, greater than 0 and less than 180.",
-        "latitude_deg": "Latitude in degrees, -90..90; +Z of the body is north.",
-        "longitude_deg": "Longitude in degrees, from body +X toward body +Y.",
-        "planet_index": "Zero-based index in planets for walking and planet orbit views.",
-        "reference_frame": "Must be planet_spherical_ned.",
-        "simulation_time_seconds": "Finite simulation timestamp restored on startup and reload. Camera telemetry prints the current simulation time, including pause and Y/U speed changes. --simulation-time overrides this value.",
-        "up_ned": "Optional nonparallel view-up vector [north,east,down] for preserving camera roll.",
-        "walk_speed_mps": "Walking speed in meters per real second, greater than 0 and at most 100; unaffected by simulation speed."
-      },
       "planet_index": 0,
       "reference_frame": "planet_spherical_ned",
       "simulation_time_seconds": 0.0,
+      "up_ned": [
+        0.005642867970075183,
+        0.09418814306884689,
+        -0.9955384230386667
+      ],
       "walk_speed_mps": 80.0
     }
   },
@@ -587,9 +579,9 @@
     "reference_frame": "planet_spherical_ned",
     "simulation_time_seconds": 0.0,
     "up_ned": [
-      0.005642867970075183,
-      0.09418814306884689,
-      -0.9955384230386667
+      0.005642867970075169,
+      0.0941881430688468,
+      -0.9955384230386668
     ],
     "walk_speed_mps": 80.0
   }

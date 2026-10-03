@@ -2,7 +2,7 @@
   "source_sha256": "95d395225a3316c3989b2164e9fc6b07e363bd5281aaa07635ce4089a604fff8",
   "version": "0.0.1",
   "base_revision": "b7cf4aa12875e91490caee1029b5fb39bbdc7578",
-  "source_state": "Mixed generations: jetpack view uses persistent exhaust and shared grass wind; two standing views retain the standing checkpoint; other 19 retain earlier provenance. Per-image source_sha256/base_revision override defaults.",
+  "source_state": "Mixed generations: offline view uses the dense production-start showcase; jetpack view uses persistent exhaust/shared grass wind; two standing views retain their checkpoint; remaining 18 retain earlier provenance. Per-image source_sha256/base_revision override defaults.",
   "renderer": "name of display: :99\ndisplay: :99  screen: 0\ndirect rendering: Yes\nExtended renderer info (GLX_MESA_query_renderer):\n    Vendor: Mesa/X.org (0xffffffff)\n    Device: llvmpipe (LLVM 15.0.6, 256 bits) (0xffffffff)\n    Version: 22.3.6\n    Accelerated: no\n    Video memory: 39925MB\n    Unified memory: yes\n    Preferred profile: core (0x1)\n    Max core profile version: 4.5\n    Max compat profile version: 4.5\n    Max GLES1 profile version: 1.1\n    Max GLES[23] profile version: 3.2\nOpenGL vendor string: Mesa/X.org\nOpenGL renderer string: llvmpipe (LLVM 15.0.6, 256 bits)\nOpenGL core profile version string: 4.5 (Core Profile) Mesa 22.3.6\nOpenGL core profile shading language version string: 4.50\nOpenGL core profile context flags: (none)\nOpenGL core profile profile mask: core profile\n\nOpenGL version string: 4.5 (Compatibility Profile) Mesa 22.3.6\nOpenGL shading language version string: 4.50\nOpenGL context flags: (none)\nOpenGL profile mask: compatibility profile\n\nOpenGL ES profile version string: OpenGL ES 3.2 Mesa 22.3.6\nOpenGL ES profile shading language version string: OpenGL ES GLSL ES 3.20\n\n",
   "display": "GL window/Xvfb",
   "images": [
@@ -116,9 +116,12 @@
     {
       "image": "offline-render.png",
       "version": "0.0.1",
-      "generated_utc": "2026-10-02T17:02:22+00:00",
-      "sha256": "3fdda380436b6c131636d252e2a53ddad695d592651898f050350a6426525487",
-      "command": "/workspace/build-resume/PlanetSimulation --replay /workspace/docs/captures/replay/offline/offline-render.png.json --surface-capture /workspace/build-resume/readme-captures/offline-render.png"
+      "generated_utc": "2026-10-03T11:09:26+00:00",
+      "sha256": "32122b583bba98ef5332a47d022ff03957fddd7122430679836f5c39e10387bd",
+      "command": "/workspace/build-resume/PlanetSimulation --config /workspace/build-resume/offline-showcase/final/scene.json --offline-render /workspace/build-resume/offline-showcase/final/images/dense.png --render-size 1920 1080",
+      "source_sha256": "86222331df9de34d31db648fcdc296f5cc7f781a526a10030e150a2dc19e59e8",
+      "base_revision": "a316d1a54366ae67114ec8ccaf6d65cec1b50227",
+      "source_state": "Dense offline production-start showcase; explicit 12M candidate profile and visible atmospheric flare; exact replay verified"
     },
     {
       "image": "performance-overlay.png",

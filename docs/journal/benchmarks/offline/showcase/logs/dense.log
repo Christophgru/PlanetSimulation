@@ -1,0 +1,36 @@
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 0.0 s
+Sun radius: 2.5
+Planets: 2
+Surface camera position: (9.57763, 0.995666, 0.0432601)
+Offline quality: 20x foliage radius, full-resolution atmosphere, high-detail bodies
+Surface render test mode enabled
+Output image: /workspace/build-resume/offline-showcase/final/images/dense.png
+Planet 0 terrain: 100000 triangles; far/middle/near faces: 297/4/19; steep-refined faces: 0 (budget 100000); foliage blades: 11999989; water triangles: 60000
+Planet 0 terrain LOD faces (coarse to fine): 297/0/0/0/0/1/3/19; mesh bytes: 12000000
+Planet 0 foliage candidate bounds per pass: 48120916 vertices; 24120938 triangles; 53 batches; instance bytes: 323952
+Planet 0 GPU grass draws: 4255 detailed; 209199 quads; 896366 vertices; 469458 triangles; GPU working bytes: 1535998624
+Planet 1 terrain: 86400 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 100000); foliage blades: 0; water triangles: 0
+Planet 1 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 10368000
+Planet 1 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Mesh preparation: 2402.5 ms; GPU-complete render: 49393.1 ms
+earth lighting: direct RGB (5.12598, 5.07472, 4.9722), reflected RGB (0, 0, 0)
+moon lighting: direct RGB (11.0497, 10.9392, 10.7182), reflected RGB (0.0128364, 0.02118, 0.0415043)
+Image size: 1920x1080
+Background pixel: (6, 3, 0)
+Non-background pixels: 2072680, bounding box: (0, 0)-(1919, 1079)
+Sun-colored pixels: 0
+Planet pixels (color/depth): 939784, bounding box: (0, 538)-(1919, 1079)
+Camera exposure: 4.42904; sky sensitivity: 0.0692038
+Star-like pixels: 683695, bounding box: (0, 0)-(1919, 503)
+Blue water-like pixels: 0
+Simulation time: 0.0 s
+Surface camera position (world, km): [9.577631703355499,0.9956661579439665,0.043260068593440726]
+Surface camera direction (world, unit vector): [-0.9901167960478935,0.07594789363877721,0.11790100778062677]
+Surface camera position (planet LLA): latitude=-17.23072754436555 deg, longitude=79.39197457588234 deg, altitude=12.377255439326891 m above reference sphere
+Surface camera ground clearance: 2.0 m
+surface_camera start value: {"altitude":0.002,"direction_ned":[0.0595365512313363,0.9937565852932968,0.09435702546013867],"fov":80.0,"latitude_deg":-17.23072754436555,"longitude_deg":79.39197457588234,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":0.0,"up_ned":[0.005642867970075183,0.09418814306884689,-0.9955384230386667],"walk_speed_mps":80.0}
+White-clipped pixels (RGB >= 250): 0 (0%)
+Render test completed successfully
+Output image: /workspace/build-resume/offline-showcase/final/images/dense.png

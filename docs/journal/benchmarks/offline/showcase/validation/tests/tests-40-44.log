@@ -1,0 +1,16 @@
+Internal ctest changing into directory: /workspace/build-resume
+Test project /workspace/build-resume
+    Start 40: LightingScenariosRenderIntegration
+1/5 Test #40: LightingScenariosRenderIntegration ......   Passed   37.88 sec
+    Start 41: TwilightScenariosRenderIntegration
+2/5 Test #41: TwilightScenariosRenderIntegration ......   Passed   21.27 sec
+    Start 42: AtmosphereTests
+3/5 Test #42: AtmosphereTests .........................   Passed    0.01 sec
+    Start 43: AtmosphereScenariosRenderIntegration
+4/5 Test #43: AtmosphereScenariosRenderIntegration ....   Passed  109.62 sec
+    Start 44: AtmosphereRefractionRenderIntegration
+5/5 Test #44: AtmosphereRefractionRenderIntegration ...   Passed    8.90 sec
+
+100% tests passed, 0 tests failed out of 5
+
+Total Test time (real) = 177.70 sec

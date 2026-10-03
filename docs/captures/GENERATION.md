@@ -1,10 +1,10 @@
 # README image generation log
 
-## Exhaust lifetime and wind — 2026-10-03 (UTC)
+## Dense offline production start — 2026-10-03 (UTC)
 
-The jetpack view (`astronaut-jetpack.png`) was freshly rendered with persistent transparent exhaust and shared grass wind, then verified against its exact replay. The other 21 images retain their captures and provenance: two standing views from the standing checkpoint and 19 from the earlier gallery generation. The complete gallery contains 22 images.
+The offline image (`offline-render.png`) is freshly rendered at native 1920×1080 using the production initial camera, atmosphere, water and lighting, with an explicit dense foliage study profile and stronger solar flare. Its replay is byte-identical. The other 21 PNGs and per-image provenance are unchanged. The complete gallery contains 22 images.
 
-New exhaust/wind source fingerprint: `b5c21157f38dc33e8c5d6fa949c99c5b936950f447427087965c00432a1ec6a8`. Per-image fingerprints and base revisions override the gallery defaults in [generation.json](generation.json).
+Offline source fingerprint: `86222331df9de34d31db648fcdc296f5cc7f781a526a10030e150a2dc19e59e8`. Per-image fingerprints and base revisions override gallery defaults in [generation.json](generation.json).
 
 Build: GCC 12.2 RelWithDebInfo, Mesa llvmpipe/Xvfb, two rendering workers. The performance panel retains its original measurement.
 
@@ -24,7 +24,7 @@ Build: GCC 12.2 RelWithDebInfo, Mesa llvmpipe/Xvfb, two rendering workers. The p
 | [astronaut-front.png](../screenshots/astronaut-front.png) | 2026-10-02T19:50:10+00:00 |
 | [astronaut-jetpack.png](../screenshots/astronaut-jetpack.png) | 2026-10-03T08:21:41+00:00 |
 | [astronaut-trail.png](../screenshots/astronaut-trail.png) | 2026-10-02T17:02:18+00:00 |
-| [offline-render.png](../screenshots/offline-render.png) | 2026-10-02T17:02:22+00:00 |
+| [offline-render.png](../screenshots/offline-render.png) | 2026-10-03T11:09:26+00:00 |
 | [performance-overlay.png](../screenshots/performance-overlay.png) | 2026-10-02T17:07:54+00:00 |
 | [atmosphere-day.png](../screenshots/atmosphere-day.png) | 2026-10-02T17:08:16+00:00 |
 | [atmosphere-sunset.png](../screenshots/atmosphere-sunset.png) | 2026-10-02T17:08:36+00:00 |
@@ -35,6 +35,8 @@ Build: GCC 12.2 RelWithDebInfo, Mesa llvmpipe/Xvfb, two rendering workers. The p
 
 Commands, PNG hashes, source provenance and renderer details are in [generation.json](generation.json). Resolved [replay sidecars](replay/) retain scenes, cameras and complete character/effect state.
 
-[Exhaust study](../journal/character/exhaust.md) retains burn/release/retirement and downward plume views with CPU/GPU/replay validation. Earlier [space-flight](../journal/character/space-flight.md) and [standing](../journal/character/standing.md) studies keep their original checkpoint provenance.
+[Offline showcase study](../journal/benchmarks/offline-showcase.md) retains the dense/production, flare-off, exact replay and narrow-view allocation comparisons. Narrow views retain the same candidate queues and terrain meshes; the study records the prerequisites for useful column assembly.
+
+Other images retain their earlier checkpoints: [exhaust](../journal/character/exhaust.md), [space-flight](../journal/character/space-flight.md) and [standing](../journal/character/standing.md).
 
 For a full fresh generation, use `LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a python3 scripts/generate_readme_images.py --build-dir build-resume`. Commit images, sidecars and generation records together.

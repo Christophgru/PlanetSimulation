@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+from read_png import read_png
 
 p=argparse.ArgumentParser(description=__doc__)
 p.add_argument('--binary',type=Path,required=True)
@@ -57,6 +58,18 @@ assert v['sun_mesh_triangles']==64*n['sun_mesh_triangles'],v
 assert v['body_mesh_triangles'][1]>n['body_mesh_triangles'][1],v
 assert v['lens_flare_visible_sun_pixels']>100 and v['lens_flare_strength']>0,v
 assert on!=off,'Visible Sun did not produce a flare'
+# Require an apparent ghost signal away from the fixture's upper-half Sun.
+# A file-hash change alone accepted ghosts too faint to see in the README.
+w,h,c,on_pixels=read_png(out/'flare.png')
+fw,fh,fc,off_pixels=read_png(out/'no-flare.png')
+assert (w,h,c)==(fw,fh,fc)
+ghost_pixels=0
+ghost_peak=0
+for pixel in range(w*(h//2),w*h):
+    delta=max(on_pixels[pixel*c+i]-off_pixels[pixel*c+i] for i in range(3))
+    ghost_peak=max(ghost_peak,delta)
+    ghost_pixels+=delta>=24
+assert ghost_pixels>=80,(ghost_pixels,ghost_peak)
 # The sidecar stores normal source settings plus the derived profile, so replay
 # applies the multiplier exactly once and does not need the original config.
 config.unlink()
@@ -85,6 +98,8 @@ for key,value in (('foliage_distance_multiplier',21),('foliage_distance_multipli
     assert result.returncode!=0 and 'Invalid scenario or replay:' in result.stdout,result.stdout
     assert 'Failed to initialize GLFW' not in result.stdout,'Invalid replay reached window startup'
 evidence={'visible_strength':v['lens_flare_strength'],
+          'lower_half_ghost_pixels_above_24':ghost_pixels,
+          'lower_half_ghost_peak_channel_delta':ghost_peak,
           'visible_sun_pixels':v['lens_flare_visible_sun_pixels'],
           'normal_body_triangles':n['body_mesh_triangles'],
           'offline_body_triangles':v['body_mesh_triangles'],

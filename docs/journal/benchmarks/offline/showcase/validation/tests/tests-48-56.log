@@ -1,0 +1,24 @@
+Internal ctest changing into directory: /workspace/build-resume
+Test project /workspace/build-resume
+    Start 48: GrassWindInputIntegration
+1/9 Test #48: GrassWindInputIntegration ............   Passed   17.40 sec
+    Start 49: AstronautInputIntegration
+2/9 Test #49: AstronautInputIntegration ............   Passed    9.93 sec
+    Start 50: PerformanceOverlayInputIntegration
+3/9 Test #50: PerformanceOverlayInputIntegration ...   Passed   18.33 sec
+    Start 51: OrbitOverlayInputIntegration
+4/9 Test #51: OrbitOverlayInputIntegration .........   Passed   21.43 sec
+    Start 52: CameraTransitionInputIntegration
+5/9 Test #52: CameraTransitionInputIntegration .....   Passed    5.35 sec
+    Start 53: CameraClippingInputIntegration
+6/9 Test #53: CameraClippingInputIntegration .......   Passed    8.79 sec
+    Start 54: RepositoryLayout
+7/9 Test #54: RepositoryLayout .....................   Passed    0.17 sec
+    Start 55: AdaptiveQualityTests
+8/9 Test #55: AdaptiveQualityTests .................   Passed    0.01 sec
+    Start 56: AdaptiveQualityRenderIntegration
+9/9 Test #56: AdaptiveQualityRenderIntegration .....   Passed    2.13 sec
+
+100% tests passed, 0 tests failed out of 9
+
+Total Test time (real) =  83.56 sec

@@ -26,7 +26,7 @@ document the progress and add comments such that when interrupted you can contin
 |Make jetpack flight controls fire thrust whenever a movement button is pressed: WASD supplies directional thrust even without Space, Space supplies upward thrust, and looking down while pressing W allows descent. Keep orientation aligned to the nearby planet within 1.2 body diameters; outside that boundary switch to free outer-space orientation, allow flight to the Moon, and align to the destination body when entering its 1.2-diameter boundary. In outer-space mode always calculate gravity from the three closest celestial bodies.|t|Airborne WASD ignites directional thrust; W follows full look for descent, Space is up. World SI motion/exhaust axis, smooth local/free-space/Moon frames at centre distance 2.4 radii, closest-three gravity and moving-air drag. Clean 53/53 CTest entries pass (764.20 s), including 41 CPU cases, exact space/Moon/settled/steered-flight replay and native WASD-only ignition. Jetpack gallery view, replay evidence, journal/PDF and all 22 gallery hashes/provenance updated. See docs/journal/character/space-flight.md.|
 |Make the Bubbles of the Astronaut not just appear all at once, but physically sound, with a lifetime, that slowly fades, make sure the bubbles are look through, but still have some reflection, but make it performant. Also the bubbles and the astronaut shall be influenced by the wind of the grass.|t|Incremental world-space exhaust with 1.4 s lifetimes, release tails, transparent Fresnel shells and Sun highlights; shared grass wind affects particles and atmospheric astronaut drag. Pool capped at 64, one instanced draw per view, complete history/clock replay. Clean 56/56 CTest entries pass (675.37 s), including 10 new CPU cases and 120 production GLSL wind comparisons. Lifetime/plume captures, refreshed jetpack gallery, journal/PDF and all 22 gallery hashes verified. See docs/journal/character/exhaust.md.|
 |Download three diffrent high quality astronaut models, and make a render of each and drop it into USER_IO/astronaut_vis. Only choose models that we can actually use for walking motions and that have no backpack, such that we can mount a jetpack ourself|t|Three downloaded stylized humanoid candidates in USER_IO/astronaut_vis: AstroDev, Polygonal Mind Astronaut #048 and Square Cosmonaut #111. Clear backs, packed Blender files, GLBs, retained sources/licenses, nine reviewed renders and comparison. All 93 prepared and 51 imported poses, independent GLB/PNG/hash audit and repository layout pass; journal/PDF rebuilt and pages 20–24 reviewed. Less detailed than Ava Turing; runtime integration remains separate.|
-|Improve the offline / raytracing example in README.md: increase foliage count and use the initial surface position from the production config; consider rendering narrower vertical columns with higher terrain/foliage budgets and assembling them into the final image; make lens flare visibly apparent. Start after the preceding tasks are finished.| |Queued on user request; evaluate strip projection, overlap and image assembly while preserving full-frame lighting/exposure and flare placement. No renderer changes for this task yet.|
+|Improve the offline / raytracing example in README.md: increase foliage count and use the initial surface position from the production config; consider rendering narrower vertical columns with higher terrain/foliage budgets and assembling them into the final image; make lens flare visibly apparent. Start after the preceding tasks are finished.|t|Native 1920×1080 production-start capture with 213,454 main-view blades versus 102,918 baseline and visibly stronger gated flare; exact replay passes. Narrow-column probe retains the same candidate/terrain allocations, so assembly awaits view-aware streaming in the architecture plan. All 56 CTest entries pass across six grouped runs (609.22 s); README, replay, journal/PDF and 22 gallery hashes verified. See docs/journal/benchmarks/offline-showcase.md.|
 |Form a terrain/atmosphere CPU–GPU implementation plan before starting GPU terrain work. Audit the existing pipeline and evaluate hexagonal planet panels, seams/poles and alternatives. Define CPU ownership of subdivision/LOD/sinking and GPU ownership of noise, surface shape and atmospheric fields, including ground contacts, shadows/reflections, supported GPU paths and validation/performance budgets.| |Planning prerequisite for the following terrain/atmosphere tasks. Document CPU/GPU ownership before implementation, and assess seams, poles and spherical exceptions for hexagonal panels.|
 |Implement highly optimized GPU terrain shaping according to the completed CPU–GPU plan. Pass noise/shape parameters and minimal panel/topology descriptors; calculate surface positions/normals/material inputs on the GPU. Keep CPU subdivision and sinking where the plan calls for them.| |Depends on the architecture plan. Preserve planetary coordinates, camera/astronaut contacts, water/shadow/reflection agreement, deterministic replay and a documented compatible fallback; measure transfers and generation costs.|
 |Implement the planned GPU atmosphere calculations and remaining planet field work. Reuse calculations already on the GPU and move remaining suitable per-sample work there, passing parameters rather than generated field arrays.| |Depends on the architecture plan and relevant terrain interfaces. Validate optical appearance, atmosphere/terrain boundary agreement and measured CPU/GPU cost.|
@@ -82,6 +82,40 @@ current terrain-validation container has these tools and registers all 45
 tests. The install command above restores them on hosts where they are absent;
 reconfigure afterwards. Valgrind is only needed to recollect the independent
 instruction profile.
+
+## Offline showcase checkpoint — 2026-10-03
+
+- Current row: dense offline README example. Production LLA, clearance, NED
+  direction, FOV and timestamp are retained exactly. Production config is not
+  edited. Showcase changes only explicit foliage budget (12,000,000), Gaussian
+  sigma fraction (0.05) and per-triangle slots (65,536); derived radius is 3 km.
+- `shaders/postprocessing/flare.frag` spreads and strengthens the halo/streak
+  and aperture ghosts. The controlled visible/occluded/replay test passes with
+  a meaningful lower-half ghost signal (80+ pixels above 24 channel levels).
+- Capture telemetry now snapshots main-view compute queues before water
+  reflections overwrite them; optional output avoids interactive readbacks.
+  `ScenePass.h/.cpp` and `Capture.cpp` updated; build passes.
+- `scripts/benchmarks/offline_showcase.py` renders baseline, dense, no-flare,
+  exact replay and central 1/10-width allocation probe. Native 1920x1080 run
+  completed in `build-resume/offline-showcase/final`; all five PNGs and cached
+  capture audit pass, including exact dense replay and 49,648 flare pixels
+  changing by at least eight channel levels. Retained under
+  `docs/journal/benchmarks/offline/showcase/`. Individual `--capture` batches
+  and final `--resume` audit are supported.
+- The narrow view cannot reduce candidate queues or terrain meshes in the
+  current eye-centred planner. Record measured counts, exposure/flare/reflection
+  constraints; defer column assembly until it can actually save allocations.
+- Dense 1920x1080 PNG and replay published; all 22 gallery hashes pass and 21
+  previous PNG/provenance rows are unchanged. Production config and model assets
+  are untouched. Journal PDF compiles (24 pages); pages 11–15, 23–24 reviewed.
+- Complete regression coverage: all 56 CTest entries pass across six grouped
+  Xvfb runs (609.22 s): 1–32 (40.42 s), 33–34 (173.67 s), 35–39 (109.31 s),
+  40–44 (177.70 s), 45–47 (24.56 s), 48–56 (83.56 s). Logs, build evidence,
+  source/binary fingerprints and artifact hashes retained under the study's
+  `validation/` directory. Layout, whitespace and gallery/provenance checks pass.
+- This task is complete. The next queued task is the CPU–GPU terrain/atmosphere
+  architecture plan, including panel topology and view-aware allocation, before
+  any GPU terrain implementation.
 
 ## Astronaut candidate checkpoint — 2026-10-03
 

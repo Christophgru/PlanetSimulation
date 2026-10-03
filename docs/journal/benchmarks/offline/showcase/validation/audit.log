@@ -1,0 +1,8 @@
+PASS baseline 102918 main-view blades; 255999904 queue bytes
+PASS dense 213454 main-view blades; 1535998624 queue bytes
+PASS no-flare 213454 main-view blades; 1535998624 queue bytes
+PASS replay 213454 main-view blades; 1535998624 queue bytes
+PASS narrow 43690 main-view blades; 1535998624 queue bytes
+PASS production camera, denser main-view foliage, apparent gated flare, exact replay and measured column-allocation limits
+PASS dense 213454 main-view blades; 1535998624 queue bytes
+PASS full cached-capture audit and individual --capture dense --resume batch

@@ -1,0 +1,16 @@
+Internal ctest changing into directory: /workspace/build-resume
+Test project /workspace/build-resume
+    Start 35: SpaceFlightCaptureIntegration
+1/5 Test #35: SpaceFlightCaptureIntegration ....   Passed   34.12 sec
+    Start 36: OfflineCaptureIntegration
+2/5 Test #36: OfflineCaptureIntegration ........   Passed   14.83 sec
+    Start 37: CpuTraceTests
+3/5 Test #37: CpuTraceTests ....................   Passed    0.01 sec
+    Start 38: CpuTraceReportTests
+4/5 Test #38: CpuTraceReportTests ..............   Passed    0.18 sec
+    Start 39: GrassCaptureIntegration
+5/5 Test #39: GrassCaptureIntegration ..........   Passed   60.16 sec
+
+100% tests passed, 0 tests failed out of 5
+
+Total Test time (real) = 109.31 sec

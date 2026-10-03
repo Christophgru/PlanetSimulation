@@ -1,0 +1,481 @@
+{
+  "date_utc": "2026-10-03T11:38:28+00:00",
+  "base_revision": "a316d1a54366ae67114ec8ccaf6d65cec1b50227",
+  "source_sha256": "86222331df9de34d31db648fcdc296f5cc7f781a526a10030e150a2dc19e59e8",
+  "build": {
+    "type": "RelWithDebInfo",
+    "generator": "Ninja",
+    "compiler": "GCC 12.2.0 (Debian 12.2.0-14+deb12u1)",
+    "binary": "build-resume/PlanetSimulation",
+    "binary_sha256": "a2cef6e566ce07bbf50e839d948f9d52460de663acdd78bc21a5c9a80c8bec2f",
+    "result": "passed"
+  },
+  "graphics": {
+    "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+    "mesa": "22.3.6",
+    "display": "Xvfb",
+    "LIBGL_ALWAYS_SOFTWARE": "1",
+    "LP_NUM_THREADS": "2"
+  },
+  "ctest": {
+    "scope": "All 56 entries across six grouped Xvfb runs; first 32 preceded final explicit-standard-header cleanup, remaining 24 used rebuilt binary. Runtime implementation unchanged between groups.",
+    "passed": 56,
+    "failed": 0,
+    "group_real_seconds_total": 609.22,
+    "command_template": "LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=2 xvfb-run -a ctest --test-dir build-resume -I FIRST,LAST --output-on-failure",
+    "groups": [
+      {
+        "log": "docs/journal/benchmarks/offline/showcase/validation/tests/tests-01-32.log",
+        "passed": 32,
+        "real_seconds": 40.42,
+        "entries": [
+          {
+            "id": 1,
+            "name": "RendererLifecycleTests",
+            "result": "Passed",
+            "seconds": 7.28
+          },
+          {
+            "id": 2,
+            "name": "ConfigTests",
+            "result": "Passed",
+            "seconds": 0.02
+          },
+          {
+            "id": 3,
+            "name": "OrbitCameraTests",
+            "result": "Passed",
+            "seconds": 0.01
+          },
+          {
+            "id": 4,
+            "name": "CameraInputTests",
+            "result": "Passed",
+            "seconds": 0.01
+          },
+          {
+            "id": 5,
+            "name": "AstronautMotionTests",
+            "result": "Passed",
+            "seconds": 0.04
+          },
+          {
+            "id": 6,
+            "name": "ExhaustPhysicsTests",
+            "result": "Passed",
+            "seconds": 0.01
+          },
+          {
+            "id": 7,
+            "name": "ExhaustRenderIntegration",
+            "result": "Passed",
+            "seconds": 0.41
+          },
+          {
+            "id": 8,
+            "name": "CameraTransitionTests",
+            "result": "Passed",
+            "seconds": 0.01
+          },
+          {
+            "id": 9,
+            "name": "SceneTransformsTests",
+            "result": "Passed",
+            "seconds": 0.01
+          },
+          {
+            "id": 10,
+            "name": "OrbitPathsTests",
+            "result": "Passed",
+            "seconds": 0.01
+          },
+          {
+            "id": 11,
+            "name": "OrbitalSystemTests",
+            "result": "Passed",
+            "seconds": 0.11
+          },
+          {
+            "id": 12,
+            "name": "CelestialLightingTests",
+            "result": "Passed",
+            "seconds": 0.02
+          },
+          {
+            "id": 13,
+            "name": "CameraExposureTests",
+            "result": "Passed",
+            "seconds": 0.01
+          },
+          {
+            "id": 14,
+            "name": "SceneReplayTests",
+            "result": "Passed",
+            "seconds": 0.01
+          },
+          {
+            "id": 15,
+            "name": "TerrainShadowProjectionTests",
+            "result": "Passed",
+            "seconds": 0.01
+          },
+          {
+            "id": 16,
+            "name": "TerrainShadowRenderIntegration",
+            "result": "Passed",
+            "seconds": 6.3
+          },
+          {
+            "id": 17,
+            "name": "RenderDiagnosticsTests",
+            "result": "Passed",
+            "seconds": 0.01
+          },
+          {
+            "id": 18,
+            "name": "StarFieldTests",
+            "result": "Passed",
+            "seconds": 0.01
+          },
+          {
+            "id": 19,
+            "name": "MeshGeometryTests",
+            "result": "Passed",
+            "seconds": 0.01
+          },
+          {
+            "id": 20,
+            "name": "TerrainTests",
+            "result": "Passed",
+            "seconds": 8.03
+          },
+          {
+            "id": 21,
+            "name": "GrassPlanTests",
+            "result": "Passed",
+            "seconds": 0.01
+          },
+          {
+            "id": 22,
+            "name": "GrassTrailTests",
+            "result": "Passed",
+            "seconds": 0.01
+          },
+          {
+            "id": 23,
+            "name": "GrassPlacementTests",
+            "result": "Passed",
+            "seconds": 0.03
+          },
+          {
+            "id": 24,
+            "name": "PlanetLocalFrameTests",
+            "result": "Passed",
+            "seconds": 0.01
+          },
+          {
+            "id": 25,
+            "name": "PlanetSurfaceCameraTests",
+            "result": "Passed",
+            "seconds": 0.01
+          },
+          {
+            "id": 26,
+            "name": "SurfaceCameraTelemetryTests",
+            "result": "Passed",
+            "seconds": 0.01
+          },
+          {
+            "id": 27,
+            "name": "RenderSceneIntegration",
+            "result": "Passed",
+            "seconds": 1.31
+          },
+          {
+            "id": 28,
+            "name": "SurfaceRenderIntegration",
+            "result": "Passed",
+            "seconds": 4.35
+          },
+          {
+            "id": 29,
+            "name": "PlanetOrbitRenderIntegration",
+            "result": "Passed",
+            "seconds": 3.28
+          },
+          {
+            "id": 30,
+            "name": "MovingSurfaceRenderIntegration",
+            "result": "Passed",
+            "seconds": 4.49
+          },
+          {
+            "id": 31,
+            "name": "MovingPlanetRenderIntegration",
+            "result": "Passed",
+            "seconds": 3.22
+          },
+          {
+            "id": 32,
+            "name": "MoonlightRenderIntegration",
+            "result": "Passed",
+            "seconds": 1.34
+          }
+        ]
+      },
+      {
+        "log": "docs/journal/benchmarks/offline/showcase/validation/tests/tests-33-34.log",
+        "passed": 2,
+        "real_seconds": 173.67,
+        "entries": [
+          {
+            "id": 33,
+            "name": "AstronautCaptureIntegration",
+            "result": "Passed",
+            "seconds": 114.21
+          },
+          {
+            "id": 34,
+            "name": "ExhaustCaptureIntegration",
+            "result": "Passed",
+            "seconds": 59.45
+          }
+        ]
+      },
+      {
+        "log": "docs/journal/benchmarks/offline/showcase/validation/tests/tests-35-39.log",
+        "passed": 5,
+        "real_seconds": 109.31,
+        "entries": [
+          {
+            "id": 35,
+            "name": "SpaceFlightCaptureIntegration",
+            "result": "Passed",
+            "seconds": 34.12
+          },
+          {
+            "id": 36,
+            "name": "OfflineCaptureIntegration",
+            "result": "Passed",
+            "seconds": 14.83
+          },
+          {
+            "id": 37,
+            "name": "CpuTraceTests",
+            "result": "Passed",
+            "seconds": 0.01
+          },
+          {
+            "id": 38,
+            "name": "CpuTraceReportTests",
+            "result": "Passed",
+            "seconds": 0.18
+          },
+          {
+            "id": 39,
+            "name": "GrassCaptureIntegration",
+            "result": "Passed",
+            "seconds": 60.16
+          }
+        ]
+      },
+      {
+        "log": "docs/journal/benchmarks/offline/showcase/validation/tests/tests-40-44.log",
+        "passed": 5,
+        "real_seconds": 177.7,
+        "entries": [
+          {
+            "id": 40,
+            "name": "LightingScenariosRenderIntegration",
+            "result": "Passed",
+            "seconds": 37.88
+          },
+          {
+            "id": 41,
+            "name": "TwilightScenariosRenderIntegration",
+            "result": "Passed",
+            "seconds": 21.27
+          },
+          {
+            "id": 42,
+            "name": "AtmosphereTests",
+            "result": "Passed",
+            "seconds": 0.01
+          },
+          {
+            "id": 43,
+            "name": "AtmosphereScenariosRenderIntegration",
+            "result": "Passed",
+            "seconds": 109.62
+          },
+          {
+            "id": 44,
+            "name": "AtmosphereRefractionRenderIntegration",
+            "result": "Passed",
+            "seconds": 8.9
+          }
+        ]
+      },
+      {
+        "log": "docs/journal/benchmarks/offline/showcase/validation/tests/tests-45-47.log",
+        "passed": 3,
+        "real_seconds": 24.56,
+        "entries": [
+          {
+            "id": 45,
+            "name": "FrameReuseTests",
+            "result": "Passed",
+            "seconds": 0.01
+          },
+          {
+            "id": 46,
+            "name": "PerformanceCaptureIntegration",
+            "result": "Passed",
+            "seconds": 24.53
+          },
+          {
+            "id": 47,
+            "name": "GpuUtilizationTests",
+            "result": "Passed",
+            "seconds": 0.01
+          }
+        ]
+      },
+      {
+        "log": "docs/journal/benchmarks/offline/showcase/validation/tests/tests-48-56.log",
+        "passed": 9,
+        "real_seconds": 83.56,
+        "entries": [
+          {
+            "id": 48,
+            "name": "GrassWindInputIntegration",
+            "result": "Passed",
+            "seconds": 17.4
+          },
+          {
+            "id": 49,
+            "name": "AstronautInputIntegration",
+            "result": "Passed",
+            "seconds": 9.93
+          },
+          {
+            "id": 50,
+            "name": "PerformanceOverlayInputIntegration",
+            "result": "Passed",
+            "seconds": 18.33
+          },
+          {
+            "id": 51,
+            "name": "OrbitOverlayInputIntegration",
+            "result": "Passed",
+            "seconds": 21.43
+          },
+          {
+            "id": 52,
+            "name": "CameraTransitionInputIntegration",
+            "result": "Passed",
+            "seconds": 5.35
+          },
+          {
+            "id": 53,
+            "name": "CameraClippingInputIntegration",
+            "result": "Passed",
+            "seconds": 8.79
+          },
+          {
+            "id": 54,
+            "name": "RepositoryLayout",
+            "result": "Passed",
+            "seconds": 0.17
+          },
+          {
+            "id": 55,
+            "name": "AdaptiveQualityTests",
+            "result": "Passed",
+            "seconds": 0.01
+          },
+          {
+            "id": 56,
+            "name": "AdaptiveQualityRenderIntegration",
+            "result": "Passed",
+            "seconds": 2.13
+          }
+        ]
+      }
+    ]
+  },
+  "checks": {
+    "native_capture_audit": "passed: exact production camera, denser main foliage, apparent gated flare, byte-identical replay, measured narrow-column allocation limits",
+    "gallery_hashes_verified": 22,
+    "unchanged_gallery_images_and_rows": 21,
+    "production_config_and_astronaut_assets": "unchanged",
+    "astronaut_asset_checker": "python3 scripts/character/check_models.py passed",
+    "journal_pages": 24,
+    "journal_pages_visually_reviewed": [
+      11,
+      12,
+      13,
+      14,
+      15,
+      23,
+      24
+    ],
+    "native_views_reviewed": [
+      "baseline",
+      "dense",
+      "no-flare",
+      "narrow",
+      "replay hash-identical to dense"
+    ],
+    "repository_layout": "passed",
+    "git_diff_check": "passed"
+  },
+  "column_decision": "A central 1/10-width view reduces submitted draws but retains the same candidate queues and terrain meshes. It cannot load more geometry without frustum-aware allocation. Per-strip highlight metering and reflection projection also require a shared full-frame solution before assembly.",
+  "artifact_sha256": {
+    "README.md": "c2217433a955a493e8880f234ffd094a400963ed4713889c41b0e98ce7974106",
+    "docs/captures/GENERATION.md": "52c53b80c073278e3ed33ad4fe223feab9ab2c72884d6d75f8e9a917f14b715f",
+    "docs/captures/generation.json": "807ec185775cad3d819bd087ecaba185f38587b69962073eeeefbb36dd43a253",
+    "docs/captures/replay/offline/offline-render.png.json": "5a7d6ceb72ac87f84faf7f7898b33fe8ea357ef686350a8a30c20d41ece1cecc",
+    "docs/journal/benchmarks/offline/showcase/images/baseline.png": "3a0cd4b303109ce52ec40936745c1f55431e77a0ae8f55e19e6e2d55a1c673f0",
+    "docs/journal/benchmarks/offline/showcase/images/dense.png": "32122b583bba98ef5332a47d022ff03957fddd7122430679836f5c39e10387bd",
+    "docs/journal/benchmarks/offline/showcase/images/narrow.png": "da68a9b53106b0d7caf884470d57b1bd8da2710e0c5fea2df775d8b845ee44ee",
+    "docs/journal/benchmarks/offline/showcase/images/no-flare.png": "2b7920904b11707c5f45e217443e6c09fcbf8a0d195f3f68472e73b1c0ba118b",
+    "docs/journal/benchmarks/offline/showcase/images/replay.png": "32122b583bba98ef5332a47d022ff03957fddd7122430679836f5c39e10387bd",
+    "docs/journal/benchmarks/offline/showcase/logs/baseline.log": "a2d54a722e318a0de70a39f3d8ee0075cf2e4155660b88c1fdf9eed8a580c2c8",
+    "docs/journal/benchmarks/offline/showcase/logs/dense.log": "3ef67d0c7bba1beca46b1485eac78a9280359c692572862ea955adc79bed9d93",
+    "docs/journal/benchmarks/offline/showcase/logs/narrow.log": "dc441e1beed25ddc0b1ca27001ca3f3d8dafd87272e15c300893107654a0e4e1",
+    "docs/journal/benchmarks/offline/showcase/logs/no-flare.log": "01378b6697f3e2134eba546fbb59e04c3dea48063cb3903564cb69c5f1775589",
+    "docs/journal/benchmarks/offline/showcase/logs/replay.log": "fa887a24ec7f66540141fc1a53a43748d5b0d7222ae7e74c50200478cc85c090",
+    "docs/journal/benchmarks/offline/showcase/replay/baseline.png.json": "92aa5368239556bf9c06c8ba1dd8aec8b365000b389307632f807d23d13e8fc8",
+    "docs/journal/benchmarks/offline/showcase/replay/dense.png.json": "5a7d6ceb72ac87f84faf7f7898b33fe8ea357ef686350a8a30c20d41ece1cecc",
+    "docs/journal/benchmarks/offline/showcase/replay/narrow.png.json": "62bb929fa379dc6d34a309bd533b91d67298bc9c5f4cca38d8382639a77aca6a",
+    "docs/journal/benchmarks/offline/showcase/replay/no-flare.png.json": "209709dd4da4896197b0510f1cf61c1ab72d7f2b00f1e99cb110f1011a4a64d7",
+    "docs/journal/benchmarks/offline/showcase/replay/replay.png.json": "8e6b21c11618ce7f466967b2d38828f14b7b01c8fa600937c736a6f51c9dbc17",
+    "docs/journal/benchmarks/offline/showcase/scene.json": "ae4a5f21e80ec0927b7e049ab880ba5db7e154a737f86b03bdff8f3185b341f2",
+    "docs/journal/benchmarks/offline/showcase/validation/audit.log": "9c3b95a807331ba950aa0f7e235d55af70949c24c219796cd8b48cf6f1befd38",
+    "docs/journal/benchmarks/offline/showcase/validation/build/build-final.log": "9013abdac7b27637a0cc3c0471854bb46492ae6493883ed62f36ffe698a6c1c2",
+    "docs/journal/benchmarks/offline/showcase/validation/build/build.log": "9013abdac7b27637a0cc3c0471854bb46492ae6493883ed62f36ffe698a6c1c2",
+    "docs/journal/benchmarks/offline/showcase/validation/journal.log": "e6e9cdbc4fc7fb4191d74fe0c2531968b045015c96e8c29de75e18929e5d9a47",
+    "docs/journal/benchmarks/offline/showcase/validation/results.json": "70d81f39bb2982379129277de990baa3ae2dfbd5c757709ab947477c2628d782",
+    "docs/journal/benchmarks/offline/showcase/validation/tests/tests-01-32.log": "459268e2e973203c56a1d515fcbe12effe1550af7cdf283dd48e5e1c97716155",
+    "docs/journal/benchmarks/offline/showcase/validation/tests/tests-33-34.log": "568d628b88a531d7377b7fb38611316435968ee12e19939f246f1986b4467272",
+    "docs/journal/benchmarks/offline/showcase/validation/tests/tests-35-39.log": "dddf37cefa2dd8486f38cfdc10cc334c77f587d224050e4fe7c23bfcb45a4cbf",
+    "docs/journal/benchmarks/offline/showcase/validation/tests/tests-40-44.log": "8960d53147479d755a00c16ea8b26fddb2ff60e2395ce8a3e82f68ecd87edbc0",
+    "docs/journal/benchmarks/offline/showcase/validation/tests/tests-45-47.log": "18b43fe766f7c33ed6b664a998607b5a65d2cba6eaa89d2f3c14d92dca280f6d",
+    "docs/journal/benchmarks/offline/showcase/validation/tests/tests-48-56.log": "97ee9b92f03101b1fe2c7dd7ece46d8d2194ab9b189a275e44597a06615c8ebc",
+    "docs/journal/benchmarks/offline-rendering.md": "d26e606a2515875e18386e0a7e18090c9813af0be4de135b8931d298350a6f6e",
+    "docs/journal/benchmarks/offline-showcase.md": "fd6c12e60fa7006c682fc760000e71d142ab23c27ca3c98cb92936c8d4db071f",
+    "docs/journal/paper.pdf": "30caaf2b5acf7bc6dbae5c0815743680b24f2b7c502a61c5111eb386aec0a85c",
+    "docs/journal/paper.typ": "564a89be4729e8a66054c60b9f3314c33086445e9d05eaa2db27c4a50815abe1",
+    "docs/screenshots/offline-render.png": "32122b583bba98ef5332a47d022ff03957fddd7122430679836f5c39e10387bd",
+    "scripts/benchmarks/offline_showcase.py": "0797bc3f51c7db1c59eb35887388f8db80b3e81fbb35a0272580690e8bbdd4ab",
+    "scripts/generate_readme_images.py": "fab15d403023539e1346d948ec3e766e0c8b52442aabb4512b2b7d4ff86937d4",
+    "shaders/postprocessing/flare.frag": "117ac1b50489ac6155c5f20c2348ac3600592460c2a0a405c4860c86c78ace0d",
+    "src/rendering/runtime/Capture.cpp": "36371d11b5dc278bf4eb106109325b7687d65e27ff305362b919c565a9a2f138",
+    "src/rendering/runtime/ScenePass.cpp": "d49420fb624e59eb9d7ac1563e5737fdfd689845dcef48d25851165bb31edf0f",
+    "src/rendering/runtime/ScenePass.h": "f37b765486509839027e2bd5f2701130d996ba6c216e6cde3777e50c5740e432",
+    "tests/quality/read_png.py": "3cef5affce963b5bc8429520cff3522b601b88d6efb62e3227bf5ea357677017",
+    "tests/quality/test_offline_capture.py": "8198a4e4dc727f75b705f67fc926282d4ff7a70952206fe4aa37a12da1a6fb7d",
+    "todo.md": "27fba6c1735ea48ebb536e46ba01871c9345f14db13ca0b3ae632cc760f3d0f1"
+  }
+}

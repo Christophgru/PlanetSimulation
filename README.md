@@ -1210,12 +1210,28 @@ test command. The output reports mesh preparation and GPU-complete render time;
 the actual framebuffer dimensions are printed because a window manager may
 resize the hidden window.
 
-For offline quality, use a configured surface camera and save a single PNG:
+Replay the dense offline example at the production starting location:
 
 ~~~bash
-./build/PlanetSimulation --config configs/scenarios/solar_system.json \
-  --offline-render build/offline.png --render-size 1920 1080
+./build/PlanetSimulation --replay docs/captures/replay/offline/offline-render.png.json \
+  --offline-render build/offline.png
 ~~~
+
+The saved view is **1920×1080**, at the production latitude/longitude,
+2 m eye clearance, initial NED direction and **time 0**. It retains production
+terrain, atmosphere, water and lighting. Only the showcase foliage settings
+change: a **12 million** candidate budget, Gaussian sigma fraction **0.05**
+and **65,536** candidate slots per triangle. The 20× profile gives a 3 km
+cutoff and 150 m Gaussian sigma. It submits **213,454 main-view blades**,
+versus **102,918** with the production foliage settings at the same camera.
+Compute queues reserve approximately **1.54 GB**; density still obeys the
+hard budget and biome rules. The dusk foreground is naturally backlit.
+
+To use your current scene directly, replace `--replay ...` with
+`--config configs/scenarios/solar_system.json`. To reproduce the comparison,
+flare-off/replay checks and narrow-view allocation study, run
+`python3 scripts/benchmarks/offline_showcase.py --binary build/PlanetSimulation
+--output-dir build/offline-showcase` under an OpenGL display.
 
 `--offline-render` waits for synchronous terrain construction and complete GPU
 rendering, with no frame-rate target or adaptive resolution reduction. It uses
@@ -1243,7 +1259,16 @@ replay. Performance traces include a separate `lens_flare` stage.
 
 ![Offline grass, detailed Sun/Moon and aperture flare](docs/screenshots/offline-render.png)
 
-Controlled airless fixture: 600 m grass radius and a Moon partly covering the Sun.
+Production starting view with dense grass, full atmosphere and visible sunset
+halo, streak and aperture ghosts. The exported PNG is a direct renderer capture.
+
+Narrow columns were evaluated: a central 192×1080 view submits fewer blades
+but retains the same 12 million candidate allocation and 100,000/86,400
+terrain triangles. Column rendering therefore cannot load more geometry with
+the current planner. Assembly also needs shared exposure, off-axis projection,
+reflection bounds and full-image flare coordinates; the
+[showcase study](docs/journal/benchmarks/offline-showcase.md) records the measured
+limits and the prerequisites for implementing it.
 
 The [offline quality study](docs/journal/benchmarks/offline-rendering.md) contains
 controlled normal/offline and visible/occluded comparisons, exact replay checks

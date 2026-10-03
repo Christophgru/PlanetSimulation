@@ -128,7 +128,7 @@ log += ['', 'Exact commands, image SHA-256 hashes and renderer details are in [g
         'The solar overview uses the frozen compact fixture; the surface and orbit gallery use the current working scene.',
         'Night images preserve their airless lighting controls. Atmosphere, shadow and twilight images use regression fixtures.', '',
         'Astronaut images preserve camera 4, planted-foot or airborne pose, bubble phase and persistent grass trail from the character regression fixture.', '',
-        'The offline image preserves the controlled 20x grass radius, high-detail bodies and partially visible Sun flare.', '',
+        'The offline image preserves the production initial camera, explicit dense 20x foliage profile, high-detail bodies and atmospheric sunset flare. See the offline showcase study for its allocation and replay checks.', '',
        'To regenerate after building with `BUILD_TESTING=ON`:', '', '~~~bash',
         'cmake --build build --target PlanetSimulation terrain_shadow_render_tests',
         'LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a -s "-screen 0 1280x720x24" python3 scripts/generate_readme_images.py --build-dir build',

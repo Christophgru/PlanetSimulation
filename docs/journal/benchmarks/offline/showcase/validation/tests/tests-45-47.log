@@ -1,0 +1,12 @@
+Internal ctest changing into directory: /workspace/build-resume
+Test project /workspace/build-resume
+    Start 45: FrameReuseTests
+1/3 Test #45: FrameReuseTests ..................   Passed    0.01 sec
+    Start 46: PerformanceCaptureIntegration
+2/3 Test #46: PerformanceCaptureIntegration ....   Passed   24.53 sec
+    Start 47: GpuUtilizationTests
+3/3 Test #47: GpuUtilizationTests ..............   Passed    0.01 sec
+
+100% tests passed, 0 tests failed out of 3
+
+Total Test time (real) =  24.56 sec

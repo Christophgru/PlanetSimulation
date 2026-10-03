@@ -21,8 +21,10 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                  std::optional<std::size_t> meteredPlanet,
                  bool recordObjects, rendering::FrameProfiler* profiler,
                  bool forceHdr, GLuint outputFramebuffer,
-                 rendering::GrassRenderer* grass, double sceneTime, AstronautRenderer* astronaut) {
+                 rendering::GrassRenderer* grass, double sceneTime, AstronautRenderer* astronaut,
+                 std::vector<std::array<std::size_t,2>>* mainGrassCounts) {
     CpuTrace::Scope sceneScope("renderScene");
+    if (mainGrassCounts) mainGrassCounts->assign(scenario.planets.size(),{});
     using Stage = rendering::FrameStage;
     using Scope = rendering::FrameProfiler::Scope;
     Scope lightingScope(profiler, Stage::Lighting, false);
@@ -231,6 +233,10 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                 const GrassPass grassPass{model,passView,passProjection,bodies[i+1].toLocalPoint(eyeWorld)/planet.radius,
                     grassWindTime(sceneTime*settings.wind_noise.speed_multiplier)};
                 grass->draw(i,&grassPass);
+                // Capture telemetry must be sampled before reflections reuse
+                // the indirect queues. Interactive views avoid this readback.
+                if (mainPass && mainGrassCounts)
+                    (*mainGrassCounts)[i]=grass->procedural.computedCounts(i);
             }
 
         }
@@ -304,7 +310,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                 return renderScene(scenario, bodies, view, fov, eyeWorld, shader, waterShader, skyboxShader,
                     reflectionTarget, shadowShader, shadows, atmosphereShader, atmosphere, reflectionAtmosphere,
                     atmosphereColumns, sunMesh, skyboxMesh, planetMeshes, waterMeshes, width, height,
-                    clip, meteredPlanet, recordObjects, profiler, true, outputFramebuffer, grass, sceneTime, astronaut);
+                    clip, meteredPlanet, recordObjects, profiler, true, outputFramebuffer, grass, sceneTime, astronaut, mainGrassCounts);
         }
         return exposure;
     };

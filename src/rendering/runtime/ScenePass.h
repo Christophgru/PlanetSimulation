@@ -1,4 +1,7 @@
 #pragma once
+#include <array>
+#include <cstddef>
+#include <vector>
 #include "rendering/lighting/CameraExposure.h"
 #include "rendering/geometry/SceneTransforms.h"
 #include "rendering/geometry/Mesh.h"
@@ -29,5 +32,6 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                  bool recordObjects = false, rendering::FrameProfiler* profiler = nullptr,
                  bool forceHdr = false, GLuint outputFramebuffer = 0,
                  rendering::GrassRenderer* grass = nullptr, double sceneTime = 0,
-                 AstronautRenderer* astronaut = nullptr);
+                 AstronautRenderer* astronaut = nullptr,
+                 std::vector<std::array<std::size_t,2>>* mainGrassCounts = nullptr);
 }

@@ -1,0 +1,10 @@
+Internal ctest changing into directory: /workspace/build-resume
+Test project /workspace/build-resume
+    Start 33: AstronautCaptureIntegration
+1/2 Test #33: AstronautCaptureIntegration ......   Passed  114.21 sec
+    Start 34: ExhaustCaptureIntegration
+2/2 Test #34: ExhaustCaptureIntegration ........   Passed   59.45 sec
+
+100% tests passed, 0 tests failed out of 2
+
+Total Test time (real) = 173.67 sec
