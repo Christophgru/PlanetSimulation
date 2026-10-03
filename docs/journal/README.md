@@ -75,3 +75,8 @@ opt-in capture backend with double field sampling, GPU-generated draw buffers,
 bounded dispatches and completed land/water publication. CPU/GPU packing and
 numerical parity, exact replay and GL 3.3 fallback are checked. The full CPU mirror
 and normal interactive migration remain T3; no total-frame speedup is claimed.
+
+The [sparse contact prerequisite](architecture/terrain-gpu/contacts/study.md)
+uses canonical topology and a bounded lazy position cache for matching compute
+triangle-plane contacts. Grass still requires the compatibility vectors; GPU
+grass planning and asynchronous interactive publication remain queued.

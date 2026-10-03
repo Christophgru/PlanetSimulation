@@ -69,6 +69,7 @@ add_library(planet_geometry STATIC
     src/rendering/geometry/terrain/PlanetField.cpp
     src/rendering/geometry/terrain/TerrainQueryCache.cpp
     src/rendering/geometry/terrain/TerrainTopology.cpp
+    src/rendering/geometry/contacts/SparseTerrainContacts.cpp
     src/rendering/geometry/TerrainLod.cpp
     src/rendering/geometry/TerrainShoreline.cpp
     src/rendering/foliage/GrassPlacement.cpp
@@ -85,7 +86,7 @@ add_library(planet_character STATIC
     src/rendering/character/effects/ExhaustParticles.cpp
     src/rendering/foliage/wind/WindField.cpp)
 target_include_directories(planet_character PUBLIC ${CMAKE_SOURCE_DIR}/src)
-target_link_libraries(planet_character PUBLIC glm::glm PRIVATE ozz_animation)
+target_link_libraries(planet_character PUBLIC glm::glm planet_geometry PRIVATE ozz_animation)
 
 add_library(planet_rendering STATIC
     src/rendering/Shader.cpp

@@ -997,6 +997,12 @@ speedup. A saved compute backend replays explicitly; unavailable GL 4.3 falls ba
 for a fresh request and rejects a locked compute replay. Interactive compute and
 removal of the full CPU mirror remain T3.
 
+The [sparse contact prerequisite](docs/journal/architecture/terrain-gpu/contacts/study.md)
+now finds compute terrain triangles through a spatial index and evaluates only
+needed float-rounded/sunk positions, with a 1,024-position cache. Contact queries
+use no full render vectors or GPU readbacks. Grass planning still needs those CPU
+vectors; GPU grass planning and interactive publication remain the next steps.
+
 Near water, `terrain_lod.shoreline_edge_m` targets 1 m edges within
 `shoreline_distance_m` (80 m by default). Set the edge target to `0` to disable
 this extra refinement. Targets support 0.1–100 m and distances 1–1000 m.

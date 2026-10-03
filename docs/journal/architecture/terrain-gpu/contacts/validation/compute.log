@@ -1,0 +1,29 @@
+[==========] Running 6 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 6 tests from TerrainCompute
+[ RUN      ] TerrainCompute.DoubleFieldsMatchCpuAtPolesLatticeBoundariesAndExtremeSeeds
+PARITY triangles=33 samples=9 height_m=0 position_m=0 normal_rad=0 color=0 uploaded=1452 peak=5744 dispatches=3 gpu_ms=0.654068 cpu_bulk_ms=0.066032 submit_ms=36.4566 capture_wait_ms=0.121138 validation_read_ms=0.009691
+PARITY triangles=33 samples=9 height_m=1.38556e-13 position_m=0 normal_rad=2.10734e-08 color=0 uploaded=1452 peak=5744 dispatches=3 gpu_ms=0.694629 cpu_bulk_ms=0.062941 submit_ms=1.03613 capture_wait_ms=0.152074 validation_read_ms=0.013819
+PARITY triangles=33 samples=9 height_m=1.52101e-14 position_m=0 normal_rad=2.10734e-08 color=0 uploaded=1452 peak=5744 dispatches=3 gpu_ms=0.789653 cpu_bulk_ms=0.093778 submit_ms=1.19844 capture_wait_ms=0.170774 validation_read_ms=0.013844
+PARITY triangles=33 samples=9 height_m=3.86358e-13 position_m=0 normal_rad=2.10734e-08 color=0 uploaded=1452 peak=5744 dispatches=3 gpu_ms=0.815199 cpu_bulk_ms=0.088901 submit_ms=1.17669 capture_wait_ms=0.146589 validation_read_ms=0.013976
+PARITY triangles=33 samples=9 height_m=8.9706e-14 position_m=0 normal_rad=2.10734e-08 color=0 uploaded=1452 peak=5744 dispatches=3 gpu_ms=0.754387 cpu_bulk_ms=0.108645 submit_ms=1.1213 capture_wait_ms=0.183173 validation_read_ms=0.013901
+PARITY triangles=33 samples=9 height_m=3.86358e-13 position_m=0 normal_rad=2.10734e-08 color=0 uploaded=1452 peak=5744 dispatches=3 gpu_ms=0.757622 cpu_bulk_ms=0.088681 submit_ms=1.14261 capture_wait_ms=0.095904 validation_read_ms=0.011631
+PARITY triangles=33 samples=9 height_m=0 position_m=0 normal_rad=0 color=0 uploaded=1452 peak=5744 dispatches=3 gpu_ms=0.641626 cpu_bulk_ms=0.030502 submit_ms=0.998264 capture_wait_ms=0.178426 validation_read_ms=0.014402
+[       OK ] TerrainCompute.DoubleFieldsMatchCpuAtPolesLatticeBoundariesAndExtremeSeeds (45 ms)
+[ RUN      ] TerrainCompute.ShorelineMixedLodAndSinkingRetainSharedEndpointsAndTriangleOrder
+PARITY triangles=10000 samples=5002 height_m=0 position_m=0 normal_rad=2.98023e-08 color=0 uploaded=280816 peak=1700856 dispatches=2 gpu_ms=18.288 cpu_bulk_ms=12.4514 submit_ms=31.9916 capture_wait_ms=0.109238 validation_read_ms=0.705108
+[       OK ] TerrainCompute.ShorelineMixedLodAndSinkingRetainSharedEndpointsAndTriangleOrder (132 ms)
+[ RUN      ] TerrainCompute.DriverPackingMatchesTheFieldContractAndScalarOutputStride
+[       OK ] TerrainCompute.DriverPackingMatchesTheFieldContractAndScalarOutputStride (7 ms)
+[ RUN      ] TerrainCompute.ProductionFieldMatchesCpuAndReducesTheCountedInputPayload
+PARITY triangles=100000 samples=50002 height_m=1.19371e-12 position_m=0 normal_rad=3.332e-08 color=0 uploaded=2800880 peak=17000856 dispatches=6 gpu_ms=176.267 cpu_bulk_ms=419.796 submit_ms=300.433 capture_wait_ms=0.043766 validation_read_ms=24.9781
+[       OK ] TerrainCompute.ProductionFieldMatchesCpuAndReducesTheCountedInputPayload (3091 ms)
+[ RUN      ] TerrainCompute.FailedGenerationCannotReplaceAnActiveMeshAndNoCpuVerticesAreUploaded
+[       OK ] TerrainCompute.FailedGenerationCannotReplaceAnActiveMeshAndNoCpuVerticesAreUploaded (12 ms)
+[ RUN      ] TerrainCompute.SparseContactGenerationMatchesGpuPlanesWithoutReadingTheCpuMirror
+[       OK ] TerrainCompute.SparseContactGenerationMatchesGpuPlanesWithoutReadingTheCpuMirror (152 ms)
+[----------] 6 tests from TerrainCompute (3442 ms total)
+
+[----------] Global test environment tear-down
+[==========] 6 tests from 1 test suite ran. (3442 ms total)
+[  PASSED  ] 6 tests.

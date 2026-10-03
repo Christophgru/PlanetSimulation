@@ -89,7 +89,8 @@ void Renderer::Impl::prepareAstronaut(double elapsed) {
     const double units=scene.scenario.metersPerWorldUnit();
     const double radius=planet.radius*units;
     astronaut.planetIndex=index;
-    astronautGround.bind(mesh.vertices,mesh.indices,mesh.revision,radius);
+    if(mesh.contacts) astronautGround.bind(mesh.contacts,mesh.revision);
+    else astronautGround.bind(mesh.vertices,mesh.indices,mesh.revision,radius);
     const GroundQuery fallback=[&](const glm::dvec3& radial) {
         return GroundContact{radial*(radius+scene.terrainSurfaces[index].heightAt(radial)*units),radial};
     };

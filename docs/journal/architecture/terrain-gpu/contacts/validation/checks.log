@@ -1,0 +1,10 @@
+$ python3 scripts/check_layout.py
+Validated folder limits, image-only gallery and README capture links
+$ git -c safe.directory=/workspace diff --check
+Passed (no diagnostics).
+Local links: 90 resolved targets passed.
+Gallery: all 22 PNG hashes and dated generation manifest unchanged.
+Compute surface and walking PNGs: byte-identical to the dated T2 checkpoint.
+Journal PDF: 24 page objects; exported pages 5, 6, 7 and 24 visually reviewed.
+Full regression: 58/58 groups passed; 664.17 seconds.
+Scope: capture-only sparse contact consumer; full grass render vectors and interactive T3b/T3c remain.

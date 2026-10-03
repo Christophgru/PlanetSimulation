@@ -7,6 +7,7 @@
 #include "rendering/Shader.h"
 #include "rendering/geometry/Terrain.h"
 namespace rendering {
+class SparseTerrainContacts;
 struct TerrainComputeLimits {
     std::uint64_t blockBytes=0;
     std::uint32_t groups=0;
@@ -21,6 +22,7 @@ struct TerrainComputeBuffers {
     std::array<GLuint,2> timers{};
     GLsync fence=nullptr;
     TerrainBuildStats stats;
+    std::shared_ptr<SparseTerrainContacts> contacts;
     bool complete=false,diagnostics=false;
     ~TerrainComputeBuffers();
     TerrainComputeBuffers()=default;

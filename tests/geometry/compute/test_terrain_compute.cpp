@@ -1,5 +1,7 @@
 #include "rendering/geometry/compute/TerrainCompute.h"
 #include "rendering/geometry/Mesh.h"
+#include "rendering/geometry/contacts/SparseTerrainContacts.h"
+#include "rendering/character/SurfaceContact.h"
 #include "config/Config.h"
 #include <gtest/gtest.h>
 #include <GLFW/glfw3.h>
@@ -150,6 +152,32 @@ TEST(TerrainCompute, FailedGenerationCannotReplaceAnActiveMeshAndNoCpuVerticesAr
     const TerrainSurface other({},lod(),1,2000);EXPECT_THROW(compute.generate(other.field(),t),std::invalid_argument);
     EXPECT_EQ(mesh.terrainStats.generation.backend,TerrainBackend::Compute);
     EXPECT_GT(mesh.terrainStats.evaluationQueries.requests,0u);
+    mesh.destroy();EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+}
+TEST(TerrainCompute, SparseContactGenerationMatchesGpuPlanesWithoutReadingTheCpuMirror) {
+    TerrainCompute compute;const TerrainSurface surface({},lod(),1,1000,{},0);
+    const auto topology=surface.buildTopologyForEye({1.002,0,0},{0,0,0});
+    auto gpu=compute.generate(surface.field(),topology);gpu->waitForCapture();
+    const auto vertices=gpu->readVertices();const auto indices=gpu->readIndices();
+    auto contacts=std::make_shared<SparseTerrainContacts>(surface.field(),topology);
+    SurfaceContact rendered,sparse;rendered.bind(vertices,indices,1,1000);sparse.bind(contacts,1);
+    const GroundQuery missing=[](const auto&) -> GroundContact {throw std::logic_error("Missing contact plane");};
+    for(const auto& p:{glm::dvec3(1,0,0),glm::dvec3(0,0,1),glm::dvec3(0,0,-1),glm::dvec3(-1,.002,0),glm::dvec3(1,.001,.003)}) {
+        const auto expected=rendered.sample(p,missing),actual=sparse.sample(p,missing);
+        EXPECT_LE(glm::length(actual.position-expected.position),.002);
+        EXPECT_LE(glm::length(actual.normal-expected.normal),1e-5);
+    }
+    auto geometry=surface.evaluateTopology(topology);std::fill(geometry.vertices.begin(),geometry.vertices.end(),99);
+    gpu->contacts=contacts;Mesh mesh;mesh.loadComputedTerrain(std::move(geometry),*gpu);
+    sparse.bind(mesh.contacts,mesh.revision);
+    EXPECT_LE(glm::length(sparse.sample({1,0,0},missing).position-rendered.sample({1,0,0},missing).position),.002);
+    const auto revision=mesh.revision;const auto vbo=mesh.vbo;
+    const TerrainSurface other({},lod(),1,2000);
+    auto replacement=compute.generate(surface.field(),topology);replacement->waitForCapture();
+    replacement->contacts=std::make_shared<SparseTerrainContacts>(other.field(),other.buildTopology(1));
+    EXPECT_THROW(mesh.loadComputedTerrain(surface.evaluateTopology(topology),*replacement),std::invalid_argument);
+    EXPECT_EQ(mesh.revision,revision);EXPECT_EQ(mesh.vbo,vbo);EXPECT_EQ(mesh.contacts,contacts);
+    mesh.loadTerrain(surface.evaluateTopology(topology));EXPECT_FALSE(mesh.contacts);
     mesh.destroy();EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
 }
 int main(int argc,char** argv) {

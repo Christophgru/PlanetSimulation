@@ -1,0 +1,19 @@
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = SparseTerrainContacts.*
+[==========] Running 4 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 4 tests from SparseTerrainContacts
+[ RUN      ] SparseTerrainContacts.MatchesRenderedPlanesAcrossPolesLodShorelineSinksAndNoiseScales
+[       OK ] SparseTerrainContacts.MatchesRenderedPlanesAcrossPolesLodShorelineSinksAndNoiseScales (806 ms)
+[ RUN      ] SparseTerrainContacts.ProductionQueriesAreIndexedLazyBoundedAndExtendAcrossThePlanet
+SPARSE_CONTACT triangles=100000 queries=262 height_evaluations=2871 resident=823 candidates=4332 nodes=16576 topology_bytes=2800064 index_bytes=2497088 build_ms=163.732
+[       OK ] SparseTerrainContacts.ProductionQueriesAreIndexedLazyBoundedAndExtendAcrossThePlanet (1922 ms)
+[ RUN      ] SparseTerrainContacts.RejectsStaleMalformedAndCollapsedContractsBeforeBinding
+[       OK ] SparseTerrainContacts.RejectsStaleMalformedAndCollapsedContractsBeforeBinding (1 ms)
+[ RUN      ] SparseTerrainContacts.RebindingAndClearingReleasePreviousGenerationAndInvalidateCachedTriangles
+[       OK ] SparseTerrainContacts.RebindingAndClearingReleasePreviousGenerationAndInvalidateCachedTriangles (1 ms)
+[----------] 4 tests from SparseTerrainContacts (2732 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 1 test suite ran. (2733 ms total)
+[  PASSED  ] 4 tests.

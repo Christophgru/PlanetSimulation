@@ -1,11 +1,13 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 #include <vector>
 #include <GL/glew.h>
 #include "rendering/geometry/terrain/TerrainTopology.h"
 namespace rendering { struct TerrainGeometry; }
 namespace rendering { struct TerrainComputeBuffers; }
+namespace rendering { class SparseTerrainContacts; }
 
 class Mesh {
 public:
@@ -17,6 +19,7 @@ public:
     bool hasVertexColors = false;
     std::uint64_t revision = 0;
     rendering::TerrainBuildStats terrainStats{};
+    std::shared_ptr<rendering::SparseTerrainContacts> contacts;
     
     Mesh() = default;
     

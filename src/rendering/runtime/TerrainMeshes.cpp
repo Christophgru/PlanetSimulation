@@ -1,4 +1,5 @@
 #include "rendering/runtime/RendererState.h"
+#include "rendering/geometry/contacts/SparseTerrainContacts.h"
 
 namespace rendering {
 void Renderer::Impl::installLandMesh(std::size_t index, TerrainGeometry geometry,
@@ -124,6 +125,10 @@ void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalkin
         if(terrainCompute) {
             computed=terrainCompute->generate(scene.terrainSurfaces[i].field(),*built.topology);
             if(built.water) computedWater=terrainCompute->generate(*built.waterField,*built.waterTopology);
+            // Build the immutable contact index before publishing either output.
+            // No heights, gradients or shaped positions are evaluated here.
+            computed->contacts=std::make_shared<SparseTerrainContacts>(scene.terrainSurfaces[i].field(),
+                std::move(*built.topology));
             computed->waitForCapture();if(computedWater) computedWater->waitForCapture();
             // Both outputs are complete before either mesh becomes visible.
         }

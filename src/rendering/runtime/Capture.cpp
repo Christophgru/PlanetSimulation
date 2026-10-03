@@ -1,4 +1,5 @@
 #include "rendering/runtime/RendererState.h"
+#include "rendering/geometry/contacts/SparseTerrainContacts.h"
 #include "rendering/diagnostics/PngWriter.h"
 #include "rendering/diagnostics/RenderDiagnostics.h"
 #include "rendering/camera/SurfaceCameraTelemetry.h"
@@ -342,6 +343,18 @@ int Renderer::Impl::capture() {
         metadata["render"]["terrain_compute"]={{"input_bytes",terrain.gpuInputBytes},
             {"generation_peak_bytes",terrain.gpuWorkingBytes},{"dispatches",terrain.gpuDispatches},
             {"gpu_ms",terrain.gpuMilliseconds},{"cpu_compatibility_mirror",bool(terrainCompute)}};
+        const auto& contacts=meshes.planetMeshes[scene.orbitPlanetIndex].contacts;
+        metadata["render"]["terrain_contacts"]={{"backend",contacts ? "sparse-oracle" : "cpu-mesh"}};
+        if(contacts) {
+            const auto stats=contacts->stats();
+            metadata["render"]["terrain_contacts"].update({{"schema_version",1},
+                {"field_fingerprint",std::to_string(contacts->generation().field)},
+                {"topology_fingerprint",std::to_string(contacts->generation().topology)},
+                {"queries",stats.queries},{"nodes_visited",stats.nodesVisited},
+                {"candidate_triangles",stats.candidateTriangles},{"height_evaluations",stats.heightEvaluations},
+                {"resident_positions",stats.residentPositions},{"position_capacity",SparseTerrainContacts::positionCapacity},
+                {"topology_bytes",stats.topologyBytes},{"index_bytes",stats.indexBytes},{"build_ms",stats.buildMilliseconds}});
+        }
         metadata["render"]["effective_foliage_distance_m"]=scene.scenario.planets[scene.orbitPlanetIndex].foliage.draw_distance_m;
         metadata["render"]["effective_foliage_budget"]=scene.scenario.planets[scene.orbitPlanetIndex].foliage.max_blades;
         metadata["render"]["sun_mesh_triangles"]=meshes.sunMesh.indices.size()/3;

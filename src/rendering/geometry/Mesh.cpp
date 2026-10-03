@@ -1,6 +1,7 @@
 #include "rendering/geometry/Mesh.h"
 #include "rendering/geometry/Terrain.h"
 #include "rendering/geometry/compute/TerrainCompute.h"
+#include "rendering/geometry/contacts/SparseTerrainContacts.h"
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
@@ -104,6 +105,7 @@ void Mesh::loadTerrain(rendering::TerrainGeometry geometry) {
 }
 
 void Mesh::upload() {
+    contacts.reset();
     ++revision;
     if (vao == 0) glGenVertexArrays(1, &vao);
     if (vbo == 0) glGenBuffers(1, &vbo);
@@ -145,12 +147,14 @@ void Mesh::loadComputedTerrain(rendering::TerrainGeometry geometry,
     rendering::TerrainComputeBuffers& buffers) {
     auto key=geometry.generation;key.backend=rendering::TerrainBackend::Compute;
     if(!buffers.complete || !buffers.vao || !buffers.vbo || !buffers.ebo || key!=buffers.stats.generation ||
-       geometry.indices.size()!=buffers.stats.gpuCorners || geometry.vertices.size()!=9*buffers.stats.gpuCorners)
+       geometry.indices.size()!=buffers.stats.gpuCorners || geometry.vertices.size()!=9*buffers.stats.gpuCorners ||
+       (buffers.contacts && buffers.contacts->generation()!=buffers.stats.generation))
         throw std::invalid_argument("Incomplete or incompatible computed terrain generation");
     // Caller publishes only after the whole land/water pair has completed.
     destroy();
     vao=std::exchange(buffers.vao,0);vbo=std::exchange(buffers.vbo,0);ebo=std::exchange(buffers.ebo,0);
     terrainStats=std::move(buffers.stats);
+    contacts=std::move(buffers.contacts);
     terrainStats.evaluationQueries=geometry.evaluationQueries; // T2 compatibility mirror still costs CPU work.
     vertices=std::move(geometry.vertices);indices=std::move(geometry.indices);
     hasVertexColors=true;++revision;
@@ -171,6 +175,7 @@ void Mesh::draw() const {
 }
 
 void Mesh::destroy() {
+    contacts.reset();
     if (vao != 0) glDeleteVertexArrays(1, &vao);
     if (vbo != 0) glDeleteBuffers(1, &vbo);
     if (ebo != 0) glDeleteBuffers(1, &ebo);

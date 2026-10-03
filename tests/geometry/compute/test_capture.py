@@ -43,6 +43,11 @@ cpu,c=run('cpu');gpu,g=run('gpu',('--terrain-backend','compute'))
 assert c['render']['terrain_backend']=='cpu' and g['render']['terrain_backend']=='compute'
 assert g['render']['terrain_contract']['backend']=='compute'
 assert g['render']['terrain_compute']['cpu_compatibility_mirror']
+assert g['render']['terrain_contacts']['backend']=='sparse-oracle'
+assert c['render']['terrain_contacts']['backend']=='cpu-mesh'
+assert g['render']['terrain_contacts']['height_evaluations']==0
+for key in ('field_fingerprint','topology_fingerprint'):
+    assert g['render']['terrain_contacts'][key]==g['render']['terrain_contract'][key]
 assert g['render']['terrain_compute']['input_bytes']<g['render']['body_mesh_triangles'][0]*120*.25
 for key in ('field_fingerprint','topology_fingerprint','unique_samples'):
     assert c['render']['terrain_contract'][key]==g['render']['terrain_contract'][key]
@@ -52,6 +57,10 @@ override,o=run('cpu-override',('--terrain-backend','cpu'),gpu.with_suffix('.png.
 assert o['render']['terrain_backend']=='cpu' and override.read_bytes()==cpu.read_bytes()
 walker,w=run('walking',('--terrain-backend','compute','--benchmark-frames','6','--benchmark-walk-step','.06','--benchmark-step','0'),astronaut=True)
 assert w['render']['astronaut_pixels']>150 and w['astronaut_pose']['grass_trail']
+contacts=w['render']['terrain_contacts']
+assert contacts['backend']=='sparse-oracle' and contacts['height_evaluations']>0
+assert contacts['resident_positions']<=contacts['position_capacity']==1024
+assert contacts['height_evaluations']<w['render']['terrain_contract']['unique_samples']//4
 walkingReplay,wr=run('walking-replay',replay=walker.with_suffix('.png.json'),astronaut=True)
 assert wr['render']['terrain_backend']=='compute' and walkingReplay.read_bytes()==walker.read_bytes()
 oldgl={'MESA_GL_VERSION_OVERRIDE':'3.3','MESA_GLSL_VERSION_OVERRIDE':'330'}
@@ -69,6 +78,7 @@ assert 'Unsupported terrain compute replay versions' in error and 'initialized' 
 report={'cpu_gpu_surface':compare(cpu,gpu),'compute_replay_exact':True,'compute_walking_replay_exact':True,
         'cpu_override_exact':True,'gl33_fallback':True,'locked_unavailable_rejected':True,'invalid_backend_rejected_before_window':True,
         'unknown_field_version_rejected_before_window':True,'terrain_compute':g['render']['terrain_compute'],'commands':commands,
+        'sparse_contacts':contacts,
         'png_sha256':{q.name:hashlib.sha256(q.read_bytes()).hexdigest() for q in out.glob('*.png')}}
 (out/'results.json').write_text(json.dumps(report,indent=2)+'\n')
 print('PASS GPU terrain/main/reflection/foliage/standing/walking, exact locked replay, CPU override and GL 3.3 fallback')

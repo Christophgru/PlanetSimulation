@@ -395,3 +395,10 @@ dispatches, completed land/water publication, packing/parity and locked replay
 are validated. CPU grass planning/contact vectors remain as a compatibility
 mirror. T3 removes that dependency and implements normal asynchronous interactive
 publication before the overall GPU terrain task can be completed.
+
+[T3a sparse contacts](contacts/study.md) replaces the compute contact consumer's
+full-mesh dependency with a radial topology index and a bounded on-demand position
+oracle. Contact and GPU generation keys publish together. Grass still needs the
+compatibility vectors. T3b moves triangle metadata/slot planning to GPU before
+those vectors can be removed; asynchronous interactive publication and hardware
+cost gates remain.
