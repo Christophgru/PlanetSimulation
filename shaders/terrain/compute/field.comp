@@ -1,0 +1,124 @@
+#version 430 core
+layout(local_size_x=64) in;
+// Explicit scalar output retains the legacy 36-byte interleaved vertex stride.
+struct Noise { double amplitude,frequency,persistence,lacunarity; uvec4 settings; dvec2 padding; };
+layout(std430,binding=0) readonly buffer Field {
+    dvec4 scale,landscapeShape,landscapeMask,material,gradient;
+    uvec4 flags,seeds; Noise noises[8];
+};
+layout(std430,binding=1) readonly buffer Radials { dvec4 inputs[]; };
+layout(std430,binding=2) buffer Unique { float uniqueValues[]; };
+layout(std430,binding=3) readonly buffer Topology { uint corners[]; };
+layout(std430,binding=4) writeonly buffer Vertices { float vertices[]; };
+layout(std430,binding=5) writeonly buffer Indices { uint indices[]; };
+layout(std430,binding=6) writeonly buffer Heights { double heights[]; };
+uniform int uFirst,uCount,uPhase,uDiagnostics;
+uniform dvec2 uRockRange;
+
+dvec3 normalized(dvec3 p) { precise dvec3 r=p/sqrt(dot(p,p));return r; }
+double fieldSmooth(double lo,double hi,double x) {
+    precise double t=clamp((x-lo)/(hi-lo),0.0lf,1.0lf);
+    precise double r=t*t*(3.0lf-2.0lf*t);return r;
+}
+uint hash(ivec3 p,uint seed) {
+    uint h=seed;
+    h^=uint(p.x)*0x9e3779b1u;h^=uint(p.y)*0x85ebca77u;h^=uint(p.z)*0xc2b2ae3du;
+    h^=h>>16;h*=0x7feb352du;h^=h>>15;h*=0x846ca68bu;h^=h>>16;return h;
+}
+double noise(dvec3 point,uint seed) {
+    ivec3 lattice=ivec3(floor(point));
+    precise dvec3 f=point-dvec3(lattice);
+    f=f*f*(3.0lf-2.0lf*f);
+    precise double result=0.0lf;
+    for(int z=0;z<=1;++z) for(int y=0;y<=1;++y) for(int x=0;x<=1;++x) {
+        double v=double(hash(lattice+ivec3(x,y,z),seed))/4294967295.0lf;
+        result+=v*(x!=0?f.x:1.0lf-f.x)*(y!=0?f.y:1.0lf-f.y)*(z!=0?f.z:1.0lf-f.z);
+    }
+    return result;
+}
+double heightMeters(dvec3 direction) {
+    precise double height=0.0lf;double detailMask=1.0lf;
+    if(flags.z!=0u) {
+        double continent=2.0lf*noise(direction*landscapeShape.z,seeds.x)-1.0lf;
+        double plain=1.0lf-fieldSmooth(landscapeMask.x-.06lf,landscapeMask.x+.06lf,
+            noise(normalized(direction)*2.7lf,seeds.x+1u));
+        double cliff=fieldSmooth(landscapeMask.y-.06lf,landscapeMask.y+.06lf,
+            noise(normalized(direction)*2.4lf,seeds.x+2u));
+        height=landscapeShape.x+landscapeShape.y*continent*(1.0lf-.8lf*plain);
+        double signal=2.0lf*noise(direction*landscapeMask.z,seeds.x+3u)-1.0lf;
+        precise double distance=abs(signal);
+        if(landscapeMask.w>0.0lf) {
+            double s=landscapeMask.w;
+            distance=(sqrt(signal*signal+s*s)-s)/(sqrt(1.0lf+s*s)-s);
+        }
+        double ridge=1.0lf-clamp(distance,0.0lf,1.0lf);
+        precise double fifth=ridge*ridge*ridge*ridge*ridge;
+        height+=landscapeShape.w*cliff*fifth;detailMask=1.0lf-.9lf*plain;
+    }
+    for(uint i=0u;i<flags.y;++i) {
+        Noise n=noises[i];if(n.amplitude==0.0lf) continue;
+        double frequency=n.frequency,weight=1.0lf,weightSum=0.0lf;
+        precise double full=0.0lf;double broad=0.0lf;
+        for(uint octave=0u;octave<n.settings.y;++octave) {
+            double v=2.0lf*noise(direction*frequency,n.settings.z)-1.0lf;
+            double sampled=n.settings.x==1u ? 1.0lf-2.0lf*abs(v) : v;
+            if(octave==0u) broad=sampled;
+            full+=weight*sampled;weightSum+=weight;
+            frequency*=n.lacunarity;weight*=n.persistence;
+        }
+        precise double mixed=broad+(full/weightSum-broad);
+        height+=detailMask*n.amplitude*mixed;
+    }
+    return height;
+}
+double heightAt(dvec3 direction) { return heightMeters(normalized(direction))/scale.y; }
+dvec3 colorAt(double heightWorld,double slope) {
+    if(flags.z==0u) {
+        double h=scale.z==0.0lf?0.0lf:heightWorld/(scale.z/scale.y);
+        return dvec3(.72lf+.45lf*h);
+    }
+    double h=heightWorld*scale.y,water=flags.w!=0u?scale.w:0.0lf;
+    double beachWidth=material.z,beachTop=water+beachWidth;
+    double usable=max(1.0lf,scale.z-water);
+    double snowStart=max(beachTop+1.0lf,water+.25lf*usable);
+    double snowEnd=max(snowStart+1.0lf,water+.40lf*usable);
+    double above=fieldSmooth(water-max(.05lf,.05lf*beachWidth),water+max(.02lf,.02lf*beachWidth),h);
+    double beach=above*(1.0lf-fieldSmooth(beachTop,beachTop+max(.15lf,.15lf*beachWidth),h));
+    double snow=fieldSmooth(snowStart,snowEnd,h);
+    precise dvec3 land=dvec3(1.10lf,1.30lf,.18lf)*(1.0lf-beach)+dvec3(4.20lf,1.90lf,.18lf)*beach;
+    land=land*(1.0lf-snow)+dvec3(4.60lf,2.30lf,.92lf)*snow;
+    double steep=fieldSmooth(uRockRange.x,uRockRange.y,1.0lf-1.0lf/sqrt(1.0lf+slope*slope));
+    land*=1.0lf*(1.0lf-steep)+.50lf*steep;
+    double submerged=1.0lf-fieldSmooth(water-max(.5lf,.05lf*beachWidth),water+max(.02lf,.02lf*beachWidth),h);
+    land=land*(1.0lf-submerged)+dvec3(.30lf,.40lf,.19lf)*submerged;return land;
+}
+void main() {
+    uint i=uint(uFirst)+gl_GlobalInvocationID.x;if(i>=uint(uCount)) return;
+    if(uPhase==1) {
+        uint source=9u*corners[i];
+        for(uint j=0u;j<9u;++j) vertices[9u*i+j]=uniqueValues[source+j];
+        indices[i]=i;return;
+    }
+    dvec3 radial=inputs[i].xyz;
+    double h=heightAt(radial),hm=h*scale.y;
+    dvec3 reference=abs(radial.z)<.8lf?dvec3(0,0,1):dvec3(0,1,0);
+    dvec3 a=normalized(cross(reference,radial)),b=normalized(cross(radial,a));
+    dvec3 sampleA=normalized(gradient.y*radial+gradient.x*a);
+    dvec3 sampleB=normalized(gradient.y*radial+gradient.x*b);
+    precise double ga=(heightAt(sampleA)*scale.y-hm)/gradient.z;
+    precise double gb=(heightAt(sampleB)*scale.y-hm)/gradient.z;
+    precise dvec3 normal=normalized(radial-ga*a-gb*b);
+    dvec3 color=colorAt(h,sqrt(ga*ga+gb*gb));
+    precise dvec3 p=radial*(1.0lf+h/scale.x);
+    vec3 rounded=vec3(p);
+    if(inputs[i].w!=0.0lf) {
+        // Legacy displacement happens after the first float conversion.
+        precise dvec3 sunk=dvec3(rounded)-normalized(dvec3(rounded))*(inputs[i].w/(scale.x*scale.y));
+        rounded=vec3(sunk);
+    }
+    for(uint j=0u;j<3u;++j) {
+        uniqueValues[9u*i+j]=rounded[j];uniqueValues[9u*i+j+3u]=float(normal[j]);
+        uniqueValues[9u*i+j+6u]=float(color[j]);
+    }
+    if(uDiagnostics!=0) heights[i]=hm;
+}

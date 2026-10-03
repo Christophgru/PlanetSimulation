@@ -7,6 +7,7 @@
 #include "app/scene/PreparedScene.h"
 #include "rendering/runtime/ResourceOwners.h"
 #include "rendering/runtime/ScenePass.h"
+#include "rendering/geometry/compute/TerrainCompute.h"
 #include "rendering/diagnostics/PerformanceOverlay.h"
 #include "rendering/diagnostics/OrbitOverlay.h"
 #include "rendering/diagnostics/GpuUtilization.h"
@@ -26,7 +27,7 @@ struct Renderer::Impl {
     int interact();
     void preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalking = false);
     void installLandMesh(std::size_t index, TerrainGeometry geometry,
-                         const glm::dvec3& localEye, int localMask);
+                         const glm::dvec3& localEye, int localMask,TerrainComputeBuffers* computed=nullptr);
     std::vector<std::uint64_t> geometryRevisions() const;
     ClipPlanes planetOrbitClip(const glm::dvec3& eye) const;
     void prepareAstronaut(double elapsed);
@@ -42,6 +43,8 @@ struct Renderer::Impl {
     app::PreparedScene scene;
     FrameProfiler profiler;
     SceneMeshes meshes;
+    std::unique_ptr<TerrainCompute> terrainCompute;
+    std::string terrainFallback;
     std::vector<bool> meshReady;
     std::vector<int> lastLocalMask;
     std::vector<std::vector<int>> lastFaceZones;
@@ -53,6 +56,8 @@ struct Renderer::Impl {
         TerrainGeometry geometry;
         std::optional<TerrainGeometry> water;
         double milliseconds = 0;
+        std::optional<TerrainTopology> topology,waterTopology;
+        std::optional<PlanetField> waterField;
     };
     struct PendingTerrainBuild {
         std::future<TimedTerrainBuild> geometry;

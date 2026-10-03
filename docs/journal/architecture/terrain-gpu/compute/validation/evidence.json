@@ -1,0 +1,383 @@
+{
+  "date_utc": "2026-10-03T16:52:46.907769+00:00",
+  "base_revision": "6853fa5fffc0e7fad98632efc28913a4f9246536",
+  "scope": "T2 opt-in capture-only GL 4.3 GPU terrain field evaluation and GPU draw-buffer expansion. Full CPU mirror remains for grass/contacts; T3 and total hardware performance gates remain.",
+  "runtime_source_sha256": "849c85c0038d350cf1c06ca9737159e7d11852cec93a47e53041ed916a2b49ab",
+  "baseline_binary_sha256": "eda80335f1a15eb966a52931be6ddb3c934fd53cd685ed103e7b9a974a5369d5",
+  "final_binary_sha256": "6c475235994848b778e009738bb8028d2d9e1886a49ed361bf29eb6ce69fb479",
+  "renderer": "llvmpipe (LLVM 15.0.6, 256 bits), software OpenGL",
+  "environment": {
+    "LIBGL_ALWAYS_SOFTWARE": "1",
+    "LP_NUM_THREADS": "2",
+    "build_type": "RelWithDebInfo",
+    "compiler": "GCC 12"
+  },
+  "commands": {
+    "build": "cmake --build build-resume -j2",
+    "parity": "LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=2 xvfb-run -a build-resume/tests/terrain_compute_tests",
+    "focused": "LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=2 xvfb-run -a ctest --test-dir build-resume --output-on-failure -R TerrainCompute",
+    "tests": "LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=2 xvfb-run -a ctest --test-dir build-resume --output-on-failure",
+    "typst": "build-terrain/typst-x86_64-unknown-linux-musl/typst compile -j 2 --root . docs/journal/paper.typ docs/journal/paper.pdf",
+    "layout": "python3 scripts/check_layout.py"
+  },
+  "validation": {
+    "build": "passed",
+    "native_compute_cases_passed": 5,
+    "ctest_groups_passed": 58,
+    "ctest_groups_failed": 0,
+    "ctest_seconds": 645.09,
+    "native_captures_exact": 2,
+    "gallery_hashes_unchanged": 22,
+    "gallery_provenance_unchanged": true,
+    "capture_regression": {
+      "cpu_gpu_surface": {
+        "exact": true,
+        "mean_channel_error": 0.0,
+        "max_channel_error": 0
+      },
+      "compute_replay_exact": true,
+      "compute_walking_replay_exact": true,
+      "cpu_override_exact": true,
+      "gl33_fallback": true,
+      "locked_unavailable_rejected": true,
+      "invalid_backend_rejected_before_window": true,
+      "unknown_field_version_rejected_before_window": true,
+      "terrain_compute": {
+        "cpu_compatibility_mirror": true,
+        "dispatches": 2,
+        "generation_peak_bytes": 1660848,
+        "gpu_ms": 15.578378,
+        "input_bytes": 280816
+      },
+      "commands": [
+        {
+          "command": [
+            "/workspace/build-resume/PlanetSimulation",
+            "--config",
+            "/workspace/build-resume/terrain-compute-captures/scene.json",
+            "--surface-capture",
+            "/workspace/build-resume/terrain-compute-captures/cpu.png",
+            "--render-size",
+            "480",
+            "270"
+          ],
+          "env": {},
+          "returncode": 0
+        },
+        {
+          "command": [
+            "/workspace/build-resume/PlanetSimulation",
+            "--config",
+            "/workspace/build-resume/terrain-compute-captures/scene.json",
+            "--surface-capture",
+            "/workspace/build-resume/terrain-compute-captures/gpu.png",
+            "--render-size",
+            "480",
+            "270",
+            "--terrain-backend",
+            "compute"
+          ],
+          "env": {},
+          "returncode": 0
+        },
+        {
+          "command": [
+            "/workspace/build-resume/PlanetSimulation",
+            "--config",
+            "/workspace/build-resume/terrain-compute-captures/scene.json",
+            "--surface-capture",
+            "/workspace/build-resume/terrain-compute-captures/gpu-replay.png",
+            "--render-size",
+            "480",
+            "270",
+            "--replay",
+            "/workspace/build-resume/terrain-compute-captures/gpu.png.json"
+          ],
+          "env": {},
+          "returncode": 0
+        },
+        {
+          "command": [
+            "/workspace/build-resume/PlanetSimulation",
+            "--config",
+            "/workspace/build-resume/terrain-compute-captures/scene.json",
+            "--surface-capture",
+            "/workspace/build-resume/terrain-compute-captures/cpu-override.png",
+            "--render-size",
+            "480",
+            "270",
+            "--terrain-backend",
+            "cpu",
+            "--replay",
+            "/workspace/build-resume/terrain-compute-captures/gpu.png.json"
+          ],
+          "env": {},
+          "returncode": 0
+        },
+        {
+          "command": [
+            "/workspace/build-resume/PlanetSimulation",
+            "--config",
+            "/workspace/build-resume/terrain-compute-captures/scene.json",
+            "--astronaut-capture",
+            "/workspace/build-resume/terrain-compute-captures/walking.png",
+            "--render-size",
+            "480",
+            "270",
+            "--terrain-backend",
+            "compute",
+            "--benchmark-frames",
+            "6",
+            "--benchmark-walk-step",
+            ".06",
+            "--benchmark-step",
+            "0"
+          ],
+          "env": {},
+          "returncode": 0
+        },
+        {
+          "command": [
+            "/workspace/build-resume/PlanetSimulation",
+            "--config",
+            "/workspace/build-resume/terrain-compute-captures/scene.json",
+            "--astronaut-capture",
+            "/workspace/build-resume/terrain-compute-captures/walking-replay.png",
+            "--render-size",
+            "480",
+            "270",
+            "--replay",
+            "/workspace/build-resume/terrain-compute-captures/walking.png.json"
+          ],
+          "env": {},
+          "returncode": 0
+        },
+        {
+          "command": [
+            "/workspace/build-resume/PlanetSimulation",
+            "--config",
+            "/workspace/build-resume/terrain-compute-captures/scene.json",
+            "--surface-capture",
+            "/workspace/build-resume/terrain-compute-captures/gl33-fallback.png",
+            "--render-size",
+            "480",
+            "270",
+            "--terrain-backend",
+            "compute"
+          ],
+          "env": {
+            "MESA_GL_VERSION_OVERRIDE": "3.3",
+            "MESA_GLSL_VERSION_OVERRIDE": "330"
+          },
+          "returncode": 0
+        },
+        {
+          "command": [
+            "/workspace/build-resume/PlanetSimulation",
+            "--config",
+            "/workspace/build-resume/terrain-compute-captures/scene.json",
+            "--surface-capture",
+            "/workspace/build-resume/terrain-compute-captures/gl33-locked-rejected.png",
+            "--render-size",
+            "480",
+            "270",
+            "--replay",
+            "/workspace/build-resume/terrain-compute-captures/gpu.png.json"
+          ],
+          "env": {
+            "MESA_GL_VERSION_OVERRIDE": "3.3",
+            "MESA_GLSL_VERSION_OVERRIDE": "330"
+          },
+          "returncode": 1
+        },
+        {
+          "command": [
+            "/workspace/build-resume/PlanetSimulation",
+            "--config",
+            "/workspace/build-resume/terrain-compute-captures/scene.json",
+            "--surface-capture",
+            "/workspace/build-resume/terrain-compute-captures/invalid-rejected.png",
+            "--render-size",
+            "480",
+            "270",
+            "--replay",
+            "/workspace/build-resume/terrain-compute-captures/invalid.json"
+          ],
+          "env": {},
+          "returncode": 1
+        },
+        {
+          "command": [
+            "/workspace/build-resume/PlanetSimulation",
+            "--config",
+            "/workspace/build-resume/terrain-compute-captures/scene.json",
+            "--surface-capture",
+            "/workspace/build-resume/terrain-compute-captures/version-rejected.png",
+            "--render-size",
+            "480",
+            "270",
+            "--replay",
+            "/workspace/build-resume/terrain-compute-captures/invalid.json"
+          ],
+          "env": {},
+          "returncode": 1
+        }
+      ],
+      "png_sha256": {
+        "cpu-override.png": "42146978fce88a2b720ca19c4895c335dc2690b0fd39feca5391e0fe0b7c7cd0",
+        "cpu.png": "42146978fce88a2b720ca19c4895c335dc2690b0fd39feca5391e0fe0b7c7cd0",
+        "gl33-fallback.png": "42146978fce88a2b720ca19c4895c335dc2690b0fd39feca5391e0fe0b7c7cd0",
+        "gpu-replay.png": "42146978fce88a2b720ca19c4895c335dc2690b0fd39feca5391e0fe0b7c7cd0",
+        "gpu.png": "42146978fce88a2b720ca19c4895c335dc2690b0fd39feca5391e0fe0b7c7cd0",
+        "walking-replay.png": "6ff03ce2a46f88ac8820a453c5f7d91cdf192d00dac059554bbb0b1da4f7fa9d",
+        "walking.png": "6ff03ce2a46f88ac8820a453c5f7d91cdf192d00dac059554bbb0b1da4f7fa9d"
+      }
+    },
+    "local_links": "passed",
+    "repository_layout": "passed",
+    "whitespace": "passed",
+    "pdf_pages": 24,
+    "pdf_reviewed_pages": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      24
+    ]
+  },
+  "production_parity": {
+    "triangles": 100000,
+    "unique_samples": 50002,
+    "height_error_m": 1.19371e-12,
+    "position_error_m": 0,
+    "normal_error_rad": 3.332e-08,
+    "color_error": 0,
+    "input_bytes": 2800880,
+    "legacy_draw_upload_bytes": 12000000,
+    "input_reduction_percent": 76.65933333333334,
+    "gpu_dispatches": 6,
+    "native_generation_peak_bytes": 16600848,
+    "diagnostic_generation_peak_bytes": 17000856,
+    "cpu_compatibility_bulk_queries": 150006,
+    "serial_diagnostic_stage_ms": {
+      "cpu_bulk": 412.527,
+      "host_submission": 313.308,
+      "gpu_dispatch_barriers": 174.344,
+      "capture_wait": 0.100671,
+      "validation_read": 25.7601
+    },
+    "timing_limits": "Software-driver stage intervals may overlap; do not add them or infer hardware/total-frame speedup."
+  },
+  "layout": {
+    "field_version": 1,
+    "topology_version": 1,
+    "parameters_bytes": 704,
+    "radial_sink_bytes": 32,
+    "indices_bytes": 4,
+    "vertex_bytes": 36,
+    "parameter_cache_max_entries": 16,
+    "dispatch_chunk_max_invocations": 65536
+  },
+  "captures": [
+    {
+      "image": "docs/journal/architecture/terrain-gpu/compute/captures/shoreline.png",
+      "sha256": "442663c847316e3daf696f3fe92d7ddf1422043750eb79ca081b79a601df68f7",
+      "metadata": "docs/journal/architecture/terrain-gpu/compute/captures/shoreline.png.json",
+      "input_replay": "docs/captures/replay/terrain/shoreline-detail.png.json",
+      "input_replay_sha256": "e035b6ca93549796a65b74c5a9ec1b9bd56a4a127b6945a0cd780bed6a40bb8a",
+      "command": "LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=2 xvfb-run -a build-resume/PlanetSimulation --replay docs/captures/replay/terrain/shoreline-detail.png.json --terrain-backend compute --surface-capture docs/journal/architecture/terrain-gpu/compute/captures/shoreline.png",
+      "size": [
+        960,
+        540
+      ],
+      "triangles": [
+        100000,
+        960
+      ],
+      "terrain_contract": {
+        "backend": "compute",
+        "evaluation_evaluations": 150006,
+        "evaluation_requests": 150006,
+        "field_fingerprint": "10975133402283726949",
+        "field_version": 1,
+        "input_bytes": 2800064,
+        "planning_evaluations": 61616,
+        "planning_requests": 63377,
+        "topology_fingerprint": "9433235253596519504",
+        "topology_version": 1,
+        "unique_samples": 50002
+      },
+      "terrain_compute": {
+        "cpu_compatibility_mirror": true,
+        "dispatches": 6,
+        "generation_peak_bytes": 16600848,
+        "gpu_ms": 205.012894,
+        "input_bytes": 2800880
+      },
+      "foliage_gpu_working_bytes": 25583392,
+      "foliage_gpu_drawn_blades": 8419,
+      "lens_flare_strength": 0.0,
+      "native_png_exact_against_previous_gallery": true
+    },
+    {
+      "image": "docs/journal/architecture/terrain-gpu/compute/captures/offline.png",
+      "sha256": "32122b583bba98ef5332a47d022ff03957fddd7122430679836f5c39e10387bd",
+      "metadata": "docs/journal/architecture/terrain-gpu/compute/captures/offline.png.json",
+      "input_replay": "docs/captures/replay/offline/offline-render.png.json",
+      "input_replay_sha256": "5a7d6ceb72ac87f84faf7f7898b33fe8ea357ef686350a8a30c20d41ece1cecc",
+      "command": "LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=2 xvfb-run -a build-resume/PlanetSimulation --replay docs/captures/replay/offline/offline-render.png.json --terrain-backend compute --offline-render docs/journal/architecture/terrain-gpu/compute/captures/offline.png --render-size 1920 1080",
+      "size": [
+        1920,
+        1080
+      ],
+      "triangles": [
+        100000,
+        86400
+      ],
+      "terrain_contract": {
+        "backend": "compute",
+        "evaluation_evaluations": 150006,
+        "evaluation_requests": 150006,
+        "field_fingerprint": "10975133402283726949",
+        "field_version": 1,
+        "input_bytes": 2800064,
+        "planning_evaluations": 79761,
+        "planning_requests": 81117,
+        "topology_fingerprint": "18025511123947312239",
+        "topology_version": 1,
+        "unique_samples": 50002
+      },
+      "terrain_compute": {
+        "cpu_compatibility_mirror": true,
+        "dispatches": 6,
+        "generation_peak_bytes": 16600848,
+        "gpu_ms": 177.63321,
+        "input_bytes": 2800880
+      },
+      "foliage_gpu_working_bytes": 1535998624,
+      "foliage_gpu_drawn_blades": 213454,
+      "lens_flare_strength": 0.13436052268716278,
+      "native_png_exact_against_previous_gallery": true
+    }
+  ],
+  "artifacts_sha256": {
+    "docs/journal/architecture/terrain-gpu/compute/captures/offline.log": "4dd9a3b6b21f1fe5b5dcf000a1cc87e19cc240f242a98e756c0e5ed73a23543d",
+    "docs/journal/architecture/terrain-gpu/compute/captures/offline.png": "32122b583bba98ef5332a47d022ff03957fddd7122430679836f5c39e10387bd",
+    "docs/journal/architecture/terrain-gpu/compute/captures/offline.png.json": "8a403a8b879ca7ba89a91057625a6e5f69c46377cf4fd4c05eaf90ac169a28f3",
+    "docs/journal/architecture/terrain-gpu/compute/captures/shoreline.log": "db1ae55c09c6b625f4c5cde10c76c60d6f06c8f89411997797e4a418dab501f9",
+    "docs/journal/architecture/terrain-gpu/compute/captures/shoreline.png": "442663c847316e3daf696f3fe92d7ddf1422043750eb79ca081b79a601df68f7",
+    "docs/journal/architecture/terrain-gpu/compute/captures/shoreline.png.json": "62b2094286a86366b20ee5179f6adec6f65beb7cd66b3dff920354d1eb2788a4",
+    "docs/journal/architecture/terrain-gpu/compute/study.md": "8031c3cd3c1ac029711beabd6ea4cb85842f582b6cdee2d71cba1ac0bac311be",
+    "docs/journal/architecture/terrain-gpu/compute/validation/build.log": "11c75192c4ee54c508168671cdc0dd6744041c644dc2f202fe7821d639df2dbc",
+    "docs/journal/architecture/terrain-gpu/compute/validation/capture-results.json": "eb719ad4810b73aaf6adfaf042459bf3da688e5e2d3b4f92176ecd8cd2788440",
+    "docs/journal/architecture/terrain-gpu/compute/validation/checks.log": "d68ed6d93a37fbe1eb771ac01cc64c3d5aec04a950ef2c6f4cea6cabfb50dbae",
+    "docs/journal/architecture/terrain-gpu/compute/validation/focused.log": "807a856e34e6aa3807f3b7e75dc435f87424f97eaa52f6587e1d273eb9c78fe4",
+    "docs/journal/architecture/terrain-gpu/compute/validation/parity.log": "78d214a81642971bb7b513efa5507d183670560600f1af243917e690aba1a685",
+    "docs/journal/architecture/terrain-gpu/compute/validation/tests.log": "4eae5a065106ddcfc2956d5be132e2664976ec4d45c030f5627db4fcfe57a950",
+    "docs/journal/architecture/terrain-gpu/compute/validation/typst.log": "d281df9aaa417bf1bd51226d448645682862e8b2a47ab113a94e689980e5d3d6",
+    "docs/journal/paper.pdf": "ca9abe9b24f8eccd60998e7b41da89668326b0ad738e50f2832c7a7a82daa94e",
+    "docs/journal/paper.typ": "6c045fe6cf4cc16ec16cf7f7e97651372f417dd16deb189217792139f813bb43"
+  },
+  "log_normalization": "Trailing whitespace removed from retained build.log; original remains under ignored build-resume/terrain-compute/build.log."
+}

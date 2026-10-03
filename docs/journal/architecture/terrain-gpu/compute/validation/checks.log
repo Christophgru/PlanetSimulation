@@ -1,0 +1,10 @@
+$ python3 scripts/check_layout.py
+Validated folder limits, image-only gallery and README capture links
+$ git -c safe.directory=/workspace diff --check
+Passed (no diagnostics).
+Local Markdown links: 88 resolved targets passed.
+Gallery: all 22 PNG hashes and dated generation manifest unchanged.
+Native compute shoreline/offline PNGs: byte-identical to previous gallery.
+Journal PDF: 24 /Type /Page objects; exported pages 3, 4, 5, 6, 7 and 24 visually reviewed.
+Full regression: 58/58 groups passed; 645.09 seconds.
+Scope: capture-only GL 4.3 compute; CPU compatibility mirror retained; interactive T3 remains.

@@ -5,7 +5,7 @@
 #include <vector>
 #include "rendering/geometry/terrain/TerrainQueryCache.h"
 namespace rendering {
-enum class TerrainBackend : std::uint32_t { Cpu=1 };
+enum class TerrainBackend : std::uint32_t { Cpu=1, Compute=2 };
 struct TerrainGenerationKey {
     std::uint64_t field=0,topology=0;
     std::uint32_t fieldVersion=PlanetField::version,topologyVersion=1;
@@ -20,6 +20,8 @@ struct TerrainBuildStats {
     int coarseNoiseSamples=0,fineNoiseSamples=0;
     TerrainQueryStats planningQueries{},evaluationQueries{};
     std::size_t topologyInputBytes=0,uniqueSamples=0;
+    std::uint64_t gpuInputBytes=0,gpuWorkingBytes=0,gpuDispatches=0,gpuCorners=0;
+    double gpuMilliseconds=0;
     TerrainGenerationKey generation{};
 };
 struct alignas(32) TerrainInputSample {

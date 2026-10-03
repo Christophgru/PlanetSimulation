@@ -11,6 +11,8 @@ struct CommandLineOptions {
     bool planetRenderMode = false;
     bool thirdPersonRenderMode = false;
     bool captureOnly = false;
+    std::string terrainBackend="cpu";
+    bool explicitTerrainBackend=false,lockedTerrainBackend=false;
     bool offlineQuality = false;
     bool lensFlare = true;
     double foliageDistanceMultiplier = 20.0;

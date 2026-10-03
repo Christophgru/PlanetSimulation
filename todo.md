@@ -29,7 +29,8 @@ document the progress and add comments such that when interrupted you can contin
 |Improve the offline / raytracing example in README.md: increase foliage count and use the initial surface position from the production config; consider rendering narrower vertical columns with higher terrain/foliage budgets and assembling them into the final image; make lens flare visibly apparent. Start after the preceding tasks are finished.|t|Native 1920×1080 production-start capture with 213,454 main-view blades versus 102,918 baseline and visibly stronger gated flare; exact replay passes. Narrow-column probe retains the same candidate/terrain allocations, so assembly awaits view-aware streaming in the architecture plan. All 56 CTest entries pass across six grouped runs (609.22 s); README, replay, journal/PDF and 22 gallery hashes verified. See docs/journal/benchmarks/offline-showcase.md.|
 |Form a terrain/atmosphere CPU–GPU implementation plan before starting GPU terrain work. Audit the existing pipeline and evaluate hexagonal planet panels, seams/poles and alternatives. Define CPU ownership of subdivision/LOD/sinking and GPU ownership of noise, surface shape and atmospheric fields, including ground contacts, shadows/reflections, supported GPU paths and validation/performance budgets.|t|Source-audited plan in docs/journal/architecture/terrain-gpu/plan.md. Keep icosahedral triangle panels initially; hex/pentagon alternatives evaluated. CPU topology/sinks/sparse contacts, GPU bulk fields and grass planning, atomic generations, GL 3.3 fallback, atmosphere reductions, VRAM/density policy and phased acceptance gates defined. Analytical topology/capacity worksheet, document links, layout and rebuilt journal validated. No GPU terrain implementation or performance improvement claimed.|
 |Extract the planet-field and terrain-topology contracts from the completed CPU–GPU plan (T1). Preserve the CPU backend while separating canonical radial samples, indices and sinking from bulk height/normal evaluation; introduce sparse query caching and explicit generation/backend keys.|t|Read-only PlanetField, aligned parameter/sample layouts, bounded build-local query cache, indexed radial/sink topology and validated CPU generation keys implemented. Clean 56/56 CTest groups pass (641.75 s), including seven new contract cases; 17 independent mesh snapshots and two native replay PNGs match exactly. README and journal/PDF updated, all 22 gallery hashes retained. GPU shaping remains T2; see docs/journal/architecture/terrain-gpu/contracts/study.md.|
-|Implement highly optimized GPU terrain shaping according to the completed CPU–GPU plan. Pass noise/shape parameters and minimal panel/topology descriptors; calculate surface positions/normals/material inputs on the GPU. Keep CPU subdivision and sinking where the plan calls for them.| |Plan and T1 contracts complete. Next implement opt-in GL 4.3 generation (T2), then GPU grass planning, sparse matching collision mirror and atomic water/shadow/reflection consumers (T3). Preserve legacy CPU fallback/replay; measure transfers, CPU query counts and total CPU/GPU costs before default enablement.|
+|Implement and validate the opt-in GL 4.3 GPU terrain field evaluation proof (T2). Use the T1 topology/parameter contracts, preserve shared endpoints and legacy draw layout, query limits, bound staging and publish completed land/water together.|t|Capture-only compute field/gradient/material/sink evaluation and GPU corner expansion implemented. Five native GL cases and clean 58/58 CTest groups pass (645.09 s), including exact compute/walking replay, CPU override, real GL 3.3 fallback and locked/unknown-version rejection. Production input is 2,800,880 bytes versus 12,000,000 (76.66% reduction); native shoreline/offline PNGs match exactly. CPU mirror remains until T3; no total-frame speedup claimed. README, journal/PDF and retained evidence updated; see docs/journal/architecture/terrain-gpu/compute/study.md.|
+|Implement highly optimized GPU terrain shaping according to the completed CPU–GPU plan. Pass noise/shape parameters and minimal panel/topology descriptors; calculate surface positions/normals/material inputs on the GPU. Keep CPU subdivision and sinking where the plan calls for them.|p|T2 capture compute proof complete above. Next is T3: GPU grass planning, sparse matching collision mirror, asynchronous atomic water/shadow/reflection consumers and normal interactive installation. Preserve legacy CPU fallback/replay; measure transfers, CPU query counts and total CPU/GPU costs before default enablement.|
 |Implement the planned GPU atmosphere calculations and remaining planet field work. Reuse calculations already on the GPU and move remaining suitable per-sample work there, passing parameters rather than generated field arrays.| |Plan complete (A1); depends on relevant terrain interfaces. Existing density columns and ray integration already run on GPU. Cache uniform optics, profile and move highlight reduction with identical exposure semantics; validate airless/day/twilight/dust/humidity/refraction and CPU/GPU cost.|
 |Adapt foliage allocation to measured GPU usage and available VRAM. Preserve the configured density near the planet camera; automatically choose the falloff from required density, maximum foliage distance, other foliage parameters and remaining memory/render budget.| |Policy defined in architecture plan (B1): allocation ledger, protected near plateau, rounded-slot-aware sigma search and asynchronous timer/free-memory feedback. Preserve configured density where feasible; report an impossible near-region budget, use conservative unknown-telemetry fallback and lock effective replay settings. Validate coverage, hysteresis, overflow and memory bounds.|
 |Fade grass trails smoothly back to their normal wind motion near history eviction. As the bounded history fills, progressively reduce deformation through the oldest 10% of retained trail segments so old marks disappear without a sudden pop.| |Queued on user request. Preserve normal wind phase and fixed roots; use a continuous history-age weight shared by both GPU paths and reflections, and retain the weights/state in replay.|
@@ -83,6 +84,41 @@ current terrain-validation container has these tools and registers all 45
 tests. The install command above restores them on hosts where they are absent;
 reconfigure afterwards. Valgrind is only needed to recollect the independent
 instruction profile.
+
+## GPU terrain compute checkpoint — 2026-10-03
+
+- T2 complete in `src/rendering/geometry/compute/` and
+  `shaders/terrain/compute/`: GL 4.3 double field/gradient/material/sink evaluation,
+  canonical endpoint expansion and sequential draw indices generated on GPU.
+- Opt in with `--terrain-backend compute` for capture outputs; default remains
+  CPU. Saved compute replay retains its backend/version requirements. Explicit
+  compute requests record a CPU fallback on GL 3.3; locked compute replays reject
+  an unavailable backend. Unknown versions and malformed backend selectors reject
+  before window creation; explicit CPU override remains available.
+- Queried SSBO/dispatch limits, bounded parameter caching, barriers/fences and
+  RAII staging implemented. Capture waits for both land/water outputs before
+  publishing. Normal interactive asynchronous consumer installation is still T3.
+- Production 100,000-triangle / 50,002-endpoint generation transfers 2,800,880
+  bytes versus the CPU backend's 12,000,000-byte draw upload (76.66% reduction).
+  Native logical generation storage is 16,600,848 bytes; this is not whole-scene
+  VRAM. Six bounded dispatches; output readback has zero float position/color
+  error and maximum height error 1.194e-12 m on llvmpipe.
+- Full CPU compatibility vectors and 150,006 production bulk field queries remain
+  for grass planning/contacts. Stage timings are retained, without a hardware or
+  total-frame speedup claim. Removing this duplicated work is the next phase.
+- Clean build and 58/58 CTest groups pass (645.09 s). Five native GPU cases cover
+  packing, poles/lattice/extreme seeds, SI scales, mixed LOD/seams/winding/sinking,
+  payloads and failed/incomplete-generation preservation. Capture integration
+  covers exact compute and walking/trail replay, CPU override and real GL fallback.
+- Native shoreline (960×540) and dense offline (1920×1080, 213,454 visible blades)
+  PNGs match the previous gallery exactly. All 22 gallery hashes/provenance remain
+  unchanged. New evidence is separate under
+  `docs/journal/architecture/terrain-gpu/compute/`. README and journal/PDF updated;
+  24-page journal reviewed on pages 3–7 and 24.
+- Resume at T3 in the architecture plan: GPU grass metadata/slot allocation,
+  sparse matching ground-contact mirror, asynchronous complete consumer generations,
+  stale/reload/allocation recovery and hardware total-cost measurements. A1/B1,
+  trail-history fading and BSON evaluation remain queued after terrain work.
 
 ## Terrain field/topology extraction checkpoint — 2026-10-03
 

@@ -130,7 +130,12 @@ int Renderer::Impl::capture() {
             << fieldStats.planningQueries.requests << "/" << fieldStats.planningQueries.evaluations
             << " requested/evaluated; bulk queries " << fieldStats.evaluationQueries.requests
             << "/" << fieldStats.evaluationQueries.evaluations << " requested/evaluated; field/topology "
-            << fieldStats.generation.field << "/" << fieldStats.generation.topology << "; backend cpu\n";
+            << fieldStats.generation.field << "/" << fieldStats.generation.topology << "; backend "
+            << (fieldStats.generation.backend==TerrainBackend::Compute?"compute":"cpu") << '\n';
+        if(fieldStats.generation.backend==TerrainBackend::Compute)
+            std::cout << "Planet " << i << " compute generation: " << fieldStats.gpuInputBytes
+                << " uploaded bytes; " << fieldStats.gpuWorkingBytes << " peak bytes; "
+                << fieldStats.gpuDispatches << " dispatches; " << fieldStats.gpuMilliseconds << " GPU ms; CPU compatibility mirror retained\n";
         const auto* layer=&grass.procedural;
         if (layer->usesCompute(i)) {
             const auto counts=mainGrassCounts.at(i);
@@ -296,7 +301,7 @@ int Renderer::Impl::capture() {
                 {"white_clipped_fraction", metrics.whiteClippedFraction},
                 {"terrain_pixels", metrics.terrainPixels}, {"sky_pixels", metrics.skyPixels},
                 {"terrain_contract", {
-                    {"backend", "cpu"},
+                    {"backend", options.terrainBackend},
                     {"field_version", meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats.generation.fieldVersion},
                     {"topology_version", meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats.generation.topologyVersion},
                     {"field_fingerprint", std::to_string(meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats.generation.field)},
@@ -331,6 +336,12 @@ int Renderer::Impl::capture() {
         };
         metadata["render"]["offline"]={{"enabled",options.offlineQuality},
             {"foliage_distance_multiplier",options.foliageDistanceMultiplier}, {"lens_flare",options.lensFlare}};
+        metadata["render"]["terrain_backend"]=options.terrainBackend;
+        metadata["render"]["terrain_fallback"]=terrainFallback;
+        const auto& terrain=meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats;
+        metadata["render"]["terrain_compute"]={{"input_bytes",terrain.gpuInputBytes},
+            {"generation_peak_bytes",terrain.gpuWorkingBytes},{"dispatches",terrain.gpuDispatches},
+            {"gpu_ms",terrain.gpuMilliseconds},{"cpu_compatibility_mirror",bool(terrainCompute)}};
         metadata["render"]["effective_foliage_distance_m"]=scene.scenario.planets[scene.orbitPlanetIndex].foliage.draw_distance_m;
         metadata["render"]["effective_foliage_budget"]=scene.scenario.planets[scene.orbitPlanetIndex].foliage.max_blades;
         metadata["render"]["sun_mesh_triangles"]=meshes.sunMesh.indices.size()/3;

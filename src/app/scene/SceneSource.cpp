@@ -11,6 +11,21 @@ SceneSource::SceneSource(CommandLineOptions& options)
         (void)config::ScenarioConfig(config::Config(nlohmann::json(document)));
         if (!replayPath.empty()) {
             const auto replay = config::Config::load(replayPath).data();
+            if(replay.contains("render") && replay["render"].contains("terrain_backend")) {
+                const auto& backend=replay["render"]["terrain_backend"];
+                if(!backend.is_string() || (backend!="cpu" && backend!="compute"))
+                    throw std::invalid_argument("Invalid terrain replay backend");
+                if(backend=="compute" && (!options.explicitTerrainBackend || options.terrainBackend=="compute")) {
+                    const auto& contract=replay["render"].at("terrain_contract");
+                    for(const auto* name:{"field_version","topology_version"})
+                        if(!contract.at(name).is_number_integer() || contract.at(name)!=1)
+                            throw std::invalid_argument("Unsupported terrain compute replay versions");
+                }
+                if(!options.explicitTerrainBackend) {
+                    options.terrainBackend=backend.get<std::string>();
+                    options.lockedTerrainBackend=options.terrainBackend=="compute";
+                }
+            }
             if (replay.contains("render") && !options.explicitRenderSize) {
                 options.renderTestWidth = replay.at("render").at("width").get<int>();
                 options.renderTestHeight = replay.at("render").at("height").get<int>();
@@ -40,6 +55,8 @@ SceneSource::SceneSource(CommandLineOptions& options)
             }
             if (options.offlineQuality) options.atmosphereFullResolution=options.captureOnly=true;
         }
+        if(options.terrainBackend=="compute" && !options.renderTestMode)
+            throw std::invalid_argument("Experimental compute terrain replay requires a capture output");
         if (!options.offlineQuality && (options.explicitFoliageDistance || options.explicitLensFlare))
             throw std::invalid_argument("Offline controls require an offline capture or replay");
     } catch (const std::exception& error) {

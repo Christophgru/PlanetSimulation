@@ -107,6 +107,11 @@ CommandLineOptions CommandLineOptions::parse(int argc, char** argv) {
             options.renderTestMode = true;
             options.planetRenderMode = true;
             options.outputImagePath = argv[++i];
+        } else if (std::string(argv[i]) == "--terrain-backend") {
+            if(i+1>=argc) throw std::invalid_argument("--terrain-backend requires cpu or compute");
+            options.terrainBackend=argv[++i];options.explicitTerrainBackend=true;
+            if(options.terrainBackend!="cpu" && options.terrainBackend!="compute")
+                throw std::invalid_argument("--terrain-backend requires cpu or compute");
         } else if (std::string(argv[i]) == "--config" && i + 1 < argc) {
             options.configPath = argv[++i];
         } else if (std::string(argv[i]) == "--replay" && i + 1 < argc) {
@@ -135,6 +140,8 @@ CommandLineOptions CommandLineOptions::parse(int argc, char** argv) {
         }
     }
 
+    if(options.terrainBackend=="compute" && !options.renderTestMode)
+        throw std::invalid_argument("Experimental compute terrain requires a capture output until T3 consumers are ready");
     if (options.offlineQuality && !options.renderTestMode)
         throw std::invalid_argument("--offline-quality requires a render/capture output");
     if (!options.offlineQuality && (options.explicitFoliageDistance || options.explicitLensFlare) && options.replayPath.empty())

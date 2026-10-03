@@ -5,6 +5,7 @@
 #include <GL/glew.h>
 #include "rendering/geometry/terrain/TerrainTopology.h"
 namespace rendering { struct TerrainGeometry; }
+namespace rendering { struct TerrainComputeBuffers; }
 
 class Mesh {
 public:
@@ -32,6 +33,8 @@ public:
     void generateCube();
 
     void loadTerrain(rendering::TerrainGeometry geometry);
+    void loadComputedTerrain(rendering::TerrainGeometry geometry,
+                             rendering::TerrainComputeBuffers& buffers);
 
     void upload();
     

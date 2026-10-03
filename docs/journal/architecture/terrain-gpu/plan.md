@@ -388,3 +388,10 @@ generation validation and capture diagnostics. CPU planning and expanded uploads
 remain; GPU bulk evaluation is still T2. New validation is recorded under that
 study rather than replacing this planning checkpoint's source fingerprint and
 analytical evidence.
+
+[T2 compute proof](compute/study.md) now generates GL 4.3 field/gradient/material/
+sink output and the legacy draw buffers for opt-in captures. Limits, bounded
+dispatches, completed land/water publication, packing/parity and locked replay
+are validated. CPU grass planning/contact vectors remain as a compatibility
+mirror. T3 removes that dependency and implements normal asynchronous interactive
+publication before the overall GPU terrain task can be completed.

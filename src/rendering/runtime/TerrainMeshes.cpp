@@ -2,13 +2,14 @@
 
 namespace rendering {
 void Renderer::Impl::installLandMesh(std::size_t index, TerrainGeometry geometry,
-    const glm::dvec3& localEye, int localMask) {
+    const glm::dvec3& localEye, int localMask,TerrainComputeBuffers* computed) {
     CpuTrace::Scope scope("Renderer::installLandMesh");
     meshZoneFaces[index] = geometry.zoneFaces;
     meshTriangles[index] = geometry.triangleCount();
     meshSteepRefinedFaces[index] = geometry.steepRefinedFaces;
     lastFaceZones[index] = geometry.faceZones;
-    meshes.planetMeshes[index].loadTerrain(std::move(geometry));
+    if(computed) meshes.planetMeshes[index].loadComputedTerrain(std::move(geometry),*computed);
+    else meshes.planetMeshes[index].loadTerrain(std::move(geometry));
     profiler.meshUpload();
     meshReady[index] = true;
     lastLocalMask[index] = localMask;
@@ -73,10 +74,15 @@ void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalkin
         // Land and the nearby ocean shell rebuild together off-thread.
         auto buildMeshes = [surface=scene.terrainSurfaces[i], planet,
                             zones=lastFaceZones[i], localEye,
+                            compute=bool(terrainCompute),
                             meters=scene.scenario.metersPerWorldUnit()]() {
             CpuTrace::Scope scope("terrain.build_land_and_water");
             const auto start=std::chrono::steady_clock::now();
-            auto land=surface.buildGeometryForEye(localEye, glm::dvec3(0.0),
+            std::optional<TerrainTopology> topology,waterTopology;
+            std::optional<PlanetField> waterField;
+            if(compute) topology=surface.buildTopologyForEye(localEye,glm::dvec3(0.0),
+                zones.empty()?nullptr:&zones,20.0);
+            auto land=compute?surface.evaluateTopology(*topology):surface.buildGeometryForEye(localEye, glm::dvec3(0.0),
                 zones.empty() ? nullptr : &zones, 20.0);
             std::optional<rendering::TerrainGeometry> water;
             if (planet.water.enabled) {
@@ -91,10 +97,14 @@ void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalkin
                 lod.max_triangle_budget=std::min(60000,lod.max_triangle_budget);
                 const double seaRadius=planet.radius+planet.water.level_m/meters;
                 const rendering::TerrainSurface sea({},lod,seaRadius,meters,{},0.0);
-                water=sea.buildGeometryForEye(localEye,glm::dvec3(0.0));
+                if(compute) {
+                    waterTopology=sea.buildTopologyForEye(localEye,glm::dvec3(0.0));
+                    waterField=sea.field();water=sea.evaluateTopology(*waterTopology);
+                } else water=sea.buildGeometryForEye(localEye,glm::dvec3(0.0));
             }
             return TimedTerrainBuild{std::move(land),std::move(water),
-                std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count()};
+                std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count(),
+                std::move(topology),std::move(waterTopology),std::move(waterField)};
         };
         if (asyncWalking && meshReady[i] && localMask == lastLocalMask[i]) {
             pendingTerrain[i].eyeLocal = localEye;
@@ -110,10 +120,18 @@ void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalkin
         if (options.renderTestMode && i==scene.scenario.surface_camera.planet_index)
             captureTerrainEye=localEye;
         profiler.terrainBuild(built.milliseconds);
-        if (built.water) {
-            meshes.waterMeshes[i].loadTerrain(std::move(*built.water));
+        std::unique_ptr<TerrainComputeBuffers> computed,computedWater;
+        if(terrainCompute) {
+            computed=terrainCompute->generate(scene.terrainSurfaces[i].field(),*built.topology);
+            if(built.water) computedWater=terrainCompute->generate(*built.waterField,*built.waterTopology);
+            computed->waitForCapture();if(computedWater) computedWater->waitForCapture();
+            // Both outputs are complete before either mesh becomes visible.
         }
-        installLandMesh(i, std::move(built.geometry), localEye, localMask);
+        if (built.water) {
+            if(computedWater) meshes.waterMeshes[i].loadComputedTerrain(std::move(*built.water),*computedWater);
+            else meshes.waterMeshes[i].loadTerrain(std::move(*built.water));
+        }
+        installLandMesh(i, std::move(built.geometry), localEye, localMask,computed.get());
     }
 }
 

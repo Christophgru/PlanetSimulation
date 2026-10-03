@@ -134,6 +134,10 @@ add_test(NAME RenderDiagnosticsTests COMMAND render_diagnostics_tests)
 add_test(NAME StarFieldTests COMMAND star_field_tests)
 add_test(NAME MeshGeometryTests COMMAND mesh_geometry_tests)
 add_test(NAME TerrainTests COMMAND terrain_tests)
+add_executable(terrain_compute_tests geometry/compute/test_terrain_compute.cpp)
+target_link_libraries(terrain_compute_tests PRIVATE planet_rendering GTest::gtest glfw)
+add_test(NAME TerrainComputeIntegration COMMAND terrain_compute_tests)
+set_tests_properties(TerrainComputeIntegration PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 120)
 
 add_executable(grass_placement_tests foliage/test_grass_placement.cpp foliage/test_grass_lod.cpp)
 add_executable(foliage_benchmark foliage/benchmark_grass.cpp)
@@ -166,6 +170,10 @@ add_test(NAME MoonlightRenderIntegration COMMAND PlanetSimulation
 set_tests_properties(MoonlightRenderIntegration PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
+add_test(NAME TerrainComputeCaptureIntegration COMMAND ${Python3_EXECUTABLE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/geometry/compute/test_capture.py --binary $<TARGET_FILE:PlanetSimulation>
+    --output-dir ${CMAKE_BINARY_DIR}/terrain-compute-captures)
+set_tests_properties(TerrainComputeCaptureIntegration PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 180)
 add_test(NAME AstronautCaptureIntegration COMMAND ${Python3_EXECUTABLE}
     ${CMAKE_CURRENT_SOURCE_DIR}/character/test_astronaut_capture.py --binary $<TARGET_FILE:PlanetSimulation>
     --output-dir ${CMAKE_BINARY_DIR}/astronaut-captures)

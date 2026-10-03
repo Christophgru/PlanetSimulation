@@ -1,0 +1,214 @@
+[0/1] Re-running CMake...
+-- Using the multi-header code from /workspace/build/_deps/nlohmann_json-src/include/
+-- GLM: Version 1.0.1
+-- GLM: Build with C++ features auto detection
+-- ---------------------------------------------------------
+-- Default build type is: RelWithDebInfo
+-- The following compilation flags will be used:
+CMAKE_CXX_FLAGS
+CMAKE_C_FLAGS
+CMAKE_CXX_FLAGS_DEBUG -g
+CMAKE_C_FLAGS_DEBUG -g
+CMAKE_CXX_FLAGS_MINSIZEREL -Os -DNDEBUG
+CMAKE_C_FLAGS_MINSIZEREL -Os -DNDEBUG
+CMAKE_CXX_FLAGS_RELWITHDEBINFO -O2 -g -DNDEBUG
+CMAKE_C_FLAGS_RELWITHDEBINFO -O2 -g -DNDEBUG
+CMAKE_CXX_FLAGS_RELEASE -O3 -DNDEBUG
+CMAKE_C_FLAGS_RELEASE -O3 -DNDEBUG
+-- ---------------------------------------------------------
+-- Directory Compile Options:
+-- -Wall
+-- -Werror
+-- -Wno-ignored-attributes
+-- ---------------------------------------------------------
+-- Directory Compile Definitions:
+-- ---------------------------------------------------------
+Optional program clang-format not found.
+-- ---------------------------------------------------------
+-- Selected options:
+-- - BUILD_SHARED_LIBS: OFF
+-- - ozz_build_tools: OFF
+-- - ozz_build_fbx: OFF
+-- - ozz_build_gltf: OFF
+-- - ozz_build_data: OFF
+-- - ozz_build_samples: OFF
+-- - ozz_build_howtos: OFF
+-- - ozz_build_tests: OFF
+-- - ozz_build_simd_ref: OFF
+-- - ozz_build_msvc_rt_dll: OFF
+-- - ozz_build_postfix: ON
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /workspace/build-resume
+[1/13] Building CXX object CMakeFiles/planet_geometry.dir/src/rendering/geometry/terrain/PlanetField.cpp.o
+[2/13] Building CXX object CMakeFiles/planet_geometry.dir/src/rendering/geometry/Terrain.cpp.o
+[3/13] Building CXX object CMakeFiles/planet_geometry.dir/src/rendering/geometry/terrain/TerrainTopology.cpp.o
+[4/13] Building CXX object CMakeFiles/planet_geometry.dir/src/rendering/geometry/TerrainShoreline.cpp.o
+[5/13] Building CXX object CMakeFiles/planet_geometry.dir/src/rendering/geometry/TerrainLod.cpp.o
+[6/13] Building CXX object CMakeFiles/planet_geometry.dir/src/rendering/foliage/GrassPlacement.cpp.o
+[7/13] Linking CXX static library libplanet_geometry.a
+[8/13] Building CXX object CMakeFiles/planet_rendering.dir/src/rendering/geometry/Mesh.cpp.o
+[9/13] Building CXX object CMakeFiles/planet_rendering.dir/src/rendering/character/AstronautRenderer.cpp.o
+[10/13] Building CXX object CMakeFiles/planet_rendering.dir/src/rendering/foliage/procedural/ProceduralGrass.cpp.o
+[11/13] Building CXX object CMakeFiles/planet_rendering.dir/src/rendering/postprocessing/LensFlare.cpp.o
+[12/13] Building CXX object CMakeFiles/planet_rendering.dir/src/rendering/geometry/compute/TerrainCompute.cpp.o
+[13/13] Linking CXX static library libplanet_rendering.a
+[0/1] Re-running CMake...
+-- Using the multi-header code from /workspace/build/_deps/nlohmann_json-src/include/
+-- GLM: Version 1.0.1
+-- GLM: Build with C++ features auto detection
+-- ---------------------------------------------------------
+-- Default build type is: RelWithDebInfo
+-- The following compilation flags will be used:
+CMAKE_CXX_FLAGS
+CMAKE_C_FLAGS
+CMAKE_CXX_FLAGS_DEBUG -g
+CMAKE_C_FLAGS_DEBUG -g
+CMAKE_CXX_FLAGS_MINSIZEREL -Os -DNDEBUG
+CMAKE_C_FLAGS_MINSIZEREL -Os -DNDEBUG
+CMAKE_CXX_FLAGS_RELWITHDEBINFO -O2 -g -DNDEBUG
+CMAKE_C_FLAGS_RELWITHDEBINFO -O2 -g -DNDEBUG
+CMAKE_CXX_FLAGS_RELEASE -O3 -DNDEBUG
+CMAKE_C_FLAGS_RELEASE -O3 -DNDEBUG
+-- ---------------------------------------------------------
+-- Directory Compile Options:
+-- -Wall
+-- -Werror
+-- -Wno-ignored-attributes
+-- ---------------------------------------------------------
+-- Directory Compile Definitions:
+-- ---------------------------------------------------------
+Optional program clang-format not found.
+-- ---------------------------------------------------------
+-- Selected options:
+-- - BUILD_SHARED_LIBS: OFF
+-- - ozz_build_tools: OFF
+-- - ozz_build_fbx: OFF
+-- - ozz_build_gltf: OFF
+-- - ozz_build_data: OFF
+-- - ozz_build_samples: OFF
+-- - ozz_build_howtos: OFF
+-- - ozz_build_tests: OFF
+-- - ozz_build_simd_ref: OFF
+-- - ozz_build_msvc_rt_dll: OFF
+-- - ozz_build_postfix: ON
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /workspace/build-resume
+[1/21] Building CXX object CMakeFiles/planet_rendering.dir/src/rendering/geometry/Mesh.cpp.o
+[2/21] Building CXX object CMakeFiles/planet_rendering.dir/src/rendering/foliage/procedural/ProceduralGrass.cpp.o
+[3/21] Building CXX object CMakeFiles/planet_rendering.dir/src/rendering/postprocessing/LensFlare.cpp.o
+[4/21] Building CXX object CMakeFiles/planet_rendering.dir/src/rendering/character/AstronautRenderer.cpp.o
+[5/21] Linking CXX static library libplanet_rendering.a
+[6/21] Building CXX object CMakeFiles/planet_app.dir/src/app/Window.cpp.o
+[7/21] Building CXX object CMakeFiles/planet_app.dir/src/app/CommandLineOptions.cpp.o
+[8/21] Building CXX object CMakeFiles/planet_app.dir/src/app/WindowInput.cpp.o
+[9/21] Building CXX object CMakeFiles/planet_app.dir/src/app/scene/SceneSource.cpp.o
+[10/21] Building CXX object CMakeFiles/planet_app.dir/src/app/scene/PreparedScene.cpp.o
+[11/21] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/Renderer.cpp.o
+[12/21] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/TerrainMeshes.cpp.o
+[13/21] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/ScenePass.cpp.o
+[14/21] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/Capture.cpp.o
+[15/21] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/Character.cpp.o
+[16/21] Building CXX object CMakeFiles/PlanetSimulation.dir/src/main.cpp.o
+[17/21] Building CXX object tests/CMakeFiles/terrain_compute_tests.dir/geometry/compute/test_terrain_compute.cpp.o
+[18/21] Linking CXX executable tests/terrain_compute_tests
+[19/21] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/Interactive.cpp.o
+[20/21] Linking CXX static library libplanet_app.a
+[21/21] Linking CXX executable PlanetSimulation
+[1/6] Building CXX object CMakeFiles/planet_rendering.dir/src/rendering/geometry/compute/TerrainCompute.cpp.o
+[2/6] Building CXX object CMakeFiles/planet_rendering.dir/src/rendering/geometry/Mesh.cpp.o
+[3/6] Linking CXX static library libplanet_rendering.a
+[4/6] Linking CXX executable PlanetSimulation
+[5/6] Building CXX object tests/CMakeFiles/terrain_compute_tests.dir/geometry/compute/test_terrain_compute.cpp.o
+[6/6] Linking CXX executable tests/terrain_compute_tests
+[1/36] Building CXX object tests/CMakeFiles/renderer_lifecycle_tests.dir/app/test_command_line.cpp.o
+[2/36] Building CXX object tests/CMakeFiles/renderer_lifecycle_tests.dir/app/test_renderer_lifecycle.cpp.o
+[3/36] Building CXX object tests/CMakeFiles/renderer_lifecycle_tests.dir/app/test_offline_quality.cpp.o
+[4/36] Linking CXX executable tests/renderer_lifecycle_tests
+[5/36] Building CXX object tests/CMakeFiles/camera_input_tests.dir/camera/test_camera_input.cpp.o
+[6/36] Linking CXX executable tests/camera_input_tests
+[7/36] Building CXX object tests/CMakeFiles/mesh_geometry_tests.dir/geometry/test_mesh_geometry.cpp.o
+[8/36] Linking CXX executable tests/mesh_geometry_tests
+[9/36] Building CXX object tests/CMakeFiles/terrain_tests.dir/geometry/test_terrain.cpp.o
+[10/36] Building CXX object tests/CMakeFiles/orbital_system_tests.dir/simulation/test_orbital_system.cpp.o
+[11/36] Linking CXX executable tests/orbital_system_tests
+[12/36] Building CXX object tests/CMakeFiles/terrain_tests.dir/geometry/test_terrain_lod.cpp.o
+[13/36] Building CXX object tests/CMakeFiles/terrain_tests.dir/geometry/terrain/test_contracts.cpp.o
+[14/36] Linking CXX executable tests/terrain_tests
+[15/36] Building CXX object tests/CMakeFiles/planet_surface_camera_tests.dir/camera/test_planet_surface_camera.cpp.o
+[16/36] Linking CXX executable tests/planet_surface_camera_tests
+[17/36] Building CXX object tests/CMakeFiles/astronaut_motion_tests.dir/character/test_astronaut_motion.cpp.o
+[18/36] Building CXX object tests/CMakeFiles/surface_camera_telemetry_tests.dir/camera/test_surface_camera_telemetry.cpp.o
+[19/36] Linking CXX executable tests/surface_camera_telemetry_tests
+[20/36] Building CXX object tests/CMakeFiles/astronaut_motion_tests.dir/character/test_jetpack_physics.cpp.o
+[21/36] Linking CXX executable tests/exhaust_render_tests
+[22/36] Building CXX object tests/CMakeFiles/astronaut_motion_tests.dir/character/test_flight_navigation.cpp.o
+[23/36] Linking CXX executable tests/astronaut_motion_tests
+[24/36] Building CXX object tests/CMakeFiles/terrain_shadow_render_tests.dir/lighting/test_terrain_shadow_render.cpp.o
+[25/36] Building CXX object tests/CMakeFiles/scene_replay_tests.dir/config/test_scene_replay.cpp.o
+[26/36] Linking CXX executable tests/scene_replay_tests
+[27/36] Building CXX object tests/CMakeFiles/terrain_shadow_render_tests.dir/foliage/test_grass_render.cpp.o
+[28/36] Linking CXX executable tests/terrain_shadow_render_tests
+[29/36] Linking CXX executable tests/grass_placement_tests
+[30/36] Building CXX object tests/CMakeFiles/terrain_compute_tests.dir/geometry/compute/test_terrain_compute.cpp.o
+[31/36] Linking CXX executable tests/terrain_compute_tests
+[32/36] Linking CXX executable tests/grass_plan_tests
+[33/36] Linking CXX executable tests/grass_trail_tests
+[34/36] Linking CXX executable tests/atmosphere_render_tests
+[35/36] Building CXX object tests/CMakeFiles/foliage_benchmark.dir/foliage/benchmark_grass.cpp.o
+[36/36] Linking CXX executable tests/foliage_benchmark
+[0/1] Re-running CMake...
+-- Using the multi-header code from /workspace/build/_deps/nlohmann_json-src/include/
+-- GLM: Version 1.0.1
+-- GLM: Build with C++ features auto detection
+-- ---------------------------------------------------------
+-- Default build type is: RelWithDebInfo
+-- The following compilation flags will be used:
+CMAKE_CXX_FLAGS
+CMAKE_C_FLAGS
+CMAKE_CXX_FLAGS_DEBUG -g
+CMAKE_C_FLAGS_DEBUG -g
+CMAKE_CXX_FLAGS_MINSIZEREL -Os -DNDEBUG
+CMAKE_C_FLAGS_MINSIZEREL -Os -DNDEBUG
+CMAKE_CXX_FLAGS_RELWITHDEBINFO -O2 -g -DNDEBUG
+CMAKE_C_FLAGS_RELWITHDEBINFO -O2 -g -DNDEBUG
+CMAKE_CXX_FLAGS_RELEASE -O3 -DNDEBUG
+CMAKE_C_FLAGS_RELEASE -O3 -DNDEBUG
+-- ---------------------------------------------------------
+-- Directory Compile Options:
+-- -Wall
+-- -Werror
+-- -Wno-ignored-attributes
+-- ---------------------------------------------------------
+-- Directory Compile Definitions:
+-- ---------------------------------------------------------
+Optional program clang-format not found.
+-- ---------------------------------------------------------
+-- Selected options:
+-- - BUILD_SHARED_LIBS: OFF
+-- - ozz_build_tools: OFF
+-- - ozz_build_fbx: OFF
+-- - ozz_build_gltf: OFF
+-- - ozz_build_data: OFF
+-- - ozz_build_samples: OFF
+-- - ozz_build_howtos: OFF
+-- - ozz_build_tests: OFF
+-- - ozz_build_simd_ref: OFF
+-- - ozz_build_msvc_rt_dll: OFF
+-- - ozz_build_postfix: ON
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /workspace/build-resume
+ninja: no work to do.
+[1/2] Building CXX object tests/CMakeFiles/terrain_compute_tests.dir/geometry/compute/test_terrain_compute.cpp.o
+[2/2] Linking CXX executable tests/terrain_compute_tests
+[1/5] Building CXX object CMakeFiles/planet_app.dir/src/app/scene/SceneSource.cpp.o
+[2/5] Linking CXX static library libplanet_app.a
+[3/5] Linking CXX executable PlanetSimulation
+[4/5] Linking CXX executable tests/renderer_lifecycle_tests
+[5/5] Linking CXX executable tests/foliage_benchmark
+[1/2] Building CXX object tests/CMakeFiles/terrain_compute_tests.dir/geometry/compute/test_terrain_compute.cpp.o
+[2/2] Linking CXX executable tests/terrain_compute_tests
+[1/2] Building CXX object tests/CMakeFiles/terrain_compute_tests.dir/geometry/compute/test_terrain_compute.cpp.o
+[2/2] Linking CXX executable tests/terrain_compute_tests

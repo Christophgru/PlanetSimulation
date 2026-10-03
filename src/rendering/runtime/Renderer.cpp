@@ -37,6 +37,15 @@ Renderer::Impl::Impl(app::CommandLineOptions arguments)
       reflectionAtmosphere(options.atmosphereFullResolution ? 1 : 4),
       gpuUtilization(reinterpret_cast<const char*>(glGetString(GL_VENDOR)),
                      reinterpret_cast<const char*>(glGetString(GL_RENDERER))) {
+    if(options.terrainBackend=="compute") {
+        terrainCompute=std::make_unique<TerrainCompute>();
+        if(!terrainCompute->limits().unavailable.empty()) {
+            if(options.lockedTerrainBackend) throw std::runtime_error("Locked compute replay: "+terrainCompute->limits().unavailable);
+            terrainFallback=terrainCompute->limits().unavailable;
+            std::cout << "Terrain CPU fallback: " << terrainFallback << '\n';
+            terrainCompute.reset();options.terrainBackend="cpu";
+        }
+    }
     scene.updateSimulation(simulationTime);
     cameraInput.setThirdPersonWalkSpeed(6.0/scene.scenario.metersPerWorldUnit());
     if (!options.replayPath.empty() && scene.surfaceCamera) cameraInput.selectSurface();

@@ -68,4 +68,10 @@ runtime speedup measurement.
 The [field/topology extraction](architecture/terrain-gpu/contracts/study.md)
 implements its first prerequisite: a packed field oracle, indexed radial/sink
 inputs, bounded height cache and validated generation keys, with exact legacy
-CPU mesh/replay behavior. GPU field evaluation remains the next phase.
+CPU mesh/replay behavior.
+
+The [GPU field evaluation proof](architecture/terrain-gpu/compute/study.md) adds an
+opt-in capture backend with double field sampling, GPU-generated draw buffers,
+bounded dispatches and completed land/water publication. CPU/GPU packing and
+numerical parity, exact replay and GL 3.3 fallback are checked. The full CPU mirror
+and normal interactive migration remain T3; no total-frame speedup is claimed.

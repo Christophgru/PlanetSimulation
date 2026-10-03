@@ -979,12 +979,23 @@ The [CPU–GPU generation plan](docs/journal/architecture/terrain-gpu/plan.md) d
 the next migration: CPU subdivision/sinking and sparse contacts, GPU bulk shape
 and normals, shared terrain/foliage buffers, and the remaining atmospheric work.
 It evaluates hexagonal panels and sets memory, precision and validation gates.
-The current renderer still uses CPU terrain generation.
+Interactive rendering and default captures still use CPU terrain generation.
 The [completed field/topology extraction](docs/journal/architecture/terrain-gpu/contracts/study.md)
 separates indexed radial/sink inputs from bulk evaluation, adds bounded query
 caching and validates generation keys. Capture metadata reports planning and
-evaluation counts and contract input bytes; actual terrain uploads retain the
-legacy expanded layout. Opt-in GPU field evaluation is the next phase.
+evaluation counts and contract input bytes; the CPU backend uploads its legacy
+expanded layout.
+
+The [GPU field evaluation proof](docs/journal/architecture/terrain-gpu/compute/study.md)
+is available for captures with `--terrain-backend compute`; `--terrain-backend cpu`
+selects the default. It generates height, normals, material factors, sinking and
+draw buffers on GL 4.3, with queried limits and completed land/water publication.
+A 100,000-triangle view uploads 2,800,880 input bytes including parameters and
+control uniforms, compared with the CPU's 12,000,000 shaped-mesh bytes. CPU vectors
+still support grass planning and contacts, so this stage claims no total-frame
+speedup. A saved compute backend replays explicitly; unavailable GL 4.3 falls back
+for a fresh request and rejects a locked compute replay. Interactive compute and
+removal of the full CPU mirror remain T3.
 
 Near water, `terrain_lod.shoreline_edge_m` targets 1 m edges within
 `shoreline_distance_m` (80 m by default). Set the edge target to `0` to disable

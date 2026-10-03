@@ -1,5 +1,6 @@
 #include "rendering/geometry/Mesh.h"
 #include "rendering/geometry/Terrain.h"
+#include "rendering/geometry/compute/TerrainCompute.h"
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
@@ -138,6 +139,21 @@ void Mesh::upload() {
     }
 
     glBindVertexArray(0);
+}
+
+void Mesh::loadComputedTerrain(rendering::TerrainGeometry geometry,
+    rendering::TerrainComputeBuffers& buffers) {
+    auto key=geometry.generation;key.backend=rendering::TerrainBackend::Compute;
+    if(!buffers.complete || !buffers.vao || !buffers.vbo || !buffers.ebo || key!=buffers.stats.generation ||
+       geometry.indices.size()!=buffers.stats.gpuCorners || geometry.vertices.size()!=9*buffers.stats.gpuCorners)
+        throw std::invalid_argument("Incomplete or incompatible computed terrain generation");
+    // Caller publishes only after the whole land/water pair has completed.
+    destroy();
+    vao=std::exchange(buffers.vao,0);vbo=std::exchange(buffers.vbo,0);ebo=std::exchange(buffers.ebo,0);
+    terrainStats=std::move(buffers.stats);
+    terrainStats.evaluationQueries=geometry.evaluationQueries; // T2 compatibility mirror still costs CPU work.
+    vertices=std::move(geometry.vertices);indices=std::move(geometry.indices);
+    hasVertexColors=true;++revision;
 }
 
 void Mesh::draw() const {
