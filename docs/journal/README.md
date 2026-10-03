@@ -64,3 +64,8 @@ migration. It defines GPU bulk fields, CPU subdivision/sinking and sparse contac
 shared generation installation, atmosphere reductions, foliage budgets, fallback
 and validation gates. Its checked worksheet contains design arithmetic, not a
 runtime speedup measurement.
+
+The [field/topology extraction](architecture/terrain-gpu/contracts/study.md)
+implements its first prerequisite: a packed field oracle, indexed radial/sink
+inputs, bounded height cache and validated generation keys, with exact legacy
+CPU mesh/replay behavior. GPU field evaluation remains the next phase.

@@ -1,0 +1,24 @@
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = TerrainContracts.*
+[==========] Running 7 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 7 tests from TerrainContracts
+[ RUN      ] TerrainContracts.LegacyMeshBytesRemainExactAtEquatorPolesShoreAndOrbit
+[       OK ] TerrainContracts.LegacyMeshBytesRemainExactAtEquatorPolesShoreAndOrbit (409 ms)
+[ RUN      ] TerrainContracts.TopologyIsRadialIndexedAndSeparatelyEvaluated
+[       OK ] TerrainContracts.TopologyIsRadialIndexedAndSeparatelyEvaluated (134 ms)
+[ RUN      ] TerrainContracts.ParameterPackingCarriesAllBitsAndFieldChangesInvalidateTopology
+[       OK ] TerrainContracts.ParameterPackingCarriesAllBitsAndFieldChangesInvalidateTopology (1 ms)
+[ RUN      ] TerrainContracts.SparseQueriesRemainBoundedExactAndFieldLocal
+[       OK ] TerrainContracts.SparseQueriesRemainBoundedExactAndFieldLocal (0 ms)
+[ RUN      ] TerrainContracts.UnitChangesPreserveSiHeightAndGradientAtPoles
+[       OK ] TerrainContracts.UnitChangesPreserveSiHeightAndGradientAtPoles (0 ms)
+[ RUN      ] TerrainContracts.HighestNoiseFrequencyAndSeedOverflowStayFiniteAndDeterministic
+[       OK ] TerrainContracts.HighestNoiseFrequencyAndSeedOverflowStayFiniteAndDeterministic (0 ms)
+[ RUN      ] TerrainContracts.CorruptTopologyAndUnknownBackendAreRejected
+[       OK ] TerrainContracts.CorruptTopologyAndUnknownBackendAreRejected (1 ms)
+[----------] 7 tests from TerrainContracts (547 ms total)
+
+[----------] Global test environment tear-down
+[==========] 7 tests from 1 test suite ran. (548 ms total)
+[  PASSED  ] 7 tests.

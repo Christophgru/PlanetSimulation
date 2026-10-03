@@ -69,7 +69,7 @@ add_executable(mesh_geometry_tests geometry/test_mesh_geometry.cpp)
 target_link_libraries(mesh_geometry_tests PRIVATE planet_rendering GTest::gtest GTest::gtest_main OpenGL::GL GLEW::GLEW glm::glm nlohmann_json::nlohmann_json)
 target_include_directories(mesh_geometry_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
 
-add_executable(terrain_tests geometry/test_terrain.cpp geometry/test_terrain_lod.cpp)
+add_executable(terrain_tests geometry/test_terrain.cpp geometry/test_terrain_lod.cpp geometry/terrain/test_contracts.cpp)
 target_link_libraries(terrain_tests PRIVATE GTest::gtest GTest::gtest_main glm::glm nlohmann_json::nlohmann_json)
 target_include_directories(terrain_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_compile_definitions(terrain_tests PRIVATE PLANET_SOURCE_DIR="${PLANET_FIXTURE_ROOT}")

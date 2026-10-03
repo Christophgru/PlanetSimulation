@@ -8,10 +8,14 @@
 
 namespace rendering {
 TerrainGeometry TerrainSurface::buildGeometryForEye(const glm::dvec3& eyeWorld,
-                                    const glm::dvec3& planetCenter,
-                                    const std::vector<int>* previousFaceZones,
-                                    double zoneHysteresisMeters) const {
+    const glm::dvec3& center,const std::vector<int>* previousFaceZones,double hysteresis) const {
     CpuTrace::Scope scope("TerrainSurface::buildGeometryForEye");
+    return evaluateTopology(buildTopologyForEye(eyeWorld,center,previousFaceZones,hysteresis));
+}
+TerrainTopology TerrainSurface::buildTopologyForEye(const glm::dvec3& eyeWorld,
+    const glm::dvec3& planetCenter,const std::vector<int>* previousFaceZones,double zoneHysteresisMeters) const {
+    TerrainQueryCache queries(field_);
+    CpuTrace::Scope scope("TerrainSurface::buildTopologyForEye");
     const glm::dvec3 offset = eyeWorld - planetCenter;
     const double cameraDistance = glm::length(offset);
     if (!std::isfinite(cameraDistance) || cameraDistance <= 0.0)
@@ -54,7 +58,7 @@ TerrainGeometry TerrainSurface::buildGeometryForEye(const glm::dvec3& eyeWorld,
         face.segments = segmentsForZone(face.zone);
         if (localView && face.zone > 0 &&
             lod_.steep_edge_segments > lod_.max_edge_segments &&
-            maximumSlope(face) >= lod_.steep_slope_threshold) {
+            maximumSlope(face,queries) >= lod_.steep_slope_threshold) {
             face.steep = true;
             face.segments = lod_.steep_edge_segments;
         }
@@ -120,7 +124,7 @@ TerrainGeometry TerrainSurface::buildGeometryForEye(const glm::dvec3& eyeWorld,
         edges = makeEdges();
     }
 
-    TerrainGeometry geometry;
+    TerrainTopology geometry;
     geometry.faceZones.reserve(faces.size());
     for (const auto& face : faces) {
         geometry.faceZones.push_back(face.zone);
@@ -128,9 +132,8 @@ TerrainGeometry TerrainSurface::buildGeometryForEye(const glm::dvec3& eyeWorld,
             ++geometry.steepRefinedFaces;
     }
     const int predicted = estimate(edges);
-    geometry.vertices.reserve(static_cast<std::size_t>(predicted) * 27);
+    geometry.samples.reserve(static_cast<std::size_t>(predicted)*3);
     geometry.indices.reserve(static_cast<std::size_t>(predicted) * 3);
-    geometry.lodSinkMeters.reserve(static_cast<std::size_t>(predicted) * 3);
     // Bound inward displacement on tiny planets and near the center.
     const double maximumSink = std::min(lod_.sink_depth_m,
         (radius_ * metersPerUnit_ - totalAmplitudeMeters_) * 0.001);
@@ -151,7 +154,7 @@ TerrainGeometry TerrainSurface::buildGeometryForEye(const glm::dvec3& eyeWorld,
     auto sampleAt = [&](const glm::dvec3& radial, double sink) {
         // Fixed height samples plus a level-dependent offset: unchanged levels
         // stay fixed when walking. The finest incident face owns shared heights.
-        const double height = heightAt(radial);
+        const double height = queries.heightAt(radial);
         const double arcMeters = radius_ * metersPerUnit_ * std::acos(
             std::clamp(glm::dot(radial, eyeRadial), -1.0, 1.0));
         if (localView && arcMeters < lod_.mid_surface_distance_m)
@@ -218,17 +221,9 @@ TerrainGeometry TerrainSurface::buildGeometryForEye(const glm::dvec3& eyeWorld,
     }
     if (geometry.triangleCount() != predicted)
         throw std::logic_error("Terrain triangle budget estimation disagrees with mesh");
-    if (nearWater) refineShoreline(geometry, offset/radius_);
-    // Apply the offset after refinement, which interpolates the same scalar
-    // field. Exactly one closed surface is submitted; no buried LOD draws.
-    for (std::size_t i = 0; i < geometry.lodSinkMeters.size(); ++i) {
-        if (geometry.lodSinkMeters[i] == 0.0f) continue;
-        const std::size_t v = i * 9;
-        const glm::dvec3 p(geometry.vertices[v], geometry.vertices[v+1], geometry.vertices[v+2]);
-        const glm::dvec3 sunk = p - glm::normalize(p) *
-            (geometry.lodSinkMeters[i] / (radius_ * metersPerUnit_));
-        for (int axis = 0; axis < 3; ++axis) geometry.vertices[v+axis] = static_cast<float>(sunk[axis]);
-    }
+    if (nearWater) refineShoreline(geometry, offset/radius_,queries);
+    geometry.planningQueries=queries.stats();
+    geometry.canonicalize(field_.fingerprint());
     return geometry;
 }
 

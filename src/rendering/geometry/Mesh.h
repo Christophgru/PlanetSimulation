@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <vector>
 #include <GL/glew.h>
+#include "rendering/geometry/terrain/TerrainTopology.h"
 namespace rendering { struct TerrainGeometry; }
 
 class Mesh {
@@ -14,6 +15,7 @@ public:
     std::vector<unsigned int> indices;
     bool hasVertexColors = false;
     std::uint64_t revision = 0;
+    rendering::TerrainBuildStats terrainStats{};
     
     Mesh() = default;
     

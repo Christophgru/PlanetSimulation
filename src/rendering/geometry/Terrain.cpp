@@ -8,123 +8,17 @@
 
 namespace rendering {
 
-double TerrainSurface::heightAt(const glm::dvec3& radial) const {
-    const double length = glm::length(radial);
-    if (!std::isfinite(length) || length <= 0.0) {
-        throw std::invalid_argument("Terrain height needs a finite radial direction");
-    }
-    const glm::dvec3 direction = radial / length;
-    return heightMeters(direction, 1.0) / metersPerUnit_;
+double TerrainSurface::heightAt(const glm::dvec3& radial) const { return field_.heightAt(radial); }
+double TerrainSurface::regionPlainWeight(const glm::dvec3& radial) const { return field_.regionPlainWeight(radial); }
+double TerrainSurface::regionCliffWeight(const glm::dvec3& radial) const { return field_.regionCliffWeight(radial); }
+double TerrainSurface::smoothstep(double a,double b,double x) { return PlanetField::smoothstep(a,b,x); }
+glm::dvec3 TerrainSurface::landscapeColorFactors(double h,double slope,double water,double beach,double maximum,
+    const config::PlanetConfig::TerrainMaterial& material) {
+    return PlanetField::landscapeColorFactors(h,slope,water,beach,maximum,material);
 }
-
-double TerrainSurface::regionPlainWeight(const glm::dvec3& radial) const {
-    if (!landscape_.enabled) return 0.0;
-    const double sample = valueNoise(glm::normalize(radial) * 2.7, landscape_.seed + 1);
-    return 1.0 - smoothstep(landscape_.plain_threshold - 0.06,
-                            landscape_.plain_threshold + 0.06, sample);
+TerrainSurface::GridSample TerrainSurface::makeGridSample(const glm::dvec3& radial,double height) const {
+    return {radial,radial*(1.0+height/radius_),height,0};
 }
-
-double TerrainSurface::regionCliffWeight(const glm::dvec3& radial) const {
-    if (!landscape_.enabled) return 0.0;
-    const double sample = valueNoise(glm::normalize(radial) * 2.4, landscape_.seed + 2);
-    return smoothstep(landscape_.cliff_threshold - 0.06,
-                      landscape_.cliff_threshold + 0.06, sample);
-}
-
-glm::dvec3 TerrainSurface::landscapeColorFactors(double heightMeters, double slope,
-                                         double waterLevelMeters,
-                                         double beachWidthMeters,
-                                         double maximumHeightMeters,
-                                         const config::PlanetConfig::TerrainMaterial& material) {
-    const glm::dvec3 seabed(0.30, 0.40, 0.19);
-    const glm::dvec3 beach(4.20, 1.90, 0.18);
-    const glm::dvec3 grass(1.10, 1.30, 0.18);
-    const glm::dvec3 snow(4.60, 2.30, 0.92);
-    const double beachTop = waterLevelMeters + beachWidthMeters;
-    const double beachFade = std::max(0.15, 0.15 * beachWidthMeters);
-    const double usableRelief = std::max(1.0, maximumHeightMeters - waterLevelMeters);
-    const double snowStart = std::max(beachTop + 1.0,
-                                      waterLevelMeters + 0.25 * usableRelief);
-    const double snowEnd = std::max(snowStart + 1.0,
-                                    waterLevelMeters + 0.40 * usableRelief);
-
-    const double aboveWater = smoothstep(
-        waterLevelMeters - std::max(0.05, 0.05 * beachWidthMeters),
-        waterLevelMeters + std::max(0.02, 0.02 * beachWidthMeters),
-        heightMeters);
-    const double beachWeight = aboveWater *
-        (1.0 - smoothstep(beachTop, beachTop + beachFade, heightMeters));
-    const double snowWeight = smoothstep(snowStart, snowEnd, heightMeters);
-    glm::dvec3 land = glm::mix(grass, beach, beachWeight);
-    land = glm::mix(land, snow, snowWeight);
-
-    // Convert rise/run to the shader's 1-cos(angle) measure, keeping the
-    // broad color darkening and fine gray-rock blend on the same range.
-    const auto range = material.slopeMetricRange();
-    const double steep = smoothstep(range[0], range[1],
-        1.0 - 1.0 / std::sqrt(1.0 + slope * slope));
-    land *= glm::mix(1.0, 0.50, steep);
-
-    const double submerged = 1.0 - smoothstep(
-        waterLevelMeters - std::max(0.5, 0.05 * beachWidthMeters),
-        waterLevelMeters + std::max(0.02, 0.02 * beachWidthMeters),
-        heightMeters);
-    return glm::mix(land, seabed, submerged);
-}
-
-double TerrainSurface::smoothstep(double low, double high, double value) {
-    const double t = std::clamp((value - low) / (high - low), 0.0, 1.0);
-    return t * t * (3.0 - 2.0 * t);
-}
-
-double TerrainSurface::heightMeters(const glm::dvec3& direction, double detailWeight) const {
-    double height = 0.0;
-    double detailMask = 1.0;
-    if (landscape_.enabled) {
-        const double continent = 2.0 * valueNoise(
-            direction * landscape_.continent_frequency, landscape_.seed) - 1.0;
-        const double plain = regionPlainWeight(direction);
-        const double cliff = regionCliffWeight(direction);
-        height = landscape_.elevation_offset_m +
-                 landscape_.continent_amplitude_m * continent * (1.0 - 0.8 * plain);
-        const double ridgeSignal = 2.0 * valueNoise(
-            direction * landscape_.cliff_frequency, landscape_.seed + 3) - 1.0;
-        double ridgeDistance = std::abs(ridgeSignal);
-        if (landscape_.ridge_smoothing > 0.0) {
-            const double smoothing = landscape_.ridge_smoothing;
-            const double scale = std::sqrt(1.0 + smoothing * smoothing) - smoothing;
-            ridgeDistance = (std::sqrt(ridgeSignal * ridgeSignal +
-                                       smoothing * smoothing) - smoothing) / scale;
-        }
-        const double ridge = 1.0 - std::clamp(ridgeDistance, 0.0, 1.0);
-        height += landscape_.cliff_amplitude_m * cliff * std::pow(ridge, 5.0);
-        detailMask = 1.0 - 0.9 * plain;
-    }
-    for (const auto& function : functions_) {
-        if (function.amplitude_m == 0.0) continue;
-        double frequency = function.frequency;
-        double weight = 1.0;
-        double full = 0.0;
-        double weightSum = 0.0;
-        double broad = 0.0;
-        for (int octave = 0; octave < function.octaves; ++octave) {
-            if (octave > 0 && detailWeight <= 0.0) break;
-            const double signedValue =
-                2.0 * valueNoise(direction * frequency, function.seed) - 1.0;
-            const double sample = function.type == "ridged_fbm" ?
-                1.0 - 2.0 * std::abs(signedValue) : signedValue;
-            if (octave == 0) broad = sample;
-            full += weight * sample;
-            weightSum += weight;
-            frequency *= function.lacunarity;
-            weight *= function.persistence;
-        }
-        const double mixed = broad + detailWeight * (full / weightSum - broad);
-        height += detailMask * function.amplitude_m * mixed;
-    }
-    return height;
-}
-
 int TerrainSurface::lodLevel(double cameraDistanceWorld) const {
     if (!std::isfinite(cameraDistanceWorld) || cameraDistanceWorld < 0.0) {
         throw std::invalid_argument("Invalid camera distance for terrain LOD");
@@ -142,12 +36,17 @@ int TerrainSurface::lodLevel(double cameraDistanceWorld) const {
 }
 
 TerrainGeometry TerrainSurface::buildGeometry(int edgeSegments) const {
+    return evaluateTopology(buildTopology(edgeSegments));
+}
+
+TerrainTopology TerrainSurface::buildTopology(int edgeSegments) const {
     if (edgeSegments < 1 || edgeSegments > lod_.max_edge_segments) {
         throw std::invalid_argument("Terrain edge segments exceed configured cap");
     }
-    TerrainGeometry geometry;
+    TerrainTopology geometry;
+    TerrainQueryCache queries(field_);
     const int triangles = 320 * edgeSegments * edgeSegments;
-    geometry.vertices.reserve(static_cast<std::size_t>(triangles) * 3 * 9);
+    geometry.samples.reserve(static_cast<std::size_t>(triangles)*3);
     geometry.indices.reserve(static_cast<std::size_t>(triangles) * 3);
 
     const double t = (1.0 + std::sqrt(5.0)) / 2.0;
@@ -168,8 +67,10 @@ TerrainGeometry TerrainSurface::buildGeometry(int edgeSegments) const {
         glm::dvec3 c = glm::normalize(raw[face[2]]);
         if (glm::dot(glm::cross(b - a, c - a), a + b + c) < 0.0)
             std::swap(b, c);
-        subdivideBase(a, b, c, 2, edgeSegments, geometry);
+        subdivideBase(a, b, c, 2, edgeSegments, geometry, queries);
     }
+    geometry.planningQueries=queries.stats();
+    geometry.canonicalize(field_.fingerprint());
     return geometry;
 }
 
@@ -185,7 +86,7 @@ TerrainSurface::EdgeKey TerrainSurface::edgeKey(const glm::dvec3& a, const glm::
 
 int TerrainSurface::ringCount(int segments) { return std::max(1, (segments + 1) / 2); }
 
-double TerrainSurface::maximumSlope(const BaseFace& face) const {
+double TerrainSurface::maximumSlope(const BaseFace& face, TerrainQueryCache& queries) const {
     std::vector<glm::dvec3> samples;
     samples.reserve(10);
     samples.push_back(face.center);
@@ -199,7 +100,7 @@ double TerrainSurface::maximumSlope(const BaseFace& face) const {
     std::vector<double> heights;
     heights.reserve(samples.size());
     for (const auto& sample : samples)
-        heights.push_back(heightAt(sample) * metersPerUnit_);
+        heights.push_back(queries.heightAt(sample) * metersPerUnit_);
     double maximum = 0.0;
     for (std::size_t a = 0; a < samples.size(); ++a) {
         for (std::size_t b = a + 1; b < samples.size(); ++b) {
@@ -255,108 +156,32 @@ std::vector<TerrainSurface::BaseFace> TerrainSurface::baseFaces() {
     return result;
 }
 
-std::uint32_t TerrainSurface::hash(int x, int y, int z, int seed) {
-    std::uint32_t h = static_cast<std::uint32_t>(seed);
-    h ^= static_cast<std::uint32_t>(x) * 0x9e3779b1u;
-    h ^= static_cast<std::uint32_t>(y) * 0x85ebca77u;
-    h ^= static_cast<std::uint32_t>(z) * 0xc2b2ae3du;
-    h ^= h >> 16;
-    h *= 0x7feb352du;
-    h ^= h >> 15;
-    h *= 0x846ca68bu;
-    h ^= h >> 16;
-    return h;
-}
-
-double TerrainSurface::valueNoise(const glm::dvec3& point, int seed) const {
-    const int ix = static_cast<int>(std::floor(point.x));
-    const int iy = static_cast<int>(std::floor(point.y));
-    const int iz = static_cast<int>(std::floor(point.z));
-    auto smooth = [](double f) { return f * f * (3.0 - 2.0 * f); };
-    const glm::dvec3 f(smooth(point.x - ix), smooth(point.y - iy),
-                       smooth(point.z - iz));
-    double result = 0.0;
-    for (int z = 0; z <= 1; ++z) {
-        for (int y = 0; y <= 1; ++y) {
-            for (int x = 0; x <= 1; ++x) {
-                const double value = hash(ix + x, iy + y, iz + z,
-                                          seed) / 4294967295.0;
-                result += value * (x ? f.x : 1.0 - f.x) *
-                                  (y ? f.y : 1.0 - f.y) *
-                                  (z ? f.z : 1.0 - f.z);
-            }
-        }
-    }
-    return result;
-}
-
-TerrainSurface::SurfaceGradient TerrainSurface::gradientAt(const glm::dvec3& radial, double heightMeters) const {
-    const glm::dvec3 reference = std::abs(radial.z) < 0.8 ?
-        glm::dvec3(0.0, 0.0, 1.0) : glm::dvec3(0.0, 1.0, 0.0);
-    const glm::dvec3 tangentA = glm::normalize(glm::cross(reference, radial));
-    const glm::dvec3 tangentB = glm::normalize(glm::cross(radial, tangentA));
-    const double radiusMeters = radius_ * metersPerUnit_;
-    const double angle = std::clamp(0.25 / radiusMeters, 1e-5, 0.01);
-    const double distanceMeters = radiusMeters * angle;
-    const glm::dvec3 sampleA = glm::normalize(
-        std::cos(angle) * radial + std::sin(angle) * tangentA);
-    const glm::dvec3 sampleB = glm::normalize(
-        std::cos(angle) * radial + std::sin(angle) * tangentB);
-    const double gradientA =
-        (heightAt(sampleA) * metersPerUnit_ - heightMeters) / distanceMeters;
-    const double gradientB =
-        (heightAt(sampleB) * metersPerUnit_ - heightMeters) / distanceMeters;
-    return {std::hypot(gradientA, gradientB),
-            glm::normalize(radial - gradientA * tangentA - gradientB * tangentB)};
-}
-
-glm::dvec3 TerrainSurface::colorAt(double heightWorld, double slope) const {
-    if (!landscape_.enabled) {
-        const double normalizedHeight = totalAmplitudeMeters_ == 0.0 ? 0.0 :
-            heightWorld / (totalAmplitudeMeters_ / metersPerUnit_);
-        const double tint = 0.72 + 0.45 * normalizedHeight;
-        return glm::dvec3(tint);
-    }
-    const double heightMeters = heightWorld * metersPerUnit_;
-    return landscapeColorFactors(heightMeters, slope,
-        waterLevelMeters_.value_or(0.0), 0.1,
-        totalAmplitudeMeters_,
-        material_);
-}
-
-TerrainSurface::GridSample TerrainSurface::makeGridSample(const glm::dvec3& radial, double heightWorld) const {
-    const SurfaceGradient gradient = gradientAt(
-        radial, heightWorld * metersPerUnit_);
-    return {radial * (1.0 + heightWorld / radius_), heightWorld,
-            gradient.normal, colorAt(heightWorld, gradient.slope)};
-}
-
 void TerrainSurface::subdivideBase(const glm::dvec3& a, const glm::dvec3& b,
                    const glm::dvec3& c, int remaining,
-                   int edgeSegments, TerrainGeometry& geometry) const {
+                   int edgeSegments, TerrainTopology& geometry, TerrainQueryCache& queries) const {
     if (remaining == 0) {
-        emitGrid(a, b, c, edgeSegments, geometry);
+        emitGrid(a, b, c, edgeSegments, geometry, queries);
         return;
     }
     const glm::dvec3 ab = glm::normalize(a + b);
     const glm::dvec3 bc = glm::normalize(b + c);
     const glm::dvec3 ca = glm::normalize(c + a);
-    subdivideBase(a, ab, ca, remaining - 1, edgeSegments, geometry);
-    subdivideBase(b, bc, ab, remaining - 1, edgeSegments, geometry);
-    subdivideBase(c, ca, bc, remaining - 1, edgeSegments, geometry);
-    subdivideBase(ab, bc, ca, remaining - 1, edgeSegments, geometry);
+    subdivideBase(a, ab, ca, remaining - 1, edgeSegments, geometry, queries);
+    subdivideBase(b, bc, ab, remaining - 1, edgeSegments, geometry, queries);
+    subdivideBase(c, ca, bc, remaining - 1, edgeSegments, geometry, queries);
+    subdivideBase(ab, bc, ca, remaining - 1, edgeSegments, geometry, queries);
 }
 
 void TerrainSurface::emitGrid(const glm::dvec3& a, const glm::dvec3& b,
               const glm::dvec3& c, int segments,
-              TerrainGeometry& geometry) const {
+              TerrainTopology& geometry, TerrainQueryCache& queries) const {
     std::vector<std::vector<GridSample>> grid(segments + 1);
     for (int i = 0; i <= segments; ++i) {
         for (int j = 0; i + j <= segments; ++j) {
             const glm::dvec3 radial = glm::normalize(
                 static_cast<double>(segments - i - j) * a +
                 static_cast<double>(i) * b + static_cast<double>(j) * c);
-            const double height = heightAt(radial);
+            const double height = queries.heightAt(radial);
             grid[i].push_back(makeGridSample(radial, height));
         }
     }
@@ -371,55 +196,59 @@ void TerrainSurface::emitGrid(const glm::dvec3& a, const glm::dvec3& b,
     }
 }
 
-void TerrainSurface::emitFace(const GridSample& a, const GridSample& b,
-              const GridSample& c, TerrainGeometry& geometry) const {
-    const GridSample* first = &a;
-    const GridSample* second = &b;
-    const GridSample* third = &c;
-    const glm::dvec3& pa = a.position;
-    const glm::dvec3& pb = b.position;
-    const glm::dvec3& pc = c.position;
-    if (glm::dot(glm::cross(pb - pa, pc - pa), pa + pb + pc) < 0.0)
-        std::swap(second, third);
-    const unsigned int start = static_cast<unsigned int>(geometry.indices.size());
-    for (const GridSample* sample : {first, second, third}) {
-        for (double component : {sample->position.x, sample->position.y,
-                                 sample->position.z})
-            geometry.vertices.push_back(static_cast<float>(component));
-        for (double component : {sample->normal.x, sample->normal.y,
-                                 sample->normal.z})
-            geometry.vertices.push_back(static_cast<float>(component));
-        for (double component : {sample->color.x, sample->color.y, sample->color.z})
-            geometry.vertices.push_back(static_cast<float>(component));
-        geometry.lodSinkMeters.push_back(static_cast<float>(sample->sinkMeters));
+void TerrainSurface::emitFace(const GridSample& a,const GridSample& b,
+    const GridSample& c,TerrainTopology& geometry) const {
+    const GridSample* first=&a;const GridSample* second=&b;const GridSample* third=&c;
+    if(glm::dot(glm::cross(b.position-a.position,c.position-a.position),a.position+b.position+c.position)<0)
+        std::swap(second,third);
+    const auto start=static_cast<std::uint32_t>(geometry.samples.size());
+    for(const auto* sample:{first,second,third}) {
+        geometry.planningPositions.push_back(glm::vec3(sample->position));
+        geometry.samples.push_back({{sample->radial.x,sample->radial.y,sample->radial.z},
+            static_cast<double>(static_cast<float>(sample->sinkMeters))});
     }
-    geometry.indices.insert(geometry.indices.end(), {start, start + 1, start + 2});
+    geometry.indices.insert(geometry.indices.end(),{start,start+1,start+2});
+}
+
+TerrainGeometry TerrainSurface::evaluateTopology(const TerrainTopology& topology) const {
+    CpuTrace::Scope scope("TerrainSurface::evaluateTopology");
+    topology.validate();
+    if(topology.generation.field!=field_.fingerprint())
+        throw std::invalid_argument("Terrain topology belongs to a different planet field");
+    TerrainQueryCache queries(field_);
+    std::vector<std::array<float,9>> values;values.reserve(topology.samples.size());
+    for(const auto& s:topology.samples) {
+        const glm::dvec3 radial(s.radial[0],s.radial[1],s.radial[2]);
+        const auto v=field_.sample(radial,queries.heightAt(radial),&queries);
+        std::array<float,9> packed{};
+        for(int j=0;j<3;++j) {packed[j]=static_cast<float>(v.position[j]);
+            packed[j+3]=static_cast<float>(v.normal[j]);packed[j+6]=static_cast<float>(v.color[j]);}
+        // Match legacy sinking after the first float vertex conversion.
+        if(s.sinkMeters!=0) {
+            const glm::dvec3 p(packed[0],packed[1],packed[2]);
+            const auto sunk=p-glm::normalize(p)*(s.sinkMeters/(radius_*metersPerUnit_));
+            for(int j=0;j<3;++j) packed[j]=static_cast<float>(sunk[j]);
+        }
+        values.push_back(packed);
+    }
+    TerrainGeometry geometry;
+    static_cast<TerrainBuildStats&>(geometry)=static_cast<const TerrainBuildStats&>(topology);
+    geometry.evaluationQueries=queries.stats();
+    geometry.vertices.reserve(topology.indices.size()*9);
+    geometry.indices.reserve(topology.indices.size());geometry.lodSinkMeters.reserve(topology.indices.size());
+    for(auto index:topology.indices) {
+        const auto& v=values[index];geometry.vertices.insert(geometry.vertices.end(),v.begin(),v.end());
+        geometry.indices.push_back(static_cast<unsigned>(geometry.indices.size()));
+        geometry.lodSinkMeters.push_back(static_cast<float>(topology.samples[index].sinkMeters));
+    }
+    return geometry;
 }
 
 TerrainSurface::TerrainSurface(const std::vector<config::PlanetConfig::SurfaceNoiseFunction>& functions,
-               const config::PlanetConfig::TerrainLod& lod,
-               double radiusWorld, double metersPerWorldUnit,
-               const config::PlanetConfig::TerrainLandscape& landscape,
-               std::optional<double> waterLevelMeters,
-               const config::PlanetConfig::TerrainMaterial& material)
-    : functions_(functions), lod_(lod), landscape_(landscape), radius_(radiusWorld),
-      metersPerUnit_(metersPerWorldUnit), waterLevelMeters_(waterLevelMeters), material_(material) {
-    lod_.validate();
-    landscape_.validate();
-    material_.validate();
-    for (const auto& function : functions_) {
-        function.validate();
-        totalAmplitudeMeters_ += function.amplitude_m;
-    }
-    totalAmplitudeMeters_ += landscape_.maximumAbsoluteHeightMeters();
-    if (!std::isfinite(radius_) || radius_ <= 0.0 ||
-        !std::isfinite(metersPerUnit_) || metersPerUnit_ <= 0.0 ||
-        !std::isfinite(totalAmplitudeMeters_) ||
-        totalAmplitudeMeters_ >= radius_ * metersPerUnit_ ||
-        functions_.size() > 8) {
-        throw std::invalid_argument("Invalid terrain radius or amplitude");
-    }
-    if (waterLevelMeters_ && !std::isfinite(*waterLevelMeters_))
-        throw std::invalid_argument("Invalid terrain water level");
-}
+    const config::PlanetConfig::TerrainLod& lod,double radiusWorld,double metersPerWorldUnit,
+    const config::PlanetConfig::TerrainLandscape& landscape,std::optional<double> water,
+    const config::PlanetConfig::TerrainMaterial& material)
+    : field_(functions,radiusWorld,metersPerWorldUnit,landscape,water,material),
+      lod_(lod),radius_(radiusWorld),metersPerUnit_(metersPerWorldUnit),
+      totalAmplitudeMeters_(field_.maximumReliefMeters()),waterLevelMeters_(water) { lod_.validate(); }
 } // namespace rendering

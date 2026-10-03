@@ -124,6 +124,13 @@ int Renderer::Impl::capture() {
         std::cout << "Planet " << i << " foliage candidate bounds per pass: " << stats.vertices
                   << " vertices; " << stats.triangles << " triangles; " << stats.batches
                   << " batches; instance bytes: " << stats.instanceBytes << '\n';
+        const auto& fieldStats=meshes.planetMeshes[i].terrainStats;
+        std::cout << "Planet " << i << " terrain contract: " << fieldStats.uniqueSamples
+            << " canonical samples; " << fieldStats.topologyInputBytes << " input bytes; planning queries "
+            << fieldStats.planningQueries.requests << "/" << fieldStats.planningQueries.evaluations
+            << " requested/evaluated; bulk queries " << fieldStats.evaluationQueries.requests
+            << "/" << fieldStats.evaluationQueries.evaluations << " requested/evaluated; field/topology "
+            << fieldStats.generation.field << "/" << fieldStats.generation.topology << "; backend cpu\n";
         const auto* layer=&grass.procedural;
         if (layer->usesCompute(i)) {
             const auto counts=mainGrassCounts.at(i);
@@ -288,6 +295,18 @@ int Renderer::Impl::capture() {
                 {"white_clipped_pixels", metrics.whiteClippedPixels},
                 {"white_clipped_fraction", metrics.whiteClippedFraction},
                 {"terrain_pixels", metrics.terrainPixels}, {"sky_pixels", metrics.skyPixels},
+                {"terrain_contract", {
+                    {"backend", "cpu"},
+                    {"field_version", meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats.generation.fieldVersion},
+                    {"topology_version", meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats.generation.topologyVersion},
+                    {"field_fingerprint", std::to_string(meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats.generation.field)},
+                    {"topology_fingerprint", std::to_string(meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats.generation.topology)},
+                    {"unique_samples", meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats.uniqueSamples},
+                    {"input_bytes", meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats.topologyInputBytes},
+                    {"planning_requests", meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats.planningQueries.requests},
+                    {"planning_evaluations", meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats.planningQueries.evaluations},
+                    {"evaluation_requests", meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats.evaluationQueries.requests},
+                    {"evaluation_evaluations", meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats.evaluationQueries.evaluations}}},
                 {"foliage_blades", grass.count(scene.orbitPlanetIndex)},
                 {"foliage_candidates", grass.count(scene.orbitPlanetIndex)},
                 {"foliage_patches", grass.procedural.stats(scene.orbitPlanetIndex).patches},

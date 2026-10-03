@@ -95,6 +95,8 @@ The current land payload is 120 bytes per triangle. Assuming a closed, canonical
 
 The plan keeps the existing GPU atmosphere table and optical integration, caches small uniform coefficient packs, and identifies the readback/sort of highlight tiles as a remaining reduction candidate. Future foliage budgeting reserves configured density in a near plateau before shrinking a Gaussian shoulder under measured memory/work limits; impossible near budgets require a stated fallback rather than an unachievable density promise. Backend/field/topology keys, canonical seams, double noise-coordinate arithmetic, GL resource limits, exact locked replay, sparse-contact coverage and atomic land/water/grass publication are prerequisite gates. GL 4.3 compute is opt-in until parity and total-cost measurements pass; GL 3.3 retains CPU terrain. Detailed ownership, panel comparisons, phased tasks and acceptance targets are in `architecture/terrain-gpu/plan.md`.
 
+The first prerequisite (T1) now separates a read-only CPU field oracle with a 704-byte parameter pack from indexed 32-byte radial/sink inputs. A bounded exact-coordinate height cache and validated field/topology/backend keys expose planning and bulk-evaluation work. Seventeen independent pre-refactor mesh snapshots retain exact vertex, normal, color, index and sink bytes, including both poles and production views. CPU planning still samples heights and rendering still expands corners into the existing buffers; GPU bulk evaluation is the next phase, with no upload reduction or GPU speedup claimed here. The implementation and new validation are in `architecture/terrain-gpu/contracts/study.md`.
+
 = Orbital motion and light transport
 
 == Prescribed Kepler ellipses with collective mass

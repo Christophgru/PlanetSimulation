@@ -359,7 +359,8 @@ are checked; the journal is rebuilt and reviewed with this plan clearly identifi
 as future work. No renderer, shader, config or capture image changes are part of
 this checkpoint, and it claims no new runtime performance result. The previous
 [56-entry grouped regression evidence](../../benchmarks/offline/showcase/validation/evidence.json)
-remains the runtime baseline. GPU shaping starts at T1 after this plan checkpoint.
+remains the runtime baseline for this planning checkpoint. T1 extracts the
+contracts; GPU shaping begins in T2.
 
 
 Validated at this checkpoint:
@@ -378,3 +379,12 @@ Validated at this checkpoint:
   documentation-only change; the previous 56-entry baseline remains dated.
 - [Evidence](validation/evidence.json) retains audit-source and artifact hashes,
   commands, external references and the scope of the checks.
+
+## Implementation follow-up — 2026-10-03
+
+[T1 field/topology extraction](contracts/study.md) separates the packed CPU field
+oracle from canonical indexed radial/sink inputs and adds bounded query caching,
+generation validation and capture diagnostics. CPU planning and expanded uploads
+remain; GPU bulk evaluation is still T2. New validation is recorded under that
+study rather than replacing this planning checkpoint's source fingerprint and
+analytical evidence.

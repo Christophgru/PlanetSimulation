@@ -22,6 +22,7 @@ void Mesh::addTriangle(unsigned int idx0, unsigned int idx1, unsigned int idx2) 
 
 void Mesh::buildSphereGeometry(int segments) {
     if (segments < 3) throw std::invalid_argument("Sphere needs at least 3 segments");
+    terrainStats={};
     vertices.clear();
     indices.clear();
     hasVertexColors = false;
@@ -68,6 +69,7 @@ void Mesh::generateSphere(int segments) {
 }
 
 void Mesh::buildCubeGeometry() {
+    terrainStats={};
     vertices.clear();
     indices.clear();
     hasVertexColors = false;
@@ -93,6 +95,7 @@ void Mesh::generateCube() {
 }
 
 void Mesh::loadTerrain(rendering::TerrainGeometry geometry) {
+    terrainStats=static_cast<const rendering::TerrainBuildStats&>(geometry);
     vertices = std::move(geometry.vertices);
     indices = std::move(geometry.indices);
     hasVertexColors = true;

@@ -1,0 +1,4 @@
+typst 0.15.1 (9dfd3a08)
+Command: typst compile -j 2 --root . docs/journal/paper.typ docs/journal/paper.pdf
+Compile completed with exit status 0 and no warnings.
+PDF: 24 pages. Exported pages 3-6 and 24 visually reviewed without clipping.

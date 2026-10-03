@@ -1,0 +1,149 @@
+{
+  "date_utc": "2026-10-03T15:13:38.834034+00:00",
+  "base_revision": "4b1c2ff156fa8551ac832a85d78852dc42c7f841",
+  "scope": "T1 CPU field/topology extraction, bounded query reuse, generation validation and diagnostics; no GPU terrain backend or runtime upload reduction.",
+  "runtime_source_sha256": "94dc2a98897ef1675cfee99e2da3f43dfe7b6759ccb5f45c7a7d763033a62470",
+  "baseline_binary_sha256": "a2cef6e566ce07bbf50e839d948f9d52460de663acdd78bc21a5c9a80c8bec2f",
+  "final_binary_sha256": "eda80335f1a15eb966a52931be6ddb3c934fd53cd685ed103e7b9a974a5369d5",
+  "renderer": "llvmpipe (LLVM 15.0.6, 256 bits), software OpenGL",
+  "environment": {
+    "LIBGL_ALWAYS_SOFTWARE": "1",
+    "LP_NUM_THREADS": "2",
+    "build_type": "RelWithDebInfo",
+    "compiler": "GCC 12"
+  },
+  "commands": {
+    "build": "cmake --build build-resume -j2",
+    "contracts": "build-resume/tests/terrain_tests --gtest_filter='TerrainContracts.*'",
+    "tests": "LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=2 xvfb-run -a ctest --test-dir build-resume --output-on-failure",
+    "snapshot_compile": "c++ -std=c++20 -O2 -Isrc -Ibuild/_deps/glm-src -Ibuild/_deps/nlohmann_json-src/include docs/journal/architecture/terrain-gpu/contracts/validation/snapshot.cpp build-resume/libplanet_geometry.a build-resume/libplanet_config.a build-resume/libplanet_diagnostics.a -pthread -o build-resume/terrain-contracts/snapshot-after",
+    "snapshot": "build-resume/terrain-contracts/snapshot-after",
+    "typst": "build-terrain/typst-x86_64-unknown-linux-musl/typst compile -j 2 --root . docs/journal/paper.typ docs/journal/paper.pdf",
+    "layout": "python3 scripts/check_layout.py"
+  },
+  "validation": {
+    "build": "passed",
+    "contract_cases_passed": 7,
+    "independent_mesh_snapshots_exact": 17,
+    "retained_smaller_mesh_goldens": 15,
+    "native_replays_exact": 2,
+    "gallery_hashes_unchanged": 22,
+    "ctest": "passed",
+    "local_links": "passed",
+    "repository_layout": "passed",
+    "whitespace": "passed",
+    "pdf_pages": 24,
+    "pdf_reviewed_pages": [
+      3,
+      4,
+      5,
+      6,
+      24
+    ],
+    "ctest_groups_passed": 56,
+    "ctest_groups_failed": 0,
+    "ctest_seconds": 641.75,
+    "native_captures_visually_reviewed": [
+      "shoreline",
+      "offline"
+    ]
+  },
+  "layout": {
+    "field_version": 1,
+    "topology_version": 1,
+    "parameters_bytes": 704,
+    "noise_record_bytes": 64,
+    "radial_sink_bytes": 32,
+    "indices_bytes": 4,
+    "cache_capacity_entries": 8192,
+    "actual_land_upload_bytes_per_triangle": 120
+  },
+  "captures": [
+    {
+      "image": "docs/journal/architecture/terrain-gpu/contracts/captures/shoreline.png",
+      "sha256": "442663c847316e3daf696f3fe92d7ddf1422043750eb79ca081b79a601df68f7",
+      "metadata": "docs/journal/architecture/terrain-gpu/contracts/captures/shoreline.png.json",
+      "input_replay": "docs/captures/replay/terrain/shoreline-detail.png.json",
+      "input_replay_sha256": "e035b6ca93549796a65b74c5a9ec1b9bd56a4a127b6945a0cd780bed6a40bb8a",
+      "command": "LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=2 xvfb-run -a build-resume/PlanetSimulation --replay docs/captures/replay/terrain/shoreline-detail.png.json --surface-capture docs/journal/architecture/terrain-gpu/contracts/captures/shoreline.png",
+      "size": [
+        960,
+        540
+      ],
+      "triangles": [
+        100000,
+        960
+      ],
+      "terrain_contract": {
+        "backend": "cpu",
+        "evaluation_evaluations": 150006,
+        "evaluation_requests": 150006,
+        "field_fingerprint": "10975133402283726949",
+        "field_version": 1,
+        "input_bytes": 2800064,
+        "planning_evaluations": 61616,
+        "planning_requests": 63377,
+        "topology_fingerprint": "9433235253596519504",
+        "topology_version": 1,
+        "unique_samples": 50002
+      },
+      "foliage_gpu_working_bytes": 25583392,
+      "foliage_gpu_drawn_blades": 8419,
+      "lens_flare_strength": 0.0,
+      "native_png_exact_against_previous_gallery": true
+    },
+    {
+      "image": "docs/journal/architecture/terrain-gpu/contracts/captures/offline.png",
+      "sha256": "32122b583bba98ef5332a47d022ff03957fddd7122430679836f5c39e10387bd",
+      "metadata": "docs/journal/architecture/terrain-gpu/contracts/captures/offline.png.json",
+      "input_replay": "docs/captures/replay/offline/offline-render.png.json",
+      "input_replay_sha256": "5a7d6ceb72ac87f84faf7f7898b33fe8ea357ef686350a8a30c20d41ece1cecc",
+      "command": "LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=2 xvfb-run -a build-resume/PlanetSimulation --replay docs/captures/replay/offline/offline-render.png.json --offline-render docs/journal/architecture/terrain-gpu/contracts/captures/offline.png --render-size 1920 1080",
+      "size": [
+        1920,
+        1080
+      ],
+      "triangles": [
+        100000,
+        86400
+      ],
+      "terrain_contract": {
+        "backend": "cpu",
+        "evaluation_evaluations": 150006,
+        "evaluation_requests": 150006,
+        "field_fingerprint": "10975133402283726949",
+        "field_version": 1,
+        "input_bytes": 2800064,
+        "planning_evaluations": 79761,
+        "planning_requests": 81117,
+        "topology_fingerprint": "18025511123947312239",
+        "topology_version": 1,
+        "unique_samples": 50002
+      },
+      "foliage_gpu_working_bytes": 1535998624,
+      "foliage_gpu_drawn_blades": 213454,
+      "lens_flare_strength": 0.13436052268716278,
+      "native_png_exact_against_previous_gallery": true
+    }
+  ],
+  "artifacts_sha256": {
+    "docs/journal/architecture/terrain-gpu/contracts/captures/offline.log": "c963bc014b6e7af650e441143ba753071aad23c34900cc6e240202f60cf426b2",
+    "docs/journal/architecture/terrain-gpu/contracts/captures/offline.png": "32122b583bba98ef5332a47d022ff03957fddd7122430679836f5c39e10387bd",
+    "docs/journal/architecture/terrain-gpu/contracts/captures/offline.png.json": "67fe05c82cda558bd9dd7c32ab0f8d65442422f7215ded015a4961af6190e3dd",
+    "docs/journal/architecture/terrain-gpu/contracts/captures/shoreline.log": "8f87672a7a10aca8948a16098ecd4a0f4a4d747bd7e1ca7c8b1768d9f85cab49",
+    "docs/journal/architecture/terrain-gpu/contracts/captures/shoreline.png": "442663c847316e3daf696f3fe92d7ddf1422043750eb79ca081b79a601df68f7",
+    "docs/journal/architecture/terrain-gpu/contracts/captures/shoreline.png.json": "77278c4cc46fa79b7a7916cc27074fc2070c9ef681cc759b328fe25fe5e9d62b",
+    "docs/journal/architecture/terrain-gpu/contracts/study.md": "4c331292d14c12427cb50f96ce8a82284040691a5c54aa8a0e077dc18587d9de",
+    "docs/journal/architecture/terrain-gpu/contracts/validation/build.log": "e1336b2309c7e9d67412a22005b91561bc42fac03bceee1ca8126a3d3f162f21",
+    "docs/journal/architecture/terrain-gpu/contracts/validation/checks.log": "d7c10fcc0160fe9c15f7334b72a310a0cf4f5d936bc0e965888ffedb1aa44129",
+    "docs/journal/architecture/terrain-gpu/contracts/validation/contracts.log": "7fc468fe2c97eb876531530bd6f601d5bfb0d70ef46be7bd6fbdc42eff0bfc6c",
+    "docs/journal/architecture/terrain-gpu/contracts/validation/mesh-after.txt": "6aa6b74890376500b82596e03c070d57d98d7a78b6164bd19cd7a916a5982fe0",
+    "docs/journal/architecture/terrain-gpu/contracts/validation/mesh-before.txt": "6aa6b74890376500b82596e03c070d57d98d7a78b6164bd19cd7a916a5982fe0",
+    "docs/journal/architecture/terrain-gpu/contracts/validation/snapshot.cpp": "53900ea31a7f5c67545df4ad4089d77936127905ca2ae939b6101e3469ef6489",
+    "docs/journal/architecture/terrain-gpu/contracts/validation/tests.log": "e7a3e869bad2280efb86b927651b9c69c40a84fa46e24c60a11d289211b96edc",
+    "docs/journal/architecture/terrain-gpu/contracts/validation/typst.log": "db29a14d62cfb2b24041acfac059373735d2b692a226ea0092c51f6c182a0400",
+    "docs/journal/paper.typ": "781d097c6b72f634e32f84b9b0cd01961fa5a33785359ae98d629cb77dae162f",
+    "docs/journal/paper.pdf": "de27de2ccb273a9efa427c8acc3f1f447b2640a412c28d3b0782a8742bddd259"
+  },
+  "validated_utc": "2026-10-03T15:25:29.073607+00:00"
+}

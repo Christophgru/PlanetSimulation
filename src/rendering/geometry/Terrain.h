@@ -8,26 +8,18 @@
 
 #include <glm/glm.hpp>
 #include "config/ScenarioConfig.h"
+#include "rendering/geometry/terrain/TerrainTopology.h"
 
 namespace rendering {
 
 // Positions and colors are interleaved as position, face normal, color factor.
 // Faces own vertices, but shared corners receive the same sampled height tint.
 // Landscape rendering uses per-fragment height; other bodies keep these tints.
-struct TerrainGeometry {
+struct TerrainGeometry : TerrainBuildStats {
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
-    std::array<int, 3> zoneFaces{}; // compatibility summary: level 0, levels 1-6, level 7
-    std::array<int, 8> lodFaces{}; // coarse to fine, one selected level per base face
-    std::vector<int> faceZones; // levels 0-7, for LOD hysteresis
-    // CPU-only displacement, shared/interpolated through shoreline refinement.
-    // Applied once after tessellation; never added to the GPU vertex stride.
     std::vector<float> lodSinkMeters;
-    int steepRefinedFaces = 0;
-    int shorelineAddedTriangles = 0;
-    int coarseNoiseSamples = 0;
-    int fineNoiseSamples = 0;
-    int triangleCount() const { return static_cast<int>(indices.size() / 3); }
+    int triangleCount() const { return static_cast<int>(indices.size()/3); }
 };
 
 class TerrainSurface {
@@ -51,13 +43,6 @@ public:
                                              double maximumHeightMeters,
                                              const config::PlanetConfig::TerrainMaterial& material = {});
 
-private:
-    static double smoothstep(double low, double high, double value);
-
-    double heightMeters(const glm::dvec3& direction, double detailWeight) const;
-
-public:
-
     int lodLevel(double cameraDistanceWorld) const;
 
     TerrainGeometry buildGeometry(int edgeSegments) const;
@@ -72,22 +57,23 @@ public:
                                         double zoneHysteresisMeters = 0.0) const;
 
     const std::vector<config::PlanetConfig::SurfaceNoiseFunction>& functions() const {
-        return functions_;
+        return field_.functions();
     }
     const config::PlanetConfig::TerrainLod& lodSettings() const { return lod_; }
+    const PlanetField& field() const { return field_; }
+    TerrainTopology buildTopology(int edgeSegments) const;
+    TerrainTopology buildTopologyForEye(const glm::dvec3& eyeWorld,const glm::dvec3& center,
+        const std::vector<int>* previousFaceZones=nullptr,double hysteresisMeters=0.0) const;
+    TerrainGeometry evaluateTopology(const TerrainTopology& topology) const;
 
 private:
-    void refineShoreline(TerrainGeometry& geometry, const glm::dvec3& eyeBody) const;
+    static double smoothstep(double low, double high, double value);
+    void refineShoreline(TerrainTopology& geometry, const glm::dvec3& eyeBody, TerrainQueryCache& queries) const;
     struct GridSample {
+        glm::dvec3 radial;
         glm::dvec3 position;
         double height;
-        glm::dvec3 normal;
-        glm::dvec3 color;
         double sinkMeters = 0.0;
-    };
-    struct SurfaceGradient {
-        double slope;
-        glm::dvec3 normal;
     };
     using VertexKey = std::array<std::int64_t, 3>;
     using EdgeKey = std::pair<VertexKey, VertexKey>;
@@ -108,7 +94,7 @@ private:
     static EdgeKey edgeKey(const glm::dvec3& a, const glm::dvec3& b);
     static int ringCount(int segments);
 
-    double maximumSlope(const BaseFace& face) const;
+    double maximumSlope(const BaseFace& face, TerrainQueryCache& queries) const;
 
     static void collectBase(const glm::dvec3& a, const glm::dvec3& b,
                             const glm::dvec3& c, int remaining,
@@ -116,35 +102,25 @@ private:
 
     static std::vector<BaseFace> baseFaces();
 
-    static std::uint32_t hash(int x, int y, int z, int seed);
-
-    double valueNoise(const glm::dvec3& point, int seed) const;
-
-    SurfaceGradient gradientAt(const glm::dvec3& radial, double heightMeters) const;
-
-    glm::dvec3 colorAt(double heightWorld, double slope) const;
-
     GridSample makeGridSample(const glm::dvec3& radial, double heightWorld) const;
 
     void subdivideBase(const glm::dvec3& a, const glm::dvec3& b,
                        const glm::dvec3& c, int remaining,
-                       int edgeSegments, TerrainGeometry& geometry) const;
+                       int edgeSegments, TerrainTopology& geometry, TerrainQueryCache& queries) const;
 
     void emitGrid(const glm::dvec3& a, const glm::dvec3& b,
                   const glm::dvec3& c, int segments,
-                  TerrainGeometry& geometry) const;
+                  TerrainTopology& geometry, TerrainQueryCache& queries) const;
 
     void emitFace(const GridSample& a, const GridSample& b,
-                  const GridSample& c, TerrainGeometry& geometry) const;
+                  const GridSample& c, TerrainTopology& geometry) const;
 
-    std::vector<config::PlanetConfig::SurfaceNoiseFunction> functions_;
+    PlanetField field_;
     config::PlanetConfig::TerrainLod lod_;
-    config::PlanetConfig::TerrainLandscape landscape_;
     double radius_;
     double metersPerUnit_;
     double totalAmplitudeMeters_ = 0.0;
     std::optional<double> waterLevelMeters_;
-    config::PlanetConfig::TerrainMaterial material_;
 };
 
 } // namespace rendering

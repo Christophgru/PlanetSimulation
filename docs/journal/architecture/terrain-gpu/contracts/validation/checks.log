@@ -1,0 +1,11 @@
+PASS local links: README.md
+PASS local links: docs/journal/README.md
+PASS local links: docs/journal/architecture/terrain-gpu/plan.md
+PASS local links: docs/journal/architecture/terrain-gpu/contracts/study.md
+PASS all 22 gallery image SHA-256 values unchanged
+PASS exact native replay: shoreline 442663c847316e3daf696f3fe92d7ddf1422043750eb79ca081b79a601df68f7
+PASS exact native replay: offline 32122b583bba98ef5332a47d022ff03957fddd7122430679836f5c39e10387bd
+PASS 17 independent pre-refactor mesh byte hashes
+PASS Typst journal: 24 pages; visually reviewed 3, 4, 5, 6 and 24
+Validated folder limits, image-only gallery and README capture links
+PASS git diff --check
