@@ -1,0 +1,5 @@
+PASS all local Markdown links in docs/journal/architecture/terrain-gpu/plan.md, README.md, docs/journal/README.md
+PASS unchanged runtime source fingerprint 86222331df9de34d31db648fcdc296f5cc7f781a526a10030e150a2dc19e59e8
+PASS all 22 gallery hashes unchanged
+PASS worksheet topology/capacity/transfer arithmetic
+PASS journal PDF page tree 24 pages

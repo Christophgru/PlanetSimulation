@@ -57,3 +57,10 @@ centimetre wind-ripple normal relief, distance filtering and shoreline captures.
 
 The [two-page WebAssembly memo](portability/wasm.pdf) assesses a browser port,
 with compilation/runtime diagrams, dependency changes and WebGL/WebGPU tradeoffs.
+
+The [CPU–GPU terrain and atmosphere plan](architecture/terrain-gpu/plan.md)
+audits current ownership and chooses triangular icosahedral panels for the first
+migration. It defines GPU bulk fields, CPU subdivision/sinking and sparse contacts,
+shared generation installation, atmosphere reductions, foliage budgets, fallback
+and validation gates. Its checked worksheet contains design arithmetic, not a
+runtime speedup measurement.

@@ -1,0 +1,64 @@
+{
+  "scope": "Analytical design worksheet; no new runtime/performance measurements",
+  "production_config_sha256": "f8dd8d33d9482f6072ca15cd9a6827179f0c625fdb2d746e6fa6509bbcd94ae0",
+  "showcase_results_sha256": "70d81f39bb2982379129277de990baa3ae2dfbd5c757709ab947477c2628d782",
+  "topology": [
+    {
+      "level": 0,
+      "vertices": 12,
+      "edges": 30,
+      "triangles": 20,
+      "dual_pentagons": 12,
+      "dual_hexagons": 0,
+      "euler_characteristic": 2
+    },
+    {
+      "level": 1,
+      "vertices": 42,
+      "edges": 120,
+      "triangles": 80,
+      "dual_pentagons": 12,
+      "dual_hexagons": 30,
+      "euler_characteristic": 2
+    },
+    {
+      "level": 2,
+      "vertices": 162,
+      "edges": 480,
+      "triangles": 320,
+      "dual_pentagons": 12,
+      "dual_hexagons": 150,
+      "euler_characteristic": 2
+    },
+    {
+      "level": 3,
+      "vertices": 642,
+      "edges": 1920,
+      "triangles": 1280,
+      "dual_pentagons": 12,
+      "dual_hexagons": 630,
+      "euler_characteristic": 2
+    }
+  ],
+  "transfer_model": {
+    "triangles": 100000,
+    "assumed_unique_vertices": 50002,
+    "current_duplicate_mesh_upload_bytes": 12000000,
+    "proposed_double_direction_sink_and_indices_bytes": 2800064,
+    "upload_reduction_fraction": 0.7666613333333333,
+    "proposed_gpu_render_buffer_and_indices_bytes": 3000072,
+    "excludes": "parameters, alignment, IDs, shoreline decisions, staging and cached topology"
+  },
+  "foliage_capacity": {
+    "bytes_per_current_candidate": 128,
+    "dense_measured_candidates": 11999989,
+    "dense_measured_bytes": 1535998624,
+    "hypothetical_queue_budget_bytes": 268435456,
+    "hypothetical_capacity": 2097151,
+    "density_per_m2": 120.72,
+    "proposed_near_plateau_radius_m": 15.0,
+    "ideal_near_candidates_before_slots_and_margin": 85331.93965680596,
+    "ideal_near_two_queue_bytes": 10922528,
+    "notes": "Near count assumes an entirely eligible reference sphere at surface height and chord distance; slots, rebuild margin and terrain area increase reservation."
+  }
+}

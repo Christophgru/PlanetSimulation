@@ -82,6 +82,19 @@ The sampled height feeds normals and terrain color factors as well as eye cleara
 
 #figure(image("../screenshots/surface-view.png", width: 83%), caption: [Surface-camera capture of procedurally generated terrain. Geometry derives from the stable height function while tessellation is selected for this camera. Source: current gallery.]) <fig:surface>
 
+== Planned GPU generation and surface ownership
+
+The next architecture step is a plan, not an implemented GPU terrain backend. A source audit finds CPU bulk height/gradient/material sampling and duplicated land vertices, CPU shoreline subdivision and grass planning, but already GPU density-column tables and atmospheric ray integration. The first migration retains the 320 triangular icosahedral panels: CPU workers select topology, reconcile shared edges and choose inward sink scalars; GPU compute evaluates configured planet-local fields into reusable buffers. Hexagonal duals require pentagonal exceptions on a sphere, while H3 child boundaries only approximately fit parents. The checked design worksheet confirms twelve exceptional dual cells and manifold closure through three subdivision levels. A cube sphere is another possible future chart system, but changing topology would also change current face/replay identities.
+
+#figure(grid(columns: (1fr, 1fr), gutter: 8pt,
+  block(fill: pale, inset: 9pt, radius: 4pt)[*CPU ownership* #linebreak()Validated parameters and double body transforms #linebreak()Canonical topology, LOD and sink scalars #linebreak()Sparse matching collision triangles #linebreak()Memory ledger and versioned installation],
+  block(fill: pale, inset: 9pt, radius: 4pt)[*GPU ownership* #linebreak()Bulk shape, gradient and material fields #linebreak()Resident terrain and water buffers #linebreak()Grass metadata, roots and draw queues #linebreak()Atmospheric fields and integration]),
+  caption: [Proposed generation contract. One complete generation supplies main views, shadows, reflections, foliage and contacts. This diagram describes future work; the CPU terrain fallback remains available.])
+
+The current land payload is 120 bytes per triangle. Assuming a closed, canonically indexed 100,000-triangle surface with 50,002 shared vertices, 32-byte double radial/sink descriptors plus indices would upload 2,800,064 bytes instead of 12,000,000: an analytical 76.666% reduction before parameters, metadata, alignment and staging. GPU outputs and spare generations still occupy memory; this estimate is neither a measured speedup nor a total VRAM saving. A bounded CPU collision mirror must intersect the same selected triangle planes and inward offsets as rendering, avoiding full-body GPU readback. Grass planning currently depends on CPU shaped vertices, so its metadata/slot allocation must move before that full CPU mirror can be removed.
+
+The plan keeps the existing GPU atmosphere table and optical integration, caches small uniform coefficient packs, and identifies the readback/sort of highlight tiles as a remaining reduction candidate. Future foliage budgeting reserves configured density in a near plateau before shrinking a Gaussian shoulder under measured memory/work limits; impossible near budgets require a stated fallback rather than an unachievable density promise. Backend/field/topology keys, canonical seams, double noise-coordinate arithmetic, GL resource limits, exact locked replay, sparse-contact coverage and atomic land/water/grass publication are prerequisite gates. GL 4.3 compute is opt-in until parity and total-cost measurements pass; GL 3.3 retains CPU terrain. Detailed ownership, panel comparisons, phased tasks and acceptance targets are in `architecture/terrain-gpu/plan.md`.
+
 = Orbital motion and light transport
 
 == Prescribed Kepler ellipses with collective mass

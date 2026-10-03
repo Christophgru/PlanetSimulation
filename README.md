@@ -975,6 +975,12 @@ Capture logs include all eight face counts and submitted terrain-buffer bytes.
 The [terrain LOD journal](docs/journal/benchmarks/terrain-lod.md) records the
 implementation, regression coverage and capture results.
 
+The [CPU–GPU generation plan](docs/journal/architecture/terrain-gpu/plan.md) defines
+the next migration: CPU subdivision/sinking and sparse contacts, GPU bulk shape
+and normals, shared terrain/foliage buffers, and the remaining atmospheric work.
+It evaluates hexagonal panels and sets memory, precision and validation gates.
+The current renderer still uses CPU terrain generation.
+
 Near water, `terrain_lod.shoreline_edge_m` targets 1 m edges within
 `shoreline_distance_m` (80 m by default). Set the edge target to `0` to disable
 this extra refinement. Targets support 0.1–100 m and distances 1–1000 m.
