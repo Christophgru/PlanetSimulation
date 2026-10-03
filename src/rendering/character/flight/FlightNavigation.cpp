@@ -82,7 +82,7 @@ FlightStep FlightNavigation::advance(FlightState& s,const std::vector<FlightBody
         const auto& b=bodies[i];
         const double drag=JetpackPhysics::dragCoefficient(b.environment,b.localPoint(s.position));
         if (drag<=0) continue;
-        const auto velocity=b.surfaceVelocity(s.position), relative=s.velocity-velocity;
+        const auto velocity=b.airVelocity(s.position), relative=s.velocity-velocity;
         air.push_back({drag,velocity});
         dragAcceleration+=drag*glm::length(relative)*relative;
     }

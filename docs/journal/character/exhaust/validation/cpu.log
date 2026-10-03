@@ -1,0 +1,32 @@
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 8 tests from Exhaust
+[ RUN      ] Exhaust.StartsIncrementallyAndRetainsFadingReleaseTail
+[       OK ] Exhaust.StartsIncrementallyAndRetainsFadingReleaseTail (0 ms)
+[ RUN      ] Exhaust.LifetimeSmoothlyFadesInAndOutWithoutOpaqueShells
+[       OK ] Exhaust.LifetimeSmoothlyFadesInAndOutWithoutOpaqueShells (0 ms)
+[ RUN      ] Exhaust.WorldParticlesInheritVelocityAndDoNotFollowEmitterRelocation
+[       OK ] Exhaust.WorldParticlesInheritVelocityAndDoNotFollowEmitterRelocation (0 ms)
+[ RUN      ] Exhaust.DenseWindAdvectsParticlesWhileVacuumRemainsBallistic
+[       OK ] Exhaust.DenseWindAdvectsParticlesWhileVacuumRemainsBallistic (0 ms)
+[ RUN      ] Exhaust.CapacityAndUploadsStayBoundedDuringLongBurn
+[       OK ] Exhaust.CapacityAndUploadsStayBoundedDuringLongBurn (3 ms)
+[ RUN      ] Exhaust.SavedPoolAndEmissionClockContinueExactly
+[       OK ] Exhaust.SavedPoolAndEmissionClockContinueExactly (0 ms)
+[ RUN      ] Exhaust.RejectsOversizedDuplicateAndNonfiniteReplay
+[       OK ] Exhaust.RejectsOversizedDuplicateAndNonfiniteReplay (0 ms)
+[ RUN      ] Exhaust.AntipodalNozzleTurnsKeepFiniteParticleMotion
+[       OK ] Exhaust.AntipodalNozzleTurnsKeepFiniteParticleMotion (0 ms)
+[----------] 8 tests from Exhaust (3 ms total)
+
+[----------] 2 tests from WindCoupling
+[ RUN      ] WindCoupling.UsesSharedClockSeedStrengthAndTangentDirection
+[       OK ] WindCoupling.UsesSharedClockSeedStrengthAndTangentDirection (0 ms)
+[ RUN      ] WindCoupling.AstronautDragRespondsToWindOnlyWhereGasExists
+[       OK ] WindCoupling.AstronautDragRespondsToWindOnlyWhereGasExists (0 ms)
+[----------] 2 tests from WindCoupling (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (5 ms total)
+[  PASSED  ] 10 tests.

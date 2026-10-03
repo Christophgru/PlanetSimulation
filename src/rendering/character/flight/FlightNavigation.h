@@ -13,7 +13,12 @@ struct FlightBody {
     FlightEnvironment environment;
     bool orientable=true;
     GroundQuery ground;
+    std::function<glm::dvec3(const glm::dvec3&,double)> wind;
+    double windTime=0;
     glm::dvec3 localPoint(const glm::dvec3& p) const { return glm::transpose(orientation)*(p-position); }
+    glm::dvec3 airVelocity(const glm::dvec3& p) const {
+        return surfaceVelocity(p)+(wind ? orientation*wind(localPoint(p),windTime) : glm::dvec3(0));
+    }
     glm::dvec3 surfaceVelocity(const glm::dvec3& p) const {
         return velocity+glm::cross(angularVelocity,p-position);
     }

@@ -1,0 +1,8 @@
+Frozen renderer source and executable match the tested fingerprints.
+All 22 gallery PNG hashes and refreshed jetpack provenance match.
+Burn/release/retirement PNGs and complete pose/particle replays are exact; published copies match.
+Both additional plume views replay byte-identically; published copies match.
+Journal PDF compiled successfully; character and evaluation pages 20–24 visually reviewed.
+python3 scripts/check_layout.py: PASS
+Validated folder limits, image-only gallery and README capture links
+git -c safe.directory=/workspace diff --check: PASS

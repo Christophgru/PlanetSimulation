@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <bit>
+#include "rendering/foliage/wind/WindField.h"
 
 namespace rendering {
 namespace {
@@ -19,6 +20,16 @@ nlohmann::json Renderer::Impl::astronautState() const {
         {"boost_pulse_s",p.boostPulse},{"airborne",p.airborne},{"jetpack_armed",p.jetpackArmed},{"boosting",p.boosting},
         {"velocity_mps",vector(p.velocity)},{"suit_up",vector(p.suitUp)},{"thrust_n",p.thrustN},
         {"body_offset_m",vector(p.bodyOffset)}};
+    result["wind_time_s"]=characterWindTime;
+    const auto& effect=astronaut.exhaust.state();
+    result["exhaust"]={{"schema",1},{"emission_phase_s",effect.emissionPhase},{"next_id",effect.nextId},
+        {"particles",nlohmann::json::array()},{"capacity",ExhaustParticles::capacity},
+        {"draw_calls_per_view",effect.particles.empty() ? 0 : 1},
+        {"instance_bytes_per_view",effect.particles.size()*8*sizeof(float)}};
+    for (const auto& particle:effect.particles)
+        result["exhaust"]["particles"].push_back({{"position_m",vector(particle.position)},
+            {"velocity_mps",vector(particle.velocity)},{"age_s",particle.age},
+            {"lifetime_s",particle.lifetime},{"id",particle.id}});
     if (p.navigation) {
         const auto& n=*p.navigation;
         result["navigation"]={{"position_m",vector(n.position)},{"velocity_mps",vector(n.velocity)},
@@ -131,8 +142,14 @@ void Renderer::Impl::prepareAstronaut(double elapsed) {
                 return contact;
             };
         }
+        b.windTime=characterWindTime;
+        if (i>0) {
+            const auto foliage=scene.scenario.planets[i-1].foliage;
+            b.wind=[foliage](const glm::dvec3& p,double time) { return WindField::velocity(foliage,p,time); };
+        }
         flightBodies.push_back(std::move(b));
     }
+    const auto exhaustBodies=flightBodies;
     astronaut.motion.setFlightWorld(std::move(flightBodies),index+1);
     astronaut.motion.setFlightViewUp(glm::transpose(body.orientation)*camera.up());
     astronaut.motion.setFlightEnvironment(environment(planet),JetpackPhysics::maximumThrust(environment(scene.scenario.planets.front())));
@@ -149,6 +166,17 @@ void Renderer::Impl::prepareAstronaut(double elapsed) {
         const auto replay=config::Config::load(options.replayPath).data();
         if (replay.contains("astronaut_pose")) {
             const auto& j=replay.at("astronaut_pose");
+            if (j.contains("exhaust")) {
+                const auto& e=j.at("exhaust");
+                if (e.at("schema").get<int>()!=1 || !e.at("particles").is_array() ||
+                    e.at("particles").size()>ExhaustParticles::capacity)
+                    throw std::invalid_argument("Unsupported exhaust replay");
+                ExhaustState state;
+                state.emissionPhase=e.at("emission_phase_s").get<double>(); state.nextId=e.at("next_id").get<std::uint64_t>();
+                for (const auto& q:e.at("particles")) state.particles.push_back({vector(q.at("position_m")),
+                    vector(q.at("velocity_mps")),q.at("age_s").get<double>(),q.at("lifetime_s").get<double>(),q.at("id").get<std::uint64_t>()});
+                astronaut.exhaust.restore(state);
+            }
             AstronautPose p;
             p.root=vector(j.at("root")); p.up=vector(j.at("up"));
             p.forward=vector(j.at("forward")); p.right=vector(j.at("right"));
@@ -264,6 +292,51 @@ void Renderer::Impl::prepareAstronaut(double elapsed) {
     };
     const auto chase=astronaut.motion.chase(glm::transpose(currentBody.orientation)*camera.direction(),
         current==index ? ground : currentGround,glm::transpose(currentBody.orientation)*camera.up());
+    ExhaustEmitter emitter;
+    const auto basis=currentBody.orientation*pose.suitBasis();
+    const auto worldRoot=currentBody.position*units+currentBody.orientation*pose.root;
+    for (int side=0;side<2;++side)
+        emitter.nozzles[side]=worldRoot+basis*(glm::dvec3(side==0 ? -.12 : .12,.76,.23)+pose.bodyOffset);
+    emitter.up=basis[1]; emitter.firing=pose.boosting && pose.thrustN>0;
+    emitter.velocity=pose.navigation ? pose.navigation->velocity :
+        exhaustBodies[current+1].surfaceVelocity(worldRoot)+currentBody.orientation*pose.velocity;
+    const auto before=astronaut.lastEmitter.value_or(emitter);
+    auto sampled=exhaustBodies;
+    double sampledOffset=std::numeric_limits<double>::infinity();
+    const auto sampleAir=[&](const glm::dvec3& position,double offset) {
+        // All particles in one substep share the ephemeris sampling time.
+        // Cache descriptors rather than copying heap-owned callbacks per bubble.
+        if (offset!=sampledOffset) {
+            for (std::size_t i=0;i<sampled.size();++i) {
+                auto& b=sampled[i]; const auto& target=exhaustBodies[i];
+                b.position=target.position+target.velocity*offset; b.windTime=target.windTime+offset;
+                const double spin=glm::length(target.angularVelocity);
+                b.orientation=spin>1e-12 ? glm::dmat3(glm::rotate(glm::dmat4(1),spin*offset,target.angularVelocity/spin))*target.orientation : target.orientation;
+            }
+            sampledOffset=offset;
+        }
+        ExhaustAir air; air.gravity=FlightNavigation::gravity(sampled,position);
+        for (auto i:FlightNavigation::nearest(sampled,position)) {
+            const auto& b=sampled[i];
+            const double density=JetpackPhysics::density(b.environment,b.localPoint(position));
+            if (density<=0) continue;
+            air.velocity+=b.airVelocity(position)*density; air.density+=density;
+        }
+        if (air.density>0) air.velocity/=air.density;
+        return air;
+    };
+    if (astronaut.exhaustTime) {
+        const double gap=std::max(0.0,characterWindTime-*astronaut.exhaustTime-elapsed);
+        if (gap>=2) {
+            auto expired=astronaut.exhaust.state(); expired.particles.clear(); expired.emissionPhase=0;
+            astronaut.exhaust.restore(expired);
+        } else if (gap>1e-9) {
+            auto inactive=before; inactive.firing=false;
+            astronaut.exhaust.update(gap,inactive,inactive,[&](const auto& p,double offset) { return sampleAir(p,offset-elapsed); });
+        }
+    }
+    astronaut.exhaust.update(elapsed,before,emitter,sampleAir);
+    astronaut.lastEmitter=emitter; astronaut.exhaustTime=characterWindTime;
     astronautView={currentBody.position+currentBody.orientation*chase.eye/units,
                    currentBody.position+currentBody.orientation*chase.target/units,
                    currentBody.orientation*chase.up};

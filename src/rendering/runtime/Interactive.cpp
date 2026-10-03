@@ -108,7 +108,7 @@ int Renderer::Impl::interact() {
                 cameraInput.rebind(scene.surfaceCamera ? &*scene.surfaceCamera : nullptr,
                                    scene.planetOrbitCamera ? &*scene.planetOrbitCamera : nullptr);
                 cameraInput.setThirdPersonWalkSpeed(6.0/scene.scenario.metersPerWorldUnit());
-                astronaut.motion.reset(); astronautGround.clear(); astronautGroundRevision=0;
+                astronaut.motion.reset(); astronaut.exhaust.clear(); astronaut.lastEmitter.reset(); astronaut.exhaustTime.reset(); astronautGround.clear(); astronautGroundRevision=0;
                 astronautReplayRestored=false;
                 inputContext.spacePresses=0;
                 cameraTransition.cancel();
@@ -193,6 +193,7 @@ int Renderer::Impl::interact() {
                 preparePlanetMeshes(scene.surfaceCamera->position(),true);
                 // World-space flight must account for the same elapsed wall
                 // time as moving celestial bodies. Ground walking stays capped.
+                characterWindTime=foliageTime;
                 prepareAstronaut(astronaut.motion.ready() && astronaut.motion.pose().airborne ?
                     frameElapsed : elapsedSeconds);
             }

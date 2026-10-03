@@ -75,6 +75,7 @@ struct Renderer::Impl {
     std::uint64_t astronautGroundRevision=0;
     bool astronautReplayRestored=false;
     bool astronautBenchmarkBoost=false;
+    double characterWindTime=0;
     glm::dvec2 astronautFlightControl{0};
     OwnedShader shadowShader{"shaders/terrain/terrain_shadow.vert", "shaders/terrain/terrain_shadow.frag"};
     TerrainShadowMaps terrainShadows;

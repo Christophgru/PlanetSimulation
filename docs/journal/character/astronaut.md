@@ -79,12 +79,13 @@ remains radial; descent lands and replants both feet.
 The astronaut participates in opaque, HDR, atmosphere and water-reflection
 passes and receives terrain shadowing. A small terrain contact-darkening term
 anchors planted feet where the planet-wide shadow texture is too coarse.
-The actor does not yet cast a full dynamic body shadow. Bubbles are a bounded
-32-sphere procedural effect using local time; the reflection shares the phase.
+The actor does not yet cast a full dynamic body shadow. Bubbles now use a bounded world-space particle pool with gradual emission,
+1.4 s lifetimes, fading release tails, wind drift and transparent reflective
+shells. Main/reflected views share the saved pool; see [exhaust.md](exhaust.md).
 
 Capture metadata stores the complete gait, joints, contacts, 3D velocity,
 suit thrust axis, thrust force, pressure/power diagnostics, flight state and
-bubble phase. World navigation also stores inertial position, velocity, up,
+wind clock and full exhaust history. World navigation also stores inertial position, velocity, up,
 exhaust axis, reference body and mode. `--astronaut-capture` selects camera 4. For deterministic flight:
 
 ```sh

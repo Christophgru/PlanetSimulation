@@ -1,0 +1,9 @@
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 20.0 s
+Sun radius: 2.5
+Planets: 2
+Surface camera position: (6.99451, 5.87555, -0.562511)
+Surface render test mode enabled
+Output image: /workspace/build-resume/exhaust-captures/invalid.png
+Error: Unsupported exhaust replay

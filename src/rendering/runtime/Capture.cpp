@@ -23,6 +23,15 @@ int Renderer::Impl::capture() {
     rendering::CameraExposure frameExposure;
     const double benchmarkStart = simulationTime;
     double lastBenchmarkFrame = glfwGetTime();
+    double windStart=benchmarkStart;
+    if (options.thirdPersonRenderMode && !options.replayPath.empty()) {
+        const auto replay=config::Config::load(options.replayPath).data();
+        if (replay.contains("astronaut_pose"))
+            windStart=replay.at("astronaut_pose").value("wind_time_s",windStart);
+    }
+
+    if (!std::isfinite(windStart) || std::abs(windStart)>1e12)
+        throw std::invalid_argument("Invalid character wind replay clock");
     for (int frame = 0; frame < options.benchmarkFrames; ++frame) {
         CpuTrace::Scope frameScope("capture.frame");
         frameRate.sample(glfwGetTime()-lastBenchmarkFrame); lastBenchmarkFrame=glfwGetTime();
@@ -41,6 +50,8 @@ int Renderer::Impl::capture() {
             if (frame==options.benchmarkJumpFrame || frame==options.benchmarkBoostFrame) ++inputContext.spacePresses;
             astronautBenchmarkBoost=options.benchmarkBoostFrame>=0 && frame>=options.benchmarkBoostFrame;
             astronautFlightControl={options.benchmarkWalkStep>0 ? 1.0 : 0.0,0};
+            const double localStep=options.benchmarkCharacterStep>0 ? options.benchmarkCharacterStep : options.benchmarkWalkStep/6.0;
+            characterWindTime=windStart+frame*localStep;
             prepareAstronaut(frame>0 ? (options.benchmarkCharacterStep>0 ? options.benchmarkCharacterStep : options.benchmarkWalkStep/6.0) : 0);
             // A destination handoff changes the distance to the Sun. Derive
             // clipping from the current chase eye, including on saved replay.
@@ -73,7 +84,7 @@ int Renderer::Impl::capture() {
                         options.planetRenderMode ? planetOrbitClip(eyeWorld) :
                                            rendering::ClipPlanes{},
                         (options.surfaceRenderMode || options.planetRenderMode) ? std::optional<std::size_t>(scene.orbitPlanetIndex) : std::nullopt,
-                        true, &profiler, false, 0, &grass, simulationTime,options.thirdPersonRenderMode ? &astronaut : nullptr);
+                        true, &profiler, false, 0, &grass, options.thirdPersonRenderMode ? characterWindTime : simulationTime,options.thirdPersonRenderMode ? &astronaut : nullptr);
             frameReuse.remember(view,fov,width,height,simulationTime,revisions,eyeWorld,options.surfaceRenderMode ? 1 : options.planetRenderMode ? 2 : 0);
         }
         if (lensFlare) {

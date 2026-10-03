@@ -3,6 +3,7 @@
 #include "rendering/Shader.h"
 #include "rendering/geometry/Mesh.h"
 #include <cstddef>
+#include "rendering/character/effects/ExhaustRenderer.h"
 
 namespace rendering {
 // Original procedural model: grey/blue suit, oversized helmet, dark visor,
@@ -19,6 +20,10 @@ public:
     AstronautMotion motion;
     std::size_t planetIndex=0;
     Shader shader;
+    ExhaustParticles exhaust;
+    std::optional<ExhaustEmitter> lastEmitter;
+    std::optional<double> exhaustTime;
+    ExhaustRenderer exhaustRenderer;
 private:
     Mesh sphere_;
     Mesh flag_;

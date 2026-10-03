@@ -78,7 +78,9 @@ add_library(planet_character STATIC
     src/rendering/character/AstronautMotion.cpp
     src/rendering/character/SurfaceContact.cpp
     src/rendering/character/flight/JetpackPhysics.cpp
-    src/rendering/character/flight/FlightNavigation.cpp)
+    src/rendering/character/flight/FlightNavigation.cpp
+    src/rendering/character/effects/ExhaustParticles.cpp
+    src/rendering/foliage/wind/WindField.cpp)
 target_include_directories(planet_character PUBLIC ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(planet_character PUBLIC glm::glm PRIVATE ozz_animation)
 
@@ -89,7 +91,8 @@ add_library(planet_rendering STATIC
 target_sources(planet_rendering PRIVATE src/rendering/foliage/procedural/ProceduralGrass.cpp)
 target_sources(planet_rendering PRIVATE src/rendering/foliage/procedural/GrassCompute.cpp
     src/rendering/foliage/trails/TrailUpload.cpp)
-target_sources(planet_rendering PRIVATE src/rendering/character/AstronautRenderer.cpp)
+target_sources(planet_rendering PRIVATE src/rendering/character/AstronautRenderer.cpp
+    src/rendering/character/effects/ExhaustRenderer.cpp)
 target_sources(planet_rendering PRIVATE src/rendering/postprocessing/LensFlare.cpp)
 target_link_libraries(planet_rendering PUBLIC planet_geometry planet_character OpenGL::GL GLEW::GLEW)
 

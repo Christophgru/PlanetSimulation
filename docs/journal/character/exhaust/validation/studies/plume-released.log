@@ -1,0 +1,35 @@
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 20.0 s
+Sun radius: 2.5
+Planets: 2
+Surface camera position: (6.99451, 5.87555, -0.562511)
+Surface render test mode enabled
+Output image: /workspace/build-resume/plume-released.png
+Planet 0 terrain: 12000 triangles; far/middle/near faces: 319/1/0; steep-refined faces: 0 (budget 12000); foliage blades: 0; water triangles: 12000
+Planet 0 terrain LOD faces (coarse to fine): 319/0/0/0/1/0/0/0; mesh bytes: 1440000
+Planet 0 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Planet 1 terrain: 960 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 12000); foliage blades: 0; water triangles: 0
+Planet 1 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 115200
+Planet 1 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Mesh preparation: 709.46 ms; GPU-complete benchmark: 7851.08 ms
+earth lighting: direct RGB (4.42966, 4.38536, 4.29677), reflected RGB (7.53886e-06, 7.46347e-06, 7.69757e-06)
+moon lighting: direct RGB (8.26617, 8.18351, 8.01819), reflected RGB (0.0122606, 0.02023, 0.0396426)
+Image size: 640x360
+Background pixel: (1, 1, 3)
+Non-background pixels: 230395, bounding box: (0, 0)-(639, 359)
+Sun-colored pixels: 0
+Planet pixels (color/depth): 226412, bounding box: (0, 0)-(639, 359)
+Camera exposure: 0.1793; sky sensitivity: 0.00280156
+Star-like pixels: 0
+Blue water-like pixels: 494, bounding box: (293, 129)-(354, 202)
+Simulation time: 20.0 s
+Surface camera position (world, km): [6.987551012541054,5.870675858148122,-0.5679865172205785]
+Surface camera direction (world, unit vector): [0.923637015986416,0.0516924137431067,0.3797664506787304]
+Surface camera position (planet LLA): latitude=-21.381586768787546 deg, longitude=102.99646137845788 deg, altitude=16.11041670071156 m above reference sphere
+Surface camera ground clearance: 3.0 m
+surface_camera start value: {"altitude":0.003,"direction_ned":[0.025180344644591124,0.49935029573087364,0.8660341981683337],"fov":65.0,"latitude_deg":-21.381586768787546,"longitude_deg":102.99646137845788,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":20.0,"up_ned":[0.043099133395259726,0.8649611343270599,-0.4999847005701511],"walk_speed_mps":80.0}
+White-clipped pixels (RGB >= 250): 0 (0%)
+Astronaut pixels: 3988
+Render test completed successfully
+Output image: /workspace/build-resume/plume-released.png

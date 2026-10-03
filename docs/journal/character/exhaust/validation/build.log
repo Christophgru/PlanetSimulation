@@ -1,0 +1,5 @@
+[1/5] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/Character.cpp.o
+[2/5] Linking CXX static library libplanet_app.a
+[3/5] Linking CXX executable PlanetSimulation
+[4/5] Linking CXX executable tests/renderer_lifecycle_tests
+[5/5] Linking CXX executable tests/foliage_benchmark

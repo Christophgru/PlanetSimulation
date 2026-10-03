@@ -93,6 +93,14 @@ add_test(NAME CameraInputTests COMMAND camera_input_tests)
 add_executable(astronaut_motion_tests character/test_astronaut_motion.cpp character/test_surface_contact.cpp character/test_jetpack_physics.cpp character/test_flight_navigation.cpp)
 target_link_libraries(astronaut_motion_tests PRIVATE planet_geometry planet_character GTest::gtest_main)
 add_test(NAME AstronautMotionTests COMMAND astronaut_motion_tests)
+add_executable(exhaust_physics_tests character/effects/test_exhaust_physics.cpp)
+target_link_libraries(exhaust_physics_tests PRIVATE planet_character GTest::gtest_main)
+add_test(NAME ExhaustPhysicsTests COMMAND exhaust_physics_tests)
+add_executable(exhaust_render_tests character/effects/test_exhaust_render.cpp)
+target_link_libraries(exhaust_render_tests PRIVATE planet_rendering GTest::gtest glfw)
+add_test(NAME ExhaustRenderIntegration COMMAND exhaust_render_tests)
+set_tests_properties(ExhaustRenderIntegration PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 60)
+
 add_test(NAME CameraTransitionTests COMMAND camera_transition_tests)
 add_test(NAME SceneTransformsTests COMMAND scene_transforms_tests)
 add_test(NAME OrbitPathsTests COMMAND orbit_paths_tests)
@@ -161,6 +169,10 @@ find_package(Python3 REQUIRED COMPONENTS Interpreter)
 add_test(NAME AstronautCaptureIntegration COMMAND ${Python3_EXECUTABLE}
     ${CMAKE_CURRENT_SOURCE_DIR}/character/test_astronaut_capture.py --binary $<TARGET_FILE:PlanetSimulation>
     --output-dir ${CMAKE_BINARY_DIR}/astronaut-captures)
+add_test(NAME ExhaustCaptureIntegration COMMAND ${Python3_EXECUTABLE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/character/effects/test_exhaust_capture.py --binary $<TARGET_FILE:PlanetSimulation>
+    --output-dir ${CMAKE_BINARY_DIR}/exhaust-captures)
+set_tests_properties(ExhaustCaptureIntegration PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 240)
 add_test(NAME SpaceFlightCaptureIntegration COMMAND ${Python3_EXECUTABLE}
     ${CMAKE_CURRENT_SOURCE_DIR}/character/test_space_flight_capture.py --binary $<TARGET_FILE:PlanetSimulation>
     --output-dir ${CMAKE_BINARY_DIR}/space-flight-captures)

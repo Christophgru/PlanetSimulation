@@ -24,7 +24,7 @@ document the progress and add comments such that when interrupted you can contin
 |Make the astronaut not move his arms during jetpack phase, also in jetpack, wasd go on acceleration, calculate some upper speed limit of 100m/s for horizontal movement on sea level on the main planet (calc air pessure) but should be the same also on other planets, what power the jetpack would need to have. Falling should also be physically sound and bound by wind resistance. Assume the Astronaut is 100kg and the jetpack can thrust only down, so its thrust must be directed in the direction we want to fly in.  |t| Single-axis tilted thrust, quiet arms, 100 kg rotating-frame gravity and pressure-dependent drag; WASD commands acceleration toward 100 m/s with one main-planet-sized engine on every planet. Reproducible 8.29 kN / conditional 6.91 MW power study. All 52 entries validated via full run (51 passed) plus atmosphere timeout recheck; 19 CPU cases, exact upright/tilted replay, native input, 22 verified gallery images and journal/PDF updated.|
 |The Knees of the astronaut are also always bent, make him stand with straigh knees if hes nor walking.|t| Settled standing raises the pelvis over fixed soles; torso/arms/backpack and chase camera follow the replayable offset. Original bone lengths retained; terrain/cliff reach bounded. Clean 8/8 focused checks (133.62 s), including 22 CPU cases, standing/walking/flight/trail exact replay and native input. Two standing gallery views, comparison, journal/PDF and verified capture provenance updated.|
 |Make jetpack flight controls fire thrust whenever a movement button is pressed: WASD supplies directional thrust even without Space, Space supplies upward thrust, and looking down while pressing W allows descent. Keep orientation aligned to the nearby planet within 1.2 body diameters; outside that boundary switch to free outer-space orientation, allow flight to the Moon, and align to the destination body when entering its 1.2-diameter boundary. In outer-space mode always calculate gravity from the three closest celestial bodies.|t|Airborne WASD ignites directional thrust; W follows full look for descent, Space is up. World SI motion/exhaust axis, smooth local/free-space/Moon frames at centre distance 2.4 radii, closest-three gravity and moving-air drag. Clean 53/53 CTest entries pass (764.20 s), including 41 CPU cases, exact space/Moon/settled/steered-flight replay and native WASD-only ignition. Jetpack gallery view, replay evidence, journal/PDF and all 22 gallery hashes/provenance updated. See docs/journal/character/space-flight.md.|
-|Make the Bubbles of the Astronaut not just appear all at once, but physically sound, with a lifetime, that slowly fades, make sure the bubbles are look through, but still have some reflection, but make it performant. Also the bubbles and the astronaut shall be influenced by the wind of the grass.|||
+|Make the Bubbles of the Astronaut not just appear all at once, but physically sound, with a lifetime, that slowly fades, make sure the bubbles are look through, but still have some reflection, but make it performant. Also the bubbles and the astronaut shall be influenced by the wind of the grass.|t|Incremental world-space exhaust with 1.4 s lifetimes, release tails, transparent Fresnel shells and Sun highlights; shared grass wind affects particles and atmospheric astronaut drag. Pool capped at 64, one instanced draw per view, complete history/clock replay. Clean 56/56 CTest entries pass (675.37 s), including 10 new CPU cases and 120 production GLSL wind comparisons. Lifetime/plume captures, refreshed jetpack gallery, journal/PDF and all 22 gallery hashes verified. See docs/journal/character/exhaust.md.|
 |Download three diffrent high quality astronaut models, and make a render of each and drop it into USER_IO/astronaut_vis. Only choose models that we can actually use for walking motions and that have no backpack, such that we can mount a jetpack ourself|||
 |Improve the offline / raytracing example in README.md: increase foliage count and use the initial surface position from the production config; consider rendering narrower vertical columns with higher terrain/foliage budgets and assembling them into the final image; make lens flare visibly apparent. Start after the preceding tasks are finished.| |Queued on user request; evaluate strip projection, overlap and image assembly while preserving full-frame lighting/exposure and flare placement. No renderer changes for this task yet.|
 |Form a terrain/atmosphere CPU–GPU implementation plan before starting GPU terrain work. Audit the existing pipeline and evaluate hexagonal planet panels, seams/poles and alternatives. Define CPU ownership of subdivision/LOD/sinking and GPU ownership of noise, surface shape and atmospheric fields, including ground contacts, shadows/reflections, supported GPU paths and validation/performance budgets.| |Planning prerequisite for the following terrain/atmosphere tasks. Document CPU/GPU ownership before implementation, and assess seams, poles and spherical exceptions for hexagonal panels.|
@@ -79,6 +79,38 @@ current terrain-validation container has these tools and registers all 45
 tests. The install command above restores them on hosts where they are absent;
 reconfigure afterwards. Valgrind is only needed to recollect the independent
 instruction profile.
+
+## Exhaust and wind checkpoint — 2026-10-03
+
+- Bubble row is t. Bounded world-space pool emits 40/s from alternating
+  nozzles, retains release tails and fades over 1.4 s. One sorted instanced
+  billboard draw per view renders transparent Fresnel shells and Sun gloss;
+  main drawing follows water, reflections share the same non-mutating pool.
+- Shared CPU wind sampler matches grass Perlin hash/gradients, seed,
+  frequencies and independent local clock. Actor drag and particle drift use
+  moving air plus that wind, weighted by gas density. Ground contacts stay
+  planted. Pool clocks account for camera-mode gaps; body spin/translation
+  sampling is cached per particle step. Antipodal emitter turns stay finite.
+- CPU: 41 existing character + 10 exhaust/wind cases pass. GPU transparency,
+  HDR specular/depth/state preservation and 120 production GLSL noise samples
+  pass. The clean full run passes all 56 CTest entries in 675.37 s, including
+  burn/release/retirement exact PNG and complete effect/pose replay, native
+  controls, paused wind, camera switching and reload.
+- Fixture corrections: enabled gas in the wind test, used RGBA16F for HDR
+  specular testing, and scheduled boost after jump per the existing CLI.
+- Final binary build: `build-resume/bubbles-sampling-build.log`; focused CPU
+  and GPU logs: `bubbles-cpu-final.log`, `bubbles-gpu-final-verified.log`.
+  Full suite: `build-resume/bubbles-full-tests.log`; published logs and
+  fingerprints: `docs/journal/character/exhaust/validation/`.
+- Publication script completed: `build-resume/publish-exhaust.py`. Lifetime
+  snapshots and downward plume views retain exact replay; one jetpack gallery
+  view is refreshed and visually reviewed, other 21 retain their provenance.
+  All 22 gallery hashes, source/binary fingerprints and folder limits verified.
+- Explanation: `docs/journal/character/exhaust.md`; README and current
+  astronaut/flight notes updated. Typst PDF rebuilt; pages 20–24 visually
+  reviewed, including the new plume comparison and evaluation evidence.
+  Next is the queued three-model download/render task. Production
+  configuration is unchanged.
 
 ## Space-flight checkpoint — 2026-10-02
 

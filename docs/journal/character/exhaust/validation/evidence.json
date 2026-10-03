@@ -1,0 +1,103 @@
+{
+  "date_utc": "2026-10-03T08:21:41+00:00",
+  "base_revision": "3eb44a6955ad0e44a7607b01b4b42094ff45e408",
+  "renderer_source_sha256": "b5c21157f38dc33e8c5d6fa949c99c5b936950f447427087965c00432a1ec6a8",
+  "binary_sha256": "de162ea300c1e7a7aa962a84a1536a0bd1875f948d513b9354f403194db458f9",
+  "build": "GCC 12.2 RelWithDebInfo; Mesa llvmpipe/Xvfb; two software-renderer workers",
+  "validation": {
+    "ctest_passed": 56,
+    "ctest_total": 56,
+    "elapsed_s": 675.37,
+    "character_cpu_cases": 41,
+    "exhaust_wind_cpu_cases": 10,
+    "gpu_cases": 2,
+    "production_glsl_perlin_comparisons": 120,
+    "exact_png_and_pose_replay": [
+      "burn",
+      "released",
+      "retired"
+    ],
+    "extra_camera_views_byte_identical": [
+      "plume",
+      "plume-released"
+    ],
+    "native_input_in_full_suite": true,
+    "invalid_exhaust_replay_rejected": true
+  },
+  "bounds": {
+    "capacity": 64,
+    "lifetime_s": 1.4,
+    "birth_rate_per_second": 40,
+    "draw_calls_per_view": 1,
+    "max_submitted_vertices": 256,
+    "max_submitted_triangles": 128,
+    "max_instance_bytes_per_view": 2048
+  },
+  "gallery": {
+    "fresh": [
+      "astronaut-jetpack.png"
+    ],
+    "retained": 21,
+    "all_22_hashes_verified": true
+  },
+  "initial_fixture_corrections": [
+    "Wind test initially left atmosphere disabled",
+    "Specular test uses HDR RGBA16F to avoid pre-blend radiance clipping",
+    "Capture schedules boost after jump to satisfy existing CLI validation"
+  ],
+  "artifacts": {
+    "README.md": "fbdb651dfc5a3a1c416fa536c5cab8e8d9a8503096d05a5cd938150ad53aa7dc",
+    "docs/captures/GENERATION.md": "4b22248d4767cb1af8bb705bce8ae53cbe6d898acb5d5e6ee84a9b0895e3d2c2",
+    "docs/captures/generation.json": "1e0fde927a994369889f96f43dc02665d5dd138aee7240c10eb9ec3ac02676f9",
+    "docs/captures/replay/character/astronaut-jetpack.png.json": "a0ef551bfd2a19d258ac73153b2d86f200865285509acb6e9561f21c9179b549",
+    "docs/journal/character/astronaut.md": "8fb21febce0eaffd49009d23a4288a5efbc9c489d668cc88ae965e33536b5168",
+    "docs/journal/character/exhaust/images/burn.png": "46f53c4c62f100e6585d1a8322ff4c294959eabc43e7aaa5b31db4424ce73997",
+    "docs/journal/character/exhaust/images/plume-released.png": "2b13e2d8263bc32a3f369e24fa7431aa9f5dfa6144cdbf428a2d7676591a1a4b",
+    "docs/journal/character/exhaust/images/plume.png": "350e0532d0c65dd72fa69eaf1087ffc0c257e6412b6591573c0e0decc89f83a3",
+    "docs/journal/character/exhaust/images/released.png": "1c6e48151e48c36f20c5195f9d4653ae8ef5b1c3c246e8f30df11457e7b0394d",
+    "docs/journal/character/exhaust/images/retired.png": "7a328946b644563d02bb76d36b73e928743da42a6fe1d6d4e706f100fd841478",
+    "docs/journal/character/exhaust/replay/burn.png.json": "f1679c3fd6f0368fd3a684bb8c50624c40ba0ff248ae457476272dea2b4b6389",
+    "docs/journal/character/exhaust/replay/jetpack.png.json": "a0ef551bfd2a19d258ac73153b2d86f200865285509acb6e9561f21c9179b549",
+    "docs/journal/character/exhaust/replay/plume-input.json": "b3b78e5445c68d6eb9764d5410faff02e6fa2f881c95db5e6f8a8d803d58f144",
+    "docs/journal/character/exhaust/replay/plume-released.png.json": "9b4eaad38c6ad82f2f0c8bac31950ea0776f34e50d3cd66750edc3e8284835cd",
+    "docs/journal/character/exhaust/replay/plume.png.json": "f1ea8f7bea06b66f1d221be1357972f60b60c8b238afa87230355655b29dcf8c",
+    "docs/journal/character/exhaust/replay/released.png.json": "4e701c16c9425f31d9d51680396037f6f66da4654d9f8df03e1a806cca3cd700",
+    "docs/journal/character/exhaust/replay/retired.png.json": "6deb91e3f2891733b500c9855bf3c44dc68577a945ff2a1def25f003769b4414",
+    "docs/journal/character/exhaust/replay/scene.json": "732ecbd1847802aa3ec012bc12bb8be7fc678c0e17278c95cfc32c73141df2cc",
+    "docs/journal/character/exhaust/validation/build.log": "b95ca398c1400c6eeb5e64789b8c8fa06fda7f9094fa32f06e0f937fcbfd032d",
+    "docs/journal/character/exhaust/validation/capture-tests.log": "a3a6802ca7773398291c865b9028f91459ee4fe9124f45e8c18e805c101f6902",
+    "docs/journal/character/exhaust/validation/captures/burn-replay.log": "84c2407de8582cb84f6f467a554b9f75b1d5aad2c036110a7a145a30795af2a4",
+    "docs/journal/character/exhaust/validation/captures/burn.log": "7b198d0d603ff8ae66f1d3a8f7ddee58d78067173619cc3062b61dc36bfa25f9",
+    "docs/journal/character/exhaust/validation/captures/invalid.log": "6560b74ee2256e0a0b5b0a60040eb287691c1244d9a2b61c2a2b84aaa2a93cf6",
+    "docs/journal/character/exhaust/validation/captures/released-replay.log": "2b607291b34aeeb9e694f48fc0ca5d5944992bfe2e758675087a430b20b06919",
+    "docs/journal/character/exhaust/validation/captures/released.log": "67e9d59c26bba07f96699ffdf840ad853955753553b687ffd61edc94ba1de456",
+    "docs/journal/character/exhaust/validation/captures/retired-replay.log": "40dedb5cf8208a17e45b7665ad99fc1a8cfd9e76a6156edab9211acfc20c068a",
+    "docs/journal/character/exhaust/validation/captures/retired.log": "e24af1181173de58667b0437848dc55d8c59fb1b9a6c3ef406e41ca537479f29",
+    "docs/journal/character/exhaust/validation/checks.log": "3efec4ac82aba5fff0b1a34ace06bc5adfda29844979d292e0834960e6d71c45",
+    "docs/journal/character/exhaust/validation/cpu.log": "e5ee1ea42c4e620ce8b4bd69ae6f5264cd81595a852fbe38c41970d284f49911",
+    "docs/journal/character/exhaust/validation/full-tests.log": "2eb1c0d9f3e1995544799bb52c03d3ac17584225bb6f1c3f511ecd9dab2ba8f8",
+    "docs/journal/character/exhaust/validation/gpu.log": "c9acca89c1e48bca1190056c956c0f121fa8eb81222b62e62f0d6b2b11eb18f3",
+    "docs/journal/character/exhaust/validation/studies/plume-released-replay.log": "fb18814be1f8347c52668c20e9cdb49e7ca9e309203004b1f970a51d4115184a",
+    "docs/journal/character/exhaust/validation/studies/plume-released.log": "9cc7e65e1e2852cec6ecdbc33e7a4f052138467648b21cb3d18f77a52cac749d",
+    "docs/journal/character/exhaust/validation/studies/plume-replay.log": "f9aae97f1c3d53060db2020911df766644f1a47fbc334bb52fd4c04a940ffe70",
+    "docs/journal/character/exhaust/validation/studies/plume.log": "256391a88cba1ae9a7622b8475a6750299cc24d013f63c4bba27ddb9876ec56d",
+    "docs/journal/character/exhaust/validation/typst.log": "5a59bbae1d6d675ad5418c275570fe9dd82b1935c1c400e3de7bebb67a45309d",
+    "docs/journal/character/exhaust.md": "90394dc90a755b2d38556c4ba40f973cf60dc752d8d5fd6b2517edad317a5387",
+    "docs/journal/character/space-flight.md": "fa0e611840457d8bf645afe0594dada02d16d4afa23027d71b299c64b411976e",
+    "docs/journal/paper.pdf": "36671b002b09140f4510e4f6c436242f574813d777136faadbbd809bcceac9d1",
+    "docs/journal/paper.typ": "58c89ef3063feb0f6dc68711d5af0c3be7b079ba7ff29b6e36ef89d0a5aafe3e",
+    "docs/screenshots/astronaut-jetpack.png": "ec8d771c77cf7a626f694d9a8b6e790364c1e499cfddb51b8caaf11d667ba303",
+    "todo.md": "0a651e9cb3afe849e2caebac27db1057bfd5e5eee53ba626fc6e147dc3012429"
+  },
+  "journal": {
+    "pdf": "docs/journal/paper.pdf",
+    "compiled": true,
+    "visually_reviewed_pages": [
+      20,
+      21,
+      22,
+      23,
+      24
+    ]
+  }
+}

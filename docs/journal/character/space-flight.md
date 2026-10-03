@@ -58,7 +58,7 @@ axis without a speed governor, allowing travel between moving bodies. No
 velocity is clipped. Gravity acts even when no engine input is present.
 
 Aerodynamics uses the existing gas pressure/composition/temperature model for
-the nearest bodies, their translation and spin, and dissipative quadratic-drag
+the nearest bodies, their translation, spin and the shared grass wind, and dissipative quadratic-drag
 substeps. Orientation mode does not turn gas resistance off. Orbital pause and
 speed controls change the bodies' prescribed motion; local character animation
 continues. This remains a prescribed-orbit simulation with idealized unlimited
@@ -119,3 +119,7 @@ camera switching and reload. The README jetpack view was freshly rendered;
 all 22 gallery PNG hashes match their manifest, with the other 21 captures'
 original provenance retained. The main Typst journal PDF was rebuilt after
 publication and its flight pages reviewed.
+
+The later [exhaust/wind update](exhaust.md) adds grass-field wind to astronaut
+air resistance and persistent, fading world-space bubbles. Its independent
+wind clock and full pool are saved alongside this navigation state.

@@ -250,6 +250,16 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
         if (record) glDisable(GL_STENCIL_TEST);
     };
 
+    const auto drawExhaust=[&](const glm::mat4& passView,const glm::mat4& passProjection,
+                              const glm::vec3& clipCenter,float clipRadius) {
+        if (!astronaut || astronaut->exhaust.state().particles.empty()) return;
+        const auto i=astronaut->planetIndex; const auto& body=bodies[i+1];
+        auto& renderer=astronaut->exhaustRenderer; renderer.shader.use();
+        renderer.shader.setFloat3("uClipCenter",clipCenter.x,clipCenter.y,clipCenter.z);
+        renderer.shader.setFloat("uClipRadius",clipRadius); setBodyLighting(renderer.shader,i);
+        renderer.draw(astronaut->exhaust.state(),body.position,body.orientation,
+            scenario.planets[i].radius,scenario.metersPerWorldUnit(),passView,passProjection);
+    };
     Scope opaqueScope(profiler, Stage::Opaque);
     if (hdr) atmosphere.begin(width, height);
     const GLuint sceneFramebuffer = hdr ? atmosphere.framebuffer() : outputFramebuffer;
@@ -298,7 +308,10 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
         }
         return exposure;
     };
-    if (!hasWater) return finishFrame();
+    if (!hasWater) {
+        drawExhaust(view,projection,glm::vec3(0),-1);
+        return finishFrame();
+    }
     reflectionTarget.ensure(width, height, hdr);
 
     // The opaque main-scene depth buffer masks this translucent sea. Each
@@ -331,6 +344,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
         drawOpaqueScene(reflectedProjection, reflectedView, center,
                         static_cast<float>(radiusWorld));
 
+        drawExhaust(reflectedView,reflectedProjection,center,static_cast<float>(radiusWorld));
         reflectionScope.stop();
         if (hdr) {
             Scope reflectionAirScope(profiler, Stage::ReflectionAtmosphere);
@@ -374,6 +388,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
     glBindTexture(GL_TEXTURE_2D, 0);
     glDepthMask(GL_TRUE);
     glDisable(GL_BLEND);
+    drawExhaust(view,projection,glm::vec3(0),-1);
     return finishFrame();
 }
 

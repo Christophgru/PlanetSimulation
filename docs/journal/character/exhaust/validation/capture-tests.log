@@ -1,0 +1,4 @@
+Final full-suite exhaust capture result:
+      Start 34: ExhaustCaptureIntegration
+34/56 Test #34: ExhaustCaptureIntegration ...............   Passed   59.14 sec
+Verified burn/released/retired exact PNG and full pose/particle equality before publication.

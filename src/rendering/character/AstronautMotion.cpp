@@ -151,6 +151,7 @@ void AstronautMotion::update(const GroundContact& root,const glm::dvec3& lookFor
                 for (std::size_t j=0;j<flightBodies_.size();++j) {
                     auto& b=flightBodies_[j]; const auto& target=targetBodies[j];
                     b.position=target.position-target.velocity*remaining;
+                    b.windTime=target.windTime-remaining;
                     const double spin=glm::length(target.angularVelocity);
                     b.orientation=spin>1e-12 ? glm::dmat3(glm::rotate(glm::dmat4(1),-spin*remaining,target.angularVelocity/spin))*target.orientation : target.orientation;
                 }

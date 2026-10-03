@@ -101,27 +101,8 @@ void AstronautRenderer::draw(const glm::dvec3& planetCenter,const glm::dmat3& or
             shader.setFloat("uShininess",0); shader.setFloat("uGlow",0); flag_.draw();
         }
     }
-    // Two nozzles beneath the backpack. Bubbles are procedural, bounded and
-    // use the same local animation phase in main and reflected views.
+    // Both nozzle positions also feed the persistent world-space emitter.
     upperPart({-.12,.82,.23},{.065,.07,.065},blue);
     upperPart({.12,.82,.23},{.065,.07,.065},blue);
-    if (pose.boosting) {
-        const bool blended=glIsEnabled(GL_BLEND);
-        GLboolean writes; glGetBooleanv(GL_DEPTH_WRITEMASK,&writes);
-        GLint srcRgb,dstRgb,srcAlpha,dstAlpha;
-        glGetIntegerv(GL_BLEND_SRC_RGB,&srcRgb); glGetIntegerv(GL_BLEND_DST_RGB,&dstRgb);
-        glGetIntegerv(GL_BLEND_SRC_ALPHA,&srcAlpha); glGetIntegerv(GL_BLEND_DST_ALPHA,&dstAlpha);
-        glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA); glDepthMask(GL_FALSE);
-        for (int bubble=0;bubble<32;++bubble) {
-            const double age=std::fmod(pose.effectSeconds*1.6+bubble*.61803398875,1.0);
-            const double side=bubble%2 ? -.12 : .12;
-            const double size=.04+.09*age;
-            const glm::dvec3 p(side+std::sin(bubble*2.4+age*4)*age*.13,
-                               .76-age*2.1,.23+std::cos(bubble*1.8)*age*.12);
-            part(p,glm::dvec3(size),glm::vec3(.14,.65,1),glm::dmat3(1),.5,2);
-        }
-        glDepthMask(writes); glBlendFuncSeparate(srcRgb,dstRgb,srcAlpha,dstAlpha);
-        if (!blended) glDisable(GL_BLEND);
-    }
 }
 }

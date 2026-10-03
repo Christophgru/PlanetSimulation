@@ -1,0 +1,7 @@
+/workspace/build-terrain/typst-x86_64-unknown-linux-musl/typst compile --root . docs/journal/paper.typ docs/journal/paper.pdf
+Exit status: 0
+
+/workspace/build-terrain/typst-x86_64-unknown-linux-musl/typst compile --root . --pages 20-24 --ppi 110 docs/journal/paper.typ 'build-resume/exhaust-paper-{p}.png'
+Exit status: 0
+
+Visually reviewed pages 20, 21, 22, 23 and 24; updated character figures and validation text fit without clipping.

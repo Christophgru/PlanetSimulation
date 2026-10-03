@@ -733,7 +733,12 @@ location. WASD walks at **6 m/s**; holding either **Shift** key sprints at
 **12 m/s**. Tap **Space** to jump. While airborne, WASD fires and directs the
 jetpack without Space; W follows your full look direction, so looking down
 and pressing W descends. Hold Space for upward thrust. The suit tilts to direct
-its single thrust axis, and blue bubbles appear underneath the backpack.
+its single thrust axis. Blue exhaust bubbles emit gradually beneath the
+backpack, drift with the grass wind, expand and fade over 1.4 s; a released
+jetpack leaves a fading tail. Transparent shells retain reflective highlights,
+with a 64-particle cap and one instanced draw per view. The same seeded wind
+also enters the astronaut's atmospheric drag.
+See [exhaust lifetime, wind and rendering bounds](docs/journal/character/exhaust.md).
 Release the movement controls to coast under gravity and air resistance.
 T pauses planetary motion while these controls remain active. Esc releases
 the mouse in either walking camera.
