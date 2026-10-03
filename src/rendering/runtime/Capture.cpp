@@ -324,6 +324,12 @@ int Renderer::Impl::capture() {
                 {"foliage_gpu_vertices", drawnGrass[0]*14+drawnGrass[1]*4},
                 {"foliage_gpu_triangles", drawnGrass[0]*12+drawnGrass[1]*2},
                 {"foliage_gpu_working_bytes", grass.procedural.stats(scene.orbitPlanetIndex).gpuBytes},
+                {"foliage_gpu_metadata", {
+                    {"version", 1}, {"allocator", "cpu"},
+                    {"resident_bytes", grass.procedural.stats(scene.orbitPlanetIndex).metadataBytes},
+                    {"input_bytes", grass.procedural.stats(scene.orbitPlanetIndex).metadataInputBytes},
+                    {"dispatches", grass.procedural.stats(scene.orbitPlanetIndex).metadataDispatches},
+                    {"diagnostic_read_bytes", grass.procedural.stats(scene.orbitPlanetIndex).metadataReadBytes}}},
                 {"terrain_mean_display_luminance", metrics.terrainMeanLuminance},
                 {"terrain_max_display_luminance", metrics.terrainMaxLuminance},
                 {"terrain_luminance_stddev", metrics.terrainLuminanceStddev},

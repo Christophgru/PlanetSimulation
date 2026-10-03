@@ -1,6 +1,7 @@
 #include "rendering/foliage/procedural/ProceduralGrass.h"
 #include "rendering/foliage/GrassPlacement.h"
 #include "rendering/geometry/Mesh.h"
+#include "rendering/foliage/planning/GrassMetadata.h"
 #include "rendering/diagnostics/tracing/CpuTrace.h"
 #include "config/ScenarioConfig.h"
 #include <chrono>
@@ -100,7 +101,7 @@ GrassPreparationStats ProceduralGrass::prepare(std::size_t index,const Mesh& mes
     patch.scale=planet.radius*metersPerWorldUnit;
     if (!planet.foliage.enabled || !mesh.hasVertexColors) {
         for (auto& batch:patch.batches) batch.count=0;
-        patch.patches=0; patch.distanceMeters=0; patch.ready=false; patch.computeUsed=false; patch.draws.clear(); return {};
+        patch.patches=0; patch.distanceMeters=0; patch.ready=false; patch.computeUsed=false; patch.draws.clear(); patch.metadata.reset(); return {};
     }
     const double scale=planet.radius*metersPerWorldUnit;
     const double margin=grassRebuildDistance(planet.foliage);
@@ -124,15 +125,21 @@ GrassPreparationStats ProceduralGrass::prepare(std::size_t index,const Mesh& mes
     if (savedEye!=replayPlanEyes_.end()) {
         planningEye=savedEye->second; replayPlanEyes_.erase(savedEye);
     }
+    std::unique_ptr<GrassMetadataBuffers> metadata;
+    if (mesh.terrainStats.generation.backend==TerrainBackend::Compute && planet.foliage.compute_placement) {
+        if (!metadataCompute_) metadataCompute_=std::make_unique<GrassMetadataCompute>();
+        metadata=metadataCompute_->generate(mesh.vbo,mesh.ebo,mesh.terrainStats,planet,metersPerWorldUnit,planningEye);
+    }
     const auto plan=planGrass(mesh.vertices,mesh.indices,planet,metersPerWorldUnit,planningEye);
     const auto planned=std::chrono::steady_clock::now();
     upload(patch,plan);
     const auto uploaded=std::chrono::steady_clock::now();
+    patch.metadata=std::move(metadata);
     patch.eye=planningEye; patch.revision=mesh.revision; patch.ready=true;
     updateDraws(patch,scale,planet.foliage.quadDistanceMeters(),eyeBody);
     return {std::chrono::duration<double,std::milli>(planned-start).count(),0,
         std::chrono::duration<double,std::milli>(uploaded-planned).count(),1,
-        plan.patches.size()*sizeof(std::uint32_t)};
+        plan.patches.size()*sizeof(std::uint32_t)+(patch.metadata ? patch.metadata->inputBytes : 0)};
 }
 ProceduralGrassStats ProceduralGrass::stats(std::size_t index) const {
     ProceduralGrassStats result;
@@ -141,6 +148,13 @@ ProceduralGrassStats ProceduralGrass::stats(std::size_t index) const {
     result.patches=patch.patches; result.patchBytes=patch.patches*sizeof(std::uint32_t);
     result.distanceMeters=patch.distanceMeters;
     result.gpuBytes=patch.gpuCapacity*128+(patch.commands ? 32 : 0);
+    if (patch.metadata) {
+        result.metadataBytes=patch.metadata->workingBytes;
+        result.metadataInputBytes=patch.metadata->inputBytes;
+        result.metadataDispatches=patch.metadata->dispatches;
+        result.metadataReadBytes=patch.metadata->diagnosticReadBytes;
+        result.gpuBytes+=result.metadataBytes;
+    }
     for (const auto& draw:patch.draws) {
         const auto count=draw.patches*grassCandidateSlots[draw.level];
         result.candidates+=count; ++result.batches;

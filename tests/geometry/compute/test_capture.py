@@ -43,6 +43,12 @@ cpu,c=run('cpu');gpu,g=run('gpu',('--terrain-backend','compute'))
 assert c['render']['terrain_backend']=='cpu' and g['render']['terrain_backend']=='compute'
 assert g['render']['terrain_contract']['backend']=='compute'
 assert g['render']['terrain_compute']['cpu_compatibility_mirror']
+metadata=g['render']['foliage_gpu_metadata']
+assert metadata['version']==1 and metadata['allocator']=='cpu'
+assert metadata['resident_bytes']==160+g['render']['body_mesh_triangles'][0]*64
+assert metadata['input_bytes']==160+8*metadata['dispatches']
+assert metadata['diagnostic_read_bytes']==0
+assert c['render']['foliage_gpu_metadata']['resident_bytes']==0
 assert g['render']['terrain_contacts']['backend']=='sparse-oracle'
 assert c['render']['terrain_contacts']['backend']=='cpu-mesh'
 assert g['render']['terrain_contacts']['height_evaluations']==0
@@ -67,6 +73,7 @@ oldgl={'MESA_GL_VERSION_OVERRIDE':'3.3','MESA_GLSL_VERSION_OVERRIDE':'330'}
 fallback,f=run('gl33-fallback',('--terrain-backend','compute'),env=oldgl)
 assert f['render']['terrain_backend']=='cpu' and '4.3' in f['render']['terrain_fallback']
 assert not f['render']['terrain_compute']['cpu_compatibility_mirror']
+assert f['render']['foliage_gpu_metadata']['resident_bytes']==0
 error=run('gl33-locked-rejected',replay=gpu.with_suffix('.png.json'),env=oldgl,fail=True)
 assert 'Locked compute replay' in error
 invalid=out/'invalid.json';bad=json.loads(gpu.with_suffix('.png.json').read_text());bad['render']['terrain_backend']='invalid'
@@ -78,7 +85,7 @@ assert 'Unsupported terrain compute replay versions' in error and 'initialized' 
 report={'cpu_gpu_surface':compare(cpu,gpu),'compute_replay_exact':True,'compute_walking_replay_exact':True,
         'cpu_override_exact':True,'gl33_fallback':True,'locked_unavailable_rejected':True,'invalid_backend_rejected_before_window':True,
         'unknown_field_version_rejected_before_window':True,'terrain_compute':g['render']['terrain_compute'],'commands':commands,
-        'sparse_contacts':contacts,
+        'sparse_contacts':contacts,'grass_metadata':metadata,
         'png_sha256':{q.name:hashlib.sha256(q.read_bytes()).hexdigest() for q in out.glob('*.png')}}
 (out/'results.json').write_text(json.dumps(report,indent=2)+'\n')
 print('PASS GPU terrain/main/reflection/foliage/standing/walking, exact locked replay, CPU override and GL 3.3 fallback')

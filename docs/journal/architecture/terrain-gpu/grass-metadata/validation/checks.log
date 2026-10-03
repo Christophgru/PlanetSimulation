@@ -1,0 +1,8 @@
+Build passed; all 58 CTest groups passed in 1092.60 s
+Four new metadata cases and ten total native GL cases passed
+CPU/GPU eligibility and Gaussian-weight parity passed
+Compute surface/walking match previous T3a; locked replay/CPU override/GL 3.3 fallback passed
+Folder limits and whitespace checks passed
+PDF: 25 pages; visual review of pages 5, 6, 7, 24, 25 passed
+22 gallery hashes and prior provenance retained
+74 local document links validated

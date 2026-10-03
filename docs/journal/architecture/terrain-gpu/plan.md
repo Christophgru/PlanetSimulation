@@ -402,3 +402,9 @@ oracle. Contact and GPU generation keys publish together. Grass still needs the
 compatibility vectors. T3b moves triangle metadata/slot planning to GPU before
 those vectors can be removed; asynchronous interactive publication and hardware
 cost gates remain.
+
+[T3b1 resident grass metadata](grass-metadata/study.md) now computes conservative
+triangle eligibility, bounds and Gaussian area weights from resident compute
+terrain buffers, with original IDs, queried limits and counted transfers. CPU
+slot allocation and render vectors remain until T3b2 deterministic allocation;
+this prerequisite adds GPU memory/work and does not claim a frame improvement.

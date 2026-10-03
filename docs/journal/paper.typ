@@ -99,6 +99,8 @@ The first prerequisite (T1) separates a read-only CPU field oracle with a 704-by
 
 The compute proof (T2) generates double fields and legacy draw buffers on GL 4.3. A 100,000-triangle generation uploads 2,800,880 input bytes including parameters and controls instead of 12,000,000 shaped-mesh bytes (76.66% less). Packing, poles, extreme seeds, mixed LOD, shoreline seams, winding, replay and GL 3.3 fallback are checked. Land and water complete before publication. T3a now uses a radial topology index and lazy 1,024-position oracle cache for matching triangle-plane contacts, preserving float rounding and sinking without full mesh scans or GPU readbacks. CPU subdivision and grass's full compatibility vectors remain; no total-frame speedup is claimed. Interactive compute awaits GPU grass planning, asynchronous consumer publication and hardware cost gates. Studies are in `architecture/terrain-gpu/compute/study.md` and `contacts/study.md`.
 
+T3b1 generates resident 64-byte grass triangle descriptors from the existing compute terrain buffers: original IDs, double bounds, conservative biome eligibility and Gaussian-weighted area. A 100,000-triangle oracle uploads 176 bytes and retains 6,400,160 additional bytes; native weighted-area error is at most 2.21e-14 on llvmpipe. Renderer readback and cached uploads are zero. Queried limits, chunking, buffer sizes, generation keys and GL range restoration are checked. CPU slot allocation/render vectors remain until T3b2; this adds work and claims no frame speedup. The study and evidence are in `architecture/terrain-gpu/grass-metadata/`.
+
 = Orbital motion and light transport
 
 == Prescribed Kepler ellipses with collective mass

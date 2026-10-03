@@ -1,0 +1,27 @@
+Note: Google Test filter = GrassMetadata.*
+[==========] Running 4 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 4 tests from GrassMetadata
+[ RUN      ] GrassMetadata.MatchesCpuEligibilityAndWeightsAtPolesWithWaterSnowSlopesAndGaussianTails
+GRASS_METADATA triangles=10000 eligible=626 uploaded=1416 resident=640160 dispatches=157 relative_area_error=1.85796e-15
+GRASS_METADATA triangles=8708 eligible=51 uploaded=168 resident=557472 dispatches=1 relative_area_error=3.84895e-15
+GRASS_METADATA triangles=10000 eligible=200 uploaded=168 resident=640160 dispatches=1 relative_area_error=3.16232e-15
+GRASS_METADATA triangles=10000 eligible=258 uploaded=168 resident=640160 dispatches=1 relative_area_error=2.20116e-14
+GRASS_METADATA triangles=9966 eligible=332 uploaded=168 resident=637984 dispatches=1 relative_area_error=6.71171e-16
+GRASS_METADATA triangles=9966 eligible=359 uploaded=168 resident=637984 dispatches=1 relative_area_error=5.76844e-16
+GRASS_METADATA triangles=9966 eligible=0 uploaded=168 resident=637984 dispatches=1 relative_area_error=0
+GRASS_METADATA triangles=9966 eligible=0 uploaded=168 resident=637984 dispatches=1 relative_area_error=0
+GRASS_METADATA triangles=8640 eligible=0 uploaded=168 resident=553120 dispatches=1 relative_area_error=0
+[       OK ] GrassMetadata.MatchesCpuEligibilityAndWeightsAtPolesWithWaterSnowSlopesAndGaussianTails (9683 ms)
+[ RUN      ] GrassMetadata.DriverPackingMatchesHostDescriptorsAndParameters
+[       OK ] GrassMetadata.DriverPackingMatchesHostDescriptorsAndParameters (16 ms)
+[ RUN      ] GrassMetadata.LimitsTruncatedInputsAndInvalidGenerationsRejectWithoutDisturbingGlRanges
+[       OK ] GrassMetadata.LimitsTruncatedInputsAndInvalidGenerationsRejectWithoutDisturbingGlRanges (21 ms)
+[ RUN      ] GrassMetadata.ProductionResidentBuffersDoNotNeedTheCpuMirrorAndCachedPreparationTransfersNothing
+GRASS_METADATA triangles=100000 eligible=20913 uploaded=176 resident=6400160 dispatches=2 relative_area_error=3.09371e-15
+[       OK ] GrassMetadata.ProductionResidentBuffersDoNotNeedTheCpuMirrorAndCachedPreparationTransfersNothing (5257 ms)
+[----------] 4 tests from GrassMetadata (14979 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 1 test suite ran. (14979 ms total)
+[  PASSED  ] 4 tests.

@@ -9,6 +9,8 @@
 #include "rendering/foliage/trails/GrassTrail.h"
 class Mesh;
 namespace rendering {
+class GrassMetadataCompute;
+struct GrassMetadataBuffers;
 struct GrassPass {
     glm::mat4 model{1}, view{1}, projection{1};
     glm::dvec3 mainEyeBody{0};
@@ -19,6 +21,7 @@ struct ProceduralGrassStats {
     std::size_t candidates=0, patches=0, vertices=0, triangles=0, batches=0, patchBytes=0;
     double distanceMeters=0;
     std::size_t gpuBytes=0;
+    std::uint64_t metadataBytes=0, metadataInputBytes=0, metadataDispatches=0, metadataReadBytes=0;
 };
 class ProceduralGrass {
     struct Batch { GLuint vao=0; GLsizei count=0; };
@@ -29,6 +32,7 @@ class ProceduralGrass {
         std::vector<Bound> bounds;
         std::vector<Draw> draws;
         GLuint buffer=0, vertexTexture=0, indexTexture=0;
+        std::unique_ptr<GrassMetadataBuffers> metadata;
         mutable GLuint gpuBlades=0, commands=0;
         mutable std::array<GLuint,2> gpuVaos{};
         mutable std::size_t gpuCapacity=0;
@@ -58,6 +62,7 @@ class ProceduralGrass {
     std::map<std::size_t,glm::dvec3> replayPlanEyes_;
     void bindTrail(std::size_t index,double scale) const;
     mutable std::unique_ptr<Shader> compute_;
+    std::unique_ptr<GrassMetadataCompute> metadataCompute_;
     void upload(Patch& patch,const GrassPlan& plan);
     void updateDraws(Patch& patch,double scale,double nearDistance,const glm::dvec3& eyeBody);
     void attributes(std::size_t first,int level) const;

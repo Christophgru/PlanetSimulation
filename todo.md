@@ -31,7 +31,9 @@ document the progress and add comments such that when interrupted you can contin
 |Extract the planet-field and terrain-topology contracts from the completed CPU–GPU plan (T1). Preserve the CPU backend while separating canonical radial samples, indices and sinking from bulk height/normal evaluation; introduce sparse query caching and explicit generation/backend keys.|t|Read-only PlanetField, aligned parameter/sample layouts, bounded build-local query cache, indexed radial/sink topology and validated CPU generation keys implemented. Clean 56/56 CTest groups pass (641.75 s), including seven new contract cases; 17 independent mesh snapshots and two native replay PNGs match exactly. README and journal/PDF updated, all 22 gallery hashes retained. GPU shaping remains T2; see docs/journal/architecture/terrain-gpu/contracts/study.md.|
 |Implement and validate the opt-in GL 4.3 GPU terrain field evaluation proof (T2). Use the T1 topology/parameter contracts, preserve shared endpoints and legacy draw layout, query limits, bound staging and publish completed land/water together.|t|Capture-only compute field/gradient/material/sink evaluation and GPU corner expansion implemented. Five native GL cases and clean 58/58 CTest groups pass (645.09 s), including exact compute/walking replay, CPU override, real GL 3.3 fallback and locked/unknown-version rejection. Production input is 2,800,880 bytes versus 12,000,000 (76.66% reduction); native shoreline/offline PNGs match exactly. CPU mirror remains until T3; no total-frame speedup claimed. README, journal/PDF and retained evidence updated; see docs/journal/architecture/terrain-gpu/compute/study.md.|
 |Replace the compute terrain contact dependency on the full CPU render mesh with sparse matching triangle-plane contacts (T3a). Index the canonical topology, evaluate only needed float-rounded/sunk vertices, bound the cache and publish matching generation keys.|t|Radial BVH, bounded 1,024-position oracle cache and matching generation publication implemented. Four sparse CPU cases, six native GL cases and clean 58/58 CTest groups pass (664.17 s). Exact source position/plane parity; GPU-vector comparisons, poisoned full CPU coordinates, cache/coverage/stale/rebinding checks pass. Walking uses 14 contact vertices; surface/walking PNGs match T2 exactly. README and journal/PDF updated; see docs/journal/architecture/terrain-gpu/contacts/study.md. Grass mirror and interactive T3b/T3c remain.|
-|Move compute terrain grass metadata and deterministic slot planning to resident GPU buffers (T3b), then remove the full CPU render compatibility vectors.| |T3a provides independent matching contacts. Port triangle area/bounds/biome tests, rounded-slot density search and deterministic ordered allocation with queried buffer/dispatch limits. Preserve root IDs, hard candidate caps and versioned exact replay; count all transfers and CPU oracle work. Keep GL 3.3 CPU planning.|
+|Move compute terrain grass metadata and deterministic slot planning to resident GPU buffers (T3b), then remove the full CPU render compatibility vectors.|p|Split into T3b1 resident metadata and T3b2 allocation/mirror removal below. Preserve root IDs, hard candidate caps and versioned exact replay; count all transfers and CPU oracle work. Keep GL 3.3 CPU planning.|
+|Generate and validate resident GPU grass triangle metadata (T3b1): original IDs, area/bounds/biome eligibility and Gaussian weights from existing terrain buffers, with queried limits and transfer accounting.|t|Four new native cases and all 58 CTest groups pass (1092.60 s); exact compute/walking replay and GL 3.3 fallback preserved. See docs/journal/architecture/terrain-gpu/grass-metadata/study.md. CPU allocation and compatibility vectors remain T3b2.|
+|Consume resident GPU grass metadata with deterministic ordered slot allocation and rounded-slot density search (T3b2), then remove full CPU render vectors from compute captures.| |Depends on T3b1. Preserve seed/triangle/rank root identities, tiny-cap hash selection and hard candidate caps; query placement buffer/dispatch limits, version changed allocation/replay, decouple draw counts/contact/navigation diagnostics from CPU vectors and retain CPU/GL 3.3 compatibility.|
 |Enable asynchronous complete compute terrain consumers and interactive opt-in operation (T3c). Validate stale/reload/allocation recovery and measure hardware total cost before default enablement.| |Depends on T3b mirror removal. Build topology/contact indices on CPU workers, dispatch into bounded spare sets and poll completion without normal-walking waits. Publish land/water/grass/contact/shadow/reflection keys together, retain the last valid generation on failure and test body switches/reload/stale work. Hardware performance gates remain; do not infer them from llvmpipe.|
 |Implement highly optimized GPU terrain shaping according to the completed CPU–GPU plan. Pass noise/shape parameters and minimal panel/topology descriptors; calculate surface positions/normals/material inputs on the GPU. Keep CPU subdivision and sinking where the plan calls for them.|p|T2 and T3a sparse contacts complete above. Next: T3b/T3c rows above. Remaining T3: GPU grass planning and removal of compatibility vectors, asynchronous atomic water/shadow/reflection consumers and normal interactive installation. Preserve legacy CPU fallback/replay; measure transfers, CPU query counts and total CPU/GPU costs before default enablement.|
 |Implement the planned GPU atmosphere calculations and remaining planet field work. Reuse calculations already on the GPU and move remaining suitable per-sample work there, passing parameters rather than generated field arrays.| |Plan complete (A1); depends on relevant terrain interfaces. Existing density columns and ray integration already run on GPU. Cache uniform optics, profile and move highlight reduction with identical exposure semantics; validate airless/day/twilight/dust/humidity/refraction and CPU/GPU cost.|
@@ -87,6 +89,34 @@ current terrain-validation container has these tools and registers all 45
 tests. The install command above restores them on hosts where they are absent;
 reconfigure afterwards. Valgrind is only needed to recollect the independent
 instruction profile.
+
+## Resident grass metadata checkpoint — 2026-10-03
+
+- T3b is split into T3b1 metadata and T3b2 deterministic allocation/mirror removal.
+  GL 4.3 compute captures with compute placement now generate 64-byte descriptors
+  directly from resident terrain buffers: original IDs, double bounds/distances,
+  conservative biome eligibility and Gaussian weighted area.
+- A 160-byte parameter pack plus eight control bytes per dispatch is uploaded;
+  all work/storage limits are queried, actual source sizes checked, dispatches
+  bounded and source generation/planning eye retained. Indexed SSBO ranges and
+  program state restore on success/failure; RAII owns outputs and fences.
+- CPU grass allocation remains authoritative. Resident metadata is prepared for
+  T3b2; this step adds GPU work/memory and claims no frame or process-memory saving.
+  No new CPU height queries, geometry uploads or renderer metadata readbacks.
+- Four new native cases validate CPU eligibility/weight parity, poles/shoreline,
+  sigma/tint/water/disabled/distant cases, packing/stride, forced chunks, limits,
+  malformed sources/keys, GL ranges, cached zero-upload and disable cleanup.
+  A 100,000-triangle oracle uploads 176 bytes across two dispatches and retains
+  6,400,160 bytes; maximum weighted-area relative error is 2.20116e-14.
+- Compute surface/walking PNGs match T3a exactly; both replays, explicit CPU
+  override and GL 3.3 fallback pass. All 22 gallery hashes/provenance retained.
+- README, journal/PDF and study updated. PDF has 25 pages; pages 5–7 and 24–25
+  reviewed. Evidence in docs/journal/architecture/terrain-gpu/grass-metadata/.
+- Build and all 58 CTest groups pass (1092.60 s), including ten total native GL
+  terrain/metadata cases. Resume at T3b2: GPU
+  rounded-slot density search, deterministic budgeted allocation, placement
+  limits, versioned replay and CPU-vector removal. T3c asynchronous consumers,
+  A1/B1, trail fading and BSON evaluation remain queued.
 
 ## Sparse terrain contact checkpoint — 2026-10-03
 

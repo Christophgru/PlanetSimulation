@@ -1,0 +1,64 @@
+21/58 Testing: TerrainComputeIntegration
+21/58 Test: TerrainComputeIntegration
+Command: "/workspace/build-resume/tests/terrain_compute_tests"
+Directory: /workspace
+"TerrainComputeIntegration" start time: Oct 03 21:08 UTC
+Output:
+----------------------------------------------------------
+[==========] Running 10 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 6 tests from TerrainCompute
+[ RUN      ] TerrainCompute.DoubleFieldsMatchCpuAtPolesLatticeBoundariesAndExtremeSeeds
+PARITY triangles=33 samples=9 height_m=0 position_m=0 normal_rad=0 color=0 uploaded=1452 peak=5744 dispatches=3 gpu_ms=0.823206 cpu_bulk_ms=0.106904 submit_ms=40.3286 capture_wait_ms=0.139489 validation_read_ms=0.011033
+PARITY triangles=33 samples=9 height_m=1.38556e-13 position_m=0 normal_rad=2.10734e-08 color=0 uploaded=1452 peak=5744 dispatches=3 gpu_ms=0.740745 cpu_bulk_ms=0.065871 submit_ms=1.09414 capture_wait_ms=0.108392 validation_read_ms=0.011708
+PARITY triangles=33 samples=9 height_m=1.52101e-14 position_m=0 normal_rad=2.10734e-08 color=0 uploaded=1452 peak=5744 dispatches=3 gpu_ms=0.731189 cpu_bulk_ms=0.093385 submit_ms=1.15508 capture_wait_ms=0.032156 validation_read_ms=0.008936
+PARITY triangles=33 samples=9 height_m=3.86358e-13 position_m=0 normal_rad=2.10734e-08 color=0 uploaded=1452 peak=5744 dispatches=3 gpu_ms=0.834227 cpu_bulk_ms=0.090161 submit_ms=1.22148 capture_wait_ms=0.161205 validation_read_ms=0.013902
+PARITY triangles=33 samples=9 height_m=8.9706e-14 position_m=0 normal_rad=2.10734e-08 color=0 uploaded=1452 peak=5744 dispatches=3 gpu_ms=0.878043 cpu_bulk_ms=0.088253 submit_ms=1.26565 capture_wait_ms=0.175296 validation_read_ms=0.020628
+PARITY triangles=33 samples=9 height_m=3.86358e-13 position_m=0 normal_rad=2.10734e-08 color=0 uploaded=1452 peak=5744 dispatches=3 gpu_ms=0.602587 cpu_bulk_ms=0.139159 submit_ms=1.05318 capture_wait_ms=0.102816 validation_read_ms=0.013458
+PARITY triangles=33 samples=9 height_m=0 position_m=0 normal_rad=0 color=0 uploaded=1452 peak=5744 dispatches=3 gpu_ms=0.552631 cpu_bulk_ms=0.052926 submit_ms=0.896637 capture_wait_ms=0.130917 validation_read_ms=0.016081
+[       OK ] TerrainCompute.DoubleFieldsMatchCpuAtPolesLatticeBoundariesAndExtremeSeeds (49 ms)
+[ RUN      ] TerrainCompute.ShorelineMixedLodAndSinkingRetainSharedEndpointsAndTriangleOrder
+PARITY triangles=10000 samples=5002 height_m=0 position_m=0 normal_rad=2.98023e-08 color=0 uploaded=280816 peak=1700856 dispatches=2 gpu_ms=21.5286 cpu_bulk_ms=13.3521 submit_ms=36.3329 capture_wait_ms=0.17825 validation_read_ms=0.591556
+[       OK ] TerrainCompute.ShorelineMixedLodAndSinkingRetainSharedEndpointsAndTriangleOrder (156 ms)
+[ RUN      ] TerrainCompute.DriverPackingMatchesTheFieldContractAndScalarOutputStride
+[       OK ] TerrainCompute.DriverPackingMatchesTheFieldContractAndScalarOutputStride (8 ms)
+[ RUN      ] TerrainCompute.ProductionFieldMatchesCpuAndReducesTheCountedInputPayload
+PARITY triangles=100000 samples=50002 height_m=1.19371e-12 position_m=0 normal_rad=3.332e-08 color=0 uploaded=2800880 peak=17000856 dispatches=6 gpu_ms=195.895 cpu_bulk_ms=556.036 submit_ms=365.004 capture_wait_ms=0.09756 validation_read_ms=26.5533
+[       OK ] TerrainCompute.ProductionFieldMatchesCpuAndReducesTheCountedInputPayload (3742 ms)
+[ RUN      ] TerrainCompute.FailedGenerationCannotReplaceAnActiveMeshAndNoCpuVerticesAreUploaded
+[       OK ] TerrainCompute.FailedGenerationCannotReplaceAnActiveMeshAndNoCpuVerticesAreUploaded (7 ms)
+[ RUN      ] TerrainCompute.SparseContactGenerationMatchesGpuPlanesWithoutReadingTheCpuMirror
+[       OK ] TerrainCompute.SparseContactGenerationMatchesGpuPlanesWithoutReadingTheCpuMirror (190 ms)
+[----------] 6 tests from TerrainCompute (4155 ms total)
+
+[----------] 4 tests from GrassMetadata
+[ RUN      ] GrassMetadata.MatchesCpuEligibilityAndWeightsAtPolesWithWaterSnowSlopesAndGaussianTails
+GRASS_METADATA triangles=10000 eligible=626 uploaded=1416 resident=640160 dispatches=157 relative_area_error=1.85796e-15
+GRASS_METADATA triangles=8708 eligible=51 uploaded=168 resident=557472 dispatches=1 relative_area_error=3.84895e-15
+GRASS_METADATA triangles=10000 eligible=200 uploaded=168 resident=640160 dispatches=1 relative_area_error=3.16232e-15
+GRASS_METADATA triangles=10000 eligible=258 uploaded=168 resident=640160 dispatches=1 relative_area_error=2.20116e-14
+GRASS_METADATA triangles=9966 eligible=332 uploaded=168 resident=637984 dispatches=1 relative_area_error=6.71171e-16
+GRASS_METADATA triangles=9966 eligible=359 uploaded=168 resident=637984 dispatches=1 relative_area_error=5.76844e-16
+GRASS_METADATA triangles=9966 eligible=0 uploaded=168 resident=637984 dispatches=1 relative_area_error=0
+GRASS_METADATA triangles=9966 eligible=0 uploaded=168 resident=637984 dispatches=1 relative_area_error=0
+GRASS_METADATA triangles=8640 eligible=0 uploaded=168 resident=553120 dispatches=1 relative_area_error=0
+[       OK ] GrassMetadata.MatchesCpuEligibilityAndWeightsAtPolesWithWaterSnowSlopesAndGaussianTails (5302 ms)
+[ RUN      ] GrassMetadata.DriverPackingMatchesHostDescriptorsAndParameters
+[       OK ] GrassMetadata.DriverPackingMatchesHostDescriptorsAndParameters (17 ms)
+[ RUN      ] GrassMetadata.LimitsTruncatedInputsAndInvalidGenerationsRejectWithoutDisturbingGlRanges
+[       OK ] GrassMetadata.LimitsTruncatedInputsAndInvalidGenerationsRejectWithoutDisturbingGlRanges (18 ms)
+[ RUN      ] GrassMetadata.ProductionResidentBuffersDoNotNeedTheCpuMirrorAndCachedPreparationTransfersNothing
+GRASS_METADATA triangles=100000 eligible=20913 uploaded=176 resident=6400160 dispatches=2 relative_area_error=3.09371e-15
+[       OK ] GrassMetadata.ProductionResidentBuffersDoNotNeedTheCpuMirrorAndCachedPreparationTransfersNothing (4889 ms)
+[----------] 4 tests from GrassMetadata (10227 ms total)
+
+[----------] Global test environment tear-down
+[==========] 10 tests from 2 test suites ran. (14383 ms total)
+[  PASSED  ] 10 tests.
+<end of output>
+Test time =  14.91 sec
+----------------------------------------------------------
+Test Passed.
+"TerrainComputeIntegration" end time: Oct 03 21:09 UTC
+"TerrainComputeIntegration" time elapsed: 00:00:14
+----------------------------------------------------------

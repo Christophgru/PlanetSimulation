@@ -992,7 +992,7 @@ selects the default. It generates height, normals, material factors, sinking and
 draw buffers on GL 4.3, with queried limits and completed land/water publication.
 A 100,000-triangle view uploads 2,800,880 input bytes including parameters and
 control uniforms, compared with the CPU's 12,000,000 shaped-mesh bytes. CPU vectors
-still support grass planning and contacts, so this stage claims no total-frame
+still support grass planning, so this stage claims no total-frame
 speedup. A saved compute backend replays explicitly; unavailable GL 4.3 falls back
 for a fresh request and rejects a locked compute replay. Interactive compute and
 removal of the full CPU mirror remain T3.
@@ -1002,6 +1002,13 @@ now finds compute terrain triangles through a spatial index and evaluates only
 needed float-rounded/sunk positions, with a 1,024-position cache. Contact queries
 use no full render vectors or GPU readbacks. Grass planning still needs those CPU
 vectors; GPU grass planning and interactive publication remain the next steps.
+
+The [resident GPU grass metadata checkpoint](docs/journal/architecture/terrain-gpu/grass-metadata/study.md)
+computes original triangle IDs, bounds, biome eligibility and Gaussian area
+weights from resident terrain buffers. A 100,000-triangle case uploads 176 bytes
+and retains 6,400,160 metadata bytes, with no renderer readback. Capture diagnostics
+count these bytes separately. CPU slot allocation and the full compatibility
+vectors remain until T3b2; this checkpoint adds work and claims no frame speedup.
 
 Near water, `terrain_lod.shoreline_edge_m` targets 1 m edges within
 `shoreline_distance_m` (80 m by default). Set the edge target to `0` to disable
