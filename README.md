@@ -761,6 +761,10 @@ horizontal command target. See the
 [jetpack force and power calculation](docs/journal/character/flight.md).
 The [Sketchfab model shortlist](docs/journal/character/sketchfab-models.md)
 compares downloadable rigs against the requested Ava Turing reference.
+Three [downloaded astronaut candidates and local previews](USER_IO/astronaut_vis/README.md)
+now include editable rigs and GLBs with clear backs for a custom jetpack.
+Their [asset inspection](docs/journal/character/assets.md) checks walking
+deformation, skin weights and export, and records the separate asset licenses.
 An external skinned model has not yet been integrated.
 
 Grounded walking leaves persistent flattened grass along a 1.2 m wide path.

@@ -1,5 +1,10 @@
 # Astronaut model search — 2026-10-02
 
+The later [downloaded-candidate study](assets.md) prepares three public
+creator downloads with walking deformation checks and local renders in
+`USER_IO/astronaut_vis`. They are alternatives to this Sketchfab shortlist;
+the earlier catalog counts below remain metadata from that search.
+
 The recommended first candidate is [Astronaut character stylized rigged free
 model by Muko_Art](https://sketchfab.com/3d-models/astronaut-character-stylized-rigged-free-model-c8daa753952e454eb3c6195446751e88).
 Its preview has a slim grey suit, blue accents and a dark visor, close to the

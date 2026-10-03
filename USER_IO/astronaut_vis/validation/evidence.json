@@ -1,0 +1,61 @@
+{
+  "date_utc": "2026-10-03T10:14:57+00:00",
+  "base_revision": "a72e6a65ff90e76a190e176da2cba1dda3f32411",
+  "scope": "Downloaded astronaut candidate preparation and comparison; no game integration",
+  "prepared_pose_samples": 93,
+  "imported_pose_samples": 51,
+  "actual_glb_previews": 9,
+  "comparison_png": "USER_IO/astronaut_vis/comparison.png",
+  "manual_review": {
+    "previews": [
+      "USER_IO/astronaut_vis/astrodev.png",
+      "USER_IO/astronaut_vis/comparison.png",
+      "USER_IO/astronaut_vis/polygonal-astronaut.png",
+      "USER_IO/astronaut_vis/polygonal-cosmonaut.png",
+      "USER_IO/astronaut_vis/views/astrodev-back.png",
+      "USER_IO/astronaut_vis/views/astrodev-walk.png",
+      "USER_IO/astronaut_vis/views/polygonal-astronaut-back.png",
+      "USER_IO/astronaut_vis/views/polygonal-astronaut-walk.png",
+      "USER_IO/astronaut_vis/views/polygonal-cosmonaut-back.png",
+      "USER_IO/astronaut_vis/views/polygonal-cosmonaut-walk.png"
+    ],
+    "journal_pages": [
+      20,
+      21,
+      22,
+      23,
+      24
+    ]
+  },
+  "checks": {
+    "independent_asset_audit": "passed --record and hash verification",
+    "repository_layout": "passed CTest 1/1 (0.27 s)",
+    "unchanged_gallery_hashes": 22,
+    "game_tree_unchanged": [
+      "src",
+      "shaders",
+      "configs",
+      "tests",
+      "CMakeLists.txt",
+      "docs/screenshots",
+      "docs/captures"
+    ],
+    "journal_pdf_pages": 24
+  },
+  "limits": "Stylized assets with less surface detail than Ava Turing. InspectionWalk demonstrates deformation; production gait/contact/retargeting remains future work.",
+  "sha256": {
+    "README.md": "6b5c9cc9e15136cf2b8e6027c1c23a748e71de6752f24b520c0e9a5a1bd1d0b7",
+    "todo.md": "a55542f2a19a26fd54dd0b1cee8e239cca6a243227b919c1259b7f3c63eee8ee",
+    "docs/journal/paper.typ": "05ef4a54af10e51d1a00af8e19196a930ede7c2191d5dedcb335a49ee58a1ddf",
+    "docs/journal/paper.pdf": "17e98c62f3789f78964c82cdebbfd95fc553ca6344c20358336e3cb9a2d25445",
+    "docs/journal/character/assets.md": "cfbddad5290ca0629f2b8a90d2f4673fb3dbdf76095240721c6643bd3214d92e",
+    "docs/journal/character/sketchfab-models.md": "2ba38959e8510fed454eed739b19ec0d85f4f9076f5f55cfbccbcd7db687bd49",
+    "USER_IO/astronaut_vis/manifest.json": "5d109ab99b7c1e2edfd382ba7f34b3700b320d98df72c6ec26fdc3161795f72b",
+    "USER_IO/astronaut_vis/validation/prepare.log": "658513fefe6dc92c9125b6c8dc3c1ae50701384fecaa6ff73b07ff4124a6d304",
+    "USER_IO/astronaut_vis/validation/render.log": "e7d7eb476db991e3839a9752d297b0baf771a61496736fa9224a2e930af8cf40",
+    "USER_IO/astronaut_vis/validation/roundtrip.json": "ecd313d7e2a12ab9b82cb53850e1209b3e28f9ae7cf2511291d05df08c91e369",
+    "USER_IO/astronaut_vis/validation/audit.log": "9470cabcb6cd42369bbde839e697ef5564280566dd30c2ea690b0bd1981d3474",
+    "USER_IO/astronaut_vis/validation/checks.log": "a74dff8d1a85c546a80ae90b014bbce326b7a7a640be29dc28c9f306e69c8f77",
+    "USER_IO/astronaut_vis/validation/typst.log": "5c0f74449f5d4de704cb1e73c2de90af79a3ca7ac5376d52e8b0b2ad1e501d3d"
+  }
+}

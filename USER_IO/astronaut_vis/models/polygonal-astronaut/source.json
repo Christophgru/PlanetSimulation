@@ -1,0 +1,16 @@
+{
+  "creator": "Polygonal Mind",
+  "name": "Astronaut",
+  "page": "https://github.com/PolygonalMind/100Avatars/tree/ff07c2ad0017819c4e5366656ee1e5bcc4029bd4/100Avatars_048",
+  "repository_revision": "ff07c2ad0017819c4e5366656ee1e5bcc4029bd4",
+  "license": "CC-BY-4.0 (retained repository license; VRM metadata and newer releases also declare CC0)",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "source_urls": {
+    "fbx": "https://raw.githubusercontent.com/PolygonalMind/100Avatars/ff07c2ad0017819c4e5366656ee1e5bcc4029bd4/100Avatars_048/100Avatars_048_Astronaut.fbx",
+    "png": "https://raw.githubusercontent.com/PolygonalMind/100Avatars/ff07c2ad0017819c4e5366656ee1e5bcc4029bd4/100Avatars_048/100Avatars_048_Astronaut.png"
+  },
+  "source_sha256": {
+    "fbx": "3f289e81463008446ac21453ea81781dbe3f437dc8de52598844698dc5f27fcb",
+    "png": "a9a33c6553851fa4086a435c8ca497ace126c260bb644fc014f9eb42dc5178a9"
+  }
+}

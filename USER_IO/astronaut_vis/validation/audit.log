@@ -1,0 +1,8 @@
+PASS astrodev 1442 triangles; 25 skin joints; 1395 weighted exported vertices; embedded texture and animated leg chains
+PASS polygonal-astronaut 3478 triangles; 58 skin joints; 2317 weighted exported vertices; embedded texture and animated leg chains
+PASS polygonal-cosmonaut 4506 triangles; 78 skin joints; 4118 weighted exported vertices; embedded texture and animated leg chains
+PASS three GLBs, original source hashes, nine preview PNGs, 51 imported pose samples, folder limits and artifact manifest
+PASS astrodev 1442 triangles; 25 skin joints; 1395 weighted exported vertices; embedded texture and animated leg chains
+PASS polygonal-astronaut 3478 triangles; 58 skin joints; 2317 weighted exported vertices; embedded texture and animated leg chains
+PASS polygonal-cosmonaut 4506 triangles; 78 skin joints; 4118 weighted exported vertices; embedded texture and animated leg chains
+PASS three GLBs, original source hashes, nine preview PNGs, 51 imported pose samples, folder limits and artifact manifest

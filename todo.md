@@ -25,7 +25,7 @@ document the progress and add comments such that when interrupted you can contin
 |The Knees of the astronaut are also always bent, make him stand with straigh knees if hes nor walking.|t| Settled standing raises the pelvis over fixed soles; torso/arms/backpack and chase camera follow the replayable offset. Original bone lengths retained; terrain/cliff reach bounded. Clean 8/8 focused checks (133.62 s), including 22 CPU cases, standing/walking/flight/trail exact replay and native input. Two standing gallery views, comparison, journal/PDF and verified capture provenance updated.|
 |Make jetpack flight controls fire thrust whenever a movement button is pressed: WASD supplies directional thrust even without Space, Space supplies upward thrust, and looking down while pressing W allows descent. Keep orientation aligned to the nearby planet within 1.2 body diameters; outside that boundary switch to free outer-space orientation, allow flight to the Moon, and align to the destination body when entering its 1.2-diameter boundary. In outer-space mode always calculate gravity from the three closest celestial bodies.|t|Airborne WASD ignites directional thrust; W follows full look for descent, Space is up. World SI motion/exhaust axis, smooth local/free-space/Moon frames at centre distance 2.4 radii, closest-three gravity and moving-air drag. Clean 53/53 CTest entries pass (764.20 s), including 41 CPU cases, exact space/Moon/settled/steered-flight replay and native WASD-only ignition. Jetpack gallery view, replay evidence, journal/PDF and all 22 gallery hashes/provenance updated. See docs/journal/character/space-flight.md.|
 |Make the Bubbles of the Astronaut not just appear all at once, but physically sound, with a lifetime, that slowly fades, make sure the bubbles are look through, but still have some reflection, but make it performant. Also the bubbles and the astronaut shall be influenced by the wind of the grass.|t|Incremental world-space exhaust with 1.4 s lifetimes, release tails, transparent Fresnel shells and Sun highlights; shared grass wind affects particles and atmospheric astronaut drag. Pool capped at 64, one instanced draw per view, complete history/clock replay. Clean 56/56 CTest entries pass (675.37 s), including 10 new CPU cases and 120 production GLSL wind comparisons. Lifetime/plume captures, refreshed jetpack gallery, journal/PDF and all 22 gallery hashes verified. See docs/journal/character/exhaust.md.|
-|Download three diffrent high quality astronaut models, and make a render of each and drop it into USER_IO/astronaut_vis. Only choose models that we can actually use for walking motions and that have no backpack, such that we can mount a jetpack ourself|||
+|Download three diffrent high quality astronaut models, and make a render of each and drop it into USER_IO/astronaut_vis. Only choose models that we can actually use for walking motions and that have no backpack, such that we can mount a jetpack ourself|t|Three downloaded stylized humanoid candidates in USER_IO/astronaut_vis: AstroDev, Polygonal Mind Astronaut #048 and Square Cosmonaut #111. Clear backs, packed Blender files, GLBs, retained sources/licenses, nine reviewed renders and comparison. All 93 prepared and 51 imported poses, independent GLB/PNG/hash audit and repository layout pass; journal/PDF rebuilt and pages 20–24 reviewed. Less detailed than Ava Turing; runtime integration remains separate.|
 |Improve the offline / raytracing example in README.md: increase foliage count and use the initial surface position from the production config; consider rendering narrower vertical columns with higher terrain/foliage budgets and assembling them into the final image; make lens flare visibly apparent. Start after the preceding tasks are finished.| |Queued on user request; evaluate strip projection, overlap and image assembly while preserving full-frame lighting/exposure and flare placement. No renderer changes for this task yet.|
 |Form a terrain/atmosphere CPU–GPU implementation plan before starting GPU terrain work. Audit the existing pipeline and evaluate hexagonal planet panels, seams/poles and alternatives. Define CPU ownership of subdivision/LOD/sinking and GPU ownership of noise, surface shape and atmospheric fields, including ground contacts, shadows/reflections, supported GPU paths and validation/performance budgets.| |Planning prerequisite for the following terrain/atmosphere tasks. Document CPU/GPU ownership before implementation, and assess seams, poles and spherical exceptions for hexagonal panels.|
 |Implement highly optimized GPU terrain shaping according to the completed CPU–GPU plan. Pass noise/shape parameters and minimal panel/topology descriptors; calculate surface positions/normals/material inputs on the GPU. Keep CPU subdivision and sinking where the plan calls for them.| |Depends on the architecture plan. Preserve planetary coordinates, camera/astronaut contacts, water/shadow/reflection agreement, deterministic replay and a documented compatible fallback; measure transfers and generation costs.|
@@ -67,10 +67,13 @@ if environmental changes are needed inside the container, let the user know by a
 - Function-level CPU instruction profiling uses optional `valgrind` (installed
   for the CPU study; apt also installs `libc6-dbg`). It is not a build/runtime
   dependency. The existing GNU gprofng probe reported an unreliable timer.
+- Astronaut candidate inspection, glTF conversion and preview renders use
+  optional `blender`, `python3-numpy` and `libarchive-tools` (installed for
+  this asset study), not game dependencies.
 
 ```sh
 apt-get update
-apt-get install --no-install-recommends -y valgrind xdotool imagemagick
+apt-get install --no-install-recommends -y valgrind xdotool imagemagick blender python3-numpy libarchive-tools
 ```
 
 The earlier CPU-profiling host lacked `xdotool` and ImageMagick (`import`,
@@ -79,6 +82,46 @@ current terrain-validation container has these tools and registers all 45
 tests. The install command above restores them on hosts where they are absent;
 reconfigure afterwards. Valgrind is only needed to recollect the independent
 instruction profile.
+
+## Astronaut candidate checkpoint — 2026-10-03
+
+- Three originals, textures and licenses retained in
+  `USER_IO/astronaut_vis/models/`: `astrodev`, `polygonal-astronaut`,
+  `polygonal-cosmonaut`. Prepared geometry is 1,442 / 3,478 / 4,506 triangles,
+  with 25 / 58 / 78 bones. AstroDev is CC0; Polygonal Mind copies retain the
+  creator repository's CC BY 4.0 license and attribution despite CC0 VRM tags.
+- The prepared versions have no backpack. AstroDev's integrated pack is
+  removed and the closed torso capped in the original white palette; Square
+  Cosmonaut's disconnected pack is removed; #048 originally has no pack.
+  Sources retain original geometry. These are accessible stylized candidates,
+  less detailed than Ava Turing; Sketchfab downloads require authentication.
+- `scripts/character/prepare_models.py` builds packed Blender/GLB outputs,
+  normalizes four skin weights and creates a one-second `InspectionWalk`.
+  Connected thigh/shin/foot chains and 31 finite bounded poses per model pass.
+  The GLB has one named clip. Optional Draco isn't used; importer compatibility
+  handles Debian Blender 3.4's old NumPy alias.
+- `scripts/character/render_models.py` imports actual GLBs, checks 17 poses
+  each, loop closure/skin weights/chains, and renders front/back/walking poses
+  at 900x1080, Eevee 48 samples, software GL with eight workers. All nine PNGs
+  visually reviewed; clear backs and full limbs confirmed. After an interrupted
+  all-model process, individual candidate/view batches completed successfully;
+  CLI options allow resumable renders. Log: `USER_IO/astronaut_vis/validation/render.log`.
+- Comparison assembled with ImageMagick `convert +append`; candidate README
+  records reproduction commands. Independent `scripts/character/check_models.py`
+  passes both `--record` and verification: three self-contained GLBs, embedded
+  textures, original source hashes, animated leg chains, normalized weights,
+  nine PNGs, 51 imported poses, folder limits and every manifest artifact hash.
+- All 22 unchanged game-gallery images still match their generation hashes.
+  CTest RepositoryLayout passes (1/1, 0.27 s). Journal PDF rebuilt successfully;
+  pages 20–24 visually reviewed, including the three-candidate figure on page 22.
+  Asset evidence/logs are retained in `USER_IO/astronaut_vis/validation/`.
+- README, `docs/journal/character/assets.md`, candidate README and journal/PDF
+  are updated. This task does not integrate a model into the game or change
+  C++/shaders/configuration. Asset clips are deformation probes; production
+  gait/contact/ozz retargeting remains separate work after selection.
+- Candidate row is t. Next unfinished task: improve the offline/raytracing
+  README example with production initial position, denser foliage and visible
+  lens flare; evaluate column rendering and assembly before changing the renderer.
 
 ## Exhaust and wind checkpoint — 2026-10-03
 

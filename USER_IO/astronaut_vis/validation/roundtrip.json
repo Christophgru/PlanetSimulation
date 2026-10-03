@@ -1,0 +1,41 @@
+[
+  {
+    "model": "astrodev",
+    "vertices": 1395,
+    "bones": 25,
+    "weighted_vertices": 1395,
+    "finite_pose_samples": 17,
+    "loop_closure_m": 0.0,
+    "ankle_travel_m": {
+      "left": 0.19090722894095669,
+      "right": 0.19500463480878863
+    },
+    "max_vertex_travel_m": 0.2066239176947684
+  },
+  {
+    "model": "polygonal-astronaut",
+    "vertices": 2317,
+    "bones": 58,
+    "weighted_vertices": 2317,
+    "finite_pose_samples": 17,
+    "loop_closure_m": 0.0,
+    "ankle_travel_m": {
+      "left": 0.15939069216636384,
+      "right": 0.15924860407324193
+    },
+    "max_vertex_travel_m": 0.165722353737825
+  },
+  {
+    "model": "polygonal-cosmonaut",
+    "vertices": 4118,
+    "bones": 78,
+    "weighted_vertices": 4118,
+    "finite_pose_samples": 17,
+    "loop_closure_m": 0.0,
+    "ankle_travel_m": {
+      "left": 0.33544665895100567,
+      "right": 0.3354166534257443
+    },
+    "max_vertex_travel_m": 0.3640438966916164
+  }
+]
