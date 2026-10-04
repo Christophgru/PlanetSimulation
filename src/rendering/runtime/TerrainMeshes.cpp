@@ -19,6 +19,7 @@ void Renderer::Impl::installLandMesh(std::size_t index, TerrainGeometry geometry
 }
 
 void Renderer::Impl::installTerrainBuild(TerrainCpuBuild built,const TerrainBuildIdentity& identity) {
+    if(identity.resident) throw std::logic_error("Resident terrain requires complete publication");
     const auto i=identity.bodyIndex;
     profiler.terrainBuild(built.milliseconds);
     std::unique_ptr<TerrainComputeBuffers> computed,computedWater;
@@ -37,7 +38,7 @@ void Renderer::Impl::installTerrainBuild(TerrainCpuBuild built,const TerrainBuil
     installedTerrainSerial[i]=identity.serial;terrainFailures[i].reset();
 }
 
-void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalking) {
+void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalking,std::optional<double> characterElapsed) {
     CpuTrace::Scope scope("Renderer::preparePlanetMeshes");
     const auto identityFor=[&](std::size_t i,const glm::dvec3& localEye,int localMask) {
         TerrainBuildIdentity k;k.epoch=terrainSceneEpoch;k.serial=terrainRequestSerial;
@@ -62,6 +63,8 @@ void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalkin
         } else ++terrainRejectedBuilds;
     }
     std::optional<TerrainBuildRequest> candidate;
+    std::vector<std::optional<TerrainCpuBuild>> residentBuilds(terrainPublication ? scene.scenario.planets.size() : 0);
+    std::vector<std::optional<TerrainBuildIdentity>> residentIdentities(residentBuilds.size());
     double candidateDistance=std::numeric_limits<double>::infinity();
     for (std::size_t i = 0; i < scene.scenario.planets.size(); ++i) {
         const auto& planet = scene.scenario.planets[i];
@@ -126,9 +129,12 @@ void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalkin
         }
         auto built=terrainCompute ? terrainJobs.executeForCapture(std::move(request)).take() : buildTerrainCpu(request);
         if(options.renderTestMode && i==scene.scenario.surface_camera.planet_index) captureTerrainEye=localEye;
-        installTerrainBuild(std::move(built),identity);
+        if(identity.resident) {
+            residentBuilds[i]=std::move(built);residentIdentities[i]=identity;
+        } else installTerrainBuild(std::move(built),identity);
     }
     if(candidate) terrainJobs.submit(std::move(*candidate));
+    if(terrainPublication) publishResidentBuilds(std::move(residentBuilds),residentIdentities,eye,characterElapsed);
 }
 
 std::vector<std::uint64_t> Renderer::Impl::geometryRevisions() const {

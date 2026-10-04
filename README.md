@@ -1040,9 +1040,15 @@ The [complete generation transaction checkpoint](docs/journal/architecture/terra
 adds off-live land/water/grass/contact preparation, atomic ownership transfer and
 fenced retirement. It reserves published, pending and retiring sets under a
 logical aggregate limit, permits one GPU preparation globally and prevents a new
-spare until that body's retirement completes. Renderer frame-boundary integration
-and transactional scene reload are the next checkpoints; captures still install
-terrain and grass separately and interactive compute remains gated.
+spare until that body's retirement completes. Resident capture integration is
+covered below; transactional scene reload remains queued.
+
+The [renderer publication checkpoint](docs/journal/architecture/terrain-gpu/async/renderer/study.md)
+connects complete resident consumers to capture frame boundaries. A restored
+character preview preserves the exact chase/replay grass anchor, then the actual
+character update uses committed contacts. Grass-only replanning retains terrain
+and contacts, and main/shadow/reflection passes record matching generations.
+CPU and legacy captures retain their paths; interactive compute remains gated.
 
 Near water, `terrain_lod.shoreline_edge_m` targets 1 m edges within
 `shoreline_distance_m` (80 m by default). Set the edge target to `0` to disable

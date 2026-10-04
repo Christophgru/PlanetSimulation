@@ -85,7 +85,8 @@ nlohmann::json Renderer::Impl::astronautState() const {
         result["grass_plan_eye"]=vector(*eye);
     return result;
 }
-void Renderer::Impl::prepareAstronaut(double elapsed) {
+void Renderer::Impl::prepareAstronaut(double elapsed,std::shared_ptr<SparseTerrainContacts> plannedContacts,
+    std::uint64_t plannedRevision,bool preview) {
     auto& camera=*scene.surfaceCamera;
     const std::size_t index=scene.scenario.surface_camera.planet_index;
     const auto& planet=scene.scenario.planets[index];
@@ -94,7 +95,9 @@ void Renderer::Impl::prepareAstronaut(double elapsed) {
     const double units=scene.scenario.metersPerWorldUnit();
     const double radius=planet.radius*units;
     astronaut.planetIndex=index;
-    if(mesh.contacts) astronautGround.bind(mesh.contacts,mesh.revision);
+    const auto contactRevision=plannedContacts ? plannedRevision : mesh.revision;
+    if(plannedContacts) astronautGround.bind(std::move(plannedContacts),contactRevision);
+    else if(mesh.contacts) astronautGround.bind(mesh.contacts,mesh.revision);
     else astronautGround.bind(mesh.vertices,mesh.indices,mesh.revision,radius);
     const GroundQuery fallback=[&](const glm::dvec3& radial) {
         return GroundContact{radial*(radius+scene.terrainSurfaces[index].heightAt(radial)*units),radial};
@@ -107,9 +110,9 @@ void Renderer::Impl::prepareAstronaut(double elapsed) {
         }
         return contact;
     };
-    if (astronautGroundRevision!=mesh.revision) {
+    if (astronautGroundRevision!=contactRevision) {
         astronaut.motion.refreshContacts(ground);
-        astronautGroundRevision=mesh.revision;
+        astronautGroundRevision=contactRevision;
     }
     std::vector<FlightBody> flightBodies;
     flightBodies.reserve(scene.bodies.size());
@@ -172,7 +175,7 @@ void Renderer::Impl::prepareAstronaut(double elapsed) {
         const auto replay=config::Config::load(options.replayPath).data();
         if (replay.contains("astronaut_pose")) {
             const auto& j=replay.at("astronaut_pose");
-            if (j.contains("exhaust")) {
+            if (!preview && j.contains("exhaust")) {
                 const auto& e=j.at("exhaust");
                 if (e.at("schema").get<int>()!=1 || !e.at("particles").is_array() ||
                     e.at("particles").size()>ExhaustParticles::capacity)
@@ -219,9 +222,9 @@ void Renderer::Impl::prepareAstronaut(double elapsed) {
                 const auto& v=j.at("flight_view_world");
                 camera.setWorldView(vector(v.at("direction")),vector(v.at("up")));
             }
-            if (j.contains("grass_plan_eye"))
+            if (!preview && !terrainPublication && j.contains("grass_plan_eye"))
                 grass.procedural.restorePlanningEye(index,vector(j.at("grass_plan_eye")));
-            if (j.contains("grass_trail")) {
+            if (!preview && j.contains("grass_trail")) {
                 const auto& entries=j.at("grass_trail");
                 if (!entries.is_array() || entries.size()>GrassTrail::capacity)
                     throw std::invalid_argument("Astronaut grass trail replay exceeds capacity");
@@ -269,9 +272,9 @@ void Renderer::Impl::prepareAstronaut(double elapsed) {
         }
         astronaut.planetIndex=next; astronautGround.clear(); astronautGroundRevision=0;
         astronaut.motion.setFlightEnvironment(environment(nextPlanet),JetpackPhysics::maximumThrust(environment(scene.scenario.planets.front())));
-        std::cout << "Astronaut destination: " << nextPlanet.name << "\n" << std::flush;
+        if(!preview) std::cout << "Astronaut destination: " << nextPlanet.name << "\n" << std::flush;
     }
-    if (!options.renderTestMode) {
+    if (!preview && !options.renderTestMode) {
         if (astronaut.motion.pose().boosting!=wasBoosting)
             std::cout << "Astronaut jetpack thrust " << (astronaut.motion.pose().boosting ? "on" : "off") << "\n" << std::flush;
         const bool outer=astronaut.motion.pose().navigation && astronaut.motion.pose().navigation->outerSpace;
@@ -287,7 +290,7 @@ void Renderer::Impl::prepareAstronaut(double elapsed) {
         camera.endFlight();
         camera.followSurfaceDirection(currentBody.position+currentBody.orientation*pose.root/units);
     }
-    grass.procedural.trail(current).observe(pose.root,!pose.airborne &&
+    if(!preview) grass.procedural.trail(current).observe(pose.root,!pose.airborne &&
         (!scene.scenario.planets[current].water.enabled || glm::length(pose.root)>
             scene.scenario.planets[current].radius*units+scene.scenario.planets[current].water.level_m+.001));
     const GroundQuery currentGround=[&](const glm::dvec3& p) {
@@ -298,6 +301,10 @@ void Renderer::Impl::prepareAstronaut(double elapsed) {
     };
     const auto chase=astronaut.motion.chase(glm::transpose(currentBody.orientation)*camera.direction(),
         current==index ? ground : currentGround,glm::transpose(currentBody.orientation)*camera.up());
+    astronautView={currentBody.position+currentBody.orientation*chase.eye/units,
+                   currentBody.position+currentBody.orientation*chase.target/units,
+                   currentBody.orientation*chase.up};
+    if(preview) return; // Planning never advances exhaust/trails or consumes replay anchors.
     ExhaustEmitter emitter;
     const auto basis=currentBody.orientation*pose.suitBasis();
     const auto worldRoot=currentBody.position*units+currentBody.orientation*pose.root;
@@ -343,8 +350,5 @@ void Renderer::Impl::prepareAstronaut(double elapsed) {
     }
     astronaut.exhaust.update(elapsed,before,emitter,sampleAir);
     astronaut.lastEmitter=emitter; astronaut.exhaustTime=characterWindTime;
-    astronautView={currentBody.position+currentBody.orientation*chase.eye/units,
-                   currentBody.position+currentBody.orientation*chase.target/units,
-                   currentBody.orientation*chase.up};
 }
 }

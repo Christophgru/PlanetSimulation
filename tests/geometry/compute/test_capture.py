@@ -40,6 +40,19 @@ def compare(a,b):
     assert sum(delta)/len(delta)<.1 and max(delta)<32,(sum(delta)/len(delta),max(delta))
     return {'exact':a.read_bytes()==b.read_bytes(),'mean_channel_error':sum(delta)/len(delta),'max_channel_error':max(delta)}
 cpu,c=run('cpu');gpu,g=run('gpu',('--terrain-backend','compute'))
+def publication(data):
+    state=data['render']['terrain_publication']
+    assert state['managed'] and not state['pending'] and state['failed']==state['obsolete']==0
+    for consumer in state['consumers']:
+        assert consumer['land']==consumer['grass']==consumer['contacts']
+        assert consumer['land_revision']==consumer['grass_revision']==consumer['main_revision']>0
+        if consumer['shadows_enabled']: assert consumer['shadow_revision']==consumer['land_revision']
+        if any(p['water']['enabled'] for p in data['scenario']['planets']):
+            assert consumer['reflection_revision']==consumer['land_revision']
+        if consumer['water_enabled']: assert consumer['water_draw_revision']==consumer['water_revision']
+    return state
+published=publication(g)
+assert not c['render']['terrain_publication']['managed']
 assert c['render']['terrain_backend']=='cpu' and g['render']['terrain_backend']=='compute'
 assert g['render']['terrain_contract']['backend']=='compute'
 assert not g['render']['terrain_compute']['cpu_compatibility_mirror']
@@ -89,12 +102,17 @@ assert contacts['backend']=='sparse-oracle' and contacts['height_evaluations']>0
 assert contacts['resident_positions']<=contacts['position_capacity']==1024
 assert contacts['height_evaluations']<w['render']['terrain_contract']['unique_samples']//4
 walkingReplay,wr=run('walking-replay',replay=walker.with_suffix('.png.json'),astronaut=True)
+walkingPublication=publication(w);publication(wr);publication(r)
+assert walkingPublication['character_previews']==6
+assert walkingPublication['astronaut_contact_revision']==walkingPublication['consumers'][0]['land_revision']
+assert w['astronaut_pose']['grass_plan_eye']==walkingPublication['consumers'][0]['grass_plan_eye']
 assert wr['render']['terrain_backend']=='compute' and walkingReplay.read_bytes()==walker.read_bytes()
 legacy,l=run('legacy-compute',('--terrain-backend','compute','--terrain-grass-planner','cpu'))
 assert l['render']['terrain_compute']['cpu_compatibility_mirror']
 assert l['render']['terrain_contract']['evaluation_requests']>0
 assert l['render']['terrain_cpu_worker']['submitted']==l['render']['terrain_cpu_worker']['completed']>0
 assert l['render']['terrain_grass_planner']=='cpu'
+assert not l['render']['terrain_publication']['managed']
 old=out/'legacy.json';saved=json.loads(legacy.with_suffix('.png.json').read_text());saved['render'].pop('terrain_grass_planner');old.write_text(json.dumps(saved))
 oldReplay,lr=run('legacy-replay',replay=old)
 assert lr['render']['terrain_grass_planner']=='cpu' and oldReplay.read_bytes()==legacy.read_bytes()
@@ -110,6 +128,7 @@ fallback,f=run('gl33-fallback',('--terrain-backend','compute'),env=oldgl)
 assert f['render']['terrain_backend']=='cpu' and '4.3' in f['render']['terrain_fallback']
 assert not f['render']['terrain_compute']['cpu_compatibility_mirror']
 assert f['render']['foliage_gpu_metadata']['resident_bytes']==0
+assert not f['render']['terrain_publication']['managed']
 error=run('gl33-locked-rejected',replay=gpu.with_suffix('.png.json'),env=oldgl,fail=True)
 assert 'Locked compute replay' in error
 invalid=out/'invalid.json';bad=json.loads(gpu.with_suffix('.png.json').read_text());bad['render']['terrain_backend']='invalid'
@@ -125,6 +144,7 @@ report={'cpu_gpu_surface':compare(cpu,gpu),'compute_replay_exact':True,'compute_
         'cpu_override_exact':True,'legacy_compute_replay_exact':True,'vertex_config_fallback':True,'locked_vertex_config_rejected':True,'unknown_grass_planner_rejected_before_window':True,'gl33_fallback':True,'locked_unavailable_rejected':True,'invalid_backend_rejected_before_window':True,
         'unknown_field_version_rejected_before_window':True,'terrain_compute':g['render']['terrain_compute'],'commands':commands,
         'sparse_contacts':contacts,'grass_metadata':metadata,'terrain_cpu_worker':worker,
+        'terrain_publication':published,'walking_publication':walkingPublication,
         'png_sha256':{q.name:hashlib.sha256(q.read_bytes()).hexdigest() for q in out.glob('*.png')}}
 (out/'results.json').write_text(json.dumps(report,indent=2)+'\n')
 print('PASS GPU terrain/main/reflection/foliage/standing/walking, exact locked replay, CPU override and GL 3.3 fallback')

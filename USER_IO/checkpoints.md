@@ -1,5 +1,36 @@
 # Page to document progress of AI Agents working on this Project
 
+## Renderer generation publication checkpoint — 2026-10-04
+
+- T3c3b is tested. Complete resident capture consumers publish at the
+  pre-character/frame boundary. Owned grass-only replacement preserves land,
+  water and sparse contacts, with bounded admission and fenced patch retirement.
+- Contact planning previews restore CPU motion, cameras, contact cache/binding,
+  selected bodies, input presses and replay state before GPU submission. Actual
+  character steps consume the committed generation and match the prospective
+  chase eye exactly. Effects and trails advance only in the real step.
+- Managed scene passes validate installed keys, revisions and grass anchors
+  before draws. Capture evidence records main/shadow/reflection/water/grass
+  consumption and contact binding; changed land invalidates shadows and all
+  publications invalidate whole-frame reuse.
+- All 31 native cases pass (52.055 s), including ten transaction cases and
+  grass-only transfer/failure/retirement checks. Two focused renderer cases pass
+  (13.408 s), proving matching consumers after replanning and retention of old
+  buffers/sidecar through a publication failure followed by same-renderer recovery.
+- All 59 CTest groups pass in one uninterrupted final-binary run (789.49 s).
+  All ten compute/CPU/replay PNG hashes match T3c3a exactly. Walking checks six
+  matching previews, committed contacts and replay grass anchors. Frozen source,
+  input, application/native/runtime binaries and draw evidence are retained.
+- README, study, journal/PDF and evidence are updated. The 26-page journal was
+  reviewed on pages 5–7 and 24–26. All 22 gallery hashes and the user's
+  environmental/Docker TODO suffix are preserved. See
+  `docs/journal/architecture/terrain-gpu/async/renderer/study.md` and `validation/`.
+- Resume T3c3c: keep the old scene drawable through complete replacement GPU
+  readiness and validate reload, movement/body switches and Moon arrival.
+  T3c4 asynchronous interactive acceptance and T3c5 hardware gates remain pending;
+  CPU stays default, legacy/GL 3.3 paths remain and compute interactive stays gated.
+  Capture explicitly waits; logical reservation is not physical VRAM or hardware FPS.
+
 ## Whole-generation publication checkpoint — 2026-10-04
 
 - T3c3a is tested. `TerrainPublication` owns complete off-live land/water/grass/

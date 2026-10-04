@@ -109,6 +109,9 @@ T3c2 adds owned land/water and resident-grass preparation. GPU command order car
 
 T3c3a adds a complete transaction owner with off-live land/water/grass/contact resources, separate terrain and grass planning anchors, pre-dispatch overlap admission and no-throw publication transfers. One GPU preparation globally and one preparing/retiring spare per body bound overlap; default logical limits are 512 MiB per set and 1 GiB aggregate. Publication validates request and live consumer identities, creates a last-use fence before transfer, then keeps all old resources together until zero-timeout retirement polling signals completion. Disabled water and grass replace prior consumers at the same boundary. This owner is not yet connected to renderer frame boundaries or reload: T3c3b/T3c3c must refresh dependent caches and preserve the old scene through replacement readiness. Interactive compute remains gated. The study is in `architecture/terrain-gpu/async/publication/`.
 
+T3c3b connects complete resident capture consumers to the pre-character frame boundary. CPU worker outputs stay off live resources while a scoped planning preview derives the exact chase eye from prospective sparse contacts. It restores motion, contact caches, cameras, input presses and replay state before GPU submission; trails and exhaust advance only in the real step after publication. Grass-only replacement exchanges the patch and receipt without replacing terrain or contacts. Changed land invalidates shadows and every publication invalidates whole-frame reuse. Managed scene passes validate keys/revisions before draws, skip independent patch preparation and expose consumed main, shadow, reflection, grass and water revisions. Capture waits remain explicit; transactional scene reload and asynchronous interactive acceptance remain T3c3c/T3c4. The study is in `architecture/terrain-gpu/async/renderer/`.
+
+
 = Orbital motion and light transport
 
 == Prescribed Kepler ellipses with collective mass
@@ -460,6 +463,9 @@ T3c2 passes all 59 CTest groups in one uninterrupted application-binary run (733
 
 T3c3a passes 29 native compute cases (51.154 s), including eight complete-transaction cases. Six fence failures cover land, water, metadata, allocation, draw resources and retirement; all preserve live consumers and release staged buffers. Ten stale request variants, delayed zero-timeout preparation/retirement, actual old-resource draws, aggregate admission, externally changed live consumers and repeated body replacements pass. All ten compute/CPU/replay PNG hashes remain exact. Full regression, source/binary provenance and capture results are retained in `architecture/terrain-gpu/async/publication/validation/`. These are transaction API checks: renderer frame-boundary integration, shadow/cache refresh and transactional scene reload remain T3c3b/T3c3c.
 
+T3c3b passes 31 native compute cases (52.055 s), including two new grass-only ownership/failure cases, and two renderer publication cases (13.408 s). Renderer checks observe matching main/shadow/reflection/water/grass identities after grass replanning, retain old buffers and the prior capture sidecar after an injected publication-fence failure, then recover in the same renderer. All ten compute/CPU/replay PNG hashes match T3c3a exactly; six character previews match their actual chase eyes, committed contacts and replay grass anchors. Full regression and frozen source/input/application/native/runtime provenance are retained in `architecture/terrain-gpu/async/renderer/validation/`. Scene reload transactions and asynchronous interactive opt-in remain pending.
+
+
 
 == Rebuilding the paper and the evidence
 
@@ -501,7 +507,8 @@ R6. NASA Glenn Research Center, #link("https://www.grc.nasa.gov/www/k-12/Numbers
   [Stable terrain under LOD], [`src/rendering/geometry/Terrain.h`], [`TerrainTests`, surface capture],
   [Bounded CPU terrain jobs], [`src/rendering/geometry/jobs/`], [`TerrainJobTests`, compute capture],
   [Staged GPU preparation], [`src/rendering/geometry/compute/`, `foliage/procedural/`], [`GpuPreparation` native cases, compute capture],
-  [Complete GPU transactions], [`src/rendering/geometry/publication/`], [`TerrainPublication` native cases; renderer integration pending],
+  [Complete GPU transactions], [`src/rendering/geometry/publication/`], [`TerrainPublication`, renderer recovery; reload pending],
+  [Renderer terrain consumers], [`src/rendering/runtime/terrain/`, `ScenePass.cpp`], [`TerrainPublicationRenderer`, compute capture identities],
   [Barycentric orbit hierarchy], [`src/simulation/OrbitalSystem.h`], [`OrbitalSystemTests`],
   [Shadowed atmosphere], [`shaders/atmosphere/atmosphere.frag`], [`TerrainShadowRenderIntegration`],
   [Temperature-controlled bend], [`src/simulation/Atmosphere.h`], [`AtmosphereTests`, GPU render test],

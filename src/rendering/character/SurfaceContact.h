@@ -23,6 +23,7 @@ public:
     void bind(std::shared_ptr<SparseTerrainContacts> source,std::uint64_t revision);
     GroundContact sample(const glm::dvec3& direction, const GroundQuery& fallback);
     void clear();
+    std::uint64_t revision() const noexcept {return sparse_ || vertices_ ? revision_ : 0;}
 private:
     bool hit(unsigned triangle, const glm::dvec3& radial, GroundContact& result) const;
     const std::vector<float>* vertices_ = nullptr;

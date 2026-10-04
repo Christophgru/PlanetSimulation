@@ -59,6 +59,8 @@ Renderer::Impl::Impl(app::CommandLineOptions arguments)
             std::cout << "Grass planner CPU fallback: compute_placement disabled\n";break;
         }
     }
+    if(terrainCompute && options.terrainGrassPlanner=="gpu-v1")
+        terrainPublication=std::make_unique<TerrainPublication>(grass.procedural,scene.scenario.planets.size());
     scene.updateSimulation(simulationTime);
     cameraInput.setThirdPersonWalkSpeed(6.0/scene.scenario.metersPerWorldUnit());
     if (!options.replayPath.empty() && scene.surfaceCamera) cameraInput.selectSurface();

@@ -83,6 +83,8 @@ int Renderer::Impl::interact() {
                 terrainJobs.advanceEpoch(terrainSceneEpoch+1);
                 ++terrainSceneEpoch;
 
+                terrainPublication.reset(); // Compute reload remains gated until T3c3c/T3c4.
+                terrainConsumers.clear();
                 for (auto& mesh : meshes.planetMeshes) mesh.destroy();
                 for (auto& mesh : meshes.waterMeshes) mesh.destroy();
                 scene.scenario = std::move(staged.scenario);
@@ -258,7 +260,7 @@ int Renderer::Impl::interact() {
             const bool scaledScene = sceneWidth != width || sceneHeight != height;
             if (scaledScene) qualityTarget.ensure(sceneWidth, sceneHeight, false, 8192);
             const GLuint sceneOutput = scaledScene ? qualityTarget.framebuffer() : 0;
-            const bool pending=terrainJobs.pending(terrainSceneEpoch);
+            const bool pending=terrainJobs.pending(terrainSceneEpoch) || (terrainPublication && terrainPublication->pending());
             const bool windAnimating=std::any_of(scene.scenario.planets.begin(),scene.scenario.planets.end(),
                 [](const auto& planet) {
                     return planet.foliage.enabled && planet.foliage.wind_strength>0 &&

@@ -12,6 +12,8 @@ namespace rendering {
 // The angular threshold bounds motion at the reference radius to one map texel.
 class TerrainShadowCache {
 public:
+    void invalidate() noexcept {valid_=false;}
+    std::uint64_t revision() const noexcept {return valid_ ? revision_ : 0;}
     bool updateNeeded(const glm::dvec3& sun,double extent,int resolution,std::uint64_t revision) {
         const auto direction=glm::normalize(sun);
         const bool changed=!valid_ || extent!=extent_ || resolution!=resolution_ || revision!=revision_ ||

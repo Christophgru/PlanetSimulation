@@ -48,13 +48,16 @@ int Renderer::Impl::capture() {
           } }
         if (options.thirdPersonRenderMode) {
             FrameProfiler::Scope scope(&profiler,FrameStage::Mesh,false);
-            preparePlanetMeshes(scene.surfaceCamera->position());
             if (frame==options.benchmarkJumpFrame || frame==options.benchmarkBoostFrame) ++inputContext.spacePresses;
             astronautBenchmarkBoost=options.benchmarkBoostFrame>=0 && frame>=options.benchmarkBoostFrame;
             astronautFlightControl={options.benchmarkWalkStep>0 ? 1.0 : 0.0,0};
             const double localStep=options.benchmarkCharacterStep>0 ? options.benchmarkCharacterStep : options.benchmarkWalkStep/6.0;
             characterWindTime=windStart+frame*localStep;
+            const double characterElapsed=frame>0 ? localStep : 0;
+            preparePlanetMeshes(scene.surfaceCamera->position(),false,characterElapsed);
             prepareAstronaut(frame>0 ? (options.benchmarkCharacterStep>0 ? options.benchmarkCharacterStep : options.benchmarkWalkStep/6.0) : 0);
+            if(plannedCharacterEye && *plannedCharacterEye!=astronautView.eye)
+                throw std::logic_error("Character planning eye differs from committed contact update");
             // A destination handoff changes the distance to the Sun. Derive
             // clipping from the current chase eye, including on saved replay.
             surfaceClip = rendering::surfaceClipPlanes(.2/scene.scenario.metersPerWorldUnit(),
@@ -86,7 +89,8 @@ int Renderer::Impl::capture() {
                         options.planetRenderMode ? planetOrbitClip(eyeWorld) :
                                            rendering::ClipPlanes{},
                         (options.surfaceRenderMode || options.planetRenderMode) ? std::optional<std::size_t>(scene.orbitPlanetIndex) : std::nullopt,
-                        true, &profiler, false, 0, &grass, options.thirdPersonRenderMode ? characterWindTime : simulationTime,options.thirdPersonRenderMode ? &astronaut : nullptr,&mainGrassCounts);
+                        true, &profiler, false, 0, &grass, options.thirdPersonRenderMode ? characterWindTime : simulationTime,options.thirdPersonRenderMode ? &astronaut : nullptr,&mainGrassCounts,
+                        terrainPublication.get(),&terrainConsumers);
             frameReuse.remember(view,fov,width,height,simulationTime,revisions,eyeWorld,options.surfaceRenderMode ? 1 : options.planetRenderMode ? 2 : 0);
         }
         if (lensFlare) {
@@ -360,6 +364,7 @@ int Renderer::Impl::capture() {
             {"coalesced",workerStats.coalesced},{"obsolete",workerStats.obsolete},
             {"peak_running",workerStats.peakRunning},{"peak_queued",workerStats.peakQueued},
             {"pending",terrainJobs.pending(terrainSceneEpoch)},{"rejected_completions",terrainRejectedBuilds}};
+        metadata["render"]["terrain_publication"]=terrainPublicationState();
         metadata["render"]["terrain_fallback"]=terrainFallback;
         const auto& terrain=meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats;
         metadata["render"]["terrain_compute"]={{"input_bytes",terrain.gpuInputBytes},

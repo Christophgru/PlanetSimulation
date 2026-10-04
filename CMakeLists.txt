@@ -117,6 +117,8 @@ add_library(planet_app STATIC
     src/app/scene/PreparedScene.cpp
     src/rendering/runtime/Renderer.cpp
     src/rendering/runtime/TerrainMeshes.cpp
+    src/rendering/runtime/terrain/ResidentTerrain.cpp
+    src/rendering/runtime/terrain/CharacterPreview.cpp
     src/rendering/runtime/ScenePass.cpp
     src/rendering/runtime/Capture.cpp
     src/rendering/runtime/Character.cpp

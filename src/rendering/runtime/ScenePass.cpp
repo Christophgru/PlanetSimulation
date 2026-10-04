@@ -1,6 +1,8 @@
 #include "rendering/runtime/ScenePass.h"
 #include "rendering/foliage/GrassWind.h"
 #include "rendering/character/AstronautRenderer.h"
+#include "rendering/geometry/publication/TerrainPublication.h"
+#include "rendering/geometry/contacts/SparseTerrainContacts.h"
 #include <glm/gtc/type_ptr.hpp>
 
 namespace rendering {
@@ -22,9 +24,12 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                  bool recordObjects, rendering::FrameProfiler* profiler,
                  bool forceHdr, GLuint outputFramebuffer,
                  rendering::GrassRenderer* grass, double sceneTime, AstronautRenderer* astronaut,
-                 std::vector<std::array<std::size_t,2>>* mainGrassCounts) {
+                 std::vector<std::array<std::size_t,2>>* mainGrassCounts,
+                 const TerrainPublication* publication,std::vector<SceneTerrainConsumers>* consumers) {
     CpuTrace::Scope sceneScope("renderScene");
     if (mainGrassCounts) mainGrassCounts->assign(scenario.planets.size(),{});
+    if(consumers) consumers->assign(publication ? scenario.planets.size() : 0,{});
+    if(publication && !grass) throw std::logic_error("Published terrain requires its grass owner");
     using Stage = rendering::FrameStage;
     using Scope = rendering::FrameProfiler::Scope;
     Scope lightingScope(profiler, Stage::Lighting, false);
@@ -50,6 +55,21 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
     Scope foliageScope(profiler, Stage::Foliage, false);
     if (grass) for (std::size_t i=0;i<scenario.planets.size();++i) {
         const auto& planet=scenario.planets[i];
+        if(publication) {
+            const auto& receipt=publication->installed(i);const auto& mesh=planetMeshes[i];const auto& water=waterMeshes[i];
+            if(!receipt.identity.serial || mesh.terrainStats.generation!=receipt.land || water.terrainStats.generation!=receipt.water ||
+               mesh.revision!=receipt.landRevision || water.revision!=receipt.waterRevision ||
+               grass->procedural.residentGeneration(i)!=receipt.land || grass->procedural.residentRevision(i)!=mesh.revision ||
+               grass->procedural.planningEye(i)!=receipt.grassEye ||
+               !mesh.contacts || mesh.contacts->generation()!=receipt.land)
+                throw std::logic_error("Scene draw requires matching published terrain consumers");
+            if(consumers) {
+                auto& c=(*consumers)[i];c.land=mesh.terrainStats.generation;c.water=water.terrainStats.generation;
+                c.grass=*grass->procedural.residentGeneration(i);c.contacts=mesh.contacts->generation();
+                c.landRevision=mesh.revision;c.waterRevision=water.revision;c.grassRevision=*grass->procedural.residentRevision(i);
+            }
+            continue; // Managed resident patches are prepared before character/scene consumption.
+        }
         const auto prepared = grass->prepare(i,planetMeshes[i],planet,scenario.metersPerWorldUnit(),
             bodies[i+1].toLocalPoint(eyeWorld)/planet.radius,waterMeshes[i].terrainStats.gpuWorkingBytes);
         if (profiler) profiler->foliagePreparation(prepared.rebuilds,
@@ -73,6 +93,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                 if (profiler) profiler->shadowUpdate();
                 planetMeshes[i].draw();
             } else if (profiler) profiler->shadowReuse();
+            if(publication && consumers) (*consumers)[i].shadowRevision=shadows.revision(i);
         }
     }
     shadowScope.stop();
@@ -196,6 +217,11 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                                                    p.feet[1].planted() ? 1 : .2);
             }
             planetMeshes[i].draw();
+            if(publication && consumers) {
+                auto& c=(*consumers)[i];
+                if(mainPass) c.mainRevision=planetMeshes[i].revision;
+                else c.reflectionRevision=planetMeshes[i].revision;
+            }
             if (grass && grass->count(i)) {
                 const auto& settings=planet.foliage;
                 auto& bladeShader=grass->shader;
@@ -233,6 +259,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                 const GrassPass grassPass{model,passView,passProjection,bodies[i+1].toLocalPoint(eyeWorld)/planet.radius,
                     grassWindTime(sceneTime*settings.wind_noise.speed_multiplier)};
                 grass->draw(i,&grassPass);
+                if(publication && consumers && mainPass) (*consumers)[i].grassDrawRevision=*grass->procedural.residentRevision(i);
                 // Capture telemetry must be sampled before reflections reuse
                 // the indirect queues. Interactive views avoid this readback.
                 if (mainPass && mainGrassCounts)
@@ -310,7 +337,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
                 return renderScene(scenario, bodies, view, fov, eyeWorld, shader, waterShader, skyboxShader,
                     reflectionTarget, shadowShader, shadows, atmosphereShader, atmosphere, reflectionAtmosphere,
                     atmosphereColumns, sunMesh, skyboxMesh, planetMeshes, waterMeshes, width, height,
-                    clip, meteredPlanet, recordObjects, profiler, true, outputFramebuffer, grass, sceneTime, astronaut, mainGrassCounts);
+                    clip, meteredPlanet, recordObjects, profiler, true, outputFramebuffer, grass, sceneTime, astronaut, mainGrassCounts,publication,consumers);
         }
         return exposure;
     };
@@ -390,6 +417,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
         waterShader.setFloat("uReflectionFraction",
                              static_cast<float>(planet.water.reflection_fraction));
         waterMeshes[i].draw();
+        if(publication && consumers) (*consumers)[i].waterDrawRevision=waterMeshes[i].revision;
     }
     glBindTexture(GL_TEXTURE_2D, 0);
     glDepthMask(GL_TRUE);

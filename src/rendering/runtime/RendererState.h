@@ -9,6 +9,7 @@
 #include "rendering/runtime/ScenePass.h"
 #include "rendering/geometry/compute/TerrainCompute.h"
 #include "rendering/geometry/jobs/TerrainBuildScheduler.h"
+#include "rendering/geometry/publication/TerrainPublication.h"
 #include "rendering/diagnostics/PerformanceOverlay.h"
 #include "rendering/diagnostics/OrbitOverlay.h"
 #include "rendering/diagnostics/GpuUtilization.h"
@@ -25,13 +26,21 @@ struct Renderer::Impl {
     ~Impl();
     int capture();
     int interact();
-    void preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalking = false);
+    void preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalking = false,
+        std::optional<double> characterElapsed=std::nullopt);
+    void publishResidentBuilds(std::vector<std::optional<TerrainCpuBuild>> builds,
+        const std::vector<std::optional<TerrainBuildIdentity>>& identities,
+        const glm::dvec3& eye,std::optional<double> characterElapsed);
+    glm::dvec3 previewAstronautEye(double elapsed,std::shared_ptr<SparseTerrainContacts> contacts,
+        std::uint64_t revision);
+    nlohmann::json terrainPublicationState() const;
     void installLandMesh(std::size_t index, TerrainGeometry geometry,
                          const glm::dvec3& localEye, int localMask,TerrainComputeBuffers* computed=nullptr);
     void installTerrainBuild(TerrainCpuBuild built,const TerrainBuildIdentity& identity);
     std::vector<std::uint64_t> geometryRevisions() const;
     ClipPlanes planetOrbitClip(const glm::dvec3& eye) const;
-    void prepareAstronaut(double elapsed);
+    void prepareAstronaut(double elapsed,std::shared_ptr<SparseTerrainContacts> plannedContacts={},
+        std::uint64_t plannedRevision=0,bool preview=false);
     nlohmann::json astronautState() const;
 
     app::CommandLineOptions options;
@@ -65,6 +74,10 @@ struct Renderer::Impl {
     OwnedShader shader{"shaders/terrain/basic.vert", "shaders/terrain/basic.frag", "shaders/terrain/terrain_shadow.glsl", "shaders/atmosphere/atmosphere.glsl", "shaders/foliage/palette.glsl"};
     OwnedShader waterShader{"shaders/water/water.vert", "shaders/water/water.frag", "shaders/terrain/terrain_shadow.glsl", "shaders/atmosphere/atmosphere.glsl"};
     GrassRenderer grass;
+    std::unique_ptr<TerrainPublication> terrainPublication; // Dies before grass/meshes/context.
+    std::vector<SceneTerrainConsumers> terrainConsumers;
+    std::uint64_t characterPreviews=0;
+    std::optional<glm::dvec3> plannedCharacterEye;
     AstronautRenderer astronaut;
     SurfaceContact astronautGround;
     ChasePose astronautView; // World coordinates; motion/contacts stay body-local.

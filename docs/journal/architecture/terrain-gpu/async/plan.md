@@ -153,3 +153,11 @@ zero-timeout fenced retirement. Eight new transaction cases pass with all 29
 native cases and 59 CTest groups (756.95 s); capture/replay hashes remain exact.
 Resume at T3c3b to connect renderer frame boundaries and dependent consumers,
 then T3c3c for transactional scene reload. Interactive compute remains gated.
+
+The [T3c3b renderer publication checkpoint](renderer/study.md) connects complete
+resident capture consumers at the pre-character/frame boundary, restores contact
+planning previews and owns grass-only replacement/retirement. Draw keys and
+revisions match across main, shadow, reflection, water, grass and contacts.
+All 31 native cases, two focused renderer cases and 59 CTest groups pass (789.49 s);
+all ten capture/replay hashes remain exact. Resume at T3c3c for transactional scene
+reload and movement/body-switch recovery. Interactive compute remains gated.

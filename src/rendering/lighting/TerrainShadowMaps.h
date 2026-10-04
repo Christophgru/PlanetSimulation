@@ -17,6 +17,8 @@ public:
     TerrainShadowMaps(const TerrainShadowMaps&) = delete;
     TerrainShadowMaps& operator=(const TerrainShadowMaps&) = delete;
     ~TerrainShadowMaps() { destroy(); }
+    void invalidate(std::size_t index) noexcept {if(index<cache_.size()) cache_[index].invalidate();}
+    std::uint64_t revision(std::size_t index) const noexcept {return index<cache_.size() ? cache_[index].revision() : 0;}
 
     void ensure(std::size_t count, const config::TerrainShadowConfig& settings) {
         settings.validate();

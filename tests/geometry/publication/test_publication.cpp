@@ -221,3 +221,34 @@ TEST(TerrainPublication, ChangedLiveGrassIsRejectedBeforeAnyTerrainOrContactTran
     EXPECT_EQ(p.installed(0).identity.serial,old.serial);EXPECT_EQ(grass.planningEye(0),changedEye);
     p.cancel();EXPECT_EQ(p.reservedBytes(),old.bytes);EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
 }
+TEST(TerrainPublication, GrassOnlyReplacementRetainsTerrainAndContactsThroughPublicationAndRetirement) {
+    auto r=request();TerrainCompute compute;ProceduralGrass grass;OwnedMesh land,water;
+    TerrainPublication p(grass,1);install(p,r,land,water,compute);Snapshot old(p,grass,land,water);
+    const auto eye=r.identity.eye+glm::dvec3(0,.08,0);
+    ASSERT_TRUE(p.submitGrass(0,r.planet,r.metersPerUnit,eye,land,water));p.waitForCapture();
+    old.unchanged(p,grass,land,water);ASSERT_TRUE(p.publish(r.identity,land,water));
+    EXPECT_EQ(land.vbo,old.landBuffer);EXPECT_EQ(water.vbo,old.waterBuffer);EXPECT_EQ(land.contacts,old.contacts);
+    EXPECT_EQ(land.revision,old.landRevision);EXPECT_EQ(water.revision,old.waterRevision);
+    EXPECT_EQ(p.installed(0).identity.serial,old.serial);EXPECT_EQ(grass.planningEye(0),eye);
+    EXPECT_EQ(grass.residentGeneration(0),old.grassKey);EXPECT_EQ(grass.residentRevision(0),old.landRevision);
+    {FenceDelay delay;p.pollRetired();EXPECT_EQ(pollCalls,1u);EXPECT_EQ(blockingCalls,0u);}
+    EXPECT_FALSE(p.canSubmit(0));p.waitRetiredForCapture(0);
+    EXPECT_TRUE(glIsBuffer(old.landBuffer));EXPECT_TRUE(glIsBuffer(old.waterBuffer));
+    EXPECT_EQ(p.stats().grassOnlyPublished,1u);EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+}
+TEST(TerrainPublication, GrassOnlyFenceFailuresAndStaleEpochsRetainAllPublishedConsumers) {
+    auto r=request();TerrainCompute compute;ProceduralGrass grass;OwnedMesh land,water;
+    TerrainPublication p(grass,1);install(p,r,land,water,compute);Snapshot old(p,grass,land,water);
+    const auto eye=r.identity.eye+glm::dvec3(0,.08,0);
+    for(unsigned fault=1;fault<=4;++fault) {
+        BufferProbe buffers;
+        {FenceFault fences(fault);
+            EXPECT_THROW({p.submitGrass(0,r.planet,r.metersPerUnit,eye,land,water);p.waitForCapture();p.publish(r.identity,land,water);},std::runtime_error);
+        }
+        old.unchanged(p,grass,land,water);EXPECT_FALSE(p.pending());EXPECT_EQ(p.reservedBytes(),old.bytes);
+        for(GLuint buffer:generated) EXPECT_FALSE(glIsBuffer(buffer));
+    }
+    ASSERT_TRUE(p.submitGrass(0,r.planet,r.metersPerUnit,eye,land,water));p.waitForCapture();auto stale=r.identity;++stale.epoch;
+    EXPECT_FALSE(p.publish(stale,land,water));old.unchanged(p,grass,land,water);
+    EXPECT_EQ(p.stats().failed,4u);EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+}

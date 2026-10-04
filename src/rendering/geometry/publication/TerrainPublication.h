@@ -19,10 +19,11 @@ struct TerrainPublishedGeneration {
 };
 struct TerrainPublicationStats {
     std::uint64_t submitted=0,published=0,failed=0,obsolete=0,retired=0,peakReservedBytes=0;
+    std::uint64_t grassOnlyPublished=0;
 };
 // Context-thread transaction, with one global preparation and one spare per
 // body. Caller owns the live meshes and grass and keeps them/context alive.
-// No renderer uses this yet: frame-boundary/reload integration is T3c3b.
+// Capture uses this at its frame boundary; interactive opt-in remains gated.
 class TerrainPublication {
     struct Stage;
     struct Body {
@@ -46,6 +47,8 @@ public:
     bool submit(TerrainCpuBuild build,const TerrainBuildIdentity& request,
         const config::PlanetConfig& planet,double metersPerUnit,const glm::dvec3& grassEye,
         const Mesh& liveLand,const Mesh& liveWater,TerrainCompute& compute);
+    bool submitGrass(std::size_t index,const config::PlanetConfig& planet,double metersPerUnit,
+        const glm::dvec3& grassEye,const Mesh& liveLand,const Mesh& liveWater);
     bool poll();
     void waitForCapture();
     // Returns false for stale work. All validation/fence creation precedes the
@@ -54,6 +57,7 @@ public:
     bool publish(const TerrainBuildIdentity& current,Mesh& liveLand,Mesh& liveWater);
     void cancel() noexcept;
     void pollRetired();
+    void waitRetiredForCapture(std::size_t index);
     bool pending() const noexcept {return bool(staged_);}
     bool ready() const noexcept;
     bool retiring(std::size_t index) const;

@@ -30,7 +30,7 @@ struct TerrainPublication::Stage {
     std::unique_ptr<TerrainGpuPreparation> terrain;
     std::unique_ptr<ProceduralGrass::Preparation> grass;
     GLsync retirementFence=nullptr;
-    bool ready=false;
+    bool ready=false,grassOnly=false;
     Stage(const Mesh& l,const Mesh& w):previousLand(l),previousWater(w) {}
     ~Stage() {
         if(retirementFence) glDeleteSync(retirementFence);
@@ -103,7 +103,13 @@ bool TerrainPublication::poll() {
     if(!staged_) return false;
     if(staged_->ready) return true;
     try {
-        auto& s=*staged_;auto& t=*s.terrain;
+        auto& s=*staged_;
+        if(s.grassOnly) {
+            if(!grass_.poll(*s.grass)) return false;
+            grass_.validateCommit(s.receipt.identity.bodyIndex,*s.grass,*s.previousLand.address);
+            s.ready=true;return true;
+        }
+        auto& t=*s.terrain;
         const bool terrainReady=t.poll(),grassReady=grass_.poll(*s.grass);
         if(!terrainReady || !grassReady) return false;
         s.land.loadComputedTerrain(std::move(t.cpu.geometry),*t.land,false);
@@ -121,19 +127,21 @@ void TerrainPublication::waitForCapture() {
     if(!staged_) throw std::logic_error("Missing capture publication");
     if(staged_->ready) return;
     try {
-        staged_->terrain->waitForCapture();grass_.waitForCapture(*staged_->grass);
+        if(staged_->terrain) staged_->terrain->waitForCapture();
+        grass_.waitForCapture(*staged_->grass);
     } catch(...) {staged_.reset();++stats_.failed;throw;}
     if(!poll()) throw std::logic_error("Incomplete capture publication");
 }
 bool TerrainPublication::publish(const TerrainBuildIdentity& current,Mesh& liveLand,Mesh& liveWater) {
     if(!staged_ || !staged_->ready) throw std::logic_error("Publication is not ready");
     auto& s=*staged_;const auto i=s.receipt.identity.bodyIndex;auto& body=bodies_[i];
-    if(!terrainBuildMatches(s.receipt.identity,current,body.installed.identity.serial)) {cancel();return false;}
+    const auto installedSerial=body.installed.identity.serial-(s.grassOnly ? 1 : 0);
+    if(!terrainBuildMatches(s.receipt.identity,current,installedSerial)) {cancel();return false;}
     if(body.retiring || !s.previousLand.matches(liveLand) || !s.previousWater.matches(liveWater) ||
        grass_.residentGeneration(i)!=s.previousGrass || grass_.residentRevision(i)!=s.previousGrassRevision ||
        grass_.planningEye(i)!=s.previousGrassEye)
         throw std::invalid_argument("Live terrain changed during preparation");
-    grass_.validateCommit(i,*s.grass,s.land);
+    grass_.validateCommit(i,*s.grass,s.grassOnly ? liveLand : s.land);
     // This fence follows the old generation's final draws in the same context.
     // Allocate it before touching any live consumer. Failure is fully reversible.
     s.retirementFence=glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE,0);
@@ -142,9 +150,10 @@ bool TerrainPublication::publish(const TerrainBuildIdentity& current,Mesh& liveL
         throw std::runtime_error("Terrain retirement fence allocation failed");
     }
     static_assert(std::is_nothrow_swappable_v<TerrainPublishedGeneration>);
-    liveLand.swap(s.land);liveWater.swap(s.water);
+    if(!s.grassOnly) {liveLand.swap(s.land);liveWater.swap(s.water);}
     grass_.commitPrepared(i,*s.grass);
     using std::swap;swap(body.installed,s.receipt);
+    if(s.grassOnly) ++stats_.grassOnlyPublished;
     body.retiring=std::move(staged_);++stats_.published;
     return true;
 }
@@ -161,4 +170,39 @@ void TerrainPublication::pollRetired() {
 bool TerrainPublication::ready() const noexcept {return staged_ && staged_->ready;}
 bool TerrainPublication::retiring(std::size_t i) const {return bool(bodies_.at(i).retiring);}
 const TerrainPublishedGeneration& TerrainPublication::installed(std::size_t i) const {return bodies_.at(i).installed;}
+bool TerrainPublication::submitGrass(std::size_t i,const config::PlanetConfig& planet,double units,
+    const glm::dvec3& eye,const Mesh& land,const Mesh& water) {
+    if(i>=bodies_.size()) throw std::out_of_range("Grass publication body");
+    if(!canSubmit(i)) return false;
+    try {
+        const auto& old=bodies_[i].installed;
+        if(!old.identity.serial || old.identity.bodyName!=planet.name || !land.residentTerrain ||
+           land.revision!=old.landRevision || water.revision!=old.waterRevision ||
+           land.terrainStats.generation!=old.land || water.terrainStats.generation!=old.water ||
+           !land.contacts || land.contacts->generation()!=old.land ||
+           grass_.residentGeneration(i)!=old.land || grass_.residentRevision(i)!=old.landRevision ||
+           grass_.planningEye(i)!=old.grassEye || old.waterEnabled!=planet.water.enabled)
+            throw std::invalid_argument("Untracked grass publication source");
+        const auto occupied=land.terrainStats.gpuWorkingBytes+water.terrainStats.gpuWorkingBytes;
+        const auto bytes=occupied+ProceduralGrass::stageBytes(land.indexCount/3,planet.foliage,TerrainComputeLimits::query().blockBytes);
+        const auto reserved=reservedBytes();
+        if(bytes>perSetLimit_ || reserved>totalLimit_ || bytes>totalLimit_-reserved)
+            throw std::runtime_error("Grass replacement exceeds publication budget");
+        auto next=std::make_unique<Stage>(land,water);next->grassOnly=true;next->receipt=old;
+        next->receipt.grassEye=eye;next->receipt.foliage=planet.foliage;next->receipt.admittedBytes=bytes;
+        next->previousGrass=grass_.residentGeneration(i);next->previousGrassRevision=grass_.residentRevision(i);
+        next->previousGrassEye=grass_.planningEye(i);
+        next->grass=grass_.submitResident(land.vbo,land.ebo,land.terrainStats,planet,units,eye,land.revision,occupied,perSetLimit_);
+        staged_=std::move(next);++stats_.submitted;
+        stats_.peakReservedBytes=std::max(stats_.peakReservedBytes,reservedBytes());return true;
+    } catch(...) {++stats_.failed;throw;}
+}
+void TerrainPublication::waitRetiredForCapture(std::size_t i) {
+    auto& body=bodies_.at(i);
+    while(body.retiring) {
+        const auto status=glClientWaitSync(body.retiring->retirementFence,GL_SYNC_FLUSH_COMMANDS_BIT,1000000);
+        if(status==GL_WAIT_FAILED) throw std::runtime_error("Capture retirement wait failed");
+        pollRetired();
+    }
+}
 }
