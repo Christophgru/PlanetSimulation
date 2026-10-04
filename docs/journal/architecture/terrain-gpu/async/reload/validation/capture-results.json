@@ -1,0 +1,553 @@
+{
+  "cpu_gpu_surface": {
+    "exact": true,
+    "mean_channel_error": 0.0,
+    "max_channel_error": 0
+  },
+  "compute_replay_exact": true,
+  "compute_walking_replay_exact": true,
+  "cpu_override_exact": true,
+  "legacy_compute_replay_exact": true,
+  "vertex_config_fallback": true,
+  "locked_vertex_config_rejected": true,
+  "unknown_grass_planner_rejected_before_window": true,
+  "gl33_fallback": true,
+  "locked_unavailable_rejected": true,
+  "invalid_backend_rejected_before_window": true,
+  "unknown_field_version_rejected_before_window": true,
+  "terrain_compute": {
+    "cpu_compatibility_mirror": false,
+    "cpu_render_bytes": 0,
+    "cpu_water_render_bytes": 0,
+    "dispatches": 2,
+    "generation_peak_bytes": 1660848,
+    "gpu_ms": 22.390021,
+    "input_bytes": 280816,
+    "stage_admitted_bytes": 4632148
+  },
+  "commands": [
+    {
+      "command": [
+        "/workspace/build-resume/PlanetSimulation",
+        "--config",
+        "/workspace/build-resume/terrain-compute-captures/scene.json",
+        "--surface-capture",
+        "/workspace/build-resume/terrain-compute-captures/cpu.png",
+        "--render-size",
+        "480",
+        "270"
+      ],
+      "env": {},
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/workspace/build-resume/PlanetSimulation",
+        "--config",
+        "/workspace/build-resume/terrain-compute-captures/scene.json",
+        "--surface-capture",
+        "/workspace/build-resume/terrain-compute-captures/gpu.png",
+        "--render-size",
+        "480",
+        "270",
+        "--terrain-backend",
+        "compute"
+      ],
+      "env": {},
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/workspace/build-resume/PlanetSimulation",
+        "--config",
+        "/workspace/build-resume/terrain-compute-captures/scene.json",
+        "--surface-capture",
+        "/workspace/build-resume/terrain-compute-captures/gpu-replay.png",
+        "--render-size",
+        "480",
+        "270",
+        "--replay",
+        "/workspace/build-resume/terrain-compute-captures/gpu.png.json"
+      ],
+      "env": {},
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/workspace/build-resume/PlanetSimulation",
+        "--config",
+        "/workspace/build-resume/terrain-compute-captures/scene.json",
+        "--surface-capture",
+        "/workspace/build-resume/terrain-compute-captures/cpu-override.png",
+        "--render-size",
+        "480",
+        "270",
+        "--terrain-backend",
+        "cpu",
+        "--replay",
+        "/workspace/build-resume/terrain-compute-captures/gpu.png.json"
+      ],
+      "env": {},
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/workspace/build-resume/PlanetSimulation",
+        "--config",
+        "/workspace/build-resume/terrain-compute-captures/scene.json",
+        "--astronaut-capture",
+        "/workspace/build-resume/terrain-compute-captures/walking.png",
+        "--render-size",
+        "480",
+        "270",
+        "--terrain-backend",
+        "compute",
+        "--benchmark-frames",
+        "6",
+        "--benchmark-walk-step",
+        ".06",
+        "--benchmark-step",
+        "0"
+      ],
+      "env": {},
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/workspace/build-resume/PlanetSimulation",
+        "--config",
+        "/workspace/build-resume/terrain-compute-captures/scene.json",
+        "--astronaut-capture",
+        "/workspace/build-resume/terrain-compute-captures/walking-replay.png",
+        "--render-size",
+        "480",
+        "270",
+        "--replay",
+        "/workspace/build-resume/terrain-compute-captures/walking.png.json"
+      ],
+      "env": {},
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/workspace/build-resume/PlanetSimulation",
+        "--config",
+        "/workspace/build-resume/terrain-compute-captures/scene.json",
+        "--surface-capture",
+        "/workspace/build-resume/terrain-compute-captures/legacy-compute.png",
+        "--render-size",
+        "480",
+        "270",
+        "--terrain-backend",
+        "compute",
+        "--terrain-grass-planner",
+        "cpu"
+      ],
+      "env": {},
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/workspace/build-resume/PlanetSimulation",
+        "--config",
+        "/workspace/build-resume/terrain-compute-captures/scene.json",
+        "--surface-capture",
+        "/workspace/build-resume/terrain-compute-captures/legacy-replay.png",
+        "--render-size",
+        "480",
+        "270",
+        "--replay",
+        "/workspace/build-resume/terrain-compute-captures/legacy.json"
+      ],
+      "env": {},
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/workspace/build-resume/PlanetSimulation",
+        "--config",
+        "/workspace/build-resume/terrain-compute-captures/vertex-scene.json",
+        "--surface-capture",
+        "/workspace/build-resume/terrain-compute-captures/vertex-planner-fallback.png",
+        "--render-size",
+        "480",
+        "270",
+        "--terrain-backend",
+        "compute"
+      ],
+      "env": {},
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/workspace/build-resume/PlanetSimulation",
+        "--config",
+        "/workspace/build-resume/terrain-compute-captures/scene.json",
+        "--surface-capture",
+        "/workspace/build-resume/terrain-compute-captures/locked-vertex-rejected.png",
+        "--render-size",
+        "480",
+        "270",
+        "--replay",
+        "/workspace/build-resume/terrain-compute-captures/incompatible.json"
+      ],
+      "env": {},
+      "returncode": 1
+    },
+    {
+      "command": [
+        "/workspace/build-resume/PlanetSimulation",
+        "--config",
+        "/workspace/build-resume/terrain-compute-captures/scene.json",
+        "--surface-capture",
+        "/workspace/build-resume/terrain-compute-captures/gl33-fallback.png",
+        "--render-size",
+        "480",
+        "270",
+        "--terrain-backend",
+        "compute"
+      ],
+      "env": {
+        "MESA_GL_VERSION_OVERRIDE": "3.3",
+        "MESA_GLSL_VERSION_OVERRIDE": "330"
+      },
+      "returncode": 0
+    },
+    {
+      "command": [
+        "/workspace/build-resume/PlanetSimulation",
+        "--config",
+        "/workspace/build-resume/terrain-compute-captures/scene.json",
+        "--surface-capture",
+        "/workspace/build-resume/terrain-compute-captures/gl33-locked-rejected.png",
+        "--render-size",
+        "480",
+        "270",
+        "--replay",
+        "/workspace/build-resume/terrain-compute-captures/gpu.png.json"
+      ],
+      "env": {
+        "MESA_GL_VERSION_OVERRIDE": "3.3",
+        "MESA_GLSL_VERSION_OVERRIDE": "330"
+      },
+      "returncode": 1
+    },
+    {
+      "command": [
+        "/workspace/build-resume/PlanetSimulation",
+        "--config",
+        "/workspace/build-resume/terrain-compute-captures/scene.json",
+        "--surface-capture",
+        "/workspace/build-resume/terrain-compute-captures/invalid-rejected.png",
+        "--render-size",
+        "480",
+        "270",
+        "--replay",
+        "/workspace/build-resume/terrain-compute-captures/invalid.json"
+      ],
+      "env": {},
+      "returncode": 1
+    },
+    {
+      "command": [
+        "/workspace/build-resume/PlanetSimulation",
+        "--config",
+        "/workspace/build-resume/terrain-compute-captures/scene.json",
+        "--surface-capture",
+        "/workspace/build-resume/terrain-compute-captures/version-rejected.png",
+        "--render-size",
+        "480",
+        "270",
+        "--replay",
+        "/workspace/build-resume/terrain-compute-captures/invalid.json"
+      ],
+      "env": {},
+      "returncode": 1
+    },
+    {
+      "command": [
+        "/workspace/build-resume/PlanetSimulation",
+        "--config",
+        "/workspace/build-resume/terrain-compute-captures/scene.json",
+        "--surface-capture",
+        "/workspace/build-resume/terrain-compute-captures/planner-version-rejected.png",
+        "--render-size",
+        "480",
+        "270",
+        "--replay",
+        "/workspace/build-resume/terrain-compute-captures/invalid.json"
+      ],
+      "env": {},
+      "returncode": 1
+    }
+  ],
+  "sparse_contacts": {
+    "backend": "sparse-oracle",
+    "build_ms": 17.886183,
+    "candidate_triangles": 122,
+    "field_fingerprint": "10975133402283726949",
+    "height_evaluations": 14,
+    "index_bytes": 302080,
+    "nodes_visited": 700,
+    "position_capacity": 1024,
+    "queries": 8,
+    "resident_positions": 14,
+    "schema_version": 1,
+    "topology_bytes": 280064,
+    "topology_fingerprint": "6373637851977143750"
+  },
+  "grass_metadata": {
+    "allocation_bytes": 145972,
+    "allocation_dispatches": 135,
+    "allocation_input_bytes": 1848,
+    "allocator": "gpu-v1",
+    "diagnostic_read_bytes": 0,
+    "dispatches": 1,
+    "draw_resource_bytes": 524320,
+    "draw_resources_prepared": true,
+    "effective_candidate_budget": 4096,
+    "input_bytes": 168,
+    "placement_density_per_m2": 0.28830343969347166,
+    "resident_bytes": 640160,
+    "stage_admitted_bytes": 4632148,
+    "summary_read_bytes": 224,
+    "version": 1
+  },
+  "terrain_cpu_worker": {
+    "coalesced": 0,
+    "completed": 2,
+    "failed": 0,
+    "obsolete": 0,
+    "peak_queued": 1,
+    "peak_running": 1,
+    "pending": false,
+    "rejected_completions": 0,
+    "submitted": 2
+  },
+  "terrain_publication": {
+    "astronaut_contact_revision": 1,
+    "character_previews": 0,
+    "consumers": [
+      {
+        "body": "earth",
+        "contacts": {
+          "field": "10975133402283726949",
+          "field_version": 1,
+          "topology": "6373637851977143750",
+          "topology_version": 1
+        },
+        "epoch": 1,
+        "grass": {
+          "field": "10975133402283726949",
+          "field_version": 1,
+          "topology": "6373637851977143750",
+          "topology_version": 1
+        },
+        "grass_draw_revision": 1,
+        "grass_plan_eye": [
+          -0.21068755608434053,
+          0.9125880661912108,
+          -0.3672332101907134
+        ],
+        "grass_revision": 1,
+        "land": {
+          "field": "10975133402283726949",
+          "field_version": 1,
+          "topology": "6373637851977143750",
+          "topology_version": 1
+        },
+        "land_buffer": 18,
+        "land_revision": 1,
+        "main_revision": 1,
+        "reflection_revision": 1,
+        "serial": 1,
+        "shadow_revision": 1,
+        "shadows_enabled": true,
+        "water": {
+          "field": "8343445989074671795",
+          "field_version": 1,
+          "topology": "5890498633613243476",
+          "topology_version": 1
+        },
+        "water_buffer": 25,
+        "water_draw_revision": 1,
+        "water_enabled": true,
+        "water_revision": 1
+      },
+      {
+        "body": "moon",
+        "contacts": {
+          "field": "13005042368953784910",
+          "field_version": 1,
+          "topology": "8896015313400212575",
+          "topology_version": 1
+        },
+        "epoch": 1,
+        "grass": {
+          "field": "13005042368953784910",
+          "field_version": 1,
+          "topology": "8896015313400212575",
+          "topology_version": 1
+        },
+        "grass_draw_revision": 0,
+        "grass_plan_eye": [
+          1.4661202700385774,
+          -6.798235764262086,
+          -1.3601230007063465
+        ],
+        "grass_revision": 1,
+        "land": {
+          "field": "13005042368953784910",
+          "field_version": 1,
+          "topology": "8896015313400212575",
+          "topology_version": 1
+        },
+        "land_buffer": 41,
+        "land_revision": 1,
+        "main_revision": 1,
+        "reflection_revision": 1,
+        "serial": 2,
+        "shadow_revision": 1,
+        "shadows_enabled": true,
+        "water": {
+          "field": "0",
+          "field_version": 1,
+          "topology": "0",
+          "topology_version": 1
+        },
+        "water_buffer": 0,
+        "water_draw_revision": 0,
+        "water_enabled": false,
+        "water_revision": 1
+      }
+    ],
+    "failed": 0,
+    "grass_only_published": 0,
+    "managed": true,
+    "obsolete": 0,
+    "peak_reserved_bytes": 4792356,
+    "pending": false,
+    "published": 2,
+    "reserved_bytes": 4792356,
+    "retired": 0
+  },
+  "walking_publication": {
+    "astronaut_contact_revision": 1,
+    "character_previews": 6,
+    "consumers": [
+      {
+        "body": "earth",
+        "contacts": {
+          "field": "10975133402283726949",
+          "field_version": 1,
+          "topology": "6373637851977143750",
+          "topology_version": 1
+        },
+        "epoch": 1,
+        "grass": {
+          "field": "10975133402283726949",
+          "field_version": 1,
+          "topology": "6373637851977143750",
+          "topology_version": 1
+        },
+        "grass_draw_revision": 1,
+        "grass_plan_eye": [
+          -0.20655804963489702,
+          0.9125565889162128,
+          -0.3670682641040701
+        ],
+        "grass_revision": 1,
+        "land": {
+          "field": "10975133402283726949",
+          "field_version": 1,
+          "topology": "6373637851977143750",
+          "topology_version": 1
+        },
+        "land_buffer": 18,
+        "land_revision": 1,
+        "main_revision": 1,
+        "reflection_revision": 1,
+        "serial": 1,
+        "shadow_revision": 1,
+        "shadows_enabled": true,
+        "water": {
+          "field": "8343445989074671795",
+          "field_version": 1,
+          "topology": "5890498633613243476",
+          "topology_version": 1
+        },
+        "water_buffer": 25,
+        "water_draw_revision": 1,
+        "water_enabled": true,
+        "water_revision": 1
+      },
+      {
+        "body": "moon",
+        "contacts": {
+          "field": "13005042368953784910",
+          "field_version": 1,
+          "topology": "8896015313400212575",
+          "topology_version": 1
+        },
+        "epoch": 1,
+        "grass": {
+          "field": "13005042368953784910",
+          "field_version": 1,
+          "topology": "8896015313400212575",
+          "topology_version": 1
+        },
+        "grass_draw_revision": 0,
+        "grass_plan_eye": [
+          1.4814147383698495,
+          -6.798352346762078,
+          -1.359512089274334
+        ],
+        "grass_revision": 1,
+        "land": {
+          "field": "13005042368953784910",
+          "field_version": 1,
+          "topology": "8896015313400212575",
+          "topology_version": 1
+        },
+        "land_buffer": 41,
+        "land_revision": 1,
+        "main_revision": 1,
+        "reflection_revision": 1,
+        "serial": 2,
+        "shadow_revision": 1,
+        "shadows_enabled": true,
+        "water": {
+          "field": "0",
+          "field_version": 1,
+          "topology": "0",
+          "topology_version": 1
+        },
+        "water_buffer": 0,
+        "water_draw_revision": 0,
+        "water_enabled": false,
+        "water_revision": 1
+      }
+    ],
+    "failed": 0,
+    "grass_only_published": 0,
+    "managed": true,
+    "obsolete": 0,
+    "peak_reserved_bytes": 4792356,
+    "pending": false,
+    "published": 2,
+    "reserved_bytes": 4792356,
+    "retired": 2
+  },
+  "png_sha256": {
+    "cpu-override.png": "42146978fce88a2b720ca19c4895c335dc2690b0fd39feca5391e0fe0b7c7cd0",
+    "cpu.png": "42146978fce88a2b720ca19c4895c335dc2690b0fd39feca5391e0fe0b7c7cd0",
+    "gl33-fallback.png": "42146978fce88a2b720ca19c4895c335dc2690b0fd39feca5391e0fe0b7c7cd0",
+    "gpu-replay.png": "42146978fce88a2b720ca19c4895c335dc2690b0fd39feca5391e0fe0b7c7cd0",
+    "gpu.png": "42146978fce88a2b720ca19c4895c335dc2690b0fd39feca5391e0fe0b7c7cd0",
+    "legacy-compute.png": "42146978fce88a2b720ca19c4895c335dc2690b0fd39feca5391e0fe0b7c7cd0",
+    "legacy-replay.png": "42146978fce88a2b720ca19c4895c335dc2690b0fd39feca5391e0fe0b7c7cd0",
+    "vertex-planner-fallback.png": "42146978fce88a2b720ca19c4895c335dc2690b0fd39feca5391e0fe0b7c7cd0",
+    "walking-replay.png": "6ff03ce2a46f88ac8820a453c5f7d91cdf192d00dac059554bbb0b1da4f7fa9d",
+    "walking.png": "6ff03ce2a46f88ac8820a453c5f7d91cdf192d00dac059554bbb0b1da4f7fa9d"
+  }
+}

@@ -10,8 +10,10 @@ public:
     nlohmann::json load() const;
     const std::string watchedScenePath;
     nlohmann::json document;
+    nlohmann::json replayDocument;
 private:
     std::string configPath;
     std::string replayPath;
+    nlohmann::json documentFor(const nlohmann::json& replay) const;
 };
 }

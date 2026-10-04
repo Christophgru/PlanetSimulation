@@ -19,7 +19,7 @@ void Renderer::Impl::publishResidentBuilds(std::vector<std::optional<TerrainCpuB
         grassEyeWorld=previewAstronautEye(*characterElapsed,std::move(contacts),revision);
         plannedCharacterEye=grassEyeWorld;
         if(!astronautReplayRestored && !options.replayPath.empty()) {
-            const auto replay=config::Config::load(options.replayPath).data();
+            const auto& replay=source.replayDocument;
             if(replay.contains("astronaut_pose") && replay.at("astronaut_pose").contains("grass_plan_eye")) {
                 const auto& j=replay.at("astronaut_pose").at("grass_plan_eye");
                 if(!j.is_array() || j.size()!=3) throw std::invalid_argument("Grass replay needs three-vector planning eye");

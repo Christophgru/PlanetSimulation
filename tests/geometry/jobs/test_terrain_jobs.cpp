@@ -88,6 +88,23 @@ TEST(TerrainJobs, ErrorsAreReturnedAndExecutorCanRecover) {
     auto recovered=jobs.executeForCapture(request(2));EXPECT_NO_THROW(recovered.take());
     EXPECT_NE(execution,main);EXPECT_EQ(jobs.stats().completed,2);EXPECT_FALSE(jobs.pending(1));
 }
+TEST(TerrainJobs, ExclusiveReloadFailureLeavesTheLiveEpochUsableAndReusesTheSameWorker) {
+    std::thread::id worker;
+    TerrainBuildScheduler jobs([&](const auto& r) {
+        const auto thread=std::this_thread::get_id();
+        if(worker!=std::thread::id{}) EXPECT_EQ(worker,thread);worker=thread;
+        if(r.identity.serial==1) throw std::runtime_error("replacement CPU failure");
+        return TerrainCpuBuild{};
+    });
+    auto failed=jobs.executeForReload(request(1,2));EXPECT_THROW(failed.take(),std::runtime_error);
+    EXPECT_NO_THROW(jobs.executeForCapture(request(2,1)).take());
+    EXPECT_NO_THROW(jobs.executeForReload(request(3,2)).take());
+    EXPECT_NO_THROW(jobs.executeForCapture(request(4,1)).take());
+    jobs.advanceEpoch(2);EXPECT_NO_THROW(jobs.executeForCapture(request(5,2)).take());
+    EXPECT_EQ(jobs.stats().peakRunning,1u);EXPECT_EQ(jobs.stats().peakQueued,1u);
+    EXPECT_FALSE(jobs.pending(1));EXPECT_FALSE(jobs.pending(2));
+    EXPECT_EQ(jobs.stats().failed,1u);EXPECT_EQ(jobs.stats().obsolete,0u);
+}
 TEST(TerrainJobs, ShutdownJoinsExecutingSnapshotAndDropsQueuedWork) {
     Gate gate;std::promise<void> started;std::vector<std::uint64_t> calls;
     TerrainBuildScheduler jobs([&](const auto& r) {

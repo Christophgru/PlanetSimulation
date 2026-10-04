@@ -17,7 +17,8 @@ set(PLANET_FIXTURE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/fixtures/development")
 set(PLANET_FIXTURE_CONFIG "${PLANET_FIXTURE_ROOT}/configs/scenarios/solar_system.json")
 
 add_executable(renderer_lifecycle_tests app/test_renderer_lifecycle.cpp app/test_command_line.cpp app/test_offline_quality.cpp
-    app/terrain/test_publication.cpp app/terrain/reload/test_scene_replacement.cpp)
+    app/terrain/test_publication.cpp app/terrain/reload/test_scene_replacement.cpp
+    app/terrain/reload/test_renderer_reload.cpp)
 target_link_libraries(renderer_lifecycle_tests PRIVATE planet_app GTest::gtest_main)
 target_compile_definitions(renderer_lifecycle_tests PRIVATE
     PLANET_SOURCE_DIR="${CMAKE_SOURCE_DIR}"

@@ -40,6 +40,7 @@ void Renderer::Impl::installTerrainBuild(TerrainCpuBuild built,const TerrainBuil
 
 void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalking,std::optional<double> characterElapsed) {
     CpuTrace::Scope scope("Renderer::preparePlanetMeshes");
+    retireSceneReload(options.renderTestMode);
     const auto identityFor=[&](std::size_t i,const glm::dvec3& localEye,int localMask) {
         TerrainBuildIdentity k;k.epoch=terrainSceneEpoch;k.serial=terrainRequestSerial;
         k.bodyIndex=i;k.bodyName=scene.scenario.planets[i].name;k.field=scene.terrainSurfaces[i].field().fingerprint();
@@ -70,7 +71,7 @@ void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalkin
         const auto& planet = scene.scenario.planets[i];
         glm::dvec3 localEye = scene.bodies[i + 1].toLocalPoint(eye);
         if (options.renderTestMode && options.thirdPersonRenderMode && !meshReady[i] && !options.replayPath.empty()) {
-            const auto replay=config::Config::load(options.replayPath).data();
+            const auto& replay=source.replayDocument;
             if (replay.contains("astronaut_pose")) {
                 const auto& pose=replay.at("astronaut_pose");
                 const nlohmann::json* saved=nullptr;

@@ -31,6 +31,9 @@ public:
     std::optional<TerrainBuildCompletion> poll();
     // Capture-only wait requires an otherwise idle scheduler. Normal frames poll.
     TerrainBuildCompletion executeForCapture(TerrainBuildRequest request);
+    // Exclusive capture reload preparation uses a future epoch without changing
+    // the live epoch. The same worker stays idle between completed requests.
+    TerrainBuildCompletion executeForReload(TerrainBuildRequest request);
     void advanceEpoch(std::uint64_t epoch);
     std::optional<TerrainBuildIdentity> pendingFor(std::uint64_t epoch,std::size_t body) const;
     bool pending(std::uint64_t epoch) const;
@@ -38,10 +41,12 @@ public:
     void stop(); // Join only at shutdown; epoch changes retain executing ownership.
 private:
     void run();
+    TerrainBuildCompletion executeExclusive(TerrainBuildRequest request,bool replacement);
     Builder builder_;
     mutable std::mutex mutex_;
     std::condition_variable changed_;
     std::uint64_t epoch_=1,latestSerial_=0;
+    std::optional<std::uint64_t> exclusiveEpoch_;
     bool stopping_=false;
     std::optional<TerrainBuildRequest> queued_;
     std::optional<TerrainBuildIdentity> running_;

@@ -10,6 +10,8 @@
 #include "rendering/geometry/compute/TerrainCompute.h"
 #include "rendering/geometry/jobs/TerrainBuildScheduler.h"
 #include "rendering/geometry/publication/TerrainPublication.h"
+#include "rendering/runtime/terrain/reload/LegacySceneReplacement.h"
+#include "rendering/runtime/terrain/reload/SceneTerrainReplacement.h"
 #include "rendering/diagnostics/PerformanceOverlay.h"
 #include "rendering/diagnostics/OrbitOverlay.h"
 #include "rendering/diagnostics/GpuUtilization.h"
@@ -26,6 +28,12 @@ struct Renderer::Impl {
     ~Impl();
     int capture();
     int interact();
+    void reloadScene();
+    void retireSceneReload(bool captureWait);
+    glm::dvec3 previewReloadEye(app::PreparedScene& prepared,std::vector<Mesh>& land,
+        std::vector<glm::dvec3>& anchors,nlohmann::json& replay,
+        app::CommandLineOptions& preparedOptions,double time);
+    nlohmann::json sceneReloadState() const;
     void preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalking = false,
         std::optional<double> characterElapsed=std::nullopt);
     void publishResidentBuilds(std::vector<std::optional<TerrainCpuBuild>> builds,
@@ -75,6 +83,11 @@ struct Renderer::Impl {
     OwnedShader waterShader{"shaders/water/water.vert", "shaders/water/water.frag", "shaders/terrain/terrain_shadow.glsl", "shaders/atmosphere/atmosphere.glsl"};
     GrassRenderer grass;
     std::unique_ptr<TerrainPublication> terrainPublication; // Dies before grass/meshes/context.
+    std::unique_ptr<SceneTerrainReplacement> retiredResidentScene;
+    std::unique_ptr<LegacySceneReplacement> retiredLegacyScene;
+    std::uint64_t sceneReloads=0,sceneReloadFailures=0;
+    std::optional<glm::dvec3> reloadCharacterEye;
+    bool reloadCharacterPending=false;
     std::vector<SceneTerrainConsumers> terrainConsumers;
     std::uint64_t characterPreviews=0;
     std::optional<glm::dvec3> plannedCharacterEye;

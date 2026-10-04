@@ -47,10 +47,16 @@ public:
     SceneTerrainReplacement(nlohmann::json document,SceneTerrainDestination live,
         std::uint64_t epoch,double simulationTime,
         std::uint64_t aggregateLimit=2*ProceduralGrass::defaultStageBytes);
+    SceneTerrainReplacement(nlohmann::json document,app::PreparedScene prepared,
+        SceneTerrainDestination live,std::uint64_t epoch,double simulationTime,
+        std::uint64_t aggregateLimit=2*ProceduralGrass::defaultStageBytes);
     ~SceneTerrainReplacement();
     SceneTerrainReplacement(const SceneTerrainReplacement&)=delete;
     SceneTerrainReplacement& operator=(const SceneTerrainReplacement&)=delete;
-    TerrainBuildRequest request(std::size_t index,const glm::dvec3& worldEye,std::uint64_t serial);
+    TerrainBuildRequest request(std::size_t index,const glm::dvec3& worldEye,std::uint64_t serial,
+        std::vector<int> previousZones={});
+    TerrainBuildRequest requestLocal(std::size_t index,const glm::dvec3& localEye,std::uint64_t serial,
+        std::vector<int> previousZones={});
     bool submit(TerrainCpuBuild build,const TerrainBuildIdentity& identity,
         const glm::dvec3& grassEye,TerrainCompute& compute);
     bool poll(); // Zero-timeout GPU polls; only exchanges off-live body consumers.

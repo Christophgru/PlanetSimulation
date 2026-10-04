@@ -1,5 +1,40 @@
 # Page to document progress of AI Agents working on this Project
 
+## Renderer scene reload checkpoint — 2026-10-04
+
+- T3c3c2 is tested. R/file-watch and Renderer::reload() share one transaction:
+  config/replay snapshots, effective offline CPU scene, worker topology/contacts,
+  exact body-local replay and prospective chase anchors, grass and preallocated
+  tracking remain off live consumers until every body is ready. CPU and legacy
+  compute use equivalent staged mesh/grass owners and the same reload boundary.
+- Future-epoch exclusive preparation reuses the persistent worker without changing
+  its live epoch on failure. Complete exchange advances the epoch, swaps tracking
+  and replay/options, rebinds cameras/contacts, resets character/effects/input and
+  invalidates frame/shadow/reflection/orbit caches. Replay trail/exhaust validation
+  precedes exchange; later file changes do not affect the committed snapshot.
+- One whole old scene remains owned until last-use retirement. Capture explicitly
+  waits; interactive CPU retirement polls with zero timeout. Resident admission
+  includes old resources under existing logical limits and the exclusive lease.
+- Five renderer reload cases pass (58.680 s): changed count/field/camera,
+  seven preparation/final-fence failures and staged-buffer cleanup, retained old
+  draws and same-renderer recovery, CPU/legacy invalid-config recovery, exact fresh
+  captures, stationary third-person replay and rejected trail/exhaust/pipeline/
+  versions, file mutation after staging, optional-camera removal and repeated orbit
+  reloads. Generation-owned cleanup probes reuse the bounded field-parameter cache.
+- Nine worker cases pass (0.085 s); all seven owner cases (33.306 s)
+  and 31 native compute cases (73.731 s) pass. All 59 CTest groups pass in one
+  uninterrupted final-binary run (1051.70 s); ten compute/CPU/replay PNG hashes match
+  T3c3c1 exactly. Source/input/application/native/runtime binaries remained frozen.
+- The 28-page final journal was visually reviewed on pages 5–8 and 26–28.
+- README, study, journal/PDF and evidence are updated; all 22 gallery hashes and
+  the user's environmental/Docker TODO suffix are preserved. See
+  `docs/journal/architecture/terrain-gpu/async/reload/study.md` and `validation/`.
+- Resume T3c3c3: rapid movement/body switches/Moon arrival through reload/failure/
+  stale-work recovery. T3c4 asynchronous interactive opt-in and T3c5 hardware
+  acceptance remain pending. CPU stays default; compute interactive remains gated.
+  Static renderer pipeline changes require a new renderer; logical admission is
+  not total CPU/driver VRAM and llvmpipe supplies no hardware FPS claim.
+
 ## Whole-scene replacement ownership checkpoint — 2026-10-04
 
 - T3c3c1 is tested. `SceneTerrainReplacement` owns an off-live validated CPU

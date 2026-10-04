@@ -4,9 +4,18 @@
 #include <type_traits>
 
 namespace rendering {
+namespace {
+app::PreparedScene prepareDocument(const nlohmann::json& document,double time) {
+    app::PreparedScene scene(config::ScenarioConfig{config::Config{nlohmann::json(document)}});
+    scene.updateSimulation(time);return scene;
+}
+}
 SceneTerrainReplacement::SceneTerrainReplacement(nlohmann::json document,SceneTerrainDestination live,
     std::uint64_t epoch,double time,std::uint64_t limit)
-    :previousDocument_(live.document),document_(std::move(document)),scene_(config::ScenarioConfig{config::Config{nlohmann::json(document_)}}),
+    :SceneTerrainReplacement(document,prepareDocument(document,time),live,epoch,time,limit) {}
+SceneTerrainReplacement::SceneTerrainReplacement(nlohmann::json document,app::PreparedScene prepared,
+    SceneTerrainDestination live,std::uint64_t epoch,double time,std::uint64_t limit)
+    :previousDocument_(live.document),document_(std::move(document)),scene_(std::move(prepared)),
      land_(scene_.scenario.planets.size()),water_(land_.size()),publication_(std::make_unique<TerrainPublication>(grass_,land_.size(),limit)),
      requests_(land_.size()),live_(live),epoch_(epoch),previousEpoch_(live.epoch) {
     if(epoch<=previousEpoch_ || live.publication.pending() || live.publication.externalBytes())
@@ -16,7 +25,7 @@ SceneTerrainReplacement::SceneTerrainReplacement(nlohmann::json document,SceneTe
     for(const auto& planet:scene_.scenario.planets)
         if(planet.foliage.enabled && !planet.foliage.compute_placement)
             throw std::invalid_argument("Resident scene replacement requires GPU foliage placement");
-    scene_.updateSimulation(time);
+    if(!std::isfinite(time)) throw std::invalid_argument("Invalid scene replacement time");
     publication_->reserveExternal(live.publication.reservedBytes());
     previous_.reserve(live.land.size());
     for(std::size_t i=0;i<live.land.size();++i) previous_.push_back({live.land[i].vbo,live.water[i].vbo,
@@ -37,13 +46,18 @@ SceneTerrainReplacement::~SceneTerrainReplacement() {
     for(auto& m:water_) m.destroy();
     if(!published_) live_.publication.releaseSceneReplacement();
 }
-TerrainBuildRequest SceneTerrainReplacement::request(std::size_t i,const glm::dvec3& eye,std::uint64_t serial) {
+TerrainBuildRequest SceneTerrainReplacement::request(std::size_t i,const glm::dvec3& eye,std::uint64_t serial,
+    std::vector<int> zones) {
+    return requestLocal(i,scene_.bodies.at(i+1).toLocalPoint(eye),serial,std::move(zones));
+}
+TerrainBuildRequest SceneTerrainReplacement::requestLocal(std::size_t i,const glm::dvec3& eye,std::uint64_t serial,
+    std::vector<int> zones) {
     if(published_ || preparing_ || requests_.at(i)) throw std::logic_error("Scene body request already owned or preparation busy");
     const auto& planet=scene_.scenario.planets[i];
     TerrainBuildIdentity k;k.epoch=epoch_;k.serial=serial;k.bodyIndex=i;k.bodyName=planet.name;
     k.field=scene_.terrainSurfaces[i].field().fingerprint();k.backend=TerrainBackend::Compute;k.resident=true;
-    k.eye=scene_.bodies[i+1].toLocalPoint(eye);k.localMask=glm::length(k.eye)<3*planet.radius ? 1 : 0;
-    TerrainBuildRequest r{k,scene_.terrainSurfaces[i],planet,{},scene_.scenario.metersPerWorldUnit()};
+    k.eye=eye;k.localMask=glm::length(k.eye)<3*planet.radius ? 1 : 0;
+    TerrainBuildRequest r{k,scene_.terrainSurfaces[i],planet,std::move(zones),scene_.scenario.metersPerWorldUnit()};
     r.validate();requests_[i]=k;return r;
 }
 bool SceneTerrainReplacement::submit(TerrainCpuBuild build,const TerrainBuildIdentity& k,

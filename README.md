@@ -621,8 +621,9 @@ current camera. The destructor joins outstanding terrain jobs, releases GPU
 resources, then destroys the window and context. Partially completed startup
 and failed captures follow the same ownership rules. Use one Renderer at a time
 on a single thread. Its public header hides GL and JSON implementation details.
-Scene reload stages the CPU replacement before installing it; window callbacks
-borrow the renderer's camera and clock state.
+`reload()` stages the complete scene, terrain and foliage before publication,
+retains old resources through fenced retirement and preserves the current scene
+on preparation failure. Window callbacks borrow the rebound camera and clock state.
 
 ## Prerequisites
 
@@ -1041,7 +1042,7 @@ adds off-live land/water/grass/contact preparation, atomic ownership transfer an
 fenced retirement. It reserves published, pending and retiring sets under a
 logical aggregate limit, permits one GPU preparation globally and prevents a new
 spare until that body's retirement completes. Resident capture integration is
-covered below; transactional scene reload remains queued.
+and scene reload integration are covered below.
 
 The [renderer publication checkpoint](docs/journal/architecture/terrain-gpu/async/renderer/study.md)
 connects complete resident consumers to capture frame boundaries. A restored
@@ -1053,8 +1054,13 @@ CPU and legacy captures retain their paths; interactive compute remains gated.
 The [whole-scene replacement owner](docs/journal/architecture/terrain-gpu/async/scene/study.md)
 stages all bodies under one overlap budget and exchanges scene/config plus
 terrain/grass/contact receipts only after full readiness. It retains old resources
-behind a last-use fence. Connecting this owner to the renderer reload adapter and
-validating movement/body switches remain queued; interactive compute stays gated.
+behind a last-use fence. The [renderer reload checkpoint](docs/journal/architecture/terrain-gpu/async/reload/study.md)
+connects it to R/file-watch and `Renderer::reload()`: config/replay, all-body
+preparation and chase anchors stay staged until complete readiness. Tracking,
+cameras/contacts and caches change at the same boundary; preparation failures
+retain the current scene and the same renderer can recover. CPU and legacy reloads
+use the same boundary. Movement/body-switch acceptance remains T3c3c3;
+interactive compute stays gated.
 
 Near water, `terrain_lod.shoreline_edge_m` targets 1 m edges within
 `shoreline_distance_m` (80 m by default). Set the edge target to `0` to disable

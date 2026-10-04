@@ -7,10 +7,11 @@ SceneSource::SceneSource(CommandLineOptions& options)
     : watchedScenePath(options.replayPath.empty() ? options.configPath : options.replayPath),
       configPath(options.configPath), replayPath(options.replayPath) {
     try {
-        document = load();
+        replayDocument=replayPath.empty() ? nlohmann::json() : config::Config::load(replayPath).data();
+        document = documentFor(replayDocument);
         (void)config::ScenarioConfig(config::Config(nlohmann::json(document)));
         if (!replayPath.empty()) {
-            const auto replay = config::Config::load(replayPath).data();
+            const auto& replay = replayDocument;
             if(replay.contains("render") && replay["render"].contains("terrain_backend")) {
                 const auto& backend=replay["render"]["terrain_backend"];
                 if(!backend.is_string() || (backend!="cpu" && backend!="compute"))
@@ -73,6 +74,9 @@ SceneSource::SceneSource(CommandLineOptions& options)
 nlohmann::json SceneSource::load() const {
     // A full image sidecar is self-contained; a console snippet uses --config.
     const nlohmann::json replay = replayPath.empty() ? nlohmann::json() : config::Config::load(replayPath).data();
+    return documentFor(replay);
+}
+nlohmann::json SceneSource::documentFor(const nlohmann::json& replay) const {
     auto document = replay.is_object() && replay.contains("scenario") ? replay.at("scenario") :
                     config::Config::load(configPath).data();
     if (!replayPath.empty()) document = config::applyCameraReplay(std::move(document), replay);

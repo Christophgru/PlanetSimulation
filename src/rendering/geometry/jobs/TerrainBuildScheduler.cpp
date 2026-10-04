@@ -16,7 +16,7 @@ TerrainBuildScheduler::~TerrainBuildScheduler() {stop();}
 bool TerrainBuildScheduler::submit(TerrainBuildRequest request) {
     request.validate();
     {std::lock_guard lock(mutex_);
-        if(stopping_ || request.identity.epoch!=epoch_ || request.identity.serial<=latestSerial_) return false;
+        if(stopping_ || exclusiveEpoch_ || request.identity.epoch!=epoch_ || request.identity.serial<=latestSerial_) return false;
         latestSerial_=request.identity.serial;++stats_.submitted;
         if(queued_) ++stats_.coalesced;
         queued_=std::move(request);stats_.peakQueued=1;
@@ -29,14 +29,24 @@ std::optional<TerrainBuildCompletion> TerrainBuildScheduler::poll() {
     changed_.notify_all();return result;
 }
 TerrainBuildCompletion TerrainBuildScheduler::executeForCapture(TerrainBuildRequest request) {
+    return executeExclusive(std::move(request),false);
+}
+TerrainBuildCompletion TerrainBuildScheduler::executeForReload(TerrainBuildRequest request) {
+    return executeExclusive(std::move(request),true);
+}
+TerrainBuildCompletion TerrainBuildScheduler::executeExclusive(TerrainBuildRequest request,bool replacement) {
     request.validate();const auto key=request.identity;
     std::unique_lock lock(mutex_);
-    if(stopping_ || running_ || queued_ || ready_ || key.epoch!=epoch_ || key.serial<=latestSerial_)
+    const auto liveEpoch=epoch_;
+    if(stopping_ || running_ || queued_ || ready_ || exclusiveEpoch_ ||
+       (replacement ? key.epoch<=epoch_ : key.epoch!=epoch_) || key.serial<=latestSerial_)
         throw std::logic_error("Capture terrain build requires an idle matching scheduler");
+    exclusiveEpoch_=key.epoch;
     latestSerial_=key.serial;++stats_.submitted;queued_=std::move(request);stats_.peakQueued=1;
     changed_.notify_all();
-    changed_.wait(lock,[&]{return stopping_ || epoch_!=key.epoch || ready_.has_value();});
-    if(stopping_ || epoch_!=key.epoch || !ready_ || ready_->identity!=key)
+    changed_.wait(lock,[&]{return stopping_ || epoch_!=liveEpoch || ready_.has_value();});
+    exclusiveEpoch_.reset();
+    if(stopping_ || epoch_!=liveEpoch || !ready_ || ready_->identity!=key)
         throw std::runtime_error("Capture terrain request became obsolete");
     auto result=std::move(*ready_);ready_.reset();lock.unlock();changed_.notify_all();return result;
 }
@@ -79,7 +89,7 @@ void TerrainBuildScheduler::run() {
         lock.unlock();TerrainBuildCompletion completion{request.identity,{},{}};
         try {completion.build=builder_(request);} catch(...) {completion.error=std::current_exception();}
         lock.lock();running_.reset();
-        if(stopping_ || request.identity.epoch!=epoch_) ++stats_.obsolete;
+        if(stopping_ || (request.identity.epoch!=epoch_ && exclusiveEpoch_!=request.identity.epoch)) ++stats_.obsolete;
         else {++stats_.completed;if(completion.error) ++stats_.failed;ready_=std::move(completion);}
         changed_.notify_all();
     }

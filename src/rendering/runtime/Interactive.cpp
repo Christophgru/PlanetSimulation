@@ -53,6 +53,7 @@ int Renderer::Impl::interact() {
                 inputContext.reloadRequested = true;
             }
         }
+        retireSceneReload(false);
         if (inputContext.reloadRequested) {
             CpuTrace::Scope reloadScope("scene.reload");
             inputContext.reloadRequested = false;
@@ -62,76 +63,12 @@ int Renderer::Impl::interact() {
             observedConfigTime = watchError ? std::nullopt :
                 std::optional<fs::file_time_type>(reloadTime);
             try {
-                // Build every CPU-side replacement before touching the live scene.
-                auto nextDocument = source.load();
-                app::PreparedScene staged{config::ScenarioConfig{config::Config{nlohmann::json(nextDocument)}}};
-                const std::size_t count = staged.scenario.planets.size();
-                std::vector<Mesh> nextPlanetMeshes(count);
-                std::vector<Mesh> nextWaterMeshes(count);
-                std::vector<bool> nextMeshReady(count, false);
-                std::vector<int> nextLocalMask(count, 0);
-                std::vector<std::vector<int>> nextFaceZones(count);
-                std::vector<glm::dvec3> nextTerrainEyes(count, glm::dvec3(0.0));
-                std::vector<std::array<int, 3>> nextZoneFaces(count);
-                std::vector<int> nextTriangles(count, 0);
-                std::vector<int> nextSteepRefinedFaces(count, 0);
-                std::vector<std::uint64_t> nextTerrainSerial(count,0);
-                std::vector<std::optional<TerrainBuildIdentity>> nextTerrainFailures(count);
-
-                // Keep the executor and its old CPU snapshots alive across reload.
-                // Obsolete completions are discarded without joining a worker here.
-                terrainJobs.advanceEpoch(terrainSceneEpoch+1);
-                ++terrainSceneEpoch;
-
-                terrainPublication.reset(); // Compute reload remains gated until T3c3c/T3c4.
-                terrainConsumers.clear();
-                for (auto& mesh : meshes.planetMeshes) mesh.destroy();
-                for (auto& mesh : meshes.waterMeshes) mesh.destroy();
-                scene.scenario = std::move(staged.scenario);
-                source.document = std::move(nextDocument);
-                scene.dynamics = std::move(staged.dynamics);
-                scene.bodies = std::move(staged.bodies);
-                previousFrameTime = glfwGetTime();
-                simulationTime = config::replayStartTime(scene.scenario, options.commandLineTime);
-                simulationClock.reset(simulationTime, previousFrameTime);
-                foliageTime = simulationTime;
-                scene.terrainSurfaces = std::move(staged.terrainSurfaces);
-                scene.sunCamera = std::move(staged.sunCamera);
-                scene.surfaceCamera = std::move(staged.surfaceCamera);
-                scene.planetOrbitCamera = std::move(staged.planetOrbitCamera);
-                scene.orbitPlanetIndex = staged.orbitPlanetIndex;
-                scene.planetOrbitCenter = staged.planetOrbitCenter;
-                scene.planetOrbitOuterRadius = staged.planetOrbitOuterRadius;
-                scene.sunPosition = staged.sunPosition;
-                meshes.planetMeshes.swap(nextPlanetMeshes);
-                meshes.waterMeshes.swap(nextWaterMeshes);
-                meshReady.swap(nextMeshReady);
-                lastLocalMask.swap(nextLocalMask);
-                lastFaceZones.swap(nextFaceZones);
-                lastTerrainEyes.swap(nextTerrainEyes);
-                meshZoneFaces.swap(nextZoneFaces);
-                meshTriangles.swap(nextTriangles);
-                meshSteepRefinedFaces.swap(nextSteepRefinedFaces);
-                installedTerrainSerial.swap(nextTerrainSerial);
-                terrainFailures.swap(nextTerrainFailures);
-                cameraInput.rebind(scene.surfaceCamera ? &*scene.surfaceCamera : nullptr,
-                                   scene.planetOrbitCamera ? &*scene.planetOrbitCamera : nullptr);
-                cameraInput.setThirdPersonWalkSpeed(6.0/scene.scenario.metersPerWorldUnit());
-                astronaut.motion.reset(); astronaut.exhaust.clear(); astronaut.lastEmitter.reset(); astronaut.exhaustTime.reset(); astronautGround.clear(); astronautGroundRevision=0;
-                astronautReplayRestored=false;
-                inputContext.spacePresses=0;
-                cameraTransition.cancel();
-                displayedMode = cameraInput.mode();
-                displayedPose = rendering::CameraPose::fromView(
-                    glm::dvec3(scene.sunCamera.position), scene.sunCamera.getViewMatrix(), scene.sunCamera.fov);
-                telemetry = SurfaceCameraTelemetry{};
-                terrainShadows.destroy();
-                grass.clear();
-                frameReuse.invalidate();
-                orbitTrails.clear();
-                orbitColors.clear();
-                orbitColorRevisions.clear();
-                orbitTrailEpoch = std::numeric_limits<double>::quiet_NaN();
+                reloadScene();
+                previousFrameTime=glfwGetTime();foliageTime=simulationTime;
+                cameraTransition.cancel();displayedMode=cameraInput.mode();
+                displayedPose=rendering::CameraPose::fromView(
+                    glm::dvec3(scene.sunCamera.position),scene.sunCamera.getViewMatrix(),scene.sunCamera.fov);
+                telemetry=SurfaceCameraTelemetry{};
                 std::cout << "Reloaded " << source.watchedScenePath << ": " << scene.scenario.name
                           << ", " << scene.scenario.planets.size() << " planet(s)\n";
             } catch (const std::exception& error) {

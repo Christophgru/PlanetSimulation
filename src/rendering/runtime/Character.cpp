@@ -3,6 +3,7 @@
 #include <iostream>
 #include <bit>
 #include "rendering/foliage/wind/WindField.h"
+#include "rendering/runtime/terrain/reload/ReplayEffects.h"
 
 namespace rendering {
 namespace {
@@ -172,20 +173,10 @@ void Renderer::Impl::prepareAstronaut(double elapsed,std::shared_ptr<SparseTerra
     astronaut.motion.update(root,direction,elapsed,ground);
     if (!astronautReplayRestored && !options.replayPath.empty()) {
         astronautReplayRestored=true;
-        const auto replay=config::Config::load(options.replayPath).data();
+        const auto& replay=source.replayDocument;
         if (replay.contains("astronaut_pose")) {
             const auto& j=replay.at("astronaut_pose");
-            if (!preview && j.contains("exhaust")) {
-                const auto& e=j.at("exhaust");
-                if (e.at("schema").get<int>()!=1 || !e.at("particles").is_array() ||
-                    e.at("particles").size()>ExhaustParticles::capacity)
-                    throw std::invalid_argument("Unsupported exhaust replay");
-                ExhaustState state;
-                state.emissionPhase=e.at("emission_phase_s").get<double>(); state.nextId=e.at("next_id").get<std::uint64_t>();
-                for (const auto& q:e.at("particles")) state.particles.push_back({vector(q.at("position_m")),
-                    vector(q.at("velocity_mps")),q.at("age_s").get<double>(),q.at("lifetime_s").get<double>(),q.at("id").get<std::uint64_t>()});
-                astronaut.exhaust.restore(state);
-            }
+            if (!preview && j.contains("exhaust")) astronaut.exhaust.restore(characterReplay::exhaust(j.at("exhaust")));
             AstronautPose p;
             p.root=vector(j.at("root")); p.up=vector(j.at("up"));
             p.forward=vector(j.at("forward")); p.right=vector(j.at("right"));
@@ -224,18 +215,8 @@ void Renderer::Impl::prepareAstronaut(double elapsed,std::shared_ptr<SparseTerra
             }
             if (!preview && !terrainPublication && j.contains("grass_plan_eye"))
                 grass.procedural.restorePlanningEye(index,vector(j.at("grass_plan_eye")));
-            if (!preview && j.contains("grass_trail")) {
-                const auto& entries=j.at("grass_trail");
-                if (!entries.is_array() || entries.size()>GrassTrail::capacity)
-                    throw std::invalid_argument("Astronaut grass trail replay exceeds capacity");
-                std::vector<TrailSegment> segments;
-                for (const auto& entry:entries) {
-                    if (!entry.is_array() || entry.size()!=2)
-                        throw std::invalid_argument("Astronaut grass trail replay needs segment pairs");
-                    segments.push_back({vector(entry.at(0)),vector(entry.at(1))});
-                }
-                grass.procedural.trail(index).restore(segments);
-            }
+            if (!preview && j.contains("grass_trail"))
+                grass.procedural.trail(index).restore(characterReplay::trail(j.at("grass_trail")));
         }
     }
     const auto targetBody=astronaut.motion.pose().navigation ?

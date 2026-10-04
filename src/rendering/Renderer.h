@@ -13,6 +13,9 @@ public:
     Renderer(const Renderer&) = delete;
     Renderer& operator=(const Renderer&) = delete;
     int run();
+    // Reload the watched config/replay in the current context. Capture compute
+    // explicitly waits for replacement readiness; failures retain the scene.
+    void reload();
 private:
     struct Impl;
     std::unique_ptr<Impl> impl_;

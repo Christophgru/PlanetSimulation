@@ -1,0 +1,2 @@
+[1/2] Building CXX object tests/CMakeFiles/renderer_lifecycle_tests.dir/app/terrain/reload/test_renderer_reload.cpp.o
+[2/2] Linking CXX executable tests/renderer_lifecycle_tests

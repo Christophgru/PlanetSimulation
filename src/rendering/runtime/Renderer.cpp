@@ -15,6 +15,10 @@ int Renderer::run() {
     impl_->context.makeCurrent();
     return impl_->options.renderTestMode ? impl_->capture() : impl_->interact();
 }
+void Renderer::reload() {
+    CpuTrace::Thread traceThread(&impl_->cpuTrace,"render");
+    impl_->context.makeCurrent();impl_->reloadScene();
+}
 
 Renderer::Impl::Impl(app::CommandLineOptions arguments)
     : options(std::move(arguments)), cpuTrace(options.cpuTrace), source(options), context(options), window(context.get()),

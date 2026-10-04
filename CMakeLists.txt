@@ -120,6 +120,8 @@ add_library(planet_app STATIC
     src/rendering/runtime/terrain/ResidentTerrain.cpp
     src/rendering/runtime/terrain/CharacterPreview.cpp
     src/rendering/runtime/terrain/reload/SceneTerrainReplacement.cpp
+    src/rendering/runtime/terrain/reload/ReloadScene.cpp
+    src/rendering/runtime/terrain/reload/ReloadPreview.cpp
     src/rendering/runtime/ScenePass.cpp
     src/rendering/runtime/Capture.cpp
     src/rendering/runtime/Character.cpp

@@ -27,7 +27,7 @@ int Renderer::Impl::capture() {
     double lastBenchmarkFrame = glfwGetTime();
     double windStart=benchmarkStart;
     if (options.thirdPersonRenderMode && !options.replayPath.empty()) {
-        const auto replay=config::Config::load(options.replayPath).data();
+        const auto& replay=source.replayDocument;
         if (replay.contains("astronaut_pose"))
             windStart=replay.at("astronaut_pose").value("wind_time_s",windStart);
     }
@@ -58,6 +58,11 @@ int Renderer::Impl::capture() {
             prepareAstronaut(frame>0 ? (options.benchmarkCharacterStep>0 ? options.benchmarkCharacterStep : options.benchmarkWalkStep/6.0) : 0);
             if(plannedCharacterEye && *plannedCharacterEye!=astronautView.eye)
                 throw std::logic_error("Character planning eye differs from committed contact update");
+            if(reloadCharacterPending) {
+                if(*reloadCharacterEye!=astronautView.eye)
+                    throw std::logic_error("Reload character planning eye differs from committed update");
+                reloadCharacterPending=false;
+            }
             // A destination handoff changes the distance to the Sun. Derive
             // clipping from the current chase eye, including on saved replay.
             surfaceClip = rendering::surfaceClipPlanes(.2/scene.scenario.metersPerWorldUnit(),
@@ -365,6 +370,7 @@ int Renderer::Impl::capture() {
             {"peak_running",workerStats.peakRunning},{"peak_queued",workerStats.peakQueued},
             {"pending",terrainJobs.pending(terrainSceneEpoch)},{"rejected_completions",terrainRejectedBuilds}};
         metadata["render"]["terrain_publication"]=terrainPublicationState();
+        metadata["render"]["scene_reload"]=sceneReloadState();
         metadata["render"]["terrain_fallback"]=terrainFallback;
         const auto& terrain=meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats;
         metadata["render"]["terrain_compute"]={{"input_bytes",terrain.gpuInputBytes},

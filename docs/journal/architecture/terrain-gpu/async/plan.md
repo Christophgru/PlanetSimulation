@@ -171,3 +171,12 @@ scene reservation bound overlap; last-use fences protect all retired resources.
 Seven scene-owner cases, 31 native compute cases and 59 CTest groups pass (731.72 s);
 all ten capture/replay hashes remain exact. Resume at T3c3c2 to integrate renderer
 reload, then T3c3c3 movement/body-switch/Moon acceptance. Interactive compute gated.
+
+The [T3c3c2 renderer reload checkpoint](reload/study.md) connects complete staged
+config/replay/body consumers and tracking to shared R/file-watch handling and
+Renderer::reload(). Prospective contact previews, exact replay snapshots, camera/
+contact rebinding and cache resets occur at the same exchange; old scenes remain
+owned through fenced retirement. Five renderer cases, nine worker cases, seven
+owner cases, 31 compute cases and all 59 CTest groups pass (1051.70 s). Fresh and replay
+images remain exact, including all ten baseline hashes. Resume T3c3c3 movement/
+body-switch/Moon acceptance, then T3c4. CPU default and interactive gate remain.
