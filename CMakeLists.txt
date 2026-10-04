@@ -12,6 +12,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Find OpenGL before using its imported targets
 find_package(OpenGL REQUIRED)
 find_package(PNG REQUIRED)
+find_package(Threads REQUIRED)
 
 # Fetch nlohmann_json from git repository (header-only library)
 include(FetchContent)
@@ -70,13 +71,15 @@ add_library(planet_geometry STATIC
     src/rendering/geometry/terrain/TerrainQueryCache.cpp
     src/rendering/geometry/terrain/TerrainTopology.cpp
     src/rendering/geometry/contacts/SparseTerrainContacts.cpp
+    src/rendering/geometry/jobs/TerrainBuild.cpp
+    src/rendering/geometry/jobs/TerrainBuildScheduler.cpp
     src/rendering/geometry/TerrainLod.cpp
     src/rendering/geometry/TerrainShoreline.cpp
     src/rendering/foliage/GrassPlacement.cpp
     src/rendering/foliage/GrassLod.cpp)
 target_sources(planet_geometry PRIVATE src/rendering/foliage/procedural/GrassPlan.cpp
     src/rendering/foliage/trails/GrassTrail.cpp)
-target_link_libraries(planet_geometry PUBLIC planet_config planet_diagnostics glm::glm)
+target_link_libraries(planet_geometry PUBLIC planet_config planet_diagnostics glm::glm Threads::Threads)
 
 add_library(planet_character STATIC
     src/rendering/character/AstronautMotion.cpp

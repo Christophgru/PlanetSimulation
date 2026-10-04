@@ -1,0 +1,25 @@
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 8 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 8 tests from TerrainJobs
+[ RUN      ] TerrainJobs.BoundsCoalescingAndCompletionBackpressure
+[       OK ] TerrainJobs.BoundsCoalescingAndCompletionBackpressure (3 ms)
+[ RUN      ] TerrainJobs.RepeatedReloadKeepsWorkerOwnershipAndDiscardsOldEpochs
+[       OK ] TerrainJobs.RepeatedReloadKeepsWorkerOwnershipAndDiscardsOldEpochs (1 ms)
+[ RUN      ] TerrainJobs.ErrorsAreReturnedAndExecutorCanRecover
+[       OK ] TerrainJobs.ErrorsAreReturnedAndExecutorCanRecover (1 ms)
+[ RUN      ] TerrainJobs.ShutdownJoinsExecutingSnapshotAndDropsQueuedWork
+[       OK ] TerrainJobs.ShutdownJoinsExecutingSnapshotAndDropsQueuedWork (1 ms)
+[ RUN      ] TerrainJobs.PublicationRejectsBodyReorderingFieldModeEpochAndOlderSerials
+[       OK ] TerrainJobs.PublicationRejectsBodyReorderingFieldModeEpochAndOlderSerials (0 ms)
+[ RUN      ] TerrainJobs.ResidentBuildOwnsSnapshotsAndConstructsContactsWithoutRenderEvaluation
+[       OK ] TerrainJobs.ResidentBuildOwnsSnapshotsAndConstructsContactsWithoutRenderEvaluation (26 ms)
+[ RUN      ] TerrainJobs.CpuAndLegacyComputeKeepExactExpandedGeometry
+[       OK ] TerrainJobs.CpuAndLegacyComputeKeepExactExpandedGeometry (26 ms)
+[ RUN      ] TerrainJobs.InvalidSnapshotsDoNotReplacePendingWork
+[       OK ] TerrainJobs.InvalidSnapshotsDoNotReplacePendingWork (10 ms)
+[----------] 8 tests from TerrainJobs (72 ms total)
+
+[----------] Global test environment tear-down
+[==========] 8 tests from 1 test suite ran. (73 ms total)
+[  PASSED  ] 8 tests.

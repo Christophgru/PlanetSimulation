@@ -103,6 +103,8 @@ T3b1 generates resident 64-byte grass triangle descriptors from the existing com
 
 T3b2 now computes budgeted hash selection, rounded-slot density search and deterministic group/bucket prefixes on GPU. Fresh compute captures use `gpu-v1` and omit full CPU land/water render vectors and bulk field evaluation; older replays retain CPU planning. A 100,000-triangle case uploads 2,840 metadata/allocation bytes and reads one 224-byte capture summary, submitting 1,048,429 candidates within a conservative queried limit. Triangle/seed/rank root identities remain stable. No hardware frame improvement is claimed; T3c still owns asynchronous complete consumer installation. The implementation and validation are in `architecture/terrain-gpu/grass-allocation/`.
 
+T3c1 introduces one persistent CPU executor with one replaceable queued snapshot and one completion slot. Requests own field/settings/topology inputs and carry epoch, body, field, mode and serial identities. The worker constructs canonical compute land/water topology and matching sparse contacts without bulk render evaluation. Reload invalidates old work without joining; shutdown joins before trace/context ownership ends. Normal CPU walking polls completed work and rejects incompatible or older generations. Compute capture explicitly waits for CPU preparation and retains its GPU waits; complete asynchronous GPU/grass publication remains T3c2/T3c3. Contact ownership temporarily duplicates canonical CPU topology during staging, so this checkpoint does not claim lower total memory or a hardware speedup. The study is in `architecture/terrain-gpu/async/worker/`.
+
 = Orbital motion and light transport
 
 == Prescribed Kepler ellipses with collective mass
@@ -436,7 +438,7 @@ The exhaust/wind checkpoint passes all 56 CTest entries in a clean 675.37 s run 
 
 The space-flight checkpoint passed all 53 CTest entries in 764.20 s on GCC 12.2 and Mesa llvmpipe/Xvfb with two rendering workers. The character target includes 41 CPU cases, and native input verifies WASD-only airborne ignition. Flight/Moon images and their complete poses replay exactly. Evidence is retained in `character/space-flight/validation/`.
 
-The repository contains 58 CTest entries covering configuration and orbital invariants; terrain, camera and astronaut behavior; lighting, shadows, atmosphere and refraction on OpenGL; renderer captures; adaptive quality; and real GLFW input under Xvfb. The 22 README images are checked against their SHA-256 manifest. These checks establish specific numerical and rendered behaviors on the tested software renderer. They do not establish physical fidelity, portability to every GPU driver, or a guaranteed 20 FPS for arbitrary scenes.
+The repository contains 59 CTest entries covering configuration and orbital invariants; terrain, bounded worker ownership, camera and astronaut behavior; lighting, shadows, atmosphere and refraction on OpenGL; renderer captures; adaptive quality; and real GLFW input under Xvfb. The 22 README images are checked against their SHA-256 manifest. These checks establish specific numerical and rendered behaviors on the tested software renderer. They do not establish physical fidelity, portability to every GPU driver, or a guaranteed 20 FPS for arbitrary scenes.
 
 The directed-flight checkpoint passed 51 of 52 entries in 814.46 s. The nine-scene atmosphere test reached its 180 s deadline after eight scenes; with a bounded 300 s allowance, its standalone rerun passed in 152.20 s on the same application binary. All 52 entries therefore have passing results through full run plus targeted recheck, not a second clean full run. The motion target contains 19 passing CPU cases, and upright and tilted flight captures replay byte-identically. Raw evidence is retained in `character/flight/validation/`.
 
@@ -447,6 +449,8 @@ The October 2 continuation checkpoint passes all 49 entries in a clean 286.14 s 
 The model boundaries are deliberate. Orbits are prescribed two-body ellipses with hierarchical recoil. Terrain is a deterministic synthetic height field with bounded tessellation. Atmospheric scale heights are chosen relative to shell size; the model does not solve hydrostatic temperature profiles, cloud dynamics, weather, or multiple scattering. Refraction bends view rays and reprojects available distant imagery but keeps near opaque geometry and direct shadow rays straight. Atmospheric temperature is read from JSON rather than evolved from sunlight and orbit. These limits define what a visual comparison can support.
 
 T3b2 validates all 58 CTest groups across two final-executable runs: groups 1–29 before interruption and groups 30–58 in the resumed run. Four new allocation cases bring native terrain/metadata/allocation coverage to 14 cases. Compute and legacy replay, camera-only startup compatibility, scalar-only allocation readback, zero CPU render vectors, GL 3.3 fallback and native input pass. All 22 gallery hashes are retained. Evidence and the next asynchronous implementation plan are in `architecture/terrain-gpu/grass-allocation/` and `async/plan.md`. These software-renderer checks establish correctness, not hardware frame performance.
+
+T3c1 passes eight controlled CPU cases and all 59 CTest groups in one uninterrupted final-binary run (736.20 s). The cases cover coalescing/backpressure, repeated epochs, body/field/mode/serial rejection, exception recovery, shutdown and independent resident snapshots. Compute captures pass worker-bound and transfer assertions; all ten compute/CPU/replay PNG hashes match T3b2 exactly. Lifecycle, reload and native input pass, and all 22 gallery hashes remain unchanged. Evidence is in `architecture/terrain-gpu/async/worker/validation/`. Interactive compute remains gated.
 
 == Rebuilding the paper and the evidence
 
@@ -477,6 +481,7 @@ R5. _PlanetSimulation_ repository: implementation in `src/`, shaders in `shaders
 
 R6. NASA Glenn Research Center, #link("https://www.grc.nasa.gov/www/k-12/Numbers/Math/Mathematical_Thinking/ideal_gases_under_constant.htm")[Ideal Gases under Constant Volume, Constant Pressure, Constant Temperature, and Adiabatic Conditions]. The hydrostatic, isothermal scale-height derivation is the physical motivation for the exponential profile, not the formula used to set the renderer's shell-relative scale heights.
 
+#block(breakable: false)[
 == Claim-to-artifact map
 
 #table(
@@ -485,6 +490,7 @@ R6. NASA Glenn Research Center, #link("https://www.grc.nasa.gov/www/k-12/Numbers
   stroke: 0.4pt + rgb("#dfe8eb"),
   [*Claim*], [*Primary implementation*], [*Validation*],
   [Stable terrain under LOD], [`src/rendering/geometry/Terrain.h`], [`TerrainTests`, surface capture],
+  [Bounded CPU terrain jobs], [`src/rendering/geometry/jobs/`], [`TerrainJobTests`, compute capture],
   [Barycentric orbit hierarchy], [`src/simulation/OrbitalSystem.h`], [`OrbitalSystemTests`],
   [Shadowed atmosphere], [`shaders/atmosphere/atmosphere.frag`], [`TerrainShadowRenderIntegration`],
   [Temperature-controlled bend], [`src/simulation/Atmosphere.h`], [`AtmosphereTests`, GPU render test],
@@ -492,3 +498,4 @@ R6. NASA Glenn Research Center, #link("https://www.grc.nasa.gov/www/k-12/Numbers
   [One-second descent], [`src/rendering/camera/CameraTransition.h`], [`CameraTransitionTests`, X11 input],
   [Planted feet and local flight], [`src/rendering/character/`], [`AstronautMotionTests`, capture and X11 input],
 )
+]

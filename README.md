@@ -1022,6 +1022,13 @@ GL 3.3 and disabled compute placement retain CPU planning. Interactive compute,
 dynamic VRAM/density policy and hardware frame-cost validation remain queued. No
 hardware FPS improvement is claimed.
 
+The [bounded CPU worker checkpoint](docs/journal/architecture/terrain-gpu/async/worker/study.md)
+moves compute topology/contact construction onto one persistent CPU executor,
+with one coalesced queued request and scene/body/field identities. Reload invalidates
+old CPU work without joining it; normal CPU walking polls for completed builds.
+GPU and grass publication still use the capture path until the remaining
+asynchronous stages are ready.
+
 Near water, `terrain_lod.shoreline_edge_m` targets 1 m edges within
 `shoreline_distance_m` (80 m by default). Set the edge target to `0` to disable
 this extra refinement. Targets support 0.1–100 m and distances 1–1000 m.

@@ -48,6 +48,11 @@ assert g['render']['terrain_compute']['cpu_water_render_bytes']==0
 assert g['render']['terrain_contract']['evaluation_requests']==0
 assert g['render']['terrain_contract']['evaluation_evaluations']==0
 assert g['render']['terrain_grass_planner']=='gpu-v1'
+worker=g['render']['terrain_cpu_worker']
+assert worker['submitted']==worker['completed']>0
+assert worker['peak_running']==worker['peak_queued']==1
+assert not worker['pending'] and worker['failed']==worker['obsolete']==worker['rejected_completions']==0
+assert c['render']['terrain_cpu_worker']['submitted']==0
 assert g['render']['foliage_patch_bytes']==0
 metadata=g['render']['foliage_gpu_metadata']
 assert metadata['version']==1 and metadata['allocator']=='gpu-v1'
@@ -84,6 +89,7 @@ assert wr['render']['terrain_backend']=='compute' and walkingReplay.read_bytes()
 legacy,l=run('legacy-compute',('--terrain-backend','compute','--terrain-grass-planner','cpu'))
 assert l['render']['terrain_compute']['cpu_compatibility_mirror']
 assert l['render']['terrain_contract']['evaluation_requests']>0
+assert l['render']['terrain_cpu_worker']['submitted']==l['render']['terrain_cpu_worker']['completed']>0
 assert l['render']['terrain_grass_planner']=='cpu'
 old=out/'legacy.json';saved=json.loads(legacy.with_suffix('.png.json').read_text());saved['render'].pop('terrain_grass_planner');old.write_text(json.dumps(saved))
 oldReplay,lr=run('legacy-replay',replay=old)
@@ -114,7 +120,7 @@ assert 'Unsupported terrain grass replay planner' in error and 'initialized' not
 report={'cpu_gpu_surface':compare(cpu,gpu),'compute_replay_exact':True,'compute_walking_replay_exact':True,
         'cpu_override_exact':True,'legacy_compute_replay_exact':True,'vertex_config_fallback':True,'locked_vertex_config_rejected':True,'unknown_grass_planner_rejected_before_window':True,'gl33_fallback':True,'locked_unavailable_rejected':True,'invalid_backend_rejected_before_window':True,
         'unknown_field_version_rejected_before_window':True,'terrain_compute':g['render']['terrain_compute'],'commands':commands,
-        'sparse_contacts':contacts,'grass_metadata':metadata,
+        'sparse_contacts':contacts,'grass_metadata':metadata,'terrain_cpu_worker':worker,
         'png_sha256':{q.name:hashlib.sha256(q.read_bytes()).hexdigest() for q in out.glob('*.png')}}
 (out/'results.json').write_text(json.dumps(report,indent=2)+'\n')
 print('PASS GPU terrain/main/reflection/foliage/standing/walking, exact locked replay, CPU override and GL 3.3 fallback')

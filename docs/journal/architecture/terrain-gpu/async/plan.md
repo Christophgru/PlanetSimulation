@@ -6,9 +6,9 @@ compute or claim hardware performance. The [ownership plan](../plan.md) remains
 the acceptance contract. CPU terrain and legacy captures keep their existing
 paths while this pipeline is introduced behind the compute option.
 
-## Current seams and required changes
+## T3b2 baseline seams and required changes
 
-| Source | Current behavior | Required change |
+| Source | Behavior at T3b2 | Required change |
 | --- | --- | --- |
 | [TerrainMeshes.cpp](../../../../../src/rendering/runtime/TerrainMeshes.cpp) | CPU walking rebuilds use a future. Its completion branch installs CPU geometry directly. The compute branch constructs contacts and waits for land/water on the context thread. | Workers return canonical topology, statistics, immutable field snapshots and a matching contact index. Compute completion uses a separate staged generation. |
 | [ProceduralGrass.cpp](../../../../../src/rendering/foliage/procedural/ProceduralGrass.cpp) | Resident preparation generates metadata/allocation, waits for capture and replaces the live patch. | Split submission, nonblocking polling, completed-summary validation and patch adoption. Staging must not mutate live textures, descriptors or queues. |
@@ -133,3 +133,8 @@ These checkpoints are dependencies, not claims of completed implementation.
 Keep numerical field/plane/root parity and versioned replay tests from T1–T3b;
 new scheduler tests should assert failure/publication behavior rather than merely
 repeat the state machine's implementation.
+
+The [T3c1 worker checkpoint](worker/study.md) implements bounded CPU scheduling,
+value snapshots and epoch/body/mode/serial validation. Eight worker cases and all
+59 CTest groups pass (736.20 s), with exact capture/replay compatibility. Resume
+at T3c2; remaining steps in this plan are unchanged.

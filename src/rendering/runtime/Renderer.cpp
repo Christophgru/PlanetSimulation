@@ -27,7 +27,11 @@ Renderer::Impl::Impl(app::CommandLineOptions arguments)
       meshZoneFaces(scene.scenario.planets.size()),
       meshTriangles(scene.scenario.planets.size(), 0),
       meshSteepRefinedFaces(scene.scenario.planets.size(), 0),
-      pendingTerrain(scene.scenario.planets.size()),
+      terrainJobs([trace=&cpuTrace](const TerrainBuildRequest& request) {
+          CpuTrace::Thread thread(trace,"terrain worker");return buildTerrainCpu(request);
+      }),
+      installedTerrainSerial(scene.scenario.planets.size(),0),
+      terrainFailures(scene.scenario.planets.size()),
       simulationTime(config::replayStartTime(scene.scenario, options.commandLineTime)),
       simulationClock(simulationTime, glfwGetTime()),
       cameraInput(scene.sunCamera, scene.surfaceCamera ? &*scene.surfaceCamera : nullptr,
@@ -132,8 +136,7 @@ Renderer::Impl::~Impl() {
     // Stop callbacks before their borrowed camera/clock pointers are destroyed.
     glfwSetWindowUserPointer(window, nullptr);
     // Workers only own CPU snapshots. Join before releasing scene resources.
-    for (auto& task : pendingTerrain)
-        if (task.geometry.valid()) task.geometry.wait();
+    terrainJobs.stop();
 }
 
 ClipPlanes Renderer::Impl::planetOrbitClip(const glm::dvec3& eye) const {

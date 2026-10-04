@@ -8,6 +8,7 @@
 #include "rendering/runtime/ResourceOwners.h"
 #include "rendering/runtime/ScenePass.h"
 #include "rendering/geometry/compute/TerrainCompute.h"
+#include "rendering/geometry/jobs/TerrainBuildScheduler.h"
 #include "rendering/diagnostics/PerformanceOverlay.h"
 #include "rendering/diagnostics/OrbitOverlay.h"
 #include "rendering/diagnostics/GpuUtilization.h"
@@ -16,7 +17,6 @@
 #include "rendering/character/AstronautRenderer.h"
 #include "rendering/postprocessing/LensFlare.h"
 #include <array>
-#include <future>
 #include <limits>
 
 namespace rendering {
@@ -28,6 +28,7 @@ struct Renderer::Impl {
     void preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalking = false);
     void installLandMesh(std::size_t index, TerrainGeometry geometry,
                          const glm::dvec3& localEye, int localMask,TerrainComputeBuffers* computed=nullptr);
+    void installTerrainBuild(TerrainCpuBuild built,const TerrainBuildIdentity& identity);
     std::vector<std::uint64_t> geometryRevisions() const;
     ClipPlanes planetOrbitClip(const glm::dvec3& eye) const;
     void prepareAstronaut(double elapsed);
@@ -52,19 +53,10 @@ struct Renderer::Impl {
     std::vector<std::array<int, 3>> meshZoneFaces;
     std::vector<int> meshTriangles;
     std::vector<int> meshSteepRefinedFaces;
-    struct TimedTerrainBuild {
-        TerrainGeometry geometry;
-        std::optional<TerrainGeometry> water;
-        double milliseconds = 0;
-        std::optional<TerrainTopology> topology,waterTopology;
-        std::optional<PlanetField> waterField;
-    };
-    struct PendingTerrainBuild {
-        std::future<TimedTerrainBuild> geometry;
-        glm::dvec3 eyeLocal{0.0};
-        int localMask = 0;
-    };
-    std::vector<PendingTerrainBuild> pendingTerrain;
+    TerrainBuildScheduler terrainJobs;
+    std::uint64_t terrainSceneEpoch=1,terrainRequestSerial=0,terrainRejectedBuilds=0;
+    std::vector<std::uint64_t> installedTerrainSerial;
+    std::vector<std::optional<TerrainBuildIdentity>> terrainFailures;
     double simulationTime;
     simulation::SimulationClock simulationClock;
     CameraInput cameraInput;

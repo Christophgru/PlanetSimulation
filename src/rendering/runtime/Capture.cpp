@@ -351,6 +351,12 @@ int Renderer::Impl::capture() {
             {"foliage_distance_multiplier",options.foliageDistanceMultiplier}, {"lens_flare",options.lensFlare}};
         metadata["render"]["terrain_backend"]=options.terrainBackend;
         metadata["render"]["terrain_grass_planner"]=options.terrainGrassPlanner;
+        const auto workerStats=terrainJobs.stats();
+        metadata["render"]["terrain_cpu_worker"]={{"submitted",workerStats.submitted},
+            {"completed",workerStats.completed},{"failed",workerStats.failed},
+            {"coalesced",workerStats.coalesced},{"obsolete",workerStats.obsolete},
+            {"peak_running",workerStats.peakRunning},{"peak_queued",workerStats.peakQueued},
+            {"pending",terrainJobs.pending(terrainSceneEpoch)},{"rejected_completions",terrainRejectedBuilds}};
         metadata["render"]["terrain_fallback"]=terrainFallback;
         const auto& terrain=meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats;
         metadata["render"]["terrain_compute"]={{"input_bytes",terrain.gpuInputBytes},

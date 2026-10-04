@@ -1,5 +1,6 @@
 #include "rendering/runtime/RendererState.h"
 #include "rendering/geometry/contacts/SparseTerrainContacts.h"
+#include <iostream>
 
 namespace rendering {
 void Renderer::Impl::installLandMesh(std::size_t index, TerrainGeometry geometry,
@@ -17,8 +18,60 @@ void Renderer::Impl::installLandMesh(std::size_t index, TerrainGeometry geometry
     lastTerrainEyes[index] = localEye;
 }
 
+void Renderer::Impl::installTerrainBuild(TerrainCpuBuild built,const TerrainBuildIdentity& identity) {
+    const auto i=identity.bodyIndex;
+    profiler.terrainBuild(built.milliseconds);
+    std::unique_ptr<TerrainComputeBuffers> computed,computedWater;
+    if(identity.backend==TerrainBackend::Compute) {
+        if(!built.field || !built.topology || !built.contacts || built.field->fingerprint()!=identity.field)
+            throw std::logic_error("Missing matching terrain worker consumers");
+        if(built.geometry.generation!=built.topology->generation ||
+           (built.water && (!built.waterField || !built.waterTopology || built.water->generation!=built.waterTopology->generation)))
+            throw std::logic_error("Mismatched worker topology headers");
+        auto generation=built.topology->generation;generation.backend=TerrainBackend::Compute;
+        if(built.contacts->generation()!=generation)
+            throw std::logic_error("Stale worker contact index");
+        computed=terrainCompute->generate(*built.field,*built.topology);
+        if(built.water) computedWater=terrainCompute->generate(*built.waterField,*built.waterTopology);
+        computed->contacts=std::move(built.contacts);
+        // This checkpoint remains capture-only. Nonblocking GPU/grass readiness
+        // and complete atomic publication are T3c2/T3c3.
+        computed->waitForCapture();if(computedWater) computedWater->waitForCapture();
+    }
+    if(built.water) {
+        if(computedWater) meshes.waterMeshes[i].loadComputedTerrain(std::move(*built.water),*computedWater,!identity.resident);
+        else meshes.waterMeshes[i].loadTerrain(std::move(*built.water));
+    }
+    installLandMesh(i,std::move(built.geometry),identity.eye,identity.localMask,computed.get());
+    installedTerrainSerial[i]=identity.serial;terrainFailures[i].reset();
+}
+
 void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalking) {
     CpuTrace::Scope scope("Renderer::preparePlanetMeshes");
+    const auto identityFor=[&](std::size_t i,const glm::dvec3& localEye,int localMask) {
+        TerrainBuildIdentity k;k.epoch=terrainSceneEpoch;k.serial=terrainRequestSerial;
+        k.bodyIndex=i;k.bodyName=scene.scenario.planets[i].name;k.field=scene.terrainSurfaces[i].field().fingerprint();
+        k.backend=terrainCompute ? TerrainBackend::Compute : TerrainBackend::Cpu;
+        k.resident=bool(terrainCompute) && options.terrainGrassPlanner=="gpu-v1";
+        k.eye=localEye;k.localMask=localMask;return k;
+    };
+    if(auto completed=terrainJobs.poll()) {
+        const auto& k=completed->identity;
+        if(k.bodyIndex<scene.scenario.planets.size()) {
+            const auto currentEye=scene.bodies[k.bodyIndex+1].toLocalPoint(eye);
+            const auto current=identityFor(k.bodyIndex,currentEye,
+                glm::length(currentEye)<3*scene.scenario.planets[k.bodyIndex].radius ? 1 : 0);
+            if(terrainBuildMatches(k,current,installedTerrainSerial[k.bodyIndex])) {
+                try {installTerrainBuild(completed->take(),k);}
+                catch(const std::exception& error) {
+                    terrainFailures[k.bodyIndex]=k;
+                    std::cerr << "Terrain build failed; previous generation retained: " << error.what() << '\n';
+                }
+            } else ++terrainRejectedBuilds;
+        } else ++terrainRejectedBuilds;
+    }
+    std::optional<TerrainBuildRequest> candidate;
+    double candidateDistance=std::numeric_limits<double>::infinity();
     for (std::size_t i = 0; i < scene.scenario.planets.size(); ++i) {
         const auto& planet = scene.scenario.planets[i];
         glm::dvec3 localEye = scene.bodies[i + 1].toLocalPoint(eye);
@@ -55,93 +108,36 @@ void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalkin
             throw std::invalid_argument("Camera cannot be at a planet center");
         const glm::dvec3 radial = offset / distance;
         const int localMask = distance < 3.0 * planet.radius ? 1 : 0;
-        if (pendingTerrain[i].geometry.valid()) {
-            if (pendingTerrain[i].geometry.wait_for(std::chrono::seconds(0)) !=
-                std::future_status::ready) continue;
-            auto built = pendingTerrain[i].geometry.get();
-            profiler.terrainBuild(built.milliseconds);
-            if (built.water) {
-                meshes.waterMeshes[i].loadTerrain(std::move(*built.water));
-            }
-            installLandMesh(i, std::move(built.geometry),
-                            pendingTerrain[i].eyeLocal,
-                            pendingTerrain[i].localMask);
-        }
         const double movedMeters = meshReady[i] ? planet.radius *
             scene.scenario.metersPerWorldUnit() * std::acos(std::clamp(
                 glm::dot(radial, glm::normalize(lastTerrainEyes[i])), -1.0, 1.0)) : 0.0;
         if (meshReady[i] && localMask == lastLocalMask[i] &&
             (localMask == 0 || movedMeters < 10.0)) continue;
-        // Land and the nearby ocean shell rebuild together off-thread.
-        auto buildMeshes = [surface=scene.terrainSurfaces[i], planet,
-                            zones=lastFaceZones[i], localEye,
-                            compute=bool(terrainCompute),resident=options.terrainGrassPlanner=="gpu-v1",
-                            meters=scene.scenario.metersPerWorldUnit()]() {
-            CpuTrace::Scope scope("terrain.build_land_and_water");
-            const auto start=std::chrono::steady_clock::now();
-            std::optional<TerrainTopology> topology,waterTopology;
-            std::optional<PlanetField> waterField;
-            if(compute) topology=surface.buildTopologyForEye(localEye,glm::dvec3(0.0),
-                zones.empty()?nullptr:&zones,20.0);
-            TerrainGeometry land;
-            if(compute && resident) static_cast<TerrainBuildStats&>(land)=*topology;
-            else land=compute?surface.evaluateTopology(*topology):surface.buildGeometryForEye(localEye, glm::dvec3(0.0),
-                zones.empty() ? nullptr : &zones, 20.0);
-            std::optional<rendering::TerrainGeometry> water;
-            if (planet.water.enabled) {
-                auto lod=planet.terrain_lod;
-                lod.base_edge_segments=1;
-                lod.medium_edge_segments=3;
-                lod.max_edge_segments=8;
-                lod.steep_edge_segments=8;
-                lod.sink_depth_m=0.0; // The sea remains at its configured physical level.
-                lod.near_surface_distance_m=lod.shoreline_distance_m;
-                lod.mid_surface_distance_m=2*lod.shoreline_distance_m;
-                lod.max_triangle_budget=std::min(60000,lod.max_triangle_budget);
-                const double seaRadius=planet.radius+planet.water.level_m/meters;
-                const rendering::TerrainSurface sea({},lod,seaRadius,meters,{},0.0);
-                if(compute) {
-                    waterTopology=sea.buildTopologyForEye(localEye,glm::dvec3(0.0));
-                    waterField=sea.field();
-                    if(resident) {water.emplace();static_cast<TerrainBuildStats&>(*water)=*waterTopology;}
-                    else water=sea.evaluateTopology(*waterTopology);
-                } else water=sea.buildGeometryForEye(localEye,glm::dvec3(0.0));
-            }
-            return TimedTerrainBuild{std::move(land),std::move(water),
-                std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count(),
-                std::move(topology),std::move(waterTopology),std::move(waterField)};
+        const auto movedFrom=[&](const glm::dvec3& anchor) {
+            return planet.radius*scene.scenario.metersPerWorldUnit()*std::acos(std::clamp(
+                glm::dot(radial,glm::normalize(anchor)),-1.0,1.0));
         };
-        if (asyncWalking && meshReady[i] && localMask == lastLocalMask[i]) {
-            pendingTerrain[i].eyeLocal = localEye;
-            pendingTerrain[i].localMask = localMask;
-            pendingTerrain[i].geometry = std::async(std::launch::async,
-                [trace=&cpuTrace, build=std::move(buildMeshes)]() {
-                    CpuTrace::Thread thread(trace, "terrain worker");
-                    return build();
-                });
+        if(auto pending=terrainJobs.pendingFor(terrainSceneEpoch,i)) {
+            if(pending->localMask==localMask && movedFrom(pending->eye)<10) continue;
+        }
+        if(terrainFailures[i] && terrainFailures[i]->localMask==localMask &&
+            movedFrom(terrainFailures[i]->eye)<10) continue;
+        auto identity=identityFor(i,localEye,localMask);
+        identity.serial=++terrainRequestSerial;
+        TerrainBuildRequest request{identity,scene.terrainSurfaces[i],planet,lastFaceZones[i],
+            scene.scenario.metersPerWorldUnit()};
+        if(asyncWalking && meshReady[i] && localMask==lastLocalMask[i]) {
+            // Queue one closest-body request after examining every body. Moving
+            // beyond a pending anchor coalesces a follow-up without starving it.
+            const double priority=distance/planet.radius;
+            if(priority<candidateDistance) {candidateDistance=priority;candidate=std::move(request);}
             continue;
         }
-        auto built=buildMeshes();
-        if (options.renderTestMode && i==scene.scenario.surface_camera.planet_index)
-            captureTerrainEye=localEye;
-        profiler.terrainBuild(built.milliseconds);
-        std::unique_ptr<TerrainComputeBuffers> computed,computedWater;
-        if(terrainCompute) {
-            computed=terrainCompute->generate(scene.terrainSurfaces[i].field(),*built.topology);
-            if(built.water) computedWater=terrainCompute->generate(*built.waterField,*built.waterTopology);
-            // Build the immutable contact index before publishing either output.
-            // No heights, gradients or shaped positions are evaluated here.
-            computed->contacts=std::make_shared<SparseTerrainContacts>(scene.terrainSurfaces[i].field(),
-                std::move(*built.topology));
-            computed->waitForCapture();if(computedWater) computedWater->waitForCapture();
-            // Both outputs are complete before either mesh becomes visible.
-        }
-        if (built.water) {
-            if(computedWater) meshes.waterMeshes[i].loadComputedTerrain(std::move(*built.water),*computedWater,options.terrainGrassPlanner=="cpu");
-            else meshes.waterMeshes[i].loadTerrain(std::move(*built.water));
-        }
-        installLandMesh(i, std::move(built.geometry), localEye, localMask,computed.get());
+        auto built=terrainCompute ? terrainJobs.executeForCapture(std::move(request)).take() : buildTerrainCpu(request);
+        if(options.renderTestMode && i==scene.scenario.surface_camera.planet_index) captureTerrainEye=localEye;
+        installTerrainBuild(std::move(built),identity);
     }
+    if(candidate) terrainJobs.submit(std::move(*candidate));
 }
 
 std::vector<std::uint64_t> Renderer::Impl::geometryRevisions() const {

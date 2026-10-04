@@ -1,5 +1,34 @@
 # Page to document progress of AI Agents working on this Project
 
+## Bounded terrain CPU worker checkpoint — 2026-10-04
+
+- T3c1 implementation is present in `src/rendering/geometry/jobs/`: value-owned
+  snapshots, epoch/body/field/mode/serial identities, one persistent executor,
+  one coalesced queued request and one bounded completion slot. Workers construct
+  compute land/water topology and matching sparse contacts without render vectors.
+- Runtime futures are removed. Reload advances an epoch without joining old work;
+  shutdown joins before trace/context lifetime ends. Normal CPU walking polls,
+  rejects incompatible/older completions and queues the closest eligible body.
+  Compute captures explicitly wait for CPU preparation; GPU waits remain until
+  T3c2/T3c3, and interactive compute remains gated.
+- Eight new CPU cases cover controlled delays, coalescing/backpressure, repeated
+  reload, body/field/mode/serial matching, exceptions, shutdown and independent
+  resident snapshots. Capture integration adds worker-bound/transfer assertions.
+  Build, all eight targeted cases (73 ms) and all 59 CTest groups pass in one
+  uninterrupted final-binary run (736.20 s). Compute capture records two completed
+  jobs, peak running/queued counts of one and no pending/errors/stale publication.
+  All ten compute/CPU/replay image hashes match T3b2 exactly; GL 3.3 fallback,
+  renderer lifecycle, reload, flight, atmosphere and native input pass.
+- README, study, retained evidence and journal/PDF are updated. All 22 gallery
+  hashes remain unchanged. Contact ownership adds a temporary canonical CPU
+  topology copy during staging; no total-memory or hardware-FPS saving is claimed.
+  See `docs/journal/architecture/terrain-gpu/async/worker/study.md` and its
+  `validation/` directory for source/binary/artifact provenance.
+- T3c1 is tested. Resume at T3c2 in `docs/journal/architecture/terrain-gpu/async/plan.md`:
+  split GPU/grass submission, polling and commit; preallocate resources and bound
+  spare sets. T3c3 still owns atomic publication/reload recovery; interactive
+  compute remains gated until T3c4. Preserve the CPU default and old replays.
+
 ## GPU grass allocation and mirror removal checkpoint — 2026-10-04
 
 - T3b/T3b2 are tested. Resident GPU metadata feeds deterministic hash selection,

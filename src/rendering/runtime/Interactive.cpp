@@ -75,7 +75,13 @@ int Renderer::Impl::interact() {
                 std::vector<std::array<int, 3>> nextZoneFaces(count);
                 std::vector<int> nextTriangles(count, 0);
                 std::vector<int> nextSteepRefinedFaces(count, 0);
-                std::vector<PendingTerrainBuild> nextPendingTerrain(count);
+                std::vector<std::uint64_t> nextTerrainSerial(count,0);
+                std::vector<std::optional<TerrainBuildIdentity>> nextTerrainFailures(count);
+
+                // Keep the executor and its old CPU snapshots alive across reload.
+                // Obsolete completions are discarded without joining a worker here.
+                terrainJobs.advanceEpoch(terrainSceneEpoch+1);
+                ++terrainSceneEpoch;
 
                 for (auto& mesh : meshes.planetMeshes) mesh.destroy();
                 for (auto& mesh : meshes.waterMeshes) mesh.destroy();
@@ -104,7 +110,8 @@ int Renderer::Impl::interact() {
                 meshZoneFaces.swap(nextZoneFaces);
                 meshTriangles.swap(nextTriangles);
                 meshSteepRefinedFaces.swap(nextSteepRefinedFaces);
-                pendingTerrain.swap(nextPendingTerrain);
+                installedTerrainSerial.swap(nextTerrainSerial);
+                terrainFailures.swap(nextTerrainFailures);
                 cameraInput.rebind(scene.surfaceCamera ? &*scene.surfaceCamera : nullptr,
                                    scene.planetOrbitCamera ? &*scene.planetOrbitCamera : nullptr);
                 cameraInput.setThirdPersonWalkSpeed(6.0/scene.scenario.metersPerWorldUnit());
@@ -251,8 +258,7 @@ int Renderer::Impl::interact() {
             const bool scaledScene = sceneWidth != width || sceneHeight != height;
             if (scaledScene) qualityTarget.ensure(sceneWidth, sceneHeight, false, 8192);
             const GLuint sceneOutput = scaledScene ? qualityTarget.framebuffer() : 0;
-            const bool pending=std::any_of(pendingTerrain.begin(),pendingTerrain.end(),
-                [](const auto& task) { return task.geometry.valid(); });
+            const bool pending=terrainJobs.pending(terrainSceneEpoch);
             const bool windAnimating=std::any_of(scene.scenario.planets.begin(),scene.scenario.planets.end(),
                 [](const auto& planet) {
                     return planet.foliage.enabled && planet.foliage.wind_strength>0 &&
