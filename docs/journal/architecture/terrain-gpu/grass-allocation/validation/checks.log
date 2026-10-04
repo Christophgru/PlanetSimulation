@@ -1,0 +1,9 @@
+Layout: passed (python3 scripts/check_layout.py)
+Gallery: 22 hashes match retained manifest; images/manifest were not regenerated
+Local links: 86 pass (README, ownership plan, allocation study, async plan)
+Journal: 25 pages; compilation passed; pages 5–7 and 24–25 visually reviewed; revised 5–6 and final 24–25 reviewed again
+Compute surface/walking fixtures: visually reviewed; exact pixel/replay comparisons pass
+Legacy 1,999,246-candidate replay: final-binary capture exactly matches retained surface-view.png SHA-256
+Whitespace: git diff --check passes after removing an empty trailing dependency bullet's whitespace
+Performance scope: Mesa llvmpipe/Xvfb correctness only; no hardware FPS claim
+Regression scope: all 58 groups pass on final binary across interrupted 1–29 and resumed 30–58; sum of passing group durations 883.03 s

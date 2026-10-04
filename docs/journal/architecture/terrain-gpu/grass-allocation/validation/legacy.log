@@ -1,0 +1,37 @@
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 20.0 s
+Sun radius: 2.5
+Planets: 2
+Surface camera position: (6.76749, 6.15118, -0.390797)
+Surface render test mode enabled
+Output image: build-resume/grass-allocation-final-legacy.png
+Planet 0 terrain: 100000 triangles; far/middle/near faces: 223/78/19; steep-refined faces: 14 (budget 100000); foliage blades: 1999246; water triangles: 60000
+Planet 0 terrain LOD faces (coarse to fine): 223/13/16/15/15/12/7/19; mesh bytes: 12000000
+Planet 0 foliage candidate bounds per pass: 9174584 vertices; 5176092 triangles; 44 batches; instance bytes: 109984
+Planet 0 terrain contract: 50002 canonical samples; 2800064 input bytes; planning queries 72786/70881 requested/evaluated; bulk queries 150006/150006 requested/evaluated; field/topology 10975133402283726949/12212879353327077826; backend cpu
+Planet 0 GPU grass draws: 34951 detailed; 124639 quads; 987870 vertices; 668690 triangles; GPU working bytes: 255903520
+Planet 1 terrain: 960 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 60000); foliage blades: 0; water triangles: 0
+Planet 1 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 115200
+Planet 1 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Planet 1 terrain contract: 482 canonical samples; 26944 input bytes; planning queries 1280/482 requested/evaluated; bulk queries 1446/1446 requested/evaluated; field/topology 13005042368953784910/8896015313400212575; backend cpu
+Mesh preparation: 3243.69 ms; GPU-complete render: 10129.6 ms
+earth lighting: direct RGB (4.42966, 4.38536, 4.29677), reflected RGB (7.53886e-06, 7.46347e-06, 7.69757e-06)
+moon lighting: direct RGB (8.26617, 8.18351, 8.01819), reflected RGB (0.0122606, 0.02023, 0.0396426)
+Image size: 800x600
+Background pixel: (10, 24, 7)
+Non-background pixels: 479998, bounding box: (0, 0)-(799, 599)
+Sun-colored pixels: 0
+Planet pixels (color/depth): 221645, bounding box: (0, 299)-(799, 599)
+Camera exposure: 0.180872; sky sensitivity: 0.00282613
+Star-like pixels: 226034, bounding box: (0, 0)-(799, 343)
+Blue water-like pixels: 32042, bounding box: (457, 0)-(799, 115)
+Simulation time: 20.0 s
+Surface camera position (world, km): [6.7674931576830435,6.151184332872977,-0.39079678817328917]
+Surface camera direction (world, unit vector): [0.39833011992620265,-0.887241356123792,-0.23267120909814326]
+Surface camera position (planet LLA): latitude=-17.23072754436555 deg, longitude=79.39197457588234 deg, altitude=12.377255439326891 m above reference sphere
+Surface camera ground clearance: 2.0 m
+surface_camera start value: {"altitude":0.002,"direction_ned":[0.05953655123133625,0.9937565852932967,0.09435702546013848],"fov":80.0,"latitude_deg":-17.23072754436555,"longitude_deg":79.39197457588234,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":20.0,"up_ned":[0.005642867970074905,0.09418814306884674,-0.9955384230386664],"walk_speed_mps":80.0}
+White-clipped pixels (RGB >= 250): 0 (0%)
+Render test completed successfully
+Output image: build-resume/grass-allocation-final-legacy.png

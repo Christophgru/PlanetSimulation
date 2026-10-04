@@ -9,6 +9,7 @@ layout(std430,binding=2) buffer GeneratedBlades { Blade blades[]; };
 uniform bool uReset;
 uniform float uQuadDistance=15.0;
 uniform int uCapacity,uFirstPatch,uCandidateCount,uSlotsPerPatch,uWindSeed=0;
+uniform int uCandidateOffset=0;
 uniform mat4 model,view,projection;
 uniform vec3 uGrassEyeBody,uPlanetColor,uLandscapeLevels;
 uniform vec2 uTerrainRockRange,uHeightMultiplierRange,uLeanRange;
@@ -127,9 +128,9 @@ float biomeVisibility(vec3 root,vec3 up,uint seed) {
     return grassRandom(seed+17u)<smoothstep(uTerrainRockRange.x,uTerrainRockRange.y,slope) ? 0.0 : 1.0;
 }
 void main() {
-    uint id=gl_GlobalInvocationID.x;
+    uint id=gl_GlobalInvocationID.x+uint(uCandidateOffset);
     if (uReset) {
-        if (id<2u) commands[id]=Command(id==0u ? 14u : 4u,0u,0u,0u);
+        if (gl_GlobalInvocationID.x<2u) commands[gl_GlobalInvocationID.x]=Command(gl_GlobalInvocationID.x==0u ? 14u : 4u,0u,0u,0u);
         return;
     }
     if (id>=uint(uCandidateCount)) return;
@@ -167,7 +168,7 @@ void main() {
     float gust=clamp(.5+.5*grassPerlin(p*uWindFrequencies.x+uTime*vec3(.25,.125,0)),0.0,1.0);
     float direction=grassPerlin(p*uWindFrequencies.y+vec3(19.3,7.1,43.7)+uTime*vec3(.03125,0,0));
     float flutter=grassPerlin(p*uWindFrequencies.z+vec3(5.2,31.8,11.4)+uTime*vec3(0,.5,0));
-    // Submitted candidate counts are bounded by the CPU plan. Compaction can
+    // Submitted candidate counts are bounded by the selected plan. Compaction can
     // only reduce them; each output queue has capacity for the entire plan.
     uint slot=atomicAdd(commands[queue].instances,1u)+queue*uint(uCapacity);
     blades[slot]=Blade(vec4(root,fade),vec4(up,low),variation,vec4(gust,direction,flutter,0));

@@ -408,3 +408,17 @@ triangle eligibility, bounds and Gaussian area weights from resident compute
 terrain buffers, with original IDs, queried limits and counted transfers. CPU
 slot allocation and render vectors remain until T3b2 deterministic allocation;
 this prerequisite adds GPU memory/work and does not claim a frame improvement.
+
+[T3b2 GPU grass allocation](grass-allocation/study.md) consumes resident metadata,
+selects budgeted patches by stable hash, searches rounded-slot density and emits
+ordered references through group prefixes. New `gpu-v1` compute captures omit
+full CPU land/water render vectors and bulk field evaluation, reading only a
+224-byte scalar summary. Legacy replay retains CPU planning; placement limits
+and conservative capacity are counted. T3c asynchronous complete consumer
+publication and hardware cost gates remain before interactive/default enablement.
+
+The [T3c implementation plan](async/plan.md) audits the current worker, grass,
+publication and reload seams. Its sequence is bounded CPU scheduling/contact
+construction, asynchronous GPU/grass readiness, atomic consumer publication and
+recovery, explicit interactive opt-in, then hardware acceptance. Implementation
+and performance gates remain pending.

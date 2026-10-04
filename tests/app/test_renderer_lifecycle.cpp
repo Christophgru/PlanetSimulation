@@ -1,5 +1,6 @@
 #include "app/CommandLineOptions.h"
 #include "app/Window.h"
+#include "app/scene/SceneSource.h"
 #include "rendering/Renderer.h"
 #include "rendering/runtime/ResourceOwners.h"
 #include <GLFW/glfw3.h>
@@ -100,4 +101,15 @@ TEST_F(RendererLifecycle, ShaderCompileFailureThrowsAndLeavesContextUsable) {
     rendering::OwnedShader recovered("shaders/skybox/skybox.vert", "shaders/skybox/skybox.frag");
     EXPECT_TRUE(glIsProgram(recovered.id));
     EXPECT_EQ(glGetError(), GL_NO_ERROR);
+}
+
+TEST_F(RendererLifecycle, CameraOnlyComputeReplayKeepsLegacyPlannerUnlessExplicitlyOverridden) {
+    const auto replay=output/"camera-only.json";
+    std::ofstream(replay) << R"({"enabled":true,"planet_index":0,"latitude_deg":0,"longitude_deg":0})";
+    options.replayPath=replay.string();options.terrainBackend="compute";options.explicitTerrainBackend=true;
+    EXPECT_NO_THROW({app::SceneSource source(options);});
+    EXPECT_EQ(options.terrainGrassPlanner,"cpu");
+    options.terrainGrassPlanner="gpu-v1";options.explicitTerrainGrassPlanner=true;
+    EXPECT_NO_THROW({app::SceneSource source(options);});
+    EXPECT_EQ(options.terrainGrassPlanner,"gpu-v1");
 }

@@ -17,6 +17,8 @@ public:
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
     bool hasVertexColors = false;
+    bool residentTerrain = false;
+    std::size_t indexCount = 0;
     std::uint64_t revision = 0;
     rendering::TerrainBuildStats terrainStats{};
     std::shared_ptr<rendering::SparseTerrainContacts> contacts;
@@ -37,7 +39,7 @@ public:
 
     void loadTerrain(rendering::TerrainGeometry geometry);
     void loadComputedTerrain(rendering::TerrainGeometry geometry,
-                             rendering::TerrainComputeBuffers& buffers);
+                             rendering::TerrainComputeBuffers& buffers, bool keepCpuMirror=true);
 
     void upload();
     

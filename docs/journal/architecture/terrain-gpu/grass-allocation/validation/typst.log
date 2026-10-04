@@ -1,0 +1,2 @@
+Command: typst compile -j 2 --root . docs/journal/paper.typ docs/journal/paper.pdf
+Exit status: 0

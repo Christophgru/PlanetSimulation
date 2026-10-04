@@ -12,6 +12,8 @@ struct CommandLineOptions {
     bool thirdPersonRenderMode = false;
     bool captureOnly = false;
     std::string terrainBackend="cpu";
+    std::string terrainGrassPlanner="gpu-v1";
+    bool explicitTerrainGrassPlanner=false;
     bool explicitTerrainBackend=false,lockedTerrainBackend=false;
     bool offlineQuality = false;
     bool lensFlare = true;

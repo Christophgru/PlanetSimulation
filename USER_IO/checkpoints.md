@@ -1,8 +1,41 @@
 # Page to document progress of AI Agents working on this Project
 
+## GPU grass allocation and mirror removal checkpoint — 2026-10-04
 
-
-
+- T3b/T3b2 are tested. Resident GPU metadata feeds deterministic hash selection,
+  rounded-slot density search and ordered group/bucket references. Fresh compute
+  captures save planner `gpu-v1`; legacy sidecars retain CPU planning. CPU terrain
+  remains default and interactive compute is still gated.
+- Compute land/water adopt GPU buffers without full CPU float render vectors or
+  bulk field evaluation. Draw counts and navigation diagnostics use resident
+  generation information; sparse contact topology/cache remain CPU-owned.
+- Production 100,000-triangle probe: 13,019 patches, 1,048,429 candidates within
+  a conservative 1,048,576 budget, 2,840 metadata/allocation input bytes and one
+  224-byte summary read. Metadata/allocation storage is 6,400,160/1,456,556 bytes;
+  cached preparation uploads/reads nothing. Queried placement limits and bounded
+  dispatches retain global root identity. Available-VRAM/density feedback is B1.
+- Camera-only replay without a `render` object now selects legacy planning unless
+  explicitly overridden. Unknown planners, incompatible locked configurations,
+  stale/malformed sources and limits reject; explicit CPU/GL 3.3 fallback remains.
+- Final executable passes all 58 CTest groups across two runs: 1–29 before
+  interruption and 30–58 on resume (785.19 s). Passing-group durations sum to
+  883.03 s; this is not a single uninterrupted full-suite run. Coverage includes
+  14 native terrain/metadata/allocation cases and six renderer lifecycle cases.
+  Exact compute/walking/legacy replay, CPU override, atmosphere, shadow/reflection,
+  character/exhaust/space-flight, live input and quality checks pass.
+- Four-case allocation and roughly two-million-candidate legacy replay logs were
+  regenerated on the final binaries for direct provenance. Their binary hashes
+  are retained; the legacy PNG matches the gallery exactly.
+- README, studies and journal/PDF updated. All 22 gallery hashes are retained;
+  layout, local links and whitespace pass. Journal is 25 pages; architecture and
+  evaluation/reference pages visually reviewed. Evidence is in
+  `docs/journal/architecture/terrain-gpu/grass-allocation/validation/`.
+- Resume at T3c1. The source-audited asynchronous plan is
+  `docs/journal/architecture/terrain-gpu/async/plan.md`; T3c1–T3c5 rows define
+  bounded CPU workers/contact construction, asynchronous GPU/grass staging,
+  complete atomic publication/reload recovery, interactive opt-in and hardware
+  acceptance. Implementation remains pending. No hardware FPS improvement is
+  claimed. A1/B1, astronaut replacement, trail fading, BSON and effects remain queued.
 
 ## Resident grass metadata checkpoint — 2026-10-03
 

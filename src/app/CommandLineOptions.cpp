@@ -107,6 +107,11 @@ CommandLineOptions CommandLineOptions::parse(int argc, char** argv) {
             options.renderTestMode = true;
             options.planetRenderMode = true;
             options.outputImagePath = argv[++i];
+        } else if (std::string(argv[i]) == "--terrain-grass-planner") {
+            if(i+1>=argc) throw std::invalid_argument("--terrain-grass-planner requires cpu or gpu");
+            const std::string planner=argv[++i];
+            if(planner!="cpu" && planner!="gpu") throw std::invalid_argument("--terrain-grass-planner requires cpu or gpu");
+            options.terrainGrassPlanner=planner=="gpu" ? "gpu-v1" : "cpu";options.explicitTerrainGrassPlanner=true;
         } else if (std::string(argv[i]) == "--terrain-backend") {
             if(i+1>=argc) throw std::invalid_argument("--terrain-backend requires cpu or compute");
             options.terrainBackend=argv[++i];options.explicitTerrainBackend=true;

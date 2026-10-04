@@ -2,6 +2,8 @@
 #include "rendering/foliage/GrassPlacement.h"
 #include "rendering/geometry/Mesh.h"
 #include "rendering/foliage/planning/GrassMetadata.h"
+#include "rendering/foliage/planning/GrassAllocation.h"
+#include <utility>
 #include "rendering/diagnostics/tracing/CpuTrace.h"
 #include "config/ScenarioConfig.h"
 #include <chrono>
@@ -40,7 +42,7 @@ void ProceduralGrass::upload(Patch& patch,const GrassPlan& plan) {
         patch.bounds.push_back({center,radius});
     }
     glBufferData(GL_ARRAY_BUFFER,references.size()*sizeof(std::uint32_t),references.data(),GL_STATIC_DRAW);
-    patch.density=plan.density;
+    patch.density=plan.density;patch.allocationBudget=0;
     patch.draws.clear();
     for (std::size_t level=0;level<grassCandidateSlots.size();++level) {
         auto& batch=patch.batches[level];
@@ -56,6 +58,7 @@ void ProceduralGrass::upload(Patch& patch,const GrassPlan& plan) {
 void ProceduralGrass::updateDraws(Patch& patch,double scale,double nearDistance,const glm::dvec3& eyeBody) {
     // Select geometry from current triangle bounds every frame, without
     // regenerating roots or uploading descriptors. Reflections reuse it.
+    if(patch.allocation) return;
     patch.draws.clear();
     std::size_t first=0;
     for (std::size_t level=0;level<grassCandidateSlots.size();++level) {
@@ -101,7 +104,7 @@ GrassPreparationStats ProceduralGrass::prepare(std::size_t index,const Mesh& mes
     patch.scale=planet.radius*metersPerWorldUnit;
     if (!planet.foliage.enabled || !mesh.hasVertexColors) {
         for (auto& batch:patch.batches) batch.count=0;
-        patch.patches=0; patch.distanceMeters=0; patch.ready=false; patch.computeUsed=false; patch.draws.clear(); patch.metadata.reset(); return {};
+        patch.patches=0; patch.distanceMeters=0; patch.density=0;patch.allocationBudget=0; patch.ready=false; patch.computeUsed=false; patch.draws.clear(); patch.metadata.reset(); patch.allocation.reset(); glDeleteBuffers(1,&patch.buffer);patch.buffer=0; return {};
     }
     const double scale=planet.radius*metersPerWorldUnit;
     const double margin=grassRebuildDistance(planet.foliage);
@@ -130,6 +133,27 @@ GrassPreparationStats ProceduralGrass::prepare(std::size_t index,const Mesh& mes
         if (!metadataCompute_) metadataCompute_=std::make_unique<GrassMetadataCompute>();
         metadata=metadataCompute_->generate(mesh.vbo,mesh.ebo,mesh.terrainStats,planet,metersPerWorldUnit,planningEye);
     }
+    if(mesh.residentTerrain) {
+        if(!metadata || !planet.foliage.compute_placement) throw std::logic_error("Resident terrain requires GPU grass planning");
+        if(!allocationCompute_) allocationCompute_=std::make_unique<GrassAllocationCompute>();
+        auto allocation=allocationCompute_->generate(*metadata,planet.foliage);
+        allocation->waitForCapture(); // Compute remains capture-only; asynchronous summary installation is T3c.
+        const auto summary=allocation->readSummary();
+        if(allocation->generation!=mesh.terrainStats.generation || allocation->planningEye!=planningEye)
+            throw std::logic_error("Stale GPU grass allocation");
+        glDeleteBuffers(1,&patch.buffer);patch.buffer=std::exchange(allocation->references,0);
+        std::vector<Bound>().swap(patch.bounds);patch.draws.clear();
+        for(std::size_t level=0;level<grassCandidateSlots.size();++level) {
+            patch.batches[level].count=summary.counts[level]*grassCandidateSlots[level];
+            if(summary.counts[level]) patch.draws.push_back({summary.first[level],summary.counts[level],int(level),6});
+        }
+        patch.density=summary.densitySearch[0];patch.allocationBudget=summary.control[0];patch.patches=summary.totals[0];patch.distanceMeters=planet.foliage.draw_distance_m;
+        patch.metadata=std::move(metadata);patch.allocation=std::move(allocation);
+        patch.eye=planningEye;patch.revision=mesh.revision;patch.ready=true;
+        return {std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count(),0,0,1,
+            patch.metadata->inputBytes+patch.allocation->inputBytes};
+    }
+    patch.allocation.reset();
     const auto plan=planGrass(mesh.vertices,mesh.indices,planet,metersPerWorldUnit,planningEye);
     const auto planned=std::chrono::steady_clock::now();
     upload(patch,plan);
@@ -146,7 +170,7 @@ ProceduralGrassStats ProceduralGrass::stats(std::size_t index) const {
     if (index>=patches_.size()) return result;
     const auto& patch=patches_[index];
     result.patches=patch.patches; result.patchBytes=patch.patches*sizeof(std::uint32_t);
-    result.distanceMeters=patch.distanceMeters;
+    result.distanceMeters=patch.distanceMeters;result.density=patch.density;result.allocationBudget=patch.allocationBudget;
     result.gpuBytes=patch.gpuCapacity*128+(patch.commands ? 32 : 0);
     if (patch.metadata) {
         result.metadataBytes=patch.metadata->workingBytes;
@@ -154,6 +178,13 @@ ProceduralGrassStats ProceduralGrass::stats(std::size_t index) const {
         result.metadataDispatches=patch.metadata->dispatches;
         result.metadataReadBytes=patch.metadata->diagnosticReadBytes;
         result.gpuBytes+=result.metadataBytes;
+    }
+    if(patch.allocation) {
+        result.allocationBytes=patch.allocation->workingBytes;
+        result.allocationInputBytes=patch.allocation->inputBytes;
+        result.allocationDispatches=patch.allocation->dispatches;
+        result.summaryReadBytes=patch.allocation->summaryReadBytes;
+        result.gpuBytes+=result.allocationBytes;result.patchBytes=0; // IDs are generated on GPU.
     }
     for (const auto& draw:patch.draws) {
         const auto count=draw.patches*grassCandidateSlots[draw.level];

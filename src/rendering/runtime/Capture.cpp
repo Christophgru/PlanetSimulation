@@ -113,7 +113,7 @@ int Renderer::Impl::capture() {
                   << "; steep-refined faces: " << meshSteepRefinedFaces[i]
                   << " (budget " << scene.scenario.planets[i].terrain_lod.max_triangle_budget
                   << "); foliage blades: " << grass.count(i)
-                  << "; water triangles: " << meshes.waterMeshes[i].indices.size()/3 << "\n";
+                  << "; water triangles: " << meshes.waterMeshes[i].indexCount/3 << "\n";
         std::cout << "Planet " << i << " terrain LOD faces (coarse to fine): ";
         for (int level = 0; level < 8; ++level) {
             if (level) std::cout << '/';
@@ -325,11 +325,17 @@ int Renderer::Impl::capture() {
                 {"foliage_gpu_triangles", drawnGrass[0]*12+drawnGrass[1]*2},
                 {"foliage_gpu_working_bytes", grass.procedural.stats(scene.orbitPlanetIndex).gpuBytes},
                 {"foliage_gpu_metadata", {
-                    {"version", 1}, {"allocator", "cpu"},
+                    {"version", 1}, {"allocator", options.terrainGrassPlanner},
                     {"resident_bytes", grass.procedural.stats(scene.orbitPlanetIndex).metadataBytes},
                     {"input_bytes", grass.procedural.stats(scene.orbitPlanetIndex).metadataInputBytes},
                     {"dispatches", grass.procedural.stats(scene.orbitPlanetIndex).metadataDispatches},
-                    {"diagnostic_read_bytes", grass.procedural.stats(scene.orbitPlanetIndex).metadataReadBytes}}},
+                    {"diagnostic_read_bytes", grass.procedural.stats(scene.orbitPlanetIndex).metadataReadBytes},
+                    {"allocation_bytes", grass.procedural.stats(scene.orbitPlanetIndex).allocationBytes},
+                    {"allocation_input_bytes", grass.procedural.stats(scene.orbitPlanetIndex).allocationInputBytes},
+                    {"allocation_dispatches", grass.procedural.stats(scene.orbitPlanetIndex).allocationDispatches},
+                    {"summary_read_bytes", grass.procedural.stats(scene.orbitPlanetIndex).summaryReadBytes},
+                    {"effective_candidate_budget", grass.procedural.stats(scene.orbitPlanetIndex).allocationBudget},
+                    {"placement_density_per_m2", grass.procedural.stats(scene.orbitPlanetIndex).density}}},
                 {"terrain_mean_display_luminance", metrics.terrainMeanLuminance},
                 {"terrain_max_display_luminance", metrics.terrainMaxLuminance},
                 {"terrain_luminance_stddev", metrics.terrainLuminanceStddev},
@@ -344,11 +350,14 @@ int Renderer::Impl::capture() {
         metadata["render"]["offline"]={{"enabled",options.offlineQuality},
             {"foliage_distance_multiplier",options.foliageDistanceMultiplier}, {"lens_flare",options.lensFlare}};
         metadata["render"]["terrain_backend"]=options.terrainBackend;
+        metadata["render"]["terrain_grass_planner"]=options.terrainGrassPlanner;
         metadata["render"]["terrain_fallback"]=terrainFallback;
         const auto& terrain=meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats;
         metadata["render"]["terrain_compute"]={{"input_bytes",terrain.gpuInputBytes},
             {"generation_peak_bytes",terrain.gpuWorkingBytes},{"dispatches",terrain.gpuDispatches},
-            {"gpu_ms",terrain.gpuMilliseconds},{"cpu_compatibility_mirror",bool(terrainCompute)}};
+            {"gpu_ms",terrain.gpuMilliseconds},{"cpu_compatibility_mirror",bool(terrainCompute) && !meshes.planetMeshes[scene.orbitPlanetIndex].residentTerrain},
+            {"cpu_render_bytes",meshes.planetMeshes[scene.orbitPlanetIndex].vertices.size()*4+meshes.planetMeshes[scene.orbitPlanetIndex].indices.size()*4},
+            {"cpu_water_render_bytes",meshes.waterMeshes[scene.orbitPlanetIndex].vertices.size()*4+meshes.waterMeshes[scene.orbitPlanetIndex].indices.size()*4}};
         const auto& contacts=meshes.planetMeshes[scene.orbitPlanetIndex].contacts;
         metadata["render"]["terrain_contacts"]={{"backend",contacts ? "sparse-oracle" : "cpu-mesh"}};
         if(contacts) {

@@ -1,0 +1,6 @@
+[1/6] Building CXX object CMakeFiles/planet_app.dir/src/app/scene/SceneSource.cpp.o
+[2/6] Linking CXX static library libplanet_app.a
+[3/6] Building CXX object tests/CMakeFiles/renderer_lifecycle_tests.dir/app/test_renderer_lifecycle.cpp.o
+[4/6] Linking CXX executable PlanetSimulation
+[5/6] Linking CXX executable tests/foliage_benchmark
+[6/6] Linking CXX executable tests/renderer_lifecycle_tests

@@ -94,6 +94,10 @@ TEST(CommandLineOptions, ComputeTerrainIsExplicitAndCaptureOnlyUntilConsumersMig
     const auto gpu=parse({"--surface-capture","out.png","--terrain-backend","compute"});
     EXPECT_EQ(gpu.terrainBackend,"compute");EXPECT_TRUE(gpu.explicitTerrainBackend);
     EXPECT_EQ(parse({"--terrain-backend","cpu"}).terrainBackend,"cpu");
+    EXPECT_EQ(parse({"--surface-capture","out.png","--terrain-backend","compute","--terrain-grass-planner","gpu"}).terrainGrassPlanner,"gpu-v1");
+    EXPECT_EQ(parse({"--terrain-grass-planner","cpu"}).terrainGrassPlanner,"cpu");
+    EXPECT_THROW(parse({"--terrain-grass-planner"}),std::invalid_argument);
+    EXPECT_THROW(parse({"--terrain-grass-planner","gpu-v2"}),std::invalid_argument);
     EXPECT_THROW(parse({"--terrain-backend"}),std::invalid_argument);
     EXPECT_THROW(parse({"--terrain-backend","fast"}),std::invalid_argument);
     EXPECT_THROW(parse({"--terrain-backend","compute"}),std::invalid_argument);

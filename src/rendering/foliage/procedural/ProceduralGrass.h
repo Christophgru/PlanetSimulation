@@ -10,6 +10,8 @@
 class Mesh;
 namespace rendering {
 class GrassMetadataCompute;
+class GrassAllocationCompute;
+struct GrassAllocationBuffers;
 struct GrassMetadataBuffers;
 struct GrassPass {
     glm::mat4 model{1}, view{1}, projection{1};
@@ -19,9 +21,11 @@ struct GrassPass {
 };
 struct ProceduralGrassStats {
     std::size_t candidates=0, patches=0, vertices=0, triangles=0, batches=0, patchBytes=0;
-    double distanceMeters=0;
+    double distanceMeters=0,density=0;
+    std::uint64_t allocationBudget=0;
     std::size_t gpuBytes=0;
     std::uint64_t metadataBytes=0, metadataInputBytes=0, metadataDispatches=0, metadataReadBytes=0;
+    std::uint64_t allocationBytes=0,allocationInputBytes=0,allocationDispatches=0,summaryReadBytes=0;
 };
 class ProceduralGrass {
     struct Batch { GLuint vao=0; GLsizei count=0; };
@@ -33,6 +37,7 @@ class ProceduralGrass {
         std::vector<Draw> draws;
         GLuint buffer=0, vertexTexture=0, indexTexture=0;
         std::unique_ptr<GrassMetadataBuffers> metadata;
+        std::unique_ptr<GrassAllocationBuffers> allocation;
         mutable GLuint gpuBlades=0, commands=0;
         mutable std::array<GLuint,2> gpuVaos{};
         mutable std::size_t gpuCapacity=0;
@@ -43,6 +48,7 @@ class ProceduralGrass {
         bool landscape=false, water=false;
         double scale=1;
         std::size_t patches=0;
+        std::uint64_t allocationBudget=0;
         glm::dvec3 eye{0};
         std::uint64_t revision=0;
         double distanceMeters=0;
@@ -63,6 +69,7 @@ class ProceduralGrass {
     void bindTrail(std::size_t index,double scale) const;
     mutable std::unique_ptr<Shader> compute_;
     std::unique_ptr<GrassMetadataCompute> metadataCompute_;
+    std::unique_ptr<GrassAllocationCompute> allocationCompute_;
     void upload(Patch& patch,const GrassPlan& plan);
     void updateDraws(Patch& patch,double scale,double nearDistance,const glm::dvec3& eyeBody);
     void attributes(std::size_t first,int level) const;

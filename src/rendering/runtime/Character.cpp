@@ -70,7 +70,12 @@ nlohmann::json Renderer::Impl::astronautState() const {
             };
             for (float value:mesh.vertices) append(std::bit_cast<std::uint32_t>(value));
             for (auto value:mesh.indices) append(value);
-            result["terrain_mesh_fnv1a64"].push_back(std::to_string(hash));
+            if(mesh.residentTerrain) {
+                const auto& k=mesh.terrainStats.generation;
+                result["terrain_generation_keys"].push_back({{"field",std::to_string(k.field)},
+                    {"topology",std::to_string(k.topology)}, {"field_version",k.fieldVersion},
+                    {"topology_version",k.topologyVersion},{"backend","compute"}});
+            } else result["terrain_mesh_fnv1a64"].push_back(std::to_string(hash));
         }
     }
     result["grass_trail"]=nlohmann::json::array();

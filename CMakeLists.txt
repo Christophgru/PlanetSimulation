@@ -99,7 +99,8 @@ target_sources(planet_rendering PRIVATE src/rendering/character/AstronautRendere
     src/rendering/character/effects/ExhaustRenderer.cpp)
 target_sources(planet_rendering PRIVATE src/rendering/postprocessing/LensFlare.cpp)
 target_sources(planet_rendering PRIVATE src/rendering/geometry/compute/TerrainCompute.cpp
-    src/rendering/foliage/planning/GrassMetadata.cpp)
+    src/rendering/foliage/planning/GrassMetadata.cpp
+    src/rendering/foliage/planning/GrassAllocation.cpp)
 target_link_libraries(planet_rendering PUBLIC planet_geometry planet_character OpenGL::GL GLEW::GLEW)
 
 add_library(planet_app STATIC

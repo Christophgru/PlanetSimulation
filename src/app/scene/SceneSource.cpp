@@ -26,6 +26,13 @@ SceneSource::SceneSource(CommandLineOptions& options)
                     options.lockedTerrainBackend=options.terrainBackend=="compute";
                 }
             }
+            if(options.terrainBackend=="compute") {
+                const auto planner=replay.contains("render") ?
+                    replay.at("render").value("terrain_grass_planner",nlohmann::json("cpu")) : nlohmann::json("cpu");
+                if(!planner.is_string() || (planner!="cpu" && planner!="gpu-v1"))
+                    throw std::invalid_argument("Unsupported terrain grass replay planner");
+                if(!options.explicitTerrainGrassPlanner) options.terrainGrassPlanner=planner.get<std::string>();
+            }
             if (replay.contains("render") && !options.explicitRenderSize) {
                 options.renderTestWidth = replay.at("render").at("width").get<int>();
                 options.renderTestHeight = replay.at("render").at("height").get<int>();

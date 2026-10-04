@@ -1,6 +1,8 @@
 #include "rendering/foliage/procedural/ProceduralGrass.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
+#include <limits>
+#include <stdexcept>
 
 namespace rendering {
 namespace {
@@ -14,6 +16,11 @@ void ProceduralGrass::drawComputed(const Patch& patch,const GrassPass& pass) con
     std::size_t count=0;
     for (const auto& batch:patch.batches) count+=batch.count;
     if (!count) { if (pass.feedback) glResumeTransformFeedback(); return; }
+    GLint64 blockBytes=0;GLint maxGroups=0;
+    glGetInteger64v(GL_MAX_SHADER_STORAGE_BLOCK_SIZE,&blockBytes);
+    glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT,0,&maxGroups);
+    if(maxGroups<1 || (patch.allocation && count>std::uint64_t(blockBytes)/128) || count>std::numeric_limits<GLsizei>::max())
+        throw std::runtime_error("Grass placement exceeds queried storage/dispatch capacity");
     if (!patch.gpuBlades) glGenBuffers(1,&patch.gpuBlades);
     if (!patch.commands) {
         glGenBuffers(1,&patch.commands);
@@ -21,9 +28,10 @@ void ProceduralGrass::drawComputed(const Patch& patch,const GrassPass& pass) con
         glBufferData(GL_SHADER_STORAGE_BUFFER,32,nullptr,GL_DYNAMIC_DRAW);
     }
     if (patch.gpuCapacity<count) {
-        patch.gpuCapacity=count;
         glBindBuffer(GL_ARRAY_BUFFER,patch.gpuBlades);
         glBufferData(GL_ARRAY_BUFFER,2*count*sizeof(GpuBlade),nullptr,GL_DYNAMIC_DRAW);
+        if(glGetError()!=GL_NO_ERROR) throw std::runtime_error("Grass placement allocation failed");
+        patch.gpuCapacity=count;
         for (int queue=0;queue<2;++queue) {
             if (!patch.gpuVaos[queue]) glGenVertexArrays(1,&patch.gpuVaos[queue]);
             glBindVertexArray(patch.gpuVaos[queue]);
@@ -83,7 +91,13 @@ void ProceduralGrass::drawComputed(const Patch& patch,const GrassPass& pass) con
         if (candidates) {
             c.setInt("uFirstPatch",first); c.setInt("uCandidateCount",candidates);
             c.setInt("uSlotsPerPatch",grassCandidateSlots[level]);
-            glDispatchCompute((candidates+127)/128,1,1);
+            const std::size_t capacity=std::size_t(maxGroups)*128;
+            const std::size_t chunk=patch.allocation ? std::min<std::size_t>(capacity,65536) : capacity;
+            for(std::size_t offset=0;offset<std::size_t(candidates);offset+=chunk) {
+                c.setInt("uCandidateOffset",offset);
+                glDispatchCompute((std::min(chunk,std::size_t(candidates)-offset)+127)/128,1,1);
+                glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+            }
         }
         first+=candidates/grassCandidateSlots[level];
     }
@@ -103,6 +117,8 @@ std::array<std::size_t,2> ProceduralGrass::computedCounts(std::size_t index) con
     if (index>=patches_.size() || !patches_[index].ready || !patches_[index].computeUsed) return {};
     std::array<std::uint32_t,8> commands{};
     glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
+    if(!patches_[index].commands || std::none_of(patches_[index].batches.begin(),patches_[index].batches.end(),
+        [](const auto& batch) {return batch.count!=0;})) return {};
     glBindBuffer(GL_COPY_READ_BUFFER,patches_[index].commands);
     glGetBufferSubData(GL_COPY_READ_BUFFER,0,sizeof(commands),commands.data());
     glBindBuffer(GL_COPY_READ_BUFFER,0);
