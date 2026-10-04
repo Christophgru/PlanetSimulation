@@ -46,4 +46,6 @@ public:
     void draw() const;
 
     void destroy();
+    // Transfer a complete prevalidated generation without allocating or GL work.
+    void swap(Mesh& other) noexcept;
 };

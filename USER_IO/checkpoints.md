@@ -1,5 +1,36 @@
 # Page to document progress of AI Agents working on this Project
 
+## Whole-generation publication checkpoint — 2026-10-04
+
+- T3c3a is tested. `TerrainPublication` owns complete off-live land/water/grass/
+  contact resources and a publication receipt with distinct terrain/grass anchors,
+  settings and face statistics. All fallible validation/allocation precedes
+  readiness; publication uses no-throw ownership swaps and advances revisions once.
+- Admission precedes dispatch and accounts for published, pending and retiring
+  sets: 512 MiB per set, 1 GiB aggregate logical ceilings, one global GPU
+  preparation and one preparing/retiring spare per body. Zero-timeout last-use
+  fence polling keeps old consumers alive until retirement completes.
+- All 29 native cases pass (51.154 s), including eight new transaction cases.
+  Six injected fence failures (land/water/metadata/allocation/draw resources/
+  retirement) preserve live consumers and release every generated staging buffer.
+  Ten stale identities, delayed preparation/retirement, actual old-resource draws,
+  overlap rejection, changed live destinations, disabled consumers and repeated
+  body replacements pass. This tests APIs, not renderer integration.
+- All 59 CTest groups pass in one uninterrupted final-binary run (756.95 s).
+  All ten compute/CPU/replay PNG hashes match T3c2 exactly; worker, lifecycle/
+  reload, actor, flight, grass, atmosphere, native input and adaptive quality pass.
+  Source/input/application/native hashes are frozen for the run and retained.
+- README, study, journal/PDF and evidence are updated. The 26-page journal was
+  reviewed on pages 5–7 and 24–26; all 22 gallery hashes and the user's environmental
+  Docker TODO suffix are preserved. See
+  `docs/journal/architecture/terrain-gpu/async/publication/study.md` and `validation/`.
+- Resume T3c3b: connect this owner to renderer frame boundaries, preserve chase/
+  replay grass anchors, rebind contacts and refresh shadow/frame/reflection
+  consumers before draws. T3c3c must keep the prior scene through replacement GPU
+  readiness and validate movement/body-switch/reload recovery. Capture terrain
+  and grass still install separately; CPU stays default and interactive compute
+  remains gated. Logical payload is not physical VRAM or a hardware FPS claim.
+
 ## Asynchronous GPU preparation checkpoint — 2026-10-04
 
 - T3c2 is tested. `TerrainGpuPreparation` owns submitted land/water; resident

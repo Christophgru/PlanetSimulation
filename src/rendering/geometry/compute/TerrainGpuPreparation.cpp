@@ -10,9 +10,8 @@ std::uint64_t terrainBytes(const TerrainTopology& t) {
     return 704+t.samples.size()*68ull+t.indices.size()*44ull+8;
 }
 }
-TerrainGpuPreparation::TerrainGpuPreparation(TerrainCpuBuild build,TerrainBuildIdentity request,
-    const config::PlanetConfig& planet,TerrainCompute& compute,std::uint64_t byteLimit)
-    :identity(std::move(request)),cpu(std::move(build)) {
+std::uint64_t TerrainGpuPreparation::requiredBytes(const TerrainCpuBuild& cpu,const TerrainBuildIdentity& identity,
+    const config::PlanetConfig& planet,const TerrainComputeLimits& limits) {
     if(!identity.epoch || !identity.serial || identity.fieldVersion!=PlanetField::version || identity.topologyVersion!=1 ||
        identity.backend!=TerrainBackend::Compute || identity.bodyName!=planet.name || !cpu.field || !cpu.topology ||
        !cpu.contacts || cpu.field->fingerprint()!=identity.field || cpu.geometry.generation!=cpu.topology->generation ||
@@ -21,9 +20,15 @@ TerrainGpuPreparation::TerrainGpuPreparation(TerrainCpuBuild build,TerrainBuildI
         throw std::invalid_argument("Missing matching staged terrain consumers");
     auto key=cpu.topology->generation;key.backend=TerrainBackend::Compute;
     if(cpu.contacts->generation()!=key) throw std::invalid_argument("Stale staged terrain contacts");
-    admittedBytes=terrainBytes(*cpu.topology);
-    if(cpu.water) admittedBytes+=terrainBytes(*cpu.waterTopology);
-    if(identity.resident) admittedBytes+=ProceduralGrass::stageBytes(cpu.topology->triangleCount(),planet.foliage,compute.limits().blockBytes);
+    auto bytes=terrainBytes(*cpu.topology);
+    if(cpu.water) bytes+=terrainBytes(*cpu.waterTopology);
+    if(identity.resident) bytes+=ProceduralGrass::stageBytes(cpu.topology->triangleCount(),planet.foliage,limits.blockBytes);
+    return bytes;
+}
+TerrainGpuPreparation::TerrainGpuPreparation(TerrainCpuBuild build,TerrainBuildIdentity request,
+    const config::PlanetConfig& planet,TerrainCompute& compute,std::uint64_t byteLimit)
+    :identity(std::move(request)),cpu(std::move(build)) {
+    admittedBytes=requiredBytes(cpu,identity,planet,compute.limits());
     if(admittedBytes>byteLimit) throw std::runtime_error("Terrain consumers exceed logical staging byte limit");
     land=compute.generate(*cpu.field,*cpu.topology);
     if(cpu.water) water=compute.generate(*cpu.waterField,*cpu.waterTopology);

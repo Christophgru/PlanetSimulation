@@ -113,8 +113,10 @@ allocation and total-frame cost still require hardware measurement.
    stage all resource allocations and poll without waits. Test delayed fences,
    scalar-only reads, disabled consumers, limits, memory admission and failure
    preservation. Retain exact capture/replay behavior through the same pipeline.
-3. **T3c3: complete atomic publication and recovery.** Commit all consumers at one
-   boundary and fence retirement. Inject failures at each preparation stage;
+3. **T3c3: complete atomic publication and recovery.** Split into T3c3a for the
+   complete transaction/retirement owner, T3c3b for renderer frame boundaries and
+   dependent consumers, and T3c3c for transactional scene reload/recovery.
+   Commit all consumers at one boundary and fence retirement. Inject failures at each preparation stage;
    verify unchanged previous revisions/keys and bounded resources. Test camera
    movement, rapid body switches, Moon arrival, valid/invalid reload and no stale
    completion publishing into another scene.
@@ -142,4 +144,12 @@ The [T3c2 GPU preparation checkpoint](gpu/study.md) introduces owned GPU
 submission/poll/commit, draw-resource preallocation and logical byte admission.
 All 59 groups pass (733.29 s); a subsequent controlled delayed-fence test passes
 with all 21 native cases. Capture/replay hashes remain exact. Resume at T3c3:
-complete frame-boundary publication, transactional reload and fenced retirement.
+the complete transaction/retirement owner, followed by renderer integration and
+transactional reload.
+
+The [T3c3a complete transaction checkpoint](publication/study.md) implements
+atomic off-live land/water/grass/contact exchange, aggregate overlap admission and
+zero-timeout fenced retirement. Eight new transaction cases pass with all 29
+native cases and 59 CTest groups (756.95 s); capture/replay hashes remain exact.
+Resume at T3c3b to connect renderer frame boundaries and dependent consumers,
+then T3c3c for transactional scene reload. Interactive compute remains gated.

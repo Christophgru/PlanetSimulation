@@ -6,6 +6,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <utility>
+#include <type_traits>
 
 void Mesh::addVertex(float x, float y, float z, float nx, float ny, float nz) {
     vertices.push_back(x);
@@ -183,4 +184,14 @@ void Mesh::destroy() {
     if (vbo != 0) glDeleteBuffers(1, &vbo);
     if (ebo != 0) glDeleteBuffers(1, &ebo);
     vao = vbo = ebo = 0;indexCount=0;residentTerrain=false;
+}
+
+void Mesh::swap(Mesh& other) noexcept {
+    static_assert(std::is_nothrow_swappable_v<rendering::TerrainBuildStats>);
+    using std::swap;
+    swap(vao,other.vao);swap(vbo,other.vbo);swap(ebo,other.ebo);
+    vertices.swap(other.vertices);indices.swap(other.indices);
+    swap(hasVertexColors,other.hasVertexColors);swap(residentTerrain,other.residentTerrain);
+    swap(indexCount,other.indexCount);swap(revision,other.revision);
+    swap(terrainStats,other.terrainStats);contacts.swap(other.contacts);
 }

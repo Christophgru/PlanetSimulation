@@ -31,6 +31,11 @@ struct ProceduralGrassStats {
     bool drawResourcesPrepared=false;
 };
 class ProceduralGrass {
+public:
+    class Preparation;
+private:
+    friend class TerrainPublication;
+    void commitPrepared(std::size_t index,Preparation& preparation) noexcept;
     struct Batch { GLuint vao=0; GLsizei count=0; };
     struct Draw { std::size_t first=0, patches=0; int level=0, segments=1; };
     struct Bound { glm::dvec3 center; double radius=0; };
@@ -56,6 +61,7 @@ class ProceduralGrass {
         std::uint64_t stageAdmittedBytes=0;
         glm::dvec3 eye{0};
         std::uint64_t revision=0;
+        TerrainGenerationKey generation;
         double distanceMeters=0;
         double density=0;
         int seed=0;
@@ -107,9 +113,12 @@ public:
     bool poll(Preparation& preparation);
     void waitForCapture(Preparation& preparation);
     void reserve(std::size_t index);
+    void validateCommit(std::size_t index,const Preparation& preparation,const Mesh& mesh) const;
     void commit(std::size_t index,Preparation& preparation,const Mesh& mesh);
     Shader shader;
     std::optional<glm::dvec3> planningEye(std::size_t index) const;
+    std::optional<TerrainGenerationKey> residentGeneration(std::size_t index) const;
+    std::optional<std::uint64_t> residentRevision(std::size_t index) const;
     void restorePlanningEye(std::size_t index,const glm::dvec3& eye);
     GrassTrail& trail(std::size_t index) { return trails_[index].history; }
     const GrassTrail* existingTrail(std::size_t index) const {

@@ -44,7 +44,7 @@ std::unique_ptr<ProceduralGrass::Preparation> ProceduralGrass::submitResident(GL
     patch.landscapeLevels={planet.water.enabled?planet.water.level_m:0,.1,relief};
     patch.water=planet.water.enabled;patch.landscape=planet.terrain_landscape.enabled;
     patch.scale=planet.radius*metersPerWorldUnit;patch.seed=planet.foliage.seed;
-    patch.eye=eyeBody;patch.revision=revision;
+    patch.eye=eyeBody;patch.revision=revision;patch.generation=terrain.generation;
     if(!planet.foliage.enabled) {patch.ready=true;result->ready_=true;return result;}
     if(!metadataCompute_) metadataCompute_=std::make_unique<GrassMetadataCompute>();
     if(!allocationCompute_) allocationCompute_=std::make_unique<GrassAllocationCompute>();
@@ -116,12 +116,27 @@ void ProceduralGrass::waitForCapture(Preparation& p) {
             throw std::runtime_error("Grass resource capture wait failed");
     }
 }
-void ProceduralGrass::commit(std::size_t index,Preparation& p,const Mesh& mesh) {
+void ProceduralGrass::validateCommit(std::size_t index,const Preparation& p,const Mesh& mesh) const {
     if(!p.ready_ || p.failed_ || index>=patches_.size() || !patches_[index] ||
        mesh.terrainStats.generation!=p.generation_ || mesh.vbo!=p.vertices_ || mesh.ebo!=p.indices_ || mesh.revision!=p.patch_->revision)
         throw std::invalid_argument("Grass commit requires reserved matching ready consumers");
+}
+void ProceduralGrass::commitPrepared(std::size_t index,Preparation& p) noexcept {
     patches_[index].swap(p.patch_);p.ready_=false;p.failed_=true;
-    // The previous patch remains owned by p until its context-thread destruction.
-    // Fenced multi-consumer retirement is implemented in T3c3.
+    // The previous patch remains owned by p. Whole-generation publication keeps
+    // it with the old terrain until the last-use retirement fence signals.
+}
+void ProceduralGrass::commit(std::size_t index,Preparation& p,const Mesh& mesh) {
+    validateCommit(index,p,mesh);
+    commitPrepared(index,p);
+}
+std::optional<TerrainGenerationKey> ProceduralGrass::residentGeneration(std::size_t index) const {
+    if(index>=patches_.size() || !patches_[index] || !patches_[index]->ready ||
+       patches_[index]->generation.backend!=TerrainBackend::Compute) return std::nullopt;
+    return patches_[index]->generation;
+}
+std::optional<std::uint64_t> ProceduralGrass::residentRevision(std::size_t index) const {
+    if(!residentGeneration(index)) return std::nullopt;
+    return patches_[index]->revision;
 }
 }
