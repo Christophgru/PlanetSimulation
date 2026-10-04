@@ -88,6 +88,11 @@ void ProceduralGrass::clear() {
     }
     trails_.clear();replayPlanEyes_.clear();
 }
+void ProceduralGrass::swapState(ProceduralGrass& other) noexcept {
+    patches_.swap(other.patches_);trails_.swap(other.trails_);replayPlanEyes_.swap(other.replayPlanEyes_);
+    compute_.swap(other.compute_);metadataCompute_.swap(other.metadataCompute_);
+    allocationCompute_.swap(other.allocationCompute_);
+}
 void ProceduralGrass::reserve(std::size_t index) {
     if(patches_.size()<=index) patches_.resize(index+1);
     if(!patches_[index]) patches_[index]=std::make_unique<Patch>();

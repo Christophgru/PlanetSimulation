@@ -17,14 +17,14 @@ set(PLANET_FIXTURE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/fixtures/development")
 set(PLANET_FIXTURE_CONFIG "${PLANET_FIXTURE_ROOT}/configs/scenarios/solar_system.json")
 
 add_executable(renderer_lifecycle_tests app/test_renderer_lifecycle.cpp app/test_command_line.cpp app/test_offline_quality.cpp
-    app/terrain/test_publication.cpp)
+    app/terrain/test_publication.cpp app/terrain/reload/test_scene_replacement.cpp)
 target_link_libraries(renderer_lifecycle_tests PRIVATE planet_app GTest::gtest_main)
 target_compile_definitions(renderer_lifecycle_tests PRIVATE
     PLANET_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
     PLANET_TEST_OUTPUT="${CMAKE_BINARY_DIR}/renderer-lifecycle")
 add_test(NAME RendererLifecycleTests COMMAND renderer_lifecycle_tests)
 set_tests_properties(RendererLifecycleTests PROPERTIES
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 90 RUN_SERIAL TRUE)
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 180 RUN_SERIAL TRUE)
 
 add_executable(config_tests config/test_config.cpp)
 target_link_libraries(config_tests PRIVATE GTest::gtest GTest::gtest_main nlohmann_json::nlohmann_json)

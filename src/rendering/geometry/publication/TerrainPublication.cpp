@@ -46,15 +46,31 @@ TerrainPublication::TerrainPublication(ProceduralGrass& grass,std::size_t bodies
 }
 TerrainPublication::~TerrainPublication()=default;
 bool TerrainPublication::canSubmit(std::size_t i) const noexcept {
-    return i<bodies_.size() && !staged_ && !bodies_[i].retiring;
+    return i<bodies_.size() && !staged_ && !bodies_[i].retiring && !sceneReplacementOwned_;
 }
 std::uint64_t TerrainPublication::reservedBytes() const noexcept {
-    std::uint64_t bytes=staged_ ? staged_->receipt.admittedBytes : 0;
+    std::uint64_t bytes=externalBytes_+(staged_ ? staged_->receipt.admittedBytes : 0);
     for(const auto& body:bodies_) {
         bytes+=body.installed.admittedBytes;
         if(body.retiring) bytes+=body.retiring->receipt.admittedBytes;
     }
     return bytes;
+}
+void TerrainPublication::reserveExternal(std::uint64_t bytes) {
+    const auto own=reservedBytes()-externalBytes_;
+    if(bytes>totalLimit_ || own>totalLimit_-bytes)
+        throw std::runtime_error("Scene replacement overlap exceeds publication budget");
+    externalBytes_=bytes;
+    stats_.peakReservedBytes=std::max(stats_.peakReservedBytes,reservedBytes());
+}
+bool TerrainPublication::acquireSceneReplacement() noexcept {
+    if(sceneReplacementOwned_ || staged_ || externalBytes_) return false;
+    sceneReplacementOwned_=true;return true;
+}
+void TerrainPublication::swapInstalledState(TerrainPublication& other) noexcept {
+    cancel();other.cancel();bodies_.swap(other.bodies_);
+    using std::swap;swap(totalLimit_,other.totalLimit_);swap(perSetLimit_,other.perSetLimit_);
+    swap(externalBytes_,other.externalBytes_);swap(stats_,other.stats_);
 }
 bool TerrainPublication::submit(TerrainCpuBuild build,const TerrainBuildIdentity& k,
     const config::PlanetConfig& planet,double metersPerUnit,const glm::dvec3& grassEye,

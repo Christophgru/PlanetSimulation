@@ -111,6 +111,8 @@ T3c3a adds a complete transaction owner with off-live land/water/grass/contact r
 
 T3c3b connects complete resident capture consumers to the pre-character frame boundary. CPU worker outputs stay off live resources while a scoped planning preview derives the exact chase eye from prospective sparse contacts. It restores motion, contact caches, cameras, input presses and replay state before GPU submission; trails and exhaust advance only in the real step after publication. Grass-only replacement exchanges the patch and receipt without replacing terrain or contacts. Changed land invalidates shadows and every publication invalidates whole-frame reuse. Managed scene passes validate keys/revisions before draws, skip independent patch preparation and expose consumed main, shadow, reflection, grass and water revisions. Capture waits remain explicit; transactional scene reload and asynchronous interactive acceptance remain T3c3c/T3c4. The study is in `architecture/terrain-gpu/async/renderer/`.
 
+T3c3c1 adds a whole-scene replacement owner. A validated off-live CPU scene/config owns resident terrain, water, grass and contacts for every body. One exclusive replacement/retirement lease prevents competing terrain submission; aggregate admission charges old scene sets before replacement dispatch. Complete readiness and unchanged request/live identities precede a last-use fence and no-throw exchange of scene/config, mesh arrays, grass/trail state and receipts. Old resources remain owned and charged through zero-timeout retirement, including failed polls. Body reordering/count changes travel with their own fields and mounted cameras. Renderer reload integration and movement/body-switch acceptance remain T3c3c2/T3c3c3; interactive compute remains gated. The study is in `architecture/terrain-gpu/async/scene/`.
+
 
 = Orbital motion and light transport
 
@@ -465,6 +467,8 @@ T3c3a passes 29 native compute cases (51.154 s), including eight complete-transa
 
 T3c3b passes 31 native compute cases (52.055 s), including two new grass-only ownership/failure cases, and two renderer publication cases (13.408 s). Renderer checks observe matching main/shadow/reflection/water/grass identities after grass replanning, retain old buffers and the prior capture sidecar after an injected publication-fence failure, then recover in the same renderer. All ten compute/CPU/replay PNG hashes match T3c3a exactly; six character previews match their actual chase eyes, committed contacts and replay grass anchors. Full regression and frozen source/input/application/native/runtime provenance are retained in `architecture/terrain-gpu/async/renderer/validation/`. Scene reload transactions and asynchronous interactive opt-in remain pending.
 
+T3c3c1 passes seven native scene-owner cases (25.031 s) and all 31 existing compute cases (48.264 s). Delayed bodies keep old terrain/water/grass drawable; preparation, scene-fence and retirement-poll failures retain prior resources and recover. Eleven changed request identities and superseded epochs never exchange a scene. Invalid configs, exclusive overlap and pre-dispatch admission fail without replacement buffers. Six replacements change body count/order and fields while preserving matching contacts and mounted cameras; old resources are released only after last-use retirement. Full regression and frozen source/input/application/native/runtime provenance are retained in `architecture/terrain-gpu/async/scene/validation/`. These are owner API checks; renderer reload and movement/Moon acceptance remain T3c3c2/T3c3c3.
+
 
 
 == Rebuilding the paper and the evidence
@@ -509,6 +513,7 @@ R6. NASA Glenn Research Center, #link("https://www.grc.nasa.gov/www/k-12/Numbers
   [Staged GPU preparation], [`src/rendering/geometry/compute/`, `foliage/procedural/`], [`GpuPreparation` native cases, compute capture],
   [Complete GPU transactions], [`src/rendering/geometry/publication/`], [`TerrainPublication`, renderer recovery; reload pending],
   [Renderer terrain consumers], [`src/rendering/runtime/terrain/`, `ScenePass.cpp`], [`TerrainPublicationRenderer`, compute capture identities],
+  [Whole-scene exchange owner], [`src/rendering/runtime/terrain/reload/`], [`SceneReplacement`; reload adapter pending],
   [Barycentric orbit hierarchy], [`src/simulation/OrbitalSystem.h`], [`OrbitalSystemTests`],
   [Shadowed atmosphere], [`shaders/atmosphere/atmosphere.frag`], [`TerrainShadowRenderIntegration`],
   [Temperature-controlled bend], [`src/simulation/Atmosphere.h`], [`AtmosphereTests`, GPU render test],

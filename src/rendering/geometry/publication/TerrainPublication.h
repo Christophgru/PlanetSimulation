@@ -33,7 +33,8 @@ class TerrainPublication {
     ProceduralGrass& grass_;
     std::vector<Body> bodies_;
     std::unique_ptr<Stage> staged_;
-    std::uint64_t totalLimit_,perSetLimit_;
+    std::uint64_t totalLimit_,perSetLimit_,externalBytes_=0;
+    bool sceneReplacementOwned_=false;
     TerrainPublicationStats stats_;
 public:
     explicit TerrainPublication(ProceduralGrass& grass,std::size_t bodies,
@@ -62,6 +63,15 @@ public:
     bool ready() const noexcept;
     bool retiring(std::size_t index) const;
     std::uint64_t reservedBytes() const noexcept;
+    // A replacement scene reserves the old scene before its first dispatch.
+    // Clear only after the old scene's last-use retirement fence signals.
+    void reserveExternal(std::uint64_t bytes);
+    bool acquireSceneReplacement() noexcept;
+    void releaseSceneReplacement() noexcept {sceneReplacementOwned_=false;}
+    std::uint64_t externalBytes() const noexcept {return externalBytes_;}
+    // Caller exchanges the matching grass state and meshes at the same boundary.
+    // Cancels unfinished old work; grass references retain their stable owners.
+    void swapInstalledState(TerrainPublication& other) noexcept;
     const TerrainPublishedGeneration& installed(std::size_t index) const;
     const TerrainPublicationStats& stats() const noexcept {return stats_;}
 };

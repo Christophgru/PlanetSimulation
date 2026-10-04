@@ -116,6 +116,8 @@ allocation and total-frame cost still require hardware measurement.
 3. **T3c3: complete atomic publication and recovery.** Split into T3c3a for the
    complete transaction/retirement owner, T3c3b for renderer frame boundaries and
    dependent consumers, and T3c3c for transactional scene reload/recovery.
+   T3c3c is further split into T3c3c1 complete scene transaction ownership,
+   T3c3c2 renderer reload integration and T3c3c3 movement/body-switch/Moon acceptance.
    Commit all consumers at one boundary and fence retirement. Inject failures at each preparation stage;
    verify unchanged previous revisions/keys and bounded resources. Test camera
    movement, rapid body switches, Moon arrival, valid/invalid reload and no stale
@@ -161,3 +163,11 @@ revisions match across main, shadow, reflection, water, grass and contacts.
 All 31 native cases, two focused renderer cases and 59 CTest groups pass (789.49 s);
 all ten capture/replay hashes remain exact. Resume at T3c3c for transactional scene
 reload and movement/body-switch recovery. Interactive compute remains gated.
+
+The [T3c3c1 whole-scene owner checkpoint](scene/study.md) stages all configured
+bodies and exchanges scene/config, resident terrain/water/grass/contact consumers
+and receipts after complete readiness. One replacement/retirement slot and old
+scene reservation bound overlap; last-use fences protect all retired resources.
+Seven scene-owner cases, 31 native compute cases and 59 CTest groups pass (731.72 s);
+all ten capture/replay hashes remain exact. Resume at T3c3c2 to integrate renderer
+reload, then T3c3c3 movement/body-switch/Moon acceptance. Interactive compute gated.

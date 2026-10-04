@@ -1,5 +1,39 @@
 # Page to document progress of AI Agents working on this Project
 
+## Whole-scene replacement ownership checkpoint — 2026-10-04
+
+- T3c3c1 is tested. `SceneTerrainReplacement` owns an off-live validated CPU
+  scene/config, cameras/fields and resident land/water/grass/contact consumers
+  for every body. CPU topology comes from the existing scheduler; no worker is
+  added. One exclusive replacement/retirement lease prevents competing preparation.
+- Admission charges old published/retiring terrain sets before replacement GPU
+  dispatch under the existing 512 MiB per-set/1 GiB aggregate logical ceilings.
+  Every body must be ready; exact request and live consumer/config identities
+  precede a last-use fence and no-throw complete scene/grass/trail/receipt exchange.
+- The exchanged owner retains the entire old scene until successful zero-timeout
+  retirement, preserving both resources and external reservation after timeout
+  or poll failure. Only retirement deletes old resources and releases the lease.
+- All seven scene-owner cases pass (25.031 s): delayed readiness/retirement,
+  actual old terrain/water/grass draws, disabled consumers/trails, six preparation
+  fence failures with staging cleanup, whole-scene fence failure/same-owner retry,
+  failed retirement poll/recovery, eleven changed request identities, superseded
+  epochs, changed live revision/contact/config, invalid config/overlap/admission
+  and six replacements changing body count/order/fields and mounted cameras.
+- All 31 existing native compute cases pass (48.264 s). All 59 CTest groups pass
+  in one uninterrupted final-binary run (731.72 s); all ten compute/CPU/replay PNG
+  hashes match T3c3b exactly. Source/input/application/native/runtime binaries
+  stayed frozen through the run. Owner API checks are distinct from renderer reload.
+- README, study, journal/PDF and evidence are updated. The 27-page journal was
+  reviewed on pages 5–7 and 25–27; all 22 gallery hashes and the user's environmental/
+  Docker TODO suffix are preserved. See
+  `docs/journal/architecture/terrain-gpu/async/scene/study.md` and `validation/`.
+- Resume T3c3c2: connect the owner to actual renderer reload, exchange preallocated
+  tracking arrays, preserve chase/replay anchors, rebind cameras/contacts and
+  invalidate shadow/frame/reflection caches. The current reload adapter remains
+  unchanged. T3c3c3 movement/body-switch/Moon acceptance precedes T3c4 interactive
+  opt-in. CPU stays default and compute interactive stays gated; logical payload
+  is not total CPU/driver VRAM or a hardware FPS claim.
+
 ## Renderer generation publication checkpoint — 2026-10-04
 
 - T3c3b is tested. Complete resident capture consumers publish at the

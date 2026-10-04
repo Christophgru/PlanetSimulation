@@ -1050,6 +1050,12 @@ character update uses committed contacts. Grass-only replanning retains terrain
 and contacts, and main/shadow/reflection passes record matching generations.
 CPU and legacy captures retain their paths; interactive compute remains gated.
 
+The [whole-scene replacement owner](docs/journal/architecture/terrain-gpu/async/scene/study.md)
+stages all bodies under one overlap budget and exchanges scene/config plus
+terrain/grass/contact receipts only after full readiness. It retains old resources
+behind a last-use fence. Connecting this owner to the renderer reload adapter and
+validating movement/body switches remain queued; interactive compute stays gated.
+
 Near water, `terrain_lod.shoreline_edge_m` targets 1 m edges within
 `shoreline_distance_m` (80 m by default). Set the edge target to `0` to disable
 this extra refinement. Targets support 0.1–100 m and distances 1–1000 m.

@@ -1,0 +1,7 @@
+Validated folder limits, image-only gallery and README capture links
+All 22 gallery PNG hashes retained; manifest unchanged
+125 local Markdown links resolve
+All 10 compute/CPU/replay PNG hashes match T3c3b exactly
+Journal compiled: 27 pages; visually reviewed pages [5, 6, 7, 25, 26, 27]
+git diff --check passes
+User environmental/Docker TODO suffix preserved byte-for-byte

@@ -130,6 +130,9 @@ public:
     ProceduralGrass& operator=(const ProceduralGrass&)=delete;
     ~ProceduralGrass();
     void clear();
+    // Scene publication exchanges prepared patches/trails while shaders retain
+    // their stable addresses. Both owners require the same current GL context.
+    void swapState(ProceduralGrass& other) noexcept;
     GrassPreparationStats prepare(std::size_t index,const Mesh& mesh,const config::PlanetConfig& planet,
         double metersPerWorldUnit,const glm::dvec3& eyeBody,std::uint64_t otherTerrainBytes=0);
     ProceduralGrassStats stats(std::size_t index) const;

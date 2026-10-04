@@ -1,0 +1,30 @@
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = SceneReplacement.*
+[==========] Running 7 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 7 tests from SceneReplacement
+[ RUN      ] SceneReplacement.DelayedBodiesKeepOldSceneDrawableUntilCompleteExchangeAndFencedRetirement
+Mesh not initialized
+Mesh not initialized
+[       OK ] SceneReplacement.DelayedBodiesKeepOldSceneDrawableUntilCompleteExchangeAndFencedRetirement (4278 ms)
+[ RUN      ] SceneReplacement.SixBodyFenceFailuresDiscardAllStagingAndPermitANewReplacement
+[       OK ] SceneReplacement.SixBodyFenceFailuresDiscardAllStagingAndPermitANewReplacement (5653 ms)
+[ RUN      ] SceneReplacement.WholeSceneRetirementFenceFailureIsReversibleAndTheSameTransactionRecovers
+Mesh not initialized
+[       OK ] SceneReplacement.WholeSceneRetirementFenceFailureIsReversibleAndTheSameTransactionRecovers (3247 ms)
+[ RUN      ] SceneReplacement.RetirementPollFailureKeepsOldResourcesChargedUntilSuccessfulRetry
+[       OK ] SceneReplacement.RetirementPollFailureKeepsOldResourcesChargedUntilSuccessfulRetry (2046 ms)
+[ RUN      ] SceneReplacement.SupersededEpochsAndChangedBodyIdentitiesNeverExchangeTheScene
+[       OK ] SceneReplacement.SupersededEpochsAndChangedBodyIdentitiesNeverExchangeTheScene (2480 ms)
+[ RUN      ] SceneReplacement.InvalidConfigsOverlapAndAdmissionFailureKeepOldResourcesAndDispatchNothing
+[       OK ] SceneReplacement.InvalidConfigsOverlapAndAdmissionFailureKeepOldResourcesAndDispatchNothing (2555 ms)
+[ RUN      ] SceneReplacement.RepeatedReplacementChangesBodyCountOrderAndContactsWithoutAccumulatingRetiredScenes
+Mesh not initialized
+Mesh not initialized
+Mesh not initialized
+[       OK ] SceneReplacement.RepeatedReplacementChangesBodyCountOrderAndContactsWithoutAccumulatingRetiredScenes (4768 ms)
+[----------] 7 tests from SceneReplacement (25030 ms total)
+
+[----------] Global test environment tear-down
+[==========] 7 tests from 1 test suite ran. (25031 ms total)
+[  PASSED  ] 7 tests.
