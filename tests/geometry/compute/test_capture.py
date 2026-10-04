@@ -62,6 +62,10 @@ assert metadata['diagnostic_read_bytes']==0
 assert metadata['summary_read_bytes']==224
 assert metadata['effective_candidate_budget']==4096
 assert metadata['placement_density_per_m2']>0
+assert metadata['draw_resources_prepared']
+assert metadata['draw_resource_bytes']==128*g['render']['foliage_candidates']+32
+assert 0<metadata['stage_admitted_bytes']<=512*1024*1024
+assert 0<g['render']['terrain_compute']['stage_admitted_bytes']<=512*1024*1024
 assert metadata['allocation_input_bytes']==228+12*metadata['allocation_dispatches']
 assert metadata['allocation_bytes']>0
 assert g['render']['foliage_candidates']<=4096

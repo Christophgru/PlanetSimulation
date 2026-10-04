@@ -334,6 +334,9 @@ int Renderer::Impl::capture() {
                     {"allocation_input_bytes", grass.procedural.stats(scene.orbitPlanetIndex).allocationInputBytes},
                     {"allocation_dispatches", grass.procedural.stats(scene.orbitPlanetIndex).allocationDispatches},
                     {"summary_read_bytes", grass.procedural.stats(scene.orbitPlanetIndex).summaryReadBytes},
+                    {"draw_resource_bytes", grass.procedural.stats(scene.orbitPlanetIndex).drawResourceBytes},
+                    {"draw_resources_prepared", grass.procedural.stats(scene.orbitPlanetIndex).drawResourcesPrepared},
+                    {"stage_admitted_bytes", grass.procedural.stats(scene.orbitPlanetIndex).stageAdmittedBytes},
                     {"effective_candidate_budget", grass.procedural.stats(scene.orbitPlanetIndex).allocationBudget},
                     {"placement_density_per_m2", grass.procedural.stats(scene.orbitPlanetIndex).density}}},
                 {"terrain_mean_display_luminance", metrics.terrainMeanLuminance},
@@ -361,6 +364,7 @@ int Renderer::Impl::capture() {
         const auto& terrain=meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats;
         metadata["render"]["terrain_compute"]={{"input_bytes",terrain.gpuInputBytes},
             {"generation_peak_bytes",terrain.gpuWorkingBytes},{"dispatches",terrain.gpuDispatches},
+            {"stage_admitted_bytes",terrain.gpuStageAdmittedBytes},
             {"gpu_ms",terrain.gpuMilliseconds},{"cpu_compatibility_mirror",bool(terrainCompute) && !meshes.planetMeshes[scene.orbitPlanetIndex].residentTerrain},
             {"cpu_render_bytes",meshes.planetMeshes[scene.orbitPlanetIndex].vertices.size()*4+meshes.planetMeshes[scene.orbitPlanetIndex].indices.size()*4},
             {"cpu_water_render_bytes",meshes.waterMeshes[scene.orbitPlanetIndex].vertices.size()*4+meshes.waterMeshes[scene.orbitPlanetIndex].indices.size()*4}};

@@ -3,8 +3,8 @@
 namespace rendering {
 void GrassRenderer::clear() { procedural.clear(); }
 GrassPreparationStats GrassRenderer::prepare(std::size_t index,const Mesh& mesh,const config::PlanetConfig& planet,
-    double metersPerWorldUnit,const glm::dvec3& eyeBody) {
-    return procedural.prepare(index,mesh,planet,metersPerWorldUnit,eyeBody);
+    double metersPerWorldUnit,const glm::dvec3& eyeBody,std::uint64_t otherTerrainBytes) {
+    return procedural.prepare(index,mesh,planet,metersPerWorldUnit,eyeBody,otherTerrainBytes);
 }
 std::size_t GrassRenderer::count(std::size_t index) const { return procedural.stats(index).candidates; }
 GrassDrawStats GrassRenderer::drawStats(std::size_t index) const {

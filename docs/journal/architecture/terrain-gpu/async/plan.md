@@ -136,5 +136,10 @@ repeat the state machine's implementation.
 
 The [T3c1 worker checkpoint](worker/study.md) implements bounded CPU scheduling,
 value snapshots and epoch/body/mode/serial validation. Eight worker cases and all
-59 CTest groups pass (736.20 s), with exact capture/replay compatibility. Resume
-at T3c2; remaining steps in this plan are unchanged.
+59 CTest groups pass (736.20 s), with exact capture/replay compatibility.
+
+The [T3c2 GPU preparation checkpoint](gpu/study.md) introduces owned GPU
+submission/poll/commit, draw-resource preallocation and logical byte admission.
+All 59 groups pass (733.29 s); a subsequent controlled delayed-fence test passes
+with all 21 native cases. Capture/replay hashes remain exact. Resume at T3c3:
+complete frame-boundary publication, transactional reload and fenced retirement.

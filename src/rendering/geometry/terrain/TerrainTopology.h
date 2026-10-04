@@ -21,6 +21,7 @@ struct TerrainBuildStats {
     TerrainQueryStats planningQueries{},evaluationQueries{};
     std::size_t topologyInputBytes=0,uniqueSamples=0;
     std::uint64_t gpuInputBytes=0,gpuWorkingBytes=0,gpuDispatches=0,gpuCorners=0;
+    std::uint64_t gpuStageAdmittedBytes=0;
     double gpuMilliseconds=0;
     TerrainGenerationKey generation{};
 };

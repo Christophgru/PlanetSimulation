@@ -1,5 +1,35 @@
 # Page to document progress of AI Agents working on this Project
 
+## Asynchronous GPU preparation checkpoint — 2026-10-04
+
+- T3c2 is tested. `TerrainGpuPreparation` owns submitted land/water; resident
+  grass uses separate submission/poll/commit in `GrassPreparation.cpp`. GPU
+  dependencies use ordered commands/barriers; polling uses zero timeout and
+  terrain timestamps are read only after query availability.
+- Grass reads one completed 224-byte summary, validates prefixes, slot caps,
+  totals and keys, then creates texture views, placement program, blade queues,
+  indirect commands and VAOs before a resource fence permits commit. Failed or
+  stale preparation leaves the live patch intact. The exchange retains the old
+  patch in its preparation owner; fenced retirement remains T3c3.
+- Logical admission reserves land/water and worst-case resident grass under an
+  initial 512 MiB per-preparation ceiling. The reduced capture admits 4,632,148
+  bytes and allocates 524,320 draw bytes for 4,096 candidates. This is logical
+  payload, not physical VRAM/free-memory or a hardware speedup claim.
+- All 59 CTest groups pass in one uninterrupted application-binary run (733.29 s),
+  including 20 native compute cases. A test-only controlled delayed-fence probe
+  was added afterwards; all 21 native cases pass (24.294 s), including seven new
+  preparation cases. The application hash remains identical; both native scopes
+  and their input/binary hashes are recorded in retained evidence.
+- All ten compute/CPU/replay PNG hashes match T3c1 exactly, including legacy and
+  GL 3.3 fallback. Worker, lifecycle/reload, flight, grass, atmosphere, input and
+  adaptive quality pass. README, study, journal/PDF and artifacts are updated;
+  all 22 gallery hashes remain unchanged. See
+  `docs/journal/architecture/terrain-gpu/async/gpu/study.md` and `validation/`.
+- Resume at T3c3: publish complete consumers at one frame boundary, retain the
+  previous scene on reload/allocation failure and fence old-resource retirement.
+  Capture terrain/grass still install at separate stages; interactive compute
+  stays gated until T3c3/T3c4 acceptance. Preserve CPU default and old replays.
+
 ## Bounded terrain CPU worker checkpoint — 2026-10-04
 
 - T3c1 implementation is present in `src/rendering/geometry/jobs/`: value-owned

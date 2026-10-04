@@ -1,5 +1,5 @@
 #include "rendering/runtime/RendererState.h"
-#include "rendering/geometry/contacts/SparseTerrainContacts.h"
+#include "rendering/geometry/compute/TerrainGpuPreparation.h"
 #include <iostream>
 
 namespace rendering {
@@ -23,20 +23,11 @@ void Renderer::Impl::installTerrainBuild(TerrainCpuBuild built,const TerrainBuil
     profiler.terrainBuild(built.milliseconds);
     std::unique_ptr<TerrainComputeBuffers> computed,computedWater;
     if(identity.backend==TerrainBackend::Compute) {
-        if(!built.field || !built.topology || !built.contacts || built.field->fingerprint()!=identity.field)
-            throw std::logic_error("Missing matching terrain worker consumers");
-        if(built.geometry.generation!=built.topology->generation ||
-           (built.water && (!built.waterField || !built.waterTopology || built.water->generation!=built.waterTopology->generation)))
-            throw std::logic_error("Mismatched worker topology headers");
-        auto generation=built.topology->generation;generation.backend=TerrainBackend::Compute;
-        if(built.contacts->generation()!=generation)
-            throw std::logic_error("Stale worker contact index");
-        computed=terrainCompute->generate(*built.field,*built.topology);
-        if(built.water) computedWater=terrainCompute->generate(*built.waterField,*built.waterTopology);
-        computed->contacts=std::move(built.contacts);
-        // This checkpoint remains capture-only. Nonblocking GPU/grass readiness
-        // and complete atomic publication are T3c2/T3c3.
-        computed->waitForCapture();if(computedWater) computedWater->waitForCapture();
+        TerrainGpuPreparation staged(std::move(built),identity,scene.scenario.planets[i],*terrainCompute);
+        // Explicit capture adapter. Interactive compute remains gated until
+        // complete frame-boundary publication/recovery is implemented in T3c3.
+        staged.waitForCapture();
+        built=std::move(staged.cpu);computed=std::move(staged.land);computedWater=std::move(staged.water);
     }
     if(built.water) {
         if(computedWater) meshes.waterMeshes[i].loadComputedTerrain(std::move(*built.water),*computedWater,!identity.resident);

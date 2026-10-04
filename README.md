@@ -1029,6 +1029,13 @@ old CPU work without joining it; normal CPU walking polls for completed builds.
 GPU and grass publication still use the capture path until the remaining
 asynchronous stages are ready.
 
+The [GPU preparation checkpoint](docs/journal/architecture/terrain-gpu/async/gpu/study.md)
+adds owned land/water and grass submission, completion polling and patch commit.
+Resident grass allocates draw resources before committing and reads one completed
+224-byte allocation summary. An initial 512 MiB logical preparation ceiling
+includes terrain and worst-case grass buffers. Captures use explicit wait adapters;
+interactive publication, retirement and free-memory policy remain later stages.
+
 Near water, `terrain_lod.shoreline_edge_m` targets 1 m edges within
 `shoreline_distance_m` (80 m by default). Set the edge target to `0` to disable
 this extra refinement. Targets support 0.1–100 m and distances 1–1000 m.

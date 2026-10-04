@@ -32,6 +32,12 @@ bool TerrainComputeBuffers::poll() {
     const auto status=glClientWaitSync(fence,0,0);
     if(status==GL_WAIT_FAILED) throw std::runtime_error("Terrain completion fence failed");
     if(status==GL_TIMEOUT_EXPIRED) return false;
+    // A signalled fence usually also makes timestamp results available; check
+    // explicitly so the normal polling API never asks for an unavailable result.
+    GLint beginReady=0,endReady=0;
+    glGetQueryObjectiv(timers[0],GL_QUERY_RESULT_AVAILABLE,&beginReady);
+    glGetQueryObjectiv(timers[1],GL_QUERY_RESULT_AVAILABLE,&endReady);
+    if(!beginReady || !endReady) return false;
     glDeleteSync(fence);fence=nullptr;complete=true;
     GLuint64 begin=0,end=0;
     glGetQueryObjectui64v(timers[0],GL_QUERY_RESULT,&begin);
@@ -89,17 +95,25 @@ std::unique_ptr<TerrainComputeBuffers> TerrainCompute::generate(const PlanetFiel
     if(!shader_) shader_=std::make_unique<Shader>("shaders/terrain/compute/field.comp");
     GLint previousProgram=0,previousVao=0,previousArray=0,previousStorage=0;
     std::array<GLint,7> previousBindings{};
+    std::array<GLint64,7> previousStarts{},previousSizes{};
     glGetIntegerv(GL_CURRENT_PROGRAM,&previousProgram);glGetIntegerv(GL_VERTEX_ARRAY_BINDING,&previousVao);
     glGetIntegerv(GL_ARRAY_BUFFER_BINDING,&previousArray);glGetIntegerv(GL_SHADER_STORAGE_BUFFER_BINDING,&previousStorage);
-    for(int i=0;i<7;++i) glGetIntegeri_v(GL_SHADER_STORAGE_BUFFER_BINDING,i,&previousBindings[i]);
+    for(int i=0;i<7;++i) {
+        glGetIntegeri_v(GL_SHADER_STORAGE_BUFFER_BINDING,i,&previousBindings[i]);
+        glGetInteger64i_v(GL_SHADER_STORAGE_BUFFER_START,i,&previousStarts[i]);
+        glGetInteger64i_v(GL_SHADER_STORAGE_BUFFER_SIZE,i,&previousSizes[i]);
+    }
     struct Restore {
-        GLint program,vao,array,storage;std::array<GLint,7> bindings;
+        GLint program,vao,array,storage;std::array<GLint,7> bindings;std::array<GLint64,7> starts,sizes;
         ~Restore() {
-            for(int i=0;i<7;++i) glBindBufferBase(GL_SHADER_STORAGE_BUFFER,i,bindings[i]);
+            for(int i=0;i<7;++i) {
+                if(bindings[i] && sizes[i]>0) glBindBufferRange(GL_SHADER_STORAGE_BUFFER,i,bindings[i],starts[i],sizes[i]);
+                else glBindBufferBase(GL_SHADER_STORAGE_BUFFER,i,bindings[i]);
+            }
             glBindBuffer(GL_SHADER_STORAGE_BUFFER,storage);glBindVertexArray(vao);
             glBindBuffer(GL_ARRAY_BUFFER,array);glUseProgram(program);
         }
-    } restore{previousProgram,previousVao,previousArray,previousStorage,previousBindings};
+    } restore{previousProgram,previousVao,previousArray,previousStorage,previousBindings,previousStarts,previousSizes};
     auto result=std::make_unique<TerrainComputeBuffers>();
     result->stats=static_cast<const TerrainBuildStats&>(topology);
     result->stats.generation.backend=TerrainBackend::Compute;

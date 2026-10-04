@@ -19,7 +19,7 @@ public:
     ~GrassRenderer()=default;
     void clear();
     GrassPreparationStats prepare(std::size_t index,const Mesh& mesh,const config::PlanetConfig& planet,
-                 double metersPerWorldUnit,const glm::dvec3& eyeBody);
+                 double metersPerWorldUnit,const glm::dvec3& eyeBody,std::uint64_t otherTerrainBytes=0);
     std::size_t count(std::size_t index) const;
     GrassDrawStats drawStats(std::size_t index) const;
     void draw(std::size_t index,const GrassPass* pass=nullptr) const;

@@ -105,6 +105,8 @@ T3b2 now computes budgeted hash selection, rounded-slot density search and deter
 
 T3c1 introduces one persistent CPU executor with one replaceable queued snapshot and one completion slot. Requests own field/settings/topology inputs and carry epoch, body, field, mode and serial identities. The worker constructs canonical compute land/water topology and matching sparse contacts without bulk render evaluation. Reload invalidates old work without joining; shutdown joins before trace/context ownership ends. Normal CPU walking polls completed work and rejects incompatible or older generations. Compute capture explicitly waits for CPU preparation and retains its GPU waits; complete asynchronous GPU/grass publication remains T3c2/T3c3. Contact ownership temporarily duplicates canonical CPU topology during staging, so this checkpoint does not claim lower total memory or a hardware speedup. The study is in `architecture/terrain-gpu/async/worker/`.
 
+T3c2 adds owned land/water and resident-grass preparation. GPU command order carries terrain-to-metadata-to-allocation dependencies without CPU fence waits during submission. Polling uses zero-timeout fences and retrieves one completed 224-byte allocation summary, validating prefixes, slot caps and candidate totals before preallocating texture views, blade queues, indirect commands and VAOs. A separate resource fence precedes patch commit. An initial 512 MiB logical ceiling reserves terrain and worst-case grass buffers; it does not estimate driver physical memory or available VRAM. Captures use explicit waits through these APIs at their original planning eye. Atomic scene publication, retirement and interactive opt-in remain T3c3/T3c4. The study is in `architecture/terrain-gpu/async/gpu/`.
+
 = Orbital motion and light transport
 
 == Prescribed Kepler ellipses with collective mass
@@ -452,6 +454,8 @@ T3b2 validates all 58 CTest groups across two final-executable runs: groups 1–
 
 T3c1 passes eight controlled CPU cases and all 59 CTest groups in one uninterrupted final-binary run (736.20 s). The cases cover coalescing/backpressure, repeated epochs, body/field/mode/serial rejection, exception recovery, shutdown and independent resident snapshots. Compute captures pass worker-bound and transfer assertions; all ten compute/CPU/replay PNG hashes match T3b2 exactly. Lifecycle, reload and native input pass, and all 22 gallery hashes remain unchanged. Evidence is in `architecture/terrain-gpu/async/worker/validation/`. Interactive compute remains gated.
 
+T3c2 passes all 59 CTest groups in one uninterrupted application-binary run (733.29 s), including 20 native compute cases. A test-only delayed-fence probe was then added; all 21 native cases pass on the rebuilt native target (24.294 s), while the application binary stays unchanged. Seven preparation cases cover chained submission, controlled zero-timeout polling, preallocated resources, admission/stale failure preservation, disabled consumers, malformed summaries and OpenGL state restoration. All ten compute/CPU/replay PNG hashes match T3c1 exactly and all 22 gallery hashes are retained. The capture fixture admits 4,632,148 logical bytes and preallocates 524,320 draw bytes; its summary remains 224 bytes with zero metadata readback. Evidence for both native scopes is in `architecture/terrain-gpu/async/gpu/validation/`.
+
 == Rebuilding the paper and the evidence
 
 From the repository root, regenerate the deterministic vector figures and compile the Typst source:
@@ -491,6 +495,7 @@ R6. NASA Glenn Research Center, #link("https://www.grc.nasa.gov/www/k-12/Numbers
   [*Claim*], [*Primary implementation*], [*Validation*],
   [Stable terrain under LOD], [`src/rendering/geometry/Terrain.h`], [`TerrainTests`, surface capture],
   [Bounded CPU terrain jobs], [`src/rendering/geometry/jobs/`], [`TerrainJobTests`, compute capture],
+  [Staged GPU preparation], [`src/rendering/geometry/compute/`, `foliage/procedural/`], [`GpuPreparation` native cases, compute capture],
   [Barycentric orbit hierarchy], [`src/simulation/OrbitalSystem.h`], [`OrbitalSystemTests`],
   [Shadowed atmosphere], [`shaders/atmosphere/atmosphere.frag`], [`TerrainShadowRenderIntegration`],
   [Temperature-controlled bend], [`src/simulation/Atmosphere.h`], [`AtmosphereTests`, GPU render test],

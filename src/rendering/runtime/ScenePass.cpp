@@ -51,7 +51,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
     if (grass) for (std::size_t i=0;i<scenario.planets.size();++i) {
         const auto& planet=scenario.planets[i];
         const auto prepared = grass->prepare(i,planetMeshes[i],planet,scenario.metersPerWorldUnit(),
-            bodies[i+1].toLocalPoint(eyeWorld)/planet.radius);
+            bodies[i+1].toLocalPoint(eyeWorld)/planet.radius,waterMeshes[i].terrainStats.gpuWorkingBytes);
         if (profiler) profiler->foliagePreparation(prepared.rebuilds,
             prepared.placementMs, prepared.sortMs, prepared.uploadMs, prepared.uploadedBytes);
     }

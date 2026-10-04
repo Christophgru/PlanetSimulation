@@ -1,0 +1,28 @@
+gpu-stage-corrected-build.log
+[1/19] Building CXX object CMakeFiles/planet_rendering.dir/src/rendering/foliage/procedural/GrassCompute.cpp.o
+[2/19] Building CXX object CMakeFiles/planet_rendering.dir/src/rendering/foliage/procedural/GrassPreparation.cpp.o
+[3/19] Building CXX object CMakeFiles/planet_rendering.dir/src/rendering/geometry/compute/TerrainGpuPreparation.cpp.o
+[4/19] Linking CXX static library libplanet_rendering.a
+[5/19] Linking CXX executable PlanetSimulation
+[6/19] Linking CXX executable tests/renderer_lifecycle_tests
+[7/19] Linking CXX executable tests/mesh_geometry_tests
+[8/19] Linking CXX executable tests/exhaust_render_tests
+[9/19] Linking CXX executable tests/terrain_shadow_render_tests
+[10/19] Building CXX object tests/CMakeFiles/terrain_compute_tests.dir/geometry/compute/test_staging.cpp.o
+[11/19] Building CXX object tests/CMakeFiles/terrain_compute_tests.dir/foliage/planning/test_metadata.cpp.o
+[12/19] Linking CXX executable tests/grass_placement_tests
+[13/19] Building CXX object tests/CMakeFiles/terrain_compute_tests.dir/foliage/planning/test_allocation.cpp.o
+[14/19] Linking CXX executable tests/terrain_compute_tests
+[15/19] Linking CXX executable tests/grass_plan_tests
+[16/19] Linking CXX executable tests/grass_trail_tests
+[17/19] Building CXX object tests/CMakeFiles/foliage_benchmark.dir/foliage/benchmark_grass.cpp.o
+[18/19] Linking CXX executable tests/atmosphere_render_tests
+[19/19] Linking CXX executable tests/foliage_benchmark
+
+gpu-stage-native-build.log
+[1/2] Building CXX object tests/CMakeFiles/terrain_compute_tests.dir/geometry/compute/test_staging.cpp.o
+[2/2] Linking CXX executable tests/terrain_compute_tests
+
+Test-only delayed-fence extension after full regression
+[1/2] Building CXX object tests/CMakeFiles/terrain_compute_tests.dir/geometry/compute/test_staging.cpp.o
+[2/2] Linking CXX executable tests/terrain_compute_tests

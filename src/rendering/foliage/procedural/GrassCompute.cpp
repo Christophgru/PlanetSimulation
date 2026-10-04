@@ -10,17 +10,11 @@ namespace {
 struct GpuBlade { glm::vec4 rootFade,upLow,variation,wind; };
 static_assert(sizeof(GpuBlade)==64);
 }
-void ProceduralGrass::drawComputed(const Patch& patch,const GrassPass& pass) const {
-    if (pass.feedback) glPauseTransformFeedback();
-    if (!compute_) compute_=std::make_unique<Shader>("shaders/foliage/placement.comp");
-    std::size_t count=0;
-    for (const auto& batch:patch.batches) count+=batch.count;
-    if (!count) { if (pass.feedback) glResumeTransformFeedback(); return; }
-    GLint64 blockBytes=0;GLint maxGroups=0;
-    glGetInteger64v(GL_MAX_SHADER_STORAGE_BLOCK_SIZE,&blockBytes);
-    glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT,0,&maxGroups);
-    if(maxGroups<1 || (patch.allocation && count>std::uint64_t(blockBytes)/128) || count>std::numeric_limits<GLsizei>::max())
-        throw std::runtime_error("Grass placement exceeds queried storage/dispatch capacity");
+void ProceduralGrass::allocateComputed(const Patch& patch,std::size_t count) const {
+    if(!count) return;
+    GLint64 blockBytes=0;glGetInteger64v(GL_MAX_SHADER_STORAGE_BLOCK_SIZE,&blockBytes);
+    if(blockBytes<=0 || (patch.allocation && count>std::uint64_t(blockBytes)/128) || count>std::numeric_limits<GLsizei>::max())
+        throw std::runtime_error("Grass placement exceeds queried storage capacity");
     if (!patch.gpuBlades) glGenBuffers(1,&patch.gpuBlades);
     if (!patch.commands) {
         glGenBuffers(1,&patch.commands);
@@ -47,6 +41,25 @@ void ProceduralGrass::drawComputed(const Patch& patch,const GrassPass& pass) con
         }
         glBindVertexArray(0);
     }
+}
+void ProceduralGrass::drawComputed(const Patch& patch,const GrassPass& pass) const {
+    if (pass.feedback) glPauseTransformFeedback();
+    std::size_t count=0;
+    for (const auto& batch:patch.batches) count+=batch.count;
+    if (!count) { if (pass.feedback) glResumeTransformFeedback(); return; }
+    if(!compute_) {
+        if(patch.allocation) throw std::logic_error("Resident grass placement program was not prepared");
+        compute_=std::make_unique<Shader>("shaders/foliage/placement.comp");
+    }
+    GLint64 blockBytes=0;GLint maxGroups=0;
+    glGetInteger64v(GL_MAX_SHADER_STORAGE_BLOCK_SIZE,&blockBytes);
+    glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT,0,&maxGroups);
+    if(maxGroups<1 || (patch.allocation && count>std::uint64_t(blockBytes)/128) || count>std::numeric_limits<GLsizei>::max())
+        throw std::runtime_error("Grass placement exceeds queried storage/dispatch capacity");
+    if(patch.allocation) {
+        if(patch.gpuCapacity<count || !patch.gpuBlades || !patch.commands || !patch.gpuVaos[0] || !patch.gpuVaos[1])
+            throw std::logic_error("Resident grass draw resources were not prepared");
+    } else allocateComputed(patch,count);
     auto& c=*compute_;
     c.use();
     c.setInt("uCapacity",patch.gpuCapacity);
@@ -114,12 +127,12 @@ void ProceduralGrass::drawComputed(const Patch& patch,const GrassPass& pass) con
     glBindVertexArray(0); glBindBuffer(GL_DRAW_INDIRECT_BUFFER,0);
 }
 std::array<std::size_t,2> ProceduralGrass::computedCounts(std::size_t index) const {
-    if (index>=patches_.size() || !patches_[index].ready || !patches_[index].computeUsed) return {};
+    if (index>=patches_.size() || !patches_[index] || !patches_[index]->ready || !patches_[index]->computeUsed) return {};
     std::array<std::uint32_t,8> commands{};
     glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
-    if(!patches_[index].commands || std::none_of(patches_[index].batches.begin(),patches_[index].batches.end(),
+    if(!patches_[index]->commands || std::none_of(patches_[index]->batches.begin(),patches_[index]->batches.end(),
         [](const auto& batch) {return batch.count!=0;})) return {};
-    glBindBuffer(GL_COPY_READ_BUFFER,patches_[index].commands);
+    glBindBuffer(GL_COPY_READ_BUFFER,patches_[index]->commands);
     glGetBufferSubData(GL_COPY_READ_BUFFER,0,sizeof(commands),commands.data());
     glBindBuffer(GL_COPY_READ_BUFFER,0);
     return {commands[1],commands[5]};

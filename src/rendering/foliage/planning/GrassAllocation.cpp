@@ -31,7 +31,15 @@ void read(GLuint buffer,std::size_t bytes,void* output) {
 GrassAllocationSummary GrassAllocationBuffers::readSummary() const {
     if(!complete) throw std::logic_error("Grass allocation is not complete");
     GrassAllocationSummary s;read(state,sizeof(s),&s);summaryReadBytes+=sizeof(s);
-    if(s.totals[2] || s.totals[1]>s.control[0] || s.totals[0]>triangles ||
+    std::uint64_t patches=0,candidates=0;
+    for(std::size_t level=0;level<s.counts.size();++level) {
+        if(s.first[level]!=patches || ((1u<<level)>slotCap && s.counts[level]))
+            throw std::runtime_error("Invalid GPU grass prefix summary");
+        patches+=s.counts[level];candidates+=std::uint64_t(s.counts[level])*(1u<<level);
+    }
+    if(s.control[0]!=budget || s.control[1]!=slotCap || s.totals[2] || s.totals[1]>budget || s.totals[0]>triangles ||
+        patches!=s.totals[0] || candidates!=s.totals[1] || s.status[1]>1 || s.status[2]>1 ||
+        (s.status[2] && s.status[3]!=32) ||
         !std::isfinite(s.densitySearch[0]) || s.densitySearch[0]<0)
         throw std::runtime_error("Invalid GPU grass budget summary");
     return s;
@@ -79,6 +87,7 @@ std::unique_ptr<GrassAllocationBuffers> GrassAllocationCompute::generate(const G
     }
     auto result=std::make_unique<GrassAllocationBuffers>();result->triangles=n;result->generation=metadata.generation;result->planningEye=metadata.planningEye;
     GrassAllocationSummary initial;initial.control={std::uint32_t(budget),std::bit_floor(std::uint32_t(settings.max_candidates_per_triangle)),0,0xffffffffu};
+    result->budget=initial.control[0];result->slotCap=initial.control[1];
     // The first probe reads requested density from the resident parameter pack.
     initial.status[0]=0xffffffffu;
     glGenBuffers(1,&result->state);glGenBuffers(1,&result->groups);glGenBuffers(1,&result->references);

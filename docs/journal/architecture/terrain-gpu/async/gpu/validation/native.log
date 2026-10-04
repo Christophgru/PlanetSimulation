@@ -1,0 +1,89 @@
+[==========] Running 21 tests from 4 test suites.
+[----------] Global test environment set-up.
+[----------] 6 tests from TerrainCompute
+[ RUN      ] TerrainCompute.DoubleFieldsMatchCpuAtPolesLatticeBoundariesAndExtremeSeeds
+PARITY triangles=33 samples=9 height_m=0 position_m=0 normal_rad=0 color=0 uploaded=1452 peak=5744 dispatches=3 gpu_ms=0.501372 cpu_bulk_ms=0.070678 submit_ms=37.4987 capture_wait_ms=0.158836 validation_read_ms=0.009889
+PARITY triangles=33 samples=9 height_m=1.38556e-13 position_m=0 normal_rad=2.10734e-08 color=0 uploaded=1452 peak=5744 dispatches=3 gpu_ms=0.673726 cpu_bulk_ms=0.063323 submit_ms=0.98563 capture_wait_ms=0.104657 validation_read_ms=0.012371
+PARITY triangles=33 samples=9 height_m=1.52101e-14 position_m=0 normal_rad=2.10734e-08 color=0 uploaded=1452 peak=5744 dispatches=3 gpu_ms=0.653038 cpu_bulk_ms=0.093114 submit_ms=1.0496 capture_wait_ms=0.089607 validation_read_ms=0.009724
+PARITY triangles=33 samples=9 height_m=3.86358e-13 position_m=0 normal_rad=2.10734e-08 color=0 uploaded=1452 peak=5744 dispatches=3 gpu_ms=0.564269 cpu_bulk_ms=0.088393 submit_ms=0.873956 capture_wait_ms=0.087858 validation_read_ms=0.009403
+PARITY triangles=33 samples=9 height_m=8.9706e-14 position_m=0 normal_rad=2.10734e-08 color=0 uploaded=1452 peak=5744 dispatches=3 gpu_ms=0.733025 cpu_bulk_ms=0.087888 submit_ms=1.05804 capture_wait_ms=0.090859 validation_read_ms=0.011604
+PARITY triangles=33 samples=9 height_m=3.86358e-13 position_m=0 normal_rad=2.10734e-08 color=0 uploaded=1452 peak=5744 dispatches=3 gpu_ms=0.513628 cpu_bulk_ms=0.105716 submit_ms=0.83932 capture_wait_ms=0.176265 validation_read_ms=0.013399
+PARITY triangles=33 samples=9 height_m=0 position_m=0 normal_rad=0 color=0 uploaded=1452 peak=5744 dispatches=3 gpu_ms=0.54938 cpu_bulk_ms=0.028784 submit_ms=0.914227 capture_wait_ms=0.077279 validation_read_ms=0.009347
+[       OK ] TerrainCompute.DoubleFieldsMatchCpuAtPolesLatticeBoundariesAndExtremeSeeds (45 ms)
+[ RUN      ] TerrainCompute.ShorelineMixedLodAndSinkingRetainSharedEndpointsAndTriangleOrder
+PARITY triangles=10000 samples=5002 height_m=0 position_m=0 normal_rad=2.98023e-08 color=0 uploaded=280816 peak=1700856 dispatches=2 gpu_ms=26.0431 cpu_bulk_ms=12.7294 submit_ms=40.1655 capture_wait_ms=0.166072 validation_read_ms=0.658551
+[       OK ] TerrainCompute.ShorelineMixedLodAndSinkingRetainSharedEndpointsAndTriangleOrder (143 ms)
+[ RUN      ] TerrainCompute.DriverPackingMatchesTheFieldContractAndScalarOutputStride
+[       OK ] TerrainCompute.DriverPackingMatchesTheFieldContractAndScalarOutputStride (7 ms)
+[ RUN      ] TerrainCompute.ProductionFieldMatchesCpuAndReducesTheCountedInputPayload
+PARITY triangles=100000 samples=50002 height_m=1.19371e-12 position_m=0 normal_rad=3.332e-08 color=0 uploaded=2800880 peak=17000856 dispatches=6 gpu_ms=181.714 cpu_bulk_ms=422.777 submit_ms=325.821 capture_wait_ms=0.263663 validation_read_ms=26.486
+[       OK ] TerrainCompute.ProductionFieldMatchesCpuAndReducesTheCountedInputPayload (3132 ms)
+[ RUN      ] TerrainCompute.FailedGenerationCannotReplaceAnActiveMeshAndNoCpuVerticesAreUploaded
+[       OK ] TerrainCompute.FailedGenerationCannotReplaceAnActiveMeshAndNoCpuVerticesAreUploaded (13 ms)
+[ RUN      ] TerrainCompute.SparseContactGenerationMatchesGpuPlanesWithoutReadingTheCpuMirror
+[       OK ] TerrainCompute.SparseContactGenerationMatchesGpuPlanesWithoutReadingTheCpuMirror (156 ms)
+[----------] 6 tests from TerrainCompute (3499 ms total)
+
+[----------] 7 tests from GpuPreparation
+[ RUN      ] GpuPreparation.ChainsGrassBeforeTerrainPollingAndPreallocatesDrawResources
+[       OK ] GpuPreparation.ChainsGrassBeforeTerrainPollingAndPreallocatesDrawResources (890 ms)
+[ RUN      ] GpuPreparation.PreviousPatchSurvivesDelayedConsumptionBudgetFailureAndStaleCommit
+[       OK ] GpuPreparation.PreviousPatchSurvivesDelayedConsumptionBudgetFailureAndStaleCommit (1150 ms)
+[ RUN      ] GpuPreparation.DisabledGrassAndWaterKeepExplicitMatchingConsumers
+[       OK ] GpuPreparation.DisabledGrassAndWaterKeepExplicitMatchingConsumers (521 ms)
+[ RUN      ] GpuPreparation.MissingConsumersAndGenerationByteLimitsPreservePreviousMesh
+[       OK ] GpuPreparation.MissingConsumersAndGenerationByteLimitsPreservePreviousMesh (2470 ms)
+[ RUN      ] GpuPreparation.CorruptSummaryPrefixesSlotsAndCandidateTotalsAreRejected
+[       OK ] GpuPreparation.CorruptSummaryPrefixesSlotsAndCandidateTotalsAreRejected (827 ms)
+[ RUN      ] GpuPreparation.SubmissionAndResourcePollingRestoreContextBindingsAndRanges
+[       OK ] GpuPreparation.SubmissionAndResourcePollingRestoreContextBindingsAndRanges (817 ms)
+[ RUN      ] GpuPreparation.DelayedFencePollsNeverWaitReadSummaryOrPublish
+[       OK ] GpuPreparation.DelayedFencePollsNeverWaitReadSummaryOrPublish (825 ms)
+[----------] 7 tests from GpuPreparation (7504 ms total)
+
+[----------] 4 tests from GrassMetadata
+[ RUN      ] GrassMetadata.MatchesCpuEligibilityAndWeightsAtPolesWithWaterSnowSlopesAndGaussianTails
+GRASS_METADATA triangles=10000 eligible=626 uploaded=1416 resident=640160 dispatches=157 relative_area_error=1.85796e-15
+GRASS_METADATA triangles=8708 eligible=51 uploaded=168 resident=557472 dispatches=1 relative_area_error=3.84895e-15
+GRASS_METADATA triangles=10000 eligible=200 uploaded=168 resident=640160 dispatches=1 relative_area_error=3.16232e-15
+GRASS_METADATA triangles=10000 eligible=258 uploaded=168 resident=640160 dispatches=1 relative_area_error=2.20116e-14
+GRASS_METADATA triangles=9966 eligible=332 uploaded=168 resident=637984 dispatches=1 relative_area_error=6.71171e-16
+GRASS_METADATA triangles=9966 eligible=359 uploaded=168 resident=637984 dispatches=1 relative_area_error=5.76844e-16
+GRASS_METADATA triangles=9966 eligible=0 uploaded=168 resident=637984 dispatches=1 relative_area_error=0
+GRASS_METADATA triangles=9966 eligible=0 uploaded=168 resident=637984 dispatches=1 relative_area_error=0
+GRASS_METADATA triangles=8640 eligible=0 uploaded=168 resident=553120 dispatches=1 relative_area_error=0
+[       OK ] GrassMetadata.MatchesCpuEligibilityAndWeightsAtPolesWithWaterSnowSlopesAndGaussianTails (3821 ms)
+[ RUN      ] GrassMetadata.DriverPackingMatchesHostDescriptorsAndParameters
+[       OK ] GrassMetadata.DriverPackingMatchesHostDescriptorsAndParameters (12 ms)
+[ RUN      ] GrassMetadata.LimitsTruncatedInputsAndInvalidGenerationsRejectWithoutDisturbingGlRanges
+[       OK ] GrassMetadata.LimitsTruncatedInputsAndInvalidGenerationsRejectWithoutDisturbingGlRanges (12 ms)
+[ RUN      ] GrassMetadata.ProductionResidentBuffersDoNotNeedTheCpuMirrorAndCachedPreparationTransfersNothing
+GRASS_METADATA triangles=100000 eligible=20913 uploaded=176 resident=6400160 dispatches=2 relative_area_error=3.09371e-15
+[       OK ] GrassMetadata.ProductionResidentBuffersDoNotNeedTheCpuMirrorAndCachedPreparationTransfersNothing (3701 ms)
+[----------] 4 tests from GrassMetadata (7548 ms total)
+
+[----------] 4 tests from GrassAllocation
+[ RUN      ] GrassAllocation.RoundedSlotsBoundariesAndNonPowerCapsMatchIndependentOracle
+GRASS_ALLOCATION triangles=11 patches=10 candidates=193 budget=1000 density=1 input=1848 working=520 dispatches=135
+GRASS_ALLOCATION triangles=6 patches=6 candidates=18 budget=1000 density=1 input=1848 working=460 dispatches=135
+GRASS_ALLOCATION triangles=137 patches=137 candidates=452 budget=500 density=2 input=3480 working=2360 dispatches=271
+GRASS_ALLOCATION triangles=137 patches=68 candidates=68 budget=68 density=0.444444 input=1848 working=2360 dispatches=135
+[       OK ] GrassAllocation.RoundedSlotsBoundariesAndNonPowerCapsMatchIndependentOracle (186 ms)
+[ RUN      ] GrassAllocation.TinyBudgetsChooseStableLowestHashesAndEmptyEligibilityStaysEmpty
+GRASS_ALLOCATION triangles=73 patches=1 candidates=1 budget=1 density=0.015625 input=1848 working=1428 dispatches=135
+GRASS_ALLOCATION triangles=73 patches=2 candidates=2 budget=2 density=0.015625 input=1848 working=1428 dispatches=135
+GRASS_ALLOCATION triangles=73 patches=7 candidates=7 budget=7 density=0.015625 input=1848 working=1428 dispatches=135
+GRASS_ALLOCATION triangles=73 patches=72 candidates=72 budget=72 density=0.015625 input=1848 working=1428 dispatches=135
+GRASS_ALLOCATION triangles=73 patches=73 candidates=73 budget=73 density=0.015625 input=1848 working=1428 dispatches=135
+GRASS_ALLOCATION triangles=65 patches=0 candidates=0 budget=10 density=0 input=1848 working=1332 dispatches=135
+[       OK ] GrassAllocation.TinyBudgetsChooseStableLowestHashesAndEmptyEligibilityStaysEmpty (230 ms)
+[ RUN      ] GrassAllocation.InvalidSourcesAndQueriedLimitsPreservePreviousOutput
+[       OK ] GrassAllocation.InvalidSourcesAndQueriedLimitsPreservePreviousOutput (12 ms)
+[ RUN      ] GrassAllocation.ProductionPlanningAndResidentTerrainNeedNoCpuRenderVectors
+RESIDENT_PLAN triangles=100000 patches=13019 candidates=1048429 input=2840 metadata=6400160 allocation=1456556
+[       OK ] GrassAllocation.ProductionPlanningAndResidentTerrainNeedNoCpuRenderVectors (5311 ms)
+[----------] 4 tests from GrassAllocation (5742 ms total)
+
+[----------] Global test environment tear-down
+[==========] 21 tests from 4 test suites ran. (24294 ms total)
+[  PASSED  ] 21 tests.
