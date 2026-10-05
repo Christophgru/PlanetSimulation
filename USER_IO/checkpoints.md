@@ -1,5 +1,29 @@
 # Page to document progress of AI Agents working on this Project
 
+## Quadro versus RTX 3070 Ti benchmark checkpoint — 2026-10-05
+
+- Both physical cards now run the unchanged production capture renderer through
+  a private EGL adapter: actual UUID/renderer, GL 4.3, RGBA8/depth24/stencil8
+  and four-sample context configuration verified against NVML. Driver is
+  580.178.04. Production rendering/runtime sources and shaders are unchanged.
+- Twelve runs, three alternating pairs per case, use the same frozen executable,
+  production scene, 1280×720 camera and quality. Ninety frames per run retain
+  frames 10–88; all 948 retained frames have complete GPU query samples.
+  Fixed-camera means are 73.279 ms Quadro / 5.745 ms RTX (12.75×); controlled
+  walking means are 78.741 / 5.959 ms (13.21×). These are uncapped offscreen
+  measurements; neither case rebuilds terrain/grass in the measured interval.
+- All six pairs retain matching camera, planned blades/patches and receipts.
+  GPU culling differs by two blades; mean PNG channel errors stay below 0.029
+  of one 8-bit level. Full logs, CSVs, twelve PNGs/sidecars, telemetry, hashes,
+  reproduction tooling and standalone plot are retained in
+  docs/journal/benchmarks/gpu-comparison/. README and journal/PDF include the
+  comparison separately from historical different-scene Quadro timings.
+- T3c5 complete preparation/publication GPU timing and matched CPU/compute,
+  long-walk/body-switch/physical-memory measurements remain pending. The prior
+  63/63 runtime regression remains applicable to unchanged production sources;
+  this checkpoint verifies benchmark tooling and documentation. User TODO
+  environmental/Docker suffix remains unchanged and unstaged.
+
 ## Shared optics and hardware context checkpoint — 2026-10-05
 
 - A1a is tested. A scene-owned exact-key pack per planet supplies sky lighting,

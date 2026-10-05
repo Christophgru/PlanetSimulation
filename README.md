@@ -375,7 +375,23 @@ compare the reduced path with the full-resolution reference at a sharp depth
 boundary, while the existing night, mist, dust, sunset and bending checks stay
 in place.
 
-The remaining work is still mostly on the GPU. Moving more CPU algorithms to
+An October 5, 2026 comparison uses the **same current production scene and
+binary on both physical GPUs**, at 1280×720, with three alternating pairs per
+case and 237 measured frames per GPU/case:
+
+| Current workload | Quadro M1000M mean | RTX 3070 Ti mean | Frame-time ratio |
+| --- | ---: | ---: | ---: |
+| Fixed camera, orbital motion | 73.279 ms | 5.745 ms | 12.75× |
+| Walking, orbital motion | 78.741 ms | 5.959 ms | 13.21× |
+
+These are uncapped EGL offscreen timings. The short walking path triggers no
+terrain/grass rebuilds, and this denser scene differs from the historical
+optimization workload above. The [GPU comparison journal](docs/journal/benchmarks/gpu-comparison/study.md)
+records the method, GPU stage costs, raw traces, image agreement, telemetry
+and reproduction commands. Native interactive FPS and CPU-versus-compute
+terrain acceptance remain separate measurements.
+
+The historical optimization's remaining work was still mostly on the GPU. Moving more CPU algorithms to
 shaders would not address the measured bottleneck: cached CPU mesh preparation
 was about 0.005 ms per frame. The useful reuse rules are now:
 

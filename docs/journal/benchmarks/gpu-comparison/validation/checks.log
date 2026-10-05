@@ -1,0 +1,14 @@
+Frozen runtime/config/runner/adapter inputs, application binary and compiled adapter hashes match accepted measurements
+All 48 retained raw files match measurement SHA-256 records; all 948 retained frames have valid GPU samples and no scene reuse
+Four aggregate rows retain 237 frames each and reproduce per-run means
+All six paired PNG mean errors recomputed from committed raw images; all below 0.029 of one 8-bit level
+Local Markdown links in updated journal/README/method documents resolve
+All 22 README gallery PNG hashes match their existing manifest
+User environmental/Docker TODO suffix remains byte-for-byte unchanged
+Runner rejects too few pairs and duplicate device arguments before creating outputs
+Validated folder limits, image-only gallery and README capture links
+Production source, shaders, configs and CMake remain unchanged from prior 63/63 regression revision
+Journal PDF compiled successfully; 30 pages; abstract/comparison/evaluation/claim-map pages visually reviewed
+All six pairs match body/Sun triangle counts, terrain field/topology fingerprints and planned foliage resource bytes
+Staged diff whitespace check passes; benchmark scripts compile and adapter passes -Wall -Wextra -Werror
+Final PDF/plot hashes verified; regenerated final review pages match inspected pages byte-for-byte

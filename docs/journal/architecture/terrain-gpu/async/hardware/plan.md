@@ -1,10 +1,13 @@
 # T3c5 — matched hardware cost acceptance
 
 Hardware contexts and native correctness now pass on Quadro M1000M; see the
-[access/context checkpoint](../../../atmosphere/optics/study.md). RTX 3070 Ti is
-visible through NVML but has not supplied a tested OpenGL context. Measure the
-actual Quadro first. CPU terrain remains the default until the existing cost,
-transfer and memory gates pass on matched hardware workloads.
+[access/context checkpoint](../../../atmosphere/optics/study.md). Both Quadro and
+RTX 3070 Ti now supply verified EGL OpenGL 4.3 contexts in the
+[matched GPU comparison](../../../../benchmarks/gpu-comparison/study.md).
+That comparison uses default CPU terrain and does not rebuild during its short
+measured walk; it does not establish the resident compute cost gate. CPU terrain
+remains default until the existing cost, transfer and memory gates pass on
+matched hardware workloads.
 
 ## Measurement gaps to close first
 

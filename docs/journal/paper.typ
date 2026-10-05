@@ -21,7 +21,7 @@
 ]
 #v(0.65cm)
 #block(fill: pale, radius: 7pt, inset: 14pt)[
-  *Abstract.* PlanetSimulation couples terrain, prescribed orbital motion, reflected illumination, and an optically active atmosphere in an interactive renderer. This paper explains the physical ideas behind those models and the approximations that make them practical. Particular attention goes to atmospheric density, molecular and aerosol extinction, single scattering, twilight visibility, and refractive ray curvature. For each major subsystem, we compare the implemented method with a plausible alternative and state what physical behavior is retained or lost. Twelve generated vector diagrams explain the algorithms; versioned captures show actual rendering. The reported GPU benchmark comes from the project README and is qualified by its original workload and hardware. The model is intentionally limited: it does not solve climate, fluid flow, multiple atmospheric scattering, or mutual N-body gravity.
+  *Abstract.* PlanetSimulation couples terrain, prescribed orbital motion, reflected illumination, and an optically active atmosphere in an interactive renderer. This paper explains the physical ideas behind those models and the approximations that make them practical. Particular attention goes to atmospheric density, molecular and aerosol extinction, single scattering, twilight visibility, and refractive ray curvature. For each major subsystem, we compare the implemented method with a plausible alternative and state what physical behavior is retained or lost. Twelve generated vector diagrams explain the algorithms; versioned captures show actual rendering. Historical README timings are distinguished from new matched Quadro M1000M and RTX 3070 Ti measurements, with recorded inputs and workload limits. The model is intentionally limited: it does not solve climate, fluid flow, multiple atmospheric scattering, or mutual N-body gravity.
 ]
 #v(0.3cm)
 *Keywords:* real-time graphics · procedural terrain · Keplerian dynamics · atmospheric optics · adaptive rendering · reproducible engineering
@@ -229,6 +229,27 @@ The project's recorded Quadro M1000M benchmark at 1280×720 reported 208 ms mean
 #figure(image("figures/atmosphere/performance.svg", width: 100%), caption: [Reported mean frame times from `README.md`, Quadro M1000M, 1280×720, 90 frames. These bars visualize previously reported measurements, not a new benchmark.]) <fig:perf>
 
 A profiler now records CPU stage times and asynchronous GPU timestamp results without blocking for each query. CPU frame time, GPU pass time, and swap/presentation delay answer different questions; adding CPU and GPU times would double-count overlap. A completed HDR scene may be reused if camera, time, viewport, geometry, and pending-terrain state match. The HUD remains separately drawn so input can reveal or hide it immediately.
+
+== Matched physical GPUs: Quadro M1000M and RTX 3070 Ti
+
+On October 5, 2026, both physical GPUs rendered the same production scene and unchanged RelWithDebInfo executable at 1280×720 through uncapped EGL pbuffers. Actual EGL UUIDs match NVML; both contexts are NVIDIA driver 580.178.04, GL 4.3 core, RGBA8/depth24/stencil8 with four samples. A private capture-only window/context adapter selects each card; renderer code, shaders, resources and profiler remain unchanged. Three serial pairs alternate Quadro/RTX, RTX/Quadro and Quadro/RTX. Each run renders 90 frames; ten warmup frames and the final readback frame are excluded, leaving 237 frames per GPU and case, all with valid asynchronous GPU samples. No completed scene is reused.
+
+The initial surface camera uses production latitude −17.23072754436555°, longitude 79.39197457588234°, 2 m clearance and 80° FOV at simulation time 20 s. Time advances 1/60 s per frame. Walking also advances 0.1 m per frame, nominally 6 m/s in simulation time. CPU terrain and CPU grass planning remain default, with GPU foliage placement, quarter-resolution atmosphere, reflections and production shadows. Both cards plan 1,999,246 blades in 27,496 patches under the two-million budget and 150 m cutoff. Budgeted placement density is 47.1492 blades/m², below the configured 120.72 request; adaptive near-density acceptance remains pending.
+
+#table(
+  columns: (1.6fr, 1fr, 1fr, 1fr), inset: 5pt,
+  stroke: 0.4pt + rgb("#dfe8eb"),
+  table.header([Case], [Quadro mean / P95 (ms)], [RTX mean / P95 (ms)], [Frame-time ratio]),
+  [Fixed camera, orbital motion], [73.279 / 73.606], [5.745 / 6.078], [12.75×],
+  [Walking, orbital motion], [78.741 / 80.169], [5.959 / 6.190], [13.21×],
+)
+
+#figure(image("benchmarks/gpu-comparison/figures/frame-times.svg", width: 100%),
+  caption: [New matched physical-GPU measurements. Bars average three run means; whiskers show observed min–max run means, not confidence intervals. This uncapped offscreen comparison does not measure desktop presentation or native interactive FPS.]) <fig:gpu-comparison>
+
+Fixed-camera scoped GPU stages total 73.038 ms on Quadro and 5.132 ms on RTX. Main atmosphere takes 33.630 versus 2.159 ms, opaque geometry 19.554 versus 1.247 ms, reflected geometry 11.741 versus 1.066 ms, and reflected atmosphere 7.215 versus 0.545 ms. Atmosphere and geometry remain the largest measured stages. These query totals are not complete GPU spans and must not be added to CPU wall times. Clocks and power limits were not locked; one-second telemetry is retained, with too few active RTX samples to establish sustained power or peak physical memory.
+
+Camera and planned-count receipts match every pair. Main-view GPU culling differs by two blades (about 0.0011%), four triangles and eight vertices; paired PNG mean channel error is below 0.029 of one 8-bit level. Initial exact-count preflight was rejected; the final fresh runs require counts within 0.01% and mean image error below one level and record the actual differences. Neither case rebuilds terrain or grass during the retained interval: the short walk stays below the current cache threshold. Startup, longer movement, body switching and resident compute publication require separate cost measurements. This hardware comparison does not finish T3c5 CPU-versus-compute acceptance and is not comparable to the older, different-scene README optimization timings. Full method, raw traces, all twelve captures, telemetry and frozen hashes are in `benchmarks/gpu-comparison/study.md`.
 
 == Pale sand with centimetre wind ripples
 
@@ -456,6 +477,8 @@ The offline checkpoint passes all 51 CTest entries in a clean 308.44 s run on GC
 
 == What the evidence establishes
 
+The matched physical-GPU comparison accepts twelve runs with unchanged source/config/binary hashes, verified EGL/NVML identities and 79 complete measured GPU samples per run. Camera and planned geometry/foliage receipts match all six pairs; culling differences and image errors are explicitly retained. Only benchmark tooling and documentation change from the preceding 63/63 runtime regression checkpoint. Repository checks and journal PDF review accompany the new raw evidence in `benchmarks/gpu-comparison/validation/`. These results establish workload-specific offscreen throughput, not CPU/compute migration acceptance or interactive FPS.
+
 The exhaust/wind checkpoint passes all 56 CTest entries in a clean 675.37 s run on GCC 12.2 and Mesa llvmpipe/Xvfb with two rendering workers. Its ten new CPU cases validate emission, fading, bounded history, inertial motion and wind drag; GPU checks validate transparency, Sun gloss, depth/state preservation and 120 production-GLSL Perlin comparisons. Burn, release and retirement retain exact images and complete effect/pose replay, alongside existing gait, flight, trails and Moon checkpoints. Native wind/character input, switching and reload pass. Evidence is in `character/exhaust/validation/`.
 
 The space-flight checkpoint passed all 53 CTest entries in 764.20 s on GCC 12.2 and Mesa llvmpipe/Xvfb with two rendering workers. The character target includes 41 CPU cases, and native input verifies WASD-only airborne ignition. Flight/Moon images and their complete poses replay exactly. Evidence is retained in `character/space-flight/validation/`.
@@ -533,6 +556,7 @@ R6. NASA Glenn Research Center, #link("https://www.grc.nasa.gov/www/k-12/Numbers
   inset: 5pt,
   stroke: 0.4pt + rgb("#dfe8eb"),
   [*Claim*], [*Primary implementation*], [*Validation*],
+  [Matched physical-GPU throughput], [`scripts/benchmarks/gpu_compare/`], [Twelve runs, UUID checks, complete queries and paired images],
   [Stable terrain under LOD], [`src/rendering/geometry/Terrain.h`], [`TerrainTests`, surface capture],
   [Bounded CPU terrain jobs], [`src/rendering/geometry/jobs/`], [`TerrainJobTests`, compute capture],
   [Staged GPU preparation], [`src/rendering/geometry/compute/`, `foliage/procedural/`], [`GpuPreparation` native cases, compute capture],

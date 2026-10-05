@@ -21,8 +21,11 @@ typst compile --root . docs/journal/paper.typ docs/journal/paper.pdf
 The raster figures refer to the existing, versioned
 [README screenshot gallery](../screenshots/). Capture commands, timestamps and
 SHA-256 hashes are recorded in [generation.json](../captures/generation.json).
-The Quadro M1000M benchmark plotted in the paper reproduces numbers already
-reported in the project README; it is not a new measurement.
+The historical Quadro M1000M optimization plot reproduces numbers already
+reported in the project README. The new [Quadro versus RTX 3070 Ti study](benchmarks/gpu-comparison/study.md)
+adds twelve matched physical-GPU runs with raw traces, captures, telemetry and
+verified device identities. Its standalone Matplotlib plot measures offscreen
+throughput, with limits on interactive FPS and terrain-migration conclusions.
 
 The [camera-movement study](benchmarks/camera-movement.md), also included in the
 paper, records new software-renderer measurements of walking, foliage placement,

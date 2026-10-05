@@ -1,0 +1,59 @@
+{
+  "checked_utc": "2026-10-05T13:43:11.225800+00:00",
+  "input_sha256": "46744f330a7eb88a1657460f70512a71e1af9ee703ed127a686fcc6114089a5d",
+  "binary_sha256": "7ee0fca27d7b083c23acaa61469c9979f4a7279e1c5b65f86e40ff075bd4c1f5",
+  "runtime_regression_scope": "unchanged production runtime; preceding 63/63 checkpoint, not rerun for benchmark/docs",
+  "runs": 12,
+  "pairs": 6,
+  "retained_frames": 948,
+  "checks": [
+    "Frozen runtime/config/runner/adapter inputs, application binary and compiled adapter hashes match accepted measurements",
+    "All 48 retained raw files match measurement SHA-256 records; all 948 retained frames have valid GPU samples and no scene reuse",
+    "Four aggregate rows retain 237 frames each and reproduce per-run means",
+    "All six paired PNG mean errors recomputed from committed raw images; all below 0.029 of one 8-bit level",
+    "Local Markdown links in updated journal/README/method documents resolve",
+    "All 22 README gallery PNG hashes match their existing manifest",
+    "User environmental/Docker TODO suffix remains byte-for-byte unchanged",
+    "Runner rejects too few pairs and duplicate device arguments before creating outputs",
+    "Validated folder limits, image-only gallery and README capture links",
+    "Production source, shaders, configs and CMake remain unchanged from prior 63/63 regression revision",
+    "Journal PDF compiled successfully; 30 pages; abstract/comparison/evaluation/claim-map pages visually reviewed",
+    "All six pairs match body/Sun triangle counts, terrain field/topology fingerprints and planned foliage resource bytes",
+    "Staged diff whitespace check passes; benchmark scripts compile and adapter passes -Wall -Wextra -Werror",
+    "Final PDF/plot hashes verified; regenerated final review pages match inspected pages byte-for-byte"
+  ],
+  "todo_user_suffix_sha256": "b227dc2ecc065b8c8ac1eea5fa030c32f289ade83c61e19d571ddf6c4b09c5c5",
+  "journal": {
+    "pages": 30,
+    "pdf_sha256": "e55fc5cd418c8667362b1fb522d32c9770c768949b54e013e084de521144d00c",
+    "source_sha256": "97565cb4cff94b3c5b6689b2032860cadc05b5bc25804faaa542e19981b5c9e3",
+    "reviewed_pages": {
+      "1": {
+        "sha256": "4f915f75ab43669997eb1f73b984b4901acee2590eaed5b19b24fc5546a323f2",
+        "visual_review": "readable, no clipped content"
+      },
+      "13": {
+        "sha256": "7101c979cdb61a44d64aac070787c7389420da26b44e73eb651253af89a34dc6",
+        "visual_review": "readable, no clipped content"
+      },
+      "14": {
+        "sha256": "093cb5e2cb407b5ca8f27f7a84e56374279df4c85b712c2aa811e652a15c7c7d",
+        "visual_review": "readable, no clipped content"
+      },
+      "26": {
+        "sha256": "f37c419804ad38b0be88cff1817c48c3a9936ad8719f90317030b94a7ff282e0",
+        "visual_review": "readable, no clipped content"
+      },
+      "30": {
+        "sha256": "501cdc742942188bd07aef43016bb85055f0acf7640bbd647f7dcf7c442bb395",
+        "visual_review": "readable, no clipped content"
+      }
+    }
+  },
+  "plot": {
+    "generator": "scripts/benchmarks/gpu_compare/plot.py",
+    "sha256": "d07b6df78e86cb8bcf0093c7e1d1b227da10366230947d5dad4cb89e7924a26c",
+    "matplotlib": "3.11.2"
+  },
+  "adapter_warning_build": "c++ -std=c++17 -Wall -Wextra -Werror -O2 -fPIC -shared; passed"
+}
