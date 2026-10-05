@@ -23,12 +23,20 @@
 #include <limits>
 
 namespace rendering {
+struct PendingSceneReload;
+struct ReloadTracking;
+struct ReloadCommitState;
 struct Renderer::Impl {
     explicit Impl(app::CommandLineOptions arguments);
     ~Impl();
     int capture();
     int interact();
     void reloadScene();
+    void requestResidentReload();
+    bool pollResidentReload();
+    bool sceneReloadPreparing() const;
+    void finishSceneReload(ReloadTracking& tracking,app::CommandLineOptions& nextOptions,
+        nlohmann::json& nextReplay,const ReloadCommitState& commit);
     void retireSceneReload(bool captureWait);
     glm::dvec3 previewReloadEye(app::PreparedScene& prepared,std::vector<Mesh>& land,
         std::vector<glm::dvec3>& anchors,nlohmann::json& replay,
@@ -87,6 +95,8 @@ struct Renderer::Impl {
     std::unique_ptr<TerrainPublication> terrainPublication; // Dies before grass/meshes/context.
     std::unique_ptr<SceneTerrainReplacement> retiredResidentScene;
     std::unique_ptr<LegacySceneReplacement> retiredLegacyScene;
+    std::unique_ptr<PendingSceneReload> pendingResidentReload;
+    std::uint64_t lastReloadAttempt=1,sceneReloadSuperseded=0,sceneReloadFrames=0;
     std::uint64_t sceneReloads=0,sceneReloadFailures=0;
     std::optional<glm::dvec3> reloadCharacterEye;
     bool reloadCharacterPending=false;

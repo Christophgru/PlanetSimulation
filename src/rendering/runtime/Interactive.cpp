@@ -27,6 +27,7 @@ int Renderer::Impl::interact() {
     std::optional<fs::file_time_type> observedConfigTime =
         watchError ? std::nullopt :
                      std::optional<fs::file_time_type>(initialConfigTime);
+    auto observedReloads=sceneReloads;
     bool configChangePending = false;
     double configChangedAt = 0.0;
     double nextConfigCheckAt = previousFrameTime;
@@ -64,17 +65,21 @@ int Renderer::Impl::interact() {
                 std::optional<fs::file_time_type>(reloadTime);
             try {
                 reloadScene();
-                previousFrameTime=glfwGetTime();foliageTime=simulationTime;
-                cameraTransition.cancel();displayedMode=cameraInput.mode();
-                displayedPose=rendering::CameraPose::fromView(
-                    glm::dvec3(scene.sunCamera.position),scene.sunCamera.getViewMatrix(),scene.sunCamera.fov);
-                telemetry=SurfaceCameraTelemetry{};
-                std::cout << "Reloaded " << source.watchedScenePath << ": " << scene.scenario.name
-                          << ", " << scene.scenario.planets.size() << " planet(s)\n";
             } catch (const std::exception& error) {
                 std::cerr << "Config reload failed; current scene retained: "
                           << error.what() << '\n';
             }
+        }
+        if(terrainPublication) pollResidentReload();
+        if(sceneReloads!=observedReloads) {
+            observedReloads=sceneReloads;
+            previousFrameTime=glfwGetTime();foliageTime=simulationTime;
+            cameraTransition.cancel();displayedMode=cameraInput.mode();
+            displayedPose=rendering::CameraPose::fromView(
+                glm::dvec3(scene.sunCamera.position),scene.sunCamera.getViewMatrix(),scene.sunCamera.fov);
+            telemetry=SurfaceCameraTelemetry{};
+            std::cout << "Reloaded " << source.watchedScenePath << ": " << scene.scenario.name
+                      << ", " << scene.scenario.planets.size() << " planet(s)\n";
         }
         const double frameTime = glfwGetTime();
         const double frameElapsed = std::max(0.0, frameTime - previousFrameTime);

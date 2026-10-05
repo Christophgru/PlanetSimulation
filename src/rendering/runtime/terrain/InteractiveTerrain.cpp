@@ -51,6 +51,7 @@ void Renderer::Impl::prepareResidentFrame(const glm::dvec3& eye,std::optional<do
         }
         residentRetirementFailed=true;return; // Keep old resources and admission charged.
     }
+    if(sceneReloadPreparing()) return; // Lease freezes live generations, not movement/draws.
     if(residentStage) {
         const auto k=*residentStage;
         try {

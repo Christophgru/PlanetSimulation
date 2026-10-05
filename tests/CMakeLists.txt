@@ -45,6 +45,15 @@ add_test(NAME TerrainFrameIntegration COMMAND terrain_frame_tests)
 set_tests_properties(TerrainFrameIntegration PROPERTIES
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 240 RUN_SERIAL TRUE)
 
+add_executable(terrain_reload_frame_tests app/terrain/interactive/test_reload.cpp)
+target_link_libraries(terrain_reload_frame_tests PRIVATE planet_app GTest::gtest_main)
+target_compile_definitions(terrain_reload_frame_tests PRIVATE
+    PLANET_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
+    PLANET_TEST_OUTPUT="${CMAKE_BINARY_DIR}/terrain-reload-frame")
+add_test(NAME TerrainReloadFrameIntegration COMMAND terrain_reload_frame_tests)
+set_tests_properties(TerrainReloadFrameIntegration PROPERTIES
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 240 RUN_SERIAL TRUE)
+
 add_executable(config_tests config/test_config.cpp)
 target_link_libraries(config_tests PRIVATE GTest::gtest GTest::gtest_main nlohmann_json::nlohmann_json)
 target_include_directories(config_tests PRIVATE 
@@ -156,7 +165,7 @@ add_test(NAME RenderDiagnosticsTests COMMAND render_diagnostics_tests)
 add_test(NAME StarFieldTests COMMAND star_field_tests)
 add_test(NAME MeshGeometryTests COMMAND mesh_geometry_tests)
 add_test(NAME TerrainTests COMMAND terrain_tests)
-add_executable(terrain_job_tests geometry/jobs/test_terrain_jobs.cpp)
+add_executable(terrain_job_tests geometry/jobs/test_terrain_jobs.cpp geometry/jobs/test_terrain_future.cpp)
 target_link_libraries(terrain_job_tests PRIVATE planet_geometry GTest::gtest_main)
 add_test(NAME TerrainJobTests COMMAND terrain_job_tests)
 set_tests_properties(TerrainJobTests PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 30)

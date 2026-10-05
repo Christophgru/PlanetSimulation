@@ -1,0 +1,130 @@
+Internal ctest changing into directory: /workspace/build-resume
+Test project /workspace/build-resume
+      Start  1: RendererLifecycleTests
+ 1/62 Test  #1: RendererLifecycleTests ..................   Passed   77.54 sec
+      Start  2: TerrainRecoveryIntegration
+ 2/62 Test  #2: TerrainRecoveryIntegration ..............   Passed   67.26 sec
+      Start  3: TerrainFrameIntegration
+ 3/62 Test  #3: TerrainFrameIntegration .................   Passed   19.05 sec
+      Start  4: TerrainReloadFrameIntegration
+ 4/62 Test  #4: TerrainReloadFrameIntegration ...........   Passed   25.42 sec
+      Start  5: ConfigTests
+ 5/62 Test  #5: ConfigTests .............................   Passed    0.02 sec
+      Start  6: OrbitCameraTests
+ 6/62 Test  #6: OrbitCameraTests ........................   Passed    0.01 sec
+      Start  7: CameraInputTests
+ 7/62 Test  #7: CameraInputTests ........................   Passed    0.01 sec
+      Start  8: AstronautMotionTests
+ 8/62 Test  #8: AstronautMotionTests ....................   Passed    2.19 sec
+      Start  9: ExhaustPhysicsTests
+ 9/62 Test  #9: ExhaustPhysicsTests .....................   Passed    0.01 sec
+      Start 10: ExhaustRenderIntegration
+10/62 Test #10: ExhaustRenderIntegration ................   Passed    0.38 sec
+      Start 11: CameraTransitionTests
+11/62 Test #11: CameraTransitionTests ...................   Passed    0.01 sec
+      Start 12: SceneTransformsTests
+12/62 Test #12: SceneTransformsTests ....................   Passed    0.01 sec
+      Start 13: OrbitPathsTests
+13/62 Test #13: OrbitPathsTests .........................   Passed    0.01 sec
+      Start 14: OrbitalSystemTests
+14/62 Test #14: OrbitalSystemTests ......................   Passed    0.11 sec
+      Start 15: CelestialLightingTests
+15/62 Test #15: CelestialLightingTests ..................   Passed    0.02 sec
+      Start 16: CameraExposureTests
+16/62 Test #16: CameraExposureTests .....................   Passed    0.01 sec
+      Start 17: SceneReplayTests
+17/62 Test #17: SceneReplayTests ........................   Passed    0.01 sec
+      Start 18: TerrainShadowProjectionTests
+18/62 Test #18: TerrainShadowProjectionTests ............   Passed    0.01 sec
+      Start 19: TerrainShadowRenderIntegration
+19/62 Test #19: TerrainShadowRenderIntegration ..........   Passed    5.94 sec
+      Start 20: RenderDiagnosticsTests
+20/62 Test #20: RenderDiagnosticsTests ..................   Passed    0.01 sec
+      Start 21: StarFieldTests
+21/62 Test #21: StarFieldTests ..........................   Passed    0.01 sec
+      Start 22: MeshGeometryTests
+22/62 Test #22: MeshGeometryTests .......................   Passed    0.01 sec
+      Start 23: TerrainTests
+23/62 Test #23: TerrainTests ............................   Passed   11.10 sec
+      Start 24: TerrainJobTests
+24/62 Test #24: TerrainJobTests .........................   Passed    0.08 sec
+      Start 25: TerrainComputeIntegration
+25/62 Test #25: TerrainComputeIntegration ...............   Passed   47.60 sec
+      Start 26: GrassPlanTests
+26/62 Test #26: GrassPlanTests ..........................   Passed    0.01 sec
+      Start 27: GrassTrailTests
+27/62 Test #27: GrassTrailTests .........................   Passed    0.01 sec
+      Start 28: GrassPlacementTests
+28/62 Test #28: GrassPlacementTests .....................   Passed    0.04 sec
+      Start 29: PlanetLocalFrameTests
+29/62 Test #29: PlanetLocalFrameTests ...................   Passed    0.01 sec
+      Start 30: PlanetSurfaceCameraTests
+30/62 Test #30: PlanetSurfaceCameraTests ................   Passed    0.01 sec
+      Start 31: SurfaceCameraTelemetryTests
+31/62 Test #31: SurfaceCameraTelemetryTests .............   Passed    0.01 sec
+      Start 32: RenderSceneIntegration
+32/62 Test #32: RenderSceneIntegration ..................   Passed    1.26 sec
+      Start 33: SurfaceRenderIntegration
+33/62 Test #33: SurfaceRenderIntegration ................   Passed    4.61 sec
+      Start 34: PlanetOrbitRenderIntegration
+34/62 Test #34: PlanetOrbitRenderIntegration ............   Passed    3.42 sec
+      Start 35: MovingSurfaceRenderIntegration
+35/62 Test #35: MovingSurfaceRenderIntegration ..........   Passed    4.66 sec
+      Start 36: MovingPlanetRenderIntegration
+36/62 Test #36: MovingPlanetRenderIntegration ...........   Passed    3.40 sec
+      Start 37: MoonlightRenderIntegration
+37/62 Test #37: MoonlightRenderIntegration ..............   Passed    1.29 sec
+      Start 38: TerrainComputeCaptureIntegration
+38/62 Test #38: TerrainComputeCaptureIntegration ........   Passed   36.86 sec
+      Start 39: AstronautCaptureIntegration
+39/62 Test #39: AstronautCaptureIntegration .............   Passed  113.53 sec
+      Start 40: ExhaustCaptureIntegration
+40/62 Test #40: ExhaustCaptureIntegration ...............   Passed   58.15 sec
+      Start 41: SpaceFlightCaptureIntegration
+41/62 Test #41: SpaceFlightCaptureIntegration ...........   Passed   32.84 sec
+      Start 42: OfflineCaptureIntegration
+42/62 Test #42: OfflineCaptureIntegration ...............   Passed   16.00 sec
+      Start 43: CpuTraceTests
+43/62 Test #43: CpuTraceTests ...........................   Passed    0.01 sec
+      Start 44: CpuTraceReportTests
+44/62 Test #44: CpuTraceReportTests .....................   Passed    0.17 sec
+      Start 45: GrassCaptureIntegration
+45/62 Test #45: GrassCaptureIntegration .................   Passed   60.61 sec
+      Start 46: LightingScenariosRenderIntegration
+46/62 Test #46: LightingScenariosRenderIntegration ......   Passed   39.01 sec
+      Start 47: TwilightScenariosRenderIntegration
+47/62 Test #47: TwilightScenariosRenderIntegration ......   Passed   22.23 sec
+      Start 48: AtmosphereTests
+48/62 Test #48: AtmosphereTests .........................   Passed    0.01 sec
+      Start 49: AtmosphereScenariosRenderIntegration
+49/62 Test #49: AtmosphereScenariosRenderIntegration ....   Passed  112.14 sec
+      Start 50: AtmosphereRefractionRenderIntegration
+50/62 Test #50: AtmosphereRefractionRenderIntegration ...   Passed    7.45 sec
+      Start 51: FrameReuseTests
+51/62 Test #51: FrameReuseTests .........................   Passed    0.01 sec
+      Start 52: PerformanceCaptureIntegration
+52/62 Test #52: PerformanceCaptureIntegration ...........   Passed   24.82 sec
+      Start 53: GpuUtilizationTests
+53/62 Test #53: GpuUtilizationTests .....................   Passed    0.01 sec
+      Start 54: GrassWindInputIntegration
+54/62 Test #54: GrassWindInputIntegration ...............   Passed   17.91 sec
+      Start 55: AstronautInputIntegration
+55/62 Test #55: AstronautInputIntegration ...............   Passed   10.05 sec
+      Start 56: PerformanceOverlayInputIntegration
+56/62 Test #56: PerformanceOverlayInputIntegration ......   Passed   19.43 sec
+      Start 57: OrbitOverlayInputIntegration
+57/62 Test #57: OrbitOverlayInputIntegration ............   Passed   20.97 sec
+      Start 58: CameraTransitionInputIntegration
+58/62 Test #58: CameraTransitionInputIntegration ........   Passed    5.19 sec
+      Start 59: CameraClippingInputIntegration
+59/62 Test #59: CameraClippingInputIntegration ..........   Passed    8.61 sec
+      Start 60: RepositoryLayout
+60/62 Test #60: RepositoryLayout ........................   Passed    0.19 sec
+      Start 61: AdaptiveQualityTests
+61/62 Test #61: AdaptiveQualityTests ....................   Passed    0.01 sec
+      Start 62: AdaptiveQualityRenderIntegration
+62/62 Test #62: AdaptiveQualityRenderIntegration ........   Passed    2.59 sec
+
+100% tests passed, 0 tests failed out of 62
+
+Total Test time (real) = 884.40 sec

@@ -1,6 +1,7 @@
 # T3c4b — asynchronous reload design notes
 
-This is the next checkpoint after the tested frame core. Keep the public CLI
+T3c4b is implemented and tested; see [implementation and acceptance](reload/study.md).
+These design notes retain the ownership decisions. Keep the public CLI
 capture gate until T3c4c native input acceptance; implement resident compute
 reload first, preserving the existing CPU and capture adapters.
 

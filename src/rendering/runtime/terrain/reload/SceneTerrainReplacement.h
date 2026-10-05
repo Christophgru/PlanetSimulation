@@ -60,6 +60,8 @@ public:
     bool submit(TerrainCpuBuild build,const TerrainBuildIdentity& identity,
         const glm::dvec3& grassEye,TerrainCompute& compute);
     bool poll(); // Zero-timeout GPU polls; only exchanges off-live body consumers.
+    bool replanGrass(std::size_t index,const glm::dvec3& eye);
+    bool preparing() const noexcept {return preparing_.has_value();}
     void waitForCapture();
     bool ready() const noexcept;
     // False for a superseded epoch. All checks/fence allocation precede exchange.

@@ -16,7 +16,7 @@ TerrainBuildScheduler::~TerrainBuildScheduler() {stop();}
 bool TerrainBuildScheduler::submit(TerrainBuildRequest request) {
     request.validate();
     {std::lock_guard lock(mutex_);
-        if(stopping_ || exclusiveEpoch_ || request.identity.epoch!=epoch_ || request.identity.serial<=latestSerial_) return false;
+        if(stopping_ || exclusiveEpoch_ || request.identity.epoch!=replacementEpoch_.value_or(epoch_) || request.identity.serial<=latestSerial_) return false;
         latestSerial_=request.identity.serial;++stats_.submitted;
         if(queued_) ++stats_.coalesced;
         queued_=std::move(request);stats_.peakQueued=1;
@@ -42,7 +42,7 @@ TerrainBuildCompletion TerrainBuildScheduler::executeExclusive(TerrainBuildReque
     request.validate();const auto key=request.identity;
     std::unique_lock lock(mutex_);
     const auto liveEpoch=epoch_;
-    if(stopping_ || (!replacement && (running_ || queued_ || ready_)) || exclusiveEpoch_ ||
+    if(stopping_ || (!replacement && (running_ || queued_ || ready_)) || exclusiveEpoch_ || replacementEpoch_ ||
        (replacement ? key.epoch<=epoch_ : key.epoch!=epoch_) || key.serial<=latestSerial_)
         throw std::logic_error("Capture terrain build requires an idle matching scheduler");
     if(replacement) {
@@ -64,9 +64,29 @@ TerrainBuildCompletion TerrainBuildScheduler::executeExclusive(TerrainBuildReque
 void TerrainBuildScheduler::advanceEpoch(std::uint64_t epoch) {
     {std::lock_guard lock(mutex_);
         if(epoch<=epoch_) throw std::invalid_argument("Terrain scene epoch must increase");
+        if(replacementEpoch_ && *replacementEpoch_!=epoch)
+            throw std::invalid_argument("Terrain replacement epoch must match commit");
+        replacementEpoch_.reset();
         epoch_=epoch;latestSerial_=0;
         stats_.obsolete+=unsigned(queued_.has_value())+unsigned(ready_.has_value());
         queued_.reset();ready_.reset();
+    }
+    changed_.notify_all();
+}
+void TerrainBuildScheduler::beginReplacement(std::uint64_t epoch) {
+    {std::lock_guard lock(mutex_);
+        if(stopping_ || exclusiveEpoch_ || epoch<=epoch_ || epoch<=lastReplacementEpoch_)
+            throw std::invalid_argument("Terrain replacement requires a new future epoch");
+        stats_.obsolete+=unsigned(queued_.has_value())+unsigned(ready_.has_value());
+        queued_.reset();ready_.reset();replacementEpoch_=epoch;lastReplacementEpoch_=epoch;
+    }
+    changed_.notify_all();
+}
+void TerrainBuildScheduler::abortReplacement(std::uint64_t epoch) {
+    {std::lock_guard lock(mutex_);
+        if(replacementEpoch_!=epoch) return;
+        stats_.obsolete+=unsigned(queued_.has_value())+unsigned(ready_.has_value());
+        queued_.reset();ready_.reset();replacementEpoch_.reset();
     }
     changed_.notify_all();
 }
@@ -100,7 +120,7 @@ void TerrainBuildScheduler::run() {
         lock.unlock();TerrainBuildCompletion completion{request.identity,{},{}};
         try {completion.build=builder_(request);} catch(...) {completion.error=std::current_exception();}
         lock.lock();running_.reset();
-        if(stopping_ || request.identity.epoch!=exclusiveEpoch_.value_or(epoch_)) ++stats_.obsolete;
+        if(stopping_ || request.identity.epoch!=exclusiveEpoch_.value_or(replacementEpoch_.value_or(epoch_))) ++stats_.obsolete;
         else {++stats_.completed;if(completion.error) ++stats_.failed;ready_=std::move(completion);}
         changed_.notify_all();
     }

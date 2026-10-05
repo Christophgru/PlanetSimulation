@@ -32,3 +32,7 @@ rebinds the committed contacts before the current character step. Interactive
 movement does not require capture's exact submission-time chase-eye equality.
 Hardware frame percentiles and physical memory remain T3c5; llvmpipe validates
 correctness only.
+
+T3c4a frame preparation is tested. T3c4b complete asynchronous reload is tested; its [implementation and acceptance](reload/study.md) retain per-body
+preparation, future worker leases and final-anchor publication. All 62 CTest groups pass on frozen inputs. Resume T3c4c native acceptance;
+startup/CLI compute gates remain.

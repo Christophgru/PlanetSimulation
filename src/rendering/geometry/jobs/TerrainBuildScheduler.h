@@ -37,6 +37,10 @@ public:
     // waits for running ownership and uses a future epoch without changing the
     // live epoch. Normal-frame code must not call this explicit wait adapter.
     TerrainBuildCompletion executeForReload(TerrainBuildRequest request);
+    // Nonblocking lease for future-scene work. Superseding keeps an executing
+    // snapshot alive but drops its result; live epoch changes only on commit.
+    void beginReplacement(std::uint64_t epoch);
+    void abortReplacement(std::uint64_t epoch);
     void advanceEpoch(std::uint64_t epoch);
     std::optional<TerrainBuildIdentity> pendingFor(std::uint64_t epoch,std::size_t body) const;
     bool pending(std::uint64_t epoch) const;
@@ -50,6 +54,8 @@ private:
     std::condition_variable changed_;
     std::uint64_t epoch_=1,latestSerial_=0;
     std::optional<std::uint64_t> exclusiveEpoch_;
+    std::optional<std::uint64_t> replacementEpoch_;
+    std::uint64_t lastReplacementEpoch_=0;
     bool stopping_=false;
     std::optional<TerrainBuildRequest> queued_;
     std::optional<TerrainBuildIdentity> running_;

@@ -1,5 +1,5 @@
 #include "rendering/runtime/RendererState.h"
-#include "rendering/runtime/terrain/reload/ReloadTracking.h"
+#include "rendering/runtime/terrain/reload/ReloadCommit.h"
 #include "rendering/runtime/terrain/reload/ReplayEffects.h"
 #include "rendering/quality/OfflineQuality.h"
 #include "config/SceneReplay.h"
@@ -26,6 +26,7 @@ void Renderer::Impl::retireSceneReload(bool captureWait) {
     }
 }
 void Renderer::Impl::reloadScene() {
+    if(terrainPublication && !options.renderTestMode) {requestResidentReload();return;}
     CpuTrace::Scope trace("scene.reload_transaction");
     try {
         retireSceneReload(options.renderTestMode);
@@ -126,15 +127,7 @@ void Renderer::Impl::reloadScene() {
                 resident->waitForCapture();tracking.triangles[i]=resident->land(i).indexCount/3;
             } else legacy->grass.prepare(i,legacy->meshes.planetMeshes[i],planet,stagedScene.scenario.metersPerWorldUnit(),anchor);
         }
-        // Validate fallible scalar updates before exchanging the scene.
-        const double walkSpeed=6.0/stagedScene.scenario.metersPerWorldUnit();
-        if(!std::isfinite(walkSpeed) || walkSpeed<=0) throw std::invalid_argument("Invalid reload walking speed");
-        ClipPlanes nextClip;
-        if(stagedScene.surfaceCamera) nextClip=surfaceClipPlanes(
-            third ? .2/stagedScene.scenario.metersPerWorldUnit() : stagedScene.surfaceCamera->configuredClearance(),
-            glm::length((plannedEye ? *plannedEye : stagedScene.surfaceCamera->position())-stagedScene.sunPosition),stagedScene.scenario.sun.radius);
-        const auto commitWall=glfwGetTime();
-        if(!std::isfinite(commitWall)) throw std::runtime_error("Invalid reload wall clock");
+        const auto commit=prepareReloadCommit(stagedScene,third,time,plannedEye);
         if(resident) {
             if(!resident->publish(epoch)) throw std::logic_error("Replacement scene became obsolete");
             retiredResidentScene=std::move(resident);
@@ -146,35 +139,14 @@ void Renderer::Impl::reloadScene() {
             grass.procedural.swapState(legacy->grass.procedural);terrainSceneEpoch=epoch;
             retiredLegacyScene=std::move(legacy);
         }
-        // No allocations after exchange. Optional cameras keep their addresses.
-        tracking.exchange(*this);using std::swap;swap(options,nextOptions);source.replayDocument.swap(nextSource.replayDocument);
-        terrainJobs.advanceEpoch(epoch);simulationTime=time;simulationClock.reset(time,commitWall);characterWindTime=time;surfaceClip=nextClip;
-        cameraInput.rebind(scene.surfaceCamera ? &*scene.surfaceCamera : nullptr,scene.planetOrbitCamera ? &*scene.planetOrbitCamera : nullptr);
-        cameraInput.setThirdPersonWalkSpeed(walkSpeed);
-        if(options.renderTestMode) {
-            cameraInput.selectOrbit(); // Selecting an orbit must not realign the staged camera from an old walking mode.
-            if(options.thirdPersonRenderMode) cameraInput.selectThirdPerson();else if(options.surfaceRenderMode) cameraInput.selectSurface();
-            else if(options.planetRenderMode) cameraInput.selectPlanetOrbit();else cameraInput.selectOrbit();
-        }
-        astronaut.motion=AstronautMotion{};astronaut.exhaust.clear();astronaut.lastEmitter.reset();astronaut.exhaustTime.reset();
-        astronautGround.clear();astronautGroundRevision=0;astronautReplayRestored=false;astronautBenchmarkBoost=false;
-        astronautFlightControl={0,0};inputContext.spacePresses=0;plannedCharacterEye.reset();
-        reloadCharacterEye=plannedEye;reloadCharacterPending=bool(plannedEye) && options.renderTestMode;
-        if(scene.surfaceCamera) {
-            const auto i=scene.scenario.surface_camera.planet_index;captureTerrainEye=lastTerrainEyes[i];astronaut.planetIndex=i;
-            if(meshes.planetMeshes[i].contacts) astronautGround.bind(meshes.planetMeshes[i].contacts,meshes.planetMeshes[i].revision);
-            else astronautGround.bind(meshes.planetMeshes[i].vertices,meshes.planetMeshes[i].indices,meshes.planetMeshes[i].revision,
-                scene.scenario.planets[i].radius*scene.scenario.metersPerWorldUnit());
-        }
-        terrainShadows.destroy();waterReflection.destroy();frameReuse.invalidate();
-        orbitTrails.clear();orbitColors.clear();orbitColorRevisions.clear();orbitTrailEpoch=std::numeric_limits<double>::quiet_NaN();
-        ++sceneReloads;glFlush();
+        finishSceneReload(tracking,nextOptions,nextSource.replayDocument,commit);
     } catch(...) {++sceneReloadFailures;throw;}
 }
 nlohmann::json Renderer::Impl::sceneReloadState() const {
     nlohmann::json j={{"published",sceneReloads},{"failed",sceneReloadFailures},{"epoch",terrainSceneEpoch},
         {"retiring",bool(retiredResidentScene)||bool(retiredLegacyScene)},
-        {"external_bytes",terrainPublication ? terrainPublication->externalBytes() : 0}};
+        {"external_bytes",terrainPublication ? terrainPublication->externalBytes() : 0},
+        {"pending",bool(pendingResidentReload)},{"superseded",sceneReloadSuperseded},{"progress_frames",sceneReloadFrames}};
     if(reloadCharacterEye) j["character_plan_eye"]={reloadCharacterEye->x,reloadCharacterEye->y,reloadCharacterEye->z};
     return j;
 }

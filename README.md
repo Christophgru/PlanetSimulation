@@ -1069,8 +1069,11 @@ The [asynchronous frame core](docs/journal/architecture/terrain-gpu/async/intera
 uses the bounded worker result slot, zero-timeout preparation/retirement polls and
 complete consumer publication during startup and movement. Initial loading defers
 walking and scene draws; replacements retain usable terrain and failed work has
-a bounded retry delay. Asynchronous whole-scene reload and native input acceptance
-remain before the public interactive compute option opens.
+a bounded retry delay. [Asynchronous scene reload](docs/journal/architecture/terrain-gpu/async/interactive/reload/study.md)
+prepares one replacement body at a time while the current scene remains usable,
+then commits complete consumers and retains old resources until fenced retirement.
+Newer requests supersede pending work; failed reloads keep the live scene.
+Native input acceptance remains before the public interactive compute option opens.
 
 Near water, `terrain_lod.shoreline_edge_m` targets 1 m edges within
 `shoreline_distance_m` (80 m by default). Set the edge target to `0` to disable

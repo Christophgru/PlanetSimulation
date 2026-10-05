@@ -1,0 +1,10 @@
+Validated folder limits, image-only gallery and README capture links
+All 22 gallery PNG hashes retained
+All 10 compute/CPU/replay PNG hashes match T3c4a exactly
+72 local Markdown links resolve
+Resident frame/reload progress and shared commit contain no explicit capture, exclusive worker, finish, join or server-wait calls
+Future worker begin/abort contain no condition-variable waits or joins
+Journal compiled: 28 pages; visually reviewed [6, 7, 8, 9, 10, 26, 27, 28]
+Working and staged git diff --check pass
+Final input differs from frozen full-run input only by removal of one extra EOF blank line in the new test support header; source and seven binaries match
+User environmental/Docker TODO suffix preserved byte-for-byte

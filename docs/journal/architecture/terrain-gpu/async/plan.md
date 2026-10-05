@@ -206,3 +206,11 @@ preparation/draws cover delayed/failed fences, grass-only recovery and stale mas
 zero positive-timeout/flush polls, server waits or bulk readbacks are observed.
 Ten baseline and 22 gallery PNG hashes remain exact. Resume T3c4b using the
 [reload design notes](interactive/reload-plan.md); T3c4c public opt-in stays gated.
+
+T3c4b asynchronous complete reload passes four actual GL renderer cases
+(26.511 s), fourteen worker cases and all 62 CTest groups in one uninterrupted
+frozen-input run (884.40 s). Old-scene motion/draws, future-epoch supersession,
+failure recovery, final replay anchors and fenced retirement are retained in
+[the reload study](interactive/reload/study.md). Ten baseline and 22 gallery PNG
+hashes are exact. Resume T3c4c native input/public opt-in; CPU stays default and
+the public compute gate remains until that acceptance passes.

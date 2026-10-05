@@ -82,6 +82,15 @@ bool SceneTerrainReplacement::poll() {
     }
     return ready();
 }
+bool SceneTerrainReplacement::replanGrass(std::size_t i,const glm::dvec3& eye) {
+    if(published_ || preparing_) return false;
+    if(!requests_.at(i) || publication_->installed(i).identity!=*requests_[i])
+        throw std::logic_error("Grass replanning requires completed replacement terrain");
+    if(publication_->installed(i).grassEye==eye) return true;
+    const auto& planet=scene_.scenario.planets[i];
+    if(!publication_->submitGrass(i,planet,scene_.scenario.metersPerWorldUnit(),eye,land_[i],water_[i])) return false;
+    preparing_=i;return true;
+}
 void SceneTerrainReplacement::waitForCapture() {
     if(preparing_) publication_->waitForCapture();
     (void)poll();

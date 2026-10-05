@@ -1,5 +1,31 @@
 # Page to document progress of AI Agents working on this Project
 
+## Asynchronous complete reload checkpoint — 2026-10-05
+
+- T3c4b is tested. Resident reload owns the latest immutable config/replay/options
+  snapshot and a monotonically increasing attempted epoch. Nonblocking future
+  worker leases supersede executing/queued/ready work, preserving the live epoch
+  on failure. One running, queued and ready CPU slot remains the bound.
+- Complete off-live preparation handles one body at a time, retaining meshes and
+  sparse contacts rather than all full CPU builds. Restored prospective contacts
+  supply final grass anchors before the shared scene/tracking/options/replay,
+  camera/contact/clock and effect/cache exchange. Old-scene movement and managed
+  draws continue; startup/retirement requests wait while retaining the latest
+  snapshot. Old buffers remain owned until zero-timeout last-use polling succeeds.
+- Four actual GL reload cases pass (26.511 s), plus fourteen worker cases.
+  All 62 CTest groups pass in one uninterrupted frozen-input run (884.40 s);
+  source/input/seven-binary fingerprints remain unchanged. Invalid config/replay,
+  GPU/final-exchange fence failures, body reorder/count/field changes, supersession,
+  delayed/failed retirement and optional-camera/empty-scene recovery pass. Saved
+  replay PNGs, ten baseline and 22 gallery PNG hashes remain exact. No blocking
+  fence polls, server waits or bulk readbacks are observed during reload progress.
+- README, journal/PDF and retained evidence are updated in
+  docs/journal/architecture/terrain-gpu/async/interactive/reload/. Resume T3c4c
+  using interactive/plan.md: native compute input/movement/flight/trail/body-switch,
+  shadow/reflection and R/file-watch reload acceptance before public CLI opt-in.
+  CPU remains default, startup/CLI compute gates remain and T3c5 hardware cost
+  acceptance is still required. User environmental/Docker TODO suffix is preserved.
+
 ## Asynchronous resident frame checkpoint — 2026-10-05
 
 - T3c4a is tested. Resident startup/movement/local-mask preparation uses the

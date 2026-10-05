@@ -37,6 +37,16 @@ TEST_F(RendererLifecycle, ConstructAndDestroyWithoutRunningTwice) {
         EXPECT_EQ(glfwGetCurrentContext(), nullptr);
     }
 }
+TEST_F(RendererLifecycle, ResidentReloadValidationDoesNotOpenStartupComputeGate) {
+    options.renderTestMode=false;options.terrainBackend="compute";options.terrainGrassPlanner="gpu-v1";
+    EXPECT_THROW({app::SceneSource startup(options);},std::invalid_argument);
+    EXPECT_NO_THROW({auto reload=app::SceneSource::forResidentReload(options);});
+    EXPECT_FALSE(options.renderTestMode);
+    options.terrainGrassPlanner="cpu";
+    EXPECT_THROW(app::SceneSource::forResidentReload(options),std::invalid_argument);
+    options.terrainBackend="cpu";options.terrainGrassPlanner="gpu-v1";
+    EXPECT_THROW(app::SceneSource::forResidentReload(options),std::invalid_argument);
+}
 
 TEST_F(RendererLifecycle, LateConstructorFailureReleasesContextAndCanRecover) {
     // Fail after several GPU owners have initialized, during quality shader load.

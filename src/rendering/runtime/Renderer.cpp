@@ -1,4 +1,5 @@
 #include "rendering/runtime/RendererState.h"
+#include "rendering/runtime/terrain/reload/interactive/PendingReload.h"
 #include "config/SceneReplay.h"
 #include "rendering/diagnostics/VideoMemory.h"
 #include "rendering/quality/OfflineQuality.h"

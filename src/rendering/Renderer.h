@@ -15,6 +15,7 @@ public:
     int run();
     // Reload the watched config/replay in the current context. Capture compute
     // explicitly waits for replacement readiness; failures retain the scene.
+    // Captures complete synchronously; resident interactive reload queues a snapshot.
     void reload();
 private:
     friend struct RendererRecoveryProbe;
