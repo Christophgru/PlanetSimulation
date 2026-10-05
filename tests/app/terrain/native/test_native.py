@@ -195,7 +195,9 @@ for name in ('space', 'moon'):
         session.abort()
     write_json(out / 'results.json', results)
 
-old_gl = {'MESA_GL_VERSION_OVERRIDE': '3.3', 'MESA_GLSL_VERSION_OVERRIDE': '330'}
+# Force the Mesa vendor for version overrides even during NVIDIA offload runs.
+old_gl = {'MESA_GL_VERSION_OVERRIDE': '3.3', 'MESA_GLSL_VERSION_OVERRIDE': '330',
+          '__GLX_VENDOR_LIBRARY_NAME': 'mesa', '__NV_PRIME_RENDER_OFFLOAD': '0'}
 for name, flags, environment in [('default-cpu', ['--config', str(config)], {}),
                                   ('gl33-fallback', ['--config', str(config), '--terrain-backend', 'compute'], old_gl)]:
     session = Session(args.probe, root, out / name, flags, environment)

@@ -1,0 +1,12 @@
+[1/11] Building CXX object CMakeFiles/planet_app.dir/src/app/Window.cpp.o
+[2/11] Linking CXX static library libplanet_app.a
+[3/11] Linking CXX executable PlanetSimulation
+[4/11] Linking CXX executable tests/terrain_recovery_tests
+[5/11] Linking CXX executable tests/terrain_frame_tests
+[6/11] Linking CXX executable tests/terrain_reload_frame_tests
+[7/11] Linking CXX executable tests/foliage_benchmark
+[8/11] Building CXX object tests/CMakeFiles/renderer_lifecycle_tests.dir/app/terrain/reload/test_renderer_reload.cpp.o
+[9/11] Linking CXX executable tests/renderer_lifecycle_tests
+[10/11] Building CXX object tests/CMakeFiles/terrain_native_probe.dir/app/terrain/native/NativeProbe.cpp.o
+[11/11] Linking CXX executable tests/terrain_native_probe
+ninja: no work to do.

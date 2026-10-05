@@ -1,0 +1,67 @@
+Start testing: Oct 05 12:04 UTC
+----------------------------------------------------------
+50/63 Testing: AtmosphereRefractionRenderIntegration
+50/63 Test: AtmosphereRefractionRenderIntegration
+Command: "/workspace/build-resume/tests/atmosphere_render_tests"
+Directory: /workspace
+"AtmosphereRefractionRenderIntegration" start time: Oct 05 12:04 UTC
+Output:
+----------------------------------------------------------
+[==========] Running 12 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 12 tests from AtmosphereRender
+[ RUN      ] AtmosphereRender.SharedOpticsBindExactCoefficientsAndRefreshDisabledAir
+[       OK ] AtmosphereRender.SharedOpticsBindExactCoefficientsAndRefreshDisabledAir (9 ms)
+[ RUN      ] AtmosphereRender.TerrainShadowBlocksDirectScatteringButPreservesAmbient
+[       OK ] AtmosphereRender.TerrainShadowBlocksDirectScatteringButPreservesAmbient (16 ms)
+[ RUN      ] AtmosphereRender.TerrainShadowMapBindsForAtmosphereAndCanBeDisabled
+[       OK ] AtmosphereRender.TerrainShadowMapBindsForAtmosphereAndCanBeDisabled (7 ms)
+[ RUN      ] AtmosphereRender.SurfaceAndOrbitalSkyDisplacementMatchesReferenceRay
+[       OK ] AtmosphereRender.SurfaceAndOrbitalSkyDisplacementMatchesReferenceRay (17 ms)
+[ RUN      ] AtmosphereRender.RasterizedDistantBodyKeepsItsSilhouette
+[       OK ] AtmosphereRender.RasterizedDistantBodyKeepsItsSilhouette (9 ms)
+[ RUN      ] AtmosphereRender.JsonTemperatureChangesRenderedSkyDisplacement
+[       OK ] AtmosphereRender.JsonTemperatureChangesRenderedSkyDisplacement (13 ms)
+[ RUN      ] AtmosphereRender.VacuumMissedShellAndNearGeometryStayUnwarped
+[       OK ] AtmosphereRender.VacuumMissedShellAndNearGeometryStayUnwarped (13 ms)
+[ RUN      ] AtmosphereRender.DenseAtmosphereDoesNotLeakTrappedRaysToBackground
+[       OK ] AtmosphereRender.DenseAtmosphereDoesNotLeakTrappedRaysToBackground (8 ms)
+[ RUN      ] AtmosphereRender.PerformanceOverlayIsVisibleOnlyWhileRequested
+[       OK ] AtmosphereRender.PerformanceOverlayIsVisibleOnlyWhileRequested (17 ms)
+[ RUN      ] AtmosphereRender.ProfilerWritesEveryFrameAndResolvesGpuQueriesWithoutPollingWaits
+[       OK ] AtmosphereRender.ProfilerWritesEveryFrameAndResolvesGpuQueriesWithoutPollingWaits (8 ms)
+[ RUN      ] AtmosphereRender.ReducedAtmosphereAndLookupPreserveSharpDepthEdges
+[       OK ] AtmosphereRender.ReducedAtmosphereAndLookupPreserveSharpDepthEdges (19 ms)
+[ RUN      ] AtmosphereRender.HighlightProtectionLimitsWhitePixelsAndPreservesCachedExposure
+[       OK ] AtmosphereRender.HighlightProtectionLimitsWhitePixelsAndPreservesCachedExposure (27 ms)
+[----------] 12 tests from AtmosphereRender (170 ms total)
+
+[----------] Global test environment tear-down
+[==========] 12 tests from 1 test suite ran. (170 ms total)
+[  PASSED  ] 12 tests.
+<end of output>
+Test time =   0.65 sec
+----------------------------------------------------------
+Test Passed.
+"AtmosphereRefractionRenderIntegration" end time: Oct 05 12:04 UTC
+"AtmosphereRefractionRenderIntegration" time elapsed: 00:00:00
+----------------------------------------------------------
+
+52/63 Testing: PerformanceCaptureIntegration
+52/63 Test: PerformanceCaptureIntegration
+Command: "/usr/bin/python3" "/workspace/tests/diagnostics/test_performance_capture.py" "--binary" "/workspace/build-resume/PlanetSimulation" "--output-dir" "/workspace/build-resume/performance-capture-tests"
+Directory: /workspace
+"PerformanceCaptureIntegration" start time: Oct 05 12:04 UTC
+Output:
+----------------------------------------------------------
+Validated traced frames, paused image identity, and moving shadow reuse
+Validated exact replay of full-resolution atmosphere capture
+<end of output>
+Test time =  13.09 sec
+----------------------------------------------------------
+Test Passed.
+"PerformanceCaptureIntegration" end time: Oct 05 12:04 UTC
+"PerformanceCaptureIntegration" time elapsed: 00:00:13
+----------------------------------------------------------
+
+End testing: Oct 05 12:04 UTC

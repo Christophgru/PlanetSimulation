@@ -1,5 +1,41 @@
 # Page to document progress of AI Agents working on this Project
 
+## Shared optics and hardware context checkpoint — 2026-10-05
+
+- A1a is tested. A scene-owned exact-key pack per planet supplies sky lighting,
+  body materials, main/reflection integration and capture diagnostics. Optical
+  input changes validate before replacement; invalid refreshes retain the old
+  pack. Scene replacement/reorder owns independent caches. Capture metadata
+  exposes evaluation/reuse counters; moving/reflected frames retain one
+  evaluation per configured body. The optical model and GPU LUT/integration
+  are unchanged; GPU highlight reduction remains A1b, complete cost/parity A1c.
+- GPU access is now available: Quadro M1000M (2 GiB) and RTX 3070 Ti (8 GiB),
+  driver 580.178.04. Use `__NV_PRIME_RENDER_OFFLOAD=1
+  __GLX_VENDOR_LIBRARY_NAME=nvidia` under Xvfb to select actual Quadro OpenGL.
+  Default Xvfb remains llvmpipe; RTX OpenGL selection has not been demonstrated.
+- T3c5a is tested. NVIDIA returned the requested GL 3.3 context and production
+  compute incorrectly fell back despite capable hardware. Window creation now
+  prefers GL 4.3 core and retries GL 3.3, retaining fallback/locked replay rules.
+  Four native hardware contexts identify Quadro GL 4.3; the forced fallback
+  identifies Mesa GL 3.3. Five input scenarios and four shipping rejection
+  contracts pass (31.594 s); standing, 6/12 m/s walking/sprint, jump/WASD/Space
+  thrust, trails/exhaust, space/Moon contacts, R/file-watch reload, supersession
+  and preparation/retirement recovery retain matching receipts and zero
+  blocking polls/server waits/bulk reads/glFinish.
+- All 63 CTest groups pass in one uninterrupted frozen-input software run
+  (1005.40 s), including 20 CPU and 12 GL atmosphere cases. Focused Quadro
+  atmosphere/capture checks pass (14.007 s); CPU/compute optical reload parity
+  passes (8.945 s). Source/input/ten binary hashes match the final tree.
+  Nine regenerated atmosphere, ten baseline and 22 gallery PNG hashes remain
+  unchanged. README, journal/PDF, complete hardware/software native traces,
+  captures and evidence are retained
+  in docs/journal/architecture/atmosphere/optics/.
+- Resume T3c5 matched hardware CPU/compute stationary, walking and body-switch
+  frame/publication/physical-memory measurements. Native hardware correctness
+  does not finish the cost gate. CPU stays default. User environmental/Docker
+  TODO suffix remains byte-for-byte and unstaged.
+
+
 ## Native resident compute opt-in checkpoint — 2026-10-05
 
 - T3c4c and T3c4 are tested. Public `--terrain-backend compute` accepts native

@@ -231,3 +231,19 @@ polls/server waits/bulk reads/finishes. Public interactive compute is enabled wi
 resident GPU grass; CPU remains default. Resume T3c5 hardware total-frame and
 physical-memory acceptance when suitable hardware is available. This environment
 exposes no GPU device; llvmpipe acceptance is not a hardware cost result.
+
+
+## Hardware availability follow-up — 2026-10-05
+
+The environment now exposes NVIDIA hardware. PRIME offload with the NVIDIA GLX
+vendor selects Quadro M1000M; default Xvfb remains llvmpipe. The initial hardware
+native run found that the GL 3.3 window request prevented compute on NVIDIA.
+Production window creation now prefers GL 4.3 with a GL 3.3 fallback. The
+[optics and hardware-access checkpoint](../../atmosphere/optics/study.md) retains
+correctness results and actual per-context renderer/version evidence. T3c5 still
+needs matched hardware frame/publication and physical-memory measurements; CPU
+remains the default.
+
+The [hardware measurement continuation](hardware/plan.md) identifies missing
+compute-stage timings, total-span/publication telemetry and physical-memory scope
+before matched production stationary/walking/sprint/Moon and replacement runs.

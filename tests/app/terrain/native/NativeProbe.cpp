@@ -17,7 +17,7 @@ std::uint64_t frames=0,polls=0,blocking=0,waits=0,reads=0,finishes=0;
 std::uint64_t fenceFaults=0,pollFaults=0,lastFenceToken=0,lastPollToken=0;
 bool delayed=false,failFence=false,failPoll=false,observing=false;
 json controls=json::object();
-std::string error;
+std::string error,contextRenderer,contextVersion;
 PFNGLCLIENTWAITSYNCPROC clientWait;
 PFNGLWAITSYNCPROC serverWait;
 PFNGLGETBUFFERSUBDATAPROC bufferRead;
@@ -56,7 +56,8 @@ void sample(GLFWwindow* window) {
     const auto stats=r.terrainJobs.stats();
     if(stats.running>1 || stats.queued>1 || stats.ready>1) throw std::runtime_error("Unbounded native worker ownership");
     json j={{"frame",++frames},{"mode",int(r.cameraInput.mode())},{"backend",r.options.terrainBackend},
-        {"planner",r.options.terrainGrassPlanner},{"scenario",r.scene.scenario.name},
+        {"planner",r.options.terrainGrassPlanner},{"scenario",r.scene.scenario.name},{"renderer",contextRenderer},
+        {"opengl_version",contextVersion},
         {"publication",r.terrainPublicationState()},{"reload",r.sceneReloadState()},
         {"paused",r.simulationClock.paused()},{"controls",controls},{"gl",counters()},
         {"worker",{{"running",stats.running},{"queued",stats.queued},{"ready",stats.ready}}}};
@@ -109,6 +110,8 @@ int main(int argc,char** argv) {
     try {
         auto options=app::CommandLineOptions::parse(argc,argv);
         rendering::Renderer instance(options);renderer=&instance;
+        contextRenderer=reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+        contextVersion=reinterpret_cast<const char*>(glGetString(GL_VERSION));
         if(options.renderTestMode) return instance.run();
         const auto* path=std::getenv("PLANET_NATIVE_TRACE");if(!path) throw std::runtime_error("Missing native trace path");
         trace.open(path);if(!trace) throw std::runtime_error("Cannot open native trace");

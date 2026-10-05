@@ -81,6 +81,33 @@ protected:
         return pixels[3*((size/2)*size+size/2)];
     }
 };
+TEST_F(AtmosphereRender, SharedOpticsBindExactCoefficientsAndRefreshDisabledAir) {
+    auto scene = config::ScenarioConfig(config::Config::load("tests/scenarios/atmosphere/base.json"));
+    rendering::AtmosphereOpticsCache cache(scene);
+    auto& planet = scene.planets[0];
+    shader.use();
+    const auto evaluations = cache.evaluations();
+    for (const glm::dvec3 sun : {glm::dvec3(0,1,0), glm::dvec3(1,0,0)}) {
+        const auto& optics = cache.get(0, planet, scene.metersPerWorldUnit());
+        rendering::bindAtmosphere(shader, planet, optics, sun);
+        float rayleigh[3]{}, direction[3]{};
+        glGetUniformfv(shader.id, glGetUniformLocation(shader.id, "uAtmRayleigh"), rayleigh);
+        glGetUniformfv(shader.id, glGetUniformLocation(shader.id, "uAtmSunDirection"), direction);
+        for (int c = 0; c < 3; ++c) {
+            EXPECT_FLOAT_EQ(rayleigh[c], float(optics.rayleigh[c]));
+            EXPECT_FLOAT_EQ(direction[c], float(sun[c]));
+        }
+        EXPECT_EQ(cache.evaluations(), evaluations);
+    }
+    planet.atmosphere.enabled = false;
+    rendering::bindAtmosphere(shader, planet, cache.get(0, planet, scene.metersPerWorldUnit()), {0,1,0});
+    GLint enabled = 1; GLfloat refractivity = 1;
+    glGetUniformiv(shader.id, glGetUniformLocation(shader.id, "uAtmEnabled"), &enabled);
+    glGetUniformfv(shader.id, glGetUniformLocation(shader.id, "uAtmRefractivity"), &refractivity);
+    EXPECT_EQ(enabled, 0); EXPECT_FLOAT_EQ(refractivity, 0);
+    EXPECT_EQ(cache.evaluations(), evaluations + 1);
+    EXPECT_EQ(glGetError(), GLenum(GL_NO_ERROR));
+}
 TEST_F(AtmosphereRender, TerrainShadowBlocksDirectScatteringButPreservesAmbient) {
     config::AtmosphereConfig cfg; cfg.enabled = true; cfg.refraction_enabled = false;
     const glm::dvec3 eye(0,1.01,0);
@@ -232,6 +259,7 @@ TEST_F(AtmosphereRender, ReducedAtmosphereAndLookupPreserveSharpDepthEdges) {
     std::vector<simulation::BodyState> bodies(scene.planets.size()+1);
     bodies[0].position={30,0,0}; bodies[1].position={0,0,0}; bodies[2].position={10,10,10};
     const auto light=rendering::calculateLighting(scene,bodies);
+    rendering::AtmosphereOpticsCache optics(scene);
     rendering::AtmosphereTransmittance table; table.ensure(scene);
     const glm::dvec3 eye(0,1.03,0);
     const auto view=glm::lookAt(glm::vec3(eye),glm::vec3(eye)+glm::vec3(1,0,0),glm::vec3(0,1,0));
@@ -243,7 +271,7 @@ TEST_F(AtmosphereRender, ReducedAtmosphereAndLookupPreserveSharpDepthEdges) {
         const auto clip=projection*glm::vec4(0,0,-0.03,1);
         glClearDepth(0.5+0.5*clip.z/clip.w); glClearColor(0.15f,0.6f,0.2f,1);
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT); glDisable(GL_SCISSOR_TEST); glClearDepth(1);
-        atmosphere.finish(shader,scene,bodies,light,1,view,projection,eye,framebuffer,false,lookup ? &table : nullptr);
+        atmosphere.finish(shader,scene,optics,bodies,light,1,view,projection,eye,framebuffer,false,lookup ? &table : nullptr);
         std::vector<float> pixels(size*size*3);
         glReadPixels(0,0,size,size,GL_RGB,GL_FLOAT,pixels.data());
         EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR)); return pixels;
@@ -266,6 +294,7 @@ TEST_F(AtmosphereRender, HighlightProtectionLimitsWhitePixelsAndPreservesCachedE
     for (auto& planet : scene.planets) planet.atmosphere.enabled = false;
     const std::vector<simulation::BodyState> bodies(scene.planets.size() + 1);
     const rendering::FrameLighting lighting;
+    rendering::AtmosphereOpticsCache optics(scene);
     rendering::AtmosphereRenderer renderer;
     auto read = [&](int width, int height) {
         std::vector<unsigned char> pixels(width * height * 4);
@@ -288,7 +317,7 @@ TEST_F(AtmosphereRender, HighlightProtectionLimitsWhitePixelsAndPreservesCachedE
             glEnable(GL_SCISSOR_TEST); glScissor(width - brightWidth, 0, brightWidth, size);
             glClearColor(10000, 10000, 10000, 1); glClear(GL_COLOR_BUFFER_BIT);
             glDisable(GL_SCISSOR_TEST);
-            const double exposure = renderer.finish(shader, scene, bodies, lighting, 1,
+            const double exposure = renderer.finish(shader, scene, optics, bodies, lighting, 1,
                 glm::mat4(1), projection, {0, 0, 0}, framebuffer, true, nullptr, true);
             const auto pixels = read(width, size);
             int clipped = 0;
@@ -306,7 +335,7 @@ TEST_F(AtmosphereRender, HighlightProtectionLimitsWhitePixelsAndPreservesCachedE
     renderer.begin(size, size);
     glClearColor(10000, 10000, 10000, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-    EXPECT_DOUBLE_EQ(renderer.finish(shader, scene, bodies, lighting, 1,
+    EXPECT_DOUBLE_EQ(renderer.finish(shader, scene, optics, bodies, lighting, 1,
         glm::mat4(1), projection, {0, 0, 0}, framebuffer, true), 1);
     const auto manual = read(size, size);
     EXPECT_EQ(manual[0], 255);

@@ -20,7 +20,7 @@ struct SceneTerrainConsumers {
     std::uint64_t landRevision=0,waterRevision=0,grassRevision=0;
     std::uint64_t mainRevision=0,reflectionRevision=0,shadowRevision=0,waterDrawRevision=0,grassDrawRevision=0;
 };
-rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
+rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario, AtmosphereOpticsCache& opticsCache,
                  const std::vector<simulation::BodyState>& bodies,
                  const glm::mat4& view, float fov,
                  const glm::dvec3& eyeWorld, const Shader& shader,

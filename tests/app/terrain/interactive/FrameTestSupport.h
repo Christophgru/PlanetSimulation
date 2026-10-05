@@ -77,7 +77,7 @@ void draw(auto& r,bool character=true) {
     if(character) r.prepareAstronaut(0);
     const auto e=character ? r.astronautView.eye : r.scene.surfaceCamera ? eye(r) : glm::dvec3(r.scene.sunCamera.position);
     const auto view=character ? glm::mat4(glm::lookAt(e,r.astronautView.target,r.astronautView.up)) : r.scene.surfaceCamera ? r.scene.surfaceCamera->getViewMatrix() : r.scene.sunCamera.getViewMatrix();
-    rendering::renderScene(r.scene.scenario,r.scene.bodies,view,r.scene.surfaceCamera ? r.scene.surfaceCamera->fov() : r.scene.sunCamera.fov,e,
+    rendering::renderScene(r.scene.scenario,r.scene.atmosphereOptics,r.scene.bodies,view,r.scene.surfaceCamera ? r.scene.surfaceCamera->fov() : r.scene.sunCamera.fov,e,
         r.shader,r.waterShader,r.skyboxShader,r.waterReflection,r.shadowShader,r.terrainShadows,
         r.atmosphereShader,r.atmosphere,r.reflectionAtmosphere,r.atmosphereColumns,r.meshes.sunMesh,r.meshes.skyboxMesh,
         r.meshes.planetMeshes,r.meshes.waterMeshes,320,180,r.surfaceClip,r.scene.scenario.planets.empty() ? std::nullopt : std::optional<std::size_t>(r.scene.orbitPlanetIndex),

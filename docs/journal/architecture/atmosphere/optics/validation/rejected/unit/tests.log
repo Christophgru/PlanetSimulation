@@ -1,0 +1,90 @@
+Internal ctest changing into directory: /workspace/build-resume
+Test project /workspace/build-resume
+    Start 48: AtmosphereTests
+1/3 Test #48: AtmosphereTests .........................***Failed    0.01 sec
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 20 tests from 7 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from AtmosphereConfig
+[ RUN      ] AtmosphereConfig.OptionalBlockAndLegacyMetadataPreserveAirlessScenes
+[       OK ] AtmosphereConfig.OptionalBlockAndLegacyMetadataPreserveAirlessScenes (0 ms)
+[ RUN      ] AtmosphereConfig.RejectsInvalidCompositionAndPhysicalInputs
+[       OK ] AtmosphereConfig.RejectsInvalidCompositionAndPhysicalInputs (0 ms)
+[----------] 2 tests from AtmosphereConfig (0 ms total)
+
+[----------] 4 tests from AtmosphereOptics
+[ RUN      ] AtmosphereOptics.RayleighIsBlueAndDensityIsLinearRatherThanSquared
+[       OK ] AtmosphereOptics.RayleighIsBlueAndDensityIsLinearRatherThanSquared (0 ms)
+[ RUN      ] AtmosphereOptics.CompositionAndTemperatureChangeRefractionAndScattering
+[       OK ] AtmosphereOptics.CompositionAndTemperatureChangeRefractionAndScattering (0 ms)
+[ RUN      ] AtmosphereOptics.WaterVaporCondensesOnlyAboveSaturationAndDependsOnTemperature
+[       OK ] AtmosphereOptics.WaterVaporCondensesOnlyAboveSaturationAndDependsOnTemperature (0 ms)
+[ RUN      ] AtmosphereOptics.RedDustWarmsTransmissionAndHeavyDustExtinguishesIt
+[       OK ] AtmosphereOptics.RedDustWarmsTransmissionAndHeavyDustExtinguishesIt (0 ms)
+[----------] 4 tests from AtmosphereOptics (0 ms total)
+
+[----------] 2 tests from AtmosphereClimate
+[ RUN      ] AtmosphereClimate.SolarForcingFollowsIncidenceAndInverseSquareDistance
+[       OK ] AtmosphereClimate.SolarForcingFollowsIncidenceAndInverseSquareDistance (0 ms)
+[ RUN      ] AtmosphereClimate.LocalCloudWaterCanOverrideTheInitialCondensationEstimate
+[       OK ] AtmosphereClimate.LocalCloudWaterCanOverrideTheInitialCondensationEstimate (0 ms)
+[----------] 2 tests from AtmosphereClimate (0 ms total)
+
+[----------] 1 test from AtmosphereReplay
+[ RUN      ] AtmosphereReplay.ResolvedScenePreservesCompositionWhenWorkingConfigChanges
+[       OK ] AtmosphereReplay.ResolvedScenePreservesCompositionWhenWorkingConfigChanges (0 ms)
+[----------] 1 test from AtmosphereReplay (0 ms total)
+
+[----------] 1 test from AtmosphereExposure
+[ RUN      ] AtmosphereExposure.TwilightSkylightIsMeteredWithoutInventingLightAtDeepNight
+[       OK ] AtmosphereExposure.TwilightSkylightIsMeteredWithoutInventingLightAtDeepNight (0 ms)
+[----------] 1 test from AtmosphereExposure (0 ms total)
+
+[----------] 5 tests from AtmosphereRefraction
+[ RUN      ] AtmosphereRefraction.VacuumDisabledAndRadialRaysRemainStraight
+[       OK ] AtmosphereRefraction.VacuumDisabledAndRadialRaysRemainStraight (0 ms)
+[ RUN      ] AtmosphereRefraction.GrazingRaysBendTowardDenseAirAndConserveSphericalSnellInvariant
+[       OK ] AtmosphereRefraction.GrazingRaysBendTowardDenseAirAndConserveSphericalSnellInvariant (0 ms)
+[ RUN      ] AtmosphereRefraction.JsonTemperatureControlsBendingStrength
+[       OK ] AtmosphereRefraction.JsonTemperatureControlsBendingStrength (0 ms)
+[ RUN      ] AtmosphereRefraction.OrbitalLimbRaysAreReciprocalAndMissedShellsDoNotBend
+[       OK ] AtmosphereRefraction.OrbitalLimbRaysAreReciprocalAndMissedShellsDoNotBend (0 ms)
+[ RUN      ] AtmosphereRefraction.ShellEdgeHasNoArtificialIndexJump
+[       OK ] AtmosphereRefraction.ShellEdgeHasNoArtificialIndexJump (0 ms)
+[----------] 5 tests from AtmosphereRefraction (1 ms total)
+
+[----------] 5 tests from AtmosphereOpticsCache
+[ RUN      ] AtmosphereOpticsCache.ReusesOnePackAcrossViewsAndMovingBodies
+[       OK ] AtmosphereOpticsCache.ReusesOnePackAcrossViewsAndMovingBodies (0 ms)
+[ RUN      ] AtmosphereOpticsCache.RefreshesEveryOpticalInputAndMatchesTheReference
+[       OK ] AtmosphereOpticsCache.RefreshesEveryOpticalInputAndMatchesTheReference (0 ms)
+[ RUN      ] AtmosphereOpticsCache.UsesPhysicalRadiusAndKeepsBodySlotsIndependent
+/workspace/tests/atmosphere/test_optics_cache.cpp:87: Failure
+Expected: (changed.rayleigh) != (original.rayleigh), actual: 24-byte object <BD-B9 20-CF 0B-70 FD-3F F0-3F 75-02 33-21 11-40 FA-9E FF-F0 ED-FF 24-40> vs 24-byte object <BD-B9 20-CF 0B-70 FD-3F F0-3F 75-02 33-21 11-40 FA-9E FF-F0 ED-FF 24-40>
+[  FAILED  ] AtmosphereOpticsCache.UsesPhysicalRadiusAndKeepsBodySlotsIndependent (0 ms)
+[ RUN      ] AtmosphereOpticsCache.FailedRefreshPreservesThePreviousPackAndCanRecover
+[       OK ] AtmosphereOpticsCache.FailedRefreshPreservesThePreviousPackAndCanRecover (0 ms)
+[ RUN      ] AtmosphereOpticsCache.ReorderedReplacementOwnsItsPacksAndBoundsItsSlots
+[       OK ] AtmosphereOpticsCache.ReorderedReplacementOwnsItsPacksAndBoundsItsSlots (2 ms)
+[----------] 5 tests from AtmosphereOpticsCache (3 ms total)
+
+[----------] Global test environment tear-down
+[==========] 20 tests from 7 test suites ran. (6 ms total)
+[  PASSED  ] 19 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] AtmosphereOpticsCache.UsesPhysicalRadiusAndKeepsBodySlotsIndependent
+
+ 1 FAILED TEST
+
+    Start 50: AtmosphereRefractionRenderIntegration
+2/3 Test #50: AtmosphereRefractionRenderIntegration ...   Passed   23.26 sec
+    Start 52: PerformanceCaptureIntegration
+3/3 Test #52: PerformanceCaptureIntegration ...........   Passed   52.84 sec
+
+67% tests passed, 1 tests failed out of 3
+
+Total Test time (real) =  76.13 sec
+
+The following tests FAILED:
+	 48 - AtmosphereTests (Failed)
+Errors while running CTest

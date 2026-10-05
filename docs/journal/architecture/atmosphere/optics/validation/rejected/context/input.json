@@ -1,0 +1,14 @@
+{
+  "source_sha256": "984de788062100242775289e80b09bbce207c84ffb1877e0db9ee1e76e4fbc66",
+  "build_test_input_sha256": "3f268fceded42e84652aa12ad49601aa472f70a3a4d3a0e15e1b298cbd8f2a63",
+  "binary_sha256": "0b98e551f3c8c97e542b16a26f10a754bac7c692047f6fe954ec65c42d3383ee",
+  "native_binary_sha256": "7b3973fe3424d0103dee80a2dc4191e9b2b5f4542506af720084d5f27bbed4fb",
+  "runtime_binary_sha256": "d069013fd4c1b0ce3b95575f55233e49353b58d701c3f7f415817bab868bfd19",
+  "recovery_binary_sha256": "847fbb002159f4ecbe07a25b9a65eaa36dbbdfc05ec05f7ea966f7bcd22e2bd5",
+  "worker_binary_sha256": "6a9d6ebb883c7d0e1b11637ed667ee4bdbc1690bd62cb468fe34add8da889e06",
+  "frame_binary_sha256": "92414b0490536b4729ace3489853b2a6e4b3c742836e72f30705ee37c9a513f0",
+  "reload_frame_binary_sha256": "ecdfecba28d49f78b019272a2b073a5914644e91bf46b620a4d06954fd384bd3",
+  "native_input_binary_sha256": "f121a9948d08d70e70e2b18a1fc1835941e3153402cc91c1c3b16d0f0d6d187e",
+  "atmosphere_binary_sha256": "ba1577658c9fc27a613ba256ff90fb4994105e304a0bcd7070a68a4a93d4695c",
+  "atmosphere_render_binary_sha256": "fa5ca42e75899cf3fa50a7ce2315be5a0bef5dd915fd573703c4adb94bf3736c"
+}

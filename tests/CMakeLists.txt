@@ -257,7 +257,7 @@ add_custom_target(render_lighting_scenarios
         --binary $<TARGET_FILE:PlanetSimulation> --output-dir ${CMAKE_BINARY_DIR}/lighting-scenarios
     DEPENDS PlanetSimulation WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} USES_TERMINAL)
 
-add_executable(atmosphere_tests atmosphere/test_atmosphere.cpp)
+add_executable(atmosphere_tests atmosphere/test_atmosphere.cpp atmosphere/test_optics_cache.cpp)
 target_link_libraries(atmosphere_tests PRIVATE GTest::gtest_main glm::glm nlohmann_json::nlohmann_json)
 target_include_directories(atmosphere_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
 add_test(NAME AtmosphereTests COMMAND atmosphere_tests)

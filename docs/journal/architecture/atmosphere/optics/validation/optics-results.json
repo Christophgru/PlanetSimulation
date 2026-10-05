@@ -1,0 +1,86 @@
+{
+  "hardware": {
+    "full_resolution": {
+      "png_sha256": "88837c10b74dd1476e4ce405d167ce8c76f676b459e0d5eff9cbc27a2cafff05",
+      "renderer": "Quadro M1000M/PCIe/SSE2",
+      "atmosphere_optics_evaluations": 2,
+      "atmosphere_optics_reuses": 9,
+      "exposure": 9.358047643528241,
+      "atmosphere_downsample": 1
+    },
+    "full_resolution_replay": {
+      "png_sha256": "88837c10b74dd1476e4ce405d167ce8c76f676b459e0d5eff9cbc27a2cafff05",
+      "renderer": "Quadro M1000M/PCIe/SSE2",
+      "atmosphere_optics_evaluations": 2,
+      "atmosphere_optics_reuses": 9,
+      "exposure": 9.358047643528241,
+      "atmosphere_downsample": 1
+    },
+    "moving": {
+      "png_sha256": "76b6547476e87980582f065e917d8d8d85617c7a62b93a96a5dd7919c5817047",
+      "renderer": "Quadro M1000M/PCIe/SSE2",
+      "atmosphere_optics_evaluations": 2,
+      "atmosphere_optics_reuses": 41,
+      "exposure": 9.35948694230967,
+      "atmosphere_downsample": 4
+    },
+    "paused": {
+      "png_sha256": "78ef87b66839f156b0ce313eb5a1880f4e636ebb064b5534e10f0743d3f2ac62",
+      "renderer": "Quadro M1000M/PCIe/SSE2",
+      "atmosphere_optics_evaluations": 2,
+      "atmosphere_optics_reuses": 9,
+      "exposure": 9.358047643528241,
+      "atmosphere_downsample": 4
+    },
+    "single": {
+      "png_sha256": "78ef87b66839f156b0ce313eb5a1880f4e636ebb064b5534e10f0743d3f2ac62",
+      "renderer": "Quadro M1000M/PCIe/SSE2",
+      "atmosphere_optics_evaluations": 2,
+      "atmosphere_optics_reuses": 9,
+      "exposure": 9.358047643528241,
+      "atmosphere_downsample": 4
+    }
+  },
+  "software": {
+    "full_resolution": {
+      "png_sha256": "3d98ea3c5d6fffab313af22bc28e186fd9b782aead3059ff16d106c730db438f",
+      "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+      "atmosphere_optics_evaluations": 2,
+      "atmosphere_optics_reuses": 9,
+      "exposure": 9.358047643528241,
+      "atmosphere_downsample": 1
+    },
+    "full_resolution_replay": {
+      "png_sha256": "3d98ea3c5d6fffab313af22bc28e186fd9b782aead3059ff16d106c730db438f",
+      "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+      "atmosphere_optics_evaluations": 2,
+      "atmosphere_optics_reuses": 9,
+      "exposure": 9.358047643528241,
+      "atmosphere_downsample": 1
+    },
+    "moving": {
+      "png_sha256": "2d180b389becbd7675fb040553be3f326bf05473cf0ed5a412dd67763a99f230",
+      "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+      "atmosphere_optics_evaluations": 2,
+      "atmosphere_optics_reuses": 41,
+      "exposure": 9.35948694230967,
+      "atmosphere_downsample": 4
+    },
+    "paused": {
+      "png_sha256": "2e7bf7b6e5883270d15ebf693fd01e37a74a63aa298391e418443df36b0a13b6",
+      "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+      "atmosphere_optics_evaluations": 2,
+      "atmosphere_optics_reuses": 9,
+      "exposure": 9.358047643528241,
+      "atmosphere_downsample": 4
+    },
+    "single": {
+      "png_sha256": "2e7bf7b6e5883270d15ebf693fd01e37a74a63aa298391e418443df36b0a13b6",
+      "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+      "atmosphere_optics_evaluations": 2,
+      "atmosphere_optics_reuses": 9,
+      "exposure": 9.358047643528241,
+      "atmosphere_downsample": 4
+    }
+  }
+}

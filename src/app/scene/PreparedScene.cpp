@@ -2,7 +2,7 @@
 
 namespace app {
 PreparedScene::PreparedScene(config::ScenarioConfig parsed)
-    : scenario(std::move(parsed)),
+    : scenario(std::move(parsed)), atmosphereOptics(scenario),
       dynamics(scenario), bodies(dynamics.at(0.0)),
       sunCamera(glm::vec3(scenario.camera.target[0], scenario.camera.target[1],
                           scenario.camera.target[2]),

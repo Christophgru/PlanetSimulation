@@ -1,0 +1,6 @@
+Validated native loading/standing/6-12 m/s walking/jump/WASD-Space thrust/trail/reload/watch/supersession
+Validated native space navigation, directional input, matching contacts and replay reload
+Validated native moon navigation, directional input, matching contacts and replay reload
+Validated native default-cpu startup and walking
+Validated native gl33-fallback startup and walking
+Validated native compute opt-in, five input scenarios and four startup rejection contracts

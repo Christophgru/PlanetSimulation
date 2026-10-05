@@ -5,7 +5,7 @@
 #include <vector>
 #include <GL/glew.h>
 #include <glm/gtc/type_ptr.hpp>
-#include "simulation/Atmosphere.h"
+#include "rendering/atmosphere/AtmosphereOpticsCache.h"
 #include "rendering/lighting/CelestialLighting.h"
 #include "rendering/lighting/CameraExposure.h"
 #include "rendering/lighting/TerrainShadowMaps.h"
@@ -19,12 +19,10 @@ inline bool hasAtmosphere(const config::ScenarioConfig& scene) {
     });
 }
 inline void bindAtmosphere(const Shader& shader, const config::PlanetConfig& planet,
-                           double metersPerUnit, const glm::dvec3& localSun) {
+                           const simulation::AtmosphereOptics& optics, const glm::dvec3& localSun) {
     shader.setInt("uAtmEnabled", planet.atmosphere.enabled && planet.atmosphere.surface_pressure_pa > 0);
     shader.setFloat("uAtmRefractivity", 0.0);
     if (!planet.atmosphere.enabled) return;
-    const auto optics = simulation::atmosphereOptics(planet.atmosphere, planet.radius * metersPerUnit,
-                                                   simulation::referenceAir(planet.atmosphere));
     auto rgb = [&](const char* name, const glm::dvec3& v) { shader.setFloat3(name, v.x, v.y, v.z); };
     shader.setFloat("uAtmOuter", planet.atmosphere.radius_multiplier);
     shader.setFloat("uAtmRefractivity", planet.atmosphere.refraction_enabled ? optics.refractiveIndex - 1 : 0);
@@ -101,7 +99,7 @@ public:
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffers_[0]);
     }
 
-    double finish(const Shader& shader, const config::ScenarioConfig& scene,
+    double finish(const Shader& shader, const config::ScenarioConfig& scene, AtmosphereOpticsCache& optics,
                 const std::vector<simulation::BodyState>& bodies, const FrameLighting& lighting,
                 double exposure, const glm::mat4& view, const glm::mat4& projection,
                 const glm::dvec3& eye, GLuint output = 0, bool toneMap = true,
@@ -132,7 +130,8 @@ public:
             const auto worldToBody = glm::transpose(bodies[i + 1].orientation);
             shader.setInt("uAtmUseColumns", 0);
             if (columns) columns->bind(i, shader);
-            bindAtmosphere(shader, planet, scene.metersPerWorldUnit(), worldToBody * lighting.planets[i].sunDirection);
+            bindAtmosphere(shader, planet, optics.get(i, planet, scene.metersPerWorldUnit()),
+                worldToBody * lighting.planets[i].sunDirection);
             if (shadows) shadows->bindForAtmosphere(i, shader, scene.lighting.shadows);
             else shader.setInt("uAtmTerrainShadowsEnabled", 0);
             shader.setFloat("uAtmSunAngularRadius", std::asin(std::clamp(scene.sun.radius /

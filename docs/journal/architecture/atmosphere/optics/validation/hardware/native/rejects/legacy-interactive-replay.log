@@ -1,0 +1,1 @@
+Error: Invalid scenario or replay: Interactive compute terrain requires GPU grass planning; override legacy replay with --terrain-grass-planner gpu

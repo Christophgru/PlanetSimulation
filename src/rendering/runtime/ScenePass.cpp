@@ -6,7 +6,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 namespace rendering {
-rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
+rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario, AtmosphereOpticsCache& opticsCache,
                  const std::vector<simulation::BodyState>& bodies,
                  const glm::mat4& view, float fov,
                  const glm::dvec3& eyeWorld, const Shader& shader,
@@ -40,8 +40,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
     double skyIlluminance = 0.0;
     if (meteredPlanet && scenario.planets[*meteredPlanet].atmosphere.enabled) {
         const auto& planet = scenario.planets[*meteredPlanet];
-        const auto optics = simulation::atmosphereOptics(planet.atmosphere,
-            planet.radius * scenario.metersPerWorldUnit(), simulation::referenceAir(planet.atmosphere));
+        const auto& optics = opticsCache.get(*meteredPlanet, planet, scenario.metersPerWorldUnit());
         skyIlluminance = simulation::atmosphericSkyIlluminance(planet.atmosphere, optics,
             (eyeWorld - bodies[*meteredPlanet + 1].position) / planet.radius,
             lighting.planets[*meteredPlanet].sunDirection, lighting.planets[*meteredPlanet].sunlight);
@@ -114,7 +113,8 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
         target.setInt("uLinearOutput", hdr);
         target.setFloat("uAtmosphereRadiusScale", radiusScale);
         atmosphereColumns.bind(index, target);
-        rendering::bindAtmosphere(target, scenario.planets[index], scenario.metersPerWorldUnit(),
+        rendering::bindAtmosphere(target, scenario.planets[index],
+            opticsCache.get(index, scenario.planets[index], scenario.metersPerWorldUnit()),
             glm::transpose(bodies[index + 1].orientation) * light.sunDirection);
     };
 
@@ -321,7 +321,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
     const auto finishFrame = [&]() {
         {
             Scope atmosphereScope(profiler, Stage::Atmosphere);
-            if (hdr) exposure.exposure = atmosphere.finish(atmosphereShader, scenario, bodies, lighting,
+            if (hdr) exposure.exposure = atmosphere.finish(atmosphereShader, scenario, opticsCache, bodies, lighting,
                 exposure.exposure, view, projection, eyeWorld, outputFramebuffer, true, &atmosphereColumns, protectHighlights, &shadows);
         }
         if (protectHighlights && !hdr) {
@@ -334,7 +334,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
             for (std::size_t i = 0; i < pixels.size(); i += 4)
                 if (pixels[i] >= 250 && pixels[i + 1] >= 250 && pixels[i + 2] >= 250) ++clipped;
             if (clipped > pixels.size() / 4 / 20)
-                return renderScene(scenario, bodies, view, fov, eyeWorld, shader, waterShader, skyboxShader,
+                return renderScene(scenario, opticsCache, bodies, view, fov, eyeWorld, shader, waterShader, skyboxShader,
                     reflectionTarget, shadowShader, shadows, atmosphereShader, atmosphere, reflectionAtmosphere,
                     atmosphereColumns, sunMesh, skyboxMesh, planetMeshes, waterMeshes, width, height,
                     clip, meteredPlanet, recordObjects, profiler, true, outputFramebuffer, grass, sceneTime, astronaut, mainGrassCounts,publication,consumers);
@@ -384,7 +384,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario,
             const glm::dvec3 normal = glm::normalize(eyeWorld - centerWorld);
             const glm::dvec3 reflectedEye = rendering::reflectPointAcrossPlane(eyeWorld,
                 centerWorld + normal * radiusWorld, normal);
-            reflectionAtmosphere.finish(atmosphereShader, scenario, bodies, lighting, exposure.exposure,
+            reflectionAtmosphere.finish(atmosphereShader, scenario, opticsCache, bodies, lighting, exposure.exposure,
                 reflectedView, reflectedProjection, reflectedEye, reflectionTarget.framebuffer(), false, &atmosphereColumns, false, &shadows);
         }
         Scope waterScope(profiler, Stage::Water);

@@ -1,0 +1,66 @@
+{
+  "optics-software-focused": {
+    "command": [
+      "xvfb-run",
+      "-a",
+      "ctest",
+      "--test-dir",
+      "build-resume",
+      "--output-on-failure",
+      "-R",
+      "^(AtmosphereTests|AtmosphereRefractionRenderIntegration|PerformanceCaptureIntegration)$"
+    ],
+    "returncode": 0,
+    "seconds": 32.30919626499963
+  },
+  "optics-software-reload": {
+    "command": [
+      "xvfb-run",
+      "-a",
+      "build-resume/tests/renderer_lifecycle_tests",
+      "--gtest_filter=RendererReload.CpuAndLegacyReloadMatchFreshCapturesAndRejectInvalidConfigs"
+    ],
+    "returncode": 0,
+    "seconds": 9.920149002999096
+  },
+  "optics-hardware-focused": {
+    "command": [
+      "xvfb-run",
+      "-a",
+      "ctest",
+      "--test-dir",
+      "build-resume",
+      "--output-on-failure",
+      "-R",
+      "^(AtmosphereRefractionRenderIntegration|PerformanceCaptureIntegration)$"
+    ],
+    "returncode": 0,
+    "seconds": 14.007062963999488
+  },
+  "optics-hardware-reload": {
+    "command": [
+      "xvfb-run",
+      "-a",
+      "build-resume/tests/renderer_lifecycle_tests",
+      "--gtest_filter=RendererReload.CpuAndLegacyReloadMatchFreshCapturesAndRejectInvalidConfigs"
+    ],
+    "returncode": 0,
+    "seconds": 8.945434866000141
+  },
+  "optics-hardware-native": {
+    "command": [
+      "xvfb-run",
+      "-a",
+      "python3",
+      "tests/app/terrain/native/test_native.py",
+      "--probe",
+      "build-resume/tests/terrain_native_probe",
+      "--binary",
+      "build-resume/PlanetSimulation",
+      "--output-dir",
+      "build-resume/optics-hardware-native"
+    ],
+    "returncode": 0,
+    "seconds": 31.594220521998068
+  }
+}

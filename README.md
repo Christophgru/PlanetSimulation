@@ -141,6 +141,13 @@ cooler air is denser and bends grazing sky rays more strongly; setting
 `refraction_enabled` to `false` removes the displacement. Temperature is a
 configured input for now and is not calculated from orbital sunlight.
 
+Reference optical coefficients are cached once per planet and shared across sky
+lighting, materials, main/reflection atmosphere passes and capture diagnostics.
+Changing optical inputs refreshes the pack; scene reload owns a fresh cache.
+Capture metadata reports evaluation/reuse counts. The
+[shared optics checkpoint](docs/journal/architecture/atmosphere/optics/study.md)
+documents keys, failure retention and software/hardware validation.
+
 | Strong bending | Straight-ray control |
 |:--:|:--:|
 | <a href="docs/screenshots/refraction-extreme-on.png"><img src="docs/screenshots/refraction-extreme-on.png" width="330" alt="Zoomed horizon with refraction enabled"></a> | <a href="docs/screenshots/refraction-extreme-off.png"><img src="docs/screenshots/refraction-extreme-off.png" width="330" alt="Same horizon with refraction disabled"></a> |
@@ -1084,7 +1091,8 @@ path explicitly:
 ./build/PlanetSimulation --config configs/scenarios/solar_system.json --terrain-backend compute
 ~~~
 
-It requires GL 4.3 and GPU grass planning (the default compute planner), with
+Window creation tries GL 4.3 core first and retries GL 3.3 core on older drivers.
+The compute path requires GL 4.3 and GPU grass planning (the default compute planner), with
 `foliage.compute_placement` enabled wherever foliage is enabled. Initial terrain
 loading keeps events active while deferring walking and scene draws. Normal frames
 and reload progress poll readiness and retirement without capture waits; failed

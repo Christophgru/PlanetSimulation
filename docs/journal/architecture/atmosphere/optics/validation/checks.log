@@ -1,0 +1,10 @@
+Validated folder limits, image-only gallery and README capture links
+Frozen source/build-test input and ten binary hashes match the final tree
+All 63 software CTest groups pass in one uninterrupted run
+All nine regenerated atmosphere scenario PNG hashes match the pre-cache aggregate exactly
+All 10 compute/CPU/replay PNG hashes match the native checkpoint
+All 22 gallery PNG hashes retained
+Hardware native input/space/Moon/default CPU use Quadro OpenGL 4.3; forced fallback uses Mesa 3.3
+Hardware and software native frames record zero blocking polls/server waits/bulk buffer reads/glFinish
+Both renderers evaluate one coefficient pack per body; paused and full-resolution replay PNGs are exact
+78 local Markdown links resolve

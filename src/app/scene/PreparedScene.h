@@ -1,5 +1,6 @@
 #pragma once
 #include "config/ScenarioConfig.h"
+#include "rendering/atmosphere/AtmosphereOpticsCache.h"
 #include "simulation/OrbitalSystem.h"
 #include "rendering/geometry/Terrain.h"
 #include "rendering/camera/OrbitCamera.h"
@@ -9,6 +10,7 @@ namespace app {
 // Staged CPU scene used both for initial construction and transactional reload.
 struct PreparedScene {
     config::ScenarioConfig scenario;
+    rendering::AtmosphereOpticsCache atmosphereOptics;
     simulation::OrbitalSystem dynamics;
     std::vector<simulation::BodyState> bodies;
     std::vector<rendering::TerrainSurface> terrainSurfaces;

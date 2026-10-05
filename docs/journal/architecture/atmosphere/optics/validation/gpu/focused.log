@@ -1,0 +1,10 @@
+Internal ctest changing into directory: /workspace/build-resume
+Test project /workspace/build-resume
+    Start 50: AtmosphereRefractionRenderIntegration
+1/2 Test #50: AtmosphereRefractionRenderIntegration ...   Passed    0.65 sec
+    Start 52: PerformanceCaptureIntegration
+2/2 Test #52: PerformanceCaptureIntegration ...........   Passed   13.09 sec
+
+100% tests passed, 0 tests failed out of 2
+
+Total Test time (real) =  13.74 sec

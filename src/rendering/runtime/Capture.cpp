@@ -86,7 +86,7 @@ int Renderer::Impl::capture() {
             rendering::FrameProfiler::Scope scope(&profiler,rendering::FrameStage::CachedPresentation);
             atmosphere.presentCached(atmosphereShader); profiler.sceneReuse();
         } else {
-            frameExposure = renderScene(scene.scenario, scene.bodies, view, fov, eyeWorld, shader, waterShader,
+            frameExposure = renderScene(scene.scenario, scene.atmosphereOptics, scene.bodies, view, fov, eyeWorld, shader, waterShader,
                         skyboxShader, waterReflection, shadowShader, terrainShadows,
                         atmosphereShader, atmosphere, reflectionAtmosphere, atmosphereColumns, meshes.sunMesh, meshes.skyboxMesh,
                         meshes.planetMeshes, meshes.waterMeshes, width, height,
@@ -287,9 +287,8 @@ int Renderer::Impl::capture() {
         GLint samples = 0;
         glGetIntegerv(GL_SAMPLES, &samples);
         const auto& atmosphereConfig = scene.scenario.planets[scene.orbitPlanetIndex].atmosphere;
-        const auto optics = simulation::atmosphereOptics(atmosphereConfig,
-            scene.scenario.planets[scene.orbitPlanetIndex].radius * scene.scenario.metersPerWorldUnit(),
-            simulation::referenceAir(atmosphereConfig));
+        const auto& optics = scene.atmosphereOptics.get(scene.orbitPlanetIndex,
+            scene.scenario.planets[scene.orbitPlanetIndex], scene.scenario.metersPerWorldUnit());
         const auto drawnGrass=mainGrassCounts.at(scene.orbitPlanetIndex);
         const auto lastPassGrass=grass.procedural.computedCounts(scene.orbitPlanetIndex);
         nlohmann::json metadata{
@@ -303,6 +302,8 @@ int Renderer::Impl::capture() {
                 {"atmospheric_illuminance", frameExposure.atmosphericIlluminance},
                 {"metered_illuminance", frameExposure.meteredIlluminance},
                 {"atmosphere_refractive_index", optics.refractiveIndex},
+                {"atmosphere_optics_evaluations", scene.atmosphereOptics.evaluations()},
+                {"atmosphere_optics_reuses", scene.atmosphereOptics.reuses()},
                 {"atmosphere_refraction_enabled", atmosphereConfig.enabled && atmosphereConfig.refraction_enabled},
                 {"atmosphere_downsample", options.atmosphereFullResolution ? 1 : 4},
                 {"atmosphere_relative_humidity", optics.relativeHumidity},

@@ -36,6 +36,9 @@ def capture(name, frames, step, full_resolution=False, cpu_trace=False):
         assert sum(e['name'] == 'capture.frame' for e in calls) == frames
         assert any(e['name'] == 'TerrainSurface::buildGeometryForEye' for e in calls)
         assert any(e['name'] == 'capture.readback' for e in calls)
+    metadata = json.loads(Path(str(image) + '.json').read_text())
+    assert metadata['render']['atmosphere_optics_evaluations'] == len(metadata['scenario']['planets']), metadata['render']
+    assert metadata['render']['atmosphere_optics_reuses'] > 0, metadata['render']
     rows = sorted(csv.DictReader(trace.open()), key=lambda r: int(r['frame']))
     assert [int(r['frame']) for r in rows] == list(range(frames)), rows
     assert any(r['gpu_valid'] == '1' for r in rows)

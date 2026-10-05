@@ -227,7 +227,7 @@ int Renderer::Impl::interact() {
                 rendering::FrameProfiler::Scope scope(&profiler,rendering::FrameStage::CachedPresentation);
                 atmosphere.presentCached(atmosphereShader, sceneOutput); profiler.sceneReuse();
             } else {
-                renderScene(scene.scenario, scene.bodies, view, fov, eyeWorld, shader, waterShader,
+                renderScene(scene.scenario, scene.atmosphereOptics, scene.bodies, view, fov, eyeWorld, shader, waterShader,
                             skyboxShader, waterReflection, shadowShader, terrainShadows,
                             atmosphereShader, atmosphere, reflectionAtmosphere, atmosphereColumns, meshes.sunMesh, meshes.skyboxMesh,
                             meshes.planetMeshes, meshes.waterMeshes, sceneWidth, sceneHeight,

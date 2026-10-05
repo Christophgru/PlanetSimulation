@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "/workspace/tests/app/terrain/native/test_native.py", line 77, in <module>
+    first = session.wait(lambda f: f['publication'].get('loading') and f['gl']['polls'] > 0)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/tests/app/terrain/native/NativeSession.py", line 69, in wait
+    raise AssertionError(message + '\nTrace read error: ' + str(self.read_error) + '\n' + self.text()[-6000:])
+AssertionError: Native condition did not complete
+Trace read error: None
+Terrain CPU fallback: OpenGL 4.3 compute unavailable
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 20.0 s
+Sun radius: 2.5
+Planets: 2
+Camera position: (15.0238, 14.2104, 8)
+Left-drag to orbit; scroll to zoom gently. Press 1 for Sun orbit, 2 for the planet surface view (free mouse look and WASD at 80 m/s), 3 for planet orbit, 4 to follow the astronaut (WASD at 6 m/s; Space to jump/upward thrust; airborne WASD directs thrust). Press T to pause/resume orbits and spin. Press O for ten past orbit paths and body labels. Press Y to halve or U to double simulation speed. Press Esc to release the walking cursor and 2 or 4 to capture it again. /workspace/build-resume/optics-hardware-native/scene.json reloads on save; press R to reload manually. Close the window to exit.
+Scene render resolution: 320x180 (100%)

@@ -127,14 +127,24 @@ TEST(RendererReload, CpuAndLegacyReloadMatchFreshCapturesAndRejectInvalidConfigs
         {
             rendering::Renderer renderer(o);ASSERT_EQ(renderer.run(),0);
             const auto before=read(o.outputImagePath+".json");const auto image=bytes(o.outputImagePath);
-            auto j=read(o.configPath);j["planets"][0]["radius"]=-1;write(o.configPath,j);
+            ASSERT_EQ(before["render"]["terrain_backend"],backend);
+            auto j=read(o.configPath);j["planets"][0]["atmosphere"]["surface_pressure_pa"]=-1;write(o.configPath,j);
             EXPECT_THROW(renderer.reload(),std::invalid_argument);EXPECT_EQ(read(o.outputImagePath+".json"),before);
             ASSERT_EQ(renderer.run(),0);EXPECT_EQ(bytes(o.outputImagePath),image);
-            j["planets"][0]["radius"]=1;j["planets"].erase(1);j["scenario_name"]="Legacy reload";
+            EXPECT_EQ(read(o.outputImagePath+".json")["render"]["atmosphere_optics_evaluations"],
+                      before["render"]["atmosphere_optics_evaluations"]);
+            j["planets"][0]["atmosphere"]["surface_pressure_pa"]=50662.5;
+            j["planets"][0]["atmosphere"]["temperature_k"]=310;
+            j["planets"][0]["atmosphere"]["refraction_enabled"]=false;
+            j["planets"].erase(1);j["scenario_name"]="Legacy reload";
             j["planets"][0]["surface_noise"][0]["seed"]=119;j["surface_camera"]["latitude_deg"]=-18;
             write(o.configPath,j);renderer.reload();ASSERT_EQ(renderer.run(),0);
             const auto after=read(o.outputImagePath+".json");committed(after,1);
             EXPECT_FALSE(after["render"]["terrain_publication"]["managed"]);
+            EXPECT_EQ(after["render"]["atmosphere_optics_evaluations"],1);
+            EXPECT_FALSE(after["render"]["atmosphere_refraction_enabled"].get<bool>());
+            EXPECT_LT(after["render"]["atmosphere_refractive_index"].get<double>(),
+                      before["render"]["atmosphere_refractive_index"].get<double>());
             replacementImage=bytes(o.outputImagePath);EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
         }
         EXPECT_EQ(glfwGetCurrentContext(),nullptr);freshMatches(o,replacementImage);
