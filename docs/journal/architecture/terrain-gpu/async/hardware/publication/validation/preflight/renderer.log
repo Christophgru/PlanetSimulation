@@ -1,0 +1,37 @@
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = TerrainFrame.PublicationTrace*
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from TerrainFrame
+[ RUN      ] TerrainFrame.PublicationTraceMatchesComputeDrawsAndGrassFailureRecovery
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 20.0 s
+Sun radius: 2.5
+Planets: 2
+Surface camera position: (6.9946, 5.87568, -0.562742)
+Surface render test mode enabled
+Output image: /workspace/build-resume/terrain-frame/publication-compute/frame.png
+Terrain preparation failed; previous generation retained: Grass allocation completion failed
+[       OK ] TerrainFrame.PublicationTraceMatchesComputeDrawsAndGrassFailureRecovery (10385 ms)
+[ RUN      ] TerrainFrame.PublicationTraceMatchesDefaultCpuStartupAndWorkerReplacement
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 20.0 s
+Sun radius: 2.5
+Planets: 2
+Surface camera position: (6.9946, 5.87568, -0.562742)
+Surface render test mode enabled
+Output image: /workspace/build-resume/terrain-frame/publication-cpu/frame.png
+unknown file: Failure
+C++ exception with description "[json.exception.type_error.305] cannot use operator[] with a string argument with number" thrown in the test body.
+[  FAILED  ] TerrainFrame.PublicationTraceMatchesDefaultCpuStartupAndWorkerReplacement (2461 ms)
+[----------] 2 tests from TerrainFrame (12847 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (12847 ms total)
+[  PASSED  ] 1 test.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] TerrainFrame.PublicationTraceMatchesDefaultCpuStartupAndWorkerReplacement
+
+ 1 FAILED TEST

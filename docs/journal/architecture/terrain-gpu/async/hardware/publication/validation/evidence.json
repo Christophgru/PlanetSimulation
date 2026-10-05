@@ -1,0 +1,543 @@
+{
+  "date": "2026-10-05",
+  "base_revision": "3096383",
+  "task": "T3c5b2b1",
+  "validation_scope": {
+    "type": "scoped, not a new full 65-group run",
+    "ctest_groups_passed": 10,
+    "ctest_wall_seconds": 456.95,
+    "controlled_timing_cases": 14,
+    "new_controlled_recorder_cases": 5,
+    "worker_cases": 16,
+    "new_worker_cases": 2,
+    "new_actual_renderer_cases": 2,
+    "existing_native_scenarios": 5,
+    "startup_rejection_contracts": 4,
+    "command": "env LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=2 xvfb-run -a ctest --test-dir build-resume --output-on-failure -R \"^(RendererLifecycleTests|TerrainRecoveryIntegration|TerrainFrameIntegration|TerrainReloadFrameIntegration|TerrainJobTests|TerrainComputeIntegration|GpuWorkProfilerTests|PerformanceCaptureIntegration|NativeLoopTimingIntegration|TerrainNativeInputIntegration)$\""
+  },
+  "frozen_provenance": {
+    "source_sha256": "8ddd3891b2e21a694eb2787aa26c981d39ebc7e6ff72841ab71bb081e0bc3755",
+    "build_test_input_sha256": "42db3a00c4d985f38c8c223ffe828c86e30ac8e9bc9a4820e6f02caa43569ae3",
+    "executable_count": 41,
+    "all_hashes_match_after_validation": true
+  },
+  "native_receipts": {
+    "software": {
+      "cpu": {
+        "frames": 15,
+        "rendered": 0,
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "polls": 0,
+          "server_waits": 0
+        },
+        "peak_logical_bytes": 0,
+        "loop_outcomes": {
+          "rendered": 8,
+          "minimized": 7
+        },
+        "joined_receipts": 15,
+        "publication_receipts": 2,
+        "published_draws": 2,
+        "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+        "opengl_version": "4.5 (Core Profile) Mesa 22.3.6",
+        "publication_outcomes": {
+          "published": 2
+        }
+      },
+      "compute": {
+        "frames": 50,
+        "rendered": 14,
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "polls": 11,
+          "server_waits": 0
+        },
+        "peak_logical_bytes": 4284452,
+        "loop_outcomes": {
+          "loading": 36,
+          "rendered": 8,
+          "minimized": 6
+        },
+        "joined_receipts": 50,
+        "publication_receipts": 5,
+        "published_draws": 2,
+        "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+        "opengl_version": "4.5 (Core Profile) Mesa 22.3.6",
+        "publication_outcomes": {
+          "coalesced": 1,
+          "obsolete": 2,
+          "published": 2
+        }
+      }
+    },
+    "hardware": {
+      "cpu": {
+        "frames": 15,
+        "rendered": 0,
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "polls": 0,
+          "server_waits": 0
+        },
+        "peak_logical_bytes": 0,
+        "loop_outcomes": {
+          "rendered": 9,
+          "minimized": 6
+        },
+        "joined_receipts": 15,
+        "publication_receipts": 2,
+        "published_draws": 2,
+        "renderer": "Quadro M1000M/PCIe/SSE2",
+        "opengl_version": "4.3.0 NVIDIA 580.178.04",
+        "publication_outcomes": {
+          "published": 2
+        }
+      },
+      "compute": {
+        "frames": 51,
+        "rendered": 14,
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "polls": 12,
+          "server_waits": 0
+        },
+        "peak_logical_bytes": 4284452,
+        "loop_outcomes": {
+          "loading": 37,
+          "rendered": 7,
+          "minimized": 7
+        },
+        "joined_receipts": 51,
+        "publication_receipts": 6,
+        "published_draws": 2,
+        "renderer": "Quadro M1000M/PCIe/SSE2",
+        "opengl_version": "4.3.0 NVIDIA 580.178.04",
+        "publication_outcomes": {
+          "obsolete": 2,
+          "coalesced": 2,
+          "published": 2
+        }
+      }
+    }
+  },
+  "renderer_receipts": {
+    "cpu": {
+      "outcomes": {
+        "published": 3
+      },
+      "observations": {
+        "draws": [
+          {
+            "body": 0,
+            "epoch": 1,
+            "frame": 1,
+            "grass_eye": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "land_field": "10975133402283726949",
+            "land_revision": 1,
+            "land_topology": "6373637851977143750",
+            "serial": 1,
+            "water_field": "8343445989074671795",
+            "water_revision": 1,
+            "water_topology": "5890498633613243476"
+          },
+          {
+            "body": 1,
+            "epoch": 1,
+            "frame": 1,
+            "grass_eye": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "land_field": "13005042368953784910",
+            "land_revision": 1,
+            "land_topology": "8896015313400212575",
+            "serial": 2,
+            "water_field": "0",
+            "water_revision": 0,
+            "water_topology": "0"
+          },
+          {
+            "body": 0,
+            "epoch": 1,
+            "frame": 3,
+            "grass_eye": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "land_field": "10975133402283726949",
+            "land_revision": 1,
+            "land_topology": "6373637851977143750",
+            "serial": 1,
+            "water_field": "8343445989074671795",
+            "water_revision": 1,
+            "water_topology": "5890498633613243476"
+          },
+          {
+            "body": 1,
+            "epoch": 1,
+            "frame": 3,
+            "grass_eye": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "land_field": "13005042368953784910",
+            "land_revision": 1,
+            "land_topology": "8896015313400212575",
+            "serial": 2,
+            "water_field": "0",
+            "water_revision": 0,
+            "water_topology": "0"
+          },
+          {
+            "body": 0,
+            "epoch": 1,
+            "frame": 699,
+            "grass_eye": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "land_field": "10975133402283726949",
+            "land_revision": 2,
+            "land_topology": "7999681230989244605",
+            "serial": 3,
+            "water_field": "8343445989074671795",
+            "water_revision": 2,
+            "water_topology": "13581534058734123436"
+          },
+          {
+            "body": 1,
+            "epoch": 1,
+            "frame": 699,
+            "grass_eye": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "land_field": "13005042368953784910",
+            "land_revision": 1,
+            "land_topology": "8896015313400212575",
+            "serial": 2,
+            "water_field": "0",
+            "water_revision": 0,
+            "water_topology": "0"
+          }
+        ],
+        "dropped": 0,
+        "peak_active": 2,
+        "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+        "version": "4.5 (Core Profile) Mesa 22.3.6"
+      }
+    },
+    "compute": {
+      "outcomes": {
+        "published": 4,
+        "preparation_failed": 1
+      },
+      "observations": {
+        "draws": [
+          {
+            "body": 0,
+            "epoch": 1,
+            "frame": 599,
+            "grass_eye": [
+              -0.21068755608434053,
+              0.9125880661912108,
+              -0.3672332101907134
+            ],
+            "land_field": "10975133402283726949",
+            "land_revision": 1,
+            "land_topology": "6373637851977143750",
+            "serial": 1,
+            "water_field": "8343445989074671795",
+            "water_revision": 1,
+            "water_topology": "5890498633613243476"
+          },
+          {
+            "body": 1,
+            "epoch": 1,
+            "frame": 599,
+            "grass_eye": [
+              1.4661202700385774,
+              -6.798235764262086,
+              -1.3601230007063465
+            ],
+            "land_field": "13005042368953784910",
+            "land_revision": 1,
+            "land_topology": "8896015313400212575",
+            "serial": 2,
+            "water_field": "0",
+            "water_revision": 1,
+            "water_topology": "0"
+          },
+          {
+            "body": 0,
+            "epoch": 1,
+            "frame": 602,
+            "grass_eye": [
+              -0.20655804963489702,
+              0.9125565889162128,
+              -0.3670682641040701
+            ],
+            "land_field": "10975133402283726949",
+            "land_revision": 1,
+            "land_topology": "6373637851977143750",
+            "serial": 1,
+            "water_field": "8343445989074671795",
+            "water_revision": 1,
+            "water_topology": "5890498633613243476"
+          },
+          {
+            "body": 1,
+            "epoch": 1,
+            "frame": 602,
+            "grass_eye": [
+              1.4661202700385774,
+              -6.798235764262086,
+              -1.3601230007063465
+            ],
+            "land_field": "13005042368953784910",
+            "land_revision": 1,
+            "land_topology": "8896015313400212575",
+            "serial": 2,
+            "water_field": "0",
+            "water_revision": 1,
+            "water_topology": "0"
+          },
+          {
+            "body": 0,
+            "epoch": 1,
+            "frame": 605,
+            "grass_eye": [
+              -0.20655804963489702,
+              0.9125565889162128,
+              -0.3670682641040701
+            ],
+            "land_field": "10975133402283726949",
+            "land_revision": 1,
+            "land_topology": "6373637851977143750",
+            "serial": 1,
+            "water_field": "8343445989074671795",
+            "water_revision": 1,
+            "water_topology": "5890498633613243476"
+          },
+          {
+            "body": 1,
+            "epoch": 1,
+            "frame": 605,
+            "grass_eye": [
+              1.4661202700385774,
+              -6.798235764262086,
+              -1.3601230007063465
+            ],
+            "land_field": "13005042368953784910",
+            "land_revision": 1,
+            "land_topology": "8896015313400212575",
+            "serial": 2,
+            "water_field": "0",
+            "water_revision": 1,
+            "water_topology": "0"
+          },
+          {
+            "body": 0,
+            "epoch": 1,
+            "frame": 607,
+            "grass_eye": [
+              -0.20655804963489702,
+              0.9125565889162128,
+              -0.3670682641040701
+            ],
+            "land_field": "10975133402283726949",
+            "land_revision": 1,
+            "land_topology": "6373637851977143750",
+            "serial": 1,
+            "water_field": "8343445989074671795",
+            "water_revision": 1,
+            "water_topology": "5890498633613243476"
+          },
+          {
+            "body": 1,
+            "epoch": 1,
+            "frame": 607,
+            "grass_eye": [
+              1.4661202700385774,
+              -6.798235764262086,
+              -1.3601230007063465
+            ],
+            "land_field": "13005042368953784910",
+            "land_revision": 1,
+            "land_topology": "8896015313400212575",
+            "serial": 2,
+            "water_field": "0",
+            "water_revision": 1,
+            "water_topology": "0"
+          },
+          {
+            "body": 0,
+            "epoch": 1,
+            "frame": 1238,
+            "grass_eye": [
+              -0.22256412561214983,
+              0.9107190792780894,
+              -0.36692263502757305
+            ],
+            "land_field": "10975133402283726949",
+            "land_revision": 2,
+            "land_topology": "13814965365688712535",
+            "serial": 3,
+            "water_field": "8343445989074671795",
+            "water_revision": 2,
+            "water_topology": "1463843212658083919"
+          },
+          {
+            "body": 1,
+            "epoch": 1,
+            "frame": 1238,
+            "grass_eye": [
+              1.4661202700385774,
+              -6.798235764262086,
+              -1.3601230007063465
+            ],
+            "land_field": "13005042368953784910",
+            "land_revision": 1,
+            "land_topology": "8896015313400212575",
+            "serial": 2,
+            "water_field": "0",
+            "water_revision": 1,
+            "water_topology": "0"
+          }
+        ],
+        "dropped": 0,
+        "gl": {
+          "bulk_readbacks": 0,
+          "fence_polls": 18,
+          "positive_timeout_or_flush_polls": 0,
+          "server_waits": 0
+        },
+        "peak_active": 3,
+        "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+        "version": "4.5 (Core Profile) Mesa 22.3.6"
+      }
+    }
+  },
+  "preflight": {
+    "cpu_private_draw_helper_assumption_fixed": true,
+    "rejected_preflight_retained": "preflight/renderer.log",
+    "initial_final_run_interrupted_by_user": true,
+    "uninterrupted_final_ten_group_run_passed": true
+  },
+  "gallery_hashes_retained": 22,
+  "historical_baseline_hashes_retained": 10,
+  "historical_baselines_regenerated_this_checkpoint": false,
+  "local_links_verified": true,
+  "user_todo_suffix_sha256": "b227dc2ecc065b8c8ac1eea5fa030c32f289ade83c61e19d571ddf6c4b09c5c5",
+  "journal_review": {
+    "pdf_sha256": "f37db3fa4298b5beebc71797db0b87b007abef03e23ea969e37c8d635b693fe4",
+    "source_sha256": "72ec07e627647c9fb5d12dc70d8d05b81ddf2183d38f03bab0bacdd5f4948fa2",
+    "page_count": 32,
+    "reviewed_pages": [
+      7,
+      8,
+      27,
+      28,
+      31,
+      32
+    ],
+    "result": "Changed implementation/evaluation, references and claim table reviewed; text, figures and table fit without clipping.",
+    "previews": {
+      "page-07-of-32.png": "3f9dcdcc2309418e7ada85943b4af3c88366aedc3edc4a45f2faf8ca33f705a7",
+      "page-08-of-32.png": "48452394cc9fdbb6282831db6587820649f48a4ee147f6c9b01dd91ff807722b",
+      "page-27-of-32.png": "4cd054fa6dc8031ba9caf760111cd2f225c2286cfbf2e21c2b0736d7d5b57de3",
+      "page-28-of-32.png": "515c8f65c0bfc752c7c10ad940be089a16d080a547d814860db18059b1a6df03",
+      "page-31-of-32.png": "4ac9b9e9a1248f3d9e8c994f27e0e75a17f3bde35d156ce9532166442caed35a",
+      "page-32-of-32.png": "c224be9af2d08ca11b43c351d66e9f2cbf504722433b106b858f34fd8288b964"
+    }
+  },
+  "limitations": [
+    "CPU observation of complete consumer submission; not GPU completion or monitor presentation.",
+    "Reload/capture/handoff/CPU grass-only endpoints remain T3c5b2b2.",
+    "Physical-memory diagnostics and matched hardware acceptance remain pending; CPU default retained.",
+    "Small fixtures and injected delays establish scope/ownership, not production FPS or CPU/compute speedup."
+  ],
+  "artifacts": {
+    "build.log.gz": "924cb84562379c3d8ca0a0c10e0a475be3deb57a6714c5bc1f7674fa381c4c2d",
+    "checks.log": "6e47c58a1c18a7ee40658312f62704bed7d79ec70e163b0ce843ac6deaa18459",
+    "controlled/publication/bounded.csv": "51baf3ccf2bd1718d9b102a4836ff7d4a5e3bab42901e348bd3d21d18009b858",
+    "controlled/publication/complete.csv": "057555233b7344fad37e903db326dc542d97bfe4c755c4be6921942f87e4049d",
+    "controlled/publication/epochs.csv": "cd840c623074a278710ee7b7d38fe001fbd4a5fdf4f74f5f481b2ce18f4ca158",
+    "controlled/publication/grass.csv": "51d49c7658636db05a398b9d1f5a34939c5d96843a3fcb7b83bccc22e8a16752",
+    "controlled/timing.log": "7ec15a05a18558731a75056cc996aa97b090802a781b95ba85835c28f8a30d0a",
+    "controlled/worker/obsolete.csv": "b9fe78ddc28f2cb32a082a0b2cc64358ff5a0b4d681861e015462914c13aa96f",
+    "controlled/worker/outcomes.csv": "b6c1532bac114878b9a4b423591dc5cb87ae50ec22cfe3f0da3fb365836a41aa",
+    "controlled/worker.log": "e1bf34facb1eeda0f8753ecdee179f6dc6841007f9aee331935a41794f73b3db",
+    "devices.csv": "b7f9f56451cda0521ac363cbf3aeb88343a9db3ba851c1bc1e8e5ae9dd6a7b0e",
+    "focused-ctest.log": "2720df7f93435a024ee8f5576d21ccb046ba4a0de1892ce2dac4b0b206947be9",
+    "hardware/compute/frames.jsonl": "2248868db2497d28675364b6848bafb4dd77f6d6e64e8fe39d8b3cccedb66ee0",
+    "hardware/compute/performance.csv": "beccb4cc0591e0ad5ee2abb0537c2a301479398050b7db369a9831234171595c",
+    "hardware/compute/performance.csv.gpu-work.csv": "d738f2f4a42dbb119d2535c9fb11261ea6fd184cc0b4771085c7ac9c22131733",
+    "hardware/compute/performance.csv.native-loop.csv": "d848180d1a079ad2a6cf6c5422abefa979fc335d7e4740e61800f6f63dbe84ff",
+    "hardware/compute/performance.csv.publications.csv": "6a547ed5322e55050518ec62ce6b7d22dbe54e07b54a70174d982265b4eb0555",
+    "hardware/compute/run.log": "62580a05022f444bc726b375d0d2758f2a839cbb6cfd17a7867789df21f894e2",
+    "hardware/cpu/frames.jsonl": "aa0ba872710458bcdb07d99b8b483afb6547bea3cc26e502140045817cd549d4",
+    "hardware/cpu/performance.csv": "6a733701b4b6f9c5e945c0ffc2f00e8035e42dcc939ac639d73c6b7f1017b7c9",
+    "hardware/cpu/performance.csv.gpu-work.csv": "540332d36759c54e086a4346843f9467df4899edeb4d7531ae493d15803db964",
+    "hardware/cpu/performance.csv.native-loop.csv": "a27038943ca81fb1241f308bed68dd11ce18ddfe4998435a9fea82fe555a6587",
+    "hardware/cpu/performance.csv.publications.csv": "2c4c650a24603984c4d5aceb0a3a19fd5a73ffb217fc07d33b2a1cd461fb2497",
+    "hardware/cpu/run.log": "c874c7067a67036695f592b9fd969c0c0a9ab8ddacfd6a12e75922d11d4f8309",
+    "hardware/native.log": "f7a477dd2a43d4f2513cecef667ae1849b77e9ad2a80c54197b82295e33a5142",
+    "hardware/results.json": "49b0cc752c05bd49296308db9d31a2760d6e6825c2513ddb77d44757be7b0764",
+    "hardware/scene.json": "abb9eaec4e200cf0b2e67fdc4e1141d462ea35f33ecbefa0533e19ec92382949",
+    "inputs.json": "3aa0c1e12976890939b087ff1bb855e186bb6a80861fa32492647189b8e683b3",
+    "preflight/build.log.gz": "6d75f996b70e392b174220f604548671aac4c69275d938d7fc06803277d4578f",
+    "preflight/renderer.log": "e9b34b70495489d00e29b576d26954e7f2138df5936e3ddf851bc04c0ea7324c",
+    "software/existing-native.json": "77d8037d38c4a3a2b771f421b44f24070d803bb68cb75e03af9185630c800d12",
+    "software/native/compute/frames.jsonl": "3170e803e23852d54993f9ff2fa1367542eaf79b08ecc61f9b8382b3eaffa186",
+    "software/native/compute/performance.csv": "11afa55eb4a8ad831c2b6f7bc4702fd7b8992ccc47801273a2e81356db211eea",
+    "software/native/compute/performance.csv.gpu-work.csv": "b91a2dff3596ed2c78cbac4488ba0d6f3b94491d74e4c675c6ad14e1a16f985e",
+    "software/native/compute/performance.csv.native-loop.csv": "2960d58a23ebab7343376aaa3770f1cc744096981886f748f03962f692ef759b",
+    "software/native/compute/performance.csv.publications.csv": "92a8b455892b70944ab83258f90098660a9e17cebf45fea458a6abab78061389",
+    "software/native/compute/run.log": "081c7745a3b37928e7815058ba3a954b926db234258b72ea445ea9cd61186f55",
+    "software/native/cpu/frames.jsonl": "392b77cdd567e26800ea0e646825a074fde53fb3ed15edce78df6522f30b370a",
+    "software/native/cpu/performance.csv": "5765ebca1af06a5cc30ef89189ce718ec49a639f5cf54d726077e4c252635e1c",
+    "software/native/cpu/performance.csv.gpu-work.csv": "540332d36759c54e086a4346843f9467df4899edeb4d7531ae493d15803db964",
+    "software/native/cpu/performance.csv.native-loop.csv": "0967cfae0212c9c9b65991dedba5d943d70eb55368efdfa5137bab96a9cf49e8",
+    "software/native/cpu/performance.csv.publications.csv": "802557f9419f194c32a459ae43c5b02ea8a12c25aa6431184384ce43f69b7b57",
+    "software/native/cpu/run.log": "dd7fa9c74918283eb50d9adb2e23e6e0543b96f650e7c2c54c29bd773589ad76",
+    "software/native/results.json": "b57958605bff61ab225dd2586e8082d99cc87c047e2cdcbec956bb5511cc2560",
+    "software/native/scene.json": "abb9eaec4e200cf0b2e67fdc4e1141d462ea35f33ecbefa0533e19ec92382949",
+    "software/renderer/compute/scene.json": "24a4a61ceef3c8fa64d52c8244dcb7527e3bab8a80acac955c89ddd6acb61248",
+    "software/renderer/compute/scene.json.frames.csv": "13a3c96936691b5c53e7f4e5016ecb8aca371037ef5957680c2064006051c8f1",
+    "software/renderer/compute/scene.json.frames.csv.gpu-work.csv": "bbb4a526e5e4490cd56d370978c43a18d4543c140bc46004b48cd3f49576783b",
+    "software/renderer/compute/scene.json.frames.csv.publications.csv": "ed4223988a41efa16f9840e09cb8dd97f75af585b7e03b557757a49688727102",
+    "software/renderer/compute/scene.json.publication.json": "3bfd18841586c35831826c2db930b1e3c34bcd03383408b49e110be84fe85ad3",
+    "software/renderer/cpu/scene.json": "24a4a61ceef3c8fa64d52c8244dcb7527e3bab8a80acac955c89ddd6acb61248",
+    "software/renderer/cpu/scene.json.frames.csv": "debe03843253a6181ad3f9df4c041ff7c85a5f59ff68b574dfbea192fdc9e333",
+    "software/renderer/cpu/scene.json.frames.csv.gpu-work.csv": "c7d89e82720fc9203436671e725c49924a217689ac2d14ffb432b6b45ff9656b",
+    "software/renderer/cpu/scene.json.frames.csv.publications.csv": "952e2a9ea7557c9967068e9f0d276ff2ccf391d3be7de03334db09d969660a39",
+    "software/renderer/cpu/scene.json.publication.json": "98e837e7363fa524775ba1af48bcd20099858cb6a1ab1a31514a74b7110bb705"
+  }
+}

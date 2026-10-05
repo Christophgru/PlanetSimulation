@@ -29,8 +29,10 @@ throughput, with limits on interactive FPS and terrain-migration conclusions.
 
 The [native loop timing study](architecture/terrain-gpu/async/hardware/loop/study.md)
 adds frame-linked complete wall receipts for polling, loading presentation and
-minimized waits. Publication lifecycle and physical-memory diagnostics remain
-the next prerequisites before matched CPU/compute cost acceptance.
+minimized waits. The [publication tracing study](architecture/terrain-gpu/async/hardware/publication/study.md)
+adds bounded ordinary CPU/compute terrain and resident grass receipts through
+complete consumer draws. Reload/capture/handoff/CPU grass lifecycle and physical
+memory remain prerequisites before matched CPU/compute cost acceptance.
 
 The [GPU timing prerequisite](architecture/terrain-gpu/async/hardware/timing/study.md)
 adds bounded request-keyed dispatch timings and complete frame timestamp spans.

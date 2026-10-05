@@ -20,6 +20,7 @@ inline constexpr std::array<const char*,5> gpuWorkStageNames{
 struct GpuWorkIdentity {
     std::uint64_t epoch=0,serial=0,body=std::numeric_limits<std::uint64_t>::max(),field=0,topology=0;
     std::uint32_t fieldVersion=0,topologyVersion=0,backend=0;
+    std::uint64_t attempt=0;
 };
 // Optional context-thread timing. A fixed query pool owns submissions independently
 // of terrain resources, so cancellation/retirement cannot lose or block a sample.
@@ -43,7 +44,7 @@ public:
         if(path.empty()) return;
         output_.open(path);
         if(!output_) throw std::runtime_error("Cannot open GPU work trace: "+path);
-        output_ << "event,frame,stage,epoch,request_serial,body,field,topology,field_version,topology_version,backend,identity_valid,status,cpu_submit_ms,gpu_ms,query_polls,view\n"
+        output_ << "event,frame,stage,epoch,request_serial,body,field,topology,field_version,topology_version,backend,identity_valid,status,cpu_submit_ms,gpu_ms,query_polls,view,attempt\n"
                 << std::setprecision(9);
     }
     ~GpuWorkProfiler() {
@@ -90,11 +91,19 @@ public:
         GpuWorkIdentity previous_;
     public:
         Request(std::uint64_t epoch,std::uint64_t serial,std::uint64_t body):previous_(identity_) {
-            identity_={};identity_.epoch=epoch;identity_.serial=serial;identity_.body=body;
+            identity_={};identity_.attempt=previous_.attempt;identity_.epoch=epoch;identity_.serial=serial;identity_.body=body;
         }
         ~Request() {identity_=previous_;}
         Request(const Request&)=delete;
         Request& operator=(const Request&)=delete;
+    };
+    class Attempt {
+        std::uint64_t previous_;
+    public:
+        explicit Attempt(std::uint64_t attempt):previous_(identity_.attempt) {identity_.attempt=attempt;}
+        ~Attempt() {identity_.attempt=previous_;}
+        Attempt(const Attempt&)=delete;
+        Attempt& operator=(const Attempt&)=delete;
     };
     static GpuWorkIdentity identity() {return identity_;}
     template<class Key> static GpuWorkIdentity generation(const Key& key,GpuWorkIdentity identity=identity_) {
@@ -153,7 +162,7 @@ private:
                 << k.backend << ',' << bool(k.epoch && k.serial && k.body!=std::numeric_limits<std::uint64_t>::max())
                 << ',' << status << ',' << e.cpuMs << ',';
         if(valid) output_ << gpuMs;
-        output_ << ',' << e.polls << ',' << gpuWorkViewNames[static_cast<int>(e.view)] << '\n';
+        output_ << ',' << e.polls << ',' << gpuWorkViewNames[static_cast<int>(e.view)] << ',' << k.attempt << '\n';
     }
 };
 }

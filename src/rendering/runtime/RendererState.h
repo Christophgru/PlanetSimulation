@@ -46,6 +46,8 @@ struct Renderer::Impl {
         std::optional<double> characterElapsed=std::nullopt);
     void prepareResidentFrame(const glm::dvec3& eye,std::optional<double> characterElapsed);
     void recordResidentPublication(std::size_t index,std::vector<int>& zones,bool terrainChanged);
+    PublicationProfiler::Generation publicationGeneration(std::size_t index) const;
+    void recordRenderedPublications(bool character);
     bool residentSceneReady() const;
     void publishResidentBuilds(std::vector<std::optional<TerrainCpuBuild>> builds,
         const std::vector<std::optional<TerrainBuildIdentity>>& identities,
@@ -104,6 +106,7 @@ struct Renderer::Impl {
     std::uint64_t characterPreviews=0;
     std::optional<glm::dvec3> plannedCharacterEye;
     std::optional<TerrainBuildIdentity> residentStage;
+    std::uint64_t residentStageAttempt=0;
     std::vector<int> residentStageZones;
     bool residentStageGrassOnly=false,residentRetirementFailed=false;
     std::uint64_t residentFrames=0,residentFrameFailures=0,residentRetryAfter=0;

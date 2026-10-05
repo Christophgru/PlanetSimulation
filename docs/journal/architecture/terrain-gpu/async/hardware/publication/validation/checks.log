@@ -1,0 +1,7 @@
+Final source/build-input and all 41 executable hashes match frozen inputs.
+All 22 gallery and ten retained historical baseline PNG hashes match.
+Updated Markdown local links resolve.
+Repository folder/gallery layout checks pass.
+Git diff whitespace check passes.
+User environmental suffix preserved exactly: b227dc2ecc065b8c8ac1eea5fa030c32f289ade83c61e19d571ddf6c4b09c5c5
+Journal PDF compiled to 32 pages; changed implementation/evaluation/references/table pages reviewed.

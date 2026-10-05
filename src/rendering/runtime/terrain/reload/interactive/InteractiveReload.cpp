@@ -82,6 +82,7 @@ bool Renderer::Impl::pollResidentReload() {
         auto& p=*pendingResidentReload;
         if(!p.transaction) {
             if(retiredResidentScene || retiredLegacyScene || !residentSceneReady()) return false;
+            profiler.publications().finish(residentStageAttempt,PublicationProfiler::Outcome::Obsolete);
             terrainPublication->cancel();residentStage.reset();residentStageZones.clear();
             terrainJobs.beginReplacement(p.epoch);
             p.transaction=std::make_unique<SceneTerrainReplacement>(p.document,std::move(*p.prepared),

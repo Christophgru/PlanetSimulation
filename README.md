@@ -289,6 +289,14 @@ wall time, event polling, presentation and minimized-window wait intervals.
 It includes loading frames and the profiler's collection work; join it to the
 other traces by frame number. Its contained intervals and GPU times must not
 be added to the full wall time. See the [native loop study](docs/journal/architecture/terrain-gpu/async/hardware/loop/study.md).
+Interactive tracing also writes `path.csv.publications.csv`: ordinary CPU/compute
+terrain requests and resident grass-only attempts, ending at the first completed
+draw with matching generation/contact receipts. Wall milliseconds and elapsed
+frames include queueing and readiness delays. Failed, rejected, coalesced,
+obsolete and never-drawn attempts have explicit outcomes and no successful
+publication latency. GPU work adds an `attempt` column for joining these records.
+Reload transactions, captures, body handoff and CPU grass-only tracing remain
+pending. See the [publication tracing study](docs/journal/architecture/terrain-gpu/async/hardware/publication/study.md).
 `cpu_foliage_ms` includes complete CPU preparation. GPU placement, wind,
 compaction and drawing belong to the opaque/reflection passes;
 `gpu_foliage_ms` remains zero because that named stage prepares the CPU plan.

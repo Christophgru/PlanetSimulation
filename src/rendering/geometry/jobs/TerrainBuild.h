@@ -23,6 +23,7 @@ struct TerrainBuildRequest {
     config::PlanetConfig planet;
     std::vector<int> previousFaceZones;
     double metersPerUnit=1;
+    std::uint64_t traceAttempt=0; // Diagnostic identity; excluded from matching/replay.
     void validate() const;
 };
 struct TerrainCpuBuild {

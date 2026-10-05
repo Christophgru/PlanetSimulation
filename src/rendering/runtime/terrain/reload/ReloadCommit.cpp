@@ -17,6 +17,7 @@ void Renderer::Impl::finishSceneReload(ReloadTracking& tracking,app::CommandLine
     nlohmann::json& nextReplay,const ReloadCommitState& commit) {
         // No allocations after exchange. Optional cameras keep their addresses.
         tracking.exchange(*this);using std::swap;swap(options,nextOptions);source.replayDocument.swap(nextReplay);
+        profiler.publications().discardOlderEpochs(terrainSceneEpoch);
         terrainJobs.advanceEpoch(terrainSceneEpoch);simulationTime=commit.time;simulationClock.reset(commit.time,commit.wall);characterWindTime=commit.time;surfaceClip=commit.clip;
         cameraInput.rebind(scene.surfaceCamera ? &*scene.surfaceCamera : nullptr,scene.planetOrbitCamera ? &*scene.planetOrbitCamera : nullptr);
         cameraInput.setThirdPersonWalkSpeed(commit.walkSpeed);

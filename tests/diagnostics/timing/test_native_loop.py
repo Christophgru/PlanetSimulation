@@ -75,8 +75,32 @@ for backend in ('cpu', 'compute'):
         assert counts['minimized'] >= 4 and counts['rendered'] >= 4, counts
         if backend == 'compute':
             assert counts['loading'] >= 2, counts
+        publications = list(csv.DictReader(Path(str(trace) + '.publications.csv').open()))
+        published = [row for row in publications if row['outcome'] == 'published']
+        assert published and len({row['attempt'] for row in publications}) == len(publications)
+        assert not any(row['outcome'] == 'trace_overflow' for row in publications)
+        for row in publications:
+            if row['outcome'] != 'published':
+                assert not row['publication_ms'] and not row['publication_frames'], row
+                continue
+            number = int(row['end_frame'])
+            probe = observed[number]
+            assert native[number]['outcome'] == 'rendered' and not probe['waiting'], (row, probe)
+            body = int(row['body'])
+            geometry = probe['publication_geometry'][body]
+            assert row['epoch'] == str(geometry['epoch']) and row['request_serial'] == str(geometry['serial'])
+            for column in ('land_field', 'land_topology', 'land_revision', 'water_field', 'water_topology', 'water_revision'):
+                assert row[column] == str(geometry[column]), (row, geometry)
+            assert float(row['publication_ms']) >= float(row['prepared_ms'])
+            assert int(row['publication_frames']) == number - int(row['start_frame'])
+            if backend == 'compute':
+                consumer = probe['publication']['consumers'][body]
+                assert row['land_revision'] == str(consumer['main_revision']) == str(consumer['grass_revision'])
+                assert consumer['land'] == consumer['grass'] == consumer['contacts']
+                assert [float(row[f'grass_eye_{axis}']) for axis in 'xyz'] == consumer['grass_plan_eye']
         results[backend] = {**validate(session.frames, managed=backend == 'compute'),
                             'loop_outcomes': counts, 'joined_receipts': len(native),
+                            'publication_receipts': len(publications), 'published_draws': len(published),
                             'renderer': session.frames[0]['renderer'],
                             'opengl_version': session.frames[0]['opengl_version']}
         write_json(out / 'results.json', results)

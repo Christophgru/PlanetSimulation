@@ -10,6 +10,7 @@
 #include <GL/glew.h>
 #include "rendering/diagnostics/tracing/CpuTrace.h"
 #include "rendering/diagnostics/timing/GpuWorkProfiler.h"
+#include "rendering/diagnostics/timing/PublicationProfiler.h"
 
 namespace rendering {
 // Wall-clock presentation rate, averaged over a short window (not 1/CPU time).
@@ -58,7 +59,8 @@ class FrameProfiler {
     };
 public:
     explicit FrameProfiler(const std::string& path = "")
-        : work_(path.empty() ? "" : path+".gpu-work.csv") {
+        : work_(path.empty() ? "" : path+".gpu-work.csv"),
+          publications_(path.empty() ? "" : path+".publications.csv") {
         if (path.empty()) return;
         trace_.open(path);
         if (!trace_) throw std::runtime_error("Cannot open performance trace: " + path);
@@ -85,7 +87,7 @@ public:
         const auto queries = current_->queries;
         *current_ = Frame{}; current_->queries = queries;
         current_->number = next_++; current_->simulation = simulation;
-        work_.frame(current_->number);workBinding_.emplace(&work_);
+        publications_.frame(current_->number);work_.frame(current_->number);workBinding_.emplace(&work_);
         current_->timed = current_ != &fallback_ && (trace_.is_open() || showGpu);
         current_->missingStatus=current_==&fallback_ ? "ring_full" : "untraced";
         current_->start = Clock::now();
@@ -105,7 +107,7 @@ public:
         current_ = nullptr;
     }
     void collect() {
-        work_.collect();
+        work_.collect();publications_.collect();
         for (auto& frame : frames_) {
             if (!frame.pending) continue;
             ++frame.gpuPolls;
@@ -142,6 +144,7 @@ public:
     bool gpuReady() const { return lastReady_; }
     unsigned long long nextFrameNumber() const {return next_;}
     GpuWorkProfiler& gpuWork() {return work_;}
+    PublicationProfiler& publications() {return publications_;}
     double gpuMilliseconds = 0;
     class Scope {
     public:
@@ -166,6 +169,7 @@ private:
     unsigned long long next_ = 0, lastNumber_ = 0;
     bool lastReady_ = false;
     GpuWorkProfiler work_;
+    PublicationProfiler publications_;
     std::optional<GpuWorkProfiler::Binding> workBinding_;
     static double elapsed(Clock::time_point start) {
         return std::chrono::duration<double, std::milli>(Clock::now()-start).count();

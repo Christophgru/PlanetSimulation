@@ -1,0 +1,44 @@
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 16 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 13 tests from TerrainJobs
+[ RUN      ] TerrainJobs.BoundsCoalescingAndCompletionBackpressure
+[       OK ] TerrainJobs.BoundsCoalescingAndCompletionBackpressure (6 ms)
+[ RUN      ] TerrainJobs.RepeatedReloadKeepsWorkerOwnershipAndDiscardsOldEpochs
+[       OK ] TerrainJobs.RepeatedReloadKeepsWorkerOwnershipAndDiscardsOldEpochs (2 ms)
+[ RUN      ] TerrainJobs.ErrorsAreReturnedAndExecutorCanRecover
+[       OK ] TerrainJobs.ErrorsAreReturnedAndExecutorCanRecover (1 ms)
+[ RUN      ] TerrainJobs.ExclusiveReloadFailureLeavesTheLiveEpochUsableAndReusesTheSameWorker
+[       OK ] TerrainJobs.ExclusiveReloadFailureLeavesTheLiveEpochUsableAndReusesTheSameWorker (0 ms)
+[ RUN      ] TerrainJobs.ShutdownJoinsExecutingSnapshotAndDropsQueuedWork
+[       OK ] TerrainJobs.ShutdownJoinsExecutingSnapshotAndDropsQueuedWork (1 ms)
+[ RUN      ] TerrainJobs.FutureReloadSupersedesRunningAndQueuedWorkWithoutChangingLiveEpochOnFailure
+[       OK ] TerrainJobs.FutureReloadSupersedesRunningAndQueuedWorkWithoutChangingLiveEpochOnFailure (1 ms)
+[ RUN      ] TerrainJobs.FutureReloadDropsReadyAndQueuedResultsBeforeExclusivePreparation
+[       OK ] TerrainJobs.FutureReloadDropsReadyAndQueuedResultsBeforeExclusivePreparation (1 ms)
+[ RUN      ] TerrainJobs.PublicationRejectsBodyReorderingFieldModeEpochAndOlderSerials
+[       OK ] TerrainJobs.PublicationRejectsBodyReorderingFieldModeEpochAndOlderSerials (0 ms)
+[ RUN      ] TerrainJobs.ResidentBuildOwnsSnapshotsAndConstructsContactsWithoutRenderEvaluation
+[       OK ] TerrainJobs.ResidentBuildOwnsSnapshotsAndConstructsContactsWithoutRenderEvaluation (30 ms)
+[ RUN      ] TerrainJobs.CpuAndLegacyComputeKeepExactExpandedGeometry
+[       OK ] TerrainJobs.CpuAndLegacyComputeKeepExactExpandedGeometry (28 ms)
+[ RUN      ] TerrainJobs.InvalidSnapshotsDoNotReplacePendingWork
+[       OK ] TerrainJobs.InvalidSnapshotsDoNotReplacePendingWork (10 ms)
+[ RUN      ] TerrainJobs.DiagnosticAttemptsFollowAdmissionCoalescingCpuFailureAndShutdown
+[       OK ] TerrainJobs.DiagnosticAttemptsFollowAdmissionCoalescingCpuFailureAndShutdown (6 ms)
+[ RUN      ] TerrainJobs.EpochCancellationClosesLogicalAttemptsWithoutWaitingForRunningOwnership
+[       OK ] TerrainJobs.EpochCancellationClosesLogicalAttemptsWithoutWaitingForRunningOwnership (2 ms)
+[----------] 13 tests from TerrainJobs (95 ms total)
+
+[----------] 3 tests from TerrainFuture
+[ RUN      ] TerrainFuture.SupersedesExecutingLiveAndQueuedFutureWorkWithoutWaitingOrChangingLiveEpoch
+[       OK ] TerrainFuture.SupersedesExecutingLiveAndQueuedFutureWorkWithoutWaitingOrChangingLiveEpoch (2 ms)
+[ RUN      ] TerrainFuture.OldAbortCannotCancelNewLeaseAndLateFutureCompletionIsDiscardedOnAbort
+[       OK ] TerrainFuture.OldAbortCannotCancelNewLeaseAndLateFutureCompletionIsDiscardedOnAbort (2 ms)
+[ RUN      ] TerrainFuture.ReadyBackpressureSurvivesWrongCommitAndSupersedingDropsReadyAndQueuedTogether
+[       OK ] TerrainFuture.ReadyBackpressureSurvivesWrongCommitAndSupersedingDropsReadyAndQueuedTogether (2 ms)
+[----------] 3 tests from TerrainFuture (8 ms total)
+
+[----------] Global test environment tear-down
+[==========] 16 tests from 2 test suites ran. (103 ms total)
+[  PASSED  ] 16 tests.

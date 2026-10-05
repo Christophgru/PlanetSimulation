@@ -34,7 +34,7 @@ Renderer::Impl::Impl(app::CommandLineOptions arguments)
       meshSteepRefinedFaces(scene.scenario.planets.size(), 0),
       terrainJobs([trace=&cpuTrace](const TerrainBuildRequest& request) {
           CpuTrace::Thread thread(trace,"terrain worker");return buildTerrainCpu(request);
-      }),
+      },&profiler.publications()),
       installedTerrainSerial(scene.scenario.planets.size(),0),
       terrainFailures(scene.scenario.planets.size()),
       simulationTime(config::replayStartTime(scene.scenario, options.commandLineTime)),

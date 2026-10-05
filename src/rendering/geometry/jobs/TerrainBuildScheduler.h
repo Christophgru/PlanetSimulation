@@ -1,5 +1,6 @@
 #pragma once
 #include "rendering/geometry/jobs/TerrainBuild.h"
+#include "rendering/diagnostics/timing/PublicationProfiler.h"
 #include <condition_variable>
 #include <exception>
 #include <functional>
@@ -11,6 +12,7 @@ struct TerrainBuildCompletion {
     TerrainBuildIdentity identity;
     std::optional<TerrainCpuBuild> build;
     std::exception_ptr error;
+    std::uint64_t traceAttempt=0;
     TerrainCpuBuild take();
 };
 struct TerrainWorkerStats {
@@ -23,7 +25,7 @@ struct TerrainWorkerStats {
 class TerrainBuildScheduler {
 public:
     using Builder=std::function<TerrainCpuBuild(const TerrainBuildRequest&)>;
-    explicit TerrainBuildScheduler(Builder builder=buildTerrainCpu);
+    explicit TerrainBuildScheduler(Builder builder=buildTerrainCpu,PublicationProfiler* trace=nullptr);
     ~TerrainBuildScheduler();
     TerrainBuildScheduler(const TerrainBuildScheduler&)=delete;
     TerrainBuildScheduler& operator=(const TerrainBuildScheduler&)=delete;
@@ -50,6 +52,9 @@ private:
     void run();
     TerrainBuildCompletion executeExclusive(TerrainBuildRequest request,bool replacement);
     Builder builder_;
+    PublicationProfiler* trace_;
+    std::uint64_t runningAttempt_=0;
+    void discard(PublicationProfiler::Outcome outcome,std::uint64_t keepRunningEpoch=0);
     mutable std::mutex mutex_;
     std::condition_variable changed_;
     std::uint64_t epoch_=1,latestSerial_=0;

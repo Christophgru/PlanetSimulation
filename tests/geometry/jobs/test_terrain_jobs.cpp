@@ -3,6 +3,9 @@
 #include <gtest/gtest.h>
 #include <chrono>
 #include <future>
+#include <filesystem>
+#include <fstream>
+#include <sstream>
 #include <limits>
 #include <vector>
 
@@ -203,4 +206,58 @@ TEST(TerrainJobs, InvalidSnapshotsDoNotReplacePendingWork) {
     EXPECT_THROW(jobs.submit(malformed),std::invalid_argument);
     EXPECT_FALSE(jobs.submit(request(1,2)));EXPECT_TRUE(jobs.submit(request()));
     auto result=collect(jobs);ASSERT_TRUE(result);EXPECT_NO_THROW(result->take());
+}
+
+namespace {
+std::string tracePath(const char* name) {
+    std::filesystem::create_directories(PLANET_JOB_TRACE);return std::string(PLANET_JOB_TRACE)+"/"+name+".csv";
+}
+std::string traceText(const std::string& path) {std::ifstream input(path);std::ostringstream text;text<<input.rdbuf();return text.str();}
+std::size_t occurrences(const std::string& text,const std::string& word) {
+    std::size_t count=0,pos=0;while((pos=text.find(word,pos))!=std::string::npos) {++count;pos+=word.size();}return count;
+}
+}
+TEST(TerrainJobs, DiagnosticAttemptsFollowAdmissionCoalescingCpuFailureAndShutdown) {
+    const auto out=tracePath("outcomes");PublicationProfiler trace(out);trace.frame(1);
+    Gate gate;std::promise<void> started;
+    TerrainBuildScheduler jobs([&](const auto& r) {
+        if(r.identity.serial==1) {started.set_value();gate.wait();}
+        if(r.identity.serial==3) throw std::runtime_error("CPU failure");
+        return TerrainCpuBuild{};
+    },&trace);
+    Release release{gate};
+    const auto tracked=[&](TerrainBuildRequest r) {r.traceAttempt=trace.begin(PublicationProfiler::Key::from(r.identity));return r;};
+    EXPECT_TRUE(jobs.submit(tracked(request())));
+    ASSERT_EQ(started.get_future().wait_for(5s),std::future_status::ready);
+    EXPECT_TRUE(jobs.submit(tracked(request(2))));EXPECT_TRUE(jobs.submit(tracked(request(3))));
+    EXPECT_FALSE(jobs.submit(tracked(request(3))));auto invalid=request(4);invalid.identity.field=0;
+    EXPECT_THROW(jobs.submit(tracked(invalid)),std::invalid_argument);
+    gate.release();auto first=collect(jobs);ASSERT_TRUE(first);ASSERT_GT(first->traceAttempt,0u);
+    trace.prepared(first->traceAttempt,{});trace.frame(2);trace.rendered(1,0,1,{});
+    auto failed=collect(jobs);ASSERT_TRUE(failed);ASSERT_TRUE(failed->error);EXPECT_THROW(failed->take(),std::runtime_error);
+    EXPECT_TRUE(jobs.submit(tracked(request(5))));
+    // Stop either the queued, executing or ready ownership of the last attempt.
+    jobs.stop();trace.collect();EXPECT_EQ(trace.stats().active,0u);EXPECT_EQ(trace.stats().begun,6u);
+    const auto text=traceText(out);
+    EXPECT_EQ(occurrences(text,",published,"),1u);EXPECT_EQ(occurrences(text,",coalesced,"),1u);
+    EXPECT_EQ(occurrences(text,",rejected,"),2u);EXPECT_EQ(occurrences(text,",cpu_failed,"),1u);
+    EXPECT_EQ(occurrences(text,",shutdown,"),1u);EXPECT_EQ(occurrences(text,",missing_shutdown,"),0u);
+}
+TEST(TerrainJobs, EpochCancellationClosesLogicalAttemptsWithoutWaitingForRunningOwnership) {
+    const auto out=tracePath("obsolete");PublicationProfiler trace(out);Gate gate;std::promise<void> started;
+    TerrainBuildScheduler jobs([&](const auto& r) {
+        if(r.identity.serial==1) {started.set_value();gate.wait();}return TerrainCpuBuild{};
+    },&trace);Release release{gate};
+    const auto submit=[&](std::uint64_t serial,std::uint64_t epoch) {
+        auto r=request(serial,epoch);r.traceAttempt=trace.begin(PublicationProfiler::Key::from(r.identity));return jobs.submit(std::move(r));
+    };
+    ASSERT_TRUE(submit(1,1));ASSERT_EQ(started.get_future().wait_for(5s),std::future_status::ready);
+    ASSERT_TRUE(submit(2,1));jobs.beginReplacement(2);ASSERT_TRUE(submit(3,2));jobs.abortReplacement(2);
+    EXPECT_EQ(jobs.stats().running,1u);EXPECT_EQ(trace.stats().active,0u);
+    gate.release();ASSERT_TRUE(submit(4,1));
+    const auto deadline=std::chrono::steady_clock::now()+5s;
+    while(!jobs.stats().ready && std::chrono::steady_clock::now()<deadline) std::this_thread::sleep_for(1ms);
+    ASSERT_TRUE(jobs.readyIdentity());jobs.advanceEpoch(3);jobs.stop();trace.collect();
+    EXPECT_EQ(trace.stats().begun,4u);EXPECT_EQ(trace.stats().finished,4u);EXPECT_EQ(trace.stats().active,0u);
+    EXPECT_EQ(occurrences(traceText(out),",obsolete,"),4u);
 }

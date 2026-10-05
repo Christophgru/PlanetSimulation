@@ -36,7 +36,8 @@ add_test(NAME TerrainRecoveryIntegration COMMAND terrain_recovery_tests)
 set_tests_properties(TerrainRecoveryIntegration PROPERTIES
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 240 RUN_SERIAL TRUE)
 
-add_executable(terrain_frame_tests app/terrain/interactive/test_frame.cpp app/terrain/interactive/test_timing.cpp)
+add_executable(terrain_frame_tests app/terrain/interactive/test_frame.cpp app/terrain/interactive/test_timing.cpp
+    app/terrain/interactive/test_publications.cpp)
 target_link_libraries(terrain_frame_tests PRIVATE planet_app GTest::gtest_main)
 target_compile_definitions(terrain_frame_tests PRIVATE
     PLANET_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
@@ -167,6 +168,7 @@ add_test(NAME MeshGeometryTests COMMAND mesh_geometry_tests)
 add_test(NAME TerrainTests COMMAND terrain_tests)
 add_executable(terrain_job_tests geometry/jobs/test_terrain_jobs.cpp geometry/jobs/test_terrain_future.cpp)
 target_link_libraries(terrain_job_tests PRIVATE planet_geometry GTest::gtest_main)
+target_compile_definitions(terrain_job_tests PRIVATE PLANET_JOB_TRACE="${CMAKE_BINARY_DIR}/terrain-job-trace")
 add_test(NAME TerrainJobTests COMMAND terrain_job_tests)
 set_tests_properties(TerrainJobTests PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 30)
 add_executable(terrain_compute_tests geometry/compute/test_terrain_compute.cpp
@@ -286,7 +288,7 @@ add_executable(frame_reuse_tests diagnostics/test_frame_reuse.cpp)
 target_link_libraries(frame_reuse_tests PRIVATE GTest::gtest_main OpenGL::GL GLEW::GLEW glm::glm)
 target_include_directories(frame_reuse_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
 add_test(NAME FrameReuseTests COMMAND frame_reuse_tests)
-add_executable(gpu_work_profiler_tests diagnostics/timing/test_gpu_work.cpp diagnostics/timing/test_frame_profiler.cpp diagnostics/timing/test_native_loop.cpp)
+add_executable(gpu_work_profiler_tests diagnostics/timing/test_gpu_work.cpp diagnostics/timing/test_frame_profiler.cpp diagnostics/timing/test_native_loop.cpp diagnostics/timing/test_publication_profiler.cpp)
 target_link_libraries(gpu_work_profiler_tests PRIVATE planet_diagnostics GTest::gtest_main OpenGL::GL GLEW::GLEW Threads::Threads)
 target_include_directories(gpu_work_profiler_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_compile_definitions(gpu_work_profiler_tests PRIVATE PLANET_TIMING_OUTPUT="${CMAKE_BINARY_DIR}/gpu-work-profiler")

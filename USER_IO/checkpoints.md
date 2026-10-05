@@ -1,5 +1,35 @@
 # Page to document progress of AI Agents working on this Project
 
+## Ordinary publication tracing checkpoint — 2026-10-05
+
+- T3c5b2b1 is tested. Ordinary CPU terrain startup/worker replacement and
+  resident compute terrain/grass-only requests retain independent bounded IDs
+  through their first complete consumer draw. The optional publication CSV
+  records wall/frame latency, phase offsets and generation/revision/anchor keys;
+  GPU work carries the same attempt into dispatch and later placement. Failures,
+  rejection, coalescing, cancellation, undrawn replacement and shutdown do not
+  invent successful latency. Fixed 64-record metadata ownership adds no GL
+  waits, worker, future or topology retention; disabled tracing reads no clock.
+- Five new controlled recorder cases, two real-worker cases and two actual
+  CPU/compute frame cases pass. All ten relevant CTest groups pass on final
+  inputs (456.95 s), including capture/replay, reload/destination recovery,
+  native loop and existing five native input scenarios/four startup rejection
+  contracts. This is scoped validation, not a new full 65-group run.
+- Real GLFW software/Quadro observations join successful receipts to actual
+  generation keys and frames. Software has 65 loop receipts/seven publication
+  outcomes/four successful endpoints; Quadro GL 4.3 has 66/eight/four. Audits
+  retain zero blocking polls/server waits/bulk reads/finishes. A CPU-only private
+  draw-helper assumption was fixed after preflight and passes final validation.
+- Source/build-input and all 41 executable hashes remain frozen. Twenty-two
+  gallery and ten retained historical baseline hashes match. Journal/PDF and
+  reviewed pages accompany raw evidence in
+  docs/journal/architecture/terrain-gpu/async/hardware/publication/validation/.
+- Parent T3c5b2b remains partial. Continue with T3c5b2b2: whole-scene reload
+  parent/child outcomes, captures, actual destination handoff and CPU grass-only
+  preparation. Then physical memory T3c5b2c and matched hardware T3c5c. CPU
+  stays default; user environmental/Docker TODO suffix remains unchanged and
+  unstaged.
+
 ## Complete native-loop wall checkpoint — 2026-10-05
 
 - T3c5b2a is tested. Interactive tracing adds a separate native-loop CSV linked

@@ -4,6 +4,37 @@
 #include <iostream>
 
 namespace rendering {
+PublicationProfiler::Generation Renderer::Impl::publicationGeneration(std::size_t i) const {
+    const auto& land=meshes.planetMeshes[i];const auto& water=meshes.waterMeshes[i];
+    const auto& l=land.terrainStats.generation;const auto& w=water.terrainStats.generation;
+    PublicationProfiler::Generation result{l.field,l.topology,w.field,w.topology,land.revision,water.revision};
+    if(terrainPublication) {
+        const auto eye=terrainPublication->installed(i).grassEye;result.grassEye={eye.x,eye.y,eye.z};
+    }
+    return result;
+}
+void Renderer::Impl::recordRenderedPublications(bool character) {
+    auto& trace=profiler.publications();if(!trace.enabled() || options.renderTestMode) return;
+    trace.discardOlderEpochs(terrainSceneEpoch);
+    for(std::size_t i=0;i<meshReady.size();++i) {
+        if(!meshReady[i]) continue;
+        const auto& land=meshes.planetMeshes[i];const auto& water=meshes.waterMeshes[i];
+        if(character && i==scene.scenario.surface_camera.planet_index && astronautGround.revision()!=land.revision) continue;
+        if(terrainPublication) {
+            if(i>=terrainConsumers.size()) continue;
+            const auto& c=terrainConsumers[i];
+            if(c.land!=land.terrainStats.generation || c.contacts!=c.land || c.grass!=c.land ||
+               c.water!=water.terrainStats.generation || c.landRevision!=land.revision ||
+               c.mainRevision!=land.revision || c.grassRevision!=land.revision ||
+               (c.shadowRevision && c.shadowRevision!=land.revision) ||
+               (c.reflectionRevision && c.reflectionRevision!=land.revision) ||
+               (c.grassDrawRevision && c.grassDrawRevision!=land.revision) ||
+               (scene.scenario.planets[i].water.enabled && c.waterDrawRevision!=water.revision)) continue;
+        }
+        trace.rendered(terrainSceneEpoch,i,installedTerrainSerial[i],publicationGeneration(i));
+    }
+}
+
 bool Renderer::Impl::residentSceneReady() const {
     return std::all_of(meshReady.begin(),meshReady.end(),[](bool ready){return ready;});
 }
@@ -58,14 +89,21 @@ void Renderer::Impl::prepareResidentFrame(const glm::dvec3& eye,std::optional<do
             // A grass-only stage deliberately keeps the installed serial.
             const bool compatible=k.bodyIndex<scene.scenario.planets.size() &&
                 terrainBuildMatches(k,identityFor(k.bodyIndex),installedTerrainSerial[k.bodyIndex]-(residentStageGrassOnly ? 1 : 0));
-            if(!compatible) {terrainPublication->cancel();++terrainRejectedBuilds;residentStage.reset();}
+            if(!compatible) {
+                profiler.publications().finish(residentStageAttempt,PublicationProfiler::Outcome::Obsolete);
+                terrainPublication->cancel();++terrainRejectedBuilds;residentStage.reset();
+            }
             else if(terrainPublication->poll()) {
+                profiler.publications().phase(residentStageAttempt,PublicationProfiler::Phase::GpuReady);
                 if(terrainPublication->publish(identityFor(k.bodyIndex),meshes.planetMeshes[k.bodyIndex],meshes.waterMeshes[k.bodyIndex]))
+                {
                     recordResidentPublication(k.bodyIndex,residentStageZones,!residentStageGrassOnly);
-                else ++terrainRejectedBuilds;
+                    profiler.publications().prepared(residentStageAttempt,publicationGeneration(k.bodyIndex));
+                } else {++terrainRejectedBuilds;profiler.publications().finish(residentStageAttempt,PublicationProfiler::Outcome::Obsolete);}
                 residentStage.reset();glFlush();
             }
         } catch(const std::exception& error) {
+            profiler.publications().finish(residentStageAttempt,PublicationProfiler::Outcome::PreparationFailed);
             terrainPublication->cancel();residentStage.reset();fail(k,error);
         }
     }
@@ -76,20 +114,27 @@ void Renderer::Impl::prepareResidentFrame(const glm::dvec3& eye,std::optional<do
         return previewAstronautEye(*characterElapsed,std::move(contacts));
     };
     if(const auto ready=terrainJobs.readyIdentity()) {
-        if(!matches(*ready)) {terrainJobs.poll();++terrainRejectedBuilds;}
+        if(!matches(*ready)) {
+            auto completed=terrainJobs.poll();
+            profiler.publications().finish(completed->traceAttempt,PublicationProfiler::Outcome::Obsolete);++terrainRejectedBuilds;
+        }
         else if(terrainPublication->canSubmit(ready->bodyIndex)) {
             const auto k=*ready;
             auto completed=terrainJobs.poll();
+            const auto attempt=completed->traceAttempt;
             try {
                 auto built=completed->take();auto zones=built.geometry.faceZones;
                 const auto world=planningEye(&built,k.bodyIndex);
                 const auto anchor=scene.bodies[k.bodyIndex+1].toLocalPoint(world)/scene.scenario.planets[k.bodyIndex].radius;
                 profiler.terrainBuild(built.milliseconds);
+                profiler.publications().phase(attempt,PublicationProfiler::Phase::GpuSubmit);
+                GpuWorkProfiler::Attempt binding(attempt);
                 if(!terrainPublication->submit(std::move(built),k,scene.scenario.planets[k.bodyIndex],
                     scene.scenario.metersPerWorldUnit(),anchor,meshes.planetMeshes[k.bodyIndex],meshes.waterMeshes[k.bodyIndex],*terrainCompute))
                     throw std::logic_error("Resident preparation slot became busy");
-                residentStage=k;residentStageZones.swap(zones);residentStageGrassOnly=false;glFlush();
+                residentStage=k;residentStageAttempt=attempt;residentStageZones.swap(zones);residentStageGrassOnly=false;glFlush();
             } catch(const std::exception& error) {
+                profiler.publications().finish(attempt,PublicationProfiler::Outcome::PreparationFailed);
                 terrainPublication->cancel();residentStage.reset();fail(k,error);
             }
         }
@@ -117,7 +162,11 @@ void Renderer::Impl::prepareResidentFrame(const glm::dvec3& eye,std::optional<do
             priority=distance;candidate=TerrainBuildRequest{k,scene.terrainSurfaces[i],planet,lastFaceZones[i],scene.scenario.metersPerWorldUnit()};
         }
     }
-    if(candidate) {candidate->identity.serial=++terrainRequestSerial;terrainJobs.submit(std::move(*candidate));}
+    if(candidate) {
+        candidate->identity.serial=++terrainRequestSerial;
+        candidate->traceAttempt=profiler.publications().begin(PublicationProfiler::Key::from(candidate->identity));
+        terrainJobs.submit(std::move(*candidate));
+    }
     if(residentStage || !residentSceneReady()) return;
     const auto world=planningEye(nullptr,0);
     for(std::size_t i=0;i<scene.scenario.planets.size();++i) {
@@ -130,12 +179,18 @@ void Renderer::Impl::prepareResidentFrame(const glm::dvec3& eye,std::optional<do
         const auto previous=grass.procedural.planningEye(i);
         if(previous && glm::length(anchor-*previous)*planet.radius*scene.scenario.metersPerWorldUnit()<grassRebuildDistance(planet.foliage)) continue;
         const auto k=terrainPublication->installed(i).identity;
+        auto key=PublicationProfiler::Key::from(k);key.eye={anchor.x,anchor.y,anchor.z};
+        const auto attempt=profiler.publications().begin(key,PublicationProfiler::Kind::Grass);
         try {
+            profiler.publications().phase(attempt,PublicationProfiler::Phase::GpuSubmit);
+            GpuWorkProfiler::Attempt binding(attempt);
             if(terrainPublication->submitGrass(i,planet,scene.scenario.metersPerWorldUnit(),anchor,
                 meshes.planetMeshes[i],meshes.waterMeshes[i])) {
-                residentStage=k;residentStageGrassOnly=true;glFlush();break;
+                residentStage=k;residentStageAttempt=attempt;residentStageGrassOnly=true;glFlush();break;
             }
+            profiler.publications().finish(attempt,PublicationProfiler::Outcome::Rejected);
         } catch(const std::exception& error) {
+            profiler.publications().finish(attempt,PublicationProfiler::Outcome::PreparationFailed);
             terrainPublication->cancel();residentStage.reset();fail(k,error);
         }
     }

@@ -61,7 +61,8 @@ add_library(planet_config STATIC
 target_include_directories(planet_config PUBLIC ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(planet_config PUBLIC nlohmann_json::nlohmann_json)
 
-add_library(planet_diagnostics STATIC src/rendering/diagnostics/tracing/CpuTrace.cpp)
+add_library(planet_diagnostics STATIC src/rendering/diagnostics/tracing/CpuTrace.cpp
+    src/rendering/diagnostics/timing/PublicationProfiler.cpp)
 target_include_directories(planet_diagnostics PUBLIC ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(planet_diagnostics PRIVATE nlohmann_json::nlohmann_json)
 

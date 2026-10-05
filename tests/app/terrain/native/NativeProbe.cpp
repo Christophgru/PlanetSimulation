@@ -64,6 +64,16 @@ void sample(GLFWwindow* window,bool waiting=false) {
         {"publication",r.terrainPublicationState()},{"reload",r.sceneReloadState()},
         {"paused",r.simulationClock.paused()},{"controls",controls},{"gl",counters()},
         {"worker",{{"running",stats.running},{"queued",stats.queued},{"ready",stats.ready}}}};
+    if(r.profiler.publications().enabled()) {
+        j["publication_geometry"]=json::array();
+        for(std::size_t i=0;i<r.meshes.planetMeshes.size();++i) {
+            const auto& land=r.meshes.planetMeshes[i];const auto& water=r.meshes.waterMeshes[i];
+            const auto& l=land.terrainStats.generation;const auto& w=water.terrainStats.generation;
+            j["publication_geometry"].push_back({{"body",i},{"epoch",r.terrainSceneEpoch},{"serial",r.installedTerrainSerial[i]},
+                {"land_field",std::to_string(l.field)},{"land_topology",std::to_string(l.topology)},{"land_revision",land.revision},
+                {"water_field",std::to_string(w.field)},{"water_topology",std::to_string(w.topology)},{"water_revision",water.revision}});
+        }
+    }
     j["keys"]={{"w",glfwGetKey(window,GLFW_KEY_W)==GLFW_PRESS},
         {"shift",glfwGetKey(window,GLFW_KEY_LEFT_SHIFT)==GLFW_PRESS},
         {"space",glfwGetKey(window,GLFW_KEY_SPACE)==GLFW_PRESS}};

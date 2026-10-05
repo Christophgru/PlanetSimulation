@@ -58,13 +58,18 @@ void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalkin
             const auto current=identityFor(k.bodyIndex,currentEye,
                 glm::length(currentEye)<3*scene.scenario.planets[k.bodyIndex].radius ? 1 : 0);
             if(terrainBuildMatches(k,current,installedTerrainSerial[k.bodyIndex])) {
-                try {installTerrainBuild(completed->take(),k);}
+                try {
+                    GpuWorkProfiler::Attempt binding(completed->traceAttempt);
+                    installTerrainBuild(completed->take(),k);
+                    profiler.publications().prepared(completed->traceAttempt,publicationGeneration(k.bodyIndex));
+                }
                 catch(const std::exception& error) {
+                    profiler.publications().finish(completed->traceAttempt,PublicationProfiler::Outcome::PreparationFailed);
                     terrainFailures[k.bodyIndex]=k;
                     std::cerr << "Terrain build failed; previous generation retained: " << error.what() << '\n';
                 }
-            } else ++terrainRejectedBuilds;
-        } else ++terrainRejectedBuilds;
+            } else {++terrainRejectedBuilds;profiler.publications().finish(completed->traceAttempt,PublicationProfiler::Outcome::Obsolete);}
+        } else {++terrainRejectedBuilds;profiler.publications().finish(completed->traceAttempt,PublicationProfiler::Outcome::Obsolete);}
     }
     std::optional<TerrainBuildRequest> candidate;
     std::vector<std::optional<TerrainCpuBuild>> residentBuilds(terrainPublication ? scene.scenario.planets.size() : 0);
@@ -131,13 +136,31 @@ void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalkin
             if(priority<candidateDistance) {candidateDistance=priority;candidate=std::move(request);}
             continue;
         }
-        auto built=terrainCompute ? terrainJobs.executeForCapture(std::move(request)).take() : buildTerrainCpu(request);
+        if(!options.renderTestMode) request.traceAttempt=profiler.publications().begin(PublicationProfiler::Key::from(identity));
+        const auto attempt=request.traceAttempt;
+        TerrainCpuBuild built;
+        try {
+            if(terrainCompute) built=terrainJobs.executeForCapture(std::move(request)).take();
+            else {
+                profiler.publications().phase(attempt,PublicationProfiler::Phase::CpuStart);
+                built=buildTerrainCpu(request);
+                profiler.publications().phase(attempt,PublicationProfiler::Phase::CpuEnd);
+            }
+        } catch(...) {profiler.publications().finish(attempt,PublicationProfiler::Outcome::CpuFailed);throw;}
         if(options.renderTestMode && i==scene.scenario.surface_camera.planet_index) captureTerrainEye=localEye;
         if(identity.resident) {
             residentBuilds[i]=std::move(built);residentIdentities[i]=identity;
-        } else installTerrainBuild(std::move(built),identity);
+        } else {
+            try {
+                GpuWorkProfiler::Attempt binding(attempt);installTerrainBuild(std::move(built),identity);
+                profiler.publications().prepared(attempt,publicationGeneration(i));
+            } catch(...) {profiler.publications().finish(attempt,PublicationProfiler::Outcome::PreparationFailed);throw;}
+        }
     }
-    if(candidate) terrainJobs.submit(std::move(*candidate));
+    if(candidate) {
+        if(!options.renderTestMode) candidate->traceAttempt=profiler.publications().begin(PublicationProfiler::Key::from(candidate->identity));
+        terrainJobs.submit(std::move(*candidate));
+    }
     if(terrainPublication) publishResidentBuilds(std::move(residentBuilds),residentIdentities,eye,characterElapsed);
 }
 

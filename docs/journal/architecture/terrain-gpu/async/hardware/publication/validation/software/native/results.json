@@ -1,0 +1,49 @@
+{
+  "cpu": {
+    "frames": 15,
+    "rendered": 0,
+    "gl": {
+      "blocking_polls": 0,
+      "bulk_reads": 0,
+      "finishes": 0,
+      "injected_fence_failures": 0,
+      "injected_poll_failures": 0,
+      "polls": 0,
+      "server_waits": 0
+    },
+    "peak_logical_bytes": 0,
+    "loop_outcomes": {
+      "rendered": 8,
+      "minimized": 7
+    },
+    "joined_receipts": 15,
+    "publication_receipts": 2,
+    "published_draws": 2,
+    "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+    "opengl_version": "4.5 (Core Profile) Mesa 22.3.6"
+  },
+  "compute": {
+    "frames": 50,
+    "rendered": 14,
+    "gl": {
+      "blocking_polls": 0,
+      "bulk_reads": 0,
+      "finishes": 0,
+      "injected_fence_failures": 0,
+      "injected_poll_failures": 0,
+      "polls": 11,
+      "server_waits": 0
+    },
+    "peak_logical_bytes": 4284452,
+    "loop_outcomes": {
+      "loading": 36,
+      "rendered": 8,
+      "minimized": 6
+    },
+    "joined_receipts": 50,
+    "publication_receipts": 5,
+    "published_draws": 2,
+    "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+    "opengl_version": "4.5 (Core Profile) Mesa 22.3.6"
+  }
+}

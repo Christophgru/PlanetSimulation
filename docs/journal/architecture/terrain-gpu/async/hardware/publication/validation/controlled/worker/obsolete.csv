@@ -1,0 +1,5 @@
+attempt,kind,epoch,request_serial,body,body_name_hash,field,field_version,topology_version,backend,resident,local_mask,eye_x,eye_y,eye_z,start_frame,end_frame,elapsed_ms,elapsed_frames,publication_ms,publication_frames,outcome,cpu_start_ms,cpu_end_ms,gpu_submit_ms,gpu_ready_ms,prepared_ms,land_field,land_topology,water_field,water_topology,land_revision,water_revision,grass_eye_x,grass_eye_y,grass_eye_z,dropped_starts
+1,terrain,1,1,0,10747332214029113303,8343445989074671795,1,1,1,0,1,1.01,0,0,,,0.156053,,,,obsolete,0.058958000000000003,,,,,,,,,,,,,,0
+2,terrain,1,2,0,10747332214029113303,8343445989074671795,1,1,1,0,1,1.01,0,0,,,0.0030590000000000001,,,,obsolete,,,,,,,,,,,,,,,0
+3,terrain,2,3,0,10747332214029113303,8343445989074671795,1,1,1,0,1,1.01,0,0,,,0.0011130000000000001,,,,obsolete,,,,,,,,,,,,,,,0
+4,terrain,1,4,0,10747332214029113303,8343445989074671795,1,1,1,0,1,1.01,0,0,,,1.144603,,,,obsolete,,,,,,,,,,,,,,,0

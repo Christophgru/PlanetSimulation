@@ -242,6 +242,7 @@ int Renderer::Impl::interact() {
                             clip, (onSurface || onThird || onPlanetOrbit) ? std::optional<std::size_t>(scene.orbitPlanetIndex) : std::nullopt,
                             false, &profiler, false, sceneOutput, &grass, foliageTime,onThird ? &astronaut : nullptr,
                             nullptr,terrainPublication.get(),&terrainConsumers);
+                recordRenderedPublications(onThird);
                 frameReuse.remember(view,fov,sceneWidth,sceneHeight,simulationClock.seconds(),revisions,eyeWorld,static_cast<int>(cameraInput.mode()));
             }
             const bool showOrbits = inputContext.orbitsVisible && cameraInput.mode() == CameraMode::Orbit;

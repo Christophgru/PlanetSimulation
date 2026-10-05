@@ -1,0 +1,4 @@
+attempt,kind,epoch,request_serial,body,body_name_hash,field,field_version,topology_version,backend,resident,local_mask,eye_x,eye_y,eye_z,start_frame,end_frame,elapsed_ms,elapsed_frames,publication_ms,publication_frames,outcome,cpu_start_ms,cpu_end_ms,gpu_submit_ms,gpu_ready_ms,prepared_ms,land_field,land_topology,water_field,water_topology,land_revision,water_revision,grass_eye_x,grass_eye_y,grass_eye_z,dropped_starts
+1,terrain,2,7,1,0,42,0,0,2,1,0,0,0,0,1,1,6,0,,,replaced_before_draw,,,,,4,42,99,43,100,8,9,0.10000000000000001,0.20000000000000001,0.29999999999999999,0
+2,grass,2,7,1,0,42,0,0,2,1,0,0,0,0,1,1,6,0,6,0,published,,,,,2,42,99,43,100,8,9,0.10000000000000001,0.20000000000000001,0.29999999999999999,0
+3,grass,2,7,1,0,42,0,0,2,1,0,0,0,0,1,1,2,0,,,preparation_failed,,,,,,,,,,,,,,,0

@@ -83,8 +83,9 @@ void draw(auto& r,bool character=true) {
         r.meshes.planetMeshes,r.meshes.waterMeshes,320,180,r.surfaceClip,r.scene.scenario.planets.empty() ? std::nullopt : std::optional<std::size_t>(r.scene.orbitPlanetIndex),
         false,nullptr,false,0,&r.grass,r.characterWindTime,character ? &r.astronaut : nullptr,nullptr,
         r.terrainPublication.get(),&r.terrainConsumers);
+    r.recordRenderedPublications(character);
     const json state=r.terrainPublicationState();
-    for(const auto& c:state["consumers"]) {
+    if(state.value("managed",false)) for(const auto& c:state["consumers"]) {
         EXPECT_EQ(c["land"],c["grass"]);EXPECT_EQ(c["land"],c["contacts"]);
         EXPECT_EQ(c["land_revision"],c["main_revision"]);EXPECT_EQ(c["land_revision"],c["shadow_revision"]);
         EXPECT_EQ(c["land_revision"],c["grass_revision"]);

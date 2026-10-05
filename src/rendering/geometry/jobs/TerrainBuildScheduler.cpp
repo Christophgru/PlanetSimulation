@@ -8,17 +8,21 @@ TerrainCpuBuild TerrainBuildCompletion::take() {
     if(!build) throw std::logic_error("Missing terrain worker result");
     return std::move(*build);
 }
-TerrainBuildScheduler::TerrainBuildScheduler(Builder builder):builder_(std::move(builder)) {
+TerrainBuildScheduler::TerrainBuildScheduler(Builder builder,PublicationProfiler* trace):builder_(std::move(builder)),trace_(trace && trace->enabled() ? trace : nullptr) {
     if(!builder_) throw std::invalid_argument("Missing terrain worker builder");
     worker_=std::thread([this]{run();});
 }
 TerrainBuildScheduler::~TerrainBuildScheduler() {stop();}
 bool TerrainBuildScheduler::submit(TerrainBuildRequest request) {
-    request.validate();
+    try {request.validate();} catch(...) {
+        if(trace_) trace_->finish(request.traceAttempt,PublicationProfiler::Outcome::Rejected);throw;
+    }
     {std::lock_guard lock(mutex_);
-        if(stopping_ || exclusiveEpoch_ || request.identity.epoch!=replacementEpoch_.value_or(epoch_) || request.identity.serial<=latestSerial_) return false;
+        if(stopping_ || exclusiveEpoch_ || request.identity.epoch!=replacementEpoch_.value_or(epoch_) || request.identity.serial<=latestSerial_) {
+            if(trace_) trace_->finish(request.traceAttempt,PublicationProfiler::Outcome::Rejected);return false;
+        }
         latestSerial_=request.identity.serial;++stats_.submitted;
-        if(queued_) ++stats_.coalesced;
+        if(queued_) {++stats_.coalesced;if(trace_) trace_->finish(queued_->traceAttempt,PublicationProfiler::Outcome::Coalesced);}
         queued_=std::move(request);stats_.peakQueued=1;
     }
     changed_.notify_all();return true;
@@ -50,7 +54,7 @@ TerrainBuildCompletion TerrainBuildScheduler::executeExclusive(TerrainBuildReque
         // completion may obstruct this explicit replacement adapter. Running
         // snapshots retain ownership until they finish and are then discarded.
         stats_.obsolete+=unsigned(queued_.has_value())+unsigned(ready_.has_value());
-        queued_.reset();ready_.reset();
+        discard(PublicationProfiler::Outcome::Obsolete,key.epoch);queued_.reset();ready_.reset();
     }
     exclusiveEpoch_=key.epoch;
     latestSerial_=key.serial;++stats_.submitted;queued_=std::move(request);stats_.peakQueued=1;
@@ -69,7 +73,7 @@ void TerrainBuildScheduler::advanceEpoch(std::uint64_t epoch) {
         replacementEpoch_.reset();
         epoch_=epoch;latestSerial_=0;
         stats_.obsolete+=unsigned(queued_.has_value())+unsigned(ready_.has_value());
-        queued_.reset();ready_.reset();
+        discard(PublicationProfiler::Outcome::Obsolete,epoch);queued_.reset();ready_.reset();
     }
     changed_.notify_all();
 }
@@ -78,7 +82,7 @@ void TerrainBuildScheduler::beginReplacement(std::uint64_t epoch) {
         if(stopping_ || exclusiveEpoch_ || epoch<=epoch_ || epoch<=lastReplacementEpoch_)
             throw std::invalid_argument("Terrain replacement requires a new future epoch");
         stats_.obsolete+=unsigned(queued_.has_value())+unsigned(ready_.has_value());
-        queued_.reset();ready_.reset();replacementEpoch_=epoch;lastReplacementEpoch_=epoch;
+        discard(PublicationProfiler::Outcome::Obsolete,epoch);queued_.reset();ready_.reset();replacementEpoch_=epoch;lastReplacementEpoch_=epoch;
     }
     changed_.notify_all();
 }
@@ -86,7 +90,7 @@ void TerrainBuildScheduler::abortReplacement(std::uint64_t epoch) {
     {std::lock_guard lock(mutex_);
         if(replacementEpoch_!=epoch) return;
         stats_.obsolete+=unsigned(queued_.has_value())+unsigned(ready_.has_value());
-        queued_.reset();ready_.reset();replacementEpoch_.reset();
+        discard(PublicationProfiler::Outcome::Obsolete,epoch_);queued_.reset();ready_.reset();replacementEpoch_.reset();
     }
     changed_.notify_all();
 }
@@ -107,8 +111,14 @@ TerrainWorkerStats TerrainBuildScheduler::stats() const {
     std::lock_guard lock(mutex_);auto s=stats_;
     s.running=running_.has_value();s.queued=queued_.has_value();s.ready=ready_.has_value();s.stopping=stopping_;return s;
 }
+void TerrainBuildScheduler::discard(PublicationProfiler::Outcome outcome,std::uint64_t keepRunningEpoch) {
+    if(!trace_) return;
+    if(queued_) trace_->finish(queued_->traceAttempt,outcome);
+    if(ready_) trace_->finish(ready_->traceAttempt,outcome);
+    if(running_ && running_->epoch!=keepRunningEpoch) trace_->finish(runningAttempt_,outcome);
+}
 void TerrainBuildScheduler::stop() {
-    {std::lock_guard lock(mutex_);stopping_=true;queued_.reset();ready_.reset();}
+    {std::lock_guard lock(mutex_);stopping_=true;discard(PublicationProfiler::Outcome::Shutdown);queued_.reset();ready_.reset();}
     changed_.notify_all();if(worker_.joinable()) worker_.join();
 }
 void TerrainBuildScheduler::run() {
@@ -116,11 +126,19 @@ void TerrainBuildScheduler::run() {
     for(;;) {
         changed_.wait(lock,[&]{return stopping_ || (queued_ && !ready_);});
         if(stopping_) return;
-        auto request=std::move(*queued_);queued_.reset();running_=request.identity;stats_.peakRunning=1;
-        lock.unlock();TerrainBuildCompletion completion{request.identity,{},{}};
+        auto request=std::move(*queued_);queued_.reset();running_=request.identity;runningAttempt_=request.traceAttempt;stats_.peakRunning=1;
+        lock.unlock();TerrainBuildCompletion completion{request.identity,{},{},request.traceAttempt};
+        if(trace_) trace_->phase(request.traceAttempt,PublicationProfiler::Phase::CpuStart);
         try {completion.build=builder_(request);} catch(...) {completion.error=std::current_exception();}
-        lock.lock();running_.reset();
-        if(stopping_ || request.identity.epoch!=exclusiveEpoch_.value_or(replacementEpoch_.value_or(epoch_))) ++stats_.obsolete;
+        if(trace_) {
+            trace_->phase(request.traceAttempt,PublicationProfiler::Phase::CpuEnd);
+            if(completion.error) trace_->finish(request.traceAttempt,PublicationProfiler::Outcome::CpuFailed);
+        }
+        lock.lock();running_.reset();runningAttempt_=0;
+        if(stopping_ || request.identity.epoch!=exclusiveEpoch_.value_or(replacementEpoch_.value_or(epoch_))) {
+            ++stats_.obsolete;if(trace_) trace_->finish(request.traceAttempt,stopping_ ?
+                PublicationProfiler::Outcome::Shutdown : PublicationProfiler::Outcome::Obsolete);
+        }
         else {++stats_.completed;if(completion.error) ++stats_.failed;ready_=std::move(completion);}
         changed_.notify_all();
     }

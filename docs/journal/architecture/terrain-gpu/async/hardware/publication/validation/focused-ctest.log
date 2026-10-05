@@ -1,0 +1,26 @@
+Internal ctest changing into directory: /workspace/build-resume
+Test project /workspace/build-resume
+      Start  1: RendererLifecycleTests
+ 1/10 Test  #1: RendererLifecycleTests ...........   Passed  126.64 sec
+      Start  2: TerrainRecoveryIntegration
+ 2/10 Test  #2: TerrainRecoveryIntegration .......   Passed   77.86 sec
+      Start  3: TerrainFrameIntegration
+ 3/10 Test  #3: TerrainFrameIntegration ..........   Passed   37.32 sec
+      Start  4: TerrainReloadFrameIntegration
+ 4/10 Test  #4: TerrainReloadFrameIntegration ....   Passed   28.21 sec
+      Start 24: TerrainJobTests
+ 5/10 Test #24: TerrainJobTests ..................   Passed    0.10 sec
+      Start 25: TerrainComputeIntegration
+ 6/10 Test #25: TerrainComputeIntegration ........   Passed   54.27 sec
+      Start 52: GpuWorkProfilerTests
+ 7/10 Test #52: GpuWorkProfilerTests .............   Passed    0.02 sec
+      Start 53: PerformanceCaptureIntegration
+ 8/10 Test #53: PerformanceCaptureIntegration ....   Passed   36.35 sec
+      Start 55: NativeLoopTimingIntegration
+ 9/10 Test #55: NativeLoopTimingIntegration ......   Passed   11.65 sec
+      Start 56: TerrainNativeInputIntegration
+10/10 Test #56: TerrainNativeInputIntegration ....   Passed   84.51 sec
+
+100% tests passed, 0 tests failed out of 10
+
+Total Test time (real) = 456.95 sec
