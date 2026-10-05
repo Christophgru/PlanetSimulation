@@ -3,14 +3,12 @@
 #include "config/SceneReplay.h"
 
 namespace app {
-SceneSource::SceneSource(CommandLineOptions& options)
-    :SceneSource(options,false) {}
 SceneSource SceneSource::forResidentReload(CommandLineOptions& options) {
     if(options.terrainBackend!="compute" || options.terrainGrassPlanner!="gpu-v1")
         throw std::invalid_argument("Resident reload requires compute terrain and GPU grass");
-    return SceneSource(options,true);
+    return SceneSource(options);
 }
-SceneSource::SceneSource(CommandLineOptions& options,bool residentReload)
+SceneSource::SceneSource(CommandLineOptions& options)
     : watchedScenePath(options.replayPath.empty() ? options.configPath : options.replayPath),
       configPath(options.configPath), replayPath(options.replayPath) {
     try {
@@ -70,8 +68,8 @@ SceneSource::SceneSource(CommandLineOptions& options,bool residentReload)
             }
             if (options.offlineQuality) options.atmosphereFullResolution=options.captureOnly=true;
         }
-        if(options.terrainBackend=="compute" && !options.renderTestMode && !residentReload)
-            throw std::invalid_argument("Experimental compute terrain replay requires a capture output");
+        if(options.terrainBackend=="compute" && !options.renderTestMode && options.terrainGrassPlanner!="gpu-v1")
+            throw std::invalid_argument("Interactive compute terrain requires GPU grass planning; override legacy replay with --terrain-grass-planner gpu");
         if (!options.offlineQuality && (options.explicitFoliageDistance || options.explicitLensFlare))
             throw std::invalid_argument("Offline controls require an offline capture or replay");
     } catch (const std::exception& error) {

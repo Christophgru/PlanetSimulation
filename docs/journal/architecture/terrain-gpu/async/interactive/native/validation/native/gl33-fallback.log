@@ -1,0 +1,18 @@
+Terrain CPU fallback: OpenGL 4.3 compute unavailable
+PlanetSimulation v0.0.1 initialized
+Scenario: Latest native request
+Simulation time: 20.0 s
+Sun radius: 2.5
+Planets: 2
+Camera position: (15.0238, 14.2104, 8)
+Left-drag to orbit; scroll to zoom gently. Press 1 for Sun orbit, 2 for the planet surface view (free mouse look and WASD at 80 m/s), 3 for planet orbit, 4 to follow the astronaut (WASD at 6 m/s; Space to jump/upward thrust; airborne WASD directs thrust). Press T to pause/resume orbits and spin. Press O for ten past orbit paths and body labels. Press Y to halve or U to double simulation speed. Press Esc to release the walking cursor and 2 or 4 to capture it again. /workspace/build-resume/terrain-native/scene.json reloads on save; press R to reload manually. Close the window to exit.
+Scene render resolution: 320x180 (100%)
+Camera 4: following the astronaut at 6 m/s; Space to jump/upward thrust; airborne WASD directs thrust
+Simulation time: 20.355052033000003 s
+Surface camera position (world, km): [6.7685899096423565,-0.666854702176651,-0.43656409323243534]
+Surface camera direction (world, unit vector): [-0.08211556148512276,0.3556815734761064,0.9309928317938566]
+Surface camera position (planet LLA): latitude=-21.409888069265286 deg, longitude=103.0 deg, altitude=8.83372870208364 m above reference sphere
+Surface camera ground clearance: 3.0 m
+surface_camera start value: {"altitude":0.003,"direction_ned":[1.0,0.0,-5.551115123125783e-17],"fov":65.0,"latitude_deg":-21.409888069265286,"longitude_deg":103.0,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":20.355052033000003,"up_ned":[0.0,0.0,-1.0],"walk_speed_mps":80.0}
+Scene render resolution: 256x144 (80%)
+Native audit: {"blocking_polls":0,"bulk_reads":0,"finishes":0,"injected_fence_failures":0,"injected_poll_failures":0,"polls":0,"server_waits":0}

@@ -89,7 +89,7 @@ TEST(CommandLineOptions, OfflineCaptureControlsValidateBeforeOpeningAWindow) {
     EXPECT_THROW(parse({"--no-lens-flare"}),std::invalid_argument);
 }
 
-TEST(CommandLineOptions, ComputeTerrainIsExplicitAndCaptureOnlyUntilConsumersMigrate) {
+TEST(CommandLineOptions, InteractiveComputeIsOptInAndRequiresResidentGrass) {
     EXPECT_EQ(parse({}).terrainBackend,"cpu");
     const auto gpu=parse({"--surface-capture","out.png","--terrain-backend","compute"});
     EXPECT_EQ(gpu.terrainBackend,"compute");EXPECT_TRUE(gpu.explicitTerrainBackend);
@@ -100,5 +100,9 @@ TEST(CommandLineOptions, ComputeTerrainIsExplicitAndCaptureOnlyUntilConsumersMig
     EXPECT_THROW(parse({"--terrain-grass-planner","gpu-v2"}),std::invalid_argument);
     EXPECT_THROW(parse({"--terrain-backend"}),std::invalid_argument);
     EXPECT_THROW(parse({"--terrain-backend","fast"}),std::invalid_argument);
-    EXPECT_THROW(parse({"--terrain-backend","compute"}),std::invalid_argument);
+    const auto native=parse({"--terrain-backend","compute"});
+    EXPECT_EQ(native.terrainBackend,"compute");EXPECT_TRUE(native.explicitTerrainBackend);
+    EXPECT_EQ(native.terrainGrassPlanner,"gpu-v1");EXPECT_FALSE(native.renderTestMode);
+    EXPECT_THROW(parse({"--terrain-backend","compute","--terrain-grass-planner","cpu"}),std::invalid_argument);
+    EXPECT_EQ(parse({"--surface-capture","out.png","--terrain-backend","compute","--terrain-grass-planner","cpu"}).terrainGrassPlanner,"cpu");
 }

@@ -156,9 +156,10 @@ int Renderer::Impl::interact() {
                     frameElapsed : elapsedSeconds;
                 preparePlanetMeshes(scene.surfaceCamera->position(),true,
                     terrainPublication ? std::optional<double>(characterElapsed) : std::nullopt);
-                if (terrainPublication && !residentSceneReady()) {presentLoading();continue;}
-                prepareAstronaut(characterElapsed);
+                if (!terrainPublication || residentSceneReady()) prepareAstronaut(characterElapsed);
             }
+            // Finish the mesh profiler scope before endFrame clears its stages.
+            if (onThird && terrainPublication && !residentSceneReady()) {presentLoading();continue;}
             const glm::mat4 targetView = onThird ? glm::mat4(glm::lookAt(astronautView.eye,astronautView.target,astronautView.up)) :
                                    onSurface ? scene.surfaceCamera->getViewMatrix() :
                                    onPlanetOrbit ? scene.planetOrbitCamera->getViewMatrix() :

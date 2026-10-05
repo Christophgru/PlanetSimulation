@@ -1,0 +1,80 @@
+[0/1] Re-running CMake...
+-- Using the multi-header code from /workspace/build/_deps/nlohmann_json-src/include/
+-- GLM: Version 1.0.1
+-- GLM: Build with C++ features auto detection
+-- ---------------------------------------------------------
+-- Default build type is: RelWithDebInfo
+-- The following compilation flags will be used:
+CMAKE_CXX_FLAGS
+CMAKE_C_FLAGS
+CMAKE_CXX_FLAGS_DEBUG -g
+CMAKE_C_FLAGS_DEBUG -g
+CMAKE_CXX_FLAGS_MINSIZEREL -Os -DNDEBUG
+CMAKE_C_FLAGS_MINSIZEREL -Os -DNDEBUG
+CMAKE_CXX_FLAGS_RELWITHDEBINFO -O2 -g -DNDEBUG
+CMAKE_C_FLAGS_RELWITHDEBINFO -O2 -g -DNDEBUG
+CMAKE_CXX_FLAGS_RELEASE -O3 -DNDEBUG
+CMAKE_C_FLAGS_RELEASE -O3 -DNDEBUG
+-- ---------------------------------------------------------
+-- Directory Compile Options:
+-- -Wall
+-- -Werror
+-- -Wno-ignored-attributes
+-- ---------------------------------------------------------
+-- Directory Compile Definitions:
+-- ---------------------------------------------------------
+Optional program clang-format not found.
+-- ---------------------------------------------------------
+-- Selected options:
+-- - BUILD_SHARED_LIBS: OFF
+-- - ozz_build_tools: OFF
+-- - ozz_build_fbx: OFF
+-- - ozz_build_gltf: OFF
+-- - ozz_build_data: OFF
+-- - ozz_build_samples: OFF
+-- - ozz_build_howtos: OFF
+-- - ozz_build_tests: OFF
+-- - ozz_build_simd_ref: OFF
+-- - ozz_build_msvc_rt_dll: OFF
+-- - ozz_build_postfix: ON
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /workspace/build-resume
+[1/21] Building CXX object CMakeFiles/planet_app.dir/src/app/CommandLineOptions.cpp.o
+[2/21] Building CXX object CMakeFiles/planet_app.dir/src/app/scene/SceneSource.cpp.o
+[3/21] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/Renderer.cpp.o
+[4/21] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/TerrainMeshes.cpp.o
+[5/21] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/terrain/ResidentTerrain.cpp.o
+[6/21] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/terrain/InteractiveTerrain.cpp.o
+[7/21] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/terrain/CharacterPreview.cpp.o
+[8/21] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/terrain/reload/ReloadCommit.cpp.o
+[9/21] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/terrain/reload/ReloadScene.cpp.o
+[10/21] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/terrain/reload/ReloadPreview.cpp.o
+[11/21] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/terrain/reload/interactive/InteractiveReload.cpp.o
+[12/21] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/Character.cpp.o
+[13/21] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/Capture.cpp.o
+[14/21] Building CXX object tests/CMakeFiles/renderer_lifecycle_tests.dir/app/test_renderer_lifecycle.cpp.o
+[15/21] Building CXX object tests/CMakeFiles/renderer_lifecycle_tests.dir/app/test_command_line.cpp.o
+[16/21] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/Interactive.cpp.o
+[17/21] Linking CXX static library libplanet_app.a
+[18/21] Linking CXX executable PlanetSimulation
+[19/21] Linking CXX executable tests/renderer_lifecycle_tests
+[20/21] Building CXX object tests/CMakeFiles/terrain_native_probe.dir/app/terrain/native/NativeProbe.cpp.o
+[21/21] Linking CXX executable tests/terrain_native_probe
+
+[1/5] Building CXX object tests/CMakeFiles/terrain_native_probe.dir/app/terrain/native/NativeProbe.cpp.o
+[2/5] Building CXX object CMakeFiles/planet_app.dir/src/rendering/runtime/Interactive.cpp.o
+[3/5] Linking CXX static library libplanet_app.a
+[4/5] Linking CXX executable PlanetSimulation
+[5/5] Linking CXX executable tests/terrain_native_probe
+
+[1/10] Linking CXX executable tests/renderer_lifecycle_tests
+[2/10] Building CXX object tests/CMakeFiles/terrain_recovery_tests.dir/app/terrain/recovery/test_recovery.cpp.o
+[3/10] Building CXX object tests/CMakeFiles/terrain_frame_tests.dir/app/terrain/interactive/test_frame.cpp.o
+[4/10] Linking CXX executable tests/terrain_recovery_tests
+[5/10] Linking CXX executable tests/terrain_frame_tests
+[6/10] Linking CXX executable tests/foliage_benchmark
+[7/10] Building CXX object tests/CMakeFiles/terrain_native_probe.dir/app/terrain/native/NativeProbe.cpp.o
+[8/10] Linking CXX executable tests/terrain_native_probe
+[9/10] Building CXX object tests/CMakeFiles/terrain_reload_frame_tests.dir/app/terrain/interactive/test_reload.cpp.o
+[10/10] Linking CXX executable tests/terrain_reload_frame_tests

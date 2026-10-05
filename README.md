@@ -980,7 +980,7 @@ The [CPU–GPU generation plan](docs/journal/architecture/terrain-gpu/plan.md) d
 the next migration: CPU subdivision/sinking and sparse contacts, GPU bulk shape
 and normals, shared terrain/foliage buffers, and the remaining atmospheric work.
 It evaluates hexagonal panels and sets memory, precision and validation gates.
-Interactive rendering and default captures still use CPU terrain generation.
+Interactive rendering and captures default to CPU terrain generation.
 The [completed field/topology extraction](docs/journal/architecture/terrain-gpu/contracts/study.md)
 separates indexed radial/sink inputs from bulk evaluation, adds bounded query
 caching and validates generation keys. Capture metadata reports planning and
@@ -988,7 +988,7 @@ evaluation counts and contract input bytes; the CPU backend uploads its legacy
 expanded layout.
 
 The [GPU field evaluation proof](docs/journal/architecture/terrain-gpu/compute/study.md)
-is available for captures with `--terrain-backend compute`; `--terrain-backend cpu`
+is available for captures and interactive use with `--terrain-backend compute`; `--terrain-backend cpu`
 selects the default. It generates height, normals, material factors, sinking and
 draw buffers on GL 4.3, with queried limits and completed land/water publication.
 A 100,000-triangle view uploads 2,800,880 input bytes including parameters and
@@ -996,13 +996,13 @@ control uniforms, compared with the CPU's 12,000,000 shaped-mesh bytes.
 Current compute captures use GPU grass planning and sparse contacts; full CPU
 render vectors are retained only for the legacy planner. No total-frame speedup
 is claimed. A saved compute backend replays explicitly; unavailable GL 4.3 falls back
-for a fresh request and rejects a locked compute replay. Interactive compute remains T3c.
+for a fresh request and rejects a locked compute replay. CPU remains the default.
 
 The [sparse contact prerequisite](docs/journal/architecture/terrain-gpu/contacts/study.md)
 now finds compute terrain triangles through a spatial index and evaluates only
 needed float-rounded/sunk positions, with a 1,024-position cache. Contact queries
 use no full render vectors or GPU readbacks. Current compute captures also use
-resident GPU grass planning; asynchronous interactive publication remains T3c.
+resident GPU grass planning; interactive compute uses asynchronous publication.
 
 The [resident GPU grass metadata checkpoint](docs/journal/architecture/terrain-gpu/grass-metadata/study.md)
 computes original triangle IDs, bounds, biome eligibility and Gaussian area
@@ -1019,23 +1019,25 @@ planning and their compatibility vectors. Use `--terrain-grass-planner cpu` for
 that route, or `--terrain-grass-planner gpu` to upgrade explicitly. The new mode
 caps candidates conservatively by configured count and queried storage size;
 capture diagnostics report the effective budget, density and all stage bytes.
-GL 3.3 and disabled compute placement retain CPU planning. Interactive compute,
-dynamic VRAM/density policy and hardware frame-cost validation remain queued. No
+GL 3.3 retains CPU fallback. Captures with disabled compute placement retain CPU
+planning; interactive compute requires GPU placement. Dynamic VRAM/density policy
+and hardware frame-cost validation remain queued. No
 hardware FPS improvement is claimed.
 
 The [bounded CPU worker checkpoint](docs/journal/architecture/terrain-gpu/async/worker/study.md)
 moves compute topology/contact construction onto one persistent CPU executor,
 with one coalesced queued request and scene/body/field identities. Reload invalidates
 old CPU work without joining it; normal CPU walking polls for completed builds.
-GPU and grass publication still use the capture path until the remaining
-asynchronous stages are ready.
+Resident interactive GPU and grass publication now poll across frames; captures
+retain explicit wait adapters.
 
 The [GPU preparation checkpoint](docs/journal/architecture/terrain-gpu/async/gpu/study.md)
 adds owned land/water and grass submission, completion polling and patch commit.
 Resident grass allocates draw resources before committing and reads one completed
 224-byte allocation summary. An initial 512 MiB logical preparation ceiling
 includes terrain and worst-case grass buffers. Captures use explicit wait adapters;
-interactive publication, retirement and free-memory policy remain later stages.
+interactive publication and retirement poll without capture waits. Dynamic
+free-memory policy remains a later stage.
 
 The [complete generation transaction checkpoint](docs/journal/architecture/terrain-gpu/async/publication/study.md)
 adds off-live land/water/grass/contact preparation, atomic ownership transfer and
@@ -1048,7 +1050,8 @@ connects complete resident consumers to capture frame boundaries. A restored
 character preview preserves the exact chase/replay grass anchor, then the actual
 character update uses committed contacts. Grass-only replanning retains terrain
 and contacts, and main/shadow/reflection passes record matching generations.
-CPU and legacy captures retain their paths; interactive compute remains gated.
+CPU and legacy captures retain their paths; interactive compute uses the resident
+GPU planner.
 
 The [whole-scene replacement owner](docs/journal/architecture/terrain-gpu/async/scene/study.md)
 stages all bodies under one overlap budget and exchanges scene/config plus
@@ -1062,8 +1065,7 @@ use the same boundary. The [movement and destination recovery checkpoint](docs/j
 plans contacts for every prospective body and binds destination contacts during
 handoff. Future-epoch reloads supersede old queued/ready work and discard running
 old completions without changing the live epoch on failure. Moving/reordered-body
-and Moon recovery acceptance precedes T3c4 interactive opt-in; CPU stays default
-and interactive compute stays gated.
+and Moon recovery underpin the interactive opt-in; CPU stays default.
 
 The [asynchronous frame core](docs/journal/architecture/terrain-gpu/async/interactive/study.md)
 uses the bounded worker result slot, zero-timeout preparation/retirement polls and
@@ -1073,7 +1075,24 @@ a bounded retry delay. [Asynchronous scene reload](docs/journal/architecture/ter
 prepares one replacement body at a time while the current scene remains usable,
 then commits complete consumers and retains old resources until fenced retirement.
 Newer requests supersede pending work; failed reloads keep the live scene.
-Native input acceptance remains before the public interactive compute option opens.
+[Native input acceptance](docs/journal/architecture/terrain-gpu/async/interactive/native/study.md)
+covers loading, standing, walking/sprint, jump/thrust/trails, space/Moon contact
+binding and manual/file-watch reload recovery. Enable the experimental resident
+path explicitly:
+
+~~~bash
+./build/PlanetSimulation --config configs/scenarios/solar_system.json --terrain-backend compute
+~~~
+
+It requires GL 4.3 and GPU grass planning (the default compute planner), with
+`foliage.compute_placement` enabled wherever foliage is enabled. Initial terrain
+loading keeps events active while deferring walking and scene draws. Normal frames
+and reload progress poll readiness and retirement without capture waits; failed
+replacement keeps the current scene. Fresh requests fall back to CPU when GL 4.3
+is unavailable; a replay locked to compute fails instead. Interactive legacy
+CPU-planner compute replays require an explicit `--terrain-grass-planner gpu`
+upgrade; captures retain legacy planner compatibility. CPU remains the default,
+and hardware frame-time/physical-memory acceptance is still pending.
 
 Near water, `terrain_lod.shoreline_edge_m` targets 1 m edges within
 `shoreline_distance_m` (80 m by default). Set the edge target to `0` to disable

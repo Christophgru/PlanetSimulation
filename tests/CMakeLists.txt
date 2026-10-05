@@ -308,6 +308,14 @@ find_program(XDOTOOL_EXECUTABLE xdotool)
 find_program(IMAGEMAGICK_IMPORT_EXECUTABLE import)
 find_program(IMAGEMAGICK_CONVERT_EXECUTABLE convert)
 if(UNIX AND XDOTOOL_EXECUTABLE AND IMAGEMAGICK_IMPORT_EXECUTABLE AND IMAGEMAGICK_CONVERT_EXECUTABLE)
+    add_executable(terrain_native_probe app/terrain/native/NativeProbe.cpp)
+    target_link_libraries(terrain_native_probe PRIVATE planet_app ${CMAKE_DL_LIBS})
+    add_test(NAME TerrainNativeInputIntegration COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/app/terrain/native/test_native.py
+        --probe $<TARGET_FILE:terrain_native_probe> --binary $<TARGET_FILE:PlanetSimulation>
+        --output-dir ${CMAKE_BINARY_DIR}/terrain-native)
+    set_tests_properties(TerrainNativeInputIntegration PROPERTIES
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 300 RUN_SERIAL TRUE)
     add_test(NAME GrassWindInputIntegration COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_CURRENT_SOURCE_DIR}/foliage/integration/test_grass_input.py --binary $<TARGET_FILE:PlanetSimulation>
         --output-dir ${CMAKE_BINARY_DIR}/grass-wind-input)

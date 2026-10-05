@@ -1,8 +1,9 @@
 # T3c4 — interactive compute acceptance
 
-CPU remains the default. Keep the CLI capture gate until the following ordered
-checkpoints pass; completing the frame core alone does not enable interactive
-compute for users.
+CPU remains the default. The following ordered checkpoints are complete; the
+[native acceptance](native/study.md) enables explicit interactive compute with
+resident GPU grass. Hardware frame-time and physical-memory acceptance remains
+T3c5.
 
 1. **T3c4a — asynchronous frame core.** Route resident interactive preparation
    through the persistent CPU worker and complete GPU transaction. Never invoke
@@ -33,6 +34,11 @@ movement does not require capture's exact submission-time chase-eye equality.
 Hardware frame percentiles and physical memory remain T3c5; llvmpipe validates
 correctness only.
 
-T3c4a frame preparation is tested. T3c4b complete asynchronous reload is tested; its [implementation and acceptance](reload/study.md) retain per-body
-preparation, future worker leases and final-anchor publication. All 62 CTest groups pass on frozen inputs. Resume T3c4c native acceptance;
-startup/CLI compute gates remain.
+T3c4a frame preparation and T3c4b complete asynchronous reload are tested. The
+[reload implementation and acceptance](reload/study.md) retain per-body
+preparation, future worker leases and final-anchor publication. T3c4c native
+acceptance passes five GLFW/X11 processes and four shipping rejection contracts;
+all 63 CTest groups pass on frozen inputs (924.49 s). Explicit
+`--terrain-backend compute` is enabled with GPU grass planning and placement;
+CPU default, fresh GL 3.3 fallback and locked replay rejection remain. Resume
+T3c5 hardware cost acceptance; software-renderer timings establish correctness.

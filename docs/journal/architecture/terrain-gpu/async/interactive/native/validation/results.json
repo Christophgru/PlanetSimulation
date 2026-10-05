@@ -1,0 +1,90 @@
+{
+  "input": {
+    "frames": 462,
+    "rendered": 154,
+    "gl": {
+      "blocking_polls": 0,
+      "bulk_reads": 0,
+      "finishes": 0,
+      "injected_fence_failures": 1,
+      "injected_poll_failures": 1,
+      "polls": 215,
+      "server_waits": 0
+    },
+    "peak_logical_bytes": 13148916,
+    "walking_mps": 5.978132722253719,
+    "sprinting_mps": 11.955337616185725
+  },
+  "space": {
+    "frames": 315,
+    "rendered": 24,
+    "gl": {
+      "blocking_polls": 0,
+      "bulk_reads": 0,
+      "finishes": 0,
+      "injected_fence_failures": 0,
+      "injected_poll_failures": 0,
+      "polls": 28,
+      "server_waits": 0
+    },
+    "peak_logical_bytes": 11019988
+  },
+  "moon": {
+    "frames": 288,
+    "rendered": 21,
+    "gl": {
+      "blocking_polls": 0,
+      "bulk_reads": 0,
+      "finishes": 0,
+      "injected_fence_failures": 0,
+      "injected_poll_failures": 0,
+      "polls": 28,
+      "server_waits": 0
+    },
+    "peak_logical_bytes": 14348020
+  },
+  "default-cpu": {
+    "frames": 6,
+    "rendered": 0,
+    "gl": {
+      "blocking_polls": 0,
+      "bulk_reads": 0,
+      "finishes": 0,
+      "injected_fence_failures": 0,
+      "injected_poll_failures": 0,
+      "polls": 0,
+      "server_waits": 0
+    },
+    "peak_logical_bytes": 0
+  },
+  "gl33-fallback": {
+    "frames": 6,
+    "rendered": 0,
+    "gl": {
+      "blocking_polls": 0,
+      "bulk_reads": 0,
+      "finishes": 0,
+      "injected_fence_failures": 0,
+      "injected_poll_failures": 0,
+      "polls": 0,
+      "server_waits": 0
+    },
+    "peak_logical_bytes": 0
+  },
+  "gl33-locked-replay": {
+    "returncode": 1,
+    "required_error": "Locked compute replay"
+  },
+  "legacy-interactive-planner": {
+    "returncode": 1,
+    "required_error": "Interactive compute terrain requires"
+  },
+  "legacy-interactive-replay": {
+    "returncode": 1,
+    "required_error": "Interactive compute terrain requires GPU grass planning"
+  },
+  "nonresident-interactive-grass": {
+    "returncode": 1,
+    "required_error": "Interactive compute terrain requires foliage compute_placement"
+  }
+}

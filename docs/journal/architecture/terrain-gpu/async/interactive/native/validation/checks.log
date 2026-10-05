@@ -1,0 +1,12 @@
+Validated folder limits, image-only gallery and README capture links
+All 22 gallery PNG hashes retained
+All 10 compute/CPU/replay PNG hashes match T3c4b exactly
+75 local Markdown links resolve
+Resident frame/reload progress and shared commit contain no explicit capture waits, joins, finishes or server waits
+Future worker begin/abort contain no condition-variable waits or joins
+Every native completed/loading frame revalidated; complete traces retained as deterministic lossless gzip artifacts
+Corrected growing-trace reader passes five fragmented-write repetitions (263 rows each); live observations equal each finished trace
+Journal compiled: 29 pages; visually reviewed [6, 7, 8, 9, 10, 26, 27, 28, 29]
+Working and staged git diff --check pass
+Frozen source, build/test inputs and all eight binaries match final working inputs exactly
+User environmental/Docker TODO suffix preserved byte-for-byte

@@ -1,5 +1,33 @@
 # Page to document progress of AI Agents working on this Project
 
+## Native resident compute opt-in checkpoint — 2026-10-05
+
+- T3c4c and T3c4 are tested. Public `--terrain-backend compute` accepts native
+  resident GPU grass; enabled foliage requires compute placement. Startup/reload
+  share planner validation. CPU stays default; fresh GL 3.3 requests fall back and
+  locked compute replays reject. Legacy compute capture planners remain supported.
+- Native delayed startup found a real profiler scope crash. Loading presentation
+  now follows mesh scope destruction, while character updates wait for complete
+  initial consumers and GLFW events remain active.
+- Five native production-loop/visible-GLFW/X11-key processes and four shipping
+  rejection contracts pass (48.09 s focused). Loading, standing, 6/12 m/s
+  walking/sprint, jump/directional/Space thrust, trails/exhaust, outer-space and
+  Moon contacts, R/file-watch reload, supersession/body reorder, preparation and
+  retirement failure/recovery retain matching draw/contact receipts. No product
+  observer or injected motion; private test hooks sample completed frames and
+  control GL delay/failure. Zero blocking polls/server waits/bulk reads/glFinish.
+- All 63 CTest groups pass in one uninterrupted frozen-input run (924.49 s);
+  final source/build-test inputs/eight executable hashes match exactly. Native
+  logical accounting peaks at 14,348,020 bytes, excluding CPU snapshots/physical
+  VRAM. Ten baseline and 22 gallery PNG hashes remain exact. README, journal/PDF,
+  full compressed traces and evidence are in
+  docs/journal/architecture/terrain-gpu/async/interactive/native/.
+- Resume T3c5 hardware total-frame and physical-memory acceptance. This environment
+  has no exposed GPU device; llvmpipe is correctness evidence. Keep CPU default and
+  do not mark hardware cost acceptance complete without matched GPU measurements.
+  User environmental/Docker TODO suffix remains byte-for-byte and unstaged.
+
+
 ## Asynchronous complete reload checkpoint — 2026-10-05
 
 - T3c4b is tested. Resident reload owns the latest immutable config/replay/options

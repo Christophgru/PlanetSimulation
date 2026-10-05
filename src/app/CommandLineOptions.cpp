@@ -145,8 +145,8 @@ CommandLineOptions CommandLineOptions::parse(int argc, char** argv) {
         }
     }
 
-    if(options.terrainBackend=="compute" && !options.renderTestMode)
-        throw std::invalid_argument("Experimental compute terrain requires a capture output until T3 consumers are ready");
+    if(options.terrainBackend=="compute" && !options.renderTestMode && options.terrainGrassPlanner!="gpu-v1")
+        throw std::invalid_argument("Interactive compute terrain requires --terrain-grass-planner gpu");
     if (options.offlineQuality && !options.renderTestMode)
         throw std::invalid_argument("--offline-quality requires a render/capture output");
     if (!options.offlineQuality && (options.explicitFoliageDistance || options.explicitLensFlare) && options.replayPath.empty())

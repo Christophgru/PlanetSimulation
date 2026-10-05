@@ -1,5 +1,10 @@
 # Asynchronous terrain consumers (T3c) — implementation plan, 2026-10-04
 
+Current status: T3c1–T3c4 are tested. [Native opt-in](interactive/native/study.md)
+enables resident interactive compute; CPU stays default. T3c5 hardware frame-time
+and physical-memory acceptance remains pending. The baseline/design and earlier
+checkpoint notes below record the implementation sequence.
+
 This is the next phase after [T3b2 allocation](../grass-allocation/study.md).
 It specifies changes to the audited runtime; it does not enable interactive
 compute or claim hardware performance. The [ownership plan](../plan.md) remains
@@ -214,3 +219,15 @@ failure recovery, final replay anchors and fenced retirement are retained in
 [the reload study](interactive/reload/study.md). Ten baseline and 22 gallery PNG
 hashes are exact. Resume T3c4c native input/public opt-in; CPU stays default and
 the public compute gate remains until that acceptance passes.
+
+T3c4c [native input/public opt-in](interactive/native/study.md) passes five actual
+GLFW/X11 processes and four shipping rejection contracts (48.09 s focused).
+All 63 CTest groups pass in one uninterrupted frozen-input run (924.49 s),
+with exact source/input/eight-binary fingerprints and unchanged ten baseline/22
+gallery PNG hashes. Native loading, 6/12 m/s movement, jump/directional/Space
+thrust, exhaust/trails, space/Moon contacts, reload/supersession and preparation/
+retirement recovery retain matching draw/contact receipts and zero blocking
+polls/server waits/bulk reads/finishes. Public interactive compute is enabled with
+resident GPU grass; CPU remains default. Resume T3c5 hardware total-frame and
+physical-memory acceptance when suitable hardware is available. This environment
+exposes no GPU device; llvmpipe acceptance is not a hardware cost result.

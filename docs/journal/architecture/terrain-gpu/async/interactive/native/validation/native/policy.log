@@ -1,0 +1,27 @@
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = CommandLineOptions.*:RendererLifecycle.NativeStartupAndReloadRequireResidentComputeGrass
+[==========] Running 7 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from RendererLifecycle
+[ RUN      ] RendererLifecycle.NativeStartupAndReloadRequireResidentComputeGrass
+[       OK ] RendererLifecycle.NativeStartupAndReloadRequireResidentComputeGrass (9 ms)
+[----------] 1 test from RendererLifecycle (9 ms total)
+
+[----------] 6 tests from CommandLineOptions
+[ RUN      ] CommandLineOptions.CaptureAndExplicitOverridesSurviveExtraction
+[       OK ] CommandLineOptions.CaptureAndExplicitOverridesSurviveExtraction (0 ms)
+[ RUN      ] CommandLineOptions.InvalidValuesFailBeforeWindowStartup
+[       OK ] CommandLineOptions.InvalidValuesFailBeforeWindowStartup (0 ms)
+[ RUN      ] CommandLineOptions.AstronautCaptureUsesSurfaceReplayAndWalkingBenchmarks
+[       OK ] CommandLineOptions.AstronautCaptureUsesSurfaceReplayAndWalkingBenchmarks (0 ms)
+[ RUN      ] CommandLineOptions.CharacterBenchmarksValidateTheirClockAndInputOrder
+[       OK ] CommandLineOptions.CharacterBenchmarksValidateTheirClockAndInputOrder (0 ms)
+[ RUN      ] CommandLineOptions.OfflineCaptureControlsValidateBeforeOpeningAWindow
+[       OK ] CommandLineOptions.OfflineCaptureControlsValidateBeforeOpeningAWindow (0 ms)
+[ RUN      ] CommandLineOptions.InteractiveComputeIsOptInAndRequiresResidentGrass
+[       OK ] CommandLineOptions.InteractiveComputeIsOptInAndRequiresResidentGrass (0 ms)
+[----------] 6 tests from CommandLineOptions (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 7 tests from 2 test suites ran. (10 ms total)
+[  PASSED  ] 7 tests.

@@ -1,0 +1,30 @@
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 20.0 s
+Sun radius: 2.5
+Planets: 2
+Camera position: (15.0238, 14.2104, 8)
+Left-drag to orbit; scroll to zoom gently. Press 1 for Sun orbit, 2 for the planet surface view (free mouse look and WASD at 80 m/s), 3 for planet orbit, 4 to follow the astronaut (WASD at 6 m/s; Space to jump/upward thrust; airborne WASD directs thrust). Press T to pause/resume orbits and spin. Press O for ten past orbit paths and body labels. Press Y to halve or U to double simulation speed. Press Esc to release the walking cursor and 2 or 4 to capture it again. /workspace/build-resume/terrain-native/moon-input.json reloads on save; press R to reload manually. Close the window to exit.
+Simulation time: 20.0 s
+Surface camera position (world, km): [9.373035183299756,0.978540778799732,-0.34323022028869715]
+Surface camera direction (world, unit vector): [-0.08211556195871554,0.35568157552746194,0.9309928309683736]
+Surface camera position (planet LLA): latitude=-21.409888527293514 deg, longitude=103.0000032043198 deg, altitude=6.015150862029791 m above reference sphere
+Surface camera ground clearance: 3.0 m
+surface_camera start value: {"altitude":0.003,"direction_ned":[0.9999999999999997,-2.0415059795442225e-08,5.7327361191461534e-09],"fov":65.0,"latitude_deg":-21.409888527293514,"longitude_deg":103.0000032043198,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":20.0,"up_ned":[5.7327353975011874e-09,-3.7338068636927346e-08,-0.9999999999999991],"walk_speed_mps":80.0}
+Astronaut orientation: outer space
+Scene render resolution: 320x180 (100%)
+Astronaut destination: moon
+Astronaut orientation: local planet
+Astronaut jetpack thrust on
+Astronaut jetpack thrust off
+Reloaded /workspace/build-resume/terrain-native/moon-input.json: Solar System, 2 planet(s)
+Simulation time: 20.0 s
+Surface camera position (world, km): [9.373035183299756,0.978540778799732,-0.34323022028869715]
+Surface camera direction (world, unit vector): [-0.08211556195871554,0.35568157552746194,0.9309928309683736]
+Surface camera position (planet LLA): latitude=-21.409888527293514 deg, longitude=103.0000032043198 deg, altitude=6.015150862029791 m above reference sphere
+Surface camera ground clearance: 3.0 m
+surface_camera start value: {"altitude":0.003,"direction_ned":[0.9999999999999997,-2.0415059795442225e-08,5.7327361191461534e-09],"fov":65.0,"latitude_deg":-21.409888527293514,"longitude_deg":103.0000032043198,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":20.0,"up_ned":[5.7327353975011874e-09,-3.7338068636927346e-08,-0.9999999999999991],"walk_speed_mps":80.0}
+Astronaut orientation: outer space
+Astronaut destination: moon
+Astronaut orientation: local planet
+Native audit: {"blocking_polls":0,"bulk_reads":0,"finishes":0,"injected_fence_failures":0,"injected_poll_failures":0,"polls":28,"server_waits":0}

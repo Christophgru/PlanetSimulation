@@ -59,11 +59,14 @@ Renderer::Impl::Impl(app::CommandLineOptions arguments)
     if(options.terrainGrassPlanner=="gpu-v1") for(const auto& p:scene.scenario.planets) {
         if(p.foliage.enabled && !p.foliage.compute_placement) {
             if(options.lockedTerrainBackend) throw std::runtime_error("Locked GPU grass replay requires compute_placement");
+            if(!options.renderTestMode) throw std::runtime_error("Interactive compute terrain requires foliage compute_placement");
             if(options.explicitTerrainGrassPlanner) throw std::runtime_error("GPU grass planner requires compute_placement");
             options.terrainGrassPlanner="cpu";
             std::cout << "Grass planner CPU fallback: compute_placement disabled\n";break;
         }
     }
+    if(terrainCompute && !options.renderTestMode && options.terrainGrassPlanner!="gpu-v1")
+        throw std::runtime_error("Interactive compute terrain requires GPU grass planning");
     if(terrainCompute && options.terrainGrassPlanner=="gpu-v1")
         terrainPublication=std::make_unique<TerrainPublication>(grass.procedural,scene.scenario.planets.size());
     scene.updateSimulation(simulationTime);
