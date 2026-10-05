@@ -1,0 +1,17 @@
+Internal ctest changing into directory: /workspace/build-resume
+Test project /workspace/build-resume
+    Start 53: PerformanceCaptureIntegration
+1/3 Test #53: PerformanceCaptureIntegration ....***Timeout  60.06 sec
+
+    Start 55: NativeLoopTimingIntegration
+2/3 Test #55: NativeLoopTimingIntegration ......   Passed   18.56 sec
+    Start 56: TerrainNativeInputIntegration
+3/3 Test #56: TerrainNativeInputIntegration ....   Passed   84.51 sec
+
+67% tests passed, 1 tests failed out of 3
+
+Total Test time (real) = 163.14 sec
+
+The following tests FAILED:
+	 53 - PerformanceCaptureIntegration (Timeout)
+Errors while running CTest

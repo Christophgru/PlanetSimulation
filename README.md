@@ -284,6 +284,11 @@ main/reflection placement, with request and generation identities. Placement
 is nested in geometry stages, so these timings must not be added to `gpu_ms`.
 See the [GPU timing study](docs/journal/architecture/terrain-gpu/async/hardware/timing/study.md)
 for scope, missing-sample statuses and remaining hardware acceptance work.
+Interactive traces also create `path.csv.native-loop.csv`, with complete loop
+wall time, event polling, presentation and minimized-window wait intervals.
+It includes loading frames and the profiler's collection work; join it to the
+other traces by frame number. Its contained intervals and GPU times must not
+be added to the full wall time. See the [native loop study](docs/journal/architecture/terrain-gpu/async/hardware/loop/study.md).
 `cpu_foliage_ms` includes complete CPU preparation. GPU placement, wind,
 compaction and drawing belong to the opaque/reflection passes;
 `gpu_foliage_ms` remains zero because that named stage prepares the CPU plan.

@@ -1,0 +1,14 @@
+Internal ctest changing into directory: /workspace/build-resume
+Test project /workspace/build-resume
+    Start 52: GpuWorkProfilerTests
+1/4 Test #52: GpuWorkProfilerTests .............   Passed    0.02 sec
+    Start 53: PerformanceCaptureIntegration
+2/4 Test #53: PerformanceCaptureIntegration ....   Passed   28.24 sec
+    Start 55: NativeLoopTimingIntegration
+3/4 Test #55: NativeLoopTimingIntegration ......   Passed    6.73 sec
+    Start 56: TerrainNativeInputIntegration
+4/4 Test #56: TerrainNativeInputIntegration ....   Passed   54.70 sec
+
+100% tests passed, 0 tests failed out of 4
+
+Total Test time (real) =  89.70 sec

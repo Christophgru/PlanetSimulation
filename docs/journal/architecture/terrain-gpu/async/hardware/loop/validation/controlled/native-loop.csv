@@ -1,0 +1,4 @@
+frame,wall_ms,event_poll_ms,presentation_ms,event_wait_ms,outcome
+0,21,2,13,0,rendered
+1,23,3,11,0,loading
+2,55,0,0,50,minimized

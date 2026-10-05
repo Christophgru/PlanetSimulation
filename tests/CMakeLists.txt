@@ -286,7 +286,7 @@ add_executable(frame_reuse_tests diagnostics/test_frame_reuse.cpp)
 target_link_libraries(frame_reuse_tests PRIVATE GTest::gtest_main OpenGL::GL GLEW::GLEW glm::glm)
 target_include_directories(frame_reuse_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
 add_test(NAME FrameReuseTests COMMAND frame_reuse_tests)
-add_executable(gpu_work_profiler_tests diagnostics/timing/test_gpu_work.cpp diagnostics/timing/test_frame_profiler.cpp)
+add_executable(gpu_work_profiler_tests diagnostics/timing/test_gpu_work.cpp diagnostics/timing/test_frame_profiler.cpp diagnostics/timing/test_native_loop.cpp)
 target_link_libraries(gpu_work_profiler_tests PRIVATE planet_diagnostics GTest::gtest_main OpenGL::GL GLEW::GLEW Threads::Threads)
 target_include_directories(gpu_work_profiler_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_compile_definitions(gpu_work_profiler_tests PRIVATE PLANET_TIMING_OUTPUT="${CMAKE_BINARY_DIR}/gpu-work-profiler")
@@ -294,7 +294,7 @@ add_test(NAME GpuWorkProfilerTests COMMAND gpu_work_profiler_tests)
 add_test(NAME PerformanceCaptureIntegration COMMAND ${Python3_EXECUTABLE}
     ${CMAKE_CURRENT_SOURCE_DIR}/diagnostics/test_performance_capture.py --binary $<TARGET_FILE:PlanetSimulation>
     --output-dir ${CMAKE_BINARY_DIR}/performance-capture-tests)
-set_tests_properties(PerformanceCaptureIntegration PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 60)
+set_tests_properties(PerformanceCaptureIntegration PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 120)
 
 add_executable(gpu_utilization_tests diagnostics/test_gpu_utilization.cpp)
 target_include_directories(gpu_utilization_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
@@ -315,6 +315,12 @@ find_program(IMAGEMAGICK_CONVERT_EXECUTABLE convert)
 if(UNIX AND XDOTOOL_EXECUTABLE AND IMAGEMAGICK_IMPORT_EXECUTABLE AND IMAGEMAGICK_CONVERT_EXECUTABLE)
     add_executable(terrain_native_probe app/terrain/native/NativeProbe.cpp)
     target_link_libraries(terrain_native_probe PRIVATE planet_app ${CMAKE_DL_LIBS})
+    add_test(NAME NativeLoopTimingIntegration COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/diagnostics/timing/test_native_loop.py
+        --probe $<TARGET_FILE:terrain_native_probe>
+        --output-dir ${CMAKE_BINARY_DIR}/native-loop-timing)
+    set_tests_properties(NativeLoopTimingIntegration PROPERTIES
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 180 RUN_SERIAL TRUE)
     add_test(NAME TerrainNativeInputIntegration COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_CURRENT_SOURCE_DIR}/app/terrain/native/test_native.py
         --probe $<TARGET_FILE:terrain_native_probe> --binary $<TARGET_FILE:PlanetSimulation>

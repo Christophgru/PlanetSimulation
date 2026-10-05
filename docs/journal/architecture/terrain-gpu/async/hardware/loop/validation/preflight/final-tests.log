@@ -1,0 +1,106 @@
+Start testing: Oct 05 17:20 UTC
+----------------------------------------------------------
+52/65 Testing: GpuWorkProfilerTests
+52/65 Test: GpuWorkProfilerTests
+Command: "/workspace/build-resume/tests/gpu_work_profiler_tests"
+Directory: /workspace/build-resume/tests
+"GpuWorkProfilerTests" start time: Oct 05 17:20 UTC
+Output:
+----------------------------------------------------------
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 9 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 5 tests from GpuWorkProfiler
+[ RUN      ] GpuWorkProfiler.DelayedQueriesAreBoundedAndEveryReceiptRetainsItsIdentity
+[       OK ] GpuWorkProfiler.DelayedQueriesAreBoundedAndEveryReceiptRetainsItsIdentity (2 ms)
+[ RUN      ] GpuWorkProfiler.ShutdownDoesNotReadBusyQueriesAndUntracedScopesAllocateNothing
+[       OK ] GpuWorkProfiler.ShutdownDoesNotReadBusyQueriesAndUntracedScopesAllocateNothing (0 ms)
+[ RUN      ] GpuWorkProfiler.NestedContextBindingsRestoreRequestKeysAndExceptionsRetainReceipts
+[       OK ] GpuWorkProfiler.NestedContextBindingsRestoreRequestKeysAndExceptionsRetainReceipts (0 ms)
+[ RUN      ] GpuWorkProfiler.FailedQueryAllocationIsReportedWithoutChangingSubmission
+[       OK ] GpuWorkProfiler.FailedQueryAllocationIsReportedWithoutChangingSubmission (0 ms)
+[ RUN      ] GpuWorkProfiler.CpuWorkersDoNotInheritContextOrRequestBindings
+[       OK ] GpuWorkProfiler.CpuWorkersDoNotInheritContextOrRequestBindings (0 ms)
+[----------] 5 tests from GpuWorkProfiler (4 ms total)
+
+[----------] 2 tests from FrameProfilerTiming
+[ RUN      ] FrameProfilerTiming.SpanAndNestedWorkAreSeparateAndResultsRequireAvailability
+[       OK ] FrameProfilerTiming.SpanAndNestedWorkAreSeparateAndResultsRequireAvailability (0 ms)
+[ RUN      ] FrameProfilerTiming.BusyRingAndShutdownMissingSamplesAreExplicitAndEventsAreBounded
+[       OK ] FrameProfilerTiming.BusyRingAndShutdownMissingSamplesAreExplicitAndEventsAreBounded (1 ms)
+[----------] 2 tests from FrameProfilerTiming (2 ms total)
+
+[----------] 2 tests from NativeLoopTiming
+[ RUN      ] NativeLoopTiming.CompleteWallIncludesPollingPreparationPresentationAndMinimizedWait
+[       OK ] NativeLoopTiming.CompleteWallIncludesPollingPreparationPresentationAndMinimizedWait (0 ms)
+[ RUN      ] NativeLoopTiming.ExceptionClosesReceiptAndDisabledTracingDoesNotReadClock
+[       OK ] NativeLoopTiming.ExceptionClosesReceiptAndDisabledTracingDoesNotReadClock (0 ms)
+[----------] 2 tests from NativeLoopTiming (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 9 tests from 3 test suites ran. (7 ms total)
+[  PASSED  ] 9 tests.
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"GpuWorkProfilerTests" end time: Oct 05 17:20 UTC
+"GpuWorkProfilerTests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+53/65 Testing: PerformanceCaptureIntegration
+53/65 Test: PerformanceCaptureIntegration
+Command: "/usr/bin/python3" "/workspace/tests/diagnostics/test_performance_capture.py" "--binary" "/workspace/build-resume/PlanetSimulation" "--output-dir" "/workspace/build-resume/performance-capture-tests"
+Directory: /workspace
+"PerformanceCaptureIntegration" start time: Oct 05 17:20 UTC
+Output:
+----------------------------------------------------------
+Validated traced frames, paused image identity, and moving shadow reuse
+Validated exact replay of full-resolution atmosphere capture
+<end of output>
+Test time =  28.24 sec
+----------------------------------------------------------
+Test Passed.
+"PerformanceCaptureIntegration" end time: Oct 05 17:20 UTC
+"PerformanceCaptureIntegration" time elapsed: 00:00:28
+----------------------------------------------------------
+
+55/65 Testing: NativeLoopTimingIntegration
+55/65 Test: NativeLoopTimingIntegration
+Command: "/usr/bin/python3" "/workspace/tests/diagnostics/timing/test_native_loop.py" "--probe" "/workspace/build-resume/tests/terrain_native_probe" "--output-dir" "/workspace/build-resume/native-loop-timing"
+Directory: /workspace
+"NativeLoopTimingIntegration" start time: Oct 05 17:20 UTC
+Output:
+----------------------------------------------------------
+Validated cpu native full wall/poll/present/loading/minimized/resume: {'rendered': 8, 'minimized': 7}
+Validated compute native full wall/poll/present/loading/minimized/resume: {'loading': 35, 'rendered': 7, 'minimized': 7}
+<end of output>
+Test time =   6.73 sec
+----------------------------------------------------------
+Test Passed.
+"NativeLoopTimingIntegration" end time: Oct 05 17:20 UTC
+"NativeLoopTimingIntegration" time elapsed: 00:00:06
+----------------------------------------------------------
+
+56/65 Testing: TerrainNativeInputIntegration
+56/65 Test: TerrainNativeInputIntegration
+Command: "/usr/bin/python3" "/workspace/tests/app/terrain/native/test_native.py" "--probe" "/workspace/build-resume/tests/terrain_native_probe" "--binary" "/workspace/build-resume/PlanetSimulation" "--output-dir" "/workspace/build-resume/terrain-native"
+Directory: /workspace
+"TerrainNativeInputIntegration" start time: Oct 05 17:20 UTC
+Output:
+----------------------------------------------------------
+Validated native loading/standing/6-12 m/s walking/jump/WASD-Space thrust/trail/reload/watch/supersession
+Validated native space navigation, directional input, matching contacts and replay reload
+Validated native moon navigation, directional input, matching contacts and replay reload
+Validated native default-cpu startup and walking
+Validated native gl33-fallback startup and walking
+Validated native compute opt-in, five input scenarios and four startup rejection contracts
+<end of output>
+Test time =  54.70 sec
+----------------------------------------------------------
+Test Passed.
+"TerrainNativeInputIntegration" end time: Oct 05 17:21 UTC
+"TerrainNativeInputIntegration" time elapsed: 00:00:54
+----------------------------------------------------------
+
+End testing: Oct 05 17:21 UTC

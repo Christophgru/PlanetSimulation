@@ -27,6 +27,11 @@ adds twelve matched physical-GPU runs with raw traces, captures, telemetry and
 verified device identities. Its standalone Matplotlib plot measures offscreen
 throughput, with limits on interactive FPS and terrain-migration conclusions.
 
+The [native loop timing study](architecture/terrain-gpu/async/hardware/loop/study.md)
+adds frame-linked complete wall receipts for polling, loading presentation and
+minimized waits. Publication lifecycle and physical-memory diagnostics remain
+the next prerequisites before matched CPU/compute cost acceptance.
+
 The [GPU timing prerequisite](architecture/terrain-gpu/async/hardware/timing/study.md)
 adds bounded request-keyed dispatch timings and complete frame timestamp spans.
 It separates nested placement costs from render-stage totals and preserves

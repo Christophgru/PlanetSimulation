@@ -1,0 +1,45 @@
+{
+  "cpu": {
+    "frames": 15,
+    "rendered": 0,
+    "gl": {
+      "blocking_polls": 0,
+      "bulk_reads": 0,
+      "finishes": 0,
+      "injected_fence_failures": 0,
+      "injected_poll_failures": 0,
+      "polls": 0,
+      "server_waits": 0
+    },
+    "peak_logical_bytes": 0,
+    "loop_outcomes": {
+      "rendered": 8,
+      "minimized": 7
+    },
+    "joined_receipts": 15,
+    "renderer": "Quadro M1000M/PCIe/SSE2",
+    "opengl_version": "4.3.0 NVIDIA 580.178.04"
+  },
+  "compute": {
+    "frames": 49,
+    "rendered": 14,
+    "gl": {
+      "blocking_polls": 0,
+      "bulk_reads": 0,
+      "finishes": 0,
+      "injected_fence_failures": 0,
+      "injected_poll_failures": 0,
+      "polls": 13,
+      "server_waits": 0
+    },
+    "peak_logical_bytes": 4284452,
+    "loop_outcomes": {
+      "loading": 35,
+      "rendered": 7,
+      "minimized": 7
+    },
+    "joined_receipts": 49,
+    "renderer": "Quadro M1000M/PCIe/SSE2",
+    "opengl_version": "4.3.0 NVIDIA 580.178.04"
+  }
+}

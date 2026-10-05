@@ -1,0 +1,33 @@
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 9 tests from 3 test suites.
+[----------] Global test environment set-up.
+[----------] 5 tests from GpuWorkProfiler
+[ RUN      ] GpuWorkProfiler.DelayedQueriesAreBoundedAndEveryReceiptRetainsItsIdentity
+[       OK ] GpuWorkProfiler.DelayedQueriesAreBoundedAndEveryReceiptRetainsItsIdentity (4 ms)
+[ RUN      ] GpuWorkProfiler.ShutdownDoesNotReadBusyQueriesAndUntracedScopesAllocateNothing
+[       OK ] GpuWorkProfiler.ShutdownDoesNotReadBusyQueriesAndUntracedScopesAllocateNothing (0 ms)
+[ RUN      ] GpuWorkProfiler.NestedContextBindingsRestoreRequestKeysAndExceptionsRetainReceipts
+[       OK ] GpuWorkProfiler.NestedContextBindingsRestoreRequestKeysAndExceptionsRetainReceipts (1 ms)
+[ RUN      ] GpuWorkProfiler.FailedQueryAllocationIsReportedWithoutChangingSubmission
+[       OK ] GpuWorkProfiler.FailedQueryAllocationIsReportedWithoutChangingSubmission (0 ms)
+[ RUN      ] GpuWorkProfiler.CpuWorkersDoNotInheritContextOrRequestBindings
+[       OK ] GpuWorkProfiler.CpuWorkersDoNotInheritContextOrRequestBindings (1 ms)
+[----------] 5 tests from GpuWorkProfiler (8 ms total)
+
+[----------] 2 tests from FrameProfilerTiming
+[ RUN      ] FrameProfilerTiming.SpanAndNestedWorkAreSeparateAndResultsRequireAvailability
+[       OK ] FrameProfilerTiming.SpanAndNestedWorkAreSeparateAndResultsRequireAvailability (1 ms)
+[ RUN      ] FrameProfilerTiming.BusyRingAndShutdownMissingSamplesAreExplicitAndEventsAreBounded
+[       OK ] FrameProfilerTiming.BusyRingAndShutdownMissingSamplesAreExplicitAndEventsAreBounded (2 ms)
+[----------] 2 tests from FrameProfilerTiming (3 ms total)
+
+[----------] 2 tests from NativeLoopTiming
+[ RUN      ] NativeLoopTiming.CompleteWallIncludesPollingPreparationPresentationAndMinimizedWait
+[       OK ] NativeLoopTiming.CompleteWallIncludesPollingPreparationPresentationAndMinimizedWait (0 ms)
+[ RUN      ] NativeLoopTiming.ExceptionClosesReceiptAndDisabledTracingDoesNotReadClock
+[       OK ] NativeLoopTiming.ExceptionClosesReceiptAndDisabledTracingDoesNotReadClock (0 ms)
+[----------] 2 tests from NativeLoopTiming (1 ms total)
+
+[----------] Global test environment tear-down
+[==========] 9 tests from 3 test suites ran. (13 ms total)
+[  PASSED  ] 9 tests.

@@ -2,6 +2,7 @@
 #include "rendering/camera/CameraTransition.h"
 #include "rendering/camera/SurfaceCameraTelemetry.h"
 #include "config/SceneReplay.h"
+#include "rendering/diagnostics/timing/NativeLoopProfiler.h"
 #include <GLFW/glfw3.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <filesystem>
@@ -10,6 +11,9 @@ namespace fs = std::filesystem;
 
 namespace rendering {
 int Renderer::Impl::interact() {
+    NativeLoopProfiler loopProfiler(options.performanceTrace.empty() ? "" : options.performanceTrace+".native-loop.csv");
+    using LoopPart=NativeLoopProfiler::Part;
+    using LoopOutcome=NativeLoopProfiler::Outcome;
     bool cursorCaptured = false;
     SurfaceCameraTelemetry telemetry;
     rendering::CameraTransition cameraTransition;
@@ -32,8 +36,10 @@ int Renderer::Impl::interact() {
     double configChangedAt = 0.0;
     double nextConfigCheckAt = previousFrameTime;
     while (!glfwWindowShouldClose(window)) {
+        NativeLoopProfiler::Scope loop(loopProfiler,profiler.nextFrameNumber());
         CpuTrace::Scope frameScope("interactive.frame");
-        { CpuTrace::Scope scope("glfwPollEvents"); glfwPollEvents(); }
+        { NativeLoopProfiler::Scope::Interval interval(loop,LoopPart::EventPoll);
+          CpuTrace::Scope scope("glfwPollEvents"); glfwPollEvents(); }
         const bool statsVisible = inputContext.statsVisible ||
             glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS;
         profiler.beginFrame(simulationClock.seconds(), statsVisible);
@@ -140,8 +146,10 @@ int Renderer::Impl::interact() {
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
                 glViewport(0, 0, width, height);
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-                glfwSwapBuffers(window);
+                { NativeLoopProfiler::Scope::Interval interval(loop,LoopPart::Presentation);
+                  glfwSwapBuffers(window); }
                 profiler.endFrame();
+                loop.outcome(LoopOutcome::Loading);
             };
             const bool onSurface = cameraInput.mode() == CameraMode::Surface && scene.surfaceCamera;
             const bool onThird = cameraInput.mode()==CameraMode::ThirdPerson && scene.surfaceCamera;
@@ -293,11 +301,16 @@ int Renderer::Impl::interact() {
               performanceOverlay.draw(statsVisible, width, height,
                   frameRate.fps, frameRate.milliseconds, profiler.gpuMilliseconds, profiler.gpuReady(), gpuUtilization.sample(statsVisible)); }
             { rendering::FrameProfiler::Scope scope(&profiler, rendering::FrameStage::Present, false);
+              NativeLoopProfiler::Scope::Interval interval(loop,LoopPart::Presentation);
               glfwSwapBuffers(window); }
+            loop.outcome(LoopOutcome::Rendered);
             displayedPose = renderPose;
             displayedMode = cameraInput.mode();
         }
-        if (width <= 0 || height <= 0) glfwWaitEventsTimeout(0.05);
+        if (width <= 0 || height <= 0) {
+            NativeLoopProfiler::Scope::Interval interval(loop,LoopPart::EventWait);
+            glfwWaitEventsTimeout(0.05);loop.outcome(LoopOutcome::Minimized);
+        }
         profiler.endFrame();
     }
     return 0;

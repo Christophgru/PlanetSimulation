@@ -15,8 +15,10 @@ The first diagnostic prerequisite, [T3c5b1](timing/study.md), adds bounded
 request-keyed work timestamps for terrain field/expansion, grass metadata,
 allocation/prefix and main/reflection placement, plus full frame GPU spans.
 It retains missing/dropped samples and does not change publication readiness.
-T3c5b2 still owns complete native-loop wall time, request-to-publication latency
-and physical-memory sampling; T3c5c owns the matched cost experiments.
+[T3c5b2a](loop/study.md) adds complete native-loop wall receipts, including
+event polling, loading presentation, profiler collection and minimized waits.
+T3c5b2b still owns request-to-publication latency/outcomes, T3c5b2c physical-memory
+sampling, and T3c5c the matched cost experiments.
 
 `FrameProfiler` retains asynchronous per-render-pass GPU timestamps, CPU scopes,
 worker build duration and transfer counters. Its `gpu_ms` sums render stages;
@@ -34,7 +36,8 @@ Before matched cost acceptance:
    nested stages to avoid adding overlapping intervals. Query only available
    results; retain missing/dropped counts and never force completion for tracing.
 2. T3c5b1 exports the frame start/end GPU span separately from summed stage work.
-   Complete the remaining T3c5b2 wall-time diagnostics: retain
+   T3c5b2a exports complete native-loop wall, polling, presentation and event-wait
+   intervals in a separate frame-linked CSV. Retain
    CPU worker topology/contact-index durations, render-thread submission,
    draw/presentation and complete native loop wall times. CPU/GPU intervals can
    overlap; do not sum them as a total frame time.
@@ -92,8 +95,9 @@ improvement can coexist with a total-frame regression. If any gate fails, retain
 CPU default, document the failing case and fix the measured bottleneck before
 repeating affected pairs. Hardware correctness alone does not complete T3c5.
 
-T3c5b1 closes work-query/frame-span diagnostics; remaining T3c5b2 diagnostics
-and T3c5c matched measurements are pending. A1a coefficient reuse and
+T3c5b1 closes work-query/frame-span diagnostics; T3c5b2a supplies complete native
+wall intervals. T3c5b2b publication latency/outcomes, T3c5b2c physical memory and
+T3c5c matched measurements are pending. A1a coefficient reuse and
 T3c5a context/correctness are separate tested
 prerequisites; A1b highlight reduction and adaptive foliage allocation remain
 independent unfinished tasks.

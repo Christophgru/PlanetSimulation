@@ -140,6 +140,7 @@ public:
         current_->foliageUploadBytes += bytes;
     }
     bool gpuReady() const { return lastReady_; }
+    unsigned long long nextFrameNumber() const {return next_;}
     GpuWorkProfiler& gpuWork() {return work_;}
     double gpuMilliseconds = 0;
     class Scope {

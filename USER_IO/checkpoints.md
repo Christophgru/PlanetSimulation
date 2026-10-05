@@ -1,5 +1,31 @@
 # Page to document progress of AI Agents working on this Project
 
+## Complete native-loop wall checkpoint — 2026-10-05
+
+- T3c5b2a is tested. Interactive tracing adds a separate native-loop CSV linked
+  by frame number: full body wall time before polling through profiler/CPU-scope
+  closure, contained poll/presentation/event-wait intervals and explicit outcomes.
+  Loading continues and minimized waits close the scope; exception/disabled-clock
+  behavior has controlled tests. This timer owns only scalar stack state and a
+  buffered output, with no GL calls, worker, future or forced completion.
+- Two new deterministic cases and seven existing timing cases pass. Four relevant
+  CTest groups pass in one final-input run (89.70 s), covering capture/replay,
+  two native CPU/compute fixtures and five existing input scenarios/four startup
+  rejection contracts. This is scoped validation; no new full 65-group claim.
+- Software and Quadro GL 4.3 each join 64 loop/frame/probe receipts: CPU 8
+  rendered/7 minimized; compute 7 rendered/35 loading/7 minimized. Both audits
+  retain zero blocking polls/server waits/bulk reads/finishes. The preceding
+  60 s capture preflight timed out; standalone and final 120 s allowance pass
+  unchanged assertions. Raw rejected and passing results are retained.
+- Final source/build-input and all 41 executable hashes remain frozen. Existing
+  ten baseline and 22 gallery hashes are retained. Journal/PDF and reviewed
+  affected pages accompany evidence in
+  docs/journal/architecture/terrain-gpu/async/hardware/loop/validation/.
+- T3c5b2 is divided into tested native loop (a), pending bounded publication
+  lifecycle latency/outcomes (b), and device-verified physical memory (c).
+  Continue with b, then c and matched hardware T3c5c. CPU stays default;
+  user environmental/Docker TODO suffix remains unchanged and unstaged.
+
 ## Bounded GPU work timing checkpoint — 2026-10-05
 
 - T3c5b1 is tested. Optional request-keyed work receipts cover terrain field/

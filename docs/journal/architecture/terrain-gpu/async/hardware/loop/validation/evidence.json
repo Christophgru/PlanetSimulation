@@ -1,0 +1,184 @@
+{
+  "date": "2026-10-05",
+  "base_revision": "acede72",
+  "task": "T3c5b2a",
+  "validation_scope": {
+    "type": "scoped, not a new full 65-group run",
+    "ctest_groups_passed": 4,
+    "ctest_wall_seconds": 89.7,
+    "controlled_timing_cases": 9,
+    "new_controlled_cases": 2,
+    "new_native_cases": 2,
+    "existing_native_scenarios": 5,
+    "startup_rejection_contracts": 4,
+    "command": "env LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=2 xvfb-run -a ctest --test-dir build-resume --output-on-failure -R 'GpuWorkProfilerTests|NativeLoopTimingIntegration|TerrainNativeInputIntegration|PerformanceCaptureIntegration'"
+  },
+  "preflight": {
+    "capture_old_deadline_seconds": 60,
+    "capture_deadline_reached": true,
+    "standalone_recheck_passed": true,
+    "final_capture_deadline_seconds": 120,
+    "capture_assertions_unchanged": true
+  },
+  "frozen_provenance": {
+    "source_sha256": "fd092a79e2575dd4eaf44c7c1e268ecb7b0a4c630a1bfca94f7d4cc805429934",
+    "build_test_input_sha256": "8c4e86bebf64394001c41c59af119b3198db133280a76bed739648aab7a9924d",
+    "executable_count": 41,
+    "all_hashes_match_after_validation": true
+  },
+  "native_receipts": {
+    "hardware": {
+      "cpu": {
+        "receipts": 15,
+        "outcomes": {
+          "rendered": 8,
+          "minimized": 7
+        },
+        "renderer": "Quadro M1000M/PCIe/SSE2",
+        "version": "4.3.0 NVIDIA 580.178.04",
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "polls": 0,
+          "server_waits": 0
+        }
+      },
+      "compute": {
+        "receipts": 49,
+        "outcomes": {
+          "loading": 35,
+          "rendered": 7,
+          "minimized": 7
+        },
+        "renderer": "Quadro M1000M/PCIe/SSE2",
+        "version": "4.3.0 NVIDIA 580.178.04",
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "polls": 13,
+          "server_waits": 0
+        }
+      }
+    },
+    "software": {
+      "cpu": {
+        "receipts": 15,
+        "outcomes": {
+          "rendered": 8,
+          "minimized": 7
+        },
+        "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+        "version": "4.5 (Core Profile) Mesa 22.3.6",
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "polls": 0,
+          "server_waits": 0
+        }
+      },
+      "compute": {
+        "receipts": 49,
+        "outcomes": {
+          "loading": 35,
+          "rendered": 7,
+          "minimized": 7
+        },
+        "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+        "version": "4.5 (Core Profile) Mesa 22.3.6",
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "polls": 16,
+          "server_waits": 0
+        }
+      }
+    }
+  },
+  "gallery_hashes_retained": 22,
+  "historical_baseline_hashes_retained": 10,
+  "local_links_verified": 79,
+  "user_todo_suffix_sha256": "b227dc2ecc065b8c8ac1eea5fa030c32f289ade83c61e19d571ddf6c4b09c5c5",
+  "limitations": [
+    "Small private native fixtures use intentional delays; no production throughput claim.",
+    "The physical-GPU access inventory is not a UUID-verified memory sampler.",
+    "Native wall excludes its own CSV emission, startup, loop condition and teardown.",
+    "Publication lifecycle (T3c5b2b), physical memory (T3c5b2c) and matched hardware costs (T3c5c) remain pending; CPU is default."
+  ],
+  "artifacts": {
+    "controlled/native-exception.csv": "5ac6f0fc7a4602c1bb7af1bdfb9a137d87ea4f8c991e0ee7432b2ba266cd78d0",
+    "controlled/native-loop.csv": "df528289335bc6788397a6e4a735028798fac279ad75d62f54a5c3624c8262b2",
+    "devices.csv": "76ead3408c686157972c48acb9fd24f20bf6c481676f91b7da6428e9d1b87899",
+    "focused-ctest.log": "9fe8f141a6ad01efaf99ba73b7ba4d2a2d706a2bb38a2c375a67c25ab9024183",
+    "hardware/compute/control.json": "e6ee24cffe49d1e27e69d9ea2866b893934e67cdafdf47f61d2f09d772e0c04b",
+    "hardware/compute/frames.jsonl": "833c074549e0a19a009cccc27822b255be84b899d606d4ab134db7ce14a2d37c",
+    "hardware/compute/performance.csv": "6f8d84abbfed0cb337de5f393c6b471896d3e6d752f2c6d5a13b528706d183b8",
+    "hardware/compute/performance.csv.gpu-work.csv": "f4e02ff5581550e4ee5ca73408044fe8117dbf59650c8c86031b04d9691932b8",
+    "hardware/compute/performance.csv.native-loop.csv": "8374955345a45d8226d48fc9a1114c361abbb25ed7a3afbb6f6e77d38c5e4204",
+    "hardware/compute/run.log": "713eb21d963783f912edc9a4421e84ad972886fca5949ac0199924df31030b8c",
+    "hardware/cpu/control.json": "e6ee24cffe49d1e27e69d9ea2866b893934e67cdafdf47f61d2f09d772e0c04b",
+    "hardware/cpu/frames.jsonl": "94d27fcdd413fd863b739c70290c1339d08358383f1ce8dbd040c86669f29503",
+    "hardware/cpu/performance.csv": "f5fa40ecee61e4b802c85f6fc8cf84b5509a2e511067eb6b4d81b614ac63fc83",
+    "hardware/cpu/performance.csv.gpu-work.csv": "b55eb189f26c378a204cdb5d85b58abe5eea6142e663a10325ca28b29cfb376f",
+    "hardware/cpu/performance.csv.native-loop.csv": "8aeabce731a06473ac93697647de0a965bc4bde6ed51946687912d3fd53d7fed",
+    "hardware/cpu/run.log": "6748e081602ac0533935f7a64d7d84964ff9312f1a812925f70d5687dc885271",
+    "hardware/native.log": "c24a9046f83362aae3c64ba3f8efef8b6a4a921b3a7d3c1b8d8a103546f27553",
+    "hardware/results.json": "83b94e63188cbe67d09158c1769a4d4ab6ecb75f93e5a59655bb01f62a01ede6",
+    "hardware/scene.json": "abb9eaec4e200cf0b2e67fdc4e1141d462ea35f33ecbefa0533e19ec92382949",
+    "inputs.json": "c7dfe2ca501beb87ca599a776f25653753bf610850bc8b45d885eea2be36bc5c",
+    "preflight/final-tests.log": "20f795ea498d96f242fa8db710ecdb99dfa6b55d015068694d5f7c0329ce517c",
+    "preflight/focused.log": "3090a98bb60de028c27c13ae7db642142d6a67a3603b43ca8cd1d80884ebd210",
+    "preflight/performance-recheck.log": "b46f6843fb5761fbb0b4e2f50868244b90b8700daeee65874e8483630168a10d",
+    "software/compute/control.json": "e6ee24cffe49d1e27e69d9ea2866b893934e67cdafdf47f61d2f09d772e0c04b",
+    "software/compute/frames.jsonl": "2ad8df5fd8690e6f258f3769810be8996e5dd08fdd34ac142cf309180af3364a",
+    "software/compute/performance.csv": "1375a9f95c0cf8392aed397b61adb5cd3bd9d6114498a6a4e20c53252ee3b4e7",
+    "software/compute/performance.csv.gpu-work.csv": "307c5cfff986424ef6347b20e1d7569c36679e39c34dac1b469acd6c554cccd9",
+    "software/compute/performance.csv.native-loop.csv": "252a302dbcd2b180e37df7f705322d0577479dfbe23b4778f29b485ff544e2f3",
+    "software/compute/run.log": "42349d8f470c5485342b4f77efd2501bc7e8c45949ad986e6c7bde322916c87e",
+    "software/cpu/control.json": "e6ee24cffe49d1e27e69d9ea2866b893934e67cdafdf47f61d2f09d772e0c04b",
+    "software/cpu/frames.jsonl": "2f5d390ccec47de436a51d47f5605df70f5fc765a1614a23c9f14d36998e8892",
+    "software/cpu/performance.csv": "5bcecf0458cddba2287ed3c6bd28339db4c09af0f309511aebcc33b7676204e0",
+    "software/cpu/performance.csv.gpu-work.csv": "b55eb189f26c378a204cdb5d85b58abe5eea6142e663a10325ca28b29cfb376f",
+    "software/cpu/performance.csv.native-loop.csv": "95fa2d3cde2d1479be07c0a5bc3c040997f06e2d9b21c384b83a8860ccf12019",
+    "software/cpu/run.log": "f07d7c599b475a6c2a4bfb30bf3e3344228558fcae50b4dee99be0ae7b32d2fc",
+    "software/existing-native.json": "7491bd88ca9cc3e8e4633b16357b889cd717c056061e64ac22661f5232d49b2e",
+    "software/results.json": "5846ef6106e7f4192265bac6aeb16a69136dc3eaa171b42cdd740831f9ff5499",
+    "software/scene.json": "abb9eaec4e200cf0b2e67fdc4e1141d462ea35f33ecbefa0533e19ec92382949",
+    "unit.log": "3290699d987fd99ae504ea016a2fccec1af896891d686cc200c3dc8377260ae8",
+    "build.log.gz": "8172dbb98cda2aa5e3ab9e0c02ab8fa197f2ad5eecc5ae8c5da8c282ed67b4ee"
+  },
+  "journal_review": {
+    "pdf_sha256": "40fbf4876739a4551bb53fbb10c05cbfe7ca454ddb597c998f796c28c30fde11",
+    "source_sha256": "49df2997556d3a17bdaa2212d5639341f50838483e3a58b4c12e3e3734d24d09",
+    "page_count": 31,
+    "reviewed_pages": [
+      7,
+      8,
+      27,
+      31
+    ],
+    "result": "Changed implementation, evaluation and claim table pages reviewed; text/figures fit without clipping.",
+    "previews": {
+      "page-07-of-31.png": "3f9dcdcc2309418e7ada85943b4af3c88366aedc3edc4a45f2faf8ca33f705a7",
+      "page-08-of-31.png": "f3e081dd3b49b22bbdaa4048f7c9c8b65b56df76bd5d0fc237d9a07bd8a4523a",
+      "page-27-of-31.png": "a64ab1651c4ec6a2bd46b540c11bd1f58476a2aa6ae6a25a7dfb40f7df78feaa",
+      "page-31-of-31.png": "587c39379dea451e2b60c5950da269421c189a14f0d799909eeba46654b202ce"
+    }
+  },
+  "build_log": {
+    "archive": "build.log.gz",
+    "raw_sha256": "bc7088f56cbb1be56eff000f53d4de46a0a42f58e669dc03e682df10b320fc98",
+    "encoding": "Lossless gzip; raw configure-output whitespace preserved."
+  }
+}

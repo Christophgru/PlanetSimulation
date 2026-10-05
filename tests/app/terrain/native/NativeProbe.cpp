@@ -5,6 +5,8 @@
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
+#include <thread>
+#include <chrono>
 
 namespace rendering {
 struct RendererRecoveryProbe {static auto& state(Renderer& r) {return *r.impl_;}};
@@ -51,11 +53,12 @@ void loadControls() {
     if(p && p!=lastPollToken) {lastPollToken=p;failPoll=true;}
 }
 json vector(const glm::dvec3& v) {return {v.x,v.y,v.z};}
-void sample(GLFWwindow* window) {
+void sample(GLFWwindow* window,bool waiting=false) {
     auto& r=rendering::RendererRecoveryProbe::state(*renderer);loadControls();
     const auto stats=r.terrainJobs.stats();
     if(stats.running>1 || stats.queued>1 || stats.ready>1) throw std::runtime_error("Unbounded native worker ownership");
     json j={{"frame",++frames},{"mode",int(r.cameraInput.mode())},{"backend",r.options.terrainBackend},
+        {"profile_frame",r.profiler.nextFrameNumber()-1},{"waiting",waiting},
         {"planner",r.options.terrainGrassPlanner},{"scenario",r.scene.scenario.name},{"renderer",contextRenderer},
         {"opengl_version",contextVersion},
         {"publication",r.terrainPublicationState()},{"reload",r.sceneReloadState()},
@@ -99,7 +102,29 @@ struct Audit {
 extern "C" void glfwSwapBuffers(GLFWwindow* window) {
     static auto swap=reinterpret_cast<void(*)(GLFWwindow*)>(dlsym(RTLD_NEXT,"glfwSwapBuffers"));
     if(observing) try {sample(window);} catch(const std::exception& e) {error=e.what();glfwSetWindowShouldClose(window,GLFW_TRUE);}
+    if(observing) std::this_thread::sleep_for(std::chrono::milliseconds(controls.value("present_delay_ms",0)));
     swap(window);
+}
+extern "C" void glfwPollEvents() {
+    static auto pollEvents=reinterpret_cast<void(*)()>(dlsym(RTLD_NEXT,"glfwPollEvents"));
+    if(observing) {
+        loadControls();
+        std::this_thread::sleep_for(std::chrono::milliseconds(controls.value("poll_delay_ms",0)));
+    }
+    pollEvents();
+}
+extern "C" void glfwGetFramebufferSize(GLFWwindow* window,int* width,int* height) {
+    static auto size=reinterpret_cast<void(*)(GLFWwindow*,int*,int*)>(dlsym(RTLD_NEXT,"glfwGetFramebufferSize"));
+    size(window,width,height);
+    // Xvfb has no window manager to iconify: force only the size observation
+    // to exercise the shipping loop's unchanged zero-size/wait branch.
+    if(observing && controls.value("minimized",false)) {*width=0;*height=0;}
+}
+extern "C" void glfwWaitEventsTimeout(double seconds) {
+    static auto waitEvents=reinterpret_cast<void(*)(double)>(dlsym(RTLD_NEXT,"glfwWaitEventsTimeout"));
+    waitEvents(seconds);
+    if(observing) try {sample(glfwGetCurrentContext(),true);}
+        catch(const std::exception& e) {error=e.what();glfwSetWindowShouldClose(glfwGetCurrentContext(),GLFW_TRUE);}
 }
 extern "C" void GLAPIENTRY glFinish() {
     static auto finish=reinterpret_cast<void(*)()>(dlsym(RTLD_NEXT,"glFinish"));
