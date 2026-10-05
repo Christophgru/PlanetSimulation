@@ -1,0 +1,338 @@
+{
+  "status": "validated",
+  "date": "2026-10-05",
+  "started_date": "2026-10-04",
+  "checkpoint": "T3c3c3",
+  "base_revision": "dc0aa1e3ad8b242043fd2366fbba97fed64c86cc",
+  "source_sha256": "b83bc122c8a742f1cd6424b020ad98d0a1a8641d4e38a2395a187a994e8d31de",
+  "build_test_input_sha256": "0a87739650f53dc56aa46d4527ec29e24e07e4a405371187d7e1c482378ea9ec",
+  "binary_sha256": "04e50a8a529cb0cd75eb545a5534167d129e7f5bc381067bbd2d9fcf79137430",
+  "native_binary_sha256": "7b3973fe3424d0103dee80a2dc4191e9b2b5f4542506af720084d5f27bbed4fb",
+  "runtime_binary_sha256": "fc278512221e7dc78b0231d6b3ed65c334ed4c57346ea62d63b9ca73de35eec3",
+  "recovery_binary_sha256": "314d1fb2a0dae43e6ce952e128c08bffb9f2847b872218f76537cdaf95d29c4c",
+  "worker_binary_sha256": "4f64b6a1f980aa4542d01f9e13d165434f92f342c8911ffe49f0a5db2b0170cb",
+  "fingerprint_definition": "SHA-256 over globally sorted relative paths, NUL, contents, NUL; source includes src/shaders; build-test inputs include CMakeLists.txt and src/shaders/configs/tests/scripts excluding __pycache__",
+  "commands": [
+    "cmake --build build-resume -j2",
+    "cmake --build build-resume -j2 --target terrain_recovery_tests",
+    "build-resume/tests/terrain_job_tests",
+    "LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=2 xvfb-run -a build-resume/tests/terrain_recovery_tests",
+    "LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=2 xvfb-run -a ctest --test-dir build-resume -R '^SpaceFlightCaptureIntegration$' --output-on-failure",
+    "LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=2 xvfb-run -a ctest --test-dir build-resume --output-on-failure",
+    "LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=2 xvfb-run -a ctest --test-dir build-resume -I 47,60 --output-on-failure",
+    "build-terrain/typst-x86_64-unknown-linux-musl/typst compile -j2 --root . docs/journal/paper.typ docs/journal/paper.pdf"
+  ],
+  "test_scope": "All 60 CTest groups pass across an interrupted run and resumption on frozen inputs (952.49 seconds summed passing-group time). Three new actual renderer recovery cases and eleven worker cases pass; existing CPU space-flight and exact Moon replay pass. Ten compute/CPU/replay and 22 gallery hashes remain unchanged.",
+  "regression": {
+    "groups_passed": 60,
+    "runs": 2,
+    "uninterrupted": false,
+    "first_run_completed_groups": 46,
+    "resumed_groups": 14,
+    "sum_passing_group_seconds": 952.49,
+    "resumed_wall_seconds": 293.87,
+    "initial_wall_seconds": null,
+    "note": "The first run was interrupted; its total wall time was not reported. No completed passing group was rerun.",
+    "groups": {
+      "1": {
+        "name": "RendererLifecycleTests",
+        "seconds": 87.52
+      },
+      "2": {
+        "name": "TerrainRecoveryIntegration",
+        "seconds": 72.25
+      },
+      "3": {
+        "name": "ConfigTests",
+        "seconds": 0.02
+      },
+      "4": {
+        "name": "OrbitCameraTests",
+        "seconds": 0.01
+      },
+      "5": {
+        "name": "CameraInputTests",
+        "seconds": 0.01
+      },
+      "6": {
+        "name": "AstronautMotionTests",
+        "seconds": 2.45
+      },
+      "7": {
+        "name": "ExhaustPhysicsTests",
+        "seconds": 0.01
+      },
+      "8": {
+        "name": "ExhaustRenderIntegration",
+        "seconds": 0.46
+      },
+      "9": {
+        "name": "CameraTransitionTests",
+        "seconds": 0.01
+      },
+      "10": {
+        "name": "SceneTransformsTests",
+        "seconds": 0.01
+      },
+      "11": {
+        "name": "OrbitPathsTests",
+        "seconds": 0.02
+      },
+      "12": {
+        "name": "OrbitalSystemTests",
+        "seconds": 0.12
+      },
+      "13": {
+        "name": "CelestialLightingTests",
+        "seconds": 0.02
+      },
+      "14": {
+        "name": "CameraExposureTests",
+        "seconds": 0.01
+      },
+      "15": {
+        "name": "SceneReplayTests",
+        "seconds": 0.01
+      },
+      "16": {
+        "name": "TerrainShadowProjectionTests",
+        "seconds": 0.01
+      },
+      "17": {
+        "name": "TerrainShadowRenderIntegration",
+        "seconds": 3.92
+      },
+      "18": {
+        "name": "RenderDiagnosticsTests",
+        "seconds": 0.01
+      },
+      "19": {
+        "name": "StarFieldTests",
+        "seconds": 0.01
+      },
+      "20": {
+        "name": "MeshGeometryTests",
+        "seconds": 0.01
+      },
+      "21": {
+        "name": "TerrainTests",
+        "seconds": 12.43
+      },
+      "22": {
+        "name": "TerrainJobTests",
+        "seconds": 0.07
+      },
+      "23": {
+        "name": "TerrainComputeIntegration",
+        "seconds": 51.45
+      },
+      "24": {
+        "name": "GrassPlanTests",
+        "seconds": 0.01
+      },
+      "25": {
+        "name": "GrassTrailTests",
+        "seconds": 0.01
+      },
+      "26": {
+        "name": "GrassPlacementTests",
+        "seconds": 0.04
+      },
+      "27": {
+        "name": "PlanetLocalFrameTests",
+        "seconds": 0.01
+      },
+      "28": {
+        "name": "PlanetSurfaceCameraTests",
+        "seconds": 0.01
+      },
+      "29": {
+        "name": "SurfaceCameraTelemetryTests",
+        "seconds": 0.01
+      },
+      "30": {
+        "name": "RenderSceneIntegration",
+        "seconds": 1.36
+      },
+      "31": {
+        "name": "SurfaceRenderIntegration",
+        "seconds": 4.9
+      },
+      "32": {
+        "name": "PlanetOrbitRenderIntegration",
+        "seconds": 3.68
+      },
+      "33": {
+        "name": "MovingSurfaceRenderIntegration",
+        "seconds": 5.13
+      },
+      "34": {
+        "name": "MovingPlanetRenderIntegration",
+        "seconds": 3.64
+      },
+      "35": {
+        "name": "MoonlightRenderIntegration",
+        "seconds": 1.39
+      },
+      "36": {
+        "name": "TerrainComputeCaptureIntegration",
+        "seconds": 40.17
+      },
+      "37": {
+        "name": "AstronautCaptureIntegration",
+        "seconds": 120.07
+      },
+      "38": {
+        "name": "ExhaustCaptureIntegration",
+        "seconds": 61.56
+      },
+      "39": {
+        "name": "SpaceFlightCaptureIntegration",
+        "seconds": 35.13
+      },
+      "40": {
+        "name": "OfflineCaptureIntegration",
+        "seconds": 18.06
+      },
+      "41": {
+        "name": "CpuTraceTests",
+        "seconds": 0.01
+      },
+      "42": {
+        "name": "CpuTraceReportTests",
+        "seconds": 0.19
+      },
+      "43": {
+        "name": "GrassCaptureIntegration",
+        "seconds": 65.3
+      },
+      "44": {
+        "name": "LightingScenariosRenderIntegration",
+        "seconds": 43.06
+      },
+      "45": {
+        "name": "TwilightScenariosRenderIntegration",
+        "seconds": 24.07
+      },
+      "46": {
+        "name": "AtmosphereTests",
+        "seconds": 0.01
+      },
+      "47": {
+        "name": "AtmosphereScenariosRenderIntegration",
+        "seconds": 142.51
+      },
+      "48": {
+        "name": "AtmosphereRefractionRenderIntegration",
+        "seconds": 22.91
+      },
+      "49": {
+        "name": "FrameReuseTests",
+        "seconds": 0.01
+      },
+      "50": {
+        "name": "PerformanceCaptureIntegration",
+        "seconds": 34.04
+      },
+      "51": {
+        "name": "GpuUtilizationTests",
+        "seconds": 0.01
+      },
+      "52": {
+        "name": "GrassWindInputIntegration",
+        "seconds": 21.27
+      },
+      "53": {
+        "name": "AstronautInputIntegration",
+        "seconds": 11.39
+      },
+      "54": {
+        "name": "PerformanceOverlayInputIntegration",
+        "seconds": 20.09
+      },
+      "55": {
+        "name": "OrbitOverlayInputIntegration",
+        "seconds": 21.76
+      },
+      "56": {
+        "name": "CameraTransitionInputIntegration",
+        "seconds": 5.26
+      },
+      "57": {
+        "name": "CameraClippingInputIntegration",
+        "seconds": 8.58
+      },
+      "58": {
+        "name": "RepositoryLayout",
+        "seconds": 0.18
+      },
+      "59": {
+        "name": "AdaptiveQualityTests",
+        "seconds": 0.01
+      },
+      "60": {
+        "name": "AdaptiveQualityRenderIntegration",
+        "seconds": 5.81
+      }
+    },
+    "renderer_recovery_cases": 3,
+    "renderer_recovery_seconds": 73.01,
+    "worker_cases": 11,
+    "worker_seconds": 0.084
+  },
+  "recovery": {
+    "prospective_contacts_for_every_body": true,
+    "destination_contacts_bound_on_handoff_frame": true,
+    "old_queued_ready_running_work_superseded": true,
+    "live_epoch_retained_on_failure": true,
+    "logical_per_set_ceiling_bytes": 536870912,
+    "logical_aggregate_ceiling_bytes": 1073741824,
+    "maximum_running_queued_ready_slots_each": 1,
+    "maximum_scene_replacement_or_retirement_slots": 1,
+    "old_buffers_alive_before_retirement_and_deleted_after": true,
+    "instantaneous_failure_pose_and_sidecar_retained": true,
+    "movement_moon_acceptance_complete": true,
+    "interactive_compute_enabled": false
+  },
+  "environment": {
+    "compiler": "GCC 12.2",
+    "build_type": "RelWithDebInfo",
+    "renderer": "Mesa llvmpipe under Xvfb",
+    "LIBGL_ALWAYS_SOFTWARE": "1",
+    "LP_NUM_THREADS": "2"
+  },
+  "scope": "Actual capture movement/reordered-body/Moon recovery and controlled CPU stale-work acceptance. Final sidecars plus per-frame runtime draw/chase validation; captures explicitly wait. T3c4 asynchronous interactive opt-in and T3c5 hardware acceptance remain pending. Logical accounting excludes CPU snapshots/shader programs/driver physical VRAM.",
+  "hardware_fps_claim": false,
+  "total_memory_saving_claim": false,
+  "journal": {
+    "pages": 28,
+    "visually_reviewed": [
+      6,
+      7,
+      8,
+      9,
+      26,
+      27,
+      28
+    ],
+    "reviewed_on": "2026-10-05",
+    "notes": "New implementation/recovery validation and artifact table reviewed; text, figures, page breaks and margins are clear.",
+    "sha256": "85057d6cac2902e9dbca7e5933f641bfdd931959ecaa017bc9cf215214f84ec7"
+  },
+  "gallery_hashes_retained": 22,
+  "todo_environmental_suffix_sha256": "b227dc2ecc065b8c8ac1eea5fa030c32f289ade83c61e19d571ddf6c4b09c5c5",
+  "next_checkpoint": "T3c4",
+  "next_phase_plan": "docs/journal/architecture/terrain-gpu/async/plan.md",
+  "artifacts": {
+    "docs/journal/architecture/terrain-gpu/async/recovery/validation/before.json": "615b8622a9b7db588e5d99ac120e240af61907ef0465c04351714812bafa0b6c",
+    "docs/journal/architecture/terrain-gpu/async/recovery/validation/build.log": "a4b2ce0a181e52cedaf2388f53d15e165132835708e95c6bb9a0dcce0b60eaa5",
+    "docs/journal/architecture/terrain-gpu/async/recovery/validation/capture-results.json": "0af7cf7932d3ab9adda2ee51a73e5901d94eb4802baf5f0404245f920d30abb8",
+    "docs/journal/architecture/terrain-gpu/async/recovery/validation/checks.log": "33951d158d39e00674dc622b27b926db8582ea731417018c9ed3aae16ee0c813",
+    "docs/journal/architecture/terrain-gpu/async/recovery/validation/native/recovery.log": "e85f432ff8ba1bdf513598142ca9506ed3061b2af2a9a2411b2309fc93d7afef",
+    "docs/journal/architecture/terrain-gpu/async/recovery/validation/native/space-flight.log": "c9d630af954925c4d64de2a907c92bad41b706f08ead6c4fdb0ba077a8ba165f",
+    "docs/journal/architecture/terrain-gpu/async/recovery/validation/native/worker.log": "863335727dcd407d34aa8930cdee43817e839d7a5cff60cf559b3f39052d843d",
+    "docs/journal/architecture/terrain-gpu/async/recovery/validation/recovery-results.json": "365cce1b8c5a94661f2df0d07800968b23f89484dd769bcf42389e7520cdc0d9",
+    "docs/journal/architecture/terrain-gpu/async/recovery/validation/tests.log": "6c50b087d221be7c6f01fe7918f098d8a9927c6a1a49f04fa4becaa72795ae92",
+    "docs/journal/architecture/terrain-gpu/async/recovery/validation/typst.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

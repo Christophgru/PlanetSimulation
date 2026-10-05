@@ -39,16 +39,15 @@ struct Renderer::Impl {
     void publishResidentBuilds(std::vector<std::optional<TerrainCpuBuild>> builds,
         const std::vector<std::optional<TerrainBuildIdentity>>& identities,
         const glm::dvec3& eye,std::optional<double> characterElapsed);
-    glm::dvec3 previewAstronautEye(double elapsed,std::shared_ptr<SparseTerrainContacts> contacts,
-        std::uint64_t revision);
+    std::vector<SurfaceContact> characterTerrainContacts() const;
+    glm::dvec3 previewAstronautEye(double elapsed,std::vector<SurfaceContact> contacts={});
     nlohmann::json terrainPublicationState() const;
     void installLandMesh(std::size_t index, TerrainGeometry geometry,
                          const glm::dvec3& localEye, int localMask,TerrainComputeBuffers* computed=nullptr);
     void installTerrainBuild(TerrainCpuBuild built,const TerrainBuildIdentity& identity);
     std::vector<std::uint64_t> geometryRevisions() const;
     ClipPlanes planetOrbitClip(const glm::dvec3& eye) const;
-    void prepareAstronaut(double elapsed,std::shared_ptr<SparseTerrainContacts> plannedContacts={},
-        std::uint64_t plannedRevision=0,bool preview=false);
+    void prepareAstronaut(double elapsed,std::vector<SurfaceContact> plannedContacts={},bool preview=false);
     nlohmann::json astronautState() const;
 
     app::CommandLineOptions options;

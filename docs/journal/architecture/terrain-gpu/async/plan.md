@@ -180,3 +180,15 @@ owned through fenced retirement. Five renderer cases, nine worker cases, seven
 owner cases, 31 compute cases and all 59 CTest groups pass (1051.70 s). Fresh and replay
 images remain exact, including all ten baseline hashes. Resume T3c3c3 movement/
 body-switch/Moon acceptance, then T3c4. CPU default and interactive gate remain.
+
+The [T3c3c3 movement/destination recovery checkpoint](recovery/study.md) validates
+continuous 12 m/s capture motion across rebuild thresholds, three body reorders
+and field changes, invalid/GPU failure retention, stale ready/running work and
+Moon arrival/reload/fresh replay. All-body prospective contacts bind the Moon
+on its handoff frame. Future-epoch reload supersedes old worker results while
+failed replacement leaves the live epoch usable. Three renderer cases, eleven
+worker cases and all 60 CTest groups pass across two runs on frozen inputs (952.49 s summed passing-group time); ten baseline and 22 gallery
+hashes remain exact. Consumer keys/revisions, old-buffer retirement and bounded
+logical overlap are retained. T3c3 is tested. Resume T3c4 asynchronous interactive
+opt-in; CPU remains default and interactive compute stays gated until its native
+normal-frame movement/wait/fallback acceptance. T3c5 hardware gates remain.

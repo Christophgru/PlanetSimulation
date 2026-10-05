@@ -38,7 +38,6 @@ glm::dvec3 Renderer::Impl::previewReloadEye(app::PreparedScene& prepared,std::ve
         characterWindTime=source.replayDocument.at("astronaut_pose").value("wind_time_s",time);
     if(!std::isfinite(characterWindTime) || std::abs(characterWindTime)>1e12)
         throw std::invalid_argument("Invalid character wind replay clock");
-    const auto selected=scene.scenario.surface_camera.planet_index;
-    return previewAstronautEye(0,meshes.planetMeshes[selected].contacts,meshes.planetMeshes[selected].revision);
+    return previewAstronautEye(0);
 }
 }

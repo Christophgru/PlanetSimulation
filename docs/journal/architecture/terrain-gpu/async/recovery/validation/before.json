@@ -1,0 +1,11 @@
+{
+  "old_binary_sha256": "f5ea18e43c6ce43219b52345cfb1cc9a3781986c8f9bd1529b73fd3aa7f22192",
+  "arrival": {
+    "selected_planet": 1,
+    "navigation_reference_body": 2,
+    "bound_contact_revision": 0,
+    "destination_land_revision": 2
+  },
+  "pending_worker_failure": "Capture terrain build requires an idle matching scheduler",
+  "baseline_evidence": "docs/journal/architecture/terrain-gpu/async/reload/validation/evidence.json"
+}

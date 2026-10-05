@@ -27,6 +27,15 @@ add_test(NAME RendererLifecycleTests COMMAND renderer_lifecycle_tests)
 set_tests_properties(RendererLifecycleTests PROPERTIES
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 180 RUN_SERIAL TRUE)
 
+add_executable(terrain_recovery_tests app/terrain/recovery/test_recovery.cpp)
+target_link_libraries(terrain_recovery_tests PRIVATE planet_app GTest::gtest_main)
+target_compile_definitions(terrain_recovery_tests PRIVATE
+    PLANET_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
+    PLANET_TEST_OUTPUT="${CMAKE_BINARY_DIR}/terrain-recovery")
+add_test(NAME TerrainRecoveryIntegration COMMAND terrain_recovery_tests)
+set_tests_properties(TerrainRecoveryIntegration PROPERTIES
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 240 RUN_SERIAL TRUE)
+
 add_executable(config_tests config/test_config.cpp)
 target_link_libraries(config_tests PRIVATE GTest::gtest GTest::gtest_main nlohmann_json::nlohmann_json)
 target_include_directories(config_tests PRIVATE 

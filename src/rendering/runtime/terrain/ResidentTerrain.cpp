@@ -14,9 +14,10 @@ void Renderer::Impl::publishResidentBuilds(std::vector<std::optional<TerrainCpuB
     std::optional<glm::dvec3> replayGrassEye;
     const auto selected=scene.scenario.surface_camera.planet_index;
     if(characterElapsed) {
-        auto contacts=builds[selected] ? builds[selected]->contacts : meshes.planetMeshes[selected].contacts;
-        const auto revision=meshes.planetMeshes[selected].revision+(builds[selected] ? 1 : 0);
-        grassEyeWorld=previewAstronautEye(*characterElapsed,std::move(contacts),revision);
+        auto contacts=characterTerrainContacts();
+        for(std::size_t i=0;i<builds.size();++i) if(builds[i])
+            contacts[i].bind(builds[i]->contacts,meshes.planetMeshes[i].revision+1);
+        grassEyeWorld=previewAstronautEye(*characterElapsed,std::move(contacts));
         plannedCharacterEye=grassEyeWorld;
         if(!astronautReplayRestored && !options.replayPath.empty()) {
             const auto& replay=source.replayDocument;

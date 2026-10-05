@@ -86,20 +86,24 @@ nlohmann::json Renderer::Impl::astronautState() const {
         result["grass_plan_eye"]=vector(*eye);
     return result;
 }
-void Renderer::Impl::prepareAstronaut(double elapsed,std::shared_ptr<SparseTerrainContacts> plannedContacts,
-    std::uint64_t plannedRevision,bool preview) {
+void Renderer::Impl::prepareAstronaut(double elapsed,std::vector<SurfaceContact> plannedContacts,bool preview) {
     auto& camera=*scene.surfaceCamera;
     const std::size_t index=scene.scenario.surface_camera.planet_index;
     const auto& planet=scene.scenario.planets[index];
     const auto& body=scene.bodies[index+1];
-    const auto& mesh=meshes.planetMeshes[index];
     const double units=scene.scenario.metersPerWorldUnit();
     const double radius=planet.radius*units;
     astronaut.planetIndex=index;
-    const auto contactRevision=plannedContacts ? plannedRevision : mesh.revision;
-    if(plannedContacts) astronautGround.bind(std::move(plannedContacts),contactRevision);
-    else if(mesh.contacts) astronautGround.bind(mesh.contacts,mesh.revision);
-    else astronautGround.bind(mesh.vertices,mesh.indices,mesh.revision,radius);
+    const bool prospective=!plannedContacts.empty();
+    auto contacts=prospective ? std::move(plannedContacts) : characterTerrainContacts();
+    if(contacts.size()!=scene.scenario.planets.size()) throw std::logic_error("Character needs contacts for every body");
+    const auto contactRevision=contacts[index].revision();
+    if(prospective) astronautGround=contacts[index];
+    else {
+        const auto& mesh=meshes.planetMeshes[index];
+        if(mesh.contacts) astronautGround.bind(mesh.contacts,mesh.revision);
+        else astronautGround.bind(mesh.vertices,mesh.indices,mesh.revision,radius);
+    }
     const GroundQuery fallback=[&](const glm::dvec3& radial) {
         return GroundContact{radial*(radius+scene.terrainSurfaces[index].heightAt(radial)*units),radial};
     };
@@ -139,14 +143,14 @@ void Renderer::Impl::prepareAstronaut(double elapsed,std::shared_ptr<SparseTerra
         } else {
             b.environment=environment(scene.scenario.planets[i-1]);
             b.angularVelocity=b.orientation*glm::dvec3(0,0,b.environment.spinRadiansPerSecond*orbitalRate);
-            b.ground=[this,i,units](const glm::dvec3& p) {
+            b.ground=[this,i,units,contactSource=contacts[i-1]](const glm::dvec3& p) mutable {
                 const auto radial=glm::normalize(p);
                 const auto& planet=scene.scenario.planets[i-1];
                 const double radius=planet.radius*units;
                 const GroundQuery fallback=[&](const glm::dvec3& r) {
                     return GroundContact{r*(radius+scene.terrainSurfaces[i-1].heightAt(r)*units),r};
                 };
-                auto contact=astronaut.planetIndex==i-1 ? astronautGround.sample(radial,fallback) : fallback(radial);
+                auto contact=astronaut.planetIndex==i-1 ? astronautGround.sample(radial,fallback) : contactSource.sample(radial,fallback);
                 if (planet.water.enabled && glm::length(contact.position)<radius+planet.water.level_m)
                     contact={radial*(radius+planet.water.level_m),radial};
                 return contact;
@@ -251,7 +255,10 @@ void Renderer::Impl::prepareAstronaut(double elapsed,std::shared_ptr<SparseTerra
                 glm::vec3(glm::normalize(worldRoot-nextBody.position)*double(initial)),
                 OrbitCamera::Settings{minimum,maximum,.96f});
         }
-        astronaut.planetIndex=next; astronautGround.clear(); astronautGroundRevision=0;
+        // Destination contacts are part of the same prospective/committed set.
+        // Bind them now, including on the first handoff frame, before chase or
+        // subsequent collision queries can consume the new body's terrain.
+        astronaut.planetIndex=next;astronautGround=contacts[next];astronautGroundRevision=astronautGround.revision();
         astronaut.motion.setFlightEnvironment(environment(nextPlanet),JetpackPhysics::maximumThrust(environment(scene.scenario.planets.front())));
         if(!preview) std::cout << "Astronaut destination: " << nextPlanet.name << "\n" << std::flush;
     }
@@ -276,9 +283,14 @@ void Renderer::Impl::prepareAstronaut(double elapsed,std::shared_ptr<SparseTerra
             scene.scenario.planets[current].radius*units+scene.scenario.planets[current].water.level_m+.001));
     const GroundQuery currentGround=[&](const glm::dvec3& p) {
         const auto radial=glm::normalize(p); const auto& planet=scene.scenario.planets[current];
-        const double floor=planet.radius+std::max(scene.terrainSurfaces[current].heightAt(radial),
-            planet.water.enabled ? planet.water.level_m/units : -std::numeric_limits<double>::infinity());
-        return GroundContact{radial*floor*units,radial};
+        const GroundQuery fallback=[&](const glm::dvec3& r) {
+            return GroundContact{r*(scene.scenario.planets[current].radius+
+                scene.terrainSurfaces[current].heightAt(r))*units,r};
+        };
+        auto contact=astronautGround.sample(radial,fallback);
+        if(planet.water.enabled && glm::length(contact.position)<planet.radius*units+planet.water.level_m)
+            contact={radial*(planet.radius*units+planet.water.level_m),radial};
+        return contact;
     };
     const auto chase=astronaut.motion.chase(glm::transpose(currentBody.orientation)*camera.direction(),
         current==index ? ground : currentGround,glm::transpose(currentBody.orientation)*camera.up());

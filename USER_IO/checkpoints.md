@@ -1,5 +1,30 @@
 # Page to document progress of AI Agents working on this Project
 
+## Movement and destination recovery checkpoint — 2026-10-05
+
+- T3c3c3 and parent T3c3/T3c3c are tested. Prospective contacts cover every body;
+  destination contact binding occurs on the handoff frame and flight/chase queries use the
+  matching triangle planes. The old Moon handoff reported contacts 0 vs land 2;
+  the corrected handoff binds Moon revision 2 immediately.
+- Future-epoch reload supersedes queued/ready old CPU work and discards executing
+  old completions before exclusive preparation, retaining the live epoch on
+  failure. One running, queued and ready slot remains the bound. Normal frames
+  still poll; reload waits belong to the compute capture adapter.
+- Three renderer recovery cases pass (73.010 s); eleven worker cases pass
+  (0.084 s); existing CPU space-flight/Moon exact replay passes (42.37 s).
+  Continuous 12 m/s movement crosses terrain rebuild thresholds; invalid config/
+  GPU failure retain instantaneous pose and old consumers; repeated reorders and
+  field changes recover. Stale ready results cannot cross replacement, and saved
+  Moon reload/fresh replay images are exact. Old buffers live until retirement;
+  observed logical overlap reaches 13,179,460 bytes, below existing limits.
+- All 60 CTest groups pass across an interrupted run and resumption on frozen
+  inputs (952.49 s summed passing-group time). Source/input/five-binary fingerprints
+  remain unchanged. Ten baseline
+  and 22 gallery PNG hashes are retained. README, evidence and final journal/PDF
+  are updated. See `docs/journal/architecture/terrain-gpu/async/recovery/study.md`.
+  Resume T3c4 interactive opt-in; CPU stays default and interactive compute gated.
+  Hardware total-frame and physical-memory gates remain T3c5.
+
 ## Renderer scene reload checkpoint — 2026-10-04
 
 - T3c3c2 is tested. R/file-watch and Renderer::reload() share one transaction:

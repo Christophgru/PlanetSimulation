@@ -1041,8 +1041,7 @@ The [complete generation transaction checkpoint](docs/journal/architecture/terra
 adds off-live land/water/grass/contact preparation, atomic ownership transfer and
 fenced retirement. It reserves published, pending and retiring sets under a
 logical aggregate limit, permits one GPU preparation globally and prevents a new
-spare until that body's retirement completes. Resident capture integration is
-and scene reload integration are covered below.
+spare until that body's retirement completes. Renderer capture and scene reload integration are covered below.
 
 The [renderer publication checkpoint](docs/journal/architecture/terrain-gpu/async/renderer/study.md)
 connects complete resident consumers to capture frame boundaries. A restored
@@ -1059,8 +1058,12 @@ connects it to R/file-watch and `Renderer::reload()`: config/replay, all-body
 preparation and chase anchors stay staged until complete readiness. Tracking,
 cameras/contacts and caches change at the same boundary; preparation failures
 retain the current scene and the same renderer can recover. CPU and legacy reloads
-use the same boundary. Movement/body-switch acceptance remains T3c3c3;
-interactive compute stays gated.
+use the same boundary. The [movement and destination recovery checkpoint](docs/journal/architecture/terrain-gpu/async/recovery/study.md)
+plans contacts for every prospective body and binds destination contacts during
+handoff. Future-epoch reloads supersede old queued/ready work and discard running
+old completions without changing the live epoch on failure. Moving/reordered-body
+and Moon recovery acceptance precedes T3c4 interactive opt-in; CPU stays default
+and interactive compute stays gated.
 
 Near water, `terrain_lod.shoreline_edge_m` targets 1 m edges within
 `shoreline_distance_m` (80 m by default). Set the edge target to `0` to disable

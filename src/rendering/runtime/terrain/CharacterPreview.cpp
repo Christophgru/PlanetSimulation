@@ -2,8 +2,18 @@
 #include <type_traits>
 
 namespace rendering {
+std::vector<SurfaceContact> Renderer::Impl::characterTerrainContacts() const {
+    std::vector<SurfaceContact> contacts(meshes.planetMeshes.size());
+    for(std::size_t i=0;i<contacts.size();++i) {
+        const auto& mesh=meshes.planetMeshes[i];
+        if(mesh.contacts) contacts[i].bind(mesh.contacts,mesh.revision);
+        else contacts[i].bind(mesh.vertices,mesh.indices,mesh.revision,
+            scene.scenario.planets[i].radius*scene.scenario.metersPerWorldUnit());
+    }
+    return contacts;
+}
 glm::dvec3 Renderer::Impl::previewAstronautEye(double elapsed,
-    std::shared_ptr<SparseTerrainContacts> contacts,std::uint64_t revision) {
+    std::vector<SurfaceContact> contacts) {
     // A planning copy uses prospective contacts. Restore every mutable camera/
     // character field on success or failure, before submitting any GPU work.
     struct Restore {
@@ -39,7 +49,7 @@ glm::dvec3 Renderer::Impl::previewAstronautEye(double elapsed,
             r.astronautReplayRestored=replayRestored;
         }
     } restore(*this);
-    prepareAstronaut(elapsed,std::move(contacts),revision,true);
+    prepareAstronaut(elapsed,std::move(contacts),true);
     ++characterPreviews;return astronautView.eye;
 }
 }

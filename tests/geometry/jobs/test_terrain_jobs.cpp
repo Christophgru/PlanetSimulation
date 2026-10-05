@@ -120,6 +120,40 @@ TEST(TerrainJobs, ShutdownJoinsExecutingSnapshotAndDropsQueuedWork) {
     EXPECT_EQ(calls,(std::vector<std::uint64_t>{1}));EXPECT_FALSE(jobs.submit(request(3)));
     EXPECT_FALSE(jobs.pending(1));EXPECT_EQ(jobs.stats().running,0);
 }
+TEST(TerrainJobs, FutureReloadSupersedesRunningAndQueuedWorkWithoutChangingLiveEpochOnFailure) {
+    Gate gate;std::promise<void> started;std::vector<std::uint64_t> calls;
+    TerrainBuildScheduler jobs([&](const auto& r) {
+        calls.push_back(r.identity.serial);
+        if(r.identity.serial==1) {started.set_value();gate.wait();}
+        if(r.identity.epoch==2) throw std::runtime_error("replacement failure");
+        return TerrainCpuBuild{};
+    });
+    Release release{gate};ASSERT_TRUE(jobs.submit(request()));
+    ASSERT_EQ(started.get_future().wait_for(5s),std::future_status::ready);
+    ASSERT_TRUE(jobs.submit(request(2)));
+    auto replacement=std::async(std::launch::async,[&]{return jobs.executeForReload(request(3,2));});
+    const auto deadline=std::chrono::steady_clock::now()+5s;
+    while(jobs.pendingFor(2,0)==std::nullopt && std::chrono::steady_clock::now()<deadline)
+        std::this_thread::sleep_for(1ms);
+    EXPECT_TRUE(jobs.pendingFor(2,0));EXPECT_FALSE(jobs.submit(request(4)));
+    EXPECT_EQ(replacement.wait_for(0s),std::future_status::timeout);
+    gate.release();ASSERT_EQ(replacement.wait_for(5s),std::future_status::ready);
+    auto failed=replacement.get();EXPECT_THROW(failed.take(),std::runtime_error);
+    EXPECT_FALSE(jobs.poll());EXPECT_EQ(jobs.stats().obsolete,2u);
+    EXPECT_NO_THROW(jobs.executeForCapture(request(4)).take());
+    EXPECT_EQ(calls,(std::vector<std::uint64_t>{1,3,4}));
+    EXPECT_EQ(jobs.stats().peakRunning,1u);EXPECT_EQ(jobs.stats().peakQueued,1u);
+}
+TEST(TerrainJobs, FutureReloadDropsReadyAndQueuedResultsBeforeExclusivePreparation) {
+    TerrainBuildScheduler jobs([](const auto&){return TerrainCpuBuild{};});
+    ASSERT_TRUE(jobs.submit(request()));
+    const auto deadline=std::chrono::steady_clock::now()+5s;
+    while(!jobs.stats().ready && std::chrono::steady_clock::now()<deadline) std::this_thread::sleep_for(1ms);
+    ASSERT_EQ(jobs.stats().ready,1u);ASSERT_TRUE(jobs.submit(request(2)));
+    auto next=jobs.executeForReload(request(3,2));EXPECT_EQ(next.identity.epoch,2u);
+    EXPECT_EQ(jobs.stats().obsolete,2u);EXPECT_FALSE(jobs.poll());
+    jobs.advanceEpoch(2);EXPECT_NO_THROW(jobs.executeForCapture(request(4,2)).take());
+}
 TEST(TerrainJobs, PublicationRejectsBodyReorderingFieldModeEpochAndOlderSerials) {
     auto current=request(8).identity;auto completed=current;completed.serial=4;
     completed.eye={0,1.01,0};EXPECT_TRUE(terrainBuildMatches(completed,current,3));

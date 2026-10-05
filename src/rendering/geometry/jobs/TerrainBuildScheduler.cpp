@@ -38,9 +38,16 @@ TerrainBuildCompletion TerrainBuildScheduler::executeExclusive(TerrainBuildReque
     request.validate();const auto key=request.identity;
     std::unique_lock lock(mutex_);
     const auto liveEpoch=epoch_;
-    if(stopping_ || running_ || queued_ || ready_ || exclusiveEpoch_ ||
+    if(stopping_ || (!replacement && (running_ || queued_ || ready_)) || exclusiveEpoch_ ||
        (replacement ? key.epoch<=epoch_ : key.epoch!=epoch_) || key.serial<=latestSerial_)
         throw std::logic_error("Capture terrain build requires an idle matching scheduler");
+    if(replacement) {
+        // Keep the live epoch usable on failure, but no earlier queued/ready
+        // completion may obstruct this explicit replacement adapter. Running
+        // snapshots retain ownership until they finish and are then discarded.
+        stats_.obsolete+=unsigned(queued_.has_value())+unsigned(ready_.has_value());
+        queued_.reset();ready_.reset();
+    }
     exclusiveEpoch_=key.epoch;
     latestSerial_=key.serial;++stats_.submitted;queued_=std::move(request);stats_.peakQueued=1;
     changed_.notify_all();
@@ -89,7 +96,7 @@ void TerrainBuildScheduler::run() {
         lock.unlock();TerrainBuildCompletion completion{request.identity,{},{}};
         try {completion.build=builder_(request);} catch(...) {completion.error=std::current_exception();}
         lock.lock();running_.reset();
-        if(stopping_ || (request.identity.epoch!=epoch_ && exclusiveEpoch_!=request.identity.epoch)) ++stats_.obsolete;
+        if(stopping_ || request.identity.epoch!=exclusiveEpoch_.value_or(epoch_)) ++stats_.obsolete;
         else {++stats_.completed;if(completion.error) ++stats_.failed;ready_=std::move(completion);}
         changed_.notify_all();
     }

@@ -31,8 +31,9 @@ public:
     std::optional<TerrainBuildCompletion> poll();
     // Capture-only wait requires an otherwise idle scheduler. Normal frames poll.
     TerrainBuildCompletion executeForCapture(TerrainBuildRequest request);
-    // Exclusive capture reload preparation uses a future epoch without changing
-    // the live epoch. The same worker stays idle between completed requests.
+    // Exclusive capture reload preparation supersedes queued/ready live work,
+    // waits for running ownership and uses a future epoch without changing the
+    // live epoch. Normal-frame code must not call this explicit wait adapter.
     TerrainBuildCompletion executeForReload(TerrainBuildRequest request);
     void advanceEpoch(std::uint64_t epoch);
     std::optional<TerrainBuildIdentity> pendingFor(std::uint64_t epoch,std::size_t body) const;

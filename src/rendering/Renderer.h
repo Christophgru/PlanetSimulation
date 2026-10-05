@@ -17,6 +17,7 @@ public:
     // explicitly waits for replacement readiness; failures retain the scene.
     void reload();
 private:
+    friend struct RendererRecoveryProbe;
     struct Impl;
     std::unique_ptr<Impl> impl_;
 };
