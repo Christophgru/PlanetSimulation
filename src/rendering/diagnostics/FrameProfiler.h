@@ -6,8 +6,10 @@
 #include <iomanip>
 #include <string>
 #include <stdexcept>
+#include <optional>
 #include <GL/glew.h>
 #include "rendering/diagnostics/tracing/CpuTrace.h"
+#include "rendering/diagnostics/timing/GpuWorkProfiler.h"
 
 namespace rendering {
 // Wall-clock presentation rate, averaged over a short window (not 1/CPU time).
@@ -45,7 +47,9 @@ class FrameProfiler {
         std::array<double, stageCount> cpu{}, gpu{};
         Clock::time_point start;
         unsigned long long number = 0;
-        double simulation = 0, wallMs = 0, gpuMs = 0, terrainBuildMs = 0;
+        double simulation = 0, wallMs = 0, gpuMs = 0, gpuSpanMs = 0, terrainBuildMs = 0;
+        unsigned gpuPolls=0,eventsDropped=0;
+        const char* missingStatus="untraced";
         double foliagePlacementMs = 0, foliageSortMs = 0, foliageUploadMs = 0;
         unsigned foliageRebuilds = 0;
         std::size_t foliageUploadBytes = 0;
@@ -53,13 +57,15 @@ class FrameProfiler {
         bool pending = false, timed = false;
     };
 public:
-    explicit FrameProfiler(const std::string& path = "") {
+    explicit FrameProfiler(const std::string& path = "")
+        : work_(path.empty() ? "" : path+".gpu-work.csv") {
         if (path.empty()) return;
         trace_.open(path);
         if (!trace_) throw std::runtime_error("Cannot open performance trace: " + path);
         trace_ << "frame,simulation_s,frame_ms,gpu_valid,gpu_ms,shadow_updates,shadow_reuses,mesh_uploads,scene_reuses,terrain_build_ms";
         trace_ << ",foliage_rebuilds,foliage_placement_ms,foliage_sort_ms,foliage_upload_ms,foliage_upload_bytes";
         for (const auto* name : frameStageNames) trace_ << ",cpu_" << name << "_ms,gpu_" << name << "_ms";
+        trace_ << ",gpu_frame_span_ms,gpu_status,gpu_query_polls,gpu_events_dropped";
         trace_ << '\n' << std::setprecision(9);
     }
     ~FrameProfiler() {
@@ -72,13 +78,16 @@ public:
     FrameProfiler(const FrameProfiler&) = delete;
     FrameProfiler& operator=(const FrameProfiler&) = delete;
     void beginFrame(double simulation, bool showGpu = false) {
+        workBinding_.reset();
         collect();
         current_ = &fallback_;
         for (auto& frame : frames_) if (!frame.pending) { current_ = &frame; break; }
         const auto queries = current_->queries;
         *current_ = Frame{}; current_->queries = queries;
         current_->number = next_++; current_->simulation = simulation;
+        work_.frame(current_->number);workBinding_.emplace(&work_);
         current_->timed = current_ != &fallback_ && (trace_.is_open() || showGpu);
+        current_->missingStatus=current_==&fallback_ ? "ring_full" : "untraced";
         current_->start = Clock::now();
         if (current_->timed) {
             if (!current_->queries[0]) glGenQueries(current_->queries.size(), current_->queries.data());
@@ -92,14 +101,20 @@ public:
             glQueryCounter(current_->queries[1], GL_TIMESTAMP);
             current_->pending = true;
         } else write(*current_, false);
+        workBinding_.reset();
         current_ = nullptr;
     }
     void collect() {
+        work_.collect();
         for (auto& frame : frames_) {
             if (!frame.pending) continue;
-            GLint available = GL_FALSE;
-            glGetQueryObjectiv(frame.queries[1], GL_QUERY_RESULT_AVAILABLE, &available);
-            if (!available) continue; // No GL_QUERY_RESULT until the final timestamp is ready.
+            ++frame.gpuPolls;
+            if (!available(frame.queries[0]) || !available(frame.queries[1])) continue;
+            bool ready=true;
+            for(int i=0;i<frame.count;++i) if(frame.events[i].gpu &&
+                (!available(frame.queries[2+2*i]) || !available(frame.queries[3+2*i]))) {ready=false;break;}
+            if(!ready) continue; // Query results are read only after explicit availability.
+            frame.gpuSpanMs=duration(frame.queries[0],frame.queries[1]);
             frame.gpuMs = 0;
             for (int i = 0; i < frame.count; ++i) if (frame.events[i].gpu)
                 frame.gpu[static_cast<int>(frame.events[i].stage)] += duration(frame.queries[2+2*i],frame.queries[3+2*i]);
@@ -125,6 +140,7 @@ public:
         current_->foliageUploadBytes += bytes;
     }
     bool gpuReady() const { return lastReady_; }
+    GpuWorkProfiler& gpuWork() {return work_;}
     double gpuMilliseconds = 0;
     class Scope {
     public:
@@ -148,6 +164,8 @@ private:
     std::ofstream trace_;
     unsigned long long next_ = 0, lastNumber_ = 0;
     bool lastReady_ = false;
+    GpuWorkProfiler work_;
+    std::optional<GpuWorkProfiler::Binding> workBinding_;
     static double elapsed(Clock::time_point start) {
         return std::chrono::duration<double, std::milli>(Clock::now()-start).count();
     }
@@ -157,8 +175,12 @@ private:
         glGetQueryObjectui64v(end, GL_QUERY_RESULT, &b);
         return b >= a ? (b-a)*1e-6 : 0;
     }
+    static bool available(GLuint query) {
+        GLint ready=0;glGetQueryObjectiv(query,GL_QUERY_RESULT_AVAILABLE,&ready);return ready!=0;
+    }
     int beginStage(FrameStage stage, bool gpu) {
-        if (!current_ || current_->count == maxEvents) return -1;
+        if (!current_) return -1;
+        if (current_->count == maxEvents) {++current_->eventsDropped;return -1;}
         const int token = current_->count++;
         current_->events[token] = {stage, Clock::now(), gpu && current_->timed};
         if (current_->events[token].gpu) glQueryCounter(current_->queries[2+2*token],GL_TIMESTAMP);
@@ -180,6 +202,10 @@ private:
             trace_ << ',' << frame.cpu[i] << ',';
             if (gpuValid) trace_ << frame.gpu[i];
         }
+        trace_ << ',';
+        if(gpuValid) trace_ << frame.gpuSpanMs;
+        trace_ << ',' << (gpuValid ? "ready" : frame.pending ? "missing_shutdown" : frame.missingStatus)
+               << ',' << frame.gpuPolls << ',' << frame.eventsDropped;
         trace_ << '\n'; // Buffered, not flushed per frame.
     }
 };

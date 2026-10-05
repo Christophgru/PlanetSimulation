@@ -36,7 +36,7 @@ add_test(NAME TerrainRecoveryIntegration COMMAND terrain_recovery_tests)
 set_tests_properties(TerrainRecoveryIntegration PROPERTIES
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 240 RUN_SERIAL TRUE)
 
-add_executable(terrain_frame_tests app/terrain/interactive/test_frame.cpp)
+add_executable(terrain_frame_tests app/terrain/interactive/test_frame.cpp app/terrain/interactive/test_timing.cpp)
 target_link_libraries(terrain_frame_tests PRIVATE planet_app GTest::gtest_main)
 target_compile_definitions(terrain_frame_tests PRIVATE
     PLANET_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
@@ -286,6 +286,11 @@ add_executable(frame_reuse_tests diagnostics/test_frame_reuse.cpp)
 target_link_libraries(frame_reuse_tests PRIVATE GTest::gtest_main OpenGL::GL GLEW::GLEW glm::glm)
 target_include_directories(frame_reuse_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
 add_test(NAME FrameReuseTests COMMAND frame_reuse_tests)
+add_executable(gpu_work_profiler_tests diagnostics/timing/test_gpu_work.cpp diagnostics/timing/test_frame_profiler.cpp)
+target_link_libraries(gpu_work_profiler_tests PRIVATE planet_diagnostics GTest::gtest_main OpenGL::GL GLEW::GLEW Threads::Threads)
+target_include_directories(gpu_work_profiler_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_compile_definitions(gpu_work_profiler_tests PRIVATE PLANET_TIMING_OUTPUT="${CMAKE_BINARY_DIR}/gpu-work-profiler")
+add_test(NAME GpuWorkProfilerTests COMMAND gpu_work_profiler_tests)
 add_test(NAME PerformanceCaptureIntegration COMMAND ${Python3_EXECUTABLE}
     ${CMAKE_CURRENT_SOURCE_DIR}/diagnostics/test_performance_capture.py --binary $<TARGET_FILE:PlanetSimulation>
     --output-dir ${CMAKE_BINARY_DIR}/performance-capture-tests)

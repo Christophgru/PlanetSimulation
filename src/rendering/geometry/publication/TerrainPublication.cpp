@@ -1,4 +1,5 @@
 #include "rendering/geometry/publication/TerrainPublication.h"
+#include "rendering/diagnostics/timing/GpuWorkProfiler.h"
 #include "rendering/geometry/contacts/SparseTerrainContacts.h"
 #include <algorithm>
 #include <limits>
@@ -77,6 +78,7 @@ bool TerrainPublication::submit(TerrainCpuBuild build,const TerrainBuildIdentity
     const Mesh& liveLand,const Mesh& liveWater,TerrainCompute& compute) {
     if(k.bodyIndex>=bodies_.size()) throw std::out_of_range("Terrain publication body");
     if(!canSubmit(k.bodyIndex)) return false;
+    GpuWorkProfiler::Request timingIdentity(k.epoch,k.serial,k.bodyIndex);
     try {
         const auto& installed=bodies_[k.bodyIndex].installed;
         if(!k.resident || liveLand.revision!=installed.landRevision || liveWater.revision!=installed.waterRevision ||
@@ -192,6 +194,7 @@ bool TerrainPublication::submitGrass(std::size_t i,const config::PlanetConfig& p
     if(!canSubmit(i)) return false;
     try {
         const auto& old=bodies_[i].installed;
+        GpuWorkProfiler::Request timingIdentity(old.identity.epoch,old.identity.serial,i);
         if(!old.identity.serial || old.identity.bodyName!=planet.name || !land.residentTerrain ||
            land.revision!=old.landRevision || water.revision!=old.waterRevision ||
            land.terrainStats.generation!=old.land || water.terrainStats.generation!=old.water ||

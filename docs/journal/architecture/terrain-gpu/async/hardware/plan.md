@@ -11,23 +11,30 @@ matched hardware workloads.
 
 ## Measurement gaps to close first
 
-The current `FrameProfiler` records asynchronous per-render-pass GPU timestamps,
-CPU scopes, worker build duration and transfer counters. Its `gpu_ms` sums scoped
-GPU stages. Resident initial/movement preparation runs inside a CPU-only mesh
-scope, so field/metadata/allocation/placement dispatches are missing from that
-sum. Existing frame start/end GPU timestamps are allocated but their span is not
-exported. `frame_ms` begins after event polling; `interactive.frame` CPU tracing
-also covers polling. Neither CSV `gpu_ms` nor native correctness traces alone
-establish complete terrain GPU cost.
+The first diagnostic prerequisite, [T3c5b1](timing/study.md), adds bounded
+request-keyed work timestamps for terrain field/expansion, grass metadata,
+allocation/prefix and main/reflection placement, plus full frame GPU spans.
+It retains missing/dropped samples and does not change publication readiness.
+T3c5b2 still owns complete native-loop wall time, request-to-publication latency
+and physical-memory sampling; T3c5c owns the matched cost experiments.
 
-Before benchmarking:
+`FrameProfiler` retains asynchronous per-render-pass GPU timestamps, CPU scopes,
+worker build duration and transfer counters. Its `gpu_ms` sums render stages;
+resident preparation runs inside a CPU-only mesh scope and is measured in the
+new independent work stream. `gpu_frame_span_ms` now exports the full frame
+marker span. `frame_ms` begins after event polling; `interactive.frame` CPU
+tracing also covers polling. Neither stage sums nor native correctness traces
+alone establish complete terrain cost or request-to-publication latency.
 
-1. Add bounded asynchronous timestamps for terrain field, triangle metadata,
+Before matched cost acceptance:
+
+1. Completed in T3c5b1: bounded asynchronous timestamps for terrain field, triangle metadata,
    rounded-slot allocation/prefix and grass placement dispatches. Associate
    samples with request serial, scene epoch and field/topology identity. Separate
    nested stages to avoid adding overlapping intervals. Query only available
    results; retain missing/dropped counts and never force completion for tracing.
-2. Export the frame start/end GPU span separately from summed stage work. Retain
+2. T3c5b1 exports the frame start/end GPU span separately from summed stage work.
+   Complete the remaining T3c5b2 wall-time diagnostics: retain
    CPU worker topology/contact-index durations, render-thread submission,
    draw/presentation and complete native loop wall times. CPU/GPU intervals can
    overlap; do not sum them as a total frame time.
@@ -85,7 +92,8 @@ improvement can coexist with a total-frame regression. If any gate fails, retain
 CPU default, document the failing case and fix the measured bottleneck before
 repeating affected pairs. Hardware correctness alone does not complete T3c5.
 
-Implementation of the missing diagnostics and matched measurements remains
-pending. A1a coefficient reuse and T3c5a context/correctness are separate tested
+T3c5b1 closes work-query/frame-span diagnostics; remaining T3c5b2 diagnostics
+and T3c5c matched measurements are pending. A1a coefficient reuse and
+T3c5a context/correctness are separate tested
 prerequisites; A1b highlight reduction and adaptive foliage allocation remain
 independent unfinished tasks.

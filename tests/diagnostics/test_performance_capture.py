@@ -46,8 +46,12 @@ def capture(name, frames, step, full_resolution=False, cpu_trace=False):
         assert float(row['frame_ms']) >= 0
         if row['gpu_valid'] == '1':
             assert float(row['gpu_ms']) >= 0
+            assert float(row['gpu_frame_span_ms']) >= 0
+            assert row['gpu_status'] == 'ready'
         else:
             assert row['gpu_ms'] == ''  # Missing samples must not look like zero GPU work.
+            assert row['gpu_frame_span_ms'] == ''
+            assert row['gpu_status'] in ['ring_full', 'missing_shutdown']
     return hashlib.sha256(image.read_bytes()).hexdigest(), rows
 
 

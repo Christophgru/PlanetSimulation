@@ -45,6 +45,7 @@ std::unique_ptr<ProceduralGrass::Preparation> ProceduralGrass::submitResident(GL
     patch.water=planet.water.enabled;patch.landscape=planet.terrain_landscape.enabled;
     patch.scale=planet.radius*metersPerWorldUnit;patch.seed=planet.foliage.seed;
     patch.eye=eyeBody;patch.revision=revision;patch.generation=terrain.generation;
+    patch.workIdentity=GpuWorkProfiler::identity();
     if(!planet.foliage.enabled) {patch.ready=true;result->ready_=true;return result;}
     if(!metadataCompute_) metadataCompute_=std::make_unique<GrassMetadataCompute>();
     if(!allocationCompute_) allocationCompute_=std::make_unique<GrassAllocationCompute>();

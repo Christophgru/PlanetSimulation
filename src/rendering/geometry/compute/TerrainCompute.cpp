@@ -1,4 +1,5 @@
 #include "rendering/geometry/compute/TerrainCompute.h"
+#include "rendering/diagnostics/timing/GpuWorkProfiler.h"
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -155,10 +156,13 @@ std::unique_ptr<TerrainComputeBuffers> TerrainCompute::generate(const PlanetFiel
             ++result->stats.gpuDispatches;result->stats.gpuInputBytes+=16;
         }
     };
-    dispatch(0,samples);glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    { GpuWorkProfiler::Scope timing(GpuWorkStage::TerrainField,GpuWorkProfiler::generation(result->stats.generation));
+      dispatch(0,samples);glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT); }
+    GpuWorkProfiler::Scope expansionTiming(GpuWorkStage::TerrainExpansion,GpuWorkProfiler::generation(result->stats.generation));
     dispatch(1,corners);
     glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT|GL_ELEMENT_ARRAY_BARRIER_BIT|GL_TEXTURE_FETCH_BARRIER_BIT|
         GL_SHADER_STORAGE_BARRIER_BIT|GL_BUFFER_UPDATE_BARRIER_BIT);
+    expansionTiming.stop();
     glQueryCounter(result->timers[1],GL_TIMESTAMP);
     result->fence=glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE,0);
     if(!result->fence || glGetError()!=GL_NO_ERROR) throw std::runtime_error("Terrain compute submission failed");

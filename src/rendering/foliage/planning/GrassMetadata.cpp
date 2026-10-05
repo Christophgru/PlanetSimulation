@@ -1,4 +1,5 @@
 #include "rendering/foliage/planning/GrassMetadata.h"
+#include "rendering/diagnostics/timing/GpuWorkProfiler.h"
 #include "rendering/foliage/GrassPlacement.h"
 #include "config/ScenarioConfig.h"
 #include <algorithm>
@@ -122,6 +123,7 @@ std::unique_ptr<GrassMetadataBuffers> GrassMetadataCompute::generate(GLuint vert
     const std::array<GLuint,4> buffers{result->parameters,vertices,indices,result->descriptors};
     for(int i=0;i<4;++i) glBindBufferBase(GL_SHADER_STORAGE_BUFFER,i,buffers[i]);
     shader_->use();glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    GpuWorkProfiler::Scope timing(GpuWorkStage::GrassMetadata,GpuWorkProfiler::generation(terrain.generation));
     const auto chunk=std::min<std::uint64_t>(std::uint64_t(limits_.groups)*64,65536);
     for(std::uint64_t first=0;first<count;first+=chunk) {
         glUniform1ui(glGetUniformLocation(shader_->id,"uFirst"),first);
@@ -130,6 +132,7 @@ std::unique_ptr<GrassMetadataBuffers> GrassMetadataCompute::generate(GLuint vert
         ++result->dispatches;result->inputBytes+=8;
     }
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT|GL_BUFFER_UPDATE_BARRIER_BIT);
+    timing.stop();
     result->fence=glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE,0);
     if(!result->fence || glGetError()!=GL_NO_ERROR) throw std::runtime_error("Grass metadata submission failed");
     return result;

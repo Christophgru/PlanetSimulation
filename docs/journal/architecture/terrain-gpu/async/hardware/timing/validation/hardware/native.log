@@ -1,0 +1,20 @@
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = TerrainFrame.TracedPreparationRetainsRequestKeysAndDoesNotWaitForTimingQueries
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from TerrainFrame
+[ RUN      ] TerrainFrame.TracedPreparationRetainsRequestKeysAndDoesNotWaitForTimingQueries
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 20.0 s
+Sun radius: 2.5
+Planets: 2
+Surface camera position: (6.9946, 5.87568, -0.562742)
+Surface render test mode enabled
+Output image: /workspace/build-resume/terrain-frame/timing/frame.png
+[       OK ] TerrainFrame.TracedPreparationRetainsRequestKeysAndDoesNotWaitForTimingQueries (2015 ms)
+[----------] 1 test from TerrainFrame (2015 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (2016 ms total)
+[  PASSED  ] 1 test.

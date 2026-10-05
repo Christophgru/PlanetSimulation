@@ -1,4 +1,5 @@
 #pragma once
+#include "rendering/diagnostics/timing/GpuWorkProfiler.h"
 #include "rendering/Shader.h"
 #include "rendering/foliage/GrassStats.h"
 #include "rendering/foliage/procedural/GrassPlan.h"
@@ -19,6 +20,7 @@ struct GrassPass {
     glm::dvec3 mainEyeBody{0};
     float windTime=0;
     bool feedback=false; // Test probes pause feedback during compute dispatch.
+    GpuWorkView timingView=GpuWorkView::Unspecified; // Diagnostics only.
 };
 struct ProceduralGrassStats {
     std::size_t candidates=0, patches=0, vertices=0, triangles=0, batches=0, patchBytes=0;
@@ -62,6 +64,7 @@ private:
         glm::dvec3 eye{0};
         std::uint64_t revision=0;
         TerrainGenerationKey generation;
+        GpuWorkIdentity workIdentity;
         double distanceMeters=0;
         double density=0;
         int seed=0;

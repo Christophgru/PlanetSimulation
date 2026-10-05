@@ -1,0 +1,41 @@
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 20.0 s
+Sun radius: 2.5
+Planets: 2
+Surface camera position: (6.9946, 5.87568, -0.562742)
+Surface render test mode enabled
+Output image: /workspace/build-resume/terrain-timing-images/device-0/cpu/traced/capture.png
+Planet 0 terrain: 10000 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 10000); foliage blades: 4096; water triangles: 10000
+Planet 0 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 1200000
+Planet 0 foliage candidate bounds per pass: 37664 vertices; 29472 triangles; 20 batches; instance bytes: 1488
+Planet 0 terrain contract: 5002 canonical samples; 280064 input bytes; planning queries 7507/5948 requested/evaluated; bulk queries 15006/15006 requested/evaluated; field/topology 10975133402283726949/6373637851977143750; backend cpu
+Planet 0 GPU grass draws: 159 detailed; 1 quads; 2230 vertices; 1910 triangles; GPU working bytes: 524320
+Planet 1 terrain: 960 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 10000); foliage blades: 0; water triangles: 0
+Planet 1 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 115200
+Planet 1 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Planet 1 terrain contract: 482 canonical samples; 26944 input bytes; planning queries 1280/482 requested/evaluated; bulk queries 1446/1446 requested/evaluated; field/topology 13005042368953784910/8896015313400212575; backend cpu
+Mesh preparation: 1436.1 ms; GPU-complete benchmark: 77.8716 ms
+earth lighting: direct RGB (4.42966, 4.38536, 4.29677), reflected RGB (7.53886e-06, 7.46347e-06, 7.69757e-06)
+moon lighting: direct RGB (8.26617, 8.18351, 8.01819), reflected RGB (0.0122606, 0.02023, 0.0396426)
+Image size: 320x180
+Background pixel: (10, 22, 11)
+Non-background pixels: 57599, bounding box: (0, 0)-(319, 179)
+Sun-colored pixels: 0
+Planet pixels (color/depth): 40077, bounding box: (0, 28)-(319, 179)
+Camera exposure: 0.175354; sky sensitivity: 0.00273991
+Star-like pixels: 4616, bounding box: (0, 0)-(319, 75)
+Blue water-like pixels: 12878, bounding box: (49, 0)-(319, 70)
+Simulation time: 20.0 s
+Surface camera position (world, km): [6.994598500763506,5.875675765923116,-0.562742349263953]
+Surface camera direction (world, unit vector): [0.611463993582055,-0.749282257589539,-0.2543381273309379]
+Surface camera position (planet LLA): latitude=-21.409888069265286 deg, longitude=103.0 deg, altitude=6.015136819711464 m above reference sphere
+Surface camera ground clearance: 3.0 m
+surface_camera start value: {"altitude":0.003,"direction_ned":[0.04977897425745828,0.9955794851491649,-0.07964635881193324],"fov":65.0,"latitude_deg":-21.409888069265286,"longitude_deg":103.0,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":20.0,"up_ned":[-0.00397734935732591,-0.07954698714652228,-0.9968231826798578],"walk_speed_mps":80.0}
+White-clipped pixels (RGB >= 250): 0 (0%)
+Render test completed successfully
+Output image: /workspace/build-resume/terrain-timing-images/device-0/cpu/traced/capture.png
+EGL device UUID: GPU-2cefee61-6b3b-a670-c390-c7449dad3f79
+EGL config: RGBA 8/8/8/8; depth 24; stencil 8; samples 4
+EGL capture device 0: Quadro M1000M/PCIe/SSE2; 4.3.0 NVIDIA 580.178.04; viewport 320x180; requested samples 4
+GLEW GL initialized; GLX-display-only check bypassed for EGL

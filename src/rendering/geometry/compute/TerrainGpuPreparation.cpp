@@ -1,4 +1,5 @@
 #include "rendering/geometry/compute/TerrainGpuPreparation.h"
+#include "rendering/diagnostics/timing/GpuWorkProfiler.h"
 #include "rendering/geometry/contacts/SparseTerrainContacts.h"
 #include "rendering/foliage/procedural/ProceduralGrass.h"
 #include <stdexcept>
@@ -30,6 +31,7 @@ TerrainGpuPreparation::TerrainGpuPreparation(TerrainCpuBuild build,TerrainBuildI
     :identity(std::move(request)),cpu(std::move(build)) {
     admittedBytes=requiredBytes(cpu,identity,planet,compute.limits());
     if(admittedBytes>byteLimit) throw std::runtime_error("Terrain consumers exceed logical staging byte limit");
+    GpuWorkProfiler::Request timingIdentity(identity.epoch,identity.serial,identity.bodyIndex);
     land=compute.generate(*cpu.field,*cpu.topology);
     if(cpu.water) water=compute.generate(*cpu.waterField,*cpu.waterTopology);
     land->contacts=std::move(cpu.contacts);land->stats.gpuStageAdmittedBytes=admittedBytes;

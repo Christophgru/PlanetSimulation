@@ -1,4 +1,5 @@
 #include "rendering/foliage/planning/GrassAllocation.h"
+#include "rendering/diagnostics/timing/GpuWorkProfiler.h"
 #include <algorithm>
 #include <bit>
 #include <limits>
@@ -98,6 +99,7 @@ std::unique_ptr<GrassAllocationBuffers> GrassAllocationCompute::generate(const G
     for(int i=0;i<7;++i) glBindBufferBase(GL_SHADER_STORAGE_BUFFER,i,buffers[i]);
     shader_->use();glUniform1ui(glGetUniformLocation(shader_->id,"uGroups"),g);result->inputBytes=224+4;
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    GpuWorkProfiler::Scope timing(GpuWorkStage::GrassAllocation,GpuWorkProfiler::generation(metadata.generation));
     const auto dispatch=[&](unsigned phase,bool controller=false) {
         const auto chunk=std::min<std::uint64_t>(limits_.groups,1024);
         for(std::uint64_t first=0;first<(controller?1:g);first+=chunk) {
@@ -114,6 +116,7 @@ std::unique_ptr<GrassAllocationBuffers> GrassAllocationCompute::generate(const G
     for(int i=0;i<32;++i) {dispatch(6);dispatch(7,true);}
     dispatch(8);dispatch(9,true);dispatch(10);
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT|GL_BUFFER_UPDATE_BARRIER_BIT);
+    timing.stop();
     result->fence=glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE,0);
     if(!result->fence || glGetError()!=GL_NO_ERROR) throw std::runtime_error("Grass allocation submission failed");
     return result;

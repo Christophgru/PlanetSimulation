@@ -275,6 +275,15 @@ and must not be added to the current frame time.
 `foliage_sort_ms`, and `foliage_upload_ms` report triangle planning, the legacy
 per-blade sort (now zero), and triangle-ID submission. `foliage_upload_bytes`
 records that buffer payload, excluding uniforms and driver overhead.
+The appended `gpu_frame_span_ms` measures frame start/end GPU timestamps,
+separately from the sum of render stages in `gpu_ms`. `gpu_status`,
+`gpu_query_polls` and `gpu_events_dropped` identify busy/missing samples and
+stage overflow. Tracing also creates `path.csv.gpu-work.csv`, a bounded
+nonblocking stream for terrain field/expansion, grass metadata/allocation and
+main/reflection placement, with request and generation identities. Placement
+is nested in geometry stages, so these timings must not be added to `gpu_ms`.
+See the [GPU timing study](docs/journal/architecture/terrain-gpu/async/hardware/timing/study.md)
+for scope, missing-sample statuses and remaining hardware acceptance work.
 `cpu_foliage_ms` includes complete CPU preparation. GPU placement, wind,
 compaction and drawing belong to the opaque/reflection passes;
 `gpu_foliage_ms` remains zero because that named stage prepares the CPU plan.

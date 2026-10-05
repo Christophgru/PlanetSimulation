@@ -1,5 +1,31 @@
 # Page to document progress of AI Agents working on this Project
 
+## Bounded GPU work timing checkpoint — 2026-10-05
+
+- T3c5b1 is tested. Optional request-keyed work receipts cover terrain field/
+  expansion, grass metadata/allocation and main/reflection placement. A fixed
+  64-event/128-query pool checks start/end availability, preserves pending
+  ownership and reports drops/missing shutdown samples without forcing GPU
+  completion. Frame CSV exports a separate full marker span; nested placement
+  is not added to render-stage totals. Disabled work tracing allocates no queries.
+- Seven controlled query cases, four actual-renderer frame cases and all 64
+  CTest groups pass in one uninterrupted final-input run (1422.72 s). Final
+  source/build-input fingerprints and all 41 executable hashes remain frozen.
+  Ten baseline compute/CPU/replay PNGs and all 22 gallery hashes are unchanged.
+- Quadro GL 4.3 resolves 18 work receipts and 963 frame spans, peak pending six,
+  without drops, positive-timeout/flush fence polls, server waits or bulk buffer
+  reads. Software validation resolves the same 18 stages; 949 of 951 frame spans
+  are ready, with two explicit missing-shutdown receipts.
+  Twelve small-fixture EGL captures compare prior/new/traced binaries on both
+  physical GPUs and CPU/compute terrain; each triple is byte-identical.
+- Raw logs, traces, image receipts and provenance are retained under
+  docs/journal/architecture/terrain-gpu/async/hardware/timing/validation/.
+  README and journal/PDF describe diagnostics and limits; affected PDF pages
+  were reviewed. Continue with T3c5b2 native-loop wall time, publication latency/
+  outcomes and physical-memory sampling, then T3c5c matched hardware acceptance.
+  CPU remains default. User TODO environmental/Docker suffix remains unchanged
+  and unstaged.
+
 ## Quadro versus RTX 3070 Ti benchmark checkpoint — 2026-10-05
 
 - Both physical cards now run the unchanged production capture renderer through

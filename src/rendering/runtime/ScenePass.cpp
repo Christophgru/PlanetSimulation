@@ -257,7 +257,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario, At
                 setRgb(bladeShader,"uViewEyeWorld",glm::dvec3(glm::inverse(passView)[3]));
                 setBodyLighting(bladeShader,i);
                 const GrassPass grassPass{model,passView,passProjection,bodies[i+1].toLocalPoint(eyeWorld)/planet.radius,
-                    grassWindTime(sceneTime*settings.wind_noise.speed_multiplier)};
+                    grassWindTime(sceneTime*settings.wind_noise.speed_multiplier),false,mainPass ? GpuWorkView::Main : GpuWorkView::Reflection};
                 grass->draw(i,&grassPass);
                 if(publication && consumers && mainPass) (*consumers)[i].grassDrawRevision=*grass->procedural.residentRevision(i);
                 // Capture telemetry must be sampled before reflections reuse

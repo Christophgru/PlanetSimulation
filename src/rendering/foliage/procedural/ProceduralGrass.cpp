@@ -118,6 +118,7 @@ GrassPreparationStats ProceduralGrass::prepare(std::size_t index,const Mesh& mes
         return {std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count(),0,0,1,input};
     }
     patch.computeUsed=false;patch.generation={};
+    patch.workIdentity={};
     patch.settings=planet.foliage; patch.color={planet.color[0],planet.color[1],planet.color[2]};
     const auto rockRange=planet.terrain_material.slopeMetricRange();
     patch.rockRange={rockRange[0],rockRange[1]};
