@@ -192,3 +192,17 @@ hashes remain exact. Consumer keys/revisions, old-buffer retirement and bounded
 logical overlap are retained. T3c3 is tested. Resume T3c4 asynchronous interactive
 opt-in; CPU remains default and interactive compute stays gated until its native
 normal-frame movement/wait/fallback acceptance. T3c5 hardware gates remain.
+
+T3c4 is split by its [interactive continuation plan](interactive/plan.md):
+T3c4a asynchronous frame publication, T3c4b asynchronous complete scene reload,
+then T3c4c native input and public CLI opt-in. The [frame core](interactive/study.md)
+leaves CPU results in the bounded ready slot under GPU backpressure and defers
+startup movement/draws until all bodies are complete. Public compute stays gated
+until the final native acceptance checkpoint.
+
+T3c4a passes three frame cases (20.148 s), eleven worker cases and all
+61 CTest groups in one uninterrupted frozen-input run (927.29 s). Actual GL
+preparation/draws cover delayed/failed fences, grass-only recovery and stale masks;
+zero positive-timeout/flush polls, server waits or bulk readbacks are observed.
+Ten baseline and 22 gallery PNG hashes remain exact. Resume T3c4b using the
+[reload design notes](interactive/reload-plan.md); T3c4c public opt-in stays gated.

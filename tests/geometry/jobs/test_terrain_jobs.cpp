@@ -52,6 +52,10 @@ TEST(TerrainJobs, BoundsCoalescingAndCompletionBackpressure) {
     gate.release();
     const auto deadline=std::chrono::steady_clock::now()+5s;
     while(!jobs.stats().ready && std::chrono::steady_clock::now()<deadline) std::this_thread::sleep_for(1ms);
+    for(int i=0;i<10;++i) {
+        ASSERT_TRUE(jobs.readyIdentity());EXPECT_EQ(jobs.readyIdentity()->serial,1);
+        EXPECT_EQ(jobs.stats().ready,1);EXPECT_EQ(jobs.stats().queued,1);
+    }
     EXPECT_EQ(second.wait_for(0s),std::future_status::timeout); // Ready output blocks another build.
     auto first=collect(jobs);ASSERT_TRUE(first);EXPECT_EQ(first->identity.serial,1);
     auto last=collect(jobs);ASSERT_TRUE(last);EXPECT_EQ(last->identity.serial,4);

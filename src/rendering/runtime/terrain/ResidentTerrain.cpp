@@ -75,6 +75,8 @@ nlohmann::json Renderer::Impl::terrainPublicationState() const {
         {"failed",s.failed},{"obsolete",s.obsolete},{"retired",s.retired},
         {"pending",terrainPublication->pending()},{"reserved_bytes",terrainPublication->reservedBytes()},
         {"peak_reserved_bytes",s.peakReservedBytes},{"character_previews",characterPreviews},
+        {"interactive_frames",residentFrames},{"interactive_failures",residentFrameFailures},
+        {"loading",!residentSceneReady()},
         {"astronaut_contact_revision",astronautGround.revision()},{"consumers",nlohmann::json::array()}});
     const auto key=[](const TerrainGenerationKey& k) {
         return nlohmann::json{{"field",std::to_string(k.field)},{"topology",std::to_string(k.topology)},

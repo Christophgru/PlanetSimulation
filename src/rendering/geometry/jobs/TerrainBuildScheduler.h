@@ -29,6 +29,8 @@ public:
     TerrainBuildScheduler& operator=(const TerrainBuildScheduler&)=delete;
     bool submit(TerrainBuildRequest request);
     std::optional<TerrainBuildCompletion> poll();
+    // Inspect without releasing the bounded completed slot/backpressure.
+    std::optional<TerrainBuildIdentity> readyIdentity() const;
     // Capture-only wait requires an otherwise idle scheduler. Normal frames poll.
     TerrainBuildCompletion executeForCapture(TerrainBuildRequest request);
     // Exclusive capture reload preparation supersedes queued/ready live work,

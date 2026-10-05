@@ -28,6 +28,10 @@ std::optional<TerrainBuildCompletion> TerrainBuildScheduler::poll() {
     {std::lock_guard lock(mutex_);result=std::move(ready_);ready_.reset();}
     changed_.notify_all();return result;
 }
+std::optional<TerrainBuildIdentity> TerrainBuildScheduler::readyIdentity() const {
+    std::lock_guard lock(mutex_);
+    return ready_ ? std::optional<TerrainBuildIdentity>(ready_->identity) : std::nullopt;
+}
 TerrainBuildCompletion TerrainBuildScheduler::executeForCapture(TerrainBuildRequest request) {
     return executeExclusive(std::move(request),false);
 }

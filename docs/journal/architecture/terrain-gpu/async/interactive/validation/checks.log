@@ -1,0 +1,8 @@
+Validated folder limits, image-only gallery and README capture links
+All 22 gallery PNG hashes retained
+All 10 compute/CPU/replay PNG hashes match T3c3c3 exactly
+68 local Markdown links resolve
+Resident frame core contains no explicit capture, exclusive worker, finish or server-wait adapter calls
+Journal compiled: 28 pages; visually reviewed [6, 7, 8, 9, 10, 26, 27, 28]
+git diff --check passes
+User environmental/Docker TODO suffix preserved byte-for-byte

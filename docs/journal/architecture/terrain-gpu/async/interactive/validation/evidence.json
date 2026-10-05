@@ -1,0 +1,339 @@
+{
+  "status": "validated",
+  "date": "2026-10-05",
+  "checkpoint": "T3c4a",
+  "base_revision": "1d642c221a5e8e8e9fa27b1814f8c06b16afa6db",
+  "source_sha256": "56de7d71719ba7f764efd6e44c2d1d07e0d5e453725248517973f7651725ffd2",
+  "build_test_input_sha256": "e82fcbc67738ccc68ca67d903d75fa2a6f7ba0a0f2acb5852dafbeebc06a1bae",
+  "binary_sha256": "76153373401a7ba204383dedaf28c12fd7007b57ce79e3d7cadc4706a64b5115",
+  "native_binary_sha256": "7b3973fe3424d0103dee80a2dc4191e9b2b5f4542506af720084d5f27bbed4fb",
+  "runtime_binary_sha256": "f8989753800e37dde52691c2b22b1da27c63789f8d2c13eee5c82eb792b2af42",
+  "recovery_binary_sha256": "060ffdcd50d493d27a7656322dea7538a48b784c4af6f34a3a3393900aed6c26",
+  "worker_binary_sha256": "a7aa586bd6a60a1d45a8ac39c11965faede863a13e24f1958e29bcbd4115e248",
+  "frame_binary_sha256": "3517dd7246b2db98aa4185db753367b762a23af6a60b575c594ec0150ee9bd60",
+  "fingerprint_definition": "SHA-256 over globally sorted relative paths, NUL, contents, NUL; source includes src/shaders; build-test inputs include CMakeLists.txt and src/shaders/configs/tests/scripts excluding __pycache__",
+  "commands": [
+    "cmake --build build-resume -j2 --target terrain_frame_tests terrain_job_tests",
+    "cmake --build build-resume -j2",
+    "build-resume/tests/terrain_job_tests",
+    "LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=2 xvfb-run -a build-resume/tests/terrain_frame_tests",
+    "LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=2 xvfb-run -a ctest --test-dir build-resume --output-on-failure",
+    "build-terrain/typst-x86_64-unknown-linux-musl/typst compile -j2 --root . docs/journal/paper.typ docs/journal/paper.pdf"
+  ],
+  "regression": {
+    "groups_passed": 61,
+    "uninterrupted": true,
+    "wall_seconds": 927.29,
+    "groups": {
+      "1": {
+        "name": "RendererLifecycleTests",
+        "seconds": 83.61
+      },
+      "2": {
+        "name": "TerrainRecoveryIntegration",
+        "seconds": 73.46
+      },
+      "3": {
+        "name": "TerrainFrameIntegration",
+        "seconds": 19.47
+      },
+      "4": {
+        "name": "ConfigTests",
+        "seconds": 0.02
+      },
+      "5": {
+        "name": "OrbitCameraTests",
+        "seconds": 0.01
+      },
+      "6": {
+        "name": "CameraInputTests",
+        "seconds": 0.01
+      },
+      "7": {
+        "name": "AstronautMotionTests",
+        "seconds": 2.22
+      },
+      "8": {
+        "name": "ExhaustPhysicsTests",
+        "seconds": 0.01
+      },
+      "9": {
+        "name": "ExhaustRenderIntegration",
+        "seconds": 0.96
+      },
+      "10": {
+        "name": "CameraTransitionTests",
+        "seconds": 0.01
+      },
+      "11": {
+        "name": "SceneTransformsTests",
+        "seconds": 0.01
+      },
+      "12": {
+        "name": "OrbitPathsTests",
+        "seconds": 0.02
+      },
+      "13": {
+        "name": "OrbitalSystemTests",
+        "seconds": 0.11
+      },
+      "14": {
+        "name": "CelestialLightingTests",
+        "seconds": 0.02
+      },
+      "15": {
+        "name": "CameraExposureTests",
+        "seconds": 0.01
+      },
+      "16": {
+        "name": "SceneReplayTests",
+        "seconds": 0.01
+      },
+      "17": {
+        "name": "TerrainShadowProjectionTests",
+        "seconds": 0.01
+      },
+      "18": {
+        "name": "TerrainShadowRenderIntegration",
+        "seconds": 27.3
+      },
+      "19": {
+        "name": "RenderDiagnosticsTests",
+        "seconds": 0.01
+      },
+      "20": {
+        "name": "StarFieldTests",
+        "seconds": 0.01
+      },
+      "21": {
+        "name": "MeshGeometryTests",
+        "seconds": 0.01
+      },
+      "22": {
+        "name": "TerrainTests",
+        "seconds": 11.24
+      },
+      "23": {
+        "name": "TerrainJobTests",
+        "seconds": 0.07
+      },
+      "24": {
+        "name": "TerrainComputeIntegration",
+        "seconds": 50.84
+      },
+      "25": {
+        "name": "GrassPlanTests",
+        "seconds": 0.01
+      },
+      "26": {
+        "name": "GrassTrailTests",
+        "seconds": 0.01
+      },
+      "27": {
+        "name": "GrassPlacementTests",
+        "seconds": 0.04
+      },
+      "28": {
+        "name": "PlanetLocalFrameTests",
+        "seconds": 0.01
+      },
+      "29": {
+        "name": "PlanetSurfaceCameraTests",
+        "seconds": 0.01
+      },
+      "30": {
+        "name": "SurfaceCameraTelemetryTests",
+        "seconds": 0.01
+      },
+      "31": {
+        "name": "RenderSceneIntegration",
+        "seconds": 1.29
+      },
+      "32": {
+        "name": "SurfaceRenderIntegration",
+        "seconds": 5.05
+      },
+      "33": {
+        "name": "PlanetOrbitRenderIntegration",
+        "seconds": 3.44
+      },
+      "34": {
+        "name": "MovingSurfaceRenderIntegration",
+        "seconds": 4.71
+      },
+      "35": {
+        "name": "MovingPlanetRenderIntegration",
+        "seconds": 3.44
+      },
+      "36": {
+        "name": "MoonlightRenderIntegration",
+        "seconds": 1.29
+      },
+      "37": {
+        "name": "TerrainComputeCaptureIntegration",
+        "seconds": 59.52
+      },
+      "38": {
+        "name": "AstronautCaptureIntegration",
+        "seconds": 115.74
+      },
+      "39": {
+        "name": "ExhaustCaptureIntegration",
+        "seconds": 58.83
+      },
+      "40": {
+        "name": "SpaceFlightCaptureIntegration",
+        "seconds": 33.25
+      },
+      "41": {
+        "name": "OfflineCaptureIntegration",
+        "seconds": 16.91
+      },
+      "42": {
+        "name": "CpuTraceTests",
+        "seconds": 0.01
+      },
+      "43": {
+        "name": "CpuTraceReportTests",
+        "seconds": 0.18
+      },
+      "44": {
+        "name": "GrassCaptureIntegration",
+        "seconds": 60.93
+      },
+      "45": {
+        "name": "LightingScenariosRenderIntegration",
+        "seconds": 39.33
+      },
+      "46": {
+        "name": "TwilightScenariosRenderIntegration",
+        "seconds": 22.32
+      },
+      "47": {
+        "name": "AtmosphereTests",
+        "seconds": 0.02
+      },
+      "48": {
+        "name": "AtmosphereScenariosRenderIntegration",
+        "seconds": 112.93
+      },
+      "49": {
+        "name": "AtmosphereRefractionRenderIntegration",
+        "seconds": 8.55
+      },
+      "50": {
+        "name": "FrameReuseTests",
+        "seconds": 0.01
+      },
+      "51": {
+        "name": "PerformanceCaptureIntegration",
+        "seconds": 25.86
+      },
+      "52": {
+        "name": "GpuUtilizationTests",
+        "seconds": 0.01
+      },
+      "53": {
+        "name": "GrassWindInputIntegration",
+        "seconds": 17.85
+      },
+      "54": {
+        "name": "AstronautInputIntegration",
+        "seconds": 9.95
+      },
+      "55": {
+        "name": "PerformanceOverlayInputIntegration",
+        "seconds": 19.07
+      },
+      "56": {
+        "name": "OrbitOverlayInputIntegration",
+        "seconds": 21.18
+      },
+      "57": {
+        "name": "CameraTransitionInputIntegration",
+        "seconds": 5.21
+      },
+      "58": {
+        "name": "CameraClippingInputIntegration",
+        "seconds": 8.51
+      },
+      "59": {
+        "name": "RepositoryLayout",
+        "seconds": 0.18
+      },
+      "60": {
+        "name": "AdaptiveQualityTests",
+        "seconds": 0.01
+      },
+      "61": {
+        "name": "AdaptiveQualityRenderIntegration",
+        "seconds": 2.09
+      }
+    },
+    "frame_cases": 3,
+    "frame_seconds": 20.148,
+    "worker_cases": 11,
+    "worker_seconds": 0.088
+  },
+  "frame_core": {
+    "zero_positive_timeout_or_flush_polls": true,
+    "zero_server_waits": true,
+    "zero_bulk_buffer_readbacks": true,
+    "initial_all_body_loading": true,
+    "ready_cpu_slot_retained_under_gpu_backpressure": true,
+    "complete_consumer_publication": true,
+    "grass_only_failure_and_recovery": true,
+    "delayed_and_failed_retirement": true,
+    "failed_preparation_backoff": true,
+    "stale_mask_rejection": true,
+    "programmatic_walk_mps": [
+      6,
+      12
+    ],
+    "logical_per_set_ceiling_bytes": 536870912,
+    "logical_aggregate_ceiling_bytes": 1073741824,
+    "maximum_running_queued_ready_slots_each": 1,
+    "interactive_compute_cli_enabled": false
+  },
+  "environment": {
+    "compiler": "GCC 12.2",
+    "build_type": "RelWithDebInfo",
+    "renderer": "Mesa llvmpipe under Xvfb",
+    "LIBGL_ALWAYS_SOFTWARE": "1",
+    "LP_NUM_THREADS": "2"
+  },
+  "frame_results_run": "Full 61-group regression outputs; full group summary in tests.log and separate detailed focused acceptance stdout in native/frame.log",
+  "scope": "Actual resident frame preparation/GL dispatch/managed draws with test-controlled fence delay/failure on a hidden context. Native GLFW input and asynchronous whole-scene reload are subsequent checkpoints; public CLI remains gated. No driver/physical-memory or hardware performance claim.",
+  "hardware_fps_claim": false,
+  "total_memory_saving_claim": false,
+  "journal": {
+    "pages": 28,
+    "visually_reviewed": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      26,
+      27,
+      28
+    ],
+    "review_note": "Reviewed terrain/frame integration, following figures, validation/conclusions and final claim map; rechecked final page 28 after adding its frame-core row.",
+    "pdf_sha256": "fd694bd1d5c677de0f6a5dfd240d08cc14df257a61d1d0956b450ceff188350b",
+    "sha256": "fd694bd1d5c677de0f6a5dfd240d08cc14df257a61d1d0956b450ceff188350b"
+  },
+  "gallery_hashes_retained": 22,
+  "todo_environmental_suffix_sha256": "b227dc2ecc065b8c8ac1eea5fa030c32f289ade83c61e19d571ddf6c4b09c5c5",
+  "next_checkpoint": "T3c4b",
+  "next_phase_plan": "docs/journal/architecture/terrain-gpu/async/interactive/plan.md",
+  "artifacts": {
+    "docs/journal/architecture/terrain-gpu/async/interactive/validation/build.log": "a90a4b5ca8f73193bac5c18af7e761d3207a268eaa84bb9898cd7bd4593cb2a1",
+    "docs/journal/architecture/terrain-gpu/async/interactive/validation/capture-results.json": "bc6d53267423ad30723950d1756fa2b5e06d49e698005c282e5c9f86c8415583",
+    "docs/journal/architecture/terrain-gpu/async/interactive/validation/checks.log": "539a388ec53d7fd84364c4a63708715bd4eda1bce615abf941f561424b7c2844",
+    "docs/journal/architecture/terrain-gpu/async/interactive/validation/frame-results.json": "32d32b889e85df5de6a5ac46972995ccde8873d64d76b64aecc7ce293763f43a",
+    "docs/journal/architecture/terrain-gpu/async/interactive/validation/native/frame.log": "f52864faa7b86e26f1e5cb0492859c62c916443b126e8e0c3724f76eb28d4daa",
+    "docs/journal/architecture/terrain-gpu/async/interactive/validation/native/worker.log": "873e8c9ce57ec03d6b9295d3d7bdabe858a9a9e425af72392781ad3941ecb243",
+    "docs/journal/architecture/terrain-gpu/async/interactive/validation/tests.log": "f3791414534b8c58e13b9e661f3dcda78f6a3bf8a2f32b14eb86f3c80fdb6c63",
+    "docs/journal/architecture/terrain-gpu/async/interactive/validation/typst.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

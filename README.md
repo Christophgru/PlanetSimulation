@@ -1065,6 +1065,13 @@ old completions without changing the live epoch on failure. Moving/reordered-bod
 and Moon recovery acceptance precedes T3c4 interactive opt-in; CPU stays default
 and interactive compute stays gated.
 
+The [asynchronous frame core](docs/journal/architecture/terrain-gpu/async/interactive/study.md)
+uses the bounded worker result slot, zero-timeout preparation/retirement polls and
+complete consumer publication during startup and movement. Initial loading defers
+walking and scene draws; replacements retain usable terrain and failed work has
+a bounded retry delay. Asynchronous whole-scene reload and native input acceptance
+remain before the public interactive compute option opens.
+
 Near water, `terrain_lod.shoreline_edge_m` targets 1 m edges within
 `shoreline_distance_m` (80 m by default). Set the edge target to `0` to disable
 this extra refinement. Targets support 0.1–100 m and distances 1–1000 m.

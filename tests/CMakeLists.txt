@@ -36,6 +36,15 @@ add_test(NAME TerrainRecoveryIntegration COMMAND terrain_recovery_tests)
 set_tests_properties(TerrainRecoveryIntegration PROPERTIES
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 240 RUN_SERIAL TRUE)
 
+add_executable(terrain_frame_tests app/terrain/interactive/test_frame.cpp)
+target_link_libraries(terrain_frame_tests PRIVATE planet_app GTest::gtest_main)
+target_compile_definitions(terrain_frame_tests PRIVATE
+    PLANET_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
+    PLANET_TEST_OUTPUT="${CMAKE_BINARY_DIR}/terrain-frame")
+add_test(NAME TerrainFrameIntegration COMMAND terrain_frame_tests)
+set_tests_properties(TerrainFrameIntegration PROPERTIES
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 240 RUN_SERIAL TRUE)
+
 add_executable(config_tests config/test_config.cpp)
 target_link_libraries(config_tests PRIVATE GTest::gtest GTest::gtest_main nlohmann_json::nlohmann_json)
 target_include_directories(config_tests PRIVATE 

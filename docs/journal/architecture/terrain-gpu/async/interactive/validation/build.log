@@ -1,0 +1,32 @@
+[1/5] Linking CXX static library libplanet_app.a
+[2/5] Building CXX object tests/CMakeFiles/terrain_job_tests.dir/geometry/jobs/test_terrain_jobs.cpp.o
+[3/5] Linking CXX executable tests/terrain_job_tests
+[4/5] Building CXX object tests/CMakeFiles/terrain_frame_tests.dir/app/terrain/interactive/test_frame.cpp.o
+[5/5] Linking CXX executable tests/terrain_frame_tests
+
+[1/2] Building CXX object tests/CMakeFiles/terrain_frame_tests.dir/app/terrain/interactive/test_frame.cpp.o
+[2/2] Linking CXX executable tests/terrain_frame_tests
+
+[1/2] Building CXX object tests/CMakeFiles/terrain_frame_tests.dir/app/terrain/interactive/test_frame.cpp.o
+[2/2] Linking CXX executable tests/terrain_frame_tests
+
+[1/20] Linking CXX executable PlanetSimulation
+[2/20] Linking CXX executable tests/renderer_lifecycle_tests
+[3/20] Linking CXX executable tests/camera_input_tests
+[4/20] Linking CXX executable tests/orbital_system_tests
+[5/20] Linking CXX executable tests/mesh_geometry_tests
+[6/20] Linking CXX executable tests/terrain_tests
+[7/20] Linking CXX executable tests/planet_surface_camera_tests
+[8/20] Linking CXX executable tests/surface_camera_telemetry_tests
+[9/20] Linking CXX executable tests/astronaut_motion_tests
+[10/20] Linking CXX executable tests/exhaust_physics_tests
+[11/20] Linking CXX executable tests/exhaust_render_tests
+[12/20] Linking CXX executable tests/terrain_shadow_render_tests
+[13/20] Linking CXX executable tests/terrain_compute_tests
+[14/20] Linking CXX executable tests/grass_placement_tests
+[15/20] Linking CXX executable tests/foliage_benchmark
+[16/20] Linking CXX executable tests/grass_plan_tests
+[17/20] Linking CXX executable tests/grass_trail_tests
+[18/20] Linking CXX executable tests/atmosphere_render_tests
+[19/20] Building CXX object tests/CMakeFiles/terrain_recovery_tests.dir/app/terrain/recovery/test_recovery.cpp.o
+[20/20] Linking CXX executable tests/terrain_recovery_tests

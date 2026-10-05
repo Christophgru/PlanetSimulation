@@ -1,0 +1,42 @@
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 3 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 3 tests from TerrainFrame
+[ RUN      ] TerrainFrame.StartupGrassOnlyRecoveryAndProgrammaticWalkingPublishWithoutWaits
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 20.0 s
+Sun radius: 2.5
+Planets: 2
+Surface camera position: (6.9946, 5.87568, -0.562742)
+Surface render test mode enabled
+Output image: /workspace/build-resume/terrain-frame/movement/frame.png
+Terrain preparation failed; previous generation retained: Grass allocation completion failed
+[       OK ] TerrainFrame.StartupGrassOnlyRecoveryAndProgrammaticWalkingPublishWithoutWaits (9276 ms)
+[ RUN      ] TerrainFrame.DelayedGpuKeepsBoundedCpuCompletionAndRetainsDrawableRetiredBuffers
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 20.0 s
+Sun radius: 2.5
+Planets: 2
+Surface camera position: (6.9946, 5.87568, -0.562742)
+Surface render test mode enabled
+Output image: /workspace/build-resume/terrain-frame/delayed/frame.png
+Terrain retirement pending: Terrain retirement fence poll failed
+[       OK ] TerrainFrame.DelayedGpuKeepsBoundedCpuCompletionAndRetainsDrawableRetiredBuffers (5220 ms)
+[ RUN      ] TerrainFrame.FailedFenceBacksOffAndStaleMaskCompletionCannotReplaceLiveGeneration
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 20.0 s
+Sun radius: 2.5
+Planets: 2
+Surface camera position: (6.9946, 5.87568, -0.562742)
+Surface render test mode enabled
+Output image: /workspace/build-resume/terrain-frame/recovery/frame.png
+Terrain preparation failed; previous generation retained: Terrain compute submission failed
+[       OK ] TerrainFrame.FailedFenceBacksOffAndStaleMaskCompletionCannotReplaceLiveGeneration (5651 ms)
+[----------] 3 tests from TerrainFrame (20148 ms total)
+
+[----------] Global test environment tear-down
+[==========] 3 tests from 1 test suite ran. (20148 ms total)
+[  PASSED  ] 3 tests.

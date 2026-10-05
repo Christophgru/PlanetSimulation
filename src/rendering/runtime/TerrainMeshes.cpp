@@ -40,6 +40,9 @@ void Renderer::Impl::installTerrainBuild(TerrainCpuBuild built,const TerrainBuil
 
 void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalking,std::optional<double> characterElapsed) {
     CpuTrace::Scope scope("Renderer::preparePlanetMeshes");
+    if(terrainPublication && !options.renderTestMode) {
+        prepareResidentFrame(eye,characterElapsed);return;
+    }
     retireSceneReload(options.renderTestMode);
     const auto identityFor=[&](std::size_t i,const glm::dvec3& localEye,int localMask) {
         TerrainBuildIdentity k;k.epoch=terrainSceneEpoch;k.serial=terrainRequestSerial;

@@ -53,7 +53,7 @@ int Renderer::Impl::interact() {
                 inputContext.reloadRequested = true;
             }
         }
-        retireSceneReload(false);
+        if (!terrainPublication) retireSceneReload(false);
         if (inputContext.reloadRequested) {
             CpuTrace::Scope reloadScope("scene.reload");
             inputContext.reloadRequested = false;
@@ -98,7 +98,8 @@ int Renderer::Impl::interact() {
         cameraInput.setThirdPersonAirborne(astronaut.motion.ready() && astronaut.motion.pose().airborne);
         astronautFlightControl={int(keys.forward)-int(keys.backward),int(keys.right)-int(keys.left)};
         { CpuTrace::Scope scope("CameraInput::update");
-          cameraInput.update(cameraTransition.active() ? WalkKeys{} : keys, elapsedSeconds); }
+          cameraInput.update(cameraTransition.active() || (terrainPublication && !residentSceneReady()) ?
+              WalkKeys{} : keys, elapsedSeconds); }
         if (cameraInput.mode() == CameraMode::Surface && displayedMode != CameraMode::Surface &&
             displayedMode != CameraMode::ThirdPerson)
             cameraTransition.start(displayedPose, frameTime);
@@ -130,18 +131,28 @@ int Renderer::Impl::interact() {
         int height = 0;
         glfwGetFramebufferSize(window, &width, &height);
         if (width > 0 && height > 0) {
+            const auto presentLoading = [&] {
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                glViewport(0, 0, width, height);
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                glfwSwapBuffers(window);
+                profiler.endFrame();
+            };
             const bool onSurface = cameraInput.mode() == CameraMode::Surface && scene.surfaceCamera;
             const bool onThird = cameraInput.mode()==CameraMode::ThirdPerson && scene.surfaceCamera;
             const bool onPlanetOrbit = cameraInput.mode() == CameraMode::PlanetOrbit &&
                                        scene.planetOrbitCamera;
             if (onThird) {
                 FrameProfiler::Scope scope(&profiler,FrameStage::Mesh,false);
-                preparePlanetMeshes(scene.surfaceCamera->position(),true);
                 // World-space flight must account for the same elapsed wall
                 // time as moving celestial bodies. Ground walking stays capped.
                 characterWindTime=foliageTime;
-                prepareAstronaut(astronaut.motion.ready() && astronaut.motion.pose().airborne ?
-                    frameElapsed : elapsedSeconds);
+                const double characterElapsed=astronaut.motion.ready() && astronaut.motion.pose().airborne ?
+                    frameElapsed : elapsedSeconds;
+                preparePlanetMeshes(scene.surfaceCamera->position(),true,
+                    terrainPublication ? std::optional<double>(characterElapsed) : std::nullopt);
+                if (terrainPublication && !residentSceneReady()) {presentLoading();continue;}
+                prepareAstronaut(characterElapsed);
             }
             const glm::mat4 targetView = onThird ? glm::mat4(glm::lookAt(astronautView.eye,astronautView.target,astronautView.up)) :
                                    onSurface ? scene.surfaceCamera->getViewMatrix() :
@@ -185,6 +196,7 @@ int Renderer::Impl::interact() {
                 : onPlanetOrbit ? planetOrbitClip(eyeWorld) : rendering::ClipPlanes{};
             { rendering::FrameProfiler::Scope scope(&profiler, rendering::FrameStage::Mesh, false);
               if (!onThird) preparePlanetMeshes(eyeWorld, true); }
+            if (terrainPublication && !residentSceneReady()) {presentLoading();continue;}
             const auto revisions=geometryRevisions();
             adaptiveQuality.observe(frameTime, frameRate.milliseconds,
                 !simulationClock.paused());
@@ -214,7 +226,8 @@ int Renderer::Impl::interact() {
                             atmosphereShader, atmosphere, reflectionAtmosphere, atmosphereColumns, meshes.sunMesh, meshes.skyboxMesh,
                             meshes.planetMeshes, meshes.waterMeshes, sceneWidth, sceneHeight,
                             clip, (onSurface || onThird || onPlanetOrbit) ? std::optional<std::size_t>(scene.orbitPlanetIndex) : std::nullopt,
-                            false, &profiler, false, sceneOutput, &grass, foliageTime,onThird ? &astronaut : nullptr);
+                            false, &profiler, false, sceneOutput, &grass, foliageTime,onThird ? &astronaut : nullptr,
+                            nullptr,terrainPublication.get(),&terrainConsumers);
                 frameReuse.remember(view,fov,sceneWidth,sceneHeight,simulationClock.seconds(),revisions,eyeWorld,static_cast<int>(cameraInput.mode()));
             }
             const bool showOrbits = inputContext.orbitsVisible && cameraInput.mode() == CameraMode::Orbit;

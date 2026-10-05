@@ -1,5 +1,28 @@
 # Page to document progress of AI Agents working on this Project
 
+## Asynchronous resident frame checkpoint — 2026-10-05
+
+- T3c4a is tested. Resident startup/movement/local-mask preparation uses the
+  persistent CPU worker, retains its bounded completed slot under GPU backpressure
+  and polls GPU readiness/retirement with zero flags/timeouts. Complete consumers
+  publish before character updates and managed draws. Initial loading defers
+  walking and scene draws while the event loop remains active.
+- Grass-only failure keeps the previous patch and contacts; failed terrain work
+  retries unchanged inputs after 60 preparation frames. Stale mode results are
+  rejected. Delayed/failed retirement retains ownership, admission and usable
+  current draws. All-body contacts/main/shadow/reflection/water/grass receipts
+  remain matching; CPU render vectors stay empty on the resident path.
+- Three actual GL frame cases pass (20.148 s), plus eleven worker cases.
+  All 61 CTest groups pass in one uninterrupted frozen-input run (927.29 s);
+  source/input/six-binary fingerprints remain unchanged. Ten baseline and 22
+  gallery PNG hashes remain exact. Zero positive-timeout/flush polls, server waits
+  and bulk buffer readbacks are observed in the frame cases. README, journal/PDF
+  and evidence are updated in docs/journal/architecture/terrain-gpu/async/interactive/.
+- Resume T3c4b using interactive/reload-plan.md: nonblocking future-epoch worker
+  ownership, one off-live body at a time, final prospective grass anchors and
+  complete scene exchange. T3c4c native input acceptance must pass before opening
+  interactive compute CLI. CPU remains default; T3c5 hardware gates remain.
+
 ## Movement and destination recovery checkpoint — 2026-10-05
 
 - T3c3c3 and parent T3c3/T3c3c are tested. Prospective contacts cover every body;
