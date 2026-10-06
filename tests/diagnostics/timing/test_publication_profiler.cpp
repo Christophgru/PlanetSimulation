@@ -89,3 +89,50 @@ TEST(PublicationProfiler, DisabledDoesNotReadClockOrRetainWork) {
     p.finish(5,P::Outcome::CpuFailed);p.discardOlderEpochs(3);p.collect();
     EXPECT_EQ(clocks,0u);EXPECT_EQ(p.stats().begun,0u);
 }
+TEST(PublicationProfiler, ReloadRequiresLiveExchangeAndEveryMatchingBodyDrawEvenAfterRowsDrain) {
+    const auto out=path("reload-complete");at(0);P p(out,now);p.frame(1);
+    auto rootKey=key();rootKey.body=P::unknown;
+    const auto root=p.begin(rootKey,P::Kind::Reload);
+    const auto first=p.begin(key(),P::Kind::Terrain,root);
+    auto secondKey=key(8);secondKey.body=0;
+    const auto second=p.begin(secondKey,P::Kind::Terrain,root);
+    EXPECT_EQ(p.child(root,1),first);EXPECT_EQ(p.child(root,0),second);
+    at(4);p.prepared(first,generation());p.prepared(second,generation());
+    p.rendered(2,1,7,generation());p.sceneRendered(2);EXPECT_EQ(p.stats().finished,0u);
+    at(8);p.committed(root);p.sceneRendered(3);p.sceneRendered(2);EXPECT_EQ(p.stats().finished,0u);
+    at(10);p.rendered(2,1,7,generation());p.sceneRendered(2);p.collect();
+    EXPECT_EQ(p.stats().active,2u);auto result=rows(out);ASSERT_EQ(result.size(),1u);
+    EXPECT_EQ(result[0]["parent_attempt"],std::to_string(root));
+    auto wrong=generation();++wrong.waterRevision;p.rendered(2,0,8,wrong);
+    p.sceneRendered(2);EXPECT_EQ(p.stats().active,2u);
+    p.frame(5);at(15);p.rendered(2,0,8,generation());p.sceneRendered(2);p.collect();
+    result=rows(out);ASSERT_EQ(result.size(),3u);
+    const auto& r=result[1];EXPECT_EQ(r.at("kind"),"reload");EXPECT_EQ(r.at("outcome"),"published");
+    EXPECT_EQ(r.at("scene_exchange_ms"),"8");EXPECT_EQ(r.at("publication_ms"),"15");
+    EXPECT_EQ(r.at("publication_frames"),"4");EXPECT_EQ(r.at("child_attempts"),"2");
+    EXPECT_TRUE(r.at("land_revision").empty());
+}
+TEST(PublicationProfiler, ReloadFailuresCascadeAndEmptySceneStillNeedsPostExchangeDraw) {
+    const auto out=path("reload-terminal");at(0);P p(out,now);
+    for(auto outcome:{P::Outcome::InvalidConfig,P::Outcome::Superseded,P::Outcome::PreparationFailed,P::Outcome::Shutdown}) {
+        const auto root=p.begin(key(),P::Kind::Reload);
+        const auto c=p.begin(key(),P::Kind::Terrain,root);p.prepared(c,generation());
+        p.finish(root,outcome);p.committed(root);p.rendered(2,1,7,generation());p.sceneRendered(2);
+    }
+    const auto empty=p.begin(key(),P::Kind::Reload);p.sceneRendered(2);EXPECT_EQ(p.stats().active,1u);
+    at(10);p.committed(empty);EXPECT_EQ(p.stats().active,1u);
+    at(12);p.sceneRendered(2);p.collect();auto result=rows(out);ASSERT_EQ(result.size(),9u);
+    for(std::size_t i=0;i<8;++i) EXPECT_TRUE(result[i]["publication_ms"].empty());
+    EXPECT_EQ(result.back()["outcome"],"published");EXPECT_EQ(result.back()["child_attempts"],"0");
+}
+TEST(PublicationProfiler, DroppedReloadChildCannotProduceSuccessfulSceneLatency) {
+    const auto out=path("reload-overflow");at(0);P p(out,now);
+    const auto root=p.begin(key(),P::Kind::Reload);
+    std::array<std::uint64_t,P::capacity-1> ids{};
+    for(auto& id:ids) id=p.begin(key());
+    EXPECT_EQ(p.begin(key(),P::Kind::Terrain,root),0u);
+    for(auto id:ids) p.finish(id,P::Outcome::Obsolete);
+    p.collect();p.committed(root);p.sceneRendered(2);p.collect();auto result=rows(out);
+    ASSERT_EQ(result.size(),P::capacity+1);EXPECT_EQ(result.back()["outcome"],"trace_incomplete");
+    EXPECT_TRUE(result.back()["publication_ms"].empty());EXPECT_EQ(result.back()["child_attempts"],"0");
+}

@@ -1,5 +1,32 @@
 # Page to document progress of AI Agents working on this Project
 
+## Resident reload publication tracing checkpoint — 2026-10-06
+
+- T3c5b2b2a links asynchronous resident reload roots to bounded worker/GPU body
+  attempts. Off-live preparation cannot publish; final live generation/grass
+  receipts arm after whole-scene exchange and contact binding. The root closes
+  after every child has a matching complete consumer draw, including an explicit
+  post-exchange draw for a Sun-only scene. CSV parent, exchange offset and child
+  count retain the overlapping scopes.
+- Invalid config, supersession, preparation/final-exchange failure and shutdown
+  close the transaction family without successful latency. Dropped children
+  produce trace_incomplete. Completed-row drainage retains parent ownership;
+  the fixed 64-record pool adds no worker, topology retention or GL wait.
+- Seven relevant CTest groups pass (195.27 s), with 17 controlled timing cases
+  and four augmented reload cases. Evidence review found missing GPU timing
+  bindings in the private fixture. After that correction, focused software and
+  Quadro reload rechecks validate dispatch/placement joins. Only the reload
+  fixture executable changed; runtime and the other 40 executables retain their
+  fingerprints. This is scoped validation rather than a new full 65-group run.
+- Journal/PDF, raw traces, failure receipts, device identities and frozen inputs
+  accompany the checkpoint in
+  docs/journal/architecture/terrain-gpu/async/hardware/publication/transactions/.
+  The user's environmental TODO suffix is preserved and stays unstaged.
+- T3c5b2b2 remains partial. Resume T3c5b2b2b: synchronous legacy CPU/capture reload,
+  capture draw endpoints, actual destination handoff and CPU-only grass admission.
+  Physical-memory diagnostics and matched hardware acceptance follow; CPU
+  terrain remains default.
+
 ## Ordinary publication tracing checkpoint — 2026-10-05
 
 - T3c5b2b1 is tested. Ordinary CPU terrain startup/worker replacement and

@@ -16,9 +16,9 @@ public:
     using Now=Clock::time_point (*)();
     static constexpr std::size_t capacity=64;
     static constexpr std::uint64_t unknown=std::numeric_limits<std::uint64_t>::max();
-    enum class Kind { Terrain, Grass };
+    enum class Kind { Terrain, Grass, Reload };
     enum class Outcome { Published, Rejected, Coalesced, Obsolete, CpuFailed, PreparationFailed,
-                         ReplacedBeforeDraw, Shutdown, MissingShutdown };
+                         ReplacedBeforeDraw, Shutdown, MissingShutdown, InvalidConfig, Superseded, TraceIncomplete };
     enum class Phase { CpuStart, CpuEnd, GpuSubmit, GpuReady, Count };
     struct Key {
         std::uint64_t epoch=0,serial=0,body=unknown,nameHash=0,field=0;
@@ -45,26 +45,34 @@ public:
     PublicationProfiler& operator=(const PublicationProfiler&)=delete;
     bool enabled() const {return output_.is_open();}
     void frame(std::uint64_t number);
-    std::uint64_t begin(Key key,Kind kind=Kind::Terrain);
+    std::uint64_t begin(Key key,Kind kind=Kind::Terrain,std::uint64_t parent=0);
     void phase(std::uint64_t attempt,Phase phase);
     void prepared(std::uint64_t attempt,Generation generation);
     void finish(std::uint64_t attempt,Outcome outcome);
     // Called only after the complete consumer draw, never at GPU readiness.
     void rendered(std::uint64_t epoch,std::uint64_t body,std::uint64_t serial,Generation generation);
+    // Reload children stay off-live until committed. Only a later complete
+    // scene draw can publish the root, including a scene with zero bodies.
+    std::uint64_t child(std::uint64_t parent,std::uint64_t body) const;
+    void committed(std::uint64_t parent);
+    void sceneRendered(std::uint64_t epoch);
     void discardOlderEpochs(std::uint64_t epoch);
     void collect(); // Context thread only; never called by the CPU worker.
     Stats stats() const;
 private:
     struct Record {
         std::uint64_t attempt=0,startFrame=unknown,endFrame=unknown;
+        std::uint64_t parent=0,children=0,pendingChildren=0;
         Key key;
         Kind kind=Kind::Terrain;
         Outcome outcome=Outcome::MissingShutdown;
         Clock::time_point start{},end{};
         std::array<double,static_cast<int>(Phase::Count)> phases{-1,-1,-1,-1};
         double preparedMs=-1;
+        double exchangeMs=-1;
         Generation generation;
         bool complete=false;
+        bool incomplete=false;
     };
     std::ofstream output_;
     Now now_;

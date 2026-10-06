@@ -145,6 +145,8 @@ Renderer::Impl::~Impl() {
     context.makeCurrent();
     // Stop callbacks before their borrowed camera/clock pointers are destroyed.
     glfwSetWindowUserPointer(window, nullptr);
+    if(pendingResidentReload)
+        profiler.publications().finish(pendingResidentReload->traceAttempt,PublicationProfiler::Outcome::Shutdown);
     // Workers only own CPU snapshots. Join before releasing scene resources.
     terrainJobs.stop();
 }

@@ -1,0 +1,10 @@
+Runtime source and all 41 executable hashes match final frozen inputs.
+Only the reload fixture executable changed after the seven-group scoped run.
+Software and Quadro final receipts verify 14 roots, 15 children and 88 GPU joins each.
+All 138 GPU events per renderer are ready; trace/GPU overflow remains zero.
+Positive-timeout/flush polls, server waits and bulk readbacks remain zero.
+All 22 gallery and ten retained historical baseline PNG hashes match.
+Updated Markdown local links resolve; folder/gallery layout checks pass.
+Git diff whitespace check passes.
+User environmental suffix preserved exactly: b227dc2ecc065b8c8ac1eea5fa030c32f289ade83c61e19d571ddf6c4b09c5c5
+Journal PDF compiled to 32 pages; implementation/evaluation/references/table pages 7, 8, 27, 28, 31, 32 visually reviewed.

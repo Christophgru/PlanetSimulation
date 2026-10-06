@@ -1,0 +1,8 @@
+Internal ctest changing into directory: /workspace/build-resume
+Test project /workspace/build-resume
+    Start 4: TerrainReloadFrameIntegration
+1/1 Test #4: TerrainReloadFrameIntegration ....   Passed   26.75 sec
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =  26.75 sec

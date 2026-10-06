@@ -15,6 +15,7 @@ struct PendingSceneReload {
     glm::dvec3 terrainEye{0};
     std::optional<glm::dvec3> savedGrass,characterEye;
     std::uint64_t epoch;
+    std::uint64_t traceAttempt=0,stageAttempt=0;
     double time;
     bool third=false,planned=false;
     std::size_t nextBody=0,nextGrass=0;

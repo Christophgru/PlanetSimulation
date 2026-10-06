@@ -295,8 +295,14 @@ draw with matching generation/contact receipts. Wall milliseconds and elapsed
 frames include queueing and readiness delays. Failed, rejected, coalesced,
 obsolete and never-drawn attempts have explicit outcomes and no successful
 publication latency. GPU work adds an `attempt` column for joining these records.
-Reload transactions, captures, body handoff and CPU grass-only tracing remain
-pending. See the [publication tracing study](docs/journal/architecture/terrain-gpu/async/hardware/publication/study.md).
+Asynchronous resident reloads add a `reload` root and linked body attempts;
+`parent_attempt`, `scene_exchange_ms` and `child_attempts` distinguish whole-scene
+exchange from off-live preparation. Success requires the exchanged scene's
+complete consumer draw. Root/child intervals overlap. Invalid, superseded and
+failed transactions retain unsuccessful outcomes. Synchronous reloads, captures,
+body handoff and CPU grass-only tracing remain pending. See the
+[publication tracing study](docs/journal/architecture/terrain-gpu/async/hardware/publication/study.md)
+and [reload tracing study](docs/journal/architecture/terrain-gpu/async/hardware/publication/transactions/study.md).
 `cpu_foliage_ms` includes complete CPU preparation. GPU placement, wind,
 compaction and drawing belong to the opaque/reflection passes;
 `gpu_foliage_ms` remains zero because that named stage prepares the CPU plan.

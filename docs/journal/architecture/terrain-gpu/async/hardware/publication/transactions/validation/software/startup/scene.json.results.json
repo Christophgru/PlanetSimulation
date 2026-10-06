@@ -1,0 +1,255 @@
+{
+  "frames": [
+    {
+      "body_count": 1,
+      "name": "Reload requested during startup",
+      "publication": {
+        "astronaut_contact_revision": 1,
+        "character_previews": 1,
+        "consumers": [
+          {
+            "body": "earth",
+            "contacts": {
+              "field": "10975133402283726949",
+              "field_version": 1,
+              "topology": "6373637851977143750",
+              "topology_version": 1
+            },
+            "epoch": 2,
+            "grass": {
+              "field": "10975133402283726949",
+              "field_version": 1,
+              "topology": "6373637851977143750",
+              "topology_version": 1
+            },
+            "grass_draw_revision": 1,
+            "grass_plan_eye": [
+              -0.20655804963489702,
+              0.9125565889162128,
+              -0.3670682641040701
+            ],
+            "grass_revision": 1,
+            "land": {
+              "field": "10975133402283726949",
+              "field_version": 1,
+              "topology": "6373637851977143750",
+              "topology_version": 1
+            },
+            "land_buffer": 47,
+            "land_revision": 1,
+            "main_revision": 1,
+            "reflection_revision": 1,
+            "serial": 4,
+            "shadow_revision": 1,
+            "shadows_enabled": true,
+            "water": {
+              "field": "8343445989074671795",
+              "field_version": 1,
+              "topology": "5890498633613243476",
+              "topology_version": 1
+            },
+            "water_buffer": 53,
+            "water_draw_revision": 1,
+            "water_enabled": true,
+            "water_revision": 1
+          }
+        ],
+        "failed": 0,
+        "grass_only_published": 1,
+        "interactive_failures": 0,
+        "interactive_frames": 1215,
+        "loading": false,
+        "managed": true,
+        "obsolete": 0,
+        "peak_reserved_bytes": 12532940,
+        "pending": false,
+        "published": 2,
+        "reserved_bytes": 12532940,
+        "retired": 1
+      },
+      "reload": {
+        "character_plan_eye": [
+          6.989961435863546,
+          5.8769868047492535,
+          -0.5621698153716266
+        ],
+        "epoch": 2,
+        "external_bytes": 4284452,
+        "failed": 0,
+        "pending": false,
+        "progress_frames": 1216,
+        "published": 1,
+        "retiring": true,
+        "superseded": 0
+      }
+    },
+    {
+      "body_count": 0,
+      "name": "Only Sun",
+      "publication": {
+        "astronaut_contact_revision": 0,
+        "character_previews": 1,
+        "consumers": [],
+        "failed": 0,
+        "grass_only_published": 0,
+        "interactive_failures": 0,
+        "interactive_frames": 1215,
+        "loading": false,
+        "managed": true,
+        "obsolete": 0,
+        "peak_reserved_bytes": 4124244,
+        "pending": false,
+        "published": 0,
+        "reserved_bytes": 4124244,
+        "retired": 0
+      },
+      "reload": {
+        "epoch": 3,
+        "external_bytes": 4124244,
+        "failed": 0,
+        "pending": false,
+        "progress_frames": 1217,
+        "published": 2,
+        "retiring": true,
+        "superseded": 0
+      }
+    },
+    {
+      "body_count": 2,
+      "name": "Solar System",
+      "publication": {
+        "astronaut_contact_revision": 1,
+        "character_previews": 1,
+        "consumers": [
+          {
+            "body": "earth",
+            "contacts": {
+              "field": "10975133402283726949",
+              "field_version": 1,
+              "topology": "15981623355436850376",
+              "topology_version": 1
+            },
+            "epoch": 4,
+            "grass": {
+              "field": "10975133402283726949",
+              "field_version": 1,
+              "topology": "15981623355436850376",
+              "topology_version": 1
+            },
+            "grass_draw_revision": 0,
+            "grass_plan_eye": [
+              5.434626053897031,
+              -11.693881032914703,
+              4.671413113322666
+            ],
+            "grass_revision": 1,
+            "land": {
+              "field": "10975133402283726949",
+              "field_version": 1,
+              "topology": "15981623355436850376",
+              "topology_version": 1
+            },
+            "land_buffer": 77,
+            "land_revision": 1,
+            "main_revision": 1,
+            "reflection_revision": 1,
+            "serial": 5,
+            "shadow_revision": 1,
+            "shadows_enabled": true,
+            "water": {
+              "field": "8343445989074671795",
+              "field_version": 1,
+              "topology": "18354693503898055171",
+              "topology_version": 1
+            },
+            "water_buffer": 83,
+            "water_draw_revision": 1,
+            "water_enabled": true,
+            "water_revision": 1
+          },
+          {
+            "body": "moon",
+            "contacts": {
+              "field": "13005042368953784910",
+              "field_version": 1,
+              "topology": "8896015313400212575",
+              "topology_version": 1
+            },
+            "epoch": 4,
+            "grass": {
+              "field": "13005042368953784910",
+              "field_version": 1,
+              "topology": "8896015313400212575",
+              "topology_version": 1
+            },
+            "grass_draw_revision": 0,
+            "grass_plan_eye": [
+              22.374689195895506,
+              -53.48886205724694,
+              17.301530049343203
+            ],
+            "grass_revision": 1,
+            "land": {
+              "field": "13005042368953784910",
+              "field_version": 1,
+              "topology": "8896015313400212575",
+              "topology_version": 1
+            },
+            "land_buffer": 96,
+            "land_revision": 1,
+            "main_revision": 1,
+            "reflection_revision": 1,
+            "serial": 6,
+            "shadow_revision": 1,
+            "shadows_enabled": true,
+            "water": {
+              "field": "0",
+              "field_version": 1,
+              "topology": "0",
+              "topology_version": 1
+            },
+            "water_buffer": 0,
+            "water_draw_revision": 0,
+            "water_enabled": false,
+            "water_revision": 1
+          }
+        ],
+        "failed": 0,
+        "grass_only_published": 0,
+        "interactive_failures": 0,
+        "interactive_frames": 1266,
+        "loading": false,
+        "managed": true,
+        "obsolete": 0,
+        "peak_reserved_bytes": 2451084,
+        "pending": false,
+        "published": 2,
+        "reserved_bytes": 2451084,
+        "retired": 2
+      },
+      "reload": {
+        "epoch": 4,
+        "external_bytes": 0,
+        "failed": 0,
+        "pending": false,
+        "progress_frames": 1269,
+        "published": 3,
+        "retiring": true,
+        "superseded": 0
+      }
+    }
+  ],
+  "gl": {
+    "bulk_readbacks": 0,
+    "fence_polls": 28,
+    "positive_timeout_or_flush_polls": 0,
+    "server_waits": 0
+  },
+  "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+  "version": "4.5 (Core Profile) Mesa 22.3.6",
+  "worker": {
+    "obsolete": 0,
+    "peak_queued": 1,
+    "peak_running": 1
+  }
+}

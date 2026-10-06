@@ -20,13 +20,17 @@ bool Renderer::Impl::sceneReloadPreparing() const {
 void Renderer::Impl::requestResidentReload() {
     CpuTrace::Scope scope("scene.reload_request");
     if(pendingResidentReload) {
+        profiler.publications().finish(pendingResidentReload->traceAttempt,PublicationProfiler::Outcome::Superseded);
         terrainJobs.abortReplacement(pendingResidentReload->epoch);
         pendingResidentReload.reset();++sceneReloadSuperseded;
     }
+    std::uint64_t attempt=0;
     try {
         lastReloadAttempt=std::max(lastReloadAttempt,terrainSceneEpoch);
         if(lastReloadAttempt==std::numeric_limits<std::uint64_t>::max()) throw std::overflow_error("Scene epoch exhausted");
         const auto epoch=++lastReloadAttempt;
+        PublicationProfiler::Key traceKey;traceKey.epoch=epoch;traceKey.resident=true;
+        attempt=profiler.publications().begin(traceKey,PublicationProfiler::Kind::Reload);
         auto nextOptions=options;auto nextSource=app::SceneSource::forResidentReload(nextOptions);
         if(nextOptions.terrainBackend!=options.terrainBackend || nextOptions.terrainGrassPlanner!=options.terrainGrassPlanner ||
            nextOptions.renderTestWidth!=options.renderTestWidth || nextOptions.renderTestHeight!=options.renderTestHeight ||
@@ -45,6 +49,7 @@ void Renderer::Impl::requestResidentReload() {
                 throw std::invalid_argument("Resident reload requires GPU foliage placement");
         auto pending=std::make_unique<PendingSceneReload>(std::move(nextOptions),std::move(nextSource.document),
             std::move(nextSource.replayDocument),std::move(prepared),epoch,time);
+        pending->traceAttempt=attempt;
         pending->third=third;pending->terrainEye=terrainEye;
         const auto& s=*pending->prepared;const auto count=s.scenario.planets.size();
         const auto* pose=third && pending->replay.contains("astronaut_pose") ? &pending->replay.at("astronaut_pose") : nullptr;
@@ -67,7 +72,10 @@ void Renderer::Impl::requestResidentReload() {
             pending->tracking.eyes[i]=eye;
         }
         pendingResidentReload=std::move(pending);
-    } catch(...) {++sceneReloadFailures;throw;}
+    } catch(...) {
+        profiler.publications().finish(attempt,PublicationProfiler::Outcome::InvalidConfig);
+        ++sceneReloadFailures;throw;
+    }
 }
 bool Renderer::Impl::pollResidentReload() {
     if(!pendingResidentReload) return false;
@@ -92,6 +100,7 @@ bool Renderer::Impl::pollResidentReload() {
         }
         auto& transaction=*p.transaction;transaction.poll();
         if(p.gpuBody && !transaction.preparing()) {
+            profiler.publications().phase(p.stageAttempt,PublicationProfiler::Phase::GpuReady);
             const auto i=*p.gpuBody;p.tracking.triangles[i]=transaction.land(i).indexCount/3;
             p.gpuBody.reset();++p.nextBody;
         }
@@ -104,6 +113,8 @@ bool Renderer::Impl::pollResidentReload() {
                 p.tracking.record(i,built,*ready);profiler.terrainBuild(built.milliseconds);
                 const auto& s=transaction.scene();
                 const auto anchor=s.bodies[i+1].toLocalPoint(p.terrainEye)/s.scenario.planets[i].radius;
+                profiler.publications().phase(p.stageAttempt,PublicationProfiler::Phase::GpuSubmit);
+                GpuWorkProfiler::Attempt binding(p.stageAttempt);
                 if(!transaction.submit(std::move(built),*ready,anchor,*terrainCompute))
                     throw std::logic_error("Replacement GPU preparation slot is busy");
                 p.cpuBody.reset();p.cpuIdentity.reset();p.gpuBody=i;glFlush();
@@ -116,6 +127,9 @@ bool Renderer::Impl::pollResidentReload() {
             const auto i=p.nextBody;
             auto request=transaction.requestLocal(i,p.tracking.eyes[i],++terrainRequestSerial,std::move(p.tracking.zones[i]));
             p.cpuIdentity=request.identity;
+            request.traceAttempt=p.traceAttempt ? profiler.publications().begin(
+                PublicationProfiler::Key::from(request.identity),PublicationProfiler::Kind::Terrain,p.traceAttempt) : 0;
+            p.stageAttempt=request.traceAttempt;
             if(!terrainJobs.submit(std::move(request))) throw std::logic_error("Replacement CPU preparation slot is busy");
             p.cpuBody=i;return false;
         }
@@ -134,6 +148,7 @@ bool Renderer::Impl::pollResidentReload() {
             const auto i=p.nextGrass;const auto& s=transaction.scene();
             const auto anchor=i==s.scenario.surface_camera.planet_index && p.savedGrass ? *p.savedGrass :
                 s.bodies[i+1].toLocalPoint(p.characterEye.value_or(p.terrainEye))/s.scenario.planets[i].radius;
+            GpuWorkProfiler::Attempt binding(profiler.publications().child(p.traceAttempt,i));
             if(!transaction.replanGrass(i,anchor)) return false;
             if(transaction.preparing()) {p.grassBody=i;glFlush();}
             else ++p.nextGrass;
@@ -143,8 +158,16 @@ bool Renderer::Impl::pollResidentReload() {
         if(!transaction.publish(p.epoch)) throw std::logic_error("Replacement scene became obsolete");
         retiredResidentScene=std::move(p.transaction);
         finishSceneReload(p.tracking,p.options,p.replay,commit);
+        // Off-live per-body exchange was preparation only. Arm the final live
+        // receipts after the complete scene and its contact bindings exchanged.
+        if(p.traceAttempt) {
+            for(std::size_t i=0;i<count;++i)
+                profiler.publications().prepared(profiler.publications().child(p.traceAttempt,i),publicationGeneration(i));
+            profiler.publications().committed(p.traceAttempt);
+        }
         pendingResidentReload.reset();return true;
     } catch(const std::exception& error) {
+        profiler.publications().finish(pendingResidentReload->traceAttempt,PublicationProfiler::Outcome::PreparationFailed);
         const auto epoch=pendingResidentReload->epoch;terrainJobs.abortReplacement(epoch);
         pendingResidentReload.reset();++sceneReloadFailures;
         std::cerr << "Config reload failed; current scene retained: " << error.what() << '\n';return false;

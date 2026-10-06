@@ -31,8 +31,11 @@ The [native loop timing study](architecture/terrain-gpu/async/hardware/loop/stud
 adds frame-linked complete wall receipts for polling, loading presentation and
 minimized waits. The [publication tracing study](architecture/terrain-gpu/async/hardware/publication/study.md)
 adds bounded ordinary CPU/compute terrain and resident grass receipts through
-complete consumer draws. Reload/capture/handoff/CPU grass lifecycle and physical
-memory remain prerequisites before matched CPU/compute cost acceptance.
+complete consumer draws. The [reload tracing study](architecture/terrain-gpu/async/hardware/publication/transactions/study.md)
+adds bounded whole-scene attempts through exchange and complete consumption,
+with failed/superseded transactions retained. Synchronous reload, capture,
+handoff, CPU grass lifecycle and physical memory remain prerequisites before
+matched CPU/compute cost acceptance.
 
 The [GPU timing prerequisite](architecture/terrain-gpu/async/hardware/timing/study.md)
 adds bounded request-keyed dispatch timings and complete frame timestamp spans.

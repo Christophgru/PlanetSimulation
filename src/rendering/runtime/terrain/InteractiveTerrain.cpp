@@ -33,6 +33,7 @@ void Renderer::Impl::recordRenderedPublications(bool character) {
         }
         trace.rendered(terrainSceneEpoch,i,installedTerrainSerial[i],publicationGeneration(i));
     }
+    trace.sceneRendered(terrainSceneEpoch);
 }
 
 bool Renderer::Impl::residentSceneReady() const {
