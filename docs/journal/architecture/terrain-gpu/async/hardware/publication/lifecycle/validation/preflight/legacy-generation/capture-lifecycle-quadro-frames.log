@@ -1,0 +1,343 @@
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+Note: Google Test filter = TerrainFrame.CaptureAnd*:TerrainFrame.PublicationTraceMatchesDefaultCpu*
+[==========] Running 4 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 4 tests from TerrainFrame
+[ RUN      ] TerrainFrame.PublicationTraceMatchesDefaultCpuStartupAndWorkerReplacement
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 20.0 s
+Sun radius: 2.5
+Planets: 2
+Surface camera position: (6.9946, 5.87568, -0.562742)
+Surface render test mode enabled
+Output image: /workspace/build-resume/terrain-frame/publication-cpu/frame.png
+[       OK ] TerrainFrame.PublicationTraceMatchesDefaultCpuStartupAndWorkerReplacement (5685 ms)
+[ RUN      ] TerrainFrame.CaptureAndSynchronousCpuReloadTraceCompleteConsumers
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 20.0 s
+Sun radius: 2.5
+Planets: 2
+Surface camera position: (6.9946, 5.87568, -0.562742)
+Surface render test mode enabled
+Output image: /workspace/build-resume/terrain-frame/capture-publication-cpu/frame.png
+Planet 0 terrain: 10000 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 10000); foliage blades: 128; water triangles: 10000
+Planet 0 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 1200000
+Planet 0 foliage candidate bounds per pass: 662 vertices; 406 triangles; 10 batches; instance bytes: 512
+Planet 0 terrain contract: 5002 canonical samples; 280064 input bytes; planning queries 7507/5948 requested/evaluated; bulk queries 15006/15006 requested/evaluated; field/topology 10975133402283726949/6373637851977143750; backend cpu
+Planet 0 GPU grass draws: 0 detailed; 0 quads; 0 vertices; 0 triangles; GPU working bytes: 16416
+Planet 1 terrain: 960 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 10000); foliage blades: 0; water triangles: 0
+Planet 1 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 115200
+Planet 1 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Planet 1 terrain contract: 482 canonical samples; 26944 input bytes; planning queries 1280/482 requested/evaluated; bulk queries 1446/1446 requested/evaluated; field/topology 13005042368953784910/8896015313400212575; backend cpu
+Mesh preparation: 676.92 ms; GPU-complete benchmark: 71.5394 ms
+earth lighting: direct RGB (4.42966, 4.38536, 4.29677), reflected RGB (7.53886e-06, 7.46347e-06, 7.69757e-06)
+moon lighting: direct RGB (8.26617, 8.18351, 8.01819), reflected RGB (0.0122606, 0.02023, 0.0396426)
+Image size: 320x180
+Background pixel: (11, 18, 26)
+Non-background pixels: 57078, bounding box: (0, 0)-(319, 179)
+Sun-colored pixels: 0
+Planet pixels (color/depth): 40078, bounding box: (0, 28)-(319, 179)
+Camera exposure: 0.175354; sky sensitivity: 0.00273991
+Star-like pixels: 186, bounding box: (0, 36)-(293, 75)
+Blue water-like pixels: 16491, bounding box: (0, 0)-(319, 72)
+Simulation time: 20.0 s
+Surface camera position (world, km): [6.994598500763506,5.875675765923116,-0.562742349263953]
+Surface camera direction (world, unit vector): [0.611463993582055,-0.749282257589539,-0.2543381273309378]
+Surface camera position (planet LLA): latitude=-21.409888069265286 deg, longitude=103.0 deg, altitude=6.015136819711464 m above reference sphere
+Surface camera ground clearance: 3.0 m
+surface_camera start value: {"altitude":0.003,"direction_ned":[0.049778974257458364,0.9955794851491649,-0.07964635881193319],"fov":65.0,"latitude_deg":-21.409888069265286,"longitude_deg":103.0,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":20.0,"up_ned":[-0.003977349357325688,-0.07954698714652228,-0.9968231826798577],"walk_speed_mps":80.0}
+White-clipped pixels (RGB >= 250): 0 (0%)
+Render test completed successfully
+Output image: /workspace/build-resume/terrain-frame/capture-publication-cpu/frame.png
+Planet 0 terrain: 10000 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 10000); foliage blades: 128; water triangles: 10000
+Planet 0 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 1200000
+Planet 0 foliage candidate bounds per pass: 662 vertices; 406 triangles; 10 batches; instance bytes: 512
+Planet 0 terrain contract: 5002 canonical samples; 280064 input bytes; planning queries 7507/5948 requested/evaluated; bulk queries 15006/15006 requested/evaluated; field/topology 10975133402283726949/6373637851977143750; backend cpu
+Planet 0 GPU grass draws: 0 detailed; 0 quads; 0 vertices; 0 triangles; GPU working bytes: 16416
+Planet 1 terrain: 960 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 10000); foliage blades: 0; water triangles: 0
+Planet 1 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 115200
+Planet 1 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Planet 1 terrain contract: 482 canonical samples; 26944 input bytes; planning queries 1280/482 requested/evaluated; bulk queries 1446/1446 requested/evaluated; field/topology 13005042368953784910/8896015313400212575; backend cpu
+Mesh preparation: 0.031592 ms; GPU-complete benchmark: 1.60269 ms
+earth lighting: direct RGB (4.42966, 4.38536, 4.29677), reflected RGB (7.53886e-06, 7.46347e-06, 7.69757e-06)
+moon lighting: direct RGB (8.26617, 8.18351, 8.01819), reflected RGB (0.0122606, 0.02023, 0.0396426)
+Image size: 320x180
+Background pixel: (11, 18, 26)
+Non-background pixels: 57078, bounding box: (0, 0)-(319, 179)
+Sun-colored pixels: 0
+Planet pixels (color/depth): 40078, bounding box: (0, 28)-(319, 179)
+Camera exposure: 1; sky sensitivity: 1
+Star-like pixels: 186, bounding box: (0, 36)-(293, 75)
+Blue water-like pixels: 16491, bounding box: (0, 0)-(319, 72)
+Simulation time: 20.0 s
+Surface camera position (world, km): [6.994598500763506,5.875675765923116,-0.562742349263953]
+Surface camera direction (world, unit vector): [0.611463993582055,-0.749282257589539,-0.25433812733093786]
+Surface camera position (planet LLA): latitude=-21.409888069265286 deg, longitude=103.0 deg, altitude=6.015136819711464 m above reference sphere
+Surface camera ground clearance: 3.0 m
+surface_camera start value: {"altitude":0.003,"direction_ned":[0.049778974257458336,0.9955794851491649,-0.07964635881193322],"fov":65.0,"latitude_deg":-21.409888069265286,"longitude_deg":103.0,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":20.0,"up_ned":[-0.003977349357325799,-0.07954698714652225,-0.9968231826798577],"walk_speed_mps":80.0}
+White-clipped pixels (RGB >= 250): 0 (0%)
+Render test completed successfully
+Output image: /workspace/build-resume/terrain-frame/capture-publication-cpu/frame.png
+Planet 0 terrain: 10000 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 10000); foliage blades: 128; water triangles: 10000
+Planet 0 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 1200000
+Planet 0 foliage candidate bounds per pass: 662 vertices; 406 triangles; 10 batches; instance bytes: 512
+Planet 0 terrain contract: 5002 canonical samples; 280064 input bytes; planning queries 7507/5948 requested/evaluated; bulk queries 15006/15006 requested/evaluated; field/topology 10975133402283726949/6373637851977143750; backend cpu
+Planet 0 GPU grass draws: 0 detailed; 0 quads; 0 vertices; 0 triangles; GPU working bytes: 16416
+Planet 1 terrain: 960 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 10000); foliage blades: 0; water triangles: 0
+Planet 1 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 115200
+Planet 1 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Planet 1 terrain contract: 482 canonical samples; 26944 input bytes; planning queries 1280/482 requested/evaluated; bulk queries 1446/1446 requested/evaluated; field/topology 13005042368953784910/8896015313400212575; backend cpu
+Mesh preparation: 0.838038 ms; GPU-complete benchmark: 41.046 ms
+earth lighting: direct RGB (4.42966, 4.38536, 4.29677), reflected RGB (7.53886e-06, 7.46347e-06, 7.69757e-06)
+moon lighting: direct RGB (8.26617, 8.18351, 8.01819), reflected RGB (0.0122606, 0.02023, 0.0396426)
+Image size: 320x180
+Background pixel: (11, 18, 26)
+Non-background pixels: 57078, bounding box: (0, 0)-(319, 179)
+Sun-colored pixels: 0
+Planet pixels (color/depth): 40078, bounding box: (0, 28)-(319, 179)
+Camera exposure: 0.175354; sky sensitivity: 0.00273991
+Star-like pixels: 186, bounding box: (0, 36)-(293, 75)
+Blue water-like pixels: 16491, bounding box: (0, 0)-(319, 72)
+Simulation time: 20.0 s
+Surface camera position (world, km): [6.994598500763506,5.875675765923116,-0.562742349263953]
+Surface camera direction (world, unit vector): [0.611463993582055,-0.749282257589539,-0.2543381273309378]
+Surface camera position (planet LLA): latitude=-21.409888069265286 deg, longitude=103.0 deg, altitude=6.015136819711464 m above reference sphere
+Surface camera ground clearance: 3.0 m
+surface_camera start value: {"altitude":0.003,"direction_ned":[0.049778974257458364,0.9955794851491649,-0.07964635881193319],"fov":65.0,"latitude_deg":-21.409888069265286,"longitude_deg":103.0,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":20.0,"up_ned":[-0.003977349357325688,-0.07954698714652228,-0.9968231826798577],"walk_speed_mps":80.0}
+White-clipped pixels (RGB >= 250): 0 (0%)
+Render test completed successfully
+Output image: /workspace/build-resume/terrain-frame/capture-publication-cpu/frame.png
+[       OK ] TerrainFrame.CaptureAndSynchronousCpuReloadTraceCompleteConsumers (2809 ms)
+[ RUN      ] TerrainFrame.CaptureAndSynchronousLegacyComputeReloadTraceCompleteConsumers
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 20.0 s
+Sun radius: 2.5
+Planets: 2
+Surface camera position: (6.9946, 5.87568, -0.562742)
+Surface render test mode enabled
+Output image: /workspace/build-resume/terrain-frame/capture-publication-legacy/frame.png
+Planet 0 terrain: 10000 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 10000); foliage blades: 128; water triangles: 10000
+Planet 0 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 1200000
+Planet 0 foliage candidate bounds per pass: 662 vertices; 406 triangles; 10 batches; instance bytes: 512
+Planet 0 terrain contract: 5002 canonical samples; 280064 input bytes; planning queries 7507/5948 requested/evaluated; bulk queries 15006/15006 requested/evaluated; field/topology 10975133402283726949/6373637851977143750; backend compute
+Planet 0 compute generation: 280816 uploaded bytes; 1660848 peak bytes; 2 dispatches; 22.9774 GPU ms; CPU compatibility mirror retained
+Planet 0 GPU grass draws: 0 detailed; 0 quads; 0 vertices; 0 triangles; GPU working bytes: 656576
+Planet 1 terrain: 960 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 10000); foliage blades: 0; water triangles: 0
+Planet 1 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 115200
+Planet 1 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Planet 1 terrain contract: 482 canonical samples; 26944 input bytes; planning queries 1280/482 requested/evaluated; bulk queries 1446/1446 requested/evaluated; field/topology 13005042368953784910/8896015313400212575; backend compute
+Planet 1 compute generation: 27696 uploaded bytes; 160208 peak bytes; 2 dispatches; 1.39398 GPU ms; CPU compatibility mirror retained
+Mesh preparation: 2345.03 ms; GPU-complete benchmark: 346.989 ms
+earth lighting: direct RGB (4.42966, 4.38536, 4.29677), reflected RGB (7.53886e-06, 7.46347e-06, 7.69757e-06)
+moon lighting: direct RGB (8.26617, 8.18351, 8.01819), reflected RGB (0.0122606, 0.02023, 0.0396426)
+Image size: 320x180
+Background pixel: (11, 18, 26)
+Non-background pixels: 57078, bounding box: (0, 0)-(319, 179)
+Sun-colored pixels: 0
+Planet pixels (color/depth): 40078, bounding box: (0, 28)-(319, 179)
+Camera exposure: 0.175354; sky sensitivity: 0.00273991
+Star-like pixels: 186, bounding box: (0, 36)-(293, 75)
+Blue water-like pixels: 16491, bounding box: (0, 0)-(319, 72)
+Simulation time: 20.0 s
+Surface camera position (world, km): [6.994598500763506,5.875675765923116,-0.562742349263953]
+Surface camera direction (world, unit vector): [0.611463993582055,-0.749282257589539,-0.2543381273309378]
+Surface camera position (planet LLA): latitude=-21.409888069265286 deg, longitude=103.0 deg, altitude=6.015136819711464 m above reference sphere
+Surface camera ground clearance: 3.0 m
+surface_camera start value: {"altitude":0.003,"direction_ned":[0.049778974257458364,0.9955794851491649,-0.07964635881193319],"fov":65.0,"latitude_deg":-21.409888069265286,"longitude_deg":103.0,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":20.0,"up_ned":[-0.003977349357325688,-0.07954698714652228,-0.9968231826798577],"walk_speed_mps":80.0}
+White-clipped pixels (RGB >= 250): 0 (0%)
+Render test completed successfully
+Output image: /workspace/build-resume/terrain-frame/capture-publication-legacy/frame.png
+Planet 0 terrain: 10000 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 10000); foliage blades: 128; water triangles: 10000
+Planet 0 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 1200000
+Planet 0 foliage candidate bounds per pass: 662 vertices; 406 triangles; 10 batches; instance bytes: 512
+Planet 0 terrain contract: 5002 canonical samples; 280064 input bytes; planning queries 7507/5948 requested/evaluated; bulk queries 15006/15006 requested/evaluated; field/topology 10975133402283726949/6373637851977143750; backend compute
+Planet 0 compute generation: 280816 uploaded bytes; 1660848 peak bytes; 2 dispatches; 22.9774 GPU ms; CPU compatibility mirror retained
+Planet 0 GPU grass draws: 0 detailed; 0 quads; 0 vertices; 0 triangles; GPU working bytes: 656576
+Planet 1 terrain: 960 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 10000); foliage blades: 0; water triangles: 0
+Planet 1 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 115200
+Planet 1 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Planet 1 terrain contract: 482 canonical samples; 26944 input bytes; planning queries 1280/482 requested/evaluated; bulk queries 1446/1446 requested/evaluated; field/topology 13005042368953784910/8896015313400212575; backend compute
+Planet 1 compute generation: 27696 uploaded bytes; 160208 peak bytes; 2 dispatches; 1.39398 GPU ms; CPU compatibility mirror retained
+Mesh preparation: 0.024174 ms; GPU-complete benchmark: 1.49927 ms
+earth lighting: direct RGB (4.42966, 4.38536, 4.29677), reflected RGB (7.53886e-06, 7.46347e-06, 7.69757e-06)
+moon lighting: direct RGB (8.26617, 8.18351, 8.01819), reflected RGB (0.0122606, 0.02023, 0.0396426)
+Image size: 320x180
+Background pixel: (11, 18, 26)
+Non-background pixels: 57078, bounding box: (0, 0)-(319, 179)
+Sun-colored pixels: 0
+Planet pixels (color/depth): 40078, bounding box: (0, 28)-(319, 179)
+Camera exposure: 1; sky sensitivity: 1
+Star-like pixels: 186, bounding box: (0, 36)-(293, 75)
+Blue water-like pixels: 16491, bounding box: (0, 0)-(319, 72)
+Simulation time: 20.0 s
+Surface camera position (world, km): [6.994598500763506,5.875675765923116,-0.562742349263953]
+Surface camera direction (world, unit vector): [0.611463993582055,-0.749282257589539,-0.25433812733093786]
+Surface camera position (planet LLA): latitude=-21.409888069265286 deg, longitude=103.0 deg, altitude=6.015136819711464 m above reference sphere
+Surface camera ground clearance: 3.0 m
+surface_camera start value: {"altitude":0.003,"direction_ned":[0.049778974257458336,0.9955794851491649,-0.07964635881193322],"fov":65.0,"latitude_deg":-21.409888069265286,"longitude_deg":103.0,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":20.0,"up_ned":[-0.003977349357325799,-0.07954698714652225,-0.9968231826798577],"walk_speed_mps":80.0}
+White-clipped pixels (RGB >= 250): 0 (0%)
+Render test completed successfully
+Output image: /workspace/build-resume/terrain-frame/capture-publication-legacy/frame.png
+Planet 0 terrain: 10000 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 10000); foliage blades: 128; water triangles: 10000
+Planet 0 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 1200000
+Planet 0 foliage candidate bounds per pass: 662 vertices; 406 triangles; 10 batches; instance bytes: 512
+Planet 0 terrain contract: 5002 canonical samples; 280064 input bytes; planning queries 7507/5948 requested/evaluated; bulk queries 15006/15006 requested/evaluated; field/topology 10975133402283726949/6373637851977143750; backend compute
+Planet 0 compute generation: 280112 uploaded bytes; 1660848 peak bytes; 2 dispatches; 22.9683 GPU ms; CPU compatibility mirror retained
+Planet 0 GPU grass draws: 0 detailed; 0 quads; 0 vertices; 0 triangles; GPU working bytes: 656576
+Planet 1 terrain: 960 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 10000); foliage blades: 0; water triangles: 0
+Planet 1 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 115200
+Planet 1 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Planet 1 terrain contract: 482 canonical samples; 26944 input bytes; planning queries 1280/482 requested/evaluated; bulk queries 1446/1446 requested/evaluated; field/topology 13005042368953784910/8896015313400212575; backend compute
+Planet 1 compute generation: 26992 uploaded bytes; 160208 peak bytes; 2 dispatches; 1.39654 GPU ms; CPU compatibility mirror retained
+Mesh preparation: 0.477195 ms; GPU-complete benchmark: 55.6663 ms
+earth lighting: direct RGB (4.42966, 4.38536, 4.29677), reflected RGB (7.53886e-06, 7.46347e-06, 7.69757e-06)
+moon lighting: direct RGB (8.26617, 8.18351, 8.01819), reflected RGB (0.0122606, 0.02023, 0.0396426)
+Image size: 320x180
+Background pixel: (11, 18, 26)
+Non-background pixels: 57078, bounding box: (0, 0)-(319, 179)
+Sun-colored pixels: 0
+Planet pixels (color/depth): 40078, bounding box: (0, 28)-(319, 179)
+Camera exposure: 0.175354; sky sensitivity: 0.00273991
+Star-like pixels: 186, bounding box: (0, 36)-(293, 75)
+Blue water-like pixels: 16491, bounding box: (0, 0)-(319, 72)
+Simulation time: 20.0 s
+Surface camera position (world, km): [6.994598500763506,5.875675765923116,-0.562742349263953]
+Surface camera direction (world, unit vector): [0.611463993582055,-0.749282257589539,-0.2543381273309378]
+Surface camera position (planet LLA): latitude=-21.409888069265286 deg, longitude=103.0 deg, altitude=6.015136819711464 m above reference sphere
+Surface camera ground clearance: 3.0 m
+surface_camera start value: {"altitude":0.003,"direction_ned":[0.049778974257458364,0.9955794851491649,-0.07964635881193319],"fov":65.0,"latitude_deg":-21.409888069265286,"longitude_deg":103.0,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":20.0,"up_ned":[-0.003977349357325688,-0.07954698714652228,-0.9968231826798577],"walk_speed_mps":80.0}
+White-clipped pixels (RGB >= 250): 0 (0%)
+Render test completed successfully
+Output image: /workspace/build-resume/terrain-frame/capture-publication-legacy/frame.png
+/workspace/tests/app/terrain/interactive/test_capture_publications.cpp:64: Failure
+Value of: (row.at("field")==child->at("land_field") && row.at("topology")==child->at("land_topology")) || (row.at("field")==child->at("water_field") && row.at("topology")==child->at("water_topology"))
+  Actual: false
+Expected: true
+/workspace/tests/app/terrain/interactive/test_capture_publications.cpp:64: Failure
+Value of: (row.at("field")==child->at("land_field") && row.at("topology")==child->at("land_topology")) || (row.at("field")==child->at("water_field") && row.at("topology")==child->at("water_topology"))
+  Actual: false
+Expected: true
+/workspace/tests/app/terrain/interactive/test_capture_publications.cpp:64: Failure
+Value of: (row.at("field")==child->at("land_field") && row.at("topology")==child->at("land_topology")) || (row.at("field")==child->at("water_field") && row.at("topology")==child->at("water_topology"))
+  Actual: false
+Expected: true
+/workspace/tests/app/terrain/interactive/test_capture_publications.cpp:64: Failure
+Value of: (row.at("field")==child->at("land_field") && row.at("topology")==child->at("land_topology")) || (row.at("field")==child->at("water_field") && row.at("topology")==child->at("water_topology"))
+  Actual: false
+Expected: true
+[  FAILED  ] TerrainFrame.CaptureAndSynchronousLegacyComputeReloadTraceCompleteConsumers (4929 ms)
+[ RUN      ] TerrainFrame.CaptureAndSynchronousResidentReloadTraceCompleteConsumers
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 20.0 s
+Sun radius: 2.5
+Planets: 2
+Surface camera position: (6.9946, 5.87568, -0.562742)
+Surface render test mode enabled
+Output image: /workspace/build-resume/terrain-frame/capture-publication-resident/frame.png
+Planet 0 terrain: 10000 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 10000); foliage blades: 128; water triangles: 10000
+Planet 0 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 0
+Planet 0 foliage candidate bounds per pass: 1792 vertices; 1536 triangles; 1 batches; instance bytes: 0
+Planet 0 terrain contract: 5002 canonical samples; 280064 input bytes; planning queries 7507/5948 requested/evaluated; bulk queries 0/0 requested/evaluated; field/topology 10975133402283726949/6373637851977143750; backend compute
+Planet 0 compute generation: 280816 uploaded bytes; 1660848 peak bytes; 2 dispatches; 22.9869 GPU ms; CPU compatibility mirror retained
+Planet 0 GPU grass draws: 0 detailed; 0 quads; 0 vertices; 0 triangles; GPU working bytes: 802548
+Planet 1 terrain: 960 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 10000); foliage blades: 0; water triangles: 0
+Planet 1 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 0
+Planet 1 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Planet 1 terrain contract: 482 canonical samples; 26944 input bytes; planning queries 1280/482 requested/evaluated; bulk queries 0/0 requested/evaluated; field/topology 13005042368953784910/8896015313400212575; backend compute
+Planet 1 compute generation: 27696 uploaded bytes; 160208 peak bytes; 2 dispatches; 1.40064 GPU ms; CPU compatibility mirror retained
+Mesh preparation: 985.797 ms; GPU-complete benchmark: 61.6744 ms
+earth lighting: direct RGB (4.42966, 4.38536, 4.29677), reflected RGB (7.53886e-06, 7.46347e-06, 7.69757e-06)
+moon lighting: direct RGB (8.26617, 8.18351, 8.01819), reflected RGB (0.0122606, 0.02023, 0.0396426)
+Image size: 320x180
+Background pixel: (11, 18, 26)
+Non-background pixels: 57078, bounding box: (0, 0)-(319, 179)
+Sun-colored pixels: 0
+Planet pixels (color/depth): 40078, bounding box: (0, 28)-(319, 179)
+Camera exposure: 0.175354; sky sensitivity: 0.00273991
+Star-like pixels: 186, bounding box: (0, 36)-(293, 75)
+Blue water-like pixels: 16491, bounding box: (0, 0)-(319, 72)
+Simulation time: 20.0 s
+Surface camera position (world, km): [6.994598500763506,5.875675765923116,-0.562742349263953]
+Surface camera direction (world, unit vector): [0.611463993582055,-0.749282257589539,-0.2543381273309378]
+Surface camera position (planet LLA): latitude=-21.409888069265286 deg, longitude=103.0 deg, altitude=6.015136819711464 m above reference sphere
+Surface camera ground clearance: 3.0 m
+surface_camera start value: {"altitude":0.003,"direction_ned":[0.049778974257458364,0.9955794851491649,-0.07964635881193319],"fov":65.0,"latitude_deg":-21.409888069265286,"longitude_deg":103.0,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":20.0,"up_ned":[-0.003977349357325688,-0.07954698714652228,-0.9968231826798577],"walk_speed_mps":80.0}
+White-clipped pixels (RGB >= 250): 0 (0%)
+Render test completed successfully
+Output image: /workspace/build-resume/terrain-frame/capture-publication-resident/frame.png
+Planet 0 terrain: 10000 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 10000); foliage blades: 128; water triangles: 10000
+Planet 0 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 0
+Planet 0 foliage candidate bounds per pass: 1792 vertices; 1536 triangles; 1 batches; instance bytes: 0
+Planet 0 terrain contract: 5002 canonical samples; 280064 input bytes; planning queries 7507/5948 requested/evaluated; bulk queries 0/0 requested/evaluated; field/topology 10975133402283726949/6373637851977143750; backend compute
+Planet 0 compute generation: 280816 uploaded bytes; 1660848 peak bytes; 2 dispatches; 22.9869 GPU ms; CPU compatibility mirror retained
+Planet 0 GPU grass draws: 0 detailed; 0 quads; 0 vertices; 0 triangles; GPU working bytes: 802548
+Planet 1 terrain: 960 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 10000); foliage blades: 0; water triangles: 0
+Planet 1 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 0
+Planet 1 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Planet 1 terrain contract: 482 canonical samples; 26944 input bytes; planning queries 1280/482 requested/evaluated; bulk queries 0/0 requested/evaluated; field/topology 13005042368953784910/8896015313400212575; backend compute
+Planet 1 compute generation: 27696 uploaded bytes; 160208 peak bytes; 2 dispatches; 1.40064 GPU ms; CPU compatibility mirror retained
+Mesh preparation: 0.04059 ms; GPU-complete benchmark: 1.49905 ms
+earth lighting: direct RGB (4.42966, 4.38536, 4.29677), reflected RGB (7.53886e-06, 7.46347e-06, 7.69757e-06)
+moon lighting: direct RGB (8.26617, 8.18351, 8.01819), reflected RGB (0.0122606, 0.02023, 0.0396426)
+Image size: 320x180
+Background pixel: (11, 18, 26)
+Non-background pixels: 57078, bounding box: (0, 0)-(319, 179)
+Sun-colored pixels: 0
+Planet pixels (color/depth): 40078, bounding box: (0, 28)-(319, 179)
+Camera exposure: 1; sky sensitivity: 1
+Star-like pixels: 186, bounding box: (0, 36)-(293, 75)
+Blue water-like pixels: 16491, bounding box: (0, 0)-(319, 72)
+Simulation time: 20.0 s
+Surface camera position (world, km): [6.994598500763506,5.875675765923116,-0.562742349263953]
+Surface camera direction (world, unit vector): [0.611463993582055,-0.749282257589539,-0.25433812733093786]
+Surface camera position (planet LLA): latitude=-21.409888069265286 deg, longitude=103.0 deg, altitude=6.015136819711464 m above reference sphere
+Surface camera ground clearance: 3.0 m
+surface_camera start value: {"altitude":0.003,"direction_ned":[0.049778974257458336,0.9955794851491649,-0.07964635881193322],"fov":65.0,"latitude_deg":-21.409888069265286,"longitude_deg":103.0,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":20.0,"up_ned":[-0.003977349357325799,-0.07954698714652225,-0.9968231826798577],"walk_speed_mps":80.0}
+White-clipped pixels (RGB >= 250): 0 (0%)
+Render test completed successfully
+Output image: /workspace/build-resume/terrain-frame/capture-publication-resident/frame.png
+Planet 0 terrain: 10000 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 10000); foliage blades: 128; water triangles: 10000
+Planet 0 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 0
+Planet 0 foliage candidate bounds per pass: 1792 vertices; 1536 triangles; 1 batches; instance bytes: 0
+Planet 0 terrain contract: 5002 canonical samples; 280064 input bytes; planning queries 7507/5948 requested/evaluated; bulk queries 0/0 requested/evaluated; field/topology 10975133402283726949/6373637851977143750; backend compute
+Planet 0 compute generation: 280112 uploaded bytes; 1660848 peak bytes; 2 dispatches; 22.998 GPU ms; CPU compatibility mirror retained
+Planet 0 GPU grass draws: 0 detailed; 0 quads; 0 vertices; 0 triangles; GPU working bytes: 802548
+Planet 1 terrain: 960 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 10000); foliage blades: 0; water triangles: 0
+Planet 1 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 0
+Planet 1 foliage candidate bounds per pass: 0 vertices; 0 triangles; 0 batches; instance bytes: 0
+Planet 1 terrain contract: 482 canonical samples; 26944 input bytes; planning queries 1280/482 requested/evaluated; bulk queries 0/0 requested/evaluated; field/topology 13005042368953784910/8896015313400212575; backend compute
+Planet 1 compute generation: 26992 uploaded bytes; 160208 peak bytes; 2 dispatches; 1.4032 GPU ms; CPU compatibility mirror retained
+Mesh preparation: 1.11446 ms; GPU-complete benchmark: 47.9808 ms
+earth lighting: direct RGB (4.42966, 4.38536, 4.29677), reflected RGB (7.53886e-06, 7.46347e-06, 7.69757e-06)
+moon lighting: direct RGB (8.26617, 8.18351, 8.01819), reflected RGB (0.0122606, 0.02023, 0.0396426)
+Image size: 320x180
+Background pixel: (11, 18, 26)
+Non-background pixels: 57078, bounding box: (0, 0)-(319, 179)
+Sun-colored pixels: 0
+Planet pixels (color/depth): 40078, bounding box: (0, 28)-(319, 179)
+Camera exposure: 0.175354; sky sensitivity: 0.00273991
+Star-like pixels: 186, bounding box: (0, 36)-(293, 75)
+Blue water-like pixels: 16491, bounding box: (0, 0)-(319, 72)
+Simulation time: 20.0 s
+Surface camera position (world, km): [6.994598500763506,5.875675765923116,-0.562742349263953]
+Surface camera direction (world, unit vector): [0.611463993582055,-0.749282257589539,-0.2543381273309378]
+Surface camera position (planet LLA): latitude=-21.409888069265286 deg, longitude=103.0 deg, altitude=6.015136819711464 m above reference sphere
+Surface camera ground clearance: 3.0 m
+surface_camera start value: {"altitude":0.003,"direction_ned":[0.049778974257458364,0.9955794851491649,-0.07964635881193319],"fov":65.0,"latitude_deg":-21.409888069265286,"longitude_deg":103.0,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":20.0,"up_ned":[-0.003977349357325688,-0.07954698714652228,-0.9968231826798577],"walk_speed_mps":80.0}
+White-clipped pixels (RGB >= 250): 0 (0%)
+Render test completed successfully
+Output image: /workspace/build-resume/terrain-frame/capture-publication-resident/frame.png
+[       OK ] TerrainFrame.CaptureAndSynchronousResidentReloadTraceCompleteConsumers (3183 ms)
+[----------] 4 tests from TerrainFrame (16608 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 1 test suite ran. (16608 ms total)
+[  PASSED  ] 3 tests.
+[  FAILED  ] 1 test, listed below:
+[  FAILED  ] TerrainFrame.CaptureAndSynchronousLegacyComputeReloadTraceCompleteConsumers
+
+ 1 FAILED TEST

@@ -37,7 +37,7 @@ void runPublicationCase(bool compute) {
                 const auto& land=r.meshes.planetMeshes[i];const auto& water=r.meshes.waterMeshes[i];
                 const auto& l=land.terrainStats.generation;const auto& w=water.terrainStats.generation;
                 rendering::PublicationProfiler::Generation g{l.field,l.topology,w.field,w.topology,land.revision,water.revision};
-                if(compute) {const auto eye=r.terrainPublication->installed(i).grassEye;g.grassEye={eye.x,eye.y,eye.z};}
+                if(const auto eye=r.grass.procedural.planningEye(i)) g.grassEye={eye->x,eye->y,eye->z};
                 receipts.push_back({r.terrainSceneEpoch,i,r.installedTerrainSerial[i],frame,g});
             }
             r.profiler.endFrame();glFlush();p.collect();
@@ -54,6 +54,15 @@ void runPublicationCase(bool compute) {
             failPoll=true;tickFrame();drawFrame();delay=false;
             ASSERT_TRUE(until(tickFrame,[&]{return idle(r);}));drawFrame();
             EXPECT_EQ(r.installedTerrainSerial[0],originalSerial);EXPECT_EQ(r.meshes.planetMeshes[0].revision,originalRevision);
+        } else {
+            r.scene.surfaceCamera->walk(1,0,1/(r.scene.surfaceCamera->walkSpeed()*r.scene.scenario.metersPerWorldUnit()));
+            tickFrame();drawFrame();
+            EXPECT_EQ(r.installedTerrainSerial[0],originalSerial);EXPECT_EQ(r.meshes.planetMeshes[0].revision,originalRevision);
+            const auto count=p.stats().begun;drawFrame();EXPECT_EQ(p.stats().begun,count);
+            auto& mesh=r.meshes.planetMeshes[0];const auto ebo=mesh.ebo;mesh.ebo=0;
+            const auto anchor=*r.grass.procedural.planningEye(0)+glm::dvec3(.01,0,0);
+            EXPECT_THROW(r.grass.prepare(0,mesh,r.scene.scenario.planets[0],r.scene.scenario.metersPerWorldUnit(),anchor),std::logic_error);
+            mesh.ebo=ebo;drawFrame();
         }
         r.scene.surfaceCamera->walk(1,0,15/(r.scene.surfaceCamera->walkSpeed()*r.scene.scenario.metersPerWorldUnit()));
         ASSERT_TRUE(until(tickFrame,[&]{return r.meshes.planetMeshes[0].revision>originalRevision && (!compute || idle(r));}));drawFrame();
@@ -88,7 +97,7 @@ void runPublicationCase(bool compute) {
                row.at("water_topology")!=std::to_string(g.waterTopology) || row.at("water_revision")!=std::to_string(g.waterRevision)) continue;
             matched=true;for(int i=0;i<3;++i) {
                 const auto& eye=row.at(std::string("grass_eye_")+"xyz"[i]);
-                if(compute) EXPECT_DOUBLE_EQ(std::stod(eye),g.grassEye[i]);else EXPECT_TRUE(eye.empty());
+                if(compute || row.at("kind")=="grass") EXPECT_DOUBLE_EQ(std::stod(eye),g.grassEye[i]);else EXPECT_TRUE(eye.empty());
             }
             break;
         }
@@ -104,7 +113,13 @@ void runPublicationCase(bool compute) {
             EXPECT_EQ(row.at("body"),found->second.at("body"));++joined;
         }
         EXPECT_GT(joined,0u);
-    } else EXPECT_EQ(grass,0u);
+    } else {
+        EXPECT_GT(grass,0u);EXPECT_GT(failures,0u);
+        for(const auto& row:rows) if(row.at("kind")=="grass" && row.at("outcome")=="published") {
+            EXPECT_FALSE(row.at("cpu_start_ms").empty());EXPECT_FALSE(row.at("cpu_end_ms").empty());
+            EXPECT_EQ(row.at("capture_mode"),"0");EXPECT_TRUE(row.at("gpu_submit_ms").empty());
+        }
+    }
 }
 }
 TEST(TerrainFrame, PublicationTraceMatchesComputeDrawsAndGrassFailureRecovery) {runPublicationCase(true);}

@@ -11,12 +11,15 @@
 namespace rendering {
 int Renderer::Impl::capture() {
     CpuTrace::Scope captureScope("Renderer::capture");
+    profiler.publications().captureMode(true);
+    PublicationProfiler::CaptureFailure failure(profiler.publications(),terrainSceneEpoch);
     glfwPollEvents();
     int width = 0;
     int height = 0;
     glfwGetFramebufferSize(window, &width, &height);
     if (width <= 0 || height <= 0) {
         std::cerr << "Render test framebuffer has invalid dimensions\n";
+        profiler.publications().captureFailed(terrainSceneEpoch);
         return 1;
     }
     const auto meshStart = std::chrono::steady_clock::now();
@@ -96,6 +99,7 @@ int Renderer::Impl::capture() {
                         (options.surfaceRenderMode || options.planetRenderMode) ? std::optional<std::size_t>(scene.orbitPlanetIndex) : std::nullopt,
                         true, &profiler, false, 0, &grass, options.thirdPersonRenderMode ? characterWindTime : simulationTime,options.thirdPersonRenderMode ? &astronaut : nullptr,&mainGrassCounts,
                         terrainPublication.get(),&terrainConsumers);
+            recordRenderedPublications(options.thirdPersonRenderMode);
             frameReuse.remember(view,fov,width,height,simulationTime,revisions,eyeWorld,options.surfaceRenderMode ? 1 : options.planetRenderMode ? 2 : 0);
         }
         if (lensFlare) {

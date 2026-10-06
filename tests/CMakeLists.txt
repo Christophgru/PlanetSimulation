@@ -37,7 +37,7 @@ set_tests_properties(TerrainRecoveryIntegration PROPERTIES
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 240 RUN_SERIAL TRUE)
 
 add_executable(terrain_frame_tests app/terrain/interactive/test_frame.cpp app/terrain/interactive/test_timing.cpp
-    app/terrain/interactive/test_publications.cpp)
+    app/terrain/interactive/test_publications.cpp app/terrain/interactive/test_capture_publications.cpp)
 target_link_libraries(terrain_frame_tests PRIVATE planet_app GTest::gtest_main)
 target_compile_definitions(terrain_frame_tests PRIVATE
     PLANET_SOURCE_DIR="${CMAKE_SOURCE_DIR}"

@@ -98,7 +98,7 @@ void ProceduralGrass::reserve(std::size_t index) {
     if(!patches_[index]) patches_[index]=std::make_unique<Patch>();
 }
 GrassPreparationStats ProceduralGrass::prepare(std::size_t index,const Mesh& mesh,const config::PlanetConfig& planet,
-    double metersPerWorldUnit,const glm::dvec3& eyeBody,std::uint64_t otherTerrainBytes) {
+    double metersPerWorldUnit,const glm::dvec3& eyeBody,std::uint64_t otherTerrainBytes,const CpuGrassTrace* trace) {
     CpuTrace::Scope scope("ProceduralGrass::prepare");
     reserve(index);
     auto& patch=*patches_[index];
@@ -118,7 +118,6 @@ GrassPreparationStats ProceduralGrass::prepare(std::size_t index,const Mesh& mes
         return {std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count(),0,0,1,input};
     }
     patch.computeUsed=false;patch.generation={};
-    patch.workIdentity={};
     patch.settings=planet.foliage; patch.color={planet.color[0],planet.color[1],planet.color[2]};
     const auto rockRange=planet.terrain_material.slopeMetricRange();
     patch.rockRange={rockRange[0],rockRange[1]};
@@ -136,6 +135,18 @@ GrassPreparationStats ProceduralGrass::prepare(std::size_t index,const Mesh& mes
     if (patch.ready && patch.revision==mesh.revision && glm::length(eyeBody-patch.eye)*scale<margin) {
         updateDraws(patch,scale,planet.foliage.quadDistanceMeters(),eyeBody);
         return {};
+    }
+    // Only an actual rebuild of the existing terrain is a grass-only admission.
+    // Initial/replacement mesh grass is already inside its terrain interval.
+    auto* owner=trace && patch.ready && patch.revision==mesh.revision ? trace->owner : nullptr;
+    const auto attempt=owner ? owner->begin(trace->key,PublicationProfiler::Kind::Grass) : 0;
+    PublicationProfiler::Preparation preparation(owner,attempt);
+    if(owner) owner->phase(attempt,PublicationProfiler::Phase::CpuStart);
+    std::optional<GpuWorkProfiler::Attempt> timing;
+    std::optional<GpuWorkProfiler::Request> request;
+    if(trace && trace->owner) {
+        timing.emplace(attempt ? attempt : trace->owner->terrain(trace->key.epoch,index,trace->key.serial));
+        request.emplace(trace->key.epoch,trace->key.serial,index);
     }
     if (!mesh.vbo || !mesh.ebo) throw std::logic_error("Procedural grass requires uploaded terrain");
     if (!patch.vertexTexture) glGenTextures(1,&patch.vertexTexture);
@@ -165,7 +176,13 @@ GrassPreparationStats ProceduralGrass::prepare(std::size_t index,const Mesh& mes
     const auto uploaded=std::chrono::steady_clock::now();
     patch.metadata=std::move(metadata);
     patch.eye=planningEye; patch.revision=mesh.revision; patch.ready=true;
+    patch.workIdentity=GpuWorkProfiler::generation(mesh.terrainStats.generation);
     updateDraws(patch,scale,planet.foliage.quadDistanceMeters(),eyeBody);
+    if(owner) {
+        owner->phase(attempt,PublicationProfiler::Phase::CpuEnd);
+        auto generation=trace->generation;generation.grassEye={planningEye.x,planningEye.y,planningEye.z};
+        preparation.ready(generation);
+    }
     return {std::chrono::duration<double,std::milli>(planned-start).count(),0,
         std::chrono::duration<double,std::milli>(uploaded-planned).count(),1,
         plan.patches.size()*sizeof(std::uint32_t)+(patch.metadata ? patch.metadata->inputBytes : 0)};

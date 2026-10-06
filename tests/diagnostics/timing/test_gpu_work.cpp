@@ -76,3 +76,20 @@ TEST(GpuWorkProfiler, CpuWorkersDoNotInheritContextOrRequestBindings) {
      });worker.join();EXPECT_EQ(generated,0u);EXPECT_EQ(GpuWorkProfiler::identity().epoch,2u);}
     EXPECT_TRUE(rows(file).empty());
 }
+TEST(GpuWorkProfiler, OffFrameBindingKeepsAttemptIdentityAndRestoresTheContainingFrame) {
+    FakeQueries api;const auto file=path("off-frame.csv");
+    {
+        GpuWorkProfiler p(file);p.frame(12);GpuWorkProfiler::Binding outer(&p);
+        GpuWorkProfiler::Request request(3,9,1);GpuWorkProfiler::Attempt attempt(42);
+        {GpuWorkProfiler::Binding standalone(&p,std::numeric_limits<std::uint64_t>::max());
+         GpuWorkProfiler::Request replacement(4,10,0);GpuWorkProfiler::Attempt child(43);
+         GpuWorkProfiler::Scope event(GpuWorkStage::TerrainField,GpuWorkProfiler::identity());}
+        {GpuWorkProfiler::Scope event(GpuWorkStage::GrassPlacement,GpuWorkProfiler::identity());}
+        ready();p.collect();
+    }
+    const auto data=rows(file);ASSERT_EQ(data.size(),2u);
+    EXPECT_TRUE(data[0].at("frame").empty());EXPECT_EQ(data[0].at("attempt"),"43");
+    EXPECT_EQ(data[0].at("epoch"),"4");EXPECT_EQ(data[0].at("request_serial"),"10");
+    EXPECT_EQ(data[1].at("frame"),"12");EXPECT_EQ(data[1].at("attempt"),"42");
+    EXPECT_EQ(data[1].at("epoch"),"3");EXPECT_EQ(data[1].at("request_serial"),"9");
+}

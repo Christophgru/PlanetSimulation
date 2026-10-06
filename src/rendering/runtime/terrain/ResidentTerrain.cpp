@@ -35,6 +35,13 @@ void Renderer::Impl::publishResidentBuilds(std::vector<std::optional<TerrainCpuB
         const bool grassChanged=!builds[i] && (bool(i==selected && replayGrassEye) ||
             (planet.foliage.enabled && (!oldEye || glm::length(planEye-*oldEye)*planet.radius*scene.scenario.metersPerWorldUnit()>=grassRebuildDistance(planet.foliage))));
         if(!builds[i] && !grassChanged) continue;
+        const auto attempt=builds[i] ? profiler.publications().terrain(identities[i]->epoch,i,identities[i]->serial) : [&] {
+            auto key=PublicationProfiler::Key::from(terrainPublication->installed(i).identity);key.eye={planEye.x,planEye.y,planEye.z};
+            return profiler.publications().begin(key,PublicationProfiler::Kind::Grass);
+        }();
+        PublicationProfiler::Preparation preparation(&profiler.publications(),attempt);
+        GpuWorkProfiler::Attempt timing(attempt);
+        profiler.publications().phase(attempt,PublicationProfiler::Phase::GpuSubmit);
         terrainPublication->waitRetiredForCapture(i);
         std::vector<int> zones;
         TerrainBuildIdentity current;
@@ -51,6 +58,7 @@ void Renderer::Impl::publishResidentBuilds(std::vector<std::optional<TerrainCpuB
                 throw std::logic_error("Capture grass publication slot is busy");
         }
         terrainPublication->waitForCapture();
+        profiler.publications().phase(attempt,PublicationProfiler::Phase::GpuReady);
         if(!terrainPublication->publish(current,meshes.planetMeshes[i],meshes.waterMeshes[i]))
             throw std::logic_error("Capture terrain publication became obsolete");
         // No allocating consumer updates after the complete ownership transfer.
@@ -63,6 +71,7 @@ void Renderer::Impl::publishResidentBuilds(std::vector<std::optional<TerrainCpuB
             terrainShadows.invalidate(i);profiler.meshUpload();
             if(i==selected) astronautGround.bind(meshes.planetMeshes[i].contacts,receipt.landRevision);
         }
+        preparation.ready(publicationGeneration(i));
         frameReuse.invalidate();
         profiler.foliagePreparation(1,0,0,0,grass.procedural.stats(i).metadataInputBytes+grass.procedural.stats(i).allocationInputBytes);
     }

@@ -1,5 +1,6 @@
 #pragma once
 #include "rendering/diagnostics/timing/GpuWorkProfiler.h"
+#include "rendering/diagnostics/timing/PublicationProfiler.h"
 #include "rendering/Shader.h"
 #include "rendering/foliage/GrassStats.h"
 #include "rendering/foliage/procedural/GrassPlan.h"
@@ -13,6 +14,11 @@ class Mesh;
 namespace rendering {
 class GrassMetadataCompute;
 class GrassAllocationCompute;
+struct CpuGrassTrace {
+    PublicationProfiler* owner=nullptr;
+    PublicationProfiler::Key key;
+    PublicationProfiler::Generation generation;
+};
 struct GrassAllocationBuffers;
 struct GrassMetadataBuffers;
 struct GrassPass {
@@ -137,7 +143,7 @@ public:
     // their stable addresses. Both owners require the same current GL context.
     void swapState(ProceduralGrass& other) noexcept;
     GrassPreparationStats prepare(std::size_t index,const Mesh& mesh,const config::PlanetConfig& planet,
-        double metersPerWorldUnit,const glm::dvec3& eyeBody,std::uint64_t otherTerrainBytes=0);
+        double metersPerWorldUnit,const glm::dvec3& eyeBody,std::uint64_t otherTerrainBytes=0,const CpuGrassTrace* trace=nullptr);
     ProceduralGrassStats stats(std::size_t index) const;
     void draw(std::size_t index,const GrassPass* pass=nullptr) const;
     bool usesCompute(std::size_t index) const;

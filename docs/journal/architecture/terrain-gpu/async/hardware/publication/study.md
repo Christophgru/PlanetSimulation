@@ -2,10 +2,16 @@
 
 Interactive `--performance-trace path.csv` adds `path.csv.publications.csv`.
 This checkpoint implements ordinary CPU terrain startup/replacement and resident
-compute terrain/grass-only attempts. The enclosing T3c5b2b task remains partial:
+compute terrain/grass-only attempts. At that checkpoint T3c5b2b remained partial:
 reload transactions, capture endpoints, actual destination handoff and CPU
 grass-only preparation are T3c5b2b2. Physical-memory diagnostics remain T3c5b2c,
 matched hardware acceptance T3c5c; CPU terrain stays default.
+
+Later checkpoints add [asynchronous resident reloads](transactions/study.md)
+and [synchronous reload/capture, actual handoff and CPU grass](lifecycle/study.md).
+The original validation below retains its checkpoint-specific scope; the current
+implementation includes those continuation paths. Physical memory and matched
+hardware cost acceptance remain pending.
 
 ## Boundaries and identity
 
@@ -111,4 +117,5 @@ and build/test inputs (`tests`, `configs`, `scripts`, root CMake). All 41
 executable hashes match after validation. The 22 gallery images and ten retained
 historical baseline PNG hashes remain unchanged; the latter were not regenerated
 by a complete new capture sweep. Journal PDF and changed pages were reviewed.
-Resume T3c5b2b2 before treating publication lifecycle diagnostics as complete.
+The continuation paths linked above complete T3c5b2b. Physical-memory diagnostics
+T3c5b2c and matched hardware cost acceptance T3c5c remain.

@@ -5,6 +5,8 @@
 #include <filesystem>
 #include <fstream>
 #include <thread>
+#include <map>
+#include <sstream>
 
 namespace rendering {
 // Access only for deterministic recovery acceptance; no product test flags.
@@ -143,6 +145,29 @@ TEST(TerrainRecovery, ReadyOldCompletionCannotCrossFailedOrSuccessfulReplacement
 }
 
 TEST(TerrainRecovery, MoonArrivalBindsDestinationContactsOnTheHandoffFrameAndReplaysExactly) {
+    const auto checkTrace=[](const std::string& path) {
+        std::ifstream in(path);std::string line;std::getline(in,line);
+        const auto split=[](const std::string& s) {
+            std::istringstream in(s);std::vector<std::string> v;std::string f;
+            while(std::getline(in,f,',')) v.push_back(f);if(!s.empty() && s.back()==',') v.emplace_back();return v;};
+        const auto header=split(line);std::map<std::string,unsigned> handoffs;unsigned incomplete=0,failed=0;
+        while(std::getline(in,line)) {const auto v=split(line);ASSERT_EQ(v.size(),header.size());
+            std::map<std::string,std::string> row;for(std::size_t i=0;i<v.size();++i) row[header[i]]=v[i];
+            if(row["kind"]=="reload") {
+                if(row["outcome"]=="trace_incomplete") ++incomplete;
+                else {EXPECT_EQ(row["outcome"],"preparation_failed");++failed;}
+                EXPECT_TRUE(row["publication_ms"].empty());
+            }
+            if(row["kind"]!="handoff") continue;++handoffs[row["epoch"]];
+            EXPECT_EQ(row["body"],"1");EXPECT_EQ(row["origin_body"],"0");
+            EXPECT_EQ(row["capture_mode"],"1");EXPECT_EQ(row["outcome"],"published");
+            EXPECT_GE(std::stod(row["publication_ms"]),std::stod(row["contact_bound_ms"]));
+            EXPECT_FALSE(row["land_revision"].empty());
+        }
+        EXPECT_EQ(handoffs["1"],1u);
+        for(const auto& [epoch,count]:handoffs) EXPECT_EQ(count,1u); // Preview handoffs never admit a receipt.
+        EXPECT_EQ(incomplete,2u);EXPECT_EQ(failed,1u); // Capture replaces one off-live child before drawing it.
+    };
     auto o=options("moon");o.benchmarkFrames=2;o.benchmarkCharacterStep=.04;o.benchmarkJumpFrame=0;
     json seed;
     {rendering::Renderer launch(o);ASSERT_EQ(launch.run(),0);seed=read(o.outputImagePath+".json");}
@@ -163,6 +188,7 @@ TEST(TerrainRecovery, MoonArrivalBindsDestinationContactsOnTheHandoffFrameAndRep
     pose.erase("grass_plan_eye");
     o.replayPath=o.configPath+".replay.json";write(o.replayPath,seed);
     o.explicitTerrainBackend=o.explicitTerrainGrassPlanner=o.explicitRenderSize=true;
+    o.performanceTrace=o.configPath+".frames.csv";
     json trace=json::array();std::string image;json arrived;
     {
         rendering::Renderer renderer(o);ASSERT_EQ(renderer.run(),0);arrived=read(o.outputImagePath+".json");
@@ -185,6 +211,8 @@ TEST(TerrainRecovery, MoonArrivalBindsDestinationContactsOnTheHandoffFrameAndRep
         EXPECT_TRUE(bytes(o.outputImagePath)==image) << "Repeated Moon reload changed saved image";
         EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
     }
+    checkTrace(o.performanceTrace+".publications.csv");
+    o.performanceTrace.clear();
     o.benchmarkFrames=1;o.outputImagePath+=".fresh.png";
     {rendering::Renderer replay(o);ASSERT_EQ(replay.run(),0);EXPECT_TRUE(bytes(o.outputImagePath)==image) << "Fresh Moon replay differs";}
     EXPECT_EQ(glfwGetCurrentContext(),nullptr);write(std::string(PLANET_TEST_OUTPUT)+"/moon/trace.json",trace);

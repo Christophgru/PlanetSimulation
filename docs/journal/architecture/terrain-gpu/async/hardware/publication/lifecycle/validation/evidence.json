@@ -1,0 +1,416 @@
+{
+  "date": "2026-10-06",
+  "base_revision": "94ffa69",
+  "task": "T3c5b2b2b",
+  "validation_scope": {
+    "type": "ten relevant CTest groups on final frozen inputs, plus targeted actual Quadro checks; no new full-suite or hardware cost acceptance claim",
+    "scoped_groups_passed": 10,
+    "scoped_wall_seconds": 366.53,
+    "controlled_timing_cases": 23,
+    "new_controlled_cases": 6,
+    "capture_backend_cases": 3,
+    "quadro_cases": 6,
+    "scoped_command": "env LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=2 xvfb-run -a ctest --test-dir build-resume --output-on-failure -R '^(RendererLifecycleTests|TerrainRecoveryIntegration|TerrainFrameIntegration|TerrainReloadFrameIntegration|TerrainJobTests|TerrainComputeIntegration|GpuWorkProfilerTests|PerformanceCaptureIntegration|NativeLoopTimingIntegration|TerrainNativeInputIntegration)$'",
+    "quadro_commands": [
+      "env __NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia xvfb-run -a build-resume/tests/terrain_frame_tests --gtest_filter='TerrainFrame.CaptureAnd*:TerrainFrame.PublicationTraceMatchesDefaultCpu*'",
+      "env __NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia xvfb-run -a build-resume/tests/terrain_recovery_tests --gtest_filter='TerrainRecovery.MoonArrival*'",
+      "env __NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia xvfb-run -a build-resume/tests/renderer_lifecycle_tests --gtest_filter='RendererReload.SevenFenceFailures*'"
+    ]
+  },
+  "frozen_provenance": {
+    "source_sha256": "0dcd5b7427d4c6d660027d1bfc005c29850745e458198b6f76417043e879d9fe",
+    "build_test_input_sha256": "a17e9388fe27853e3065de8d8d451a2e611b4fd4a99753ea777418cff00fd407",
+    "executable_count": 41,
+    "all_hashes_match_after_validation": true,
+    "fingerprint_definition": "SHA-256 over globally sorted relative paths, NUL, file bytes, NUL; source=src/shaders; build/test=tests/configs/scripts/CMakeLists.txt excluding __pycache__"
+  },
+  "receipts": {
+    "software": {
+      "capture-cpu": {
+        "epoch": 3,
+        "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+        "version": "4.5 (Core Profile) Mesa 22.3.6",
+        "roots": 3,
+        "children": 4,
+        "root_outcomes": {
+          "invalid_config": 1,
+          "obsolete": 1,
+          "published": 1
+        },
+        "joined_gpu_events": 4,
+        "off_frame_gpu_events": 0,
+        "gpu_statuses": {
+          "ready": 4
+        }
+      },
+      "capture-legacy": {
+        "epoch": 3,
+        "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+        "version": "4.5 (Core Profile) Mesa 22.3.6",
+        "roots": 3,
+        "children": 4,
+        "root_outcomes": {
+          "invalid_config": 1,
+          "obsolete": 1,
+          "published": 1
+        },
+        "joined_gpu_events": 25,
+        "off_frame_gpu_events": 14,
+        "gpu_statuses": {
+          "ready": 25
+        }
+      },
+      "capture-resident": {
+        "epoch": 3,
+        "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+        "version": "4.5 (Core Profile) Mesa 22.3.6",
+        "roots": 3,
+        "children": 4,
+        "root_outcomes": {
+          "invalid_config": 1,
+          "obsolete": 1,
+          "published": 1
+        },
+        "joined_gpu_events": 28,
+        "off_frame_gpu_events": 16,
+        "gpu_statuses": {
+          "ready": 28
+        }
+      },
+      "cpu-grass": {
+        "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+        "version": "4.5 (Core Profile) Mesa 22.3.6",
+        "outcomes": {
+          "published": 1,
+          "preparation_failed": 1
+        },
+        "peak_active": 2,
+        "dropped": 0,
+        "draw_anchor_join_count": 1
+      },
+      "moon": {
+        "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+        "handoffs": 1,
+        "epochs": [
+          "1"
+        ],
+        "origin": 0,
+        "destination": 1,
+        "fresh_png_exact": true,
+        "contact_generation_join_count": 1,
+        "root_outcomes": {
+          "trace_incomplete": 2,
+          "preparation_failed": 1
+        }
+      },
+      "reload-failures": {
+        "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+        "root_outcomes": {
+          "preparation_failed": 7,
+          "published": 1
+        },
+        "children": 8,
+        "gpu_statuses": {
+          "ready": 53
+        }
+      }
+    },
+    "hardware": {
+      "capture-cpu": {
+        "epoch": 3,
+        "renderer": "Quadro M1000M/PCIe/SSE2",
+        "version": "4.3.0 NVIDIA 580.178.04",
+        "roots": 3,
+        "children": 4,
+        "root_outcomes": {
+          "invalid_config": 1,
+          "obsolete": 1,
+          "published": 1
+        },
+        "joined_gpu_events": 4,
+        "off_frame_gpu_events": 0,
+        "gpu_statuses": {
+          "ready": 4
+        }
+      },
+      "capture-legacy": {
+        "epoch": 3,
+        "renderer": "Quadro M1000M/PCIe/SSE2",
+        "version": "4.3.0 NVIDIA 580.178.04",
+        "roots": 3,
+        "children": 4,
+        "root_outcomes": {
+          "invalid_config": 1,
+          "obsolete": 1,
+          "published": 1
+        },
+        "joined_gpu_events": 25,
+        "off_frame_gpu_events": 14,
+        "gpu_statuses": {
+          "ready": 25
+        }
+      },
+      "capture-resident": {
+        "epoch": 3,
+        "renderer": "Quadro M1000M/PCIe/SSE2",
+        "version": "4.3.0 NVIDIA 580.178.04",
+        "roots": 3,
+        "children": 4,
+        "root_outcomes": {
+          "invalid_config": 1,
+          "obsolete": 1,
+          "published": 1
+        },
+        "joined_gpu_events": 28,
+        "off_frame_gpu_events": 16,
+        "gpu_statuses": {
+          "ready": 28
+        }
+      },
+      "cpu-grass": {
+        "renderer": "Quadro M1000M/PCIe/SSE2",
+        "version": "4.3.0 NVIDIA 580.178.04",
+        "outcomes": {
+          "published": 1,
+          "preparation_failed": 1
+        },
+        "peak_active": 2,
+        "dropped": 0,
+        "draw_anchor_join_count": 1
+      },
+      "moon": {
+        "renderer": "Quadro M1000M/PCIe/SSE2",
+        "handoffs": 1,
+        "epochs": [
+          "1"
+        ],
+        "origin": 0,
+        "destination": 1,
+        "fresh_png_exact": true,
+        "contact_generation_join_count": 1,
+        "root_outcomes": {
+          "trace_incomplete": 2,
+          "preparation_failed": 1
+        }
+      },
+      "reload-failures": {
+        "renderer": "Quadro M1000M/PCIe/SSE2",
+        "root_outcomes": {
+          "preparation_failed": 7,
+          "published": 1
+        },
+        "children": 8,
+        "gpu_statuses": {
+          "ready": 53
+        }
+      }
+    }
+  },
+  "retained_gallery_hashes": 22,
+  "gallery_manifest_sha256": "807ec185775cad3d819bd087ecaba185f38587b69962073eeeefbb36dd43a253",
+  "retained_historical_baseline_hashes": 10,
+  "user_environmental_suffix_sha256": "b227dc2ecc065b8c8ac1eea5fa030c32f289ade83c61e19d571ddf6c4b09c5c5",
+  "journal": {
+    "pages": 32,
+    "reviewed_pages": [
+      7,
+      8,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32
+    ],
+    "reviewed_png_sha256": {
+      "page-07-of-32.png": "3f9dcdcc2309418e7ada85943b4af3c88366aedc3edc4a45f2faf8ca33f705a7",
+      "page-08-of-32.png": "322f0964f4e91aa5c31d21fd952fe8e2e7dc090c48044c0eefb04fc8f7cae7fb",
+      "page-27-of-32.png": "b1f0d6e25493d78f4c4b4b3a52736f18ae2b5fb845195c6e58ad234802f29b5f",
+      "page-28-of-32.png": "391c326b7400e8fd60a87466ecca9d5708458e410249307bff1f33bd65bf787b",
+      "page-29-of-32.png": "a9b93d26b2616d9e9f323de4ab54b73968f6a468e16d1ba4119bf62e434531a6",
+      "page-30-of-32.png": "c2c2de9af0ffc433a73b46ed56fdb3cf33c0dd8d0875863f45be9faa49727dfb",
+      "page-31-of-32.png": "579c157ce7181a07b6c44306278d85a6c9aac6fb4e52349bf0d6fc67fffb0c24",
+      "page-32-of-32.png": "84aa30322e093e0a8739577122c88cb67250fc2e7396c7248365c60c932a1c4e"
+    },
+    "pdf_sha256": "10c3fef17f1f9de9d68907e68f6aa2d28a227dfd7e735d4deb422695bcbafe07"
+  },
+  "limitations": [
+    "CPU observation of consumer submission, not completed GPU execution or PNG serialization",
+    "Reload/child/handoff/grass/loop/GPU intervals overlap; do not sum them",
+    "Off-live synchronous GPU events have empty frame identity and must join by attempt",
+    "Synchronous proposed epochs can repeat after failure; diagnostic IDs stay unique",
+    "Replay setup can replace a committed child before first draw; trace_incomplete root has no successful latency",
+    "Capture retains existing explicit waits; publication recorder adds no GL operations; off-frame binding enables existing optional GPU timestamp scopes",
+    "Actual GL receipt identifies Quadro hardware; RTX is enumerated only, not tested for this checkpoint",
+    "Small correctness fixtures do not establish production throughput or physical memory cost; CPU stays default"
+  ],
+  "artifact_sha256": {
+    "README.md": "46768c97865cea41e551b4bb7fd27cc3fa9838f0040f5222fc55ff06fd7155c3",
+    "USER_IO/checkpoints.md": "82cca5e6841e0c6ee285321998de8d5da57531dd21ded92973f6ae33bc78a53b",
+    "docs/journal/README.md": "c6c79c39e0d0e599e3da41671e78db7a9d1f207fec831f3cf78711f20379c5e2",
+    "docs/journal/paper.typ": "0ad16455891103932d91840274a573755d5707823ed28c8e081abfc3ede0a9c0",
+    "docs/journal/paper.pdf": "10c3fef17f1f9de9d68907e68f6aa2d28a227dfd7e735d4deb422695bcbafe07",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/study.md": "511fe56e4eab82ad438fbf4e9f27333acd7ac8c79744d117c4d2d5952feaa318",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/study.md": "717bfa305b9aa47ff82c9bfbfaaa493c684dc4f203dad22f02c59fcc66c44616",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/build.log.gz": "9f971527610b849a7c906708a3349b037d38e78fc109d75178c2841cdc1a9935",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/checks.log": "2307c259ffda6012efefc5ed257f6a1157e3c857e369104c1cfd50919da24fb0",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/controlled/capture-cpu.publications.csv": "448c73c3dd1a0a76be0a26a9251d2b90a9ed71faa7d29db6bb7dd01fc6f37260",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/controlled/capture-failure.publications.csv": "dd2c24eea48eb0386ea67d3551e83484cf6eb954f260e1ce5b02221fb775a128",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/controlled/cpu-grass.publications.csv": "1415d1b4fc1213d4c793d7b170e23efa57cb09432d2654ab38d308e2a6cc1467",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/controlled/handoff.publications.csv": "dc8c02745c43468269461c2bd62c070f7eb4a5ad3c0b88371d07dc9a04d3284b",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/controlled/off-frame.csv": "e8914eece777f6d90e7cdfa83ebf823da0b6c21b4da6119c2d8649e137643a06",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/controlled/recorder.log": "03a5a0c8045cdd426101ae3834619b1415f345432cfc617982f60c8a6806bb30",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/controlled/reload-capture-replacement.publications.csv": "792c8aad3b61d524ea7c4cd2d25288f2c727965a17f152e087d0fbd550210473",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/devices.csv": "b7f9f56451cda0521ac363cbf3aeb88343a9db3ba851c1bc1e8e5ae9dd6a7b0e",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/capture-cpu/frame.png": "c63553e4d003b5eb065a645f65f9c0f818a736907100b67dba8888ccc0ba853c",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/capture-cpu/frame.png.json": "93becb4bec2933d566993d99e4f55aed3334c28cf53d26aa17126bdcb9785d3f",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/capture-cpu/scene.json": "24a4a61ceef3c8fa64d52c8244dcb7527e3bab8a80acac955c89ddd6acb61248",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/capture-cpu/scene.json.frames.csv": "3562c8c80a1d163995bbdb4dabb021dd730dfe50e606b52e5019a0f6c7895631",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/capture-cpu/scene.json.frames.csv.gpu-work.csv": "e4f66d629bf1b2967bce9e015a39eacd254d14c9cf0dd0f0abfbd818a860c027",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/capture-cpu/scene.json.frames.csv.publications.csv": "bcabf149367f00584b8e0a394e3bd2e1eb00f82f73f819c9c5261c08ea3bdcdb",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/capture-cpu/scene.json.receipts.json": "8969e7d0d92bd14adec97cdabadc14a5a52e4f74d8cd97fb097e7b28f6d6a06c",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/capture-legacy/frame.png": "c63553e4d003b5eb065a645f65f9c0f818a736907100b67dba8888ccc0ba853c",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/capture-legacy/frame.png.json": "b32443a1f71446b5bc165262d843967b0ebcc01a04d159afae959cfb5dc985b8",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/capture-legacy/scene.json": "24a4a61ceef3c8fa64d52c8244dcb7527e3bab8a80acac955c89ddd6acb61248",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/capture-legacy/scene.json.frames.csv": "9cd392656a92422f8ad07c790107c184688049d3bf99b34e3a562545a1165d0d",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/capture-legacy/scene.json.frames.csv.gpu-work.csv": "22caeacc0035b45b53f9a04891de22c13e500fdbfde00220ff90c126ab5a67e1",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/capture-legacy/scene.json.frames.csv.publications.csv": "862923d3ce1f930ac16f0b9883da802aac37a7a80ce8a714fe210edc5c90cd23",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/capture-legacy/scene.json.receipts.json": "8969e7d0d92bd14adec97cdabadc14a5a52e4f74d8cd97fb097e7b28f6d6a06c",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/capture-resident/frame.png": "c63553e4d003b5eb065a645f65f9c0f818a736907100b67dba8888ccc0ba853c",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/capture-resident/frame.png.json": "9a6259bc52d731dc4d25ac5d36c1909a55a4ef399ae37774ca2962e822e8c5e6",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/capture-resident/scene.json": "24a4a61ceef3c8fa64d52c8244dcb7527e3bab8a80acac955c89ddd6acb61248",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/capture-resident/scene.json.frames.csv": "20951b925ff0b281fda7fa5aa76db9a3d1a971e2716a0f1e19da8db7d753f0e6",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/capture-resident/scene.json.frames.csv.gpu-work.csv": "08ba3093d1793fa276e1469a49e266814bf505f97cc842037da60855acc4326e",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/capture-resident/scene.json.frames.csv.publications.csv": "2a11e708d2e97e4707e1e5ba38d6419070eb70fc47127035e8b1687bf5b5e22f",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/capture-resident/scene.json.receipts.json": "8969e7d0d92bd14adec97cdabadc14a5a52e4f74d8cd97fb097e7b28f6d6a06c",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/cpu-grass/scene.json": "24a4a61ceef3c8fa64d52c8244dcb7527e3bab8a80acac955c89ddd6acb61248",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/cpu-grass/scene.json.frames.csv": "8518288e24504f09c04e4081645ef9aaf403452ef00aaff7700016cd57ff01af",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/cpu-grass/scene.json.frames.csv.gpu-work.csv": "d5600413ed17cec2ef6297eec52b4008c68fa6cb875a24331da885d13a83a457",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/cpu-grass/scene.json.frames.csv.publications.csv": "37865cc6e2c23af077e40368ca7fe3c8e5fd412de4746b6f66c6bbecb367346a",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/cpu-grass/scene.json.publication.json": "9ad3755acf54318c563f19a1e0aa7536271448de9290ac15edfe9647a9be0611",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/failures.log": "28abb1f442fcf08bfd99240ce0141c6070e0e212a8099895db3b0f336b843890",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/frames.log": "f201403da1a9ddf31b5f27e8069dee854ea3a130906785267a313daca7fbf0a5",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/moon/replay/capture.png": "859a9711b95f809c7abfde720aaae3e820629e807cb73ab7a0102d1cbeaae20c",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/moon/replay/capture.png.fresh.png": "859a9711b95f809c7abfde720aaae3e820629e807cb73ab7a0102d1cbeaae20c",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/moon/replay/capture.png.fresh.png.json": "8123c1493095b764c5068407a31aa5d114f51023bec81976c97dc74e9e4ea488",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/moon/replay/capture.png.json": "71dd503da824d390c49a721e97f960e96832ab2d2bc937ae5dddd507d336a024",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/moon/scene.json": "9937426449fd090b3b0cdf8f8e8fc74e305b3b2465c85e9806f3d4cccba855f0",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/moon/scene.json.frames.csv": "547b87b216d69c2554f929abfadf8348e59777d2660452bf85fdb42f6f1311f1",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/moon/scene.json.frames.csv.gpu-work.csv": "a5fb810760dbe4e25278bc9c346e12eba69673eeadc9b579d8be51e5200fdd9c",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/moon/scene.json.frames.csv.publications.csv": "4ad01c9e5d48f37ca5b4878521d9e91f23eacddba57790350519ad78adeb6474",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/moon/scene.json.replay.json": "2ced8b6a1ac0bc34fc2e2303a95ef065176467c93d1a0729a2f7187898c09f1f",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/moon/trace.json": "212ed46c93506bec2f05f0d9823b019b41e9ca02debce633580d25a3b13e8063",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/moon.log": "04c8c7e6a2126e210fbcfdd22d89193cab6c870a2de873bb4c1a5d5f612d767f",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/reload-failures/capture.png": "58ad97bb6cc3be6de9b6fada847156fdf0599e4da95587ed4ae05b3d02734ac9",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/reload-failures/capture.png.json": "085c396da44b37f69333ae6b7596d25ecae4413287c69d44df5f82f207503ecf",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/reload-failures/scene.json": "2805b73cd25b1b834251dbf0dc872c17c1b73c35683d05221947e2fb3d997633",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/reload-failures/scene.json.frames.csv": "b31eec812d70e1eee3d95f29ee14809229756856400a0da68a1c74564471ff4f",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/reload-failures/scene.json.frames.csv.gpu-work.csv": "c4f7ff77abaa1d0ce1f1775cc2bfc6f0f2687bf40e2457c5a09ef263b723797b",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/hardware/reload-failures/scene.json.frames.csv.publications.csv": "b71eb66fcb2b7f283b335c5e3acee3b1ef20dadafa6f8da89434ab4f31445cd8",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/inputs.json": "c313751be71e00d09681701c506c47b7cb7bb1c736be79ea5e34e53018c7f345",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/journal/render.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/journal/review.json": "e03ba7c991dd54be7c6c88d1cdb6a47662aed6d771ca13658103555440073102",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/preflight/capture-lifecycle-initial-inputs.json": "d9e4e5831d8e2df7d814f0b2c8d85f9dfedf9095172cec5cb657f3d16b2ddf70",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/preflight/capture-lifecycle-moon-preflight.log": "107c7f9d43d83287b77ae5460eec79ca5fce426e4404dd24c462d58f2434ed4f",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/preflight/capture-lifecycle-preflight.log": "dff0351934ea21e637b27ad400ff4b0d1e3ffac0d74ea6bd25f68768c13df66a",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/preflight/capture-lifecycle-recorder-preflight.log": "c25fb475bc9a96c0c139cb2c72db15761f6ccb388c37fc17d873f8b8e4aab87e",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/preflight/capture-lifecycle-scoped.log": "245091da5251b6aba84704972cd7a9d86df5f2eb9eaef27310bb1ee834ee64e5",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/preflight/capture-lifecycle-scoped.xml": "ec72a754962649613a3b313160bfe8632ccc109ad38f17246041d693c5fcbfe6",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/preflight/legacy-generation/capture-lifecycle-frozen-inputs.json": "363cdca23fdf6fdbf23693ca65ffb812b23ea9c45935ae073529e4c38d5dc3d8",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/preflight/legacy-generation/capture-lifecycle-quadro-frames.log": "0a05fe0afc5bf02721965e6bfb0436ba7907d1a156f6db374ed80a4d9b31097e",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/preflight/legacy-generation/scene.json.frames.csv.gpu-work.csv": "28f8bea7d3acd88d86b32c9f3b0d8d4c0c47faf42a6105e9b9f2b651db302b56",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/preflight/legacy-generation/scene.json.frames.csv.publications.csv": "5020e802a70ef57199cf17cbfdaabb62c799710e149fbb407af50c81a5436a05",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/preflight/legacy-generation/scene.json.receipts.json": "8969e7d0d92bd14adec97cdabadc14a5a52e4f74d8cd97fb097e7b28f6d6a06c",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/preflight/off-frame-keys/capture-legacy/frame.png": "070bb5f2e4e07376b42220ff900bbac3c7980b6a00facba6bff7f64d34927441",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/preflight/off-frame-keys/capture-legacy/frame.png.json": "bb17cd891459960819609575db67a28643b5d109fa6be33580f09d1db5a967e6",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/preflight/off-frame-keys/capture-legacy/scene.json": "24a4a61ceef3c8fa64d52c8244dcb7527e3bab8a80acac955c89ddd6acb61248",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/preflight/off-frame-keys/capture-legacy/scene.json.frames.csv": "255fc1f2ba3758e4215dbc725d89f99e6575582f9d4d5cb07695e63b3733503a",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/preflight/off-frame-keys/capture-legacy/scene.json.frames.csv.gpu-work.csv": "584fb66f0c19514204b5bb4d94c8732873fddcc75d5c0bd4d289df2553a99862",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/preflight/off-frame-keys/capture-legacy/scene.json.frames.csv.publications.csv": "4bb93dc337f161dfa46dcdcab5176fa88ee443dc6063b8dbbf2ec4d9f2728f38",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/preflight/off-frame-keys/capture-legacy/scene.json.receipts.json": "cc9aedb8cdbaca034892ebdd8e22b864fbfd534a836d4ee036b1cc281b8acb27",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/preflight/off-frame-keys/capture-lifecycle-final-scoped.log": "9c2d2e86694fb1ab4da8c9fec7ebcc3897a123db4d75f16f9efbf29a42b65b8f",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/preflight/off-frame-keys/capture-lifecycle-final-scoped.xml": "82ab946325693cc12624d3d996ffc512bbcd6a65452a3c75c6c2ed2620eb3089",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/preflight/off-frame-keys/inputs.json": "229a127968fe037dc1c67dd04b7da927aa10f55004666a99c923cc5a0553a77e",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/scoped-ctest.log": "4c0e28f590aca87d9ba4519d0bdf5752891a40a1e62da8a10f8571de37070ea7",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/capture-cpu/frame.png": "070bb5f2e4e07376b42220ff900bbac3c7980b6a00facba6bff7f64d34927441",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/capture-cpu/frame.png.json": "26dce2c56890c4e087aa944d79461538d3b7d52946c83b7b7595b48f2742a7d5",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/capture-cpu/scene.json": "24a4a61ceef3c8fa64d52c8244dcb7527e3bab8a80acac955c89ddd6acb61248",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/capture-cpu/scene.json.frames.csv": "4a3883fa9ab0ef70b23e1ccc9c31c1d47406cdd3f28c374ccb2126fc28deacac",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/capture-cpu/scene.json.frames.csv.gpu-work.csv": "8a76821c49b26f919ae4e19762d81a693b9c68828f1b91dda2b860cda2f9c5b7",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/capture-cpu/scene.json.frames.csv.publications.csv": "c094991d8a0190fb76fc72ea5a75f6f2d3cc09530a2e5a1f603622a58e36b223",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/capture-cpu/scene.json.receipts.json": "cc9aedb8cdbaca034892ebdd8e22b864fbfd534a836d4ee036b1cc281b8acb27",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/capture-legacy/frame.png": "070bb5f2e4e07376b42220ff900bbac3c7980b6a00facba6bff7f64d34927441",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/capture-legacy/frame.png.json": "8455e6e19f02f7a75a4ff0a6ff5433160f6e4793add6cde1cf0b65f5e46bae38",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/capture-legacy/scene.json": "24a4a61ceef3c8fa64d52c8244dcb7527e3bab8a80acac955c89ddd6acb61248",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/capture-legacy/scene.json.frames.csv": "6e11acabdff52a9bcffc23546fcab617b5d44aa4ce33422ae72f36dcedc7385a",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/capture-legacy/scene.json.frames.csv.gpu-work.csv": "99c2644e919aa087738a774bb0e519560921c7b0d09d39bad042bcdee0495da1",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/capture-legacy/scene.json.frames.csv.publications.csv": "bcdf1b46733f57d91aafb14a340427c4907c8b6ad07e4f10880b4c2ddb8156d0",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/capture-legacy/scene.json.receipts.json": "cc9aedb8cdbaca034892ebdd8e22b864fbfd534a836d4ee036b1cc281b8acb27",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/capture-resident/frame.png": "070bb5f2e4e07376b42220ff900bbac3c7980b6a00facba6bff7f64d34927441",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/capture-resident/frame.png.json": "3365bf9fffab798c902fa547f7ead2f93825ee4b7d26f617dbeb88b54596c53d",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/capture-resident/scene.json": "24a4a61ceef3c8fa64d52c8244dcb7527e3bab8a80acac955c89ddd6acb61248",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/capture-resident/scene.json.frames.csv": "f3a806c975fe46a638e303bc5ba8c42bd6de5f694a8a1b689e8d0fee5b8e6f4a",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/capture-resident/scene.json.frames.csv.gpu-work.csv": "cccae713ddcb282d472c758cacbe7682c20860ebbf25fe081b01199bbec87fd7",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/capture-resident/scene.json.frames.csv.publications.csv": "742672f9f2f257d99fb37fad8bc63b7f9713add6b7afb1dc9dc2b8a71372e39c",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/capture-resident/scene.json.receipts.json": "cc9aedb8cdbaca034892ebdd8e22b864fbfd534a836d4ee036b1cc281b8acb27",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/cpu-grass/scene.json": "24a4a61ceef3c8fa64d52c8244dcb7527e3bab8a80acac955c89ddd6acb61248",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/cpu-grass/scene.json.frames.csv": "50a6971023343e61413419cbcbf6bcfb07ecf9da20121d0b7be9a59d825223a1",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/cpu-grass/scene.json.frames.csv.gpu-work.csv": "79b681314ff98fa4511b3d40392c24a14a7276832dc894e91a2961d7165e39e1",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/cpu-grass/scene.json.frames.csv.publications.csv": "fa044aec108aa9c513d04c311790043c1026bd780ed2a61125dcb1d47805bfea",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/cpu-grass/scene.json.publication.json": "83906ed989f686263c4e5a79b09242c14aaeb79194e03c94cae5d508158b35c8",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/moon/replay/capture.png": "217df2ba18bac3f8f595d324ea98d1a2bf6993a01d7b3574b3b30eb84a4c467b",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/moon/replay/capture.png.fresh.png": "217df2ba18bac3f8f595d324ea98d1a2bf6993a01d7b3574b3b30eb84a4c467b",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/moon/replay/capture.png.fresh.png.json": "01fd976d5547036d4efe631db7e47fd2dbd7deadfeee3f97ae949088f3af69a3",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/moon/replay/capture.png.json": "fb726af6101dd1bf9991605825b30f738ba660e59a9abb7a9687a6f936ea445d",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/moon/scene.json": "9937426449fd090b3b0cdf8f8e8fc74e305b3b2465c85e9806f3d4cccba855f0",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/moon/scene.json.frames.csv": "e7e9b93b8a1b61aed5c897797ce47ba2d2a22da0a27f4103bdce003f1c556d9f",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/moon/scene.json.frames.csv.gpu-work.csv": "bd0de671c08420fb6e9e6d4903054d6d4cd4122912bb46f062f9fa065e0fcbb4",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/moon/scene.json.frames.csv.publications.csv": "50a4783eccb35991808ea37ef4e14cfa1441a59e0a6ffd045ba143980254e389",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/moon/scene.json.replay.json": "5ae5955f146c94da1d5c585711281a800e811de52f7ab7cf3effc56467e3e8c9",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/moon/trace.json": "d843abce9b53f7c09b60ace96f0c400f6cbd9420453cd5be2a2898ee170e60ca",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-compute/capture.png": "10386fd1373e6baab8d6254eded9b425dc89374a1537741e389f6e36186f4323",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-compute/capture.png.fresh.png": "10386fd1373e6baab8d6254eded9b425dc89374a1537741e389f6e36186f4323",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-compute/capture.png.fresh.png.json": "48b8357b389d5217832990da6cd777f10f1157e10f6b24954d5869dc3fc1b353",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-compute/capture.png.json": "6421ff10803134ebcef37f55538f42c13493b761f426eef767344491c6653f74",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-compute/scene.json": "3a55d7722b4a5ee83a77f2587bed73c5a5dfe6dcfc9e9e38d6766a5bb11e5a30",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-compute/scene.json.frames.csv": "81997298e1bc80d83e5284a3dbf7b10b73a03981bffba06e5046f5a82800dfda",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-compute/scene.json.frames.csv.gpu-work.csv": "373c9fb6af63f4eac2bcaafe5c4ff39972c673c5bbc682a7b339688fff607f4a",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-compute/scene.json.frames.csv.publications.csv": "596d13e7a85f4fefe218a4bc4c096681926483ac166cfa22508df01dd3aed533",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-cpu/capture.png": "10386fd1373e6baab8d6254eded9b425dc89374a1537741e389f6e36186f4323",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-cpu/capture.png.fresh.png": "10386fd1373e6baab8d6254eded9b425dc89374a1537741e389f6e36186f4323",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-cpu/capture.png.fresh.png.json": "4153dfa277c7c6e52279844d08de67f13e4258b0ef358ea0241fb1653ea0f499",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-cpu/capture.png.json": "09cf3dfb93db72e90233a5a987deb8708c57e8978149582dec72467f223c376d",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-cpu/scene.json": "3a55d7722b4a5ee83a77f2587bed73c5a5dfe6dcfc9e9e38d6766a5bb11e5a30",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-cpu/scene.json.frames.csv": "254af15692e4d13d21e255f3677f55d9d4b16b881b350145c217b668a0d272c7",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-cpu/scene.json.frames.csv.gpu-work.csv": "ab1dfcb5023df4491eaf31d6b7d4d3f6e33334fe98f370ad0eadd61e27fe7453",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-cpu/scene.json.frames.csv.publications.csv": "b7bf203e0440ae8497f17df4c8bd26002881b9695345569408e972e400b50db7",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-failures/capture.png": "694bba7f2914bb4af68a2b27f0b22130cf2917c770529268ebf45673f0f2a8ce",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-failures/capture.png.json": "645413f6c88c3334ba8db67cd92875a2f34aaaba14d2c3c577d5fd79ef9e5b1b",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-failures/scene.json": "2805b73cd25b1b834251dbf0dc872c17c1b73c35683d05221947e2fb3d997633",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-failures/scene.json.frames.csv": "0f388592f25d477ecba89dd8edf54695bd0f6936b65d45793ef8807caa3c31d4",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-failures/scene.json.frames.csv.gpu-work.csv": "afc171f130a094d7b07b2d3da8871d5b72e2da7f24d6f10521e68afeb6cc0dd9",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-failures/scene.json.frames.csv.publications.csv": "359a3bae1b1a35e4060645d9faaebc281d4aaa3602c20ba1a0e16891e459119f",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-optional-camera/capture.png": "8aaa5da7ffc0e8fe0eaf9f67e89e91fa31e9f1d09173743f74dc4c16245720e3",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-optional-camera/capture.png.fresh.png": "8aaa5da7ffc0e8fe0eaf9f67e89e91fa31e9f1d09173743f74dc4c16245720e3",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-optional-camera/scene.json": "079682fd13a986bb23866c152de86c077e9bc294c95aac63a44d303428be65b7",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-optional-camera/scene.json.frames.csv": "a7aba18e0cdafd1bd7742301d07d040899f895ad8f7c1e1deb006b8614446a82",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-optional-camera/scene.json.frames.csv.gpu-work.csv": "540332d36759c54e086a4346843f9467df4899edeb4d7531ae493d15803db964",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-optional-camera/scene.json.frames.csv.publications.csv": "4a6de92274ab30a4a146a76fd30ace1cf6201e8e9f476bb0eb0dab145f46a633",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-replay/capture.png": "61b14a2b23423cd7b9983718ded77377a6ddd02d370f582422781bf0821ad9e4",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-replay/capture.png.json": "ed309fc2568e4842c0c3c03e2eef7fc0a76540a035439582279d192de93df376",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-replay/scene.json": "9937426449fd090b3b0cdf8f8e8fc74e305b3b2465c85e9806f3d4cccba855f0",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-replay/scene.json.frames.csv": "ae3e2b64debe305bca2bf35fac4f1cf53c94e03ea26e453123d5a5b5aac7b7c8",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-replay/scene.json.frames.csv.gpu-work.csv": "4b6dba5aa622a8f032f549275b8a08888c2676d3a84776d1989bb16308f803b3",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-replay/scene.json.frames.csv.publications.csv": "272d5b6672fac57798e3c6b4fae1ca927c8459b7fb90058871df5bf7757bb3e3",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-replay/scene.json.replay.json": "0ea17967dba9a85ba0dbf7367b2afc2addc33c64529e3854bd8bf1ffc5b50dd7",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-resident/capture.png": "8aeba81742c6a080a1405e5df6c45507091a1bca9fdde6fd3dfcd2a15573d452",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-resident/capture.png.fresh.png": "8aeba81742c6a080a1405e5df6c45507091a1bca9fdde6fd3dfcd2a15573d452",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-resident/capture.png.fresh.png.json": "ce63cf84ce47fae5ead8c996922624afd9e32af671340870d7675908c0bb50bc",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-resident/capture.png.json": "a071218c35a11090277555c552bdd6ca9c8fb210dfa94f924d05333ebaee2e75",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-resident/scene.json": "75bf1374c4ba343368a33835300a8434c4b2933872cd4f0b8438d4fc61bb4e2e",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-resident/scene.json.frames.csv": "3fdcf29b341b267a6bb479f07aca96d299082ceb96883a2e19b689142d3529bc",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-resident/scene.json.frames.csv.gpu-work.csv": "aa44b94b7775d3d4c112ad8dd454d415e2e2c16c48e888ead671e119e7f662de",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/reload-resident/scene.json.frames.csv.publications.csv": "d0b0463ec64748b42bda297ec5be1d1c64148ffac4ac996714538235d106261f",
+    "docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/validation/software/scoped-ctest.xml": "520194100ca2675725ab8746f39f3d0ab35e5100ac73e5e3b76db473c310f5e3"
+  }
+}

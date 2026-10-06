@@ -26,8 +26,14 @@ void Renderer::Impl::retireSceneReload(bool captureWait) {
     }
 }
 void Renderer::Impl::reloadScene() {
+    auto& publications=profiler.publications();publications.captureMode(options.renderTestMode);
     if(terrainPublication && !options.renderTestMode) {requestResidentReload();return;}
     CpuTrace::Scope trace("scene.reload_transaction");
+    // Capture callers may reload between frames. Keep off-live GPU work owned
+    // by its attempt; never attribute it to the last capture frame.
+    GpuWorkProfiler::Binding work(&profiler.gpuWork(),PublicationProfiler::unknown);
+    PublicationProfiler::Key rootKey;rootKey.epoch=terrainSceneEpoch+1;rootKey.resident=bool(terrainPublication);
+    const auto attempt=publications.begin(rootKey,PublicationProfiler::Kind::Reload);
     try {
         retireSceneReload(options.renderTestMode);
         if(retiredResidentScene || retiredLegacyScene) throw std::runtime_error("Previous scene is still retiring");
@@ -93,14 +99,25 @@ void Renderer::Impl::reloadScene() {
             auto request=resident ? resident->requestLocal(i,eye,k.serial,std::move(zones)) :
                 TerrainBuildRequest{k,stagedScene.terrainSurfaces[i],planet,std::move(zones),stagedScene.scenario.metersPerWorldUnit()};
             k=request.identity;identities[i]=k;
-            auto built=terrainCompute ? terrainJobs.executeForReload(std::move(request)).take() : buildTerrainCpu(request);
+            request.traceAttempt=attempt ? publications.begin(PublicationProfiler::Key::from(k),PublicationProfiler::Kind::Terrain,attempt) : 0;
+            const auto child=request.traceAttempt;GpuWorkProfiler::Attempt timing(child);
+            TerrainCpuBuild built;
+            try {
+                if(terrainCompute) built=terrainJobs.executeForReload(std::move(request)).take();
+                else {
+                    publications.phase(child,PublicationProfiler::Phase::CpuStart);built=buildTerrainCpu(request);
+                    publications.phase(child,PublicationProfiler::Phase::CpuEnd);
+                }
+            } catch(...) {publications.finish(child,PublicationProfiler::Outcome::CpuFailed);throw;}
             tracking.record(i,built,k);
             if(resident) {
                 previewMeshes.planetMeshes[i].contacts=built.contacts;previewMeshes.planetMeshes[i].revision=1;
                 builds[i]=std::move(built);
             } else {
                 if(terrainCompute) {
+                    publications.phase(child,PublicationProfiler::Phase::GpuSubmit);
                     TerrainGpuPreparation stage(std::move(built),k,planet,*terrainCompute);stage.waitForCapture();
+                    publications.phase(child,PublicationProfiler::Phase::GpuReady);
                     built=std::move(stage.cpu);
                     legacy->meshes.planetMeshes[i].loadComputedTerrain(std::move(built.geometry),*stage.land,true);
                     if(stage.water) legacy->meshes.waterMeshes[i].loadComputedTerrain(std::move(*built.water),*stage.water,true);
@@ -122,9 +139,12 @@ void Renderer::Impl::reloadScene() {
         for(std::size_t i=0;i<count;++i) {
             const auto& planet=stagedScene.scenario.planets[i];
             const auto anchor=i==selected && savedGrass ? *savedGrass : stagedScene.bodies[i+1].toLocalPoint(grassEye)/planet.radius;
+            const auto child=publications.child(attempt,i);GpuWorkProfiler::Attempt timing(child);
+            GpuWorkProfiler::Request request(identities[i].epoch,identities[i].serial,i);
             if(resident) {
+                publications.phase(child,PublicationProfiler::Phase::GpuSubmit);
                 if(!resident->submit(std::move(*builds[i]),identities[i],anchor,*terrainCompute)) throw std::logic_error("Replacement terrain submission is busy");
-                resident->waitForCapture();tracking.triangles[i]=resident->land(i).indexCount/3;
+                resident->waitForCapture();publications.phase(child,PublicationProfiler::Phase::GpuReady);tracking.triangles[i]=resident->land(i).indexCount/3;
             } else legacy->grass.prepare(i,legacy->meshes.planetMeshes[i],planet,stagedScene.scenario.metersPerWorldUnit(),anchor);
         }
         const auto commit=prepareReloadCommit(stagedScene,third,time,plannedEye);
@@ -140,7 +160,13 @@ void Renderer::Impl::reloadScene() {
             retiredLegacyScene=std::move(legacy);
         }
         finishSceneReload(tracking,nextOptions,nextSource.replayDocument,commit);
-    } catch(...) {++sceneReloadFailures;throw;}
+        if(attempt) {
+            for(std::size_t i=0;i<count;++i) publications.prepared(publications.child(attempt,i),publicationGeneration(i));
+            publications.committed(attempt);
+        }
+    } catch(const std::invalid_argument&) {
+        publications.finish(attempt,PublicationProfiler::Outcome::InvalidConfig);++sceneReloadFailures;throw;
+    } catch(...) {publications.finish(attempt,PublicationProfiler::Outcome::PreparationFailed);++sceneReloadFailures;throw;}
 }
 nlohmann::json Renderer::Impl::sceneReloadState() const {
     nlohmann::json j={{"published",sceneReloads},{"failed",sceneReloadFailures},{"epoch",terrainSceneEpoch},

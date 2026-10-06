@@ -95,7 +95,7 @@ void ProceduralGrass::drawComputed(const Patch& patch,const GrassPass& pass) con
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,patch.buffer);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,patch.commands);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,2,patch.gpuBlades);
-    GpuWorkProfiler::Scope timing(GpuWorkStage::GrassPlacement,GpuWorkProfiler::generation(patch.generation,patch.workIdentity),pass.timingView);
+    GpuWorkProfiler::Scope timing(GpuWorkStage::GrassPlacement,patch.workIdentity,pass.timingView);
     c.setInt("uReset",1); glDispatchCompute(1,1,1);
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     c.setInt("uReset",0);

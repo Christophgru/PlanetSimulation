@@ -137,6 +137,7 @@ Renderer::Impl::Impl(app::CommandLineOptions arguments)
     auto availableMemory = availableVideoMemoryBytes();
     if (options.videoMemoryCapBytes && (!availableMemory || *options.videoMemoryCapBytes < *availableMemory))
         availableMemory = options.videoMemoryCapBytes;
+    grass.diagnostics(&profiler.publications(),&terrainSceneEpoch,&installedTerrainSerial,&lastLocalMask,&meshes.waterMeshes);
     adaptiveQuality = AdaptiveQuality(availableMemory);
     glEnable(GL_DEPTH_TEST);
 }

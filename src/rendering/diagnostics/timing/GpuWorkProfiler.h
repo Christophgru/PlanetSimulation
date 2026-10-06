@@ -8,6 +8,7 @@
 #include <fstream>
 #include <iomanip>
 #include <limits>
+#include <optional>
 #include <stdexcept>
 #include <string>
 
@@ -79,11 +80,19 @@ public:
     class Binding {
         GpuWorkProfiler* previous_;
         GpuWorkIdentity previousIdentity_;
+        GpuWorkProfiler* owner_=nullptr;
+        std::uint64_t previousFrame_=0;
+        bool overrideFrame_=false;
     public:
-        explicit Binding(GpuWorkProfiler* owner):previous_(current_),previousIdentity_(identity_) {
+        explicit Binding(GpuWorkProfiler* owner,std::optional<std::uint64_t> frame=std::nullopt):previous_(current_),previousIdentity_(identity_) {
             current_=owner && owner->enabled() ? owner : nullptr;identity_={};
+            owner_=current_;
+            if(owner_ && frame) {previousFrame_=owner_->frame_;owner_->frame_=*frame;overrideFrame_=true;}
         }
-        ~Binding() {current_=previous_;identity_=previousIdentity_;}
+        ~Binding() {
+            if(overrideFrame_) owner_->frame_=previousFrame_;
+            current_=previous_;identity_=previousIdentity_;
+        }
         Binding(const Binding&)=delete;
         Binding& operator=(const Binding&)=delete;
     };
@@ -155,7 +164,9 @@ private:
     }
     void write(const Event& e,const char* status,bool valid,double gpuMs=0) {
         const auto& k=e.identity;
-        output_ << e.number << ',' << e.frame << ',' << gpuWorkStageNames[static_cast<int>(e.stage)] << ','
+        output_ << e.number << ',';
+        if(e.frame!=std::numeric_limits<std::uint64_t>::max()) output_ << e.frame;
+        output_ << ',' << gpuWorkStageNames[static_cast<int>(e.stage)] << ','
                 << k.epoch << ',' << k.serial << ',';
         if(k.body!=std::numeric_limits<std::uint64_t>::max()) output_ << k.body;
         output_ << ',' << k.field << ',' << k.topology << ',' << k.fieldVersion << ',' << k.topologyVersion << ','

@@ -1,0 +1,212 @@
+{
+  "draws": [
+    {
+      "body": 0,
+      "epoch": 1,
+      "frame": 1,
+      "grass_eye": [
+        -0.20655804963489702,
+        0.9125565889162128,
+        -0.3670682641040701
+      ],
+      "land_field": "10975133402283726949",
+      "land_revision": 1,
+      "land_topology": "6373637851977143750",
+      "serial": 1,
+      "water_field": "8343445989074671795",
+      "water_revision": 1,
+      "water_topology": "5890498633613243476"
+    },
+    {
+      "body": 1,
+      "epoch": 1,
+      "frame": 1,
+      "grass_eye": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "land_field": "13005042368953784910",
+      "land_revision": 1,
+      "land_topology": "8896015313400212575",
+      "serial": 2,
+      "water_field": "0",
+      "water_revision": 0,
+      "water_topology": "0"
+    },
+    {
+      "body": 0,
+      "epoch": 1,
+      "frame": 3,
+      "grass_eye": [
+        -0.20655804963489702,
+        0.9125565889162128,
+        -0.3670682641040701
+      ],
+      "land_field": "10975133402283726949",
+      "land_revision": 1,
+      "land_topology": "6373637851977143750",
+      "serial": 1,
+      "water_field": "8343445989074671795",
+      "water_revision": 1,
+      "water_topology": "5890498633613243476"
+    },
+    {
+      "body": 1,
+      "epoch": 1,
+      "frame": 3,
+      "grass_eye": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "land_field": "13005042368953784910",
+      "land_revision": 1,
+      "land_topology": "8896015313400212575",
+      "serial": 2,
+      "water_field": "0",
+      "water_revision": 0,
+      "water_topology": "0"
+    },
+    {
+      "body": 0,
+      "epoch": 1,
+      "frame": 5,
+      "grass_eye": [
+        -0.20747451812120535,
+        0.9120918564245846,
+        -0.3669179766573024
+      ],
+      "land_field": "10975133402283726949",
+      "land_revision": 1,
+      "land_topology": "6373637851977143750",
+      "serial": 1,
+      "water_field": "8343445989074671795",
+      "water_revision": 1,
+      "water_topology": "5890498633613243476"
+    },
+    {
+      "body": 1,
+      "epoch": 1,
+      "frame": 5,
+      "grass_eye": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "land_field": "13005042368953784910",
+      "land_revision": 1,
+      "land_topology": "8896015313400212575",
+      "serial": 2,
+      "water_field": "0",
+      "water_revision": 0,
+      "water_topology": "0"
+    },
+    {
+      "body": 0,
+      "epoch": 1,
+      "frame": 6,
+      "grass_eye": [
+        -0.20747451812120535,
+        0.9120918564245846,
+        -0.3669179766573024
+      ],
+      "land_field": "10975133402283726949",
+      "land_revision": 1,
+      "land_topology": "6373637851977143750",
+      "serial": 1,
+      "water_field": "8343445989074671795",
+      "water_revision": 1,
+      "water_topology": "5890498633613243476"
+    },
+    {
+      "body": 1,
+      "epoch": 1,
+      "frame": 6,
+      "grass_eye": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "land_field": "13005042368953784910",
+      "land_revision": 1,
+      "land_topology": "8896015313400212575",
+      "serial": 2,
+      "water_field": "0",
+      "water_revision": 0,
+      "water_topology": "0"
+    },
+    {
+      "body": 0,
+      "epoch": 1,
+      "frame": 7,
+      "grass_eye": [
+        -0.20747451812120535,
+        0.9120918564245846,
+        -0.3669179766573024
+      ],
+      "land_field": "10975133402283726949",
+      "land_revision": 1,
+      "land_topology": "6373637851977143750",
+      "serial": 1,
+      "water_field": "8343445989074671795",
+      "water_revision": 1,
+      "water_topology": "5890498633613243476"
+    },
+    {
+      "body": 1,
+      "epoch": 1,
+      "frame": 7,
+      "grass_eye": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "land_field": "13005042368953784910",
+      "land_revision": 1,
+      "land_topology": "8896015313400212575",
+      "serial": 2,
+      "water_field": "0",
+      "water_revision": 0,
+      "water_topology": "0"
+    },
+    {
+      "body": 0,
+      "epoch": 1,
+      "frame": 686,
+      "grass_eye": [
+        -0.22256412561214983,
+        0.9107190792780894,
+        -0.36692263502757305
+      ],
+      "land_field": "10975133402283726949",
+      "land_revision": 2,
+      "land_topology": "13814965365688712535",
+      "serial": 3,
+      "water_field": "8343445989074671795",
+      "water_revision": 2,
+      "water_topology": "1463843212658083919"
+    },
+    {
+      "body": 1,
+      "epoch": 1,
+      "frame": 686,
+      "grass_eye": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "land_field": "13005042368953784910",
+      "land_revision": 1,
+      "land_topology": "8896015313400212575",
+      "serial": 2,
+      "water_field": "0",
+      "water_revision": 0,
+      "water_topology": "0"
+    }
+  ],
+  "dropped": 0,
+  "peak_active": 2,
+  "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+  "version": "4.5 (Core Profile) Mesa 22.3.6"
+}

@@ -84,10 +84,58 @@ TEST(PublicationProfiler, UnknownFrameIsMissingAndEpochDiscardDoesNotPublish) {
     EXPECT_EQ(result[0]["elapsed_ms"],"5");
 }
 TEST(PublicationProfiler, DisabledDoesNotReadClockOrRetainWork) {
-    clocks=0;P p("",now);p.frame(3);EXPECT_EQ(p.begin(key()),0u);
+    clocks=0;P p("",now);p.frame(3);p.captureMode(true);EXPECT_EQ(p.begin(key()),0u);
     p.phase(5,P::Phase::CpuStart);p.prepared(5,generation());p.rendered(2,1,7,generation());
+    p.contactBound(5,0,generation());p.terrain(2,1,7);
     p.finish(5,P::Outcome::CpuFailed);p.discardOlderEpochs(3);p.collect();
     EXPECT_EQ(clocks,0u);EXPECT_EQ(p.stats().begun,0u);
+}
+TEST(PublicationProfiler, CpuTerrainIncludesGrassPreparationAndCaptureModeIsAdmissionScoped) {
+    const auto out=path("capture-cpu");at(0);P p(out,now);p.captureMode(true);
+    auto k=key();k.resident=false;const auto id=p.begin(k);EXPECT_EQ(p.terrain(2,1,7),id);
+    p.prepared(id,generation());auto drawn=generation();drawn.grassEye={.4,.5,.6};
+    p.captureMode(false);at(10);p.rendered(2,1,7,drawn);p.collect();auto result=rows(out);
+    ASSERT_EQ(result.size(),1u);EXPECT_EQ(result[0]["outcome"],"published");EXPECT_EQ(result[0]["capture_mode"],"1");
+    EXPECT_TRUE(result[0]["grass_eye_x"].empty());EXPECT_EQ(p.terrain(2,1,7),0u);
+}
+TEST(PublicationProfiler, HandoffCoexistsWithTerrainAndRequiresActualCharacterContacts) {
+    const auto out=path("handoff");at(0);P p(out,now);p.frame(1);
+    auto k=key();k.resident=false;const auto terrain=p.begin(k);p.prepared(terrain,generation());
+    const auto handoff=p.begin(k,P::Kind::Handoff);at(4);
+    {P::Preparation preparation(&p,handoff);preparation.bound(0,generation());}
+    p.rendered(2,1,7,generation());EXPECT_EQ(p.stats().active,1u);
+    auto wrong=generation();++wrong.landRevision;p.rendered(2,1,7,wrong,true);EXPECT_EQ(p.stats().active,1u);
+    auto drawn=generation();drawn.grassEye={.4,.5,.6};p.frame(3);at(10);p.rendered(2,1,7,drawn,true);p.collect();
+    auto result=rows(out);ASSERT_EQ(result.size(),2u);EXPECT_EQ(result[0]["outcome"],"published");
+    EXPECT_EQ(result[1]["kind"],"handoff");EXPECT_EQ(result[1]["outcome"],"published");
+    EXPECT_EQ(result[1]["origin_body"],"0");EXPECT_EQ(result[1]["body"],"1");EXPECT_EQ(result[1]["contact_bound_ms"],"4");
+    EXPECT_EQ(result[1]["publication_ms"],"10");
+    const auto pending=p.begin(k,P::Kind::Handoff);p.contactBound(pending,0,generation());
+    auto replacement=generation();++replacement.landRevision;
+    const auto newer=p.begin(k);p.prepared(newer,replacement);p.rendered(2,1,7,replacement,true);p.collect();
+    result=rows(out);ASSERT_EQ(result.size(),4u);EXPECT_EQ(result[2]["outcome"],"replaced_before_draw");
+    EXPECT_EQ(result[3]["outcome"],"published");
+}
+TEST(PublicationProfiler, UnfinishedPreparationClosesFailureAndCpuGrassNeedsItsActualAnchor) {
+    const auto out=path("cpu-grass");at(0);P p(out,now);auto k=key();k.resident=false;
+    const auto failed=p.begin(k,P::Kind::Grass);{P::Preparation preparation(&p,failed);}
+    const auto grass=p.begin(k,P::Kind::Grass);
+    {P::Preparation preparation(&p,grass);preparation.ready(generation());}
+    auto wrong=generation();wrong.grassEye={.4,.5,.6};p.rendered(2,1,7,wrong);EXPECT_EQ(p.stats().active,1u);
+    at(10);p.rendered(2,1,7,generation());p.collect();auto result=rows(out);ASSERT_EQ(result.size(),2u);
+    EXPECT_EQ(result[0]["outcome"],"preparation_failed");EXPECT_TRUE(result[0]["publication_ms"].empty());
+    EXPECT_EQ(result[1]["outcome"],"published");EXPECT_EQ(std::stod(result[1]["grass_eye_x"]),.1);
+}
+TEST(PublicationProfiler, CaptureExceptionClosesOnlyUnconsumedAttemptsInItsEpoch) {
+    const auto out=path("capture-failure");at(0);P p(out,now);p.captureMode(true);
+    const auto first=p.begin(key());p.prepared(first,generation());p.rendered(2,1,7,generation());
+    const auto pending=p.begin(key(8));p.prepared(pending,generation());
+    auto future=key(9);future.epoch=3;const auto other=p.begin(future);p.prepared(other,generation());
+    try {P::CaptureFailure failure(p,2);throw std::runtime_error("draw failed");} catch(const std::runtime_error&) {}
+    EXPECT_EQ(p.stats().active,1u);p.finish(other,P::Outcome::Shutdown);p.collect();auto result=rows(out);
+    ASSERT_EQ(result.size(),3u);EXPECT_EQ(result[0]["outcome"],"published");
+    EXPECT_EQ(result[1]["outcome"],"preparation_failed");EXPECT_TRUE(result[1]["publication_ms"].empty());
+    EXPECT_EQ(result[2]["outcome"],"shutdown");
 }
 TEST(PublicationProfiler, ReloadRequiresLiveExchangeAndEveryMatchingBodyDrawEvenAfterRowsDrain) {
     const auto out=path("reload-complete");at(0);P p(out,now);p.frame(1);
@@ -135,4 +183,25 @@ TEST(PublicationProfiler, DroppedReloadChildCannotProduceSuccessfulSceneLatency)
     p.collect();p.committed(root);p.sceneRendered(2);p.collect();auto result=rows(out);
     ASSERT_EQ(result.size(),P::capacity+1);EXPECT_EQ(result.back()["outcome"],"trace_incomplete");
     EXPECT_TRUE(result.back()["publication_ms"].empty());EXPECT_EQ(result.back()["child_attempts"],"0");
+}
+TEST(PublicationProfiler, CaptureReplacementClosesCommittedChildAndIncompleteRootAfterDraw) {
+    const auto out=path("reload-capture-replacement");at(0);P p(out,now);p.captureMode(true);
+    auto rootKey=key();rootKey.body=P::unknown;
+    const auto root=p.begin(rootKey,P::Kind::Reload);
+    const auto child=p.begin(key(),P::Kind::Terrain,root);p.prepared(child,generation());p.committed(root);
+    const auto grass=p.begin(key(),P::Kind::Grass);p.prepared(grass,generation());
+    EXPECT_EQ(p.stats().active,3u); // Equivalent capture grass leaves the child consumable.
+    auto changed=generation();++changed.landRevision;
+    const auto replacement=p.begin(key(8));p.prepared(replacement,changed);
+    EXPECT_EQ(p.stats().active,2u); // Root and replacement, closed child/grass.
+    p.collect();p.rendered(2,1,8,changed);EXPECT_EQ(p.stats().active,1u);
+    p.sceneRendered(2);p.collect();EXPECT_EQ(p.stats().active,0u);
+    const auto result=rows(out);ASSERT_EQ(result.size(),4u);
+    for(const auto& row:result) {
+        if(row.at("attempt")==std::to_string(root)) {
+            EXPECT_EQ(row.at("outcome"),"trace_incomplete");EXPECT_TRUE(row.at("publication_ms").empty());
+        } else if(row.at("attempt")==std::to_string(child)) {
+            EXPECT_EQ(row.at("outcome"),"replaced_before_draw");EXPECT_TRUE(row.at("publication_ms").empty());
+        } else if(row.at("attempt")==std::to_string(replacement)) EXPECT_EQ(row.at("outcome"),"published");
+    }
 }

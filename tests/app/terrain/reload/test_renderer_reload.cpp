@@ -25,7 +25,7 @@ app::CommandLineOptions options(const std::string& name) {
     o.terrainBackend="compute";o.terrainGrassPlanner="gpu-v1";
     o.configPath=(out/"scene.json").string();write(o.configPath,j);
     o.outputImagePath=(out/"capture.png").string();o.renderTestWidth=320;o.renderTestHeight=180;
-    o.benchmarkStep=0;return o;
+    o.benchmarkStep=0;o.performanceTrace=o.configPath+".frames.csv";return o;
 }
 void consistent(const json& state) {
     ASSERT_TRUE(state["managed"]);ASSERT_FALSE(state["pending"]);
@@ -48,7 +48,7 @@ void committed(const json& frame,unsigned failures=0) {
     }
 }
 void freshMatches(app::CommandLineOptions o,const std::string& expected) {
-    o.outputImagePath+= ".fresh.png";
+    o.outputImagePath+= ".fresh.png";o.performanceTrace.clear();
     {rendering::Renderer fresh(o);ASSERT_EQ(fresh.run(),0);EXPECT_EQ(bytes(o.outputImagePath),expected);}
     EXPECT_EQ(glfwGetCurrentContext(),nullptr);
 }

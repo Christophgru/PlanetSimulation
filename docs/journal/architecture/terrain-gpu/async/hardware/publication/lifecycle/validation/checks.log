@@ -1,0 +1,8 @@
+Final source, build/test input and all executable hashes match
+Validated folder limits, image-only gallery and README capture links
+All 22 gallery PNG hashes retained
+All 10 historical CPU/compute/replay PNG hashes match
+81 local Markdown links resolve
+git diff --check passes
+User environmental/Docker TODO suffix preserved byte-for-byte
+Journal compiled: 32 pages; visually reviewed pages [7, 8, 27, 28, 29, 30, 31, 32]

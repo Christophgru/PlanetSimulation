@@ -1,5 +1,34 @@
 # Page to document progress of AI Agents working on this Project
 
+## Complete publication lifecycle checkpoint — 2026-10-06
+
+- T3c5b2b2b completes capture/synchronous CPU, legacy and resident reload,
+  actual destination contact binding and CPU grass-only admission. Captures
+  require a returned complete scene draw; cached presentation admits nothing.
+  Reload roots/children arm after live exchange. Handoffs exclude previews and
+  flight travel; grass-only attempts exclude initial/replacement mesh planning.
+- Admission-scoped mode, origin and contact-binding offset extend the bounded
+  64-record CSV. Stack scopes retain failure closure without successful latency.
+  Off-live synchronous GPU work keeps child keys with an empty frame field;
+  full grass timing identity survives unchanged plans and later draws.
+- Capture replay can replace a committed child before drawing. That child ends
+  replaced_before_draw and the root trace_incomplete after the scene draw;
+  replacement terrain succeeds independently. Equivalent grass remains consumable.
+- Ten relevant CTest groups pass on final frozen inputs (366.53 s), including
+  23 controlled cases. Six Quadro OpenGL 4.3 checks pass. Both renderers verify
+  nine capture reload roots/twelve children, 57 GPU joins/30 off-frame events,
+  CPU grass success/failure, actual Moon handoff/exact fresh replay, and seven
+  injected reload fence failures with recovery. Rejected legacy-key/generation
+  checks are preserved; this is scoped correctness validation, not cost acceptance.
+- Source/build-test fingerprints and all 41 executable hashes remain frozen;
+  22 gallery and ten historical PNG hashes match. Journal/PDF, raw receipts,
+  device identities and validation are in
+  docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/.
+- T3c5b2b2 and parent T3c5b2b are tested. Resume T3c5b2c device-verified physical
+  memory sampling outside the critical loop, then matched hardware T3c5c.
+  CPU terrain stays default. The user's environmental TODO suffix is preserved
+  byte-for-byte and remains unstaged.
+
 ## Resident reload publication tracing checkpoint — 2026-10-06
 
 - T3c5b2b2a links asynchronous resident reload roots to bounded worker/GPU body

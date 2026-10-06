@@ -1,0 +1,64 @@
+Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 23 tests from 4 test suites.
+[----------] Global test environment set-up.
+[----------] 6 tests from GpuWorkProfiler
+[ RUN      ] GpuWorkProfiler.DelayedQueriesAreBoundedAndEveryReceiptRetainsItsIdentity
+[       OK ] GpuWorkProfiler.DelayedQueriesAreBoundedAndEveryReceiptRetainsItsIdentity (1 ms)
+[ RUN      ] GpuWorkProfiler.ShutdownDoesNotReadBusyQueriesAndUntracedScopesAllocateNothing
+[       OK ] GpuWorkProfiler.ShutdownDoesNotReadBusyQueriesAndUntracedScopesAllocateNothing (0 ms)
+[ RUN      ] GpuWorkProfiler.NestedContextBindingsRestoreRequestKeysAndExceptionsRetainReceipts
+[       OK ] GpuWorkProfiler.NestedContextBindingsRestoreRequestKeysAndExceptionsRetainReceipts (0 ms)
+[ RUN      ] GpuWorkProfiler.FailedQueryAllocationIsReportedWithoutChangingSubmission
+[       OK ] GpuWorkProfiler.FailedQueryAllocationIsReportedWithoutChangingSubmission (0 ms)
+[ RUN      ] GpuWorkProfiler.CpuWorkersDoNotInheritContextOrRequestBindings
+[       OK ] GpuWorkProfiler.CpuWorkersDoNotInheritContextOrRequestBindings (0 ms)
+[ RUN      ] GpuWorkProfiler.OffFrameBindingKeepsAttemptIdentityAndRestoresTheContainingFrame
+[       OK ] GpuWorkProfiler.OffFrameBindingKeepsAttemptIdentityAndRestoresTheContainingFrame (0 ms)
+[----------] 6 tests from GpuWorkProfiler (3 ms total)
+
+[----------] 2 tests from FrameProfilerTiming
+[ RUN      ] FrameProfilerTiming.SpanAndNestedWorkAreSeparateAndResultsRequireAvailability
+[       OK ] FrameProfilerTiming.SpanAndNestedWorkAreSeparateAndResultsRequireAvailability (0 ms)
+[ RUN      ] FrameProfilerTiming.BusyRingAndShutdownMissingSamplesAreExplicitAndEventsAreBounded
+[       OK ] FrameProfilerTiming.BusyRingAndShutdownMissingSamplesAreExplicitAndEventsAreBounded (1 ms)
+[----------] 2 tests from FrameProfilerTiming (2 ms total)
+
+[----------] 2 tests from NativeLoopTiming
+[ RUN      ] NativeLoopTiming.CompleteWallIncludesPollingPreparationPresentationAndMinimizedWait
+[       OK ] NativeLoopTiming.CompleteWallIncludesPollingPreparationPresentationAndMinimizedWait (0 ms)
+[ RUN      ] NativeLoopTiming.ExceptionClosesReceiptAndDisabledTracingDoesNotReadClock
+[       OK ] NativeLoopTiming.ExceptionClosesReceiptAndDisabledTracingDoesNotReadClock (0 ms)
+[----------] 2 tests from NativeLoopTiming (0 ms total)
+
+[----------] 13 tests from PublicationProfiler
+[ RUN      ] PublicationProfiler.WallAndFramesEndOnlyOnMatchingCompleteConsumerDraw
+[       OK ] PublicationProfiler.WallAndFramesEndOnlyOnMatchingCompleteConsumerDraw (0 ms)
+[ RUN      ] PublicationProfiler.GrassHasIndependentIdentityAndReplacesAnUndrawnGeneration
+[       OK ] PublicationProfiler.GrassHasIndependentIdentityAndReplacesAnUndrawnGeneration (0 ms)
+[ RUN      ] PublicationProfiler.FixedSlotsReportOverflowAndLateNotificationsCannotModifyReusedSlots
+[       OK ] PublicationProfiler.FixedSlotsReportOverflowAndLateNotificationsCannotModifyReusedSlots (2 ms)
+[ RUN      ] PublicationProfiler.UnknownFrameIsMissingAndEpochDiscardDoesNotPublish
+[       OK ] PublicationProfiler.UnknownFrameIsMissingAndEpochDiscardDoesNotPublish (0 ms)
+[ RUN      ] PublicationProfiler.DisabledDoesNotReadClockOrRetainWork
+[       OK ] PublicationProfiler.DisabledDoesNotReadClockOrRetainWork (0 ms)
+[ RUN      ] PublicationProfiler.CpuTerrainIncludesGrassPreparationAndCaptureModeIsAdmissionScoped
+[       OK ] PublicationProfiler.CpuTerrainIncludesGrassPreparationAndCaptureModeIsAdmissionScoped (0 ms)
+[ RUN      ] PublicationProfiler.HandoffCoexistsWithTerrainAndRequiresActualCharacterContacts
+[       OK ] PublicationProfiler.HandoffCoexistsWithTerrainAndRequiresActualCharacterContacts (0 ms)
+[ RUN      ] PublicationProfiler.UnfinishedPreparationClosesFailureAndCpuGrassNeedsItsActualAnchor
+[       OK ] PublicationProfiler.UnfinishedPreparationClosesFailureAndCpuGrassNeedsItsActualAnchor (0 ms)
+[ RUN      ] PublicationProfiler.CaptureExceptionClosesOnlyUnconsumedAttemptsInItsEpoch
+[       OK ] PublicationProfiler.CaptureExceptionClosesOnlyUnconsumedAttemptsInItsEpoch (0 ms)
+[ RUN      ] PublicationProfiler.ReloadRequiresLiveExchangeAndEveryMatchingBodyDrawEvenAfterRowsDrain
+[       OK ] PublicationProfiler.ReloadRequiresLiveExchangeAndEveryMatchingBodyDrawEvenAfterRowsDrain (0 ms)
+[ RUN      ] PublicationProfiler.ReloadFailuresCascadeAndEmptySceneStillNeedsPostExchangeDraw
+[       OK ] PublicationProfiler.ReloadFailuresCascadeAndEmptySceneStillNeedsPostExchangeDraw (0 ms)
+[ RUN      ] PublicationProfiler.DroppedReloadChildCannotProduceSuccessfulSceneLatency
+[       OK ] PublicationProfiler.DroppedReloadChildCannotProduceSuccessfulSceneLatency (2 ms)
+[ RUN      ] PublicationProfiler.CaptureReplacementClosesCommittedChildAndIncompleteRootAfterDraw
+[       OK ] PublicationProfiler.CaptureReplacementClosesCommittedChildAndIncompleteRootAfterDraw (0 ms)
+[----------] 13 tests from PublicationProfiler (10 ms total)
+
+[----------] Global test environment tear-down
+[==========] 23 tests from 4 test suites ran. (17 ms total)
+[  PASSED  ] 23 tests.

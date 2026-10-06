@@ -6,7 +6,12 @@
 namespace rendering {
 namespace {
 double milliseconds(PublicationProfiler::Clock::duration d) {return std::chrono::duration<double,std::milli>(d).count();}
-constexpr std::array kinds{"terrain","grass","reload"};
+bool sameTerrain(const PublicationProfiler::Generation& a,const PublicationProfiler::Generation& b) {
+    return a.landField==b.landField && a.landTopology==b.landTopology &&
+        a.waterField==b.waterField && a.waterTopology==b.waterTopology &&
+        a.landRevision==b.landRevision && a.waterRevision==b.waterRevision;
+}
+constexpr std::array kinds{"terrain","grass","reload","handoff"};
 constexpr std::array outcomes{"published","rejected","coalesced","obsolete","cpu_failed","preparation_failed",
     "replaced_before_draw","shutdown","missing_shutdown","invalid_config","superseded","trace_incomplete"};
 }
@@ -14,7 +19,7 @@ PublicationProfiler::PublicationProfiler(const std::string& path,Now now):now_(n
     if(path.empty()) return;
     output_.open(path);
     if(!output_) throw std::runtime_error("Cannot open publication trace: "+path);
-    output_ << "attempt,kind,epoch,request_serial,body,body_name_hash,field,field_version,topology_version,backend,resident,local_mask,eye_x,eye_y,eye_z,start_frame,end_frame,elapsed_ms,elapsed_frames,publication_ms,publication_frames,outcome,cpu_start_ms,cpu_end_ms,gpu_submit_ms,gpu_ready_ms,prepared_ms,land_field,land_topology,water_field,water_topology,land_revision,water_revision,grass_eye_x,grass_eye_y,grass_eye_z,dropped_starts,parent_attempt,scene_exchange_ms,child_attempts\n" << std::setprecision(17);
+    output_ << "attempt,kind,epoch,request_serial,body,body_name_hash,field,field_version,topology_version,backend,resident,local_mask,eye_x,eye_y,eye_z,start_frame,end_frame,elapsed_ms,elapsed_frames,publication_ms,publication_frames,outcome,cpu_start_ms,cpu_end_ms,gpu_submit_ms,gpu_ready_ms,prepared_ms,land_field,land_topology,water_field,water_topology,land_revision,water_revision,grass_eye_x,grass_eye_y,grass_eye_z,dropped_starts,parent_attempt,scene_exchange_ms,child_attempts,capture_mode,origin_body,contact_bound_ms\n" << std::setprecision(17);
 }
 PublicationProfiler::~PublicationProfiler() {
     if(!enabled()) return;
@@ -25,13 +30,17 @@ void PublicationProfiler::frame(std::uint64_t number) {
     if(!enabled()) return;
     std::lock_guard lock(mutex_);frame_=number;
 }
+void PublicationProfiler::captureMode(bool capture) {
+    if(!enabled()) return;
+    std::lock_guard lock(mutex_);capture_=capture;
+}
 std::uint64_t PublicationProfiler::begin(Key key,Kind kind,std::uint64_t parent) {
     if(!enabled()) return 0;
     std::lock_guard lock(mutex_);
     auto* root=find(parent);
     if(parent && (!root || root->kind!=Kind::Reload || root->exchangeMs>=0 || kind==Kind::Reload)) return 0;
     for(auto& r:records_) if(!r.attempt && next_!=unknown) {
-        r=Record{};r.attempt=next_++;r.key=key;r.kind=kind;r.start=now_();r.startFrame=frame_;r.parent=parent;
+        r=Record{};r.attempt=next_++;r.key=key;r.kind=kind;r.start=now_();r.startFrame=frame_;r.parent=parent;r.capture=capture_;
         if(root) {++root->children;++root->pendingChildren;}
         ++stats_.begun;++stats_.active;stats_.peakActive=std::max(stats_.peakActive,stats_.active);return r.attempt;
     }
@@ -70,16 +79,47 @@ void PublicationProfiler::prepared(std::uint64_t attempt,Generation generation) 
     std::lock_guard lock(mutex_);
     auto* current=find(attempt);if(!current || current->kind==Kind::Reload) return;
     for(auto& r:records_) if(r.attempt && !r.complete && r.attempt!=attempt && r.preparedMs>=0 &&
-        r.key.epoch==current->key.epoch && r.key.body==current->key.body && r.parent==current->parent)
-        close(r,Outcome::ReplacedBeforeDraw);
+        r.key.epoch==current->key.epoch && r.key.body==current->key.body && current->kind!=Kind::Handoff) {
+        // A committed reload child can be replaced by capture setup with no
+        // parent. Equivalent grass preparation still permits its matching draw;
+        // a different serial/consumer generation closes the undrawn child.
+        const auto* root=find(r.parent);
+        const bool liveChildReplaced=root && root->exchangeMs>=0 &&
+            (r.key.serial!=current->key.serial || (r.generation!=generation &&
+                (r.key.resident || !sameTerrain(r.generation,generation))));
+        if(r.kind==Kind::Handoff ? !sameTerrain(r.generation,generation) :
+            r.parent==current->parent || liveChildReplaced)
+            close(r,Outcome::ReplacedBeforeDraw);
+    }
     current->generation=generation;current->preparedMs=milliseconds(now_()-current->start);
 }
-void PublicationProfiler::rendered(std::uint64_t epoch,std::uint64_t body,std::uint64_t serial,Generation generation) {
+void PublicationProfiler::rendered(std::uint64_t epoch,std::uint64_t body,std::uint64_t serial,Generation generation,bool characterContacts) {
     if(!enabled()) return;
     std::lock_guard lock(mutex_);
     for(auto& r:records_) if(r.attempt && !r.complete && r.kind!=Kind::Reload && r.preparedMs>=0 &&
-        r.key.epoch==epoch && r.key.body==body && r.key.serial==serial && r.generation==generation &&
+        r.key.epoch==epoch && r.key.body==body && r.key.serial==serial &&
+        (r.kind!=Kind::Handoff || characterContacts) &&
+        // CPU terrain admission precedes grass planning; its interval includes
+        // that preparation but cannot require the previously installed anchor.
+        (r.generation==generation || (((!r.key.resident && r.kind==Kind::Terrain) || r.kind==Kind::Handoff) && sameTerrain(r.generation,generation))) &&
         (!r.parent || (find(r.parent) && find(r.parent)->exchangeMs>=0))) close(r,Outcome::Published);
+}
+void PublicationProfiler::contactBound(std::uint64_t attempt,std::uint64_t origin,Generation generation) {
+    if(!enabled() || !attempt) return;
+    std::lock_guard lock(mutex_);
+    if(auto* r=find(attempt);r && r->kind==Kind::Handoff) {
+        for(auto& old:records_) if(old.attempt && !old.complete && old.attempt!=attempt && old.kind==Kind::Handoff &&
+            old.preparedMs>=0 && old.key.epoch==r->key.epoch && old.key.body==r->key.body)
+            close(old,Outcome::ReplacedBeforeDraw);
+        r->origin=origin;r->generation=generation;
+        r->contactMs=r->preparedMs=milliseconds(now_()-r->start);
+    }
+}
+void PublicationProfiler::captureFailed(std::uint64_t epoch) {
+    if(!enabled()) return;
+    std::lock_guard lock(mutex_);
+    for(auto& r:records_) if(r.attempt && !r.complete && r.capture && r.key.epoch==epoch)
+        close(r,Outcome::PreparationFailed);
 }
 std::uint64_t PublicationProfiler::child(std::uint64_t parent,std::uint64_t body) const {
     if(!enabled() || !parent) return 0;
@@ -91,6 +131,13 @@ void PublicationProfiler::committed(std::uint64_t parent) {
     if(!enabled() || !parent) return;
     std::lock_guard lock(mutex_);
     if(auto* r=find(parent);r && r->kind==Kind::Reload && r->exchangeMs<0) r->exchangeMs=milliseconds(now_()-r->start);
+}
+std::uint64_t PublicationProfiler::terrain(std::uint64_t epoch,std::uint64_t body,std::uint64_t serial) const {
+    if(!enabled()) return 0;
+    std::lock_guard lock(mutex_);
+    for(const auto& r:records_) if(r.attempt && !r.complete && r.kind==Kind::Terrain &&
+        r.key.epoch==epoch && r.key.body==body && r.key.serial==serial) return r.attempt;
+    return 0;
 }
 void PublicationProfiler::sceneRendered(std::uint64_t epoch) {
     if(!enabled()) return;
@@ -113,7 +160,7 @@ void PublicationProfiler::collect() {
     }
     for(std::size_t i=0;i<count;++i) write(completed[i]);
     // Overflow is missing evidence, never a successful zero-latency request.
-    if(drops) {output_ << "0";for(int i=1;i<40;++i) {output_ << ',';if(i==21) output_ << "trace_overflow";if(i==36) output_ << drops;}output_ << '\n';}
+    if(drops) {output_ << "0";for(int i=1;i<43;++i) {output_ << ',';if(i==21) output_ << "trace_overflow";if(i==36) output_ << drops;}output_ << '\n';}
     output_.flush();
 }
 void PublicationProfiler::write(const Record& r) {
@@ -134,10 +181,12 @@ void PublicationProfiler::write(const Record& r) {
     output_ << ',';if(r.preparedMs>=0) output_ << r.preparedMs;
     const auto& g=r.generation;
     for(auto value:{g.landField,g.landTopology,g.waterField,g.waterTopology,g.landRevision,g.waterRevision}) {output_ << ',';if(r.preparedMs>=0) output_ << value;}
-    for(auto value:g.grassEye) {output_ << ',';if(r.preparedMs>=0 && k.resident) output_ << value;}
+    for(auto value:g.grassEye) {output_ << ',';if(r.preparedMs>=0 && (k.resident || r.kind==Kind::Grass)) output_ << value;}
     output_ << ",0,";if(r.parent) output_ << r.parent;
     output_ << ',';if(r.exchangeMs>=0) output_ << r.exchangeMs;
     output_ << ',';if(r.kind==Kind::Reload) output_ << r.children;
+    output_ << ',' << r.capture << ',';if(r.origin!=unknown) output_ << r.origin;
+    output_ << ',';if(r.contactMs>=0) output_ << r.contactMs;
     output_ << '\n';
 }
 }

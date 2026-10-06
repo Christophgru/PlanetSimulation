@@ -24,10 +24,13 @@ void Renderer::Impl::installTerrainBuild(TerrainCpuBuild built,const TerrainBuil
     profiler.terrainBuild(built.milliseconds);
     std::unique_ptr<TerrainComputeBuffers> computed,computedWater;
     if(identity.backend==TerrainBackend::Compute) {
+        const auto attempt=profiler.publications().terrain(identity.epoch,i,identity.serial);
+        profiler.publications().phase(attempt,PublicationProfiler::Phase::GpuSubmit);
         TerrainGpuPreparation staged(std::move(built),identity,scene.scenario.planets[i],*terrainCompute);
         // Explicit capture adapter. Interactive compute remains gated until
         // complete frame-boundary publication/recovery is implemented in T3c3.
         staged.waitForCapture();
+        profiler.publications().phase(attempt,PublicationProfiler::Phase::GpuReady);
         built=std::move(staged.cpu);computed=std::move(staged.land);computedWater=std::move(staged.water);
     }
     if(built.water) {
@@ -40,6 +43,7 @@ void Renderer::Impl::installTerrainBuild(TerrainCpuBuild built,const TerrainBuil
 
 void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalking,std::optional<double> characterElapsed) {
     CpuTrace::Scope scope("Renderer::preparePlanetMeshes");
+    profiler.publications().captureMode(options.renderTestMode);
     if(terrainPublication && !options.renderTestMode) {
         prepareResidentFrame(eye,characterElapsed);return;
     }
@@ -136,7 +140,7 @@ void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalkin
             if(priority<candidateDistance) {candidateDistance=priority;candidate=std::move(request);}
             continue;
         }
-        if(!options.renderTestMode) request.traceAttempt=profiler.publications().begin(PublicationProfiler::Key::from(identity));
+        request.traceAttempt=profiler.publications().begin(PublicationProfiler::Key::from(identity));
         const auto attempt=request.traceAttempt;
         TerrainCpuBuild built;
         try {
@@ -158,10 +162,17 @@ void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalkin
         }
     }
     if(candidate) {
-        if(!options.renderTestMode) candidate->traceAttempt=profiler.publications().begin(PublicationProfiler::Key::from(candidate->identity));
+        candidate->traceAttempt=profiler.publications().begin(PublicationProfiler::Key::from(candidate->identity));
         terrainJobs.submit(std::move(*candidate));
     }
-    if(terrainPublication) publishResidentBuilds(std::move(residentBuilds),residentIdentities,eye,characterElapsed);
+    if(terrainPublication) {
+        try {publishResidentBuilds(std::move(residentBuilds),residentIdentities,eye,characterElapsed);}
+        catch(...) {
+            for(const auto& k:residentIdentities) if(k)
+                profiler.publications().finish(profiler.publications().terrain(k->epoch,k->bodyIndex,k->serial),PublicationProfiler::Outcome::PreparationFailed);
+            throw;
+        }
+    }
 }
 
 std::vector<std::uint64_t> Renderer::Impl::geometryRevisions() const {

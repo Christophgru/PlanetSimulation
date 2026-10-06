@@ -8,13 +8,11 @@ PublicationProfiler::Generation Renderer::Impl::publicationGeneration(std::size_
     const auto& land=meshes.planetMeshes[i];const auto& water=meshes.waterMeshes[i];
     const auto& l=land.terrainStats.generation;const auto& w=water.terrainStats.generation;
     PublicationProfiler::Generation result{l.field,l.topology,w.field,w.topology,land.revision,water.revision};
-    if(terrainPublication) {
-        const auto eye=terrainPublication->installed(i).grassEye;result.grassEye={eye.x,eye.y,eye.z};
-    }
+    if(const auto eye=grass.procedural.planningEye(i)) result.grassEye={eye->x,eye->y,eye->z};
     return result;
 }
 void Renderer::Impl::recordRenderedPublications(bool character) {
-    auto& trace=profiler.publications();if(!trace.enabled() || options.renderTestMode) return;
+    auto& trace=profiler.publications();if(!trace.enabled()) return;
     trace.discardOlderEpochs(terrainSceneEpoch);
     for(std::size_t i=0;i<meshReady.size();++i) {
         if(!meshReady[i]) continue;
@@ -31,7 +29,7 @@ void Renderer::Impl::recordRenderedPublications(bool character) {
                (c.grassDrawRevision && c.grassDrawRevision!=land.revision) ||
                (scene.scenario.planets[i].water.enabled && c.waterDrawRevision!=water.revision)) continue;
         }
-        trace.rendered(terrainSceneEpoch,i,installedTerrainSerial[i],publicationGeneration(i));
+        trace.rendered(terrainSceneEpoch,i,installedTerrainSerial[i],publicationGeneration(i),character && i==scene.scenario.surface_camera.planet_index);
     }
     trace.sceneRendered(terrainSceneEpoch);
 }

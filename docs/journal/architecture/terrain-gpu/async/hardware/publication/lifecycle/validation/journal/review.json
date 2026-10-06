@@ -1,0 +1,23 @@
+{
+  "pages": 32,
+  "reviewed_pages": [
+    7,
+    8,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32
+  ],
+  "reviewed_png_sha256": {
+    "page-07-of-32.png": "3f9dcdcc2309418e7ada85943b4af3c88366aedc3edc4a45f2faf8ca33f705a7",
+    "page-08-of-32.png": "322f0964f4e91aa5c31d21fd952fe8e2e7dc090c48044c0eefb04fc8f7cae7fb",
+    "page-27-of-32.png": "b1f0d6e25493d78f4c4b4b3a52736f18ae2b5fb845195c6e58ad234802f29b5f",
+    "page-28-of-32.png": "391c326b7400e8fd60a87466ecca9d5708458e410249307bff1f33bd65bf787b",
+    "page-29-of-32.png": "a9b93d26b2616d9e9f323de4ab54b73968f6a468e16d1ba4119bf62e434531a6",
+    "page-30-of-32.png": "c2c2de9af0ffc433a73b46ed56fdb3cf33c0dd8d0875863f45be9faa49727dfb",
+    "page-31-of-32.png": "579c157ce7181a07b6c44306278d85a6c9aac6fb4e52349bf0d6fc67fffb0c24",
+    "page-32-of-32.png": "84aa30322e093e0a8739577122c88cb67250fc2e7396c7248365c60c932a1c4e"
+  }
+}

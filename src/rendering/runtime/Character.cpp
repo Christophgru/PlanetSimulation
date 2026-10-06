@@ -226,6 +226,17 @@ void Renderer::Impl::prepareAstronaut(double elapsed,std::vector<SurfaceContact>
     const auto targetBody=astronaut.motion.pose().navigation ?
         astronaut.motion.pose().navigation->referenceBody : astronaut.motion.referenceBody();
     if (targetBody!=index+1) {
+        auto& publications=profiler.publications();if(!preview) publications.captureMode(options.renderTestMode);
+        std::uint64_t attempt=0;
+        if(!preview && publications.enabled()) {
+            const auto next=targetBody-1;const auto& key=meshes.planetMeshes[next].terrainStats.generation;
+            TerrainBuildIdentity k;k.epoch=terrainSceneEpoch;k.serial=installedTerrainSerial[next];k.bodyIndex=next;
+            k.bodyName=scene.scenario.planets[next].name;k.field=key.field;k.fieldVersion=key.fieldVersion;
+            k.topologyVersion=key.topologyVersion;k.backend=key.backend;k.resident=bool(terrainPublication);
+            k.eye=scene.bodies[targetBody].toLocalPoint(camera.position());k.localMask=lastLocalMask[next];
+            attempt=publications.begin(PublicationProfiler::Key::from(k),PublicationProfiler::Kind::Handoff);
+        }
+        PublicationProfiler::Preparation handoff(&publications,attempt);
         astronaut.motion.reframeFlight(targetBody);
         const auto next=targetBody-1;
         const auto& nextPlanet=scene.scenario.planets[next]; const auto& nextBody=scene.bodies[targetBody];
@@ -260,6 +271,7 @@ void Renderer::Impl::prepareAstronaut(double elapsed,std::vector<SurfaceContact>
         // subsequent collision queries can consume the new body's terrain.
         astronaut.planetIndex=next;astronautGround=contacts[next];astronautGroundRevision=astronautGround.revision();
         astronaut.motion.setFlightEnvironment(environment(nextPlanet),JetpackPhysics::maximumThrust(environment(scene.scenario.planets.front())));
+        if(!preview) handoff.bound(index,publicationGeneration(next));
         if(!preview) std::cout << "Astronaut destination: " << nextPlanet.name << "\n" << std::flush;
     }
     if (!preview && !options.renderTestMode) {

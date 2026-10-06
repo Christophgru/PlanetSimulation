@@ -299,10 +299,18 @@ Asynchronous resident reloads add a `reload` root and linked body attempts;
 `parent_attempt`, `scene_exchange_ms` and `child_attempts` distinguish whole-scene
 exchange from off-live preparation. Success requires the exchanged scene's
 complete consumer draw. Root/child intervals overlap. Invalid, superseded and
-failed transactions retain unsuccessful outcomes. Synchronous reloads, captures,
-body handoff and CPU grass-only tracing remain pending. See the
-[publication tracing study](docs/journal/architecture/terrain-gpu/async/hardware/publication/study.md)
-and [reload tracing study](docs/journal/architecture/terrain-gpu/async/hardware/publication/transactions/study.md).
+failed transactions retain unsuccessful outcomes. Synchronous reload and capture
+adapters use the same consumption gate; `capture_mode` identifies admission mode.
+Off-live synchronous GPU work retains its child attempt with an empty frame field,
+including reloads invoked between capture frames.
+CPU grass-only rebuilds retain terrain serials and record actual anchors. Actual
+character handoffs record `origin_body` and `contact_bound_ms`, with a `handoff`
+kind whose latency covers binding through consumption. Preview handoffs and
+unchanged grass are excluded. These intervals overlap. Physical-memory sampling
+and matched hardware cost acceptance remain pending. See the
+[publication tracing study](docs/journal/architecture/terrain-gpu/async/hardware/publication/study.md),
+the [reload tracing study](docs/journal/architecture/terrain-gpu/async/hardware/publication/transactions/study.md)
+and [capture/contact/CPU grass study](docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/study.md).
 `cpu_foliage_ms` includes complete CPU preparation. GPU placement, wind,
 compaction and drawing belong to the opaque/reflection passes;
 `gpu_foliage_ms` remains zero because that named stage prepares the CPU plan.

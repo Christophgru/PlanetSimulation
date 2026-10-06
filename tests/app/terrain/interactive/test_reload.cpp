@@ -49,6 +49,7 @@ void verifyReloads(auto& r,const std::map<unsigned,std::string>& expected) {
         EXPECT_TRUE(roots.emplace(row.at("attempt"),row).second);
         EXPECT_TRUE(outcomes.emplace(std::stoul(row.at("epoch")),row.at("outcome")).second);
         EXPECT_TRUE(row.at("body").empty());EXPECT_TRUE(row.at("parent_attempt").empty());
+        EXPECT_EQ(row.at("capture_mode"),"0");
         if(row.at("outcome")=="published") {
             EXPECT_FALSE(row.at("scene_exchange_ms").empty());
             EXPECT_GE(std::stod(row.at("publication_ms")),std::stod(row.at("scene_exchange_ms")));

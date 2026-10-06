@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="10"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="366"
+	timestamp="2026-10-06T14:01:22"
+	>
+	<testcase name="RendererLifecycleTests" classname="RendererLifecycleTests" time="81.0309" status="run">
+		<system-out>Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 29 tests from 6 test suites.
+[----------] Global test environment set-up.
+[----------] 7 tests from RendererLifecycle
+[ RUN      ] RendererLifecycle.ConstructAndDestroyWithoutRunningTwice
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 0.0 s
+Sun radius: 2.5
+Planets: 2
+Camera position: (15, 15, 8)
+Render test mode enabled
+Output image: /workspace/build-resume/renderer-lifecycle/capture.png
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 0.0 s
+Sun radius: 2.5
+Planets: 2
+Camera position: (15, 15, 8)
+Render test mode enabled
+Output image: /workspace/build-resume/renderer-lifecycle/capture.png
+[       OK ] RendererLifecycle.ConstructAndDestroyWithoutRunningTwice (1358 ms)
+[ RUN      ] RendererLifecycle.NativeStartupAndReloadRequireResidentComputeGrass
+[       OK ] RendererLifecycle.NativeStartupAndReloadRequireResidentComputeGrass (6 ms)
+[ RUN      ] RendererLifecycle.La...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="TerrainRecoveryIntegration" classname="TerrainRecoveryIntegration" time="70.5448" status="run">
+		<system-out>Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 3 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 3 tests from TerrainRecovery
+[ RUN      ] TerrainRecovery.MovingReloadFailureRetainsPoseAndDrawsThenRepeatedBodyReordersRecover
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 20.0 s
+Sun radius: 2.5
+Planets: 2
+Surface camera position: (6.9946, 5.87568, -0.562742)
+Surface render test mode enabled
+Output image: /workspace/build-resume/terrain-recovery/movement/capture.png
+Planet 0 terrain: 10000 triangles; far/middle/near faces: 320/0/0; steep-refined faces: 0 (budget 10000); foliage blades: 128; water triangles: 10000
+Planet 0 terrain LOD faces (coarse to fine): 320/0/0/0/0/0/0/0; mesh bytes: 0
+Planet 0 foliage candidate bounds per pass: 1792 vertices; 1536 triangles; 1 batches; instance bytes: 0
+Planet 0 terrain contract: 5002 canonical samples; 280064 input bytes; planning queries 8339/6669 requested/evaluate...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="TerrainFrameIntegration" classname="TerrainFrameIntegration" time="50.7206" status="run">
+		<system-out>Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 9 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 9 tests from TerrainFrame
+[ RUN      ] TerrainFrame.StartupGrassOnlyRecoveryAndProgrammaticWalkingPublishWithoutWaits
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 20.0 s
+Sun radius: 2.5
+Planets: 2
+Surface camera position: (6.9946, 5.87568, -0.562742)
+Surface render test mode enabled
+Output image: /workspace/build-resume/terrain-frame/movement/frame.png
+Terrain preparation failed; previous generation retained: Grass allocation completion failed
+[       OK ] TerrainFrame.StartupGrassOnlyRecoveryAndProgrammaticWalkingPublishWithoutWaits (9081 ms)
+[ RUN      ] TerrainFrame.DelayedGpuKeepsBoundedCpuCompletionAndRetainsDrawableRetiredBuffers
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 20.0 s
+Sun radius: 2.5
+Planets: 2
+Surface camera position: (6.9946, 5.87568, -0.562742)
+Surface re...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="TerrainReloadFrameIntegration" classname="TerrainReloadFrameIntegration" time="27.3428" status="run">
+		<system-out>Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 4 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 4 tests from TerrainReloadFrame
+[ RUN      ] TerrainReloadFrame.MovingOldSceneDrawsDuringDelayedPreparationAndLatestRequestSurvivesRetirement
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 20.0 s
+Sun radius: 2.5
+Planets: 2
+Surface camera position: (6.9946, 5.87568, -0.562742)
+Surface render test mode enabled
+Output image: /workspace/build-resume/terrain-reload-frame/moving/frame.png
+Scene retirement pending: Scene retirement fence poll failed
+[       OK ] TerrainReloadFrame.MovingOldSceneDrawsDuringDelayedPreparationAndLatestRequestSurvivesRetirement (6439 ms)
+[ RUN      ] TerrainReloadFrame.InvalidLatestRequestAndGpuFailureRetainLiveSceneThenIdenticalFieldSupersessionRecovers
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 20.0 s
+Sun radius: 2.5
+Planets: 2
+Surface camera position:...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="TerrainJobTests" classname="TerrainJobTests" time="0.0964499" status="run">
+		<system-out>Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 16 tests from 2 test suites.
+[----------] Global test environment set-up.
+[----------] 13 tests from TerrainJobs
+[ RUN      ] TerrainJobs.BoundsCoalescingAndCompletionBackpressure
+[       OK ] TerrainJobs.BoundsCoalescingAndCompletionBackpressure (3 ms)
+[ RUN      ] TerrainJobs.RepeatedReloadKeepsWorkerOwnershipAndDiscardsOldEpochs
+[       OK ] TerrainJobs.RepeatedReloadKeepsWorkerOwnershipAndDiscardsOldEpochs (1 ms)
+[ RUN      ] TerrainJobs.ErrorsAreReturnedAndExecutorCanRecover
+[       OK ] TerrainJobs.ErrorsAreReturnedAndExecutorCanRecover (1 ms)
+[ RUN      ] TerrainJobs.ExclusiveReloadFailureLeavesTheLiveEpochUsableAndReusesTheSameWorker
+[       OK ] TerrainJobs.ExclusiveReloadFailureLeavesTheLiveEpochUsableAndReusesTheSameWorker (0 ms)
+[ RUN      ] TerrainJobs.ShutdownJoinsExecutingSnapshotAndDropsQueuedWork
+[       OK ] TerrainJobs.ShutdownJoinsExecutingSnapshotAndDropsQueuedWork (1 ms)
+[ RUN      ] TerrainJobs.Fut...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="TerrainComputeIntegration" classname="TerrainComputeIntegration" time="50.6202" status="run">
+		<system-out>[==========] Running 31 tests from 5 test suites.
+[----------] Global test environment set-up.
+[----------] 6 tests from TerrainCompute
+[ RUN      ] TerrainCompute.DoubleFieldsMatchCpuAtPolesLatticeBoundariesAndExtremeSeeds
+PARITY triangles=33 samples=9 height_m=0 position_m=0 normal_rad=0 color=0 uploaded=1452 peak=5744 dispatches=3 gpu_ms=0.39509 cpu_bulk_ms=0.091884 submit_ms=30.693 capture_wait_ms=0.13823 validation_read_ms=0.010044
+PARITY triangles=33 samples=9 height_m=1.38556e-13 position_m=0 normal_rad=2.10734e-08 color=0 uploaded=1452 peak=5744 dispatches=3 gpu_ms=0.36102 cpu_bulk_ms=0.065265 submit_ms=0.614747 capture_wait_ms=0.082554 validation_read_ms=0.009256
+PARITY triangles=33 samples=9 height_m=1.52101e-14 position_m=0 normal_rad=2.10734e-08 color=0 uploaded=1452 peak=5744 dispatches=3 gpu_ms=0.427412 cpu_bulk_ms=0.094856 submit_ms=0.740051 capture_wait_ms=0.042956 validation_read_ms=0.012837
+PARITY triangles=33 samples=9 height_m=3.86358e-13 position_m=0 normal_rad=2.10734e-08 color=0 uploade...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="GpuWorkProfilerTests" classname="GpuWorkProfilerTests" time="0.0348258" status="run">
+		<system-out>Running main() from /usr/src/googletest/googletest/src/gtest_main.cc
+[==========] Running 23 tests from 4 test suites.
+[----------] Global test environment set-up.
+[----------] 6 tests from GpuWorkProfiler
+[ RUN      ] GpuWorkProfiler.DelayedQueriesAreBoundedAndEveryReceiptRetainsItsIdentity
+[       OK ] GpuWorkProfiler.DelayedQueriesAreBoundedAndEveryReceiptRetainsItsIdentity (2 ms)
+[ RUN      ] GpuWorkProfiler.ShutdownDoesNotReadBusyQueriesAndUntracedScopesAllocateNothing
+[       OK ] GpuWorkProfiler.ShutdownDoesNotReadBusyQueriesAndUntracedScopesAllocateNothing (0 ms)
+[ RUN      ] GpuWorkProfiler.NestedContextBindingsRestoreRequestKeysAndExceptionsRetainReceipts
+[       OK ] GpuWorkProfiler.NestedContextBindingsRestoreRequestKeysAndExceptionsRetainReceipts (0 ms)
+[ RUN      ] GpuWorkProfiler.FailedQueryAllocationIsReportedWithoutChangingSubmission
+[       OK ] GpuWorkProfiler.FailedQueryAllocationIsReportedWithoutChangingSubmission (0 ms)
+[ RUN      ] GpuWorkProfiler.CpuWorkersDoNotInheritContextOrRequestB...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="PerformanceCaptureIntegration" classname="PerformanceCaptureIntegration" time="27.6085" status="run">
+		<system-out>Validated traced frames, paused image identity, and moving shadow reuse
+Validated exact replay of full-resolution atmosphere capture
+</system-out>
+	</testcase>
+	<testcase name="NativeLoopTimingIntegration" classname="NativeLoopTimingIntegration" time="6.69565" status="run">
+		<system-out>Validated cpu native full wall/poll/present/loading/minimized/resume: {'rendered': 8, 'minimized': 7}
+Validated compute native full wall/poll/present/loading/minimized/resume: {'loading': 35, 'rendered': 7, 'minimized': 7}
+</system-out>
+	</testcase>
+	<testcase name="TerrainNativeInputIntegration" classname="TerrainNativeInputIntegration" time="51.8035" status="run">
+		<system-out>Validated native loading/standing/6-12 m/s walking/jump/WASD-Space thrust/trail/reload/watch/supersession
+Validated native space navigation, directional input, matching contacts and replay reload
+Validated native moon navigation, directional input, matching contacts and replay reload
+Validated native default-cpu startup and walking
+Validated native gl33-fallback startup and walking
+Validated native compute opt-in, five input scenarios and four startup rejection contracts
+</system-out>
+	</testcase>
+</testsuite>
