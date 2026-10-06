@@ -1,0 +1,524 @@
+{
+  "date": "2026-10-06",
+  "task": "T3c5b2c",
+  "base_revision": "0424ea1",
+  "scope": {
+    "type": "scoped regression batch plus a test-only fixture correction and focused rechecks; not an uninterrupted 12/12, new full 66-group run or production hardware cost acceptance",
+    "scoped_groups_with_passing_results": 12,
+    "runtime_batch_groups_passed": 11,
+    "runtime_batch_seconds": 429.91,
+    "corrected_full_renderer_group_seconds": 67.55,
+    "controlled_reader_cases": 8,
+    "memory_renderer_cases": 3,
+    "quadro_renderer_cases": 3,
+    "quadro_native_fixtures": 2,
+    "physical_gpu_capture_pairs": 4,
+    "fixture_correction": "Empty native scene is valid; use negative planet radius to exercise invalid-input failure. Only terrain_frame_tests changes; runtime source, other 41 executables and driver-fixture hashes remain identical."
+  },
+  "frozen_provenance": {
+    "source_sha256": "e72563f47a3f048a15937fceea4506b840e721e55ad5eff773cd9f2bdac9c6b5",
+    "build_test_input_sha256": "26c7f7d82f7d885a8dc398bc831970cb64a17281059fc44ca704263f6d8fe7b1",
+    "executable_count": 42,
+    "driver_fixtures": {
+      "build-resume/tests/fake-nvml/libnvidia-ml.so.1": "38c7b5058aee64d3adf2776bbabd46d5d69ec2d03a9346fe57ff4ea53bd42235",
+      "build-resume/tests/fake-memory-nvml/libnvidia-ml.so.1": "90a24318623d8bbc7ac82bf10da337a687628c872e1229f2bbd793739407442c"
+    },
+    "changed_executables_after_fixture_correction": [
+      "build-resume/tests/terrain_frame_tests"
+    ],
+    "runtime_and_other_executables_unchanged": true,
+    "all_hashes_match_after_validation": true,
+    "fingerprint_definition": "SHA-256 over globally sorted relative paths, NUL, file bytes, NUL; src/shaders; tests/configs/scripts/CMakeLists.txt excluding __pycache__"
+  },
+  "commands": {
+    "scoped": "env LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=2 xvfb-run -a ctest --test-dir build-resume --output-on-failure -R '^(RendererLifecycleTests|TerrainRecoveryIntegration|TerrainFrameIntegration|TerrainReloadFrameIntegration|TerrainJobTests|TerrainComputeIntegration|GpuWorkProfilerTests|PerformanceCaptureIntegration|NativeLoopTimingIntegration|TerrainNativeInputIntegration|MemorySamplerTests|GpuUtilizationTests)$'",
+    "corrected_renderer_group": "env LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=2 xvfb-run -a ctest --test-dir build-resume --output-on-failure -R '^TerrainFrameIntegration$'",
+    "quadro_renderers": "env __NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia TEST_EXPECT_GPU_UUID=GPU-2cefee61-6b3b-a670-c390-c7449dad3f79 xvfb-run -a build-resume/tests/terrain_frame_tests --gtest_filter='MemoryTracing.*'",
+    "quadro_native": "env __NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia TEST_EXPECT_GPU_UUID=GPU-2cefee61-6b3b-a670-c390-c7449dad3f79 xvfb-run -a python3 tests/diagnostics/timing/test_native_loop.py --probe build-resume/tests/terrain_native_probe --output-dir build-resume/memory-quadro-native",
+    "gpu_captures": "python3 build-resume/memory_capture_check.py (archived captures/capture_check.py; EGL adapter source and all commands retained)",
+    "provenance": "python3 build-resume/memory_provenance.py check"
+  },
+  "environment": {
+    "platform": "Linux-7.0.0-34-generic-x86_64-with-glibc2.36",
+    "compiler": "GCC 12.2.0",
+    "build_type": "RelWithDebInfo",
+    "egl_adapter_sha256": "7a6c2cbb73ed085ce966f8c9348ee58ae49630b15b7d0a095d44920951154338"
+  },
+  "renderer_receipts": {
+    "software": {
+      "memory-cpu": {
+        "rows": 24,
+        "samples": 15,
+        "phases": [
+          "capture",
+          "reload_exchange",
+          "reload_failed",
+          "reload_preparing",
+          "reload_requested",
+          "renderer_ready",
+          "retirement",
+          "shutdown"
+        ],
+        "root_events_joined": 5,
+        "roots": 2,
+        "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+        "uuid": "GPU-6d657361-3232-2e33-2e36-000000000000",
+        "dropped_events": 0,
+        "skipped_latest_observations": 0,
+        "logical_overlap_peak_bytes": null
+      },
+      "memory-resident": {
+        "rows": 29,
+        "samples": 19,
+        "phases": [
+          "reload_exchange",
+          "reload_failed",
+          "reload_preparing",
+          "reload_requested",
+          "reload_superseded",
+          "renderer_ready",
+          "retirement",
+          "shutdown",
+          "steady"
+        ],
+        "root_events_joined": 7,
+        "roots": 3,
+        "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+        "uuid": "GPU-6d657361-3232-2e33-2e36-000000000000",
+        "dropped_events": 0,
+        "skipped_latest_observations": 0,
+        "logical_overlap_peak_bytes": 8729112
+      }
+    },
+    "quadro": {
+      "memory-cpu": {
+        "rows": 18,
+        "samples": 9,
+        "phases": [
+          "capture",
+          "reload_exchange",
+          "reload_failed",
+          "reload_preparing",
+          "reload_requested",
+          "renderer_ready",
+          "retirement",
+          "shutdown"
+        ],
+        "root_events_joined": 5,
+        "roots": 2,
+        "renderer": "Quadro M1000M/PCIe/SSE2",
+        "uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+        "dropped_events": 0,
+        "skipped_latest_observations": 0,
+        "logical_overlap_peak_bytes": null
+      },
+      "memory-resident": {
+        "rows": 19,
+        "samples": 9,
+        "phases": [
+          "reload_exchange",
+          "reload_failed",
+          "reload_preparing",
+          "reload_requested",
+          "reload_superseded",
+          "renderer_ready",
+          "retirement",
+          "shutdown",
+          "steady"
+        ],
+        "root_events_joined": 7,
+        "roots": 3,
+        "renderer": "Quadro M1000M/PCIe/SSE2",
+        "uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+        "dropped_events": 0,
+        "skipped_latest_observations": 0,
+        "logical_overlap_peak_bytes": 8729112
+      }
+    }
+  },
+  "native_receipts": {
+    "software": {
+      "cpu": {
+        "frames": 15,
+        "rendered": 0,
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "memory_queries": 0,
+          "polls": 0,
+          "server_waits": 0
+        },
+        "peak_logical_bytes": 0,
+        "loop_outcomes": {
+          "rendered": 8,
+          "minimized": 7
+        },
+        "joined_receipts": 15,
+        "publication_receipts": 9,
+        "published_draws": 9,
+        "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+        "opengl_version": "4.5 (Core Profile) Mesa 22.3.6",
+        "memory": {
+          "rows": 10,
+          "samples": 7,
+          "phases": {
+            "renderer_ready": 2,
+            "steady": 4,
+            "minimized": 3,
+            "shutdown": 1
+          },
+          "nvml_statuses": {
+            "vendor_unsupported": 10
+          },
+          "context_uuid": "GPU-6d657361-3232-2e33-2e36-000000000000",
+          "dropped_observations": 0,
+          "dropped_events": 0,
+          "skipped_latest_observations": 0,
+          "sampled_device_used_peak_bytes": null,
+          "logical_overlap_peak_bytes": null
+        }
+      },
+      "compute": {
+        "frames": 47,
+        "rendered": 14,
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "memory_queries": 0,
+          "polls": 12,
+          "server_waits": 0
+        },
+        "peak_logical_bytes": 4284452,
+        "loop_outcomes": {
+          "loading": 33,
+          "rendered": 7,
+          "minimized": 7
+        },
+        "joined_receipts": 47,
+        "publication_receipts": 7,
+        "published_draws": 2,
+        "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+        "opengl_version": "4.5 (Core Profile) Mesa 22.3.6",
+        "memory": {
+          "rows": 19,
+          "samples": 15,
+          "phases": {
+            "renderer_ready": 1,
+            "loading": 9,
+            "steady": 5,
+            "minimized": 3,
+            "shutdown": 1
+          },
+          "nvml_statuses": {
+            "vendor_unsupported": 19
+          },
+          "context_uuid": "GPU-6d657361-3232-2e33-2e36-000000000000",
+          "dropped_observations": 0,
+          "dropped_events": 0,
+          "skipped_latest_observations": 0,
+          "sampled_device_used_peak_bytes": null,
+          "logical_overlap_peak_bytes": 4284452
+        }
+      }
+    },
+    "quadro": {
+      "cpu": {
+        "frames": 15,
+        "rendered": 0,
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "memory_queries": 0,
+          "polls": 0,
+          "server_waits": 0
+        },
+        "peak_logical_bytes": 0,
+        "loop_outcomes": {
+          "rendered": 8,
+          "minimized": 7
+        },
+        "joined_receipts": 15,
+        "publication_receipts": 9,
+        "published_draws": 9,
+        "renderer": "Quadro M1000M/PCIe/SSE2",
+        "opengl_version": "4.3.0 NVIDIA 580.178.04",
+        "memory": {
+          "rows": 8,
+          "samples": 5,
+          "phases": {
+            "renderer_ready": 1,
+            "steady": 3,
+            "minimized": 3,
+            "shutdown": 1
+          },
+          "nvml_statuses": {
+            "ok": 8
+          },
+          "context_uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+          "dropped_observations": 0,
+          "dropped_events": 0,
+          "skipped_latest_observations": 0,
+          "sampled_device_used_peak_bytes": 132055040,
+          "logical_overlap_peak_bytes": null
+        }
+      },
+      "compute": {
+        "frames": 52,
+        "rendered": 14,
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "memory_queries": 0,
+          "polls": 17,
+          "server_waits": 0
+        },
+        "peak_logical_bytes": 4284452,
+        "loop_outcomes": {
+          "loading": 38,
+          "rendered": 7,
+          "minimized": 7
+        },
+        "joined_receipts": 52,
+        "publication_receipts": 5,
+        "published_draws": 2,
+        "renderer": "Quadro M1000M/PCIe/SSE2",
+        "opengl_version": "4.3.0 NVIDIA 580.178.04",
+        "memory": {
+          "rows": 28,
+          "samples": 24,
+          "phases": {
+            "renderer_ready": 1,
+            "loading": 21,
+            "steady": 2,
+            "minimized": 3,
+            "shutdown": 1
+          },
+          "nvml_statuses": {
+            "ok": 28
+          },
+          "context_uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+          "dropped_observations": 0,
+          "dropped_events": 0,
+          "skipped_latest_observations": 0,
+          "sampled_device_used_peak_bytes": 118161408,
+          "logical_overlap_peak_bytes": 4284452
+        }
+      }
+    }
+  },
+  "capture_receipts": [
+    {
+      "device": 0,
+      "backend": "cpu",
+      "uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+      "renderer": "Quadro M1000M/PCIe/SSE2",
+      "rows": 9,
+      "samples": 8,
+      "png_sha256": "e0745af390da58437bbbdbba8d96eb7e1600ec86e18021177882862787ab6d74",
+      "traced_untraced_png_exact": true,
+      "sampled_device_used_peak_bytes": 109117440,
+      "logical_overlap_peak_bytes": null
+    },
+    {
+      "device": 0,
+      "backend": "compute",
+      "uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+      "renderer": "Quadro M1000M/PCIe/SSE2",
+      "rows": 9,
+      "samples": 8,
+      "png_sha256": "e0745af390da58437bbbdbba8d96eb7e1600ec86e18021177882862787ab6d74",
+      "traced_untraced_png_exact": true,
+      "sampled_device_used_peak_bytes": 112918528,
+      "logical_overlap_peak_bytes": 4284452
+    },
+    {
+      "device": 1,
+      "backend": "cpu",
+      "uuid": "GPU-1795f01b-f1fd-61a0-3b79-199560dd0793",
+      "renderer": "NVIDIA GeForce RTX 3070 Ti/PCIe/SSE2",
+      "rows": 7,
+      "samples": 6,
+      "png_sha256": "024485f48ef2a0b890e96198ab85074a83c3514047d901580ff67beb35fa0031",
+      "traced_untraced_png_exact": true,
+      "sampled_device_used_peak_bytes": 620560384,
+      "logical_overlap_peak_bytes": null
+    },
+    {
+      "device": 1,
+      "backend": "compute",
+      "uuid": "GPU-1795f01b-f1fd-61a0-3b79-199560dd0793",
+      "renderer": "NVIDIA GeForce RTX 3070 Ti/PCIe/SSE2",
+      "rows": 7,
+      "samples": 6,
+      "png_sha256": "024485f48ef2a0b890e96198ab85074a83c3514047d901580ff67beb35fa0031",
+      "traced_untraced_png_exact": true,
+      "sampled_device_used_peak_bytes": 621936640,
+      "logical_overlap_peak_bytes": 4284452
+    }
+  ],
+  "limits": [
+    "NVML is device-wide and includes other processes; no per-renderer attribution",
+    "Asynchronous renderer-ready read can overlap later GPU admission; query and observation ages remain explicit",
+    "Event rows reference cached physical reads and identify samples finishing after observation",
+    "250 ms periodic samples can miss transient peaks; sampled maxima are lower bounds",
+    "NVX queried only at setup/shutdown; final checkpoint precedes remaining GPU owner teardown",
+    "CPU vectors are partial; process RSS includes whole process and overlaps them",
+    "Logical resident reservation includes external old scene; overlap uses max, not sum; CPU/legacy ledger unavailable",
+    "One persistent reader; fixed 64-event queue; skipped latest state and overflow explicit",
+    "NVML cannot be cancelled here; stalled driver may delay teardown, never normal-frame submission",
+    "Small fixtures and injected delays are correctness evidence, not T3c5c production acceptance"
+  ],
+  "retained_images": {
+    "gallery_count": 22,
+    "historical_count": 10,
+    "all_hashes_match": true
+  },
+  "journal": {
+    "pages": 33,
+    "reviewed_pages": [
+      8,
+      29,
+      33
+    ],
+    "pdf_sha256": "f8e3c4b502cd888403efd08eb88091662f72f15337a8f1c917b16146a5f46719",
+    "source_sha256": "8340e6cf17075b641596e9d836cb1bc6e728db2384290683073a222a96075f9a"
+  },
+  "artifacts": {
+    "captures/EglCapture.cpp": "956256a586a9717052a967742bc27f694130b8b0b7695a11484337e7b0aeb850",
+    "captures/capture_check.py": "7a4d78cde406b45447aad0d039ea95fe6756eec8a8debda1cb316986af6d2398",
+    "captures/device-0-compute/frames.csv.gpu-work.csv.gz": "042acc41155a790348594c2c636b76c601f0bbb47191d9f5a572b8d9ada0bedc",
+    "captures/device-0-compute/frames.csv.gz": "f9da3e217a26fdc1bb5b7d0fe548c2aa5cb98e9072713a1a023d1d6f370f0b93",
+    "captures/device-0-compute/frames.csv.memory.csv.gz": "a35038dbe40e48468bf44bf9deeec1d7f77349eb811511262dbb4e62862e177b",
+    "captures/device-0-compute/frames.csv.publications.csv.gz": "8d2b3d5dfd9e6627a9c996b56f7cd4c491745303de41bcc7460aea0864d4a63e",
+    "captures/device-0-compute/traced.log.gz": "dc953cfcc483bdcf4558bbef3e630545b5f31c0106056f9e146a09fcad484c73",
+    "captures/device-0-compute/traced.png": "e0745af390da58437bbbdbba8d96eb7e1600ec86e18021177882862787ab6d74",
+    "captures/device-0-compute/traced.png.json.gz": "72c304a04ef0c284aed93ce23dd7d28c31b34c76817a9082b060aa603413ded0",
+    "captures/device-0-compute/untraced.log.gz": "21cb8277532e31ebae03ed865a7a3e7eb08d4d9b9497ec974d961a07a12a1ef2",
+    "captures/device-0-compute/untraced.png.json.gz": "aa2cc920134c4375fc9a48c3a552abd7a863dd55a29eb6a7dd91750db0d74f89",
+    "captures/device-0-cpu/frames.csv.gpu-work.csv.gz": "a841b894e4ea815baab567ea2e12b8685bf687a324e239c18d6843f8b4a9fd0b",
+    "captures/device-0-cpu/frames.csv.gz": "3ee718b70763d3c47c47ca72de2d2805d732c80db10d3b93c294907e0a98d48f",
+    "captures/device-0-cpu/frames.csv.memory.csv.gz": "7b5811b02c4c98f45719add3fe2807d20aa2c358ff011650487b44c04f0d8ebb",
+    "captures/device-0-cpu/frames.csv.publications.csv.gz": "3ff1fdec38836ac85344160bab8ed6218400f41f89e132122f2f53045308a531",
+    "captures/device-0-cpu/traced.log.gz": "4e5cd02863da767c4f536de9af38dacd6059762bd6d539c78535d51300703bad",
+    "captures/device-0-cpu/traced.png": "e0745af390da58437bbbdbba8d96eb7e1600ec86e18021177882862787ab6d74",
+    "captures/device-0-cpu/traced.png.json.gz": "aed96e12b69d0420048f73802c219268fdc469cde7a3c14657272dbd1fce3881",
+    "captures/device-0-cpu/untraced.log.gz": "ae070e086a2851078e3b085a70042a85f2a1a1aa70ad82ca5f57b657544ad76c",
+    "captures/device-0-cpu/untraced.png.json.gz": "07ee2f01ac8a9a8622804abfa8a5e0c0daa7c78d04a874023e287f4e2210bcb2",
+    "captures/device-1-compute/frames.csv.gpu-work.csv.gz": "cd547dc57ec29e69b4a843f3d25f3d8d0cd7c07bb411c602ef3403ea37cad75c",
+    "captures/device-1-compute/frames.csv.gz": "a95ec19f3d59b21acd93912c408e56d4b78bced4091bd64dc60e3644ba1c1eac",
+    "captures/device-1-compute/frames.csv.memory.csv.gz": "f36edf827d6aa2ec430d06e86144c561b1f3cde862436297cd3227248dae1d11",
+    "captures/device-1-compute/frames.csv.publications.csv.gz": "e82821232d21cba4aa61e2ff994185eb33bd6efa6ec0c1ab4d345bb4c8bfd94d",
+    "captures/device-1-compute/traced.log.gz": "eaa783c5e08996af81dd0d0faed1825c704177e34c68dbc3c8e58d1aa216dbdb",
+    "captures/device-1-compute/traced.png": "024485f48ef2a0b890e96198ab85074a83c3514047d901580ff67beb35fa0031",
+    "captures/device-1-compute/traced.png.json.gz": "30079c0390478c4607bd262dfd8fb4c998f18ca2dc9d48911e98d6eaf6bc2be2",
+    "captures/device-1-compute/untraced.log.gz": "4eaa6b5089047ce6a850253d592b5a8271c62f5ec26eca069b7332afcdc907b9",
+    "captures/device-1-compute/untraced.png.json.gz": "f874a014df932d7c09ebf3ba46d46b53b102c2b85fd2b3baba111f383506f9b1",
+    "captures/device-1-cpu/frames.csv.gpu-work.csv.gz": "78262100358bc80b5f39693b04e8e935836901fdc3efd8795aefa52827dc0736",
+    "captures/device-1-cpu/frames.csv.gz": "6c68f7dc836b4ba3b960d8e0b4711f044edbcf81d1453bfa4863d5a710d813b9",
+    "captures/device-1-cpu/frames.csv.memory.csv.gz": "7b9fa84cf6eca288481fe962f7fb246aebb005862e9806679bd2fccece3884bc",
+    "captures/device-1-cpu/frames.csv.publications.csv.gz": "9b828c56fbc799acf533498fce63f3fd3acc3b6b35e3913c4538c57614ebd22c",
+    "captures/device-1-cpu/traced.log.gz": "6ffa1084b1771a843d5d52e49896e026ff1049e436075d70978d048035b38c44",
+    "captures/device-1-cpu/traced.png": "024485f48ef2a0b890e96198ab85074a83c3514047d901580ff67beb35fa0031",
+    "captures/device-1-cpu/traced.png.json.gz": "786c5ba1aab1be4107b7a8bc1cb12d20ac30f437b967b86ef0116c5c3188b8c8",
+    "captures/device-1-cpu/untraced.log.gz": "23a95874c15595af2a8b5f103c4477ded96a35074b5474e6ee233d82d61336c1",
+    "captures/device-1-cpu/untraced.png.json.gz": "2f3d912078b803c6b05d1e5df2b279864cf2e460bffb604e728b5edb3d8b54ef",
+    "captures/results.json": "1c426c645cbbd82cccafafa66ac329ae14df86a4461e7139313ea7d33f4e8d9e",
+    "captures/scene.json": "85741f8351ea0b3f4487f8f3814e17fbacfdd17ad433abb4bda25b6f18d1b1d1",
+    "devices.csv": "60bb45d7eace4798bcc5c2dec0c7351eacdff3cf05f13c64acab0debb088dd37",
+    "frozen-inputs.json": "1f6f726674db929d524b1b373d655dc6783ed4f4563d275d52a47bdfdcb2d01f",
+    "logs/memory-corrected-frame-ctest.log.gz": "a17559ce68dd7616b5ed37e744157ec9cc3a32981de761a50b3bea3e9b45819f",
+    "logs/memory-corrected-software-renderers.log.gz": "ce71c03230f05d4bc539deb3796fdcafd4929f54a7149e342220d0e556a29255",
+    "logs/memory-final-scoped-ctest.log.gz": "93532170ee5e171d4e3380310f456c4251e57822b8a3d6bb97b21309886032d5",
+    "logs/memory-fixed-unit.log.gz": "cd0bafabec19d4fe4d460329f6bc3979b58094f46a16de6fecf877661e871f85",
+    "logs/memory-hardware-captures-final.log.gz": "a40fe5f7bbb88241a32b383ba89b5a6c210db0910c1352d3213da869447f34c5",
+    "logs/memory-quadro-native.log.gz": "fae8b7d06b6ef13cf9f2eef1a137c7b7bfa16fbb03c22abd39edeb65a8e825a2",
+    "logs/memory-quadro-renderers.log.gz": "f114e7100a069fb52845e5359941fe6827321cef30d97639d58836a2719e669c",
+    "native/quadro/compute/control.json": "e6ee24cffe49d1e27e69d9ea2866b893934e67cdafdf47f61d2f09d772e0c04b",
+    "native/quadro/compute/frames.jsonl.gz": "824e40b7fda9490f83330408ab5c1d2f424d29377e0f60c39604ecaa5e3e1867",
+    "native/quadro/compute/performance.csv.gpu-work.csv.gz": "0ef845f8ac008d700e03cf407dd147f2a0bddd1fd7f4b205a2a7fdefeeec79ff",
+    "native/quadro/compute/performance.csv.gz": "24e591b1d1245f7ee2f9be5459958ca36ee4e4a12bec5a194442c70049043f14",
+    "native/quadro/compute/performance.csv.memory.csv.gz": "43861a06d6fdf7b7a0551689dbe18cf618dcba56d82152f3bf332cb2c52fc8e2",
+    "native/quadro/compute/performance.csv.native-loop.csv.gz": "53b1d54b121e03ac3f4cd179b0a98400dcf3ccc21b967381b8af2c94508fdfaa",
+    "native/quadro/compute/performance.csv.publications.csv.gz": "d7c34a68c376efd62ec940092d57124e3d64d485583851676df494956945586b",
+    "native/quadro/compute/run.log.gz": "c4022ee912e6a24035e5ec60b214cb649ba7ac31322dd43094f18affece2edfd",
+    "native/quadro/cpu/control.json": "e6ee24cffe49d1e27e69d9ea2866b893934e67cdafdf47f61d2f09d772e0c04b",
+    "native/quadro/cpu/frames.jsonl.gz": "f6b8bb2f60ea0cfb8bf89b2278860712eeb9c436be82336064d261b9ba334cac",
+    "native/quadro/cpu/performance.csv.gpu-work.csv.gz": "3bacf2365259056c83cce25818c2bf9611d296b2cc074b67ef2c1d2f42aa746a",
+    "native/quadro/cpu/performance.csv.gz": "3c02962bd7fd343294e4a5511043e5783dbb1f933316ee428659020ffa4c4efe",
+    "native/quadro/cpu/performance.csv.memory.csv.gz": "11208c40b7510f3f4e30be0ac4956d666bd5de80a0cc5a57977aff3d288ae5d5",
+    "native/quadro/cpu/performance.csv.native-loop.csv.gz": "bab2e14306385cfdc134d248ac859b1c85da5f5d62e2fe209eec91dd1bb053cc",
+    "native/quadro/cpu/performance.csv.publications.csv.gz": "e25eda8ad881f294b7547c502c3c4501b9eaf13b62921c794295f1d0476a9020",
+    "native/quadro/cpu/run.log.gz": "51c0dd9a1dd34939887ab9f1aece3db730f4ad29e3993114745052181afadac0",
+    "native/quadro/results.json": "53395cc8ae0e998999021a11e4df1955000e6aee94514e1032dadde22753aaa6",
+    "native/quadro/scene.json": "abb9eaec4e200cf0b2e67fdc4e1141d462ea35f33ecbefa0533e19ec92382949",
+    "native/software/compute/control.json": "e6ee24cffe49d1e27e69d9ea2866b893934e67cdafdf47f61d2f09d772e0c04b",
+    "native/software/compute/frames.jsonl.gz": "caca884fee46265df2de373917247bcd143a71df4578f9594ad7599e257777f0",
+    "native/software/compute/performance.csv.gpu-work.csv.gz": "82956ba93059500539e344592d220153d39522c1f3cde804519a2a2ff049713b",
+    "native/software/compute/performance.csv.gz": "85f60b6372252282e278f8d78780623aef298cdc6927174af5e7710ae2f78049",
+    "native/software/compute/performance.csv.memory.csv.gz": "db9eede657e373f4605d17311357933be327c4c5af93c69904fedb88f9911bce",
+    "native/software/compute/performance.csv.native-loop.csv.gz": "91daea3df65c8343cd9be7204d13cfd27454361892de9e0f884019e801c758b5",
+    "native/software/compute/performance.csv.publications.csv.gz": "de23b62182cf1d529160f6a48bc73395e6bf80fd6f99dcf508f9f16e79284e32",
+    "native/software/compute/run.log.gz": "81d8c651b07eb677e523fe74a9c6fb3871e51aea0e3779783dc716b66be4065f",
+    "native/software/cpu/control.json": "e6ee24cffe49d1e27e69d9ea2866b893934e67cdafdf47f61d2f09d772e0c04b",
+    "native/software/cpu/frames.jsonl.gz": "7d2614a9b223cd436ec9d0b7b43f750ef859830834f3e20e53f9f213b68be9cc",
+    "native/software/cpu/performance.csv.gpu-work.csv.gz": "3bacf2365259056c83cce25818c2bf9611d296b2cc074b67ef2c1d2f42aa746a",
+    "native/software/cpu/performance.csv.gz": "69f35e5c6d847d89279e5b5867b20acf96afe7b0e9f4019987d3f13b0990e6e6",
+    "native/software/cpu/performance.csv.memory.csv.gz": "0d681e902e7bec1f465adcb3c950cc09808ce7a317618622e0948e8d8bc14367",
+    "native/software/cpu/performance.csv.native-loop.csv.gz": "77b60621ff2e524a10050ef0c4337e1f1a09887de21b33d9e16a08329b9c21f7",
+    "native/software/cpu/performance.csv.publications.csv.gz": "e1b5212f328656828b6ccd0d5807069eacbd3e1c8205bf073475f342d012f12f",
+    "native/software/cpu/run.log.gz": "fbee82055da49979988d14845db54438cc4fd1ae689e025221d048650d3d232d",
+    "native/software/results.json": "8f7c7480cc0867604cfe0f91c4fa9f9bbf055fc4dbf9349c86620d370445b076",
+    "native/software/scene.json": "abb9eaec4e200cf0b2e67fdc4e1141d462ea35f33ecbefa0533e19ec92382949",
+    "preflight/before-event-queue-inputs.json": "be3caabbf8fc3a49a59e4dd5fce74ee6a2d098826a40c57877dbfdfe012a651e",
+    "preflight/before-invalid-fixture-inputs.json": "7dcb6da0f80443c7eaa023a50d98928ef36c6a1a965a5856aa230e30dc063199",
+    "preflight/memory-preflight-renderer.log.gz": "3364abb42013b87fe1e21d404da03d3258e26a55a881f0000d7e59b99f58e6fd",
+    "preflight/memory-preflight-unit.log.gz": "9f0a85cda951d1c252ad260b5a404d4c81d3a9a4d19031001baa434b7505667e",
+    "preflight/memory-scoped-ctest.log.gz": "78b94d8a86d4e6f528ca9eecf7b15703b72ac68957c98180bbe775c973a0a44d",
+    "provenance.py": "506e3ad9d58b80a67e699744f3d49097030b3805672306c48067ca097620267f",
+    "renderers/archive_and_check.py": "fc445906be268dad5af05dd11f60a04865074b70ee9bbd468c22d5f36d7c5801",
+    "renderers/quadro/memory-cpu/frame.png": "222e4daeee1e083bf7c55b6423cea6f30a364ee9a14888e63631461c6fd6c8a2",
+    "renderers/quadro/memory-cpu/scene.json": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "renderers/quadro/memory-cpu/scene.json.frames.csv.gpu-work.csv.gz": "3b57d08a515ac447644147d0930d7607c935aaaf6e8d3a2798edb1ab3d321f37",
+    "renderers/quadro/memory-cpu/scene.json.frames.csv.gz": "fdc9b5b4e277f665f502dddc0c7ca558e1ba05b1c16165f72339210826ecef30",
+    "renderers/quadro/memory-cpu/scene.json.frames.csv.memory.csv.gz": "765949c5cb8f8ac8f67f5c65a9aabc97d4e706924a10a16bc0727b12173079d1",
+    "renderers/quadro/memory-cpu/scene.json.frames.csv.publications.csv.gz": "c6b3cec211603da78af9511f1599c4663ab05c3fa1a29afeacf460d72b124c89",
+    "renderers/quadro/memory-resident/scene.json": "a72670622ac1c46e57da2e55e412cc953caed3b4637193b9ab76d146239fa137",
+    "renderers/quadro/memory-resident/scene.json.frames.csv.gpu-work.csv.gz": "d79bea0604bfaa630effdf222b6773184f26e0f6e3f780b2030af0f67c682519",
+    "renderers/quadro/memory-resident/scene.json.frames.csv.gz": "a2ad26a9ea7c47f04631004bc79761f43a351bd750904bc2a3ddc3d627eb8742",
+    "renderers/quadro/memory-resident/scene.json.frames.csv.memory.csv.gz": "ad7cef6324bf267f195c0655d059acf081c0e54fa70d66047dfc6659e9df22f7",
+    "renderers/quadro/memory-resident/scene.json.frames.csv.publications.csv.gz": "e86767d336faff1fdb034098aa8b03808dcc71786aa194e9a7032bf05bde4433",
+    "renderers/quadro/memory-resident/scene.json.memory-audit.json": "082be71ab59b74d9b1408d984e032f9aebb09806b9bb76a57c3b91e555d47730",
+    "renderers/quadro/results.json": "fcb64d45d8201a94a424cf67e20f562e3d0af87253640930b91b673b195d91a7",
+    "renderers/software/memory-cpu/frame.png": "61b14a2b23423cd7b9983718ded77377a6ddd02d370f582422781bf0821ad9e4",
+    "renderers/software/memory-cpu/scene.json": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "renderers/software/memory-cpu/scene.json.frames.csv.gpu-work.csv.gz": "d18f974b5601c11289b539b22c8a092f8ffcf1e8f6b06ea8a92ca88172cf10be",
+    "renderers/software/memory-cpu/scene.json.frames.csv.gz": "75088d6f190e3f13cc137cefdcbe24ea94a33d73bd4b20f5657c54c31b4eda18",
+    "renderers/software/memory-cpu/scene.json.frames.csv.memory.csv.gz": "b0d6272a6f1fc865ad98c358197f0595ee33422418df83c5e4ec5f18a68f30a3",
+    "renderers/software/memory-cpu/scene.json.frames.csv.publications.csv.gz": "a05f11b719e529fd983820c2027729556341486a8eb5eee254653d093baee454",
+    "renderers/software/memory-resident/scene.json": "a72670622ac1c46e57da2e55e412cc953caed3b4637193b9ab76d146239fa137",
+    "renderers/software/memory-resident/scene.json.frames.csv.gpu-work.csv.gz": "4b3292dca58e0058ceac49c0eca5b726a357b8afdd624b709fdcb8817d362cef",
+    "renderers/software/memory-resident/scene.json.frames.csv.gz": "31c6766c022f0eccfe13b350314e83f8d9e7bab3884d47756dcef4ae5ff98e22",
+    "renderers/software/memory-resident/scene.json.frames.csv.memory.csv.gz": "5c730f86bd3b854d350783c7b3c5d586a2ae633f37d674703d712b6e74db5f11",
+    "renderers/software/memory-resident/scene.json.frames.csv.publications.csv.gz": "48fc1c4fec0b1674d396c29b581d8370b5074b5d66634f3dbcedd1e99383cab4",
+    "renderers/software/memory-resident/scene.json.memory-audit.json": "619c6eb99c75abe2e6ca65d221b0951c6f381b70d6b0177d114cdfd329d9a067",
+    "renderers/software/results.json": "a18582df23322b30a3d4ba6fed664d73de49682fa44c22e5f548fbcb50dcefce",
+    "unit/busy-latest.csv.gz": "bedef3396baf62ead971a810c81866471f84dcf361761d78c679086b03157daa",
+    "unit/factory-exception.csv.gz": "c45b831f00c59f441412556a7ae689953bdf4a9762a238d198caaa1f96721df8",
+    "unit/read-exception.csv.gz": "f823484666f6f335efaf0543e4569491ccf471c2430ecb8f86e0fef96163e5f9",
+    "unit/slow.csv.gz": "e2e73cce8fe0ea74d86007ae8341b596744f42ae3c118be7be5386d30a7a875c",
+    "unit/stale.csv.gz": "11367d120190327d397379eddb1019693a21fb5eec39708f2f5ffd6d4c4bf0bc",
+    "unit/unsupported.csv.gz": "59be35dd24450c79e79d62c3387c36c70ef2b53627dc9edb11f49a3b41032f3f"
+  }
+}

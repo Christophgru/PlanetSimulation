@@ -1,0 +1,45 @@
+{
+  "memory-cpu": {
+    "rows": 18,
+    "samples": 9,
+    "phases": [
+      "capture",
+      "reload_exchange",
+      "reload_failed",
+      "reload_preparing",
+      "reload_requested",
+      "renderer_ready",
+      "retirement",
+      "shutdown"
+    ],
+    "root_events_joined": 5,
+    "roots": 2,
+    "renderer": "Quadro M1000M/PCIe/SSE2",
+    "uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+    "dropped_events": 0,
+    "skipped_latest_observations": 0,
+    "logical_overlap_peak_bytes": null
+  },
+  "memory-resident": {
+    "rows": 19,
+    "samples": 9,
+    "phases": [
+      "reload_exchange",
+      "reload_failed",
+      "reload_preparing",
+      "reload_requested",
+      "reload_superseded",
+      "renderer_ready",
+      "retirement",
+      "shutdown",
+      "steady"
+    ],
+    "root_events_joined": 7,
+    "roots": 3,
+    "renderer": "Quadro M1000M/PCIe/SSE2",
+    "uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+    "dropped_events": 0,
+    "skipped_latest_observations": 0,
+    "logical_overlap_peak_bytes": 8729112
+  }
+}

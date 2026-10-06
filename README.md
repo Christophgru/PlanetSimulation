@@ -306,11 +306,19 @@ including reloads invoked between capture frames.
 CPU grass-only rebuilds retain terrain serials and record actual anchors. Actual
 character handoffs record `origin_body` and `contact_bound_ms`, with a `handoff`
 kind whose latency covers binding through consumption. Preview handoffs and
-unchanged grass are excluded. These intervals overlap. Physical-memory sampling
-and matched hardware cost acceptance remain pending. See the
+unchanged grass are excluded. These intervals overlap. Matched hardware cost
+acceptance remains pending. See the
 [publication tracing study](docs/journal/architecture/terrain-gpu/async/hardware/publication/study.md),
 the [reload tracing study](docs/journal/architecture/terrain-gpu/async/hardware/publication/transactions/study.md)
 and [capture/contact/CPU grass study](docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/study.md).
+Tracing also creates `path.csv.memory.csv`: one bounded worker samples optional
+NVML memory only after the active context UUID and driver UUID match. Rows retain
+query times, observation/sample age, stale/unsupported/error status, reload roots,
+logical overlap reservations, partial CPU vectors and process RSS. NVX counters
+are setup/shutdown checkpoints. These device-wide readings include other
+processes and periodic samples can miss transient peaks; event rows reference
+cached physical samples. Startup sampling is asynchronous. See the
+[memory diagnostic study](docs/journal/architecture/terrain-gpu/async/hardware/memory/study.md).
 `cpu_foliage_ms` includes complete CPU preparation. GPU placement, wind,
 compaction and drawing belong to the opaque/reflection passes;
 `gpu_foliage_ms` remains zero because that named stage prepares the CPU plan.

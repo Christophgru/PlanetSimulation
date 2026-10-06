@@ -62,9 +62,11 @@ target_include_directories(planet_config PUBLIC ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(planet_config PUBLIC nlohmann_json::nlohmann_json)
 
 add_library(planet_diagnostics STATIC src/rendering/diagnostics/tracing/CpuTrace.cpp
-    src/rendering/diagnostics/timing/PublicationProfiler.cpp)
+    src/rendering/diagnostics/timing/PublicationProfiler.cpp
+    src/rendering/diagnostics/memory/MemorySampler.cpp
+    src/rendering/diagnostics/memory/NvmlMemory.cpp)
 target_include_directories(planet_diagnostics PUBLIC ${CMAKE_SOURCE_DIR}/src)
-target_link_libraries(planet_diagnostics PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries(planet_diagnostics PRIVATE nlohmann_json::nlohmann_json Threads::Threads ${CMAKE_DL_LIBS})
 
 add_library(planet_geometry STATIC
     src/rendering/geometry/Terrain.cpp
@@ -74,6 +76,7 @@ add_library(planet_geometry STATIC
     src/rendering/geometry/contacts/SparseTerrainContacts.cpp
     src/rendering/geometry/jobs/TerrainBuild.cpp
     src/rendering/geometry/jobs/TerrainBuildScheduler.cpp
+    src/rendering/geometry/jobs/TerrainMemory.cpp
     src/rendering/geometry/TerrainLod.cpp
     src/rendering/geometry/TerrainShoreline.cpp
     src/rendering/foliage/GrassPlacement.cpp
@@ -93,6 +96,7 @@ target_include_directories(planet_character PUBLIC ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(planet_character PUBLIC glm::glm planet_geometry PRIVATE ozz_animation)
 
 add_library(planet_rendering STATIC
+    src/rendering/diagnostics/memory/ContextMemory.cpp
     src/rendering/Shader.cpp
     src/rendering/geometry/Mesh.cpp
     src/rendering/foliage/GrassRenderer.cpp)
@@ -117,6 +121,7 @@ add_library(planet_app STATIC
     src/app/scene/SceneSource.cpp
     src/app/scene/PreparedScene.cpp
     src/rendering/runtime/Renderer.cpp
+    src/rendering/runtime/memory/RendererMemory.cpp
     src/rendering/runtime/TerrainMeshes.cpp
     src/rendering/runtime/terrain/ResidentTerrain.cpp
     src/rendering/runtime/terrain/InteractiveTerrain.cpp

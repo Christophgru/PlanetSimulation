@@ -1,0 +1,45 @@
+{
+  "memory-cpu": {
+    "rows": 24,
+    "samples": 15,
+    "phases": [
+      "capture",
+      "reload_exchange",
+      "reload_failed",
+      "reload_preparing",
+      "reload_requested",
+      "renderer_ready",
+      "retirement",
+      "shutdown"
+    ],
+    "root_events_joined": 5,
+    "roots": 2,
+    "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+    "uuid": "GPU-6d657361-3232-2e33-2e36-000000000000",
+    "dropped_events": 0,
+    "skipped_latest_observations": 0,
+    "logical_overlap_peak_bytes": null
+  },
+  "memory-resident": {
+    "rows": 29,
+    "samples": 19,
+    "phases": [
+      "reload_exchange",
+      "reload_failed",
+      "reload_preparing",
+      "reload_requested",
+      "reload_superseded",
+      "renderer_ready",
+      "retirement",
+      "shutdown",
+      "steady"
+    ],
+    "root_events_joined": 7,
+    "roots": 3,
+    "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+    "uuid": "GPU-6d657361-3232-2e33-2e36-000000000000",
+    "dropped_events": 0,
+    "skipped_latest_observations": 0,
+    "logical_overlap_peak_bytes": 8729112
+  }
+}

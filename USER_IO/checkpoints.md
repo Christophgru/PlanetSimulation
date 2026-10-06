@@ -1,5 +1,27 @@
 # Page to document progress of AI Agents working on this Project
 
+## Physical-memory diagnostic checkpoint — 2026-10-06
+
+- T3c5b2c adds optional .memory.csv: one persistent UUID-verified NVML reader,
+  context setup/shutdown NVX, query/observation ages, stale/unsupported/errors,
+  logical overlap, partial CPU vector capacities and process RSS.
+- A separate 64-event queue retains lifecycle metadata through latest-snapshot
+  lock contention. Skipped snapshots and queue overflow remain counted; driver
+  reads/filesystem work stay on the worker, with joining only at teardown.
+- Eight controlled checks pass. Twelve scoped CTest groups have passing results:
+  11 pass in the final runtime batch (429.91 s), and a corrected invalid-radius
+  fixture gives a passing full renderer group (67.55 s). Runtime and other 41
+  executable hashes are unchanged through that test-only correction.
+- Three Quadro renderer cases, two native CPU/compute fixtures and four EGL
+  traced/untraced pairs on Quadro/RTX pass. Native memory queries/waits/readbacks
+  remain zero; lifecycle events join publication roots and images remain exact.
+- Journal/PDF and frozen 42-executable evidence are in
+  docs/journal/architecture/terrain-gpu/async/hardware/memory/.
+  Twenty-two gallery and ten historical PNG hashes match; user footer preserved.
+- Resume T3c5c matched production hardware costs. Physical samples are device-wide
+  and can miss peaks; startup sampling is asynchronous, CPU vectors are partial,
+  and CPU terrain remains the default.
+
 ## Complete publication lifecycle checkpoint — 2026-10-06
 
 - T3c5b2b2b completes capture/synchronous CPU, legacy and resident reload,

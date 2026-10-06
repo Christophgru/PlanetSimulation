@@ -20,6 +20,7 @@ bool Renderer::Impl::sceneReloadPreparing() const {
 void Renderer::Impl::requestResidentReload() {
     CpuTrace::Scope scope("scene.reload_request");
     if(pendingResidentReload) {
+        observeMemory(MemoryPhase::ReloadSuperseded,true);
         profiler.publications().finish(pendingResidentReload->traceAttempt,PublicationProfiler::Outcome::Superseded);
         terrainJobs.abortReplacement(pendingResidentReload->epoch);
         pendingResidentReload.reset();++sceneReloadSuperseded;
@@ -31,6 +32,7 @@ void Renderer::Impl::requestResidentReload() {
         const auto epoch=++lastReloadAttempt;
         PublicationProfiler::Key traceKey;traceKey.epoch=epoch;traceKey.resident=true;
         attempt=profiler.publications().begin(traceKey,PublicationProfiler::Kind::Reload);
+        observeMemory(MemoryPhase::ReloadRequested,true,nullptr,nullptr,attempt,epoch);
         auto nextOptions=options;auto nextSource=app::SceneSource::forResidentReload(nextOptions);
         if(nextOptions.terrainBackend!=options.terrainBackend || nextOptions.terrainGrassPlanner!=options.terrainGrassPlanner ||
            nextOptions.renderTestWidth!=options.renderTestWidth || nextOptions.renderTestHeight!=options.renderTestHeight ||
@@ -73,6 +75,7 @@ void Renderer::Impl::requestResidentReload() {
         }
         pendingResidentReload=std::move(pending);
     } catch(...) {
+        observeMemory(MemoryPhase::ReloadFailed,true,nullptr,nullptr,attempt,lastReloadAttempt);
         profiler.publications().finish(attempt,PublicationProfiler::Outcome::InvalidConfig);
         ++sceneReloadFailures;throw;
     }
@@ -97,6 +100,7 @@ bool Renderer::Impl::pollResidentReload() {
                 SceneTerrainDestination{scene,source.document,meshes.planetMeshes,meshes.waterMeshes,
                     grass.procedural,*terrainPublication,terrainSceneEpoch},p.epoch,p.time);
             p.prepared.reset();
+            observeMemory(MemoryPhase::ReloadPreparing,true);
         }
         auto& transaction=*p.transaction;transaction.poll();
         if(p.gpuBody && !transaction.preparing()) {
@@ -158,6 +162,7 @@ bool Renderer::Impl::pollResidentReload() {
         if(!transaction.publish(p.epoch)) throw std::logic_error("Replacement scene became obsolete");
         retiredResidentScene=std::move(p.transaction);
         finishSceneReload(p.tracking,p.options,p.replay,commit);
+        observeMemory(MemoryPhase::ReloadExchange,true);
         // Off-live per-body exchange was preparation only. Arm the final live
         // receipts after the complete scene and its contact bindings exchanged.
         if(p.traceAttempt) {
@@ -167,6 +172,7 @@ bool Renderer::Impl::pollResidentReload() {
         }
         pendingResidentReload.reset();return true;
     } catch(const std::exception& error) {
+        observeMemory(MemoryPhase::ReloadFailed,true);
         profiler.publications().finish(pendingResidentReload->traceAttempt,PublicationProfiler::Outcome::PreparationFailed);
         const auto epoch=pendingResidentReload->epoch;terrainJobs.abortReplacement(epoch);
         pendingResidentReload.reset();++sceneReloadFailures;

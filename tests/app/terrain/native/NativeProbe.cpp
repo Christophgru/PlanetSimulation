@@ -15,7 +15,7 @@ namespace {
 using nlohmann::json;
 rendering::Renderer* renderer=nullptr;
 std::ofstream trace;
-std::uint64_t frames=0,polls=0,blocking=0,waits=0,reads=0,finishes=0;
+std::uint64_t frames=0,polls=0,blocking=0,waits=0,reads=0,finishes=0,memoryQueries=0;
 std::uint64_t fenceFaults=0,pollFaults=0,lastFenceToken=0,lastPollToken=0;
 bool delayed=false,failFence=false,failPoll=false,observing=false;
 json controls=json::object();
@@ -24,8 +24,9 @@ PFNGLCLIENTWAITSYNCPROC clientWait;
 PFNGLWAITSYNCPROC serverWait;
 PFNGLGETBUFFERSUBDATAPROC bufferRead;
 PFNGLFENCESYNCPROC createFence;
+PFNGLGETUNSIGNEDBYTEI_VEXTPROC uuidQuery;
 json counters() {return {{"polls",polls},{"blocking_polls",blocking},{"server_waits",waits},
-    {"bulk_reads",reads},{"finishes",finishes},{"injected_fence_failures",fenceFaults},{"injected_poll_failures",pollFaults}};}
+    {"bulk_reads",reads},{"finishes",finishes},{"memory_queries",memoryQueries},{"injected_fence_failures",fenceFaults},{"injected_poll_failures",pollFaults}};}
 GLenum GLAPIENTRY poll(GLsync sync,GLbitfield flags,GLuint64 timeout) {
     ++polls;if(flags || timeout) ++blocking;
     if(failPoll) {failPoll=false;++pollFaults;return GL_WAIT_FAILED;}
@@ -96,13 +97,17 @@ void sample(GLFWwindow* window,bool waiting=false) {
     trace << j.dump() << '\n' << std::flush;
     if(controls.value("close",false)) glfwSetWindowShouldClose(window,GLFW_TRUE);
 }
+void GLAPIENTRY getUuid(GLenum pname,GLuint index,GLubyte* data) {
+    if(pname==GL_DEVICE_UUID_EXT) ++memoryQueries;uuidQuery(pname,index,data);
+}
 struct Audit {
     Audit() {
         clientWait=__glewClientWaitSync;serverWait=__glewWaitSync;bufferRead=__glewGetBufferSubData;createFence=__glewFenceSync;
+        uuidQuery=__glewGetUnsignedBytei_vEXT;if(uuidQuery) __glewGetUnsignedBytei_vEXT=getUuid;
         __glewClientWaitSync=poll;__glewWaitSync=wait;__glewGetBufferSubData=read;__glewFenceSync=fence;observing=true;
     }
     ~Audit() {
-        observing=false;__glewClientWaitSync=clientWait;__glewWaitSync=serverWait;
+        observing=false;__glewGetUnsignedBytei_vEXT=uuidQuery;__glewClientWaitSync=clientWait;__glewWaitSync=serverWait;
         __glewGetBufferSubData=bufferRead;__glewFenceSync=createFence;
     }
 };
@@ -136,6 +141,11 @@ extern "C" void glfwWaitEventsTimeout(double seconds) {
     if(observing) try {sample(glfwGetCurrentContext(),true);}
         catch(const std::exception& e) {error=e.what();glfwSetWindowShouldClose(glfwGetCurrentContext(),GLFW_TRUE);}
 }
+extern "C" void GLAPIENTRY glGetIntegerv(GLenum pname,GLint* data) {
+    static auto query=reinterpret_cast<void(*)(GLenum,GLint*)>(dlsym(RTLD_NEXT,"glGetIntegerv"));
+    if(observing && ((pname>=0x9047 && pname<=0x9049) || pname==GL_NUM_DEVICE_UUIDS_EXT)) ++memoryQueries;
+    query(pname,data);
+}
 extern "C" void GLAPIENTRY glFinish() {
     static auto finish=reinterpret_cast<void(*)()>(dlsym(RTLD_NEXT,"glFinish"));
     if(observing) ++finishes;finish();
@@ -155,7 +165,7 @@ int main(int argc,char** argv) {
         {Audit audit;result=instance.run();}
         std::cout << "Native audit: " << counters().dump() << '\n';
         if(!error.empty()) throw std::runtime_error(error);
-        if(blocking || waits || reads || finishes) throw std::runtime_error("Native frame wait/readback audit failed");
+        if(blocking || waits || reads || finishes || memoryQueries) throw std::runtime_error("Native frame wait/readback audit failed");
         return result;
     } catch(const std::exception& e) {std::cerr << "Native probe failed: " << e.what() << '\n';return 1;}
 }

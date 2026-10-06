@@ -1,0 +1,50 @@
+[
+  {
+    "device": 0,
+    "backend": "cpu",
+    "uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+    "renderer": "Quadro M1000M/PCIe/SSE2",
+    "rows": 9,
+    "samples": 8,
+    "png_sha256": "e0745af390da58437bbbdbba8d96eb7e1600ec86e18021177882862787ab6d74",
+    "traced_untraced_png_exact": true,
+    "sampled_device_used_peak_bytes": 109117440,
+    "logical_overlap_peak_bytes": null
+  },
+  {
+    "device": 0,
+    "backend": "compute",
+    "uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+    "renderer": "Quadro M1000M/PCIe/SSE2",
+    "rows": 9,
+    "samples": 8,
+    "png_sha256": "e0745af390da58437bbbdbba8d96eb7e1600ec86e18021177882862787ab6d74",
+    "traced_untraced_png_exact": true,
+    "sampled_device_used_peak_bytes": 112918528,
+    "logical_overlap_peak_bytes": 4284452
+  },
+  {
+    "device": 1,
+    "backend": "cpu",
+    "uuid": "GPU-1795f01b-f1fd-61a0-3b79-199560dd0793",
+    "renderer": "NVIDIA GeForce RTX 3070 Ti/PCIe/SSE2",
+    "rows": 7,
+    "samples": 6,
+    "png_sha256": "024485f48ef2a0b890e96198ab85074a83c3514047d901580ff67beb35fa0031",
+    "traced_untraced_png_exact": true,
+    "sampled_device_used_peak_bytes": 620560384,
+    "logical_overlap_peak_bytes": null
+  },
+  {
+    "device": 1,
+    "backend": "compute",
+    "uuid": "GPU-1795f01b-f1fd-61a0-3b79-199560dd0793",
+    "renderer": "NVIDIA GeForce RTX 3070 Ti/PCIe/SSE2",
+    "rows": 7,
+    "samples": 6,
+    "png_sha256": "024485f48ef2a0b890e96198ab85074a83c3514047d901580ff67beb35fa0031",
+    "traced_untraced_png_exact": true,
+    "sampled_device_used_peak_bytes": 621936640,
+    "logical_overlap_peak_bytes": 4284452
+  }
+]

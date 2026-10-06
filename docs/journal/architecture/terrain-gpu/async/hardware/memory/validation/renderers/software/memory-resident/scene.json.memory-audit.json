@@ -1,0 +1,6 @@
+{
+  "bulk_readbacks": 0,
+  "fence_polls": 26,
+  "positive_timeout_or_flush_polls": 0,
+  "server_waits": 0
+}

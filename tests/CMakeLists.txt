@@ -37,7 +37,8 @@ set_tests_properties(TerrainRecoveryIntegration PROPERTIES
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 240 RUN_SERIAL TRUE)
 
 add_executable(terrain_frame_tests app/terrain/interactive/test_frame.cpp app/terrain/interactive/test_timing.cpp
-    app/terrain/interactive/test_publications.cpp app/terrain/interactive/test_capture_publications.cpp)
+    app/terrain/interactive/test_publications.cpp app/terrain/interactive/test_capture_publications.cpp
+    app/terrain/interactive/test_memory.cpp)
 target_link_libraries(terrain_frame_tests PRIVATE planet_app GTest::gtest_main)
 target_compile_definitions(terrain_frame_tests PRIVATE
     PLANET_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
@@ -383,3 +384,16 @@ foreach(target camera_input_tests orbital_system_tests terrain_tests
         planet_surface_camera_tests surface_camera_telemetry_tests grass_placement_tests)
     target_link_libraries(${target} PRIVATE planet_geometry)
 endforeach()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    add_library(fake_memory_nvml SHARED diagnostics/memory/fake_memory_nvml.cpp)
+    set_target_properties(fake_memory_nvml PROPERTIES OUTPUT_NAME nvidia-ml SOVERSION 1
+        LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/fake-memory-nvml)
+    add_executable(memory_sampler_tests diagnostics/memory/test_memory.cpp)
+    target_link_libraries(memory_sampler_tests PRIVATE planet_diagnostics GTest::gtest_main)
+    target_compile_definitions(memory_sampler_tests PRIVATE PLANET_TEST_OUTPUT="${CMAKE_BINARY_DIR}/memory-sampler")
+    add_dependencies(memory_sampler_tests fake_memory_nvml)
+    add_test(NAME MemorySamplerTests COMMAND memory_sampler_tests)
+    set_tests_properties(MemorySamplerTests PROPERTIES TIMEOUT 30
+        ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_CURRENT_BINARY_DIR}/fake-memory-nvml")
+endif()

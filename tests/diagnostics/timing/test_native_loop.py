@@ -9,6 +9,8 @@ import sys
 root = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(root / 'tests/app/terrain/native'))
 from NativeSession import Session, validate, write_json
+sys.path.insert(0, str(root / "tests/diagnostics/memory"))
+from MemoryTrace import validate_memory
 
 p = argparse.ArgumentParser(description=__doc__)
 p.add_argument('--probe', type=Path, required=True)
@@ -102,7 +104,8 @@ for backend in ('cpu', 'compute'):
                             'loop_outcomes': counts, 'joined_receipts': len(native),
                             'publication_receipts': len(publications), 'published_draws': len(published),
                             'renderer': session.frames[0]['renderer'],
-                            'opengl_version': session.frames[0]['opengl_version']}
+                            'opengl_version': session.frames[0]['opengl_version'],
+                            'memory': validate_memory(str(trace) + '.memory.csv', backend, session.frames[0]['renderer'])}
         write_json(out / 'results.json', results)
         print(f'Validated {backend} native full wall/poll/present/loading/minimized/resume: {counts}', flush=True)
     finally:

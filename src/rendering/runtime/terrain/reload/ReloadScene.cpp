@@ -16,6 +16,7 @@ glm::dvec3 vector(const nlohmann::json& j) {
 }
 }
 void Renderer::Impl::retireSceneReload(bool captureWait) {
+    const bool retiring=bool(retiredResidentScene)||bool(retiredLegacyScene);
     if(retiredResidentScene) {
         if(captureWait) retiredResidentScene->waitRetiredForCapture();
         if(retiredResidentScene->pollRetired()) retiredResidentScene.reset();
@@ -24,6 +25,7 @@ void Renderer::Impl::retireSceneReload(bool captureWait) {
         if(captureWait) retiredLegacyScene->waitForCapture();
         if(retiredLegacyScene->pollRetired()) retiredLegacyScene.reset();
     }
+    if(retiring && !retiredResidentScene && !retiredLegacyScene) observeMemory(MemoryPhase::Retirement,true);
 }
 void Renderer::Impl::reloadScene() {
     auto& publications=profiler.publications();publications.captureMode(options.renderTestMode);
@@ -34,6 +36,7 @@ void Renderer::Impl::reloadScene() {
     GpuWorkProfiler::Binding work(&profiler.gpuWork(),PublicationProfiler::unknown);
     PublicationProfiler::Key rootKey;rootKey.epoch=terrainSceneEpoch+1;rootKey.resident=bool(terrainPublication);
     const auto attempt=publications.begin(rootKey,PublicationProfiler::Kind::Reload);
+    observeMemory(MemoryPhase::ReloadRequested,true,nullptr,nullptr,attempt,rootKey.epoch);
     try {
         retireSceneReload(options.renderTestMode);
         if(retiredResidentScene || retiredLegacyScene) throw std::runtime_error("Previous scene is still retiring");
@@ -147,6 +150,7 @@ void Renderer::Impl::reloadScene() {
                 resident->waitForCapture();publications.phase(child,PublicationProfiler::Phase::GpuReady);tracking.triangles[i]=resident->land(i).indexCount/3;
             } else legacy->grass.prepare(i,legacy->meshes.planetMeshes[i],planet,stagedScene.scenario.metersPerWorldUnit(),anchor);
         }
+        observeMemory(MemoryPhase::ReloadPreparing,true,resident.get(),legacy.get(),attempt,epoch);
         const auto commit=prepareReloadCommit(stagedScene,third,time,plannedEye);
         if(resident) {
             if(!resident->publish(epoch)) throw std::logic_error("Replacement scene became obsolete");
@@ -160,13 +164,16 @@ void Renderer::Impl::reloadScene() {
             retiredLegacyScene=std::move(legacy);
         }
         finishSceneReload(tracking,nextOptions,nextSource.replayDocument,commit);
+        observeMemory(MemoryPhase::ReloadExchange,true,nullptr,nullptr,attempt,epoch);
         if(attempt) {
             for(std::size_t i=0;i<count;++i) publications.prepared(publications.child(attempt,i),publicationGeneration(i));
             publications.committed(attempt);
         }
     } catch(const std::invalid_argument&) {
+        observeMemory(MemoryPhase::ReloadFailed,true,nullptr,nullptr,attempt,rootKey.epoch);
         publications.finish(attempt,PublicationProfiler::Outcome::InvalidConfig);++sceneReloadFailures;throw;
-    } catch(...) {publications.finish(attempt,PublicationProfiler::Outcome::PreparationFailed);++sceneReloadFailures;throw;}
+    } catch(...) {observeMemory(MemoryPhase::ReloadFailed,true,nullptr,nullptr,attempt,rootKey.epoch);
+        publications.finish(attempt,PublicationProfiler::Outcome::PreparationFailed);++sceneReloadFailures;throw;}
 }
 nlohmann::json Renderer::Impl::sceneReloadState() const {
     nlohmann::json j={{"published",sceneReloads},{"failed",sceneReloadFailures},{"epoch",terrainSceneEpoch},

@@ -35,15 +35,17 @@ complete consumer draws. The [reload tracing study](architecture/terrain-gpu/asy
 adds bounded whole-scene attempts through exchange and complete consumption,
 with failed/superseded transactions retained. The [capture/contact/CPU grass study](architecture/terrain-gpu/async/hardware/publication/lifecycle/study.md)
 completes synchronous reload, capture draw, actual handoff and pure CPU grass
-admission tracing. Physical-memory diagnostics remain a prerequisite before
-matched CPU/compute cost acceptance.
+admission tracing. The [memory diagnostic study](architecture/terrain-gpu/async/hardware/memory/study.md)
+adds UUID-verified NVML sampling, context NVX checkpoints and logical/CPU
+receipts with explicit age, unsupported/error and missed-peak limits. Matched
+production CPU/compute cost acceptance remains pending.
 
 The [GPU timing prerequisite](architecture/terrain-gpu/async/hardware/timing/study.md)
 adds bounded request-keyed dispatch timings and complete frame timestamp spans.
 It separates nested placement costs from render-stage totals and preserves
 nonblocking publication. The publication studies above add latency/outcomes;
-physical-memory diagnostics and matched CPU/compute acceptance remain the next
-hardware tasks.
+the memory study adds physical/logical/CPU observations. Matched CPU/compute
+acceptance remains the next hardware task.
 
 The [camera-movement study](benchmarks/camera-movement.md), also included in the
 paper, records new software-renderer measurements of walking, foliage placement,

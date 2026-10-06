@@ -15,6 +15,7 @@
 #include "rendering/diagnostics/PerformanceOverlay.h"
 #include "rendering/diagnostics/OrbitOverlay.h"
 #include "rendering/diagnostics/GpuUtilization.h"
+#include "rendering/diagnostics/memory/MemorySampler.h"
 #include "rendering/diagnostics/AdaptiveQuality.h"
 #include "rendering/diagnostics/FrameReuse.h"
 #include "rendering/character/AstronautRenderer.h"
@@ -29,6 +30,10 @@ struct ReloadCommitState;
 struct Renderer::Impl {
     explicit Impl(app::CommandLineOptions arguments);
     ~Impl();
+    MemoryObservation memorySnapshot(MemoryPhase phase,const SceneTerrainReplacement* replacement=nullptr,
+        const LegacySceneReplacement* legacy=nullptr,std::uint64_t attempt=0,std::uint64_t targetEpoch=0) const;
+    void observeMemory(MemoryPhase phase,bool event=false,const SceneTerrainReplacement* replacement=nullptr,
+        const LegacySceneReplacement* legacy=nullptr,std::uint64_t attempt=0,std::uint64_t targetEpoch=0);
     int capture();
     int interact();
     void reloadScene();
@@ -72,6 +77,9 @@ struct Renderer::Impl {
     GLFWwindow* window;
     app::PreparedScene scene;
     FrameProfiler profiler;
+    std::unique_ptr<MemorySampler> memorySampler;
+    NvxMemory memoryNvx;
+    MemoryPhase memoryPhase=MemoryPhase::RendererReady;
     SceneMeshes meshes;
     std::unique_ptr<TerrainCompute> terrainCompute;
     std::string terrainFallback;

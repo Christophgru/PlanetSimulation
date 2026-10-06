@@ -116,7 +116,7 @@ def validate(frames, managed=True):
         assert frame['backend'] == ('compute' if managed else 'cpu'), frame
         assert frame['publication']['managed'] == managed, frame
         assert all(frame['worker'][k] <= 1 for k in ('running', 'queued', 'ready')), frame
-        assert all(frame['gl'][k] == 0 for k in ('blocking_polls', 'server_waits', 'bulk_reads', 'finishes')), frame['gl']
+        assert all(frame['gl'][k] == 0 for k in ('blocking_polls', 'server_waits', 'bulk_reads', 'finishes', 'memory_queries')), frame['gl']
         if not managed or frame['publication']['loading']:
             continue
         rendered.append(frame)

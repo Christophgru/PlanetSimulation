@@ -17,8 +17,9 @@ allocation/prefix and main/reflection placement, plus full frame GPU spans.
 It retains missing/dropped samples and does not change publication readiness.
 [T3c5b2a](loop/study.md) adds complete native-loop wall receipts, including
 event polling, loading presentation, profiler collection and minimized waits.
-T3c5b2b still owns request-to-publication latency/outcomes, T3c5b2c physical-memory
-sampling, and T3c5c the matched cost experiments.
+[T3c5b2b](publication/lifecycle/study.md) completes request-to-publication
+latency/outcomes. [T3c5b2c](memory/study.md) adds device-verified physical-memory
+sampling; T3c5c owns the matched cost experiments.
 
 `FrameProfiler` retains asynchronous per-render-pass GPU timestamps, CPU scopes,
 worker build duration and transfer counters. Its `gpu_ms` sums render stages;
@@ -41,10 +42,10 @@ Before matched cost acceptance:
    CPU worker topology/contact-index durations, render-thread submission,
    draw/presentation and complete native loop wall times. CPU/GPU intervals can
    overlap; do not sum them as a total frame time.
-3. Record request-to-complete-consumer-publication latency in wall milliseconds
+3. Completed in T3c5b2b: request-to-complete-consumer-publication latency in wall milliseconds
    and frames, including superseded/rejected work and destination handoff. Keep
    movement, draw and contact receipts attached to the same generation.
-4. Sample physical dedicated-memory availability outside the critical frame
+4. T3c5b2c samples physical dedicated-memory availability outside the critical frame
    loop, using context-specific NVX telemetry where available and device UUID
    checks for NVML. Record baseline, steady state and replacement peaks alongside
    owned/admitted logical bytes and CPU snapshots. GPU-wide free-memory changes
@@ -96,8 +97,9 @@ CPU default, document the failing case and fix the measured bottleneck before
 repeating affected pairs. Hardware correctness alone does not complete T3c5.
 
 T3c5b1 closes work-query/frame-span diagnostics; T3c5b2a supplies complete native
-wall intervals. T3c5b2b publication latency/outcomes, T3c5b2c physical memory and
-T3c5c matched measurements are pending. A1a coefficient reuse and
+wall intervals. T3c5b2b supplies complete publication latency/outcomes; T3c5b2c supplies physical
+memory observations with explicit scope, age and missed-peak limits. T3c5c
+matched measurements remain pending. A1a coefficient reuse and
 T3c5a context/correctness are separate tested
 prerequisites; A1b highlight reduction and adaptive foliage allocation remain
 independent unfinished tasks.

@@ -20,6 +20,10 @@ struct TerrainWorkerStats {
     unsigned running=0,queued=0,ready=0,peakRunning=0,peakQueued=0;
     bool stopping=false;
 };
+struct TerrainMemorySnapshot {
+    std::uint64_t readyVectorBytes=0;
+    unsigned running=0,queued=0,ready=0;
+};
 // One persistent CPU executor, one latest queued snapshot and one ready result.
 // The worker cannot begin another build until its ready result is consumed.
 class TerrainBuildScheduler {
@@ -47,6 +51,7 @@ public:
     std::optional<TerrainBuildIdentity> pendingFor(std::uint64_t epoch,std::size_t body) const;
     bool pending(std::uint64_t epoch) const;
     TerrainWorkerStats stats() const;
+    std::optional<TerrainMemorySnapshot> memorySnapshot() const; // Nonblocking, partial vector accounting.
     void stop(); // Join only at shutdown; epoch changes retain executing ownership.
 private:
     void run();

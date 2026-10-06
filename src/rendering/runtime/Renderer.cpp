@@ -2,6 +2,7 @@
 #include "rendering/runtime/terrain/reload/interactive/PendingReload.h"
 #include "config/SceneReplay.h"
 #include "rendering/diagnostics/VideoMemory.h"
+#include "rendering/diagnostics/memory/ContextMemory.h"
 #include "rendering/quality/OfflineQuality.h"
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -140,6 +141,11 @@ Renderer::Impl::Impl(app::CommandLineOptions arguments)
     grass.diagnostics(&profiler.publications(),&terrainSceneEpoch,&installedTerrainSerial,&lastLocalMask,&meshes.waterMeshes);
     adaptiveQuality = AdaptiveQuality(availableMemory);
     glEnable(GL_DEPTH_TEST);
+    if(!options.performanceTrace.empty()) {
+        auto identity=contextMemory();memoryNvx=identity.nvx;
+        memorySampler=std::make_unique<MemorySampler>(options.performanceTrace+".memory.csv",
+            std::move(identity),memorySnapshot(MemoryPhase::RendererReady));
+    }
 }
 
 Renderer::Impl::~Impl() {
@@ -150,6 +156,9 @@ Renderer::Impl::~Impl() {
         profiler.publications().finish(pendingResidentReload->traceAttempt,PublicationProfiler::Outcome::Shutdown);
     // Workers only own CPU snapshots. Join before releasing scene resources.
     terrainJobs.stop();
+    if(memorySampler) {
+        memoryNvx=contextNvxMemory();memorySampler->stop(memorySnapshot(MemoryPhase::Shutdown));
+    }
 }
 
 ClipPlanes Renderer::Impl::planetOrbitClip(const glm::dvec3& eye) const {

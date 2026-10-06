@@ -42,6 +42,7 @@ int Renderer::Impl::capture() {
         frameRate.sample(glfwGetTime()-lastBenchmarkFrame); lastBenchmarkFrame=glfwGetTime();
         simulationTime = benchmarkStart + frame * options.benchmarkStep;
         profiler.beginFrame(simulationTime);
+        observeMemory(MemoryPhase::Capture);
         { rendering::FrameProfiler::Scope scope(&profiler, rendering::FrameStage::Update, false);
           if (frame > 0) {
               scene.updateSimulation(simulationTime);
@@ -118,6 +119,7 @@ int Renderer::Impl::capture() {
             glfwSwapBuffers(window); glfwPollEvents();
         }
         profiler.endFrame();
+        observeMemory(MemoryPhase::Capture);
     }
     for (std::size_t i = 0; i < scene.scenario.planets.size(); ++i) {
         std::cout << "Planet " << i << " terrain: " << meshTriangles[i]

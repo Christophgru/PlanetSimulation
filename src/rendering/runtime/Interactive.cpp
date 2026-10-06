@@ -150,6 +150,7 @@ int Renderer::Impl::interact() {
                   glfwSwapBuffers(window); }
                 profiler.endFrame();
                 loop.outcome(LoopOutcome::Loading);
+                observeMemory(MemoryPhase::Loading);
             };
             const bool onSurface = cameraInput.mode() == CameraMode::Surface && scene.surfaceCamera;
             const bool onThird = cameraInput.mode()==CameraMode::ThirdPerson && scene.surfaceCamera;
@@ -313,6 +314,8 @@ int Renderer::Impl::interact() {
             glfwWaitEventsTimeout(0.05);loop.outcome(LoopOutcome::Minimized);
         }
         profiler.endFrame();
+        observeMemory(width<=0||height<=0?MemoryPhase::Minimized:
+            sceneReloadPreparing()?MemoryPhase::ReloadPreparing:MemoryPhase::Steady);
     }
     return 0;
 }

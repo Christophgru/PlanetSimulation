@@ -1,0 +1,90 @@
+{
+  "cpu": {
+    "frames": 15,
+    "rendered": 0,
+    "gl": {
+      "blocking_polls": 0,
+      "bulk_reads": 0,
+      "finishes": 0,
+      "injected_fence_failures": 0,
+      "injected_poll_failures": 0,
+      "memory_queries": 0,
+      "polls": 0,
+      "server_waits": 0
+    },
+    "peak_logical_bytes": 0,
+    "loop_outcomes": {
+      "rendered": 8,
+      "minimized": 7
+    },
+    "joined_receipts": 15,
+    "publication_receipts": 9,
+    "published_draws": 9,
+    "renderer": "Quadro M1000M/PCIe/SSE2",
+    "opengl_version": "4.3.0 NVIDIA 580.178.04",
+    "memory": {
+      "rows": 8,
+      "samples": 5,
+      "phases": {
+        "renderer_ready": 1,
+        "steady": 3,
+        "minimized": 3,
+        "shutdown": 1
+      },
+      "nvml_statuses": {
+        "ok": 8
+      },
+      "context_uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+      "dropped_observations": 0,
+      "dropped_events": 0,
+      "skipped_latest_observations": 0,
+      "sampled_device_used_peak_bytes": 132055040,
+      "logical_overlap_peak_bytes": null
+    }
+  },
+  "compute": {
+    "frames": 52,
+    "rendered": 14,
+    "gl": {
+      "blocking_polls": 0,
+      "bulk_reads": 0,
+      "finishes": 0,
+      "injected_fence_failures": 0,
+      "injected_poll_failures": 0,
+      "memory_queries": 0,
+      "polls": 17,
+      "server_waits": 0
+    },
+    "peak_logical_bytes": 4284452,
+    "loop_outcomes": {
+      "loading": 38,
+      "rendered": 7,
+      "minimized": 7
+    },
+    "joined_receipts": 52,
+    "publication_receipts": 5,
+    "published_draws": 2,
+    "renderer": "Quadro M1000M/PCIe/SSE2",
+    "opengl_version": "4.3.0 NVIDIA 580.178.04",
+    "memory": {
+      "rows": 28,
+      "samples": 24,
+      "phases": {
+        "renderer_ready": 1,
+        "loading": 21,
+        "steady": 2,
+        "minimized": 3,
+        "shutdown": 1
+      },
+      "nvml_statuses": {
+        "ok": 28
+      },
+      "context_uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+      "dropped_observations": 0,
+      "dropped_events": 0,
+      "skipped_latest_observations": 0,
+      "sampled_device_used_peak_bytes": 118161408,
+      "logical_overlap_peak_bytes": 4284452
+    }
+  }
+}
