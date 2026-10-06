@@ -44,23 +44,28 @@ def standing(frame):
     return ready(frame) and frame['mode'] == 3 and frame.get('pose') and not frame['pose']['airborne']
 
 
-def movement(session, sprint, distance):
-    start = session.wait(standing)
+def movement(session, sprint, distance, clock=False):
+    def grounded(f):
+        return f['mode'] == 3 and f.get('pose') and not f['pose']['airborne'] and not f['publication'].get('loading', False)
+    session.wait(grounded)
     if sprint:
         session.down('Shift_L')
     session.down('w')
     try:
-        last = session.wait(lambda f: standing(f) and f['keys']['w'] and f['keys']['shift'] == sprint and
-                            f['pose']['walked_m'] - start['pose']['walked_m'] >= distance,
+        first = session.wait(lambda f: grounded(f) and f['keys']['w'] and f['keys']['shift'] == sprint)
+        last = session.wait(lambda f: grounded(f) and f['keys']['w'] and f['keys']['shift'] == sprint and
+                            f['frame'] >= first['frame'] + 10 and
+                            f['pose']['walked_m'] - first['pose']['walked_m'] >= distance,
                             'Native walking did not cover the required distance', timeout=60)
     finally:
         session.up('w')
         if sprint:
             session.up('Shift_L')
-    frames = [f for f in session.frames if start['frame'] < f['frame'] <= last['frame']]
+    frames = [f for f in session.frames if first['frame'] <= f['frame'] <= last['frame'] and
+              grounded(f) and f['keys']['w'] and f['keys']['shift'] == sprint]
     rates = []
     for a, b in zip(frames, frames[1:]):
-        if standing(a) and standing(b) and a['keys']['w'] and b['keys']['w'] and a['keys']['shift'] == b['keys']['shift'] == sprint:
+        if b['frame'] == a['frame'] + 1:
             dt = b['pose']['effect_s'] - a['pose']['effect_s']
             if dt > 1e-5:
                 rates.append((b['pose']['walked_m'] - a['pose']['walked_m']) / dt)
@@ -68,7 +73,12 @@ def movement(session, sprint, distance):
     speed = statistics.median(rates)
     expected = 12 if sprint else 6
     assert expected * .85 < speed < expected * 1.15, (expected, speed)
-    return speed, last
+    wall = (frames[-1]['observed_ns'] - frames[0]['observed_ns']) / 1e9
+    wall_speed = (frames[-1]['pose']['walked_m'] - frames[0]['pose']['walked_m']) / wall
+    if clock:
+        assert expected * .85 < wall_speed < expected * 1.15, (expected, wall_speed)
+        assert all(b['observed_ns'] - a['observed_ns'] >= 170_000_000 for a, b in zip(frames, frames[1:]))
+    return {'animation_mps': speed, 'wall_mps': wall_speed, 'frames': len(frames)}, last
 
 
 session = Session(args.probe, root, out / 'input', ['--config', str(config), '--terrain-backend', 'compute'], control={'delay': True})
@@ -154,7 +164,7 @@ try:
     session.key('4')
     session.wait(standing)
     session.close()
-    results['input'] = {**validate(session.frames), 'walking_mps': walk, 'sprinting_mps': sprint}
+    results['input'] = {**validate(session.frames), 'walking': walk, 'sprint': sprint}
     print('Validated native loading/standing/6-12 m/s walking/jump/WASD-Space thrust/trail/reload/watch/supersession', flush=True)
 finally:
     session.abort()
@@ -195,23 +205,58 @@ for name in ('space', 'moon'):
         session.abort()
     write_json(out / 'results.json', results)
 
+# A separate low-detail flat field isolates the clock from expensive software
+# contact sampling. The noisy input/reload/Moon scenarios above remain intact;
+# hardware measurements retain the complete production noise and topology.
+clock_scene = copy.deepcopy(scene)
+for planet in clock_scene['planets']:
+    planet['surface_noise'] = []
+    planet.setdefault('foliage', {})['enabled'] = False
+    planet['terrain_lod'].update({'base_edge_segments': 1, 'medium_edge_segments': 2,
+                                'max_edge_segments': 2, 'steep_edge_segments': 2,
+                                'shoreline_edge_m': 0, 'sink_depth_m': 0})
+clock_config = out / 'clock-scene.json'
+write_json(clock_config, clock_scene)
+
 # Force the Mesa vendor for version overrides even during NVIDIA offload runs.
 old_gl = {'MESA_GL_VERSION_OVERRIDE': '3.3', 'MESA_GLSL_VERSION_OVERRIDE': '330',
           '__GLX_VENDOR_LIBRARY_NAME': 'mesa', '__NV_PRIME_RENDER_OFFLOAD': '0'}
-for name, flags, environment in [('default-cpu', ['--config', str(config)], {}),
-                                  ('gl33-fallback', ['--config', str(config), '--terrain-backend', 'compute'], old_gl)]:
+for name, flags, environment in [('clock-compute', ['--config', str(clock_config), '--terrain-backend', 'compute'], {}),
+                                  ('default-cpu', ['--config', str(clock_config)], {}),
+                                  ('gl33-fallback', ['--config', str(clock_config), '--terrain-backend', 'compute'], old_gl)]:
     session = Session(args.probe, root, out / name, flags, environment)
     try:
         session.focus()
         session.key('4')
         start = session.wait(lambda f: f['mode'] == 3 and f.get('pose'))
-        session.down('w')
-        try:
-            session.wait(lambda f: f.get('pose') and f['pose']['walked_m'] > start['pose']['walked_m'] + .2)
-        finally:
-            session.up('w')
+        session.key('t')
+        session.wait(lambda f: f['paused'])
+        session.control({'present_delay_ms': 180})
+        warm = session.wait(lambda f: f['mode'] == 3 and f.get('pose'))
+        session.wait(lambda f: f['frame'] >= warm['frame'] + 10 and
+                     f['observed_ns'] >= warm['observed_ns'] + 3_000_000_000)
+        walk, _ = movement(session, False, 18, clock=True)
+        sprint, _ = movement(session, True, 18, clock=True)
+        suspension_frames = 0
+        if name == 'clock-compute':
+            session.control({'present_delay_ms': 1250})
+            session.down('w')
+            try:
+                stalled = session.wait(lambda f: standing(f) and f['keys']['w'])
+                session.wait(lambda f: standing(f) and f['keys']['w'] and f['frame'] >= stalled['frame'] + 3)
+            finally:
+                session.up('w')
+            slow = [f for f in session.frames if f['frame'] >= stalled['frame'] + 1 and f['keys']['w']]
+            assert len(slow) >= 3
+            for a, b in zip(slow, slow[1:]):
+                assert b['observed_ns'] - a['observed_ns'] > 1_000_000_000
+                assert .99 <= b['pose']['effect_s'] - a['pose']['effect_s'] <= 1.001
+                assert 5.8 < b['pose']['walked_m'] - a['pose']['walked_m'] < 6.1
+            session.control({})
+            suspension_frames = len(slow)
         session.close()
-        results[name] = validate(session.frames, managed=False)
+        results[name] = {**validate(session.frames, managed=name == 'clock-compute'),
+                         'walking': walk, 'sprint': sprint, 'suspension_frames': suspension_frames}
         if name == 'gl33-fallback':
             assert 'Terrain CPU fallback:' in session.text() and '4.3' in session.text(), session.text()
         print(f'Validated native {name} startup and walking', flush=True)

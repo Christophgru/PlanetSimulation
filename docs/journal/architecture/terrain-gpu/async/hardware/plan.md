@@ -144,3 +144,21 @@ primary observer included. All 1,955 excluded frames remain archived. Two scoped
 native CTest groups pass (63.63 s); runtime source and application are unchanged.
 Resume T3c5c2 actual 6/12 m/s routes and rendered coverage, then T3c5c3 Moon/reload
 and T3c5c4 field-time/transfer and cross-case gates. CPU stays default.
+
+T3c5c2 is further split into **T3c5c2a real-time speed prerequisite** and
+**T3c5c2b longer matched route cost/coverage**. Production input first exposed
+a 50 ms grounded clock cap: actual CPU/compute walking was 3.504/3.605 m/s
+and sprint 7.028/7.167 m/s despite correct animation rates. The
+[speed study](cost/movement/study.md) fixes this with short grounded advances,
+a one-second suspension bound and independent monotonic-wall checks. Use
+`terrain_cost/speed.py` for short prerequisite runs, retaining full production
+quality. The runtime change requires fresh stationary controls. These short
+single input runs do not replace the three alternating pairs, distance-aligned
+rebuild/spike samples or rendered near-root density checks in T3c5c2b.
+
+T3c5c2a now passes final production 100 m natural/delayed speed checks and
+scoped native clock/suspension validation. Fresh stationary p95 ratios are
+1.0368/1.0227/1.0853; the third pair exceeds the migration limit and needs
+complete stage/workload investigation plus repeat controls before final gates.
+Use these fresh controls for the changed runtime. Resume T3c5c2b matched
+longer-route costs and rendered near-root coverage; CPU stays default.

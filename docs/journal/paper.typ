@@ -146,6 +146,14 @@ T3c5c1 performs three alternating production native CPU/resident-compute station
   caption: [Production native stationary preflight, three alternating pairs. Complete loop p95 includes the private observer; physical memory shows periodic device-wide sampled maxima and can miss true peaks. All six runs retain matching scalar workloads. These are neither replacement-memory gates nor an accepted migration speedup.],
 )
 
+
+T3c5c2a identifies a native grounded clock defect before matched route cost acceptance. The 50 ms per-frame cap produces correct 6/12 m/s animation rates but only 3.504/3.605 m/s walking and 7.028/7.167 m/s sprinting against monotonic wall time on CPU/compute Quadro production runs. Grounded movement now consumes elapsed time in camera/contact advances of at most 50 ms, bounded to one second after suspension. Extra advances use installed contacts while terrain/GPU preparation and publication remain once per frame; existing flight and jump activation behavior is retained. Natural 100 m production checks measure CPU/compute walking 5.978/5.974 m/s and sprint 11.906/11.926 m/s; adding 250 ms presentation delay still gives 5.971/5.975 and 11.938/11.971 m/s. All final speed checks pass ±5%. An initial short fixed CPU sprint fails narrowly at 11.364 m/s because of a 91 ms observation-boundary difference; its full raw frames are retained alongside the longer checks. Fresh stationary compute/CPU native p95 ratios are 1.0368, 1.0227 and 1.0853; the third pair exceeds the 5% migration limit and requires further cost investigation. Longer three-pair routes, rendered near-root coverage, Moon/reload and final transfer/field/memory gates remain pending. CPU stays default. Full before/after receipts and retained qualification failures are in `architecture/terrain-gpu/async/hardware/cost/movement/`.
+
+#figure(
+  image("architecture/terrain-gpu/async/hardware/cost/movement/speed.svg", width: 100%),
+  caption: [Actual grounded distance per monotonic wall second on production Quadro native input. Baseline uses short routes; fixed natural and delayed checks use 100 m. Each bar is one input run, with full raw spikes retained; these are speed prerequisites, not paired route cost acceptance or uncertainty estimates.],
+)
+
 = Orbital motion and light transport
 
 == Prescribed Kepler ellipses with collective mass
@@ -554,6 +562,9 @@ A1a and T3c5a pass all 63 CTest groups in one uninterrupted frozen-input softwar
 
 T3c5c1 passes two scoped native CTest groups in 63.63 s and three actual Quadro GLX production pairs. Independent archived rechecking joins all 1,440 measured and 1,955 excluded native frames, 3,494 ready GPU work rows and twelve published initial terrain attempts, with exact paired field/topology, pose and planning anchors. Every measured frame has a ready GPU span; no measured outlier is removed or blocking GL work introduced. Runtime/application and the other 41 executables remain unchanged; frozen source/input/42-executable hashes and full compressed traces are retained in `architecture/terrain-gpu/async/hardware/cost/preflight/validation/`. Gallery/historical captures stay unchanged. Movement, rendered coverage and replacement/final gates remain pending.
 
+T3c5c2a has passing scoped results for seven relevant CTest groups. Six pass in the initial 217.51 s batch; an augmented native input group passes in 92.11 s after correcting the short-input sample window and separating a warmed flat/coarse clock fixture without foliage. The original noisy input/reload and space/Moon checks remain intact. Software CPU/compute/GL 3.3 fallback wall speeds are 5.965–6.003 m/s walking and 11.886–12.011 m/s sprint; three >1 s frames retain bounded continuous walked history. Runtime and all 42 executables stay frozen through the Python fixture correction. Failed preflights are retained. Twelve before/final/delayed speed-gate runs and four retained short preflights join 933 movement and 4,231 excluded frames. Three fresh stationary pairs retain 1,440 measured and 1,942 excluded frames, 3,486 ready GPU work rows and twelve complete publication receipts with exact paired geometry/pose/anchors. Native p95 ratios are 1.0368, 1.0227 and 1.0853: the third pair exceeds the 5% migration limit, so complete cost/stage investigation and CPU default remain. Gallery and historical captures stay unchanged. Full compressed traces and before/after provenance are in `architecture/terrain-gpu/async/hardware/cost/movement/validation/`. This is scoped validation, not a new full-suite or migration cost claim.
+
+
 
 == Rebuilding the paper and the evidence
 
@@ -585,17 +596,20 @@ R5. _PlanetSimulation_ repository: implementation in `src/`, shaders in `shaders
 R6. NASA Glenn Research Center, #link("https://www.grc.nasa.gov/www/k-12/Numbers/Math/Mathematical_Thinking/ideal_gases_under_constant.htm")[Ideal Gases under Constant Volume, Constant Pressure, Constant Temperature, and Adiabatic Conditions]. The hydrostatic, isothermal scale-height derivation is the physical motivation for the exponential profile, not the formula used to set the renderer's shell-relative scale heights.
 
 #block(breakable: false)[
+#set text(size: 9pt)
+#set par(justify: false, leading: 0.5em)
 == Claim-to-artifact map
 
 #table(
   columns: (1.55fr, 2.35fr, 1.8fr),
-  inset: 5pt,
+  inset: 4pt,
   stroke: 0.4pt + rgb("#dfe8eb"),
   [*Claim*], [*Primary implementation*], [*Validation*],
   [Matched physical-GPU throughput], [`scripts/benchmarks/gpu_compare/`], [Twelve runs, UUID checks, complete queries and paired images],
   [Complete native loop wall], [`diagnostics/timing/NativeLoopProfiler.h`, `Interactive.cpp`], [Controlled clock cases and real GLFW loading/minimized/resume],
   [Complete publication lifecycle], [`diagnostics/timing/PublicationProfiler.h`, worker/reload/draw endpoints], [Controlled scopes, terminal families, capture/grass anchors and actual destination contacts],
   [Production stationary workload preflight], [`scripts/benchmarks/terrain_cost/`, private native probe], [Three CPU/compute pairs; exact geometry/pose/anchors, complete GPU and memory receipts],
+  [Native real-time grounded speed], [`Interactive.cpp`, private native input/speed tools], [Production monotonic speeds, delayed frames, suspension bound and fresh stationary controls],
   [Device-verified memory], [`diagnostics/memory/`], [UUID/error/bounded-reader cases, GPU and native receipts],
   [Bounded asynchronous GPU timings], [`diagnostics/timing/`, `FrameProfiler.h`], [Controlled query tests and traced resident publication],
   [Stable terrain under LOD], [`src/rendering/geometry/Terrain.h`], [`TerrainTests`, surface capture],

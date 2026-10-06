@@ -158,14 +158,33 @@ int Renderer::Impl::interact() {
                                        scene.planetOrbitCamera;
             if (onThird) {
                 FrameProfiler::Scope scope(&profiler,FrameStage::Mesh,false);
-                // World-space flight must account for the same elapsed wall
-                // time as moving celestial bodies. Ground walking stays capped.
-                characterWindTime=foliageTime;
+                // Keep grounded camera/contact advances short without slowing
+                // walking when rendering takes longer than 50 ms. Limit catchup
+                // after a suspension to one second (at most twenty advances).
+                // Flight and the jump activation frame retain their existing
+                // integration with the moving celestial bodies.
+                const bool groundedCatchup=astronaut.motion.ready() &&
+                    !astronaut.motion.pose().airborne && inputContext.spacePresses==0;
+                double remainingGroundTime=groundedCatchup ?
+                    std::max(0.0,std::min(frameElapsed,1.0)-elapsedSeconds) : 0.0;
+                characterWindTime=foliageTime-remainingGroundTime;
                 const double characterElapsed=astronaut.motion.ready() && astronaut.motion.pose().airborne ?
                     frameElapsed : elapsedSeconds;
                 preparePlanetMeshes(scene.surfaceCamera->position(),true,
                     terrainPublication ? std::optional<double>(characterElapsed) : std::nullopt);
-                if (!terrainPublication || residentSceneReady()) prepareAstronaut(characterElapsed);
+                if (!terrainPublication || residentSceneReady()) {
+                    prepareAstronaut(characterElapsed);
+                    while (remainingGroundTime>1e-9) {
+                        const double step=std::min(remainingGroundTime,0.05);
+                        cameraInput.setThirdPersonAirborne(astronaut.motion.pose().airborne);
+                        cameraInput.update(keys,step);
+                        remainingGroundTime=std::max(0.0,remainingGroundTime-step);
+                        characterWindTime=foliageTime-remainingGroundTime;
+                        // Use the already installed contact/draw generation;
+                        // GPU preparation/publication still runs once per frame.
+                        prepareAstronaut(step);
+                    }
+                }
             }
             // Finish the mesh profiler scope before endFrame clears its stages.
             if (onThird && terrainPublication && !residentSceneReady()) {presentLoading();continue;}

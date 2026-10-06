@@ -1,0 +1,151 @@
+{
+  "input": {
+    "frames": 469,
+    "rendered": 128,
+    "gl": {
+      "blocking_polls": 0,
+      "bulk_reads": 0,
+      "finishes": 0,
+      "injected_fence_failures": 1,
+      "injected_poll_failures": 1,
+      "memory_queries": 0,
+      "polls": 136,
+      "server_waits": 0
+    },
+    "peak_logical_bytes": 13148916,
+    "walking": {
+      "animation_mps": 5.977920167695983,
+      "wall_mps": 5.905107627779818,
+      "frames": 11
+    },
+    "sprint": {
+      "animation_mps": 11.956187071032815,
+      "wall_mps": 11.965899958801849,
+      "frames": 11
+    }
+  },
+  "space": {
+    "frames": 305,
+    "rendered": 24,
+    "gl": {
+      "blocking_polls": 0,
+      "bulk_reads": 0,
+      "finishes": 0,
+      "injected_fence_failures": 0,
+      "injected_poll_failures": 0,
+      "memory_queries": 0,
+      "polls": 28,
+      "server_waits": 0
+    },
+    "peak_logical_bytes": 11019988
+  },
+  "moon": {
+    "frames": 317,
+    "rendered": 20,
+    "gl": {
+      "blocking_polls": 0,
+      "bulk_reads": 0,
+      "finishes": 0,
+      "injected_fence_failures": 0,
+      "injected_poll_failures": 0,
+      "memory_queries": 0,
+      "polls": 28,
+      "server_waits": 0
+    },
+    "peak_logical_bytes": 14348020
+  },
+  "clock-compute": {
+    "frames": 56,
+    "rendered": 46,
+    "gl": {
+      "blocking_polls": 0,
+      "bulk_reads": 0,
+      "finishes": 0,
+      "injected_fence_failures": 0,
+      "injected_poll_failures": 0,
+      "memory_queries": 0,
+      "polls": 26,
+      "server_waits": 0
+    },
+    "peak_logical_bytes": 1285760,
+    "walking": {
+      "animation_mps": 5.982053834979638,
+      "wall_mps": 6.003405963501136,
+      "frames": 11
+    },
+    "sprint": {
+      "animation_mps": 11.96410766991405,
+      "wall_mps": 11.95467255988855,
+      "frames": 11
+    },
+    "suspension_frames": 3
+  },
+  "default-cpu": {
+    "frames": 42,
+    "rendered": 0,
+    "gl": {
+      "blocking_polls": 0,
+      "bulk_reads": 0,
+      "finishes": 0,
+      "injected_fence_failures": 0,
+      "injected_poll_failures": 0,
+      "memory_queries": 0,
+      "polls": 0,
+      "server_waits": 0
+    },
+    "peak_logical_bytes": 0,
+    "walking": {
+      "animation_mps": 5.982053834958763,
+      "wall_mps": 5.965267821287323,
+      "frames": 11
+    },
+    "sprint": {
+      "animation_mps": 11.964107669937139,
+      "wall_mps": 11.886344516266394,
+      "frames": 11
+    },
+    "suspension_frames": 0
+  },
+  "gl33-fallback": {
+    "frames": 46,
+    "rendered": 0,
+    "gl": {
+      "blocking_polls": 0,
+      "bulk_reads": 0,
+      "finishes": 0,
+      "injected_fence_failures": 0,
+      "injected_poll_failures": 0,
+      "memory_queries": 0,
+      "polls": 0,
+      "server_waits": 0
+    },
+    "peak_logical_bytes": 0,
+    "walking": {
+      "animation_mps": 5.982053834962244,
+      "wall_mps": 5.9861298060699,
+      "frames": 13
+    },
+    "sprint": {
+      "animation_mps": 11.964107669907989,
+      "wall_mps": 12.010504703509962,
+      "frames": 11
+    },
+    "suspension_frames": 0
+  },
+  "gl33-locked-replay": {
+    "returncode": 1,
+    "required_error": "Locked compute replay"
+  },
+  "legacy-interactive-planner": {
+    "returncode": 1,
+    "required_error": "Interactive compute terrain requires"
+  },
+  "legacy-interactive-replay": {
+    "returncode": 1,
+    "required_error": "Interactive compute terrain requires GPU grass planning"
+  },
+  "nonresident-interactive-grass": {
+    "returncode": 1,
+    "required_error": "Interactive compute terrain requires foliage compute_placement"
+  }
+}

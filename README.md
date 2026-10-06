@@ -811,6 +811,10 @@ Release the movement controls to coast under gravity and air resistance.
 T pauses planetary motion while these controls remain active. Esc releases
 the mouse in either walking camera.
 
+Grounded movement follows elapsed time on slow frames; catch-up after a
+suspension longer than one second is limited to one second. See the
+[native speed validation](docs/journal/architecture/terrain-gpu/async/hardware/cost/movement/study.md).
+
 Within **1.2 body diameters from its centre (2.4 radii)**, orientation follows
 the nearby planet or moon. Beyond that region, free-space mouse look lets you
 fly toward another body; approaching the Moon selects its local frame smoothly.

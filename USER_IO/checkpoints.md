@@ -1,6 +1,38 @@
 # Page to document progress of AI Agents working on this Project
 
 
+## Grounded native speed prerequisite — 2026-10-06
+
+- T3c5c2 split into T3c5c2a actual speed and T3c5c2b matched route cost/coverage.
+  Production Quadro baseline fails real-time speed: CPU/compute walking
+  3.504/3.605 m/s, sprint 7.028/7.167 m/s; animation rates alone hid the issue.
+- Interactive grounded motion now consumes elapsed time in <=50 ms camera/contact
+  advances, bounded to one second after suspension. Installed contact/draw
+  generations and once-per-frame terrain/GPU publication remain coherent;
+  flight and jump activation retain their existing integration.
+- Six CTest groups pass in the initial 217.51 s batch. The augmented native
+  group passes in 92.11 s after correcting its timing fixture: first confirmed
+  input plus >=10 intervals, warm flat/coarse clock scene without foliage.
+  The original noisy input/reload and space/Moon scenes remain. Runtime and all
+  42 executables stay unchanged through the Python fixture correction. Failed
+  preflights are retained; final clock wall speeds are 5.965–6.003/11.886–12.011.
+- T3c5c2a is tested: final natural and +250 ms production 100 m checks measure
+  walking 5.971–5.978 and sprint 11.906–11.971 m/s. Sixteen speed/preflight
+  runs retain 933 movement +4,231 excluded frames, including the initial short
+  CPU sprint failure (91 ms endpoint difference); no outliers were filtered.
+- Three fresh stationary pairs preserve exact geometry/pose/anchors and scalar
+  work: 1,440 measured +1,942 excluded frames, 3,486 ready GPU work rows and
+  twelve publications. p95 ratios 1.0368/1.0227/1.0853 include observer overhead;
+  pair 3 exceeds the 5% migration limit. Full GPU span p95 is also higher, but
+  the traces do not isolate a cause. Investigate complete stages/workloads and
+  repeat affected controls before final acceptance. CPU remains default.
+- Full compressed receipts, corrected/failed software fixtures, frozen before/
+  after source/input/42-binary hashes, standalone speed figure and independent
+  checks are in the journal cost/movement study; journal/PDF and TODO updated.
+  Resume T3c5c2b three alternating longer route pairs, distance landmarks and
+  rendered near-root density. Moon/reload T3c5c3 and final field/memory/transfer
+  T3c5c4 remain. Existing effective foliage scaling is not protected density.
+
 ## Production native stationary preflight — 2026-10-06
 
 - T3c5c1 completes three alternating CPU/resident-compute pairs on verified

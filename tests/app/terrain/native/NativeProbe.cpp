@@ -69,9 +69,9 @@ void sample(GLFWwindow* window,bool waiting=false) {
         {"publication",r.terrainPublicationState()},{"reload",r.sceneReloadState()},
         {"paused",r.simulationClock.paused()},{"controls",controls},{"gl",counters()},
         {"worker",{{"running",stats.running},{"queued",stats.queued},{"ready",stats.ready}}}};
+    j["observed_ns"]=std::chrono::duration_cast<std::chrono::nanoseconds>(observerStart.time_since_epoch()).count();
     if(benchmarking) {
         j["benchmark"]=benchmarkObservation(r,window);
-        j["observed_ns"]=std::chrono::duration_cast<std::chrono::nanoseconds>(observerStart.time_since_epoch()).count();
     }
     if(r.profiler.publications().enabled()) {
         j["publication_geometry"]=json::array();

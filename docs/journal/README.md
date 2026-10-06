@@ -45,6 +45,14 @@ matching scalar foliage work and complete raw/excluded receipts. Native p95
 ratios span 0.9696–1.0492 with observer overhead included; movement, rendered
 coverage, Moon/reload and final field/memory gates remain.
 
+The [grounded speed prerequisite](architecture/terrain-gpu/async/hardware/cost/movement/study.md)
+checks distance against independent monotonic wall time. A 50 ms frame cap
+reduced native production walking and sprinting despite correct animation-clock
+rates; bounded grounded substeps restore elapsed-time movement. Longer matched
+routes and rendered near-root coverage remain T3c5c2b. Fresh stationary
+controls reach 8.5% slower compute p95 in one pair, above the migration limit;
+CPU stays default and the cost investigation remains.
+
 The [GPU timing prerequisite](architecture/terrain-gpu/async/hardware/timing/study.md)
 adds bounded request-keyed dispatch timings and complete frame timestamp spans.
 It separates nested placement costs from render-stage totals and preserves
