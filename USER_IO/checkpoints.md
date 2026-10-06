@@ -1,6 +1,40 @@
 # Page to document progress of AI Agents working on this Project
 
 
+## Native route cost receipts — 2026-10-06
+
+- T3c5c2b1 is tested: twelve fresh Quadro native production 400 m routes,
+  three alternating pairs each for actual 6/12 m/s W/Shift. The common
+  [5,400) m cohorts retain 5,276 measured +3,797 excluded frames and all
+  461 upper outliers; 192 fixed 25 m landmarks retain actual workload/keys.
+- Quality/budgets/device pass; roots/cameras match within 6.42/6.44 cm.
+  Native p95 compute/CPU ratios are 0.7056–0.7312 walking and 0.5557–0.7045
+  sprint. Some small distance bins are slower on compute; no spikes removed.
+  These are cost preflight, not accepted migration speedups.
+- Landmark effective density ratios span 0.9710–1.0438. Sprint root-to-grass
+  planning-eye p95 is 25.15–25.28 m CPU versus 33.44–34.64 m compute,
+  maximum 43.82 m compute. This includes the chase offset, not actual
+  root-density evidence. Configured 120.72 blades/m² remains budget-scaled;
+  protected near-density B1 is still pending.
+- Full measured GPU/frame records and 12,798 GPU work rows are ready. All 511
+  publications (published/coalesced/shutdown) and memory age/status rows remain.
+  Periodic device-wide peaks are CPU 740.5 MiB, compute 769.5–797.125 MiB;
+  compute full-run logical overlap is 554.08 MiB. CPU unmanaged ledger is null.
+  The first complete CPU preflight exposed a missing-ledger analyzer bug;
+  original trace/fingerprint/failure log is retained, separate from fresh pairs.
+- Runtime/probe/all 42 executables/driver fixtures remain unchanged from speed
+  validation. Final source/new-script inputs and raw streams are frozen in the
+  journal cost/routes/validation archive. Independent validator checks joins,
+  speed, landmarks, quality/budgets, bins, outcomes and device/memory scopes.
+  No new runtime build or full CTest run is claimed; gallery hashes unchanged.
+- Resume T3c5c2b2 using cost/routes/study.md inspection plan: actual native
+  near-root root distribution and grass-only masks at fixed landmarks/pose/wind,
+  retaining live terrain/grass anchors and generation identities. Synchronizing
+  readbacks belong in separate excluded runs; synchronous capture replanning
+  cannot substitute for the native live generation. Fresh stationary ratio
+  1.0853 still needs stage/workload investigation and repeat controls.
+  Moon/reload T3c5c3 and final gates T3c5c4 remain. CPU stays default.
+
 ## Grounded native speed prerequisite — 2026-10-06
 
 - T3c5c2 split into T3c5c2a actual speed and T3c5c2b matched route cost/coverage.

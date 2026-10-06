@@ -814,6 +814,9 @@ the mouse in either walking camera.
 Grounded movement follows elapsed time on slow frames; catch-up after a
 suspension longer than one second is limited to one second. See the
 [native speed validation](docs/journal/architecture/terrain-gpu/async/hardware/cost/movement/study.md).
+Matched 400 m CPU/compute walking and sprint receipts are in the
+[route cost study](docs/journal/architecture/terrain-gpu/async/hardware/cost/routes/study.md);
+rendered near-root coverage and migration acceptance remain pending.
 
 Within **1.2 body diameters from its centre (2.4 radii)**, orientation follows
 the nearby planet or moon. Beyond that region, free-space mouse look lets you

@@ -154,6 +154,13 @@ T3c5c2a identifies a native grounded clock defect before matched route cost acce
   caption: [Actual grounded distance per monotonic wall second on production Quadro native input. Baseline uses short routes; fixed natural and delayed checks use 100 m. Each bar is one input run, with full raw spikes retained; these are speed prerequisites, not paired route cost acceptance or uncertainty estimates.],
 )
 
+T3c5c2b1 collects three alternating native CPU/compute pairs each for 400 m walking and sprint on the unchanged production runtime. Common [5,400) m cohorts retain 5,276 measured and 3,797 excluded frames, including all 461 upper outliers. Walking is 5.825–5.990 m/s and sprint 11.948–11.996 m/s, within ±5% of command. Fixed 25 m landmarks match roots/cameras within 6.42/6.44 cm and retain actual nearest generation/workload identities. Whole-route native p95 compute/CPU ratios are 0.7056–0.7312 walking and 0.5557–0.7045 sprint; small distance bins retain slower compute cases. Landmark effective-density ratios vary from 0.9710 to 1.0438. Sprint root-to-grass-planning-eye p95 is 25.15–25.28 m CPU versus 33.44–34.64 m compute, maximum 43.82 m compute. This includes the chase offset and is not a root-density measurement. The lower whole-route p95 remains cost preflight until independent rendered near-root coverage checks actual live generations in separate excluded inspection runs. Periodic device-wide peaks are 740.5 MiB CPU and 769.5–797.125 MiB compute; complete-run compute-owner logical overlap is 554.08 MiB, while the CPU ledger is unavailable. Sparse physical samples can miss transient peaks and include other processes. The stationary regression investigation, Moon/reload and final gates remain; CPU stays default. Method, inspection plan and full evidence are in `architecture/terrain-gpu/async/hardware/cost/routes/`.
+
+#figure(
+  image("architecture/terrain-gpu/async/hardware/cost/routes/routes.svg", width: 100%),
+  caption: [Complete native route p95 on production Quadro. Each pair covers the common interval from 5 m to less than 400 m at commanded walking/sprint speed. Observer overhead and every measured spike remain included. Rendered near-root coverage is pending; these bars do not establish accepted migration speedups or uncertainty bounds.],
+)
+
 = Orbital motion and light transport
 
 == Prescribed Kepler ellipses with collective mass
@@ -564,6 +571,9 @@ T3c5c1 passes two scoped native CTest groups in 63.63 s and three actual Quadro 
 
 T3c5c2a has passing scoped results for seven relevant CTest groups. Six pass in the initial 217.51 s batch; an augmented native input group passes in 92.11 s after correcting the short-input sample window and separating a warmed flat/coarse clock fixture without foliage. The original noisy input/reload and space/Moon checks remain intact. Software CPU/compute/GL 3.3 fallback wall speeds are 5.965–6.003 m/s walking and 11.886–12.011 m/s sprint; three >1 s frames retain bounded continuous walked history. Runtime and all 42 executables stay frozen through the Python fixture correction. Failed preflights are retained. Twelve before/final/delayed speed-gate runs and four retained short preflights join 933 movement and 4,231 excluded frames. Three fresh stationary pairs retain 1,440 measured and 1,942 excluded frames, 3,486 ready GPU work rows and twelve complete publication receipts with exact paired geometry/pose/anchors. Native p95 ratios are 1.0368, 1.0227 and 1.0853: the third pair exceeds the 5% migration limit, so complete cost/stage investigation and CPU default remain. Gallery and historical captures stay unchanged. Full compressed traces and before/after provenance are in `architecture/terrain-gpu/async/hardware/cost/movement/validation/`. This is scoped validation, not a new full-suite or migration cost claim.
 
+T3c5c2b1 independently verifies twelve fresh production native 400 m routes and all distance-cohort joins from compressed archives. Actual speed, fixed quality/budgets, device UUID, bounded worker state and compute draw/contact keys pass; every measured GPU frame and 12,798 full-run GPU work rows are ready. All 511 publication outcomes, memory age/status rows and 192 landmark brackets remain. The first complete CPU preflight exposed an analyzer assuming a managed memory ledger on the unmanaged CPU path; corrected null semantics are checked against that retained real trace, and the fresh paired runs use the frozen corrected scripts. Source/runtime, all 42 executables and driver fixtures remain unchanged from T3c5c2a. No new runtime build, CTest suite or coverage acceptance is claimed. Gallery/historical image hashes are retained. Independent speed/p95/bin/landmark/quality/outcome/memory checks and artifact digests are in `architecture/terrain-gpu/async/hardware/cost/routes/validation/`.
+
+
 
 
 == Rebuilding the paper and the evidence
@@ -610,6 +620,7 @@ R6. NASA Glenn Research Center, #link("https://www.grc.nasa.gov/www/k-12/Numbers
   [Complete publication lifecycle], [`diagnostics/timing/PublicationProfiler.h`, worker/reload/draw endpoints], [Controlled scopes, terminal families, capture/grass anchors and actual destination contacts],
   [Production stationary workload preflight], [`scripts/benchmarks/terrain_cost/`, private native probe], [Three CPU/compute pairs; exact geometry/pose/anchors, complete GPU and memory receipts],
   [Native real-time grounded speed], [`Interactive.cpp`, private native input/speed tools], [Production monotonic speeds, delayed frames, suspension bound and fresh stationary controls],
+  [Production native route cost preflight], [`scripts/benchmarks/terrain_cost/routes.py`, archive validator], [Twelve 400 m runs, distance cohorts/landmarks, full raw outcomes; rendered coverage pending],
   [Device-verified memory], [`diagnostics/memory/`], [UUID/error/bounded-reader cases, GPU and native receipts],
   [Bounded asynchronous GPU timings], [`diagnostics/timing/`, `FrameProfiler.h`], [Controlled query tests and traced resident publication],
   [Stable terrain under LOD], [`src/rendering/geometry/Terrain.h`], [`TerrainTests`, surface capture],

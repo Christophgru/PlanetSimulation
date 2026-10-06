@@ -53,6 +53,15 @@ routes and rendered near-root coverage remain T3c5c2b. Fresh stationary
 controls reach 8.5% slower compute p95 in one pair, above the migration limit;
 CPU stays default and the cost investigation remains.
 
+The [production route receipts](architecture/terrain-gpu/async/hardware/cost/routes/study.md)
+complete three alternating native CPU/compute pairs each for 400 m walking and
+sprint, with 5,276 measured and 3,797 excluded frames. Whole-route compute/CPU
+native p95 ratios are 0.7056–0.7312 and 0.5557–0.7045 respectively. Sprint
+grass-anchor distances are larger on compute, and independent rendered
+near-root coverage remains pending; these are cost preflight receipts. The
+archive includes every spike, fixed-distance landmarks, device/memory outcomes,
+unchanged runtime/binary hashes and independent checks. CPU stays default.
+
 The [GPU timing prerequisite](architecture/terrain-gpu/async/hardware/timing/study.md)
 adds bounded request-keyed dispatch timings and complete frame timestamp spans.
 It separates nested placement costs from render-stage totals and preserves

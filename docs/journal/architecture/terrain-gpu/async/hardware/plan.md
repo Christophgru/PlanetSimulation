@@ -162,3 +162,13 @@ scoped native clock/suspension validation. Fresh stationary p95 ratios are
 complete stage/workload investigation plus repeat controls before final gates.
 Use these fresh controls for the changed runtime. Resume T3c5c2b matched
 longer-route costs and rendered near-root coverage; CPU stays default.
+
+[T3c5c2b1 route receipts](cost/routes/study.md) now retain twelve fresh native
+400 m runs, three alternating pairs each for walking/sprint. They pass actual
+speed, quality/budget/device and common path checks, with full distance-aligned
+native/GPU/publication/memory traces and every exclusion/spike. Lower whole-route
+compute p95 remains preflight: sprint root-to-grass-anchor distance is larger
+on compute, and scalar density ratios vary. Resume T3c5c2b2 independent
+rendered coverage using the study's separate live-generation inspection plan;
+do not replace native generations with synchronous capture replanning. The
+stationary regression investigation and T3c5c3–c4 remain; CPU stays default.
