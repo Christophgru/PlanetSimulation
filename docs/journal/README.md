@@ -38,14 +38,19 @@ completes synchronous reload, capture draw, actual handoff and pure CPU grass
 admission tracing. The [memory diagnostic study](architecture/terrain-gpu/async/hardware/memory/study.md)
 adds UUID-verified NVML sampling, context NVX checkpoints and logical/CPU
 receipts with explicit age, unsupported/error and missed-peak limits. Matched
-production CPU/compute cost acceptance remains pending.
+production CPU/compute cost acceptance remains pending. The
+[production stationary preflight](architecture/terrain-gpu/async/hardware/cost/preflight/study.md)
+adds three alternating native Quadro pairs with exact geometry/pose/anchors,
+matching scalar foliage work and complete raw/excluded receipts. Native p95
+ratios span 0.9696–1.0492 with observer overhead included; movement, rendered
+coverage, Moon/reload and final field/memory gates remain.
 
 The [GPU timing prerequisite](architecture/terrain-gpu/async/hardware/timing/study.md)
 adds bounded request-keyed dispatch timings and complete frame timestamp spans.
 It separates nested placement costs from render-stage totals and preserves
 nonblocking publication. The publication studies above add latency/outcomes;
 the memory study adds physical/logical/CPU observations. Matched CPU/compute
-acceptance remains the next hardware task.
+acceptance continues with actual 6/12 m/s routes after stationary preflight.
 
 The [camera-movement study](benchmarks/camera-movement.md), also included in the
 paper, records new software-renderer measurements of walking, foliage placement,

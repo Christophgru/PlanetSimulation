@@ -1,0 +1,7 @@
+pair 1 cpu: 240 frames, native p95 76.325 ms, density 47.149
+pair 1 compute: 240 frames, native p95 74.006 ms, density 47.149
+pair 2 compute: 240 frames, native p95 77.062 ms, density 47.149
+pair 2 cpu: 240 frames, native p95 75.108 ms, density 47.149
+pair 3 cpu: 240 frames, native p95 75.772 ms, density 47.149
+pair 3 compute: 240 frames, native p95 79.501 ms, density 47.149
+Completed three production stationary preflight pairs; remaining acceptance gates are explicit

@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <thread>
 #include <chrono>
+#include "BenchmarkObservation.h"
 
 namespace rendering {
 struct RendererRecoveryProbe {static auto& state(Renderer& r) {return *r.impl_;}};
@@ -15,6 +16,8 @@ namespace {
 using nlohmann::json;
 rendering::Renderer* renderer=nullptr;
 std::ofstream trace;
+std::ofstream observerTrace;
+bool benchmarking=false;
 std::uint64_t frames=0,polls=0,blocking=0,waits=0,reads=0,finishes=0,memoryQueries=0;
 std::uint64_t fenceFaults=0,pollFaults=0,lastFenceToken=0,lastPollToken=0;
 bool delayed=false,failFence=false,failPoll=false,observing=false;
@@ -55,6 +58,7 @@ void loadControls() {
 }
 json vector(const glm::dvec3& v) {return {v.x,v.y,v.z};}
 void sample(GLFWwindow* window,bool waiting=false) {
+    const auto observerStart=std::chrono::steady_clock::now();
     auto& r=rendering::RendererRecoveryProbe::state(*renderer);loadControls();
     const auto stats=r.terrainJobs.stats();
     if(stats.running>1 || stats.queued>1 || stats.ready>1) throw std::runtime_error("Unbounded native worker ownership");
@@ -65,6 +69,10 @@ void sample(GLFWwindow* window,bool waiting=false) {
         {"publication",r.terrainPublicationState()},{"reload",r.sceneReloadState()},
         {"paused",r.simulationClock.paused()},{"controls",controls},{"gl",counters()},
         {"worker",{{"running",stats.running},{"queued",stats.queued},{"ready",stats.ready}}}};
+    if(benchmarking) {
+        j["benchmark"]=benchmarkObservation(r,window);
+        j["observed_ns"]=std::chrono::duration_cast<std::chrono::nanoseconds>(observerStart.time_since_epoch()).count();
+    }
     if(r.profiler.publications().enabled()) {
         j["publication_geometry"]=json::array();
         for(std::size_t i=0;i<r.meshes.planetMeshes.size();++i) {
@@ -96,6 +104,13 @@ void sample(GLFWwindow* window,bool waiting=false) {
     const auto glError=glGetError();if(glError!=GL_NO_ERROR) throw std::runtime_error("Native GL error "+std::to_string(glError));
     trace << j.dump() << '\n' << std::flush;
     if(controls.value("close",false)) glfwSetWindowShouldClose(window,GLFW_TRUE);
+    if(benchmarking) {
+        // Included in the production native wall/presentation timer. This
+        // receipt measures the primary observer, excluding its own CSV write.
+        observerTrace << r.profiler.nextFrameNumber()-1 << ','
+            << std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-observerStart).count()
+            << '\n';
+    }
 }
 void GLAPIENTRY getUuid(GLenum pname,GLuint index,GLubyte* data) {
     if(pname==GL_DEVICE_UUID_EXT) ++memoryQueries;uuidQuery(pname,index,data);
@@ -160,7 +175,14 @@ int main(int argc,char** argv) {
         if(options.renderTestMode) return instance.run();
         const auto* path=std::getenv("PLANET_NATIVE_TRACE");if(!path) throw std::runtime_error("Missing native trace path");
         trace.open(path);if(!trace) throw std::runtime_error("Cannot open native trace");
-        glfwSetWindowSize(glfwGetCurrentContext(),320,180);
+        benchmarking=std::getenv("PLANET_NATIVE_BENCHMARK")!=nullptr;
+        if(benchmarking) {
+            observerTrace.open(std::string(path)+".observer.csv");
+            if(!observerTrace) throw std::runtime_error("Cannot open benchmark observer trace");
+            observerTrace << "frame,observer_ms\n";
+            // Keep the shipping 1280x720 window; explicitly uncap both backends.
+            glfwSwapInterval(0);
+        } else glfwSetWindowSize(glfwGetCurrentContext(),320,180);
         int result;
         {Audit audit;result=instance.run();}
         std::cout << "Native audit: " << counters().dump() << '\n';

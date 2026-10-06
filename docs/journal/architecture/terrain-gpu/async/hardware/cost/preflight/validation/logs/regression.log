@@ -1,0 +1,10 @@
+Internal ctest changing into directory: /workspace/build-resume
+Test project /workspace/build-resume
+    Start 55: NativeLoopTimingIntegration
+1/2 Test #55: NativeLoopTimingIntegration ......   Passed    6.94 sec
+    Start 56: TerrainNativeInputIntegration
+2/2 Test #56: TerrainNativeInputIntegration ....   Passed   56.68 sec
+
+100% tests passed, 0 tests failed out of 2
+
+Total Test time (real) =  63.63 sec

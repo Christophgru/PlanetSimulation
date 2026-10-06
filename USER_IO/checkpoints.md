@@ -1,5 +1,28 @@
 # Page to document progress of AI Agents working on this Project
 
+
+## Production native stationary preflight — 2026-10-06
+
+- T3c5c1 completes three alternating CPU/resident-compute pairs on verified
+  Quadro GLX at shipping 1280x720, 100k Earth triangles and a 2M foliage budget.
+  Field/topology, root/camera and planning anchors match exactly; effective
+  density matches at 47.149, below configured 120.72 under existing scaling.
+- 1,440 measured frames have complete GPU spans; 1,955 excluded frames and
+  3,494 ready GPU work rows remain archived. Primary observer overhead is
+  included. CPU/compute native p95 ratios 0.9696/1.0260/1.0492 approach the 5%
+  limit; this is preflight, not an accepted migration speedup.
+- Sampled device used peaks are CPU 496.4 MiB and compute 521.9 MiB. No reload
+  occurs; physical replacement peaks and rendered near-root coverage remain.
+- Two scoped native CTest groups pass (63.63 s). Runtime source/application and
+  other 41 executables remain unchanged; final source/input/42-binary hashes
+  and complete raw receipts are retained in the journal cost/preflight study.
+- Installed optional python3-matplotlib for the journal figure generator;
+  its copyable install command is above the environmental notes in todo.md.
+- Resume T3c5c2 actual 6/12 m/s routes, then T3c5c3 Moon/reload and T3c5c4
+  canonical bulk field-time/transfer and cross-case gates. CPU stays default.
+- Preserve the user's unstaged environmental footer in todo.md; its existing
+  text is unchanged and must not be staged with agent TODO progress.
+
 ## Physical-memory diagnostic checkpoint — 2026-10-06
 
 - T3c5b2c adds optional .memory.csv: one persistent UUID-verified NVML reader,

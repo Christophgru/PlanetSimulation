@@ -103,3 +103,44 @@ matched measurements remain pending. A1a coefficient reuse and
 T3c5a context/correctness are separate tested
 prerequisites; A1b highlight reduction and adaptive foliage allocation remain
 independent unfinished tasks.
+
+
+## T3c5c execution checkpoints — 2026-10-06
+
+The cost experiments are separated into reviewable checkpoints:
+
+- **T3c5c1:** production native workload/stationary preflight. Preserve the
+  shipping 1280x720 window, 100k Earth cap, 2M candidates and all optical consumers.
+  A camera-only public replay freezes time zero and orbital/spin state. Explicit
+  CLI planner overrides select legacy CPU versus resident gpu-v1. The private
+  probe requests swap interval zero, inspects only owned CPU scalars and records
+  primary observer overhead inside the uncorrected native wall. Three alternating
+  pairs retain all startup/warmup/close exclusions. Matching scalar density,
+  budgets and topology are prerequisites; they do not prove rendered coverage.
+- **T3c5c2:** actual native 6/12 m/s walking and sprint routes, with distance
+  landmarks, rebuilds, complete frame percentiles and near-root/image coverage.
+  Retain stationary preflight as baseline; repeat it if a relevant implementation
+  or workload changes. Report effective speed against both animation and real
+  wall time, and preserve the fixed quality contract.
+- **T3c5c3:** common saved outer-space/Moon handoff and whole-scene reload,
+  including complete destination contacts/draws and replacement memory.
+- **T3c5c4:** matched optimized 100k canonical field-work/transfer experiment,
+  cross-case full-frame/coverage/replacement gates and final default decision.
+
+The new stationary tooling is `scripts/benchmarks/terrain_cost/run.py`.
+Do not treat its preflight percentiles as migration acceptance: the private
+observer remains included, tails from 240 frames have limited precision, and
+movement/reload can expose costs absent from a stationary run. The existing
+CPU budget scaling can reduce the effective density below the configuration;
+record that explicitly rather than claiming the protected near-density policy
+(B1) is already implemented.
+
+
+[T3c5c1 production stationary preflight](cost/preflight/study.md) now passes
+three alternating Quadro native pairs with exact field/topology, camera/root
+and planning anchors, identical scalar foliage work and 1,440 complete measured
+GPU/native receipts. CPU/compute native p95 ratios span 0.9696–1.0492 with the
+primary observer included. All 1,955 excluded frames remain archived. Two scoped
+native CTest groups pass (63.63 s); runtime source and application are unchanged.
+Resume T3c5c2 actual 6/12 m/s routes and rendered coverage, then T3c5c3 Moon/reload
+and T3c5c4 field-time/transfer and cross-case gates. CPU stays default.

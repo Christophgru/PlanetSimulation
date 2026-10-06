@@ -1,0 +1,3 @@
+index, name, uuid, pci.bus_id, driver_version, memory.total [MiB]
+0, Quadro M1000M, GPU-2cefee61-6b3b-a670-c390-c7449dad3f79, 00000000:01:00.0, 580.178.04, 2048 MiB
+1, NVIDIA GeForce RTX 3070 Ti, GPU-1795f01b-f1fd-61a0-3b79-199560dd0793, 00000000:0B:00.0, 580.178.04, 8192 MiB

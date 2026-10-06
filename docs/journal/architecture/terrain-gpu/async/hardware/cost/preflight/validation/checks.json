@@ -1,0 +1,175 @@
+{
+  "runs": [
+    {
+      "pair": 1,
+      "backend": "cpu",
+      "upper_outlier_fence_ms": 76.218403,
+      "upper_outliers_retained": 14,
+      "physical_rows": 98,
+      "gpu_work_rows": 576,
+      "publication_rows": 2,
+      "geometry": [
+        {
+          "body": 0,
+          "land_field": "10975133402283726949",
+          "land_topology": "12212879353327077826",
+          "water_field": "8343445989074671795",
+          "water_topology": "2325588265975571714"
+        },
+        {
+          "body": 1,
+          "land_field": "13005042368953784910",
+          "land_topology": "8896015313400212575",
+          "water_field": "0",
+          "water_topology": "0"
+        }
+      ]
+    },
+    {
+      "pair": 1,
+      "backend": "compute",
+      "upper_outlier_fence_ms": 76.07665225000005,
+      "upper_outliers_retained": 3,
+      "physical_rows": 98,
+      "gpu_work_rows": 584,
+      "publication_rows": 2,
+      "geometry": [
+        {
+          "body": 0,
+          "land_field": "10975133402283726949",
+          "land_topology": "12212879353327077826",
+          "water_field": "8343445989074671795",
+          "water_topology": "2325588265975571714"
+        },
+        {
+          "body": 1,
+          "land_field": "13005042368953784910",
+          "land_topology": "8896015313400212575",
+          "water_field": "0",
+          "water_topology": "0"
+        }
+      ]
+    },
+    {
+      "pair": 2,
+      "backend": "compute",
+      "upper_outlier_fence_ms": 79.570387625,
+      "upper_outliers_retained": 2,
+      "physical_rows": 100,
+      "gpu_work_rows": 584,
+      "publication_rows": 2,
+      "geometry": [
+        {
+          "body": 0,
+          "land_field": "10975133402283726949",
+          "land_topology": "12212879353327077826",
+          "water_field": "8343445989074671795",
+          "water_topology": "2325588265975571714"
+        },
+        {
+          "body": 1,
+          "land_field": "13005042368953784910",
+          "land_topology": "8896015313400212575",
+          "water_field": "0",
+          "water_topology": "0"
+        }
+      ]
+    },
+    {
+      "pair": 2,
+      "backend": "cpu",
+      "upper_outlier_fence_ms": 76.260237625,
+      "upper_outliers_retained": 6,
+      "physical_rows": 97,
+      "gpu_work_rows": 584,
+      "publication_rows": 2,
+      "geometry": [
+        {
+          "body": 0,
+          "land_field": "10975133402283726949",
+          "land_topology": "12212879353327077826",
+          "water_field": "8343445989074671795",
+          "water_topology": "2325588265975571714"
+        },
+        {
+          "body": 1,
+          "land_field": "13005042368953784910",
+          "land_topology": "8896015313400212575",
+          "water_field": "0",
+          "water_topology": "0"
+        }
+      ]
+    },
+    {
+      "pair": 3,
+      "backend": "cpu",
+      "upper_outlier_fence_ms": 76.81715287500002,
+      "upper_outliers_retained": 8,
+      "physical_rows": 98,
+      "gpu_work_rows": 584,
+      "publication_rows": 2,
+      "geometry": [
+        {
+          "body": 0,
+          "land_field": "10975133402283726949",
+          "land_topology": "12212879353327077826",
+          "water_field": "8343445989074671795",
+          "water_topology": "2325588265975571714"
+        },
+        {
+          "body": 1,
+          "land_field": "13005042368953784910",
+          "land_topology": "8896015313400212575",
+          "water_field": "0",
+          "water_topology": "0"
+        }
+      ]
+    },
+    {
+      "pair": 3,
+      "backend": "compute",
+      "upper_outlier_fence_ms": 80.74714850000001,
+      "upper_outliers_retained": 4,
+      "physical_rows": 103,
+      "gpu_work_rows": 582,
+      "publication_rows": 2,
+      "geometry": [
+        {
+          "body": 0,
+          "land_field": "10975133402283726949",
+          "land_topology": "12212879353327077826",
+          "water_field": "8343445989074671795",
+          "water_topology": "2325588265975571714"
+        },
+        {
+          "body": 1,
+          "land_field": "13005042368953784910",
+          "land_topology": "8896015313400212575",
+          "water_field": "0",
+          "water_topology": "0"
+        }
+      ]
+    }
+  ],
+  "pairs": [
+    {
+      "pair": 1,
+      "field_topology_keys_equal": true,
+      "exact_camera_root_and_planning_anchors": true
+    },
+    {
+      "pair": 2,
+      "field_topology_keys_equal": true,
+      "exact_camera_root_and_planning_anchors": true
+    },
+    {
+      "pair": 3,
+      "field_topology_keys_equal": true,
+      "exact_camera_root_and_planning_anchors": true
+    }
+  ],
+  "measured_frames": 1440,
+  "excluded_frames": 1955,
+  "gpu_work_rows": 3494,
+  "publication_rows": 12
+}
