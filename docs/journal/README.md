@@ -79,6 +79,14 @@ timed stationary pairs retain two >5% regressions, localized for further wind
 and opaque-raster controls. Raw buffers, all discrepancies, independent checks
 and lossless storage hashes are retained; CPU stays default.
 
+The [analytic area qualification](architecture/terrain-gpu/async/hardware/cost/coverage/area/study.md)
+passes known planes and foreground silhouettes, including grazing views and
+production-scale transforms, on software GL and native Quadro. Thirty-two
+raw GPU snapshots meet exact area and 2×/4× convergence gates below 1%.
+Fixed-projection viewport tiling bounds targets to 2.25 MiB and resolves a
+retained tile-edge rounding failure. Live terrain/occlusion qualification and
+fresh matched route repeats remain; earlier coverage/cost failures stay pending.
+
 The [GPU timing prerequisite](architecture/terrain-gpu/async/hardware/timing/study.md)
 adds bounded request-keyed dispatch timings and complete frame timestamp spans.
 It separates nested placement costs from render-stage totals and preserves

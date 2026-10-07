@@ -1,0 +1,2 @@
+# Preserve original diagnostic logs, including CMake's existing whitespace.
+logs/*.log -whitespace

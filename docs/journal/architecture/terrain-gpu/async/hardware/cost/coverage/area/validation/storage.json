@@ -1,0 +1,775 @@
+{
+  "encoding": "Lossless XZ with 16-byte delta and LZMA2 preset 3",
+  "files": [
+    {
+      "path": "final/software/front/1x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 3686400,
+      "encoded_bytes": 14848,
+      "decoded_sha256": "4b5b5468ea6be4d65b9cf00554754cfc40e46632d4629425369742c37ef8599e"
+    },
+    {
+      "path": "final/software/front/1x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 3686400,
+      "encoded_bytes": 10712,
+      "decoded_sha256": "46f302fee92abc5ae150786cdf617e4b24093add17fb07ec73e208e364d10f57"
+    },
+    {
+      "path": "final/software/front/2x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 30276,
+      "decoded_sha256": "d8721973fb4a3a52d0a95009447607a7ff42e7bc313b18e2c2e93879b57712a3"
+    },
+    {
+      "path": "final/software/front/2x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 22612,
+      "decoded_sha256": "81ac41e299248819101e9ee2138a9e1461974eff49ccd2b96578b63d2c2c31f6"
+    },
+    {
+      "path": "final/software/front/4x-tile-191/eligible.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 59164,
+      "decoded_sha256": "59d6ac22a78ca725692b5018e643c7501aa7cf0418e06ce4419739884a285ab0"
+    },
+    {
+      "path": "final/software/front/4x-tile-191/plane.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 47784,
+      "decoded_sha256": "ef765bc35a3d549da9e91de0d8e446369f7b523e793addac6f415479b8272967"
+    },
+    {
+      "path": "final/software/front/4x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 55140,
+      "decoded_sha256": "85bd1387faee85740f2ba71f2ee8248a56de782cfbc176d1f7ce3f8bc4751bd6"
+    },
+    {
+      "path": "final/software/front/4x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 47236,
+      "decoded_sha256": "0ee7d348e4f889874d88f1ed830ae7817a5aec2490c535734fa448f29dcc78a4"
+    },
+    {
+      "path": "final/software/oblique/1x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 3686400,
+      "encoded_bytes": 404312,
+      "decoded_sha256": "a487ff306d4a464ca107e96bdd0ff29a17978d2c6259df3868cd71905f42aa97"
+    },
+    {
+      "path": "final/software/oblique/1x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 3686400,
+      "encoded_bytes": 106592,
+      "decoded_sha256": "32636b6e07bfdda9fc8fe7ea5427628dc5ddd59d8afafe9749497c3812a8d92d"
+    },
+    {
+      "path": "final/software/oblique/2x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 1706544,
+      "decoded_sha256": "0137e1d409d40a9d4d4d5a62ee746d67460b6078713ea07094c56624265334b7"
+    },
+    {
+      "path": "final/software/oblique/2x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 356620,
+      "decoded_sha256": "d2a440bdeb151d4854863b0dc43cd36c0affb04e92384a4ca590ac2b6f2be583"
+    },
+    {
+      "path": "final/software/oblique/4x-tile-191/eligible.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 6335368,
+      "decoded_sha256": "03e4ac799279a4048ebb58ead49e918cc7f28c649ec890984b1571463f82b738"
+    },
+    {
+      "path": "final/software/oblique/4x-tile-191/plane.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 1235812,
+      "decoded_sha256": "48be4ba5f72393b108877b8f4795f155f150f38c3894c547328270e8ee1d1ef0"
+    },
+    {
+      "path": "final/software/oblique/4x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 6340264,
+      "decoded_sha256": "da9c3bc8859265cbd40552bca054c8852c98cd0f7263574c019a7bf927c7d27c"
+    },
+    {
+      "path": "final/software/oblique/4x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 1239360,
+      "decoded_sha256": "abb99e4e77ad496d7147c4a2d74a155a52c1dfbe03f9d6acb94cce044972dbb6"
+    },
+    {
+      "path": "final/software/scaled-grazing/1x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 3686400,
+      "encoded_bytes": 749476,
+      "decoded_sha256": "ed68991cad331fbe6649d014ab578e555ac4beb6b2aaf9bb358b6e73604cc846"
+    },
+    {
+      "path": "final/software/scaled-grazing/1x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 3686400,
+      "encoded_bytes": 854736,
+      "decoded_sha256": "2811fffc890c0d8aa68ad99bb4e16816f5c7620717d613b6d86fb262100fe0ce"
+    },
+    {
+      "path": "final/software/scaled-grazing/2x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 2777992,
+      "decoded_sha256": "743d31f2868837ab0674c584bba2855194fc451457bb5726056c20d989c1c7e6"
+    },
+    {
+      "path": "final/software/scaled-grazing/2x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 3325156,
+      "decoded_sha256": "6d7e219331a75ad7fce8954a0d42a5392bf18ac5e5c9ab2e7e04130dad6f57e9"
+    },
+    {
+      "path": "final/software/scaled-grazing/4x-tile-191/eligible.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 9904032,
+      "decoded_sha256": "a3dd5b988674e78d63cb9d1da798954906d934638dd00543383ba4ed8c43543f"
+    },
+    {
+      "path": "final/software/scaled-grazing/4x-tile-191/plane.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 13647572,
+      "decoded_sha256": "dc376b924f659d29a2ac57bcb6cb1b0218850c11486fb04ba53651deeb6b8ddf"
+    },
+    {
+      "path": "final/software/scaled-grazing/4x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 9912116,
+      "decoded_sha256": "c7664fa8693371dbf424f59b073432e8916cec0738985ff9b7edfceccfdeb440"
+    },
+    {
+      "path": "final/software/scaled-grazing/4x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 13650056,
+      "decoded_sha256": "41291a462b27b1274b85128e6236e712e1f55b9c018f2e35ba07f2c9098411ea"
+    },
+    {
+      "path": "final/software/silhouette/1x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 3686400,
+      "encoded_bytes": 358728,
+      "decoded_sha256": "25e4171f4d2afe2cfdb606682d2ecafe63681d53def8c55e98a5086bee6426e3"
+    },
+    {
+      "path": "final/software/silhouette/1x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 3686400,
+      "encoded_bytes": 95108,
+      "decoded_sha256": "a2855412cf969fff0f6f0ae67c2e7c30cc1261549c2cb64db6a9f479be2662ae"
+    },
+    {
+      "path": "final/software/silhouette/2x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 1483484,
+      "decoded_sha256": "5ae49b2215386a145a1b9d366b192c85d74be2e18278d44f773ed5df8287b892"
+    },
+    {
+      "path": "final/software/silhouette/2x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 314112,
+      "decoded_sha256": "827443dc21b6d2fceae5571153b76acbf393931ddac9a4e95d34ba24e05951bf"
+    },
+    {
+      "path": "final/software/silhouette/4x-tile-191/eligible.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 5377008,
+      "decoded_sha256": "1921e12004b52f5b7c9aedce80ba3eb41bb1bc8efc33cb16b05eebac9e07e276"
+    },
+    {
+      "path": "final/software/silhouette/4x-tile-191/plane.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 1066164,
+      "decoded_sha256": "5d81cd6e3c3bb1149b69c1d3b55c41183d1b1e99cae87b43fcdf49c8640050b3"
+    },
+    {
+      "path": "final/software/silhouette/4x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 5375864,
+      "decoded_sha256": "6f1dd754e72d5298bde1626c65b5c4156976bad6924c84a5fcdafdcb198b2263"
+    },
+    {
+      "path": "final/software/silhouette/4x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 1065196,
+      "decoded_sha256": "eb1e5d2bbd12dfb568df01f098d10a5ab664c725b9da348211de658304432bf7"
+    },
+    {
+      "path": "final/quadro/front/1x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 3686400,
+      "encoded_bytes": 6204,
+      "decoded_sha256": "3f6ea354e600ae55d3f25258d7d6060a6efee1e30bd41e153890d93777d83496"
+    },
+    {
+      "path": "final/quadro/front/1x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 3686400,
+      "encoded_bytes": 5604,
+      "decoded_sha256": "2a230d4f98891e731f0da51fbab3ea5f3889af87771d143ef11cae496a977fc5"
+    },
+    {
+      "path": "final/quadro/front/2x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 7936,
+      "decoded_sha256": "523aee1766c9b49be5dc4859b3380959dc54b88784be5f328f4fa24c31828c69"
+    },
+    {
+      "path": "final/quadro/front/2x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 7484,
+      "decoded_sha256": "bc71e4d25ff8a606a7253c8ab922e1ee98af90b68d3451e0dd24cc83dd7c61e3"
+    },
+    {
+      "path": "final/quadro/front/4x-tile-191/eligible.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 26432,
+      "decoded_sha256": "6dae53e4ff53efdec9b19ae97cf4f0fd2d206180e88b71f054fc39c1ed11717b"
+    },
+    {
+      "path": "final/quadro/front/4x-tile-191/plane.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 36216,
+      "decoded_sha256": "023fbf0c57dafd56700579894836e3530cf9a03f296122cd6ce6e1880547349f"
+    },
+    {
+      "path": "final/quadro/front/4x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 20476,
+      "decoded_sha256": "95dc6f259634865faac5026c703a9f8d48dc23a879ed9738a8086ec0daeae011"
+    },
+    {
+      "path": "final/quadro/front/4x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 36228,
+      "decoded_sha256": "fe46c0642604c8369165c214724edf257a7e8a3697dd8d8fb2fc425d57fe6788"
+    },
+    {
+      "path": "final/quadro/oblique/1x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 3686400,
+      "encoded_bytes": 454972,
+      "decoded_sha256": "8e130ceee6eb41cd98675de08843283ace2071682b0dc11d6529f6f8c9e8dca9"
+    },
+    {
+      "path": "final/quadro/oblique/1x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 3686400,
+      "encoded_bytes": 129440,
+      "decoded_sha256": "7ad035d6e8a7070576073a07fab435ce45b2df76a0cb051abc605e780d298db9"
+    },
+    {
+      "path": "final/quadro/oblique/2x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 1790880,
+      "decoded_sha256": "3dc9ae5ee477bbf828356752743f052161da17c79060c0a66b3914550165522e"
+    },
+    {
+      "path": "final/quadro/oblique/2x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 441768,
+      "decoded_sha256": "c4c731c6caf2a9f10437618d6a3e9b4d64eaca11c1f725c02647afaa772d5c5b"
+    },
+    {
+      "path": "final/quadro/oblique/4x-tile-191/eligible.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 6511816,
+      "decoded_sha256": "b73e30ae2a80eb14ab8167d9d63596d7231c53fa35ded230d157184e98b0307a"
+    },
+    {
+      "path": "final/quadro/oblique/4x-tile-191/plane.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 1516976,
+      "decoded_sha256": "a61b92de1b1d8622468053efb8d64acb5e8e75974bb2e9ba3667b0d6b9f7d643"
+    },
+    {
+      "path": "final/quadro/oblique/4x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 6497264,
+      "decoded_sha256": "bfadaa22418495667ca271bf851591cd8ade2eecd6ae67ea467c9299baa6d50e"
+    },
+    {
+      "path": "final/quadro/oblique/4x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 1514296,
+      "decoded_sha256": "c5a5fad72a055b57fbc1fc59ad42fba9fc2ecb0cc2b989ebb1f605c2ba37e778"
+    },
+    {
+      "path": "final/quadro/scaled-grazing/1x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 3686400,
+      "encoded_bytes": 756336,
+      "decoded_sha256": "6964e537f3526ef5fb94a4ccda6546e21c6d78fb24059eef059ef18c049b9a73"
+    },
+    {
+      "path": "final/quadro/scaled-grazing/1x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 3686400,
+      "encoded_bytes": 903772,
+      "decoded_sha256": "7db064978136f36b70791d1c83aa472a4d3f104e97248fcff32f3f1e3fcde30b"
+    },
+    {
+      "path": "final/quadro/scaled-grazing/2x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 2826280,
+      "decoded_sha256": "7a07ffadf2e46025a7cb7213781103f585756a60d312305bc4cb9c2fa35f1d4f"
+    },
+    {
+      "path": "final/quadro/scaled-grazing/2x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 3504680,
+      "decoded_sha256": "4d3160ac3a43dea767d25b7bd7c7c62d9f2c8d25e0bbc07413e7fe1268e7376a"
+    },
+    {
+      "path": "final/quadro/scaled-grazing/4x-tile-191/eligible.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 10276272,
+      "decoded_sha256": "65581ea02d10ebf119c4077e34c4aca5ee41bb97a81c353e3dbc75efa16df537"
+    },
+    {
+      "path": "final/quadro/scaled-grazing/4x-tile-191/plane.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 14403252,
+      "decoded_sha256": "d34d4b472c1e6bc3d5b8f0cb17de7c612da7e5853f40f1029337716efa1c41c9"
+    },
+    {
+      "path": "final/quadro/scaled-grazing/4x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 10287960,
+      "decoded_sha256": "7bdb3d334b626df100ce29d09668ac80ea1c8a8694d9f81265f9258a7b63eac9"
+    },
+    {
+      "path": "final/quadro/scaled-grazing/4x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 14376712,
+      "decoded_sha256": "3fca486592247d9533aade56a7bd6f92a53bf654538849a8f13292475110710b"
+    },
+    {
+      "path": "final/quadro/silhouette/1x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 3686400,
+      "encoded_bytes": 415724,
+      "decoded_sha256": "9dac429692313e8c5aa92824e7c44bbf94c953da386cbf12347cf5a3ecff3e1e"
+    },
+    {
+      "path": "final/quadro/silhouette/1x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 3686400,
+      "encoded_bytes": 122816,
+      "decoded_sha256": "e6d964b9846ef6ac566aea1448af201887053fc741c5148467a3e1123b8016a1"
+    },
+    {
+      "path": "final/quadro/silhouette/2x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 1588572,
+      "decoded_sha256": "e10c0241f523386dcd35c61fc10ba07cc288949efb9aa1b3ade4f529ae837127"
+    },
+    {
+      "path": "final/quadro/silhouette/2x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 427468,
+      "decoded_sha256": "35f195852d5f125a82c1f96f52fe42e0224915c570cb65b102835b1870ac7d12"
+    },
+    {
+      "path": "final/quadro/silhouette/4x-tile-191/eligible.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 5640684,
+      "decoded_sha256": "e4b7c3c9c883fceca124fe433071dfede507f9fe6d36b43b094142ce73fa8f9c"
+    },
+    {
+      "path": "final/quadro/silhouette/4x-tile-191/plane.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 1406772,
+      "decoded_sha256": "9057e24f0e5150d1b82a012be7376696d170eb3f0548f2009f4d37a02330a3b1"
+    },
+    {
+      "path": "final/quadro/silhouette/4x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 5624044,
+      "decoded_sha256": "8e910d1ef07a2355c9a425ef494a4ec9f17365c0e5c58c08e4d175f8547bcd7a"
+    },
+    {
+      "path": "final/quadro/silhouette/4x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 1391156,
+      "decoded_sha256": "fb98adb19a44b210541bafc1fd41cf18d78ff5048fe8c370a9e30d3dcf311a65"
+    },
+    {
+      "path": "preflight/coarse/front/1x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 921600,
+      "encoded_bytes": 12756,
+      "decoded_sha256": "006d71ccca532b5f91cffe8985fec9b575cf84154ebc09c212557b80003deeab"
+    },
+    {
+      "path": "preflight/coarse/front/1x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 921600,
+      "encoded_bytes": 7216,
+      "decoded_sha256": "2e7e4b1b286f7828ff32336cf6f5b1258d282357391421398117f548a549b4ac"
+    },
+    {
+      "path": "preflight/coarse/front/2x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 3686400,
+      "encoded_bytes": 17268,
+      "decoded_sha256": "7005788913640e4f2265d5679ca6022a954cb086e08f578bf3983596a9ace044"
+    },
+    {
+      "path": "preflight/coarse/front/2x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 3686400,
+      "encoded_bytes": 12148,
+      "decoded_sha256": "f13f15b339718c59b0795d0858d5afcdd1d06af67b2d75b887b2affda488c215"
+    },
+    {
+      "path": "preflight/coarse/front/4x-tile-191/eligible.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 72628,
+      "decoded_sha256": "07e0eb79c156e0c6e71746a39b30a1b44ecab73adc506b55647505727296a0e9"
+    },
+    {
+      "path": "preflight/coarse/front/4x-tile-191/plane.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 50552,
+      "decoded_sha256": "e56d550e70b22409732b1ef74d64ba373f59bca8f6a0936e9f91988b8e48cb13"
+    },
+    {
+      "path": "preflight/coarse/front/4x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 53632,
+      "decoded_sha256": "fd35c3f29e410cf337387c78c3a2e02421782dde3d686ef74fd652d334e81a61"
+    },
+    {
+      "path": "preflight/coarse/front/4x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 37844,
+      "decoded_sha256": "b6d44cc7d43363d88f5f08432000dbe1d5ef1efff48855a0b44c27aae19b96c0"
+    },
+    {
+      "path": "preflight/coarse/oblique/1x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 921600,
+      "encoded_bytes": 106648,
+      "decoded_sha256": "053cdd68c68acfb5d701cb5a2972235a8dc4b17b921d2a478afbf19d7ca3df46"
+    },
+    {
+      "path": "preflight/coarse/oblique/1x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 921600,
+      "encoded_bytes": 41336,
+      "decoded_sha256": "c39f5469e9d96eb836b204ebc1f8593d67f272809583cf7c7a7ed39a088a1744"
+    },
+    {
+      "path": "preflight/coarse/oblique/2x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 3686400,
+      "encoded_bytes": 413188,
+      "decoded_sha256": "8364c95f7f81db46d1ed1986ec29abe348e2ae45fe634a0f4643908221caaa24"
+    },
+    {
+      "path": "preflight/coarse/oblique/2x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 3686400,
+      "encoded_bytes": 129172,
+      "decoded_sha256": "81d85b22c3467105c09a17f0cce18bc42bd4c8c45f8759242e3730e70c385227"
+    },
+    {
+      "path": "preflight/coarse/oblique/4x-tile-191/eligible.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 1770664,
+      "decoded_sha256": "cc3aafb275a049205906370a175a61602c9578bd4c4b91dbe388f101284e92fc"
+    },
+    {
+      "path": "preflight/coarse/oblique/4x-tile-191/plane.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 436076,
+      "decoded_sha256": "ee101f3f35ab07098bdafea4361210b5de898a775364ef05c9169f7163883450"
+    },
+    {
+      "path": "preflight/coarse/oblique/4x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 1750620,
+      "decoded_sha256": "c9a3040f27615b475b31d887686b49265519c6119d29d1b8800811766c7d3349"
+    },
+    {
+      "path": "preflight/coarse/oblique/4x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 421700,
+      "decoded_sha256": "ba5c02cbf974b5b00669f870474a33b4678b6ceb82de33fc902ff44e0af1cc16"
+    },
+    {
+      "path": "preflight/coarse/scaled-grazing/1x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 921600,
+      "encoded_bytes": 199380,
+      "decoded_sha256": "7a798bdd3546ea42ecb294972401d7f34ed8cd94bf28802b8e1b58273c32e1ad"
+    },
+    {
+      "path": "preflight/coarse/scaled-grazing/1x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 921600,
+      "encoded_bytes": 208992,
+      "decoded_sha256": "efc663a29a2ffd75de71d158a61f1d080be3ee0b6522cdbd161273bd90791f0a"
+    },
+    {
+      "path": "preflight/coarse/scaled-grazing/2x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 3686400,
+      "encoded_bytes": 750992,
+      "decoded_sha256": "bf7b24be78d0b7fdc599f721ca7bae3f78fdf3c0459303d686932c4a8c61e818"
+    },
+    {
+      "path": "preflight/coarse/scaled-grazing/2x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 3686400,
+      "encoded_bytes": 862460,
+      "decoded_sha256": "f027b13f5a4e9bf5ff1793132d6a15eff6d865f4d05fdb38bea7341cdb556a78"
+    },
+    {
+      "path": "preflight/coarse/scaled-grazing/4x-tile-191/eligible.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 2780316,
+      "decoded_sha256": "b4349ccfe0657dd8ed6e42d6288e82555775cbba525019a5fb6a44052b26821e"
+    },
+    {
+      "path": "preflight/coarse/scaled-grazing/4x-tile-191/plane.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 3348448,
+      "decoded_sha256": "4f18a5b11e46dfd8a73756b51059fef76dfc4f49808033901eace5ad184447c8"
+    },
+    {
+      "path": "preflight/coarse/scaled-grazing/4x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 2781056,
+      "decoded_sha256": "860af30829a5ebebcb94c987749c89e9bf187d4f0ac5a563d67f76724a9dc763"
+    },
+    {
+      "path": "preflight/coarse/scaled-grazing/4x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 3339104,
+      "decoded_sha256": "8e73c6d1573649f1bb54461ba99a6db8b0c1a82ff49619527832ec5eb5f20611"
+    },
+    {
+      "path": "preflight/coarse/silhouette/1x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 921600,
+      "encoded_bytes": 95384,
+      "decoded_sha256": "0196f0ddc4eca8ebc77074dab782ab89615cfbfd33d8efb83fb1ec209ccf6e55"
+    },
+    {
+      "path": "preflight/coarse/silhouette/1x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 921600,
+      "encoded_bytes": 35444,
+      "decoded_sha256": "f559e58a10588ea39a0b728b25d88f52871d6a755bc813ccf0f1d0e628d9df3f"
+    },
+    {
+      "path": "preflight/coarse/silhouette/2x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 3686400,
+      "encoded_bytes": 365556,
+      "decoded_sha256": "b6b2f16464907c232ee0f3b149c3bbc60f2078070bac4f3384154eb9ca58f9a4"
+    },
+    {
+      "path": "preflight/coarse/silhouette/2x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 3686400,
+      "encoded_bytes": 113416,
+      "decoded_sha256": "d10f464c1558eb3fb15e771cea489dfd27c18acee716e8aca948e074d4687708"
+    },
+    {
+      "path": "preflight/coarse/silhouette/4x-tile-191/eligible.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 1527140,
+      "decoded_sha256": "2ec205756b37fdc96148d1767547a5fc9cd49c62d4f6b90653cfabbadc97a7ba"
+    },
+    {
+      "path": "preflight/coarse/silhouette/4x-tile-191/plane.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 372088,
+      "decoded_sha256": "f50c2b33d29677a7097cd38cbccc7f2eec61ce9d3587c0360c1ad4071d2aecae"
+    },
+    {
+      "path": "preflight/coarse/silhouette/4x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 1515168,
+      "decoded_sha256": "ef04f17f8cd2da852c124775c27d339ac06c4006080b34ac75291144dfd85fef"
+    },
+    {
+      "path": "preflight/coarse/silhouette/4x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 353224,
+      "decoded_sha256": "cc641ffa7765054ee7a8bd8618926984e76ec0c5136051d7bfb791643d4bf413"
+    },
+    {
+      "path": "preflight/off-axis/front/1x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 3686400,
+      "encoded_bytes": 17268,
+      "decoded_sha256": "7005788913640e4f2265d5679ca6022a954cb086e08f578bf3983596a9ace044"
+    },
+    {
+      "path": "preflight/off-axis/front/1x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 3686400,
+      "encoded_bytes": 12148,
+      "decoded_sha256": "f13f15b339718c59b0795d0858d5afcdd1d06af67b2d75b887b2affda488c215"
+    },
+    {
+      "path": "preflight/off-axis/front/2x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 53632,
+      "decoded_sha256": "fd35c3f29e410cf337387c78c3a2e02421782dde3d686ef74fd652d334e81a61"
+    },
+    {
+      "path": "preflight/off-axis/front/2x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 37844,
+      "decoded_sha256": "b6d44cc7d43363d88f5f08432000dbe1d5ef1efff48855a0b44c27aae19b96c0"
+    },
+    {
+      "path": "preflight/off-axis/front/4x-tile-191/eligible.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 175272,
+      "decoded_sha256": "701f54681c5d9a1bc8dbefe0b98cb771532f3aae1dd8799cff0a8d233b953db0"
+    },
+    {
+      "path": "preflight/off-axis/front/4x-tile-191/plane.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 146456,
+      "decoded_sha256": "c152f6f629d2b7a5f17b37acdc8e3becbb6a6f920e5a540d7ce312ba3d18eccc"
+    },
+    {
+      "path": "preflight/off-axis/front/4x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 88976,
+      "decoded_sha256": "f265667468a277a6c19273753c230e2c3746707026589ea21a64841ec629ac16"
+    },
+    {
+      "path": "preflight/off-axis/front/4x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 70080,
+      "decoded_sha256": "2100b94d84ccf06fc258f58fe5c44c9d64b055a0eb3b391a67556b046b170f2e"
+    },
+    {
+      "path": "preflight/off-axis/oblique/1x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 3686400,
+      "encoded_bytes": 413188,
+      "decoded_sha256": "8364c95f7f81db46d1ed1986ec29abe348e2ae45fe634a0f4643908221caaa24"
+    },
+    {
+      "path": "preflight/off-axis/oblique/1x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 3686400,
+      "encoded_bytes": 129172,
+      "decoded_sha256": "81d85b22c3467105c09a17f0cce18bc42bd4c8c45f8759242e3730e70c385227"
+    },
+    {
+      "path": "preflight/off-axis/oblique/2x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 1750620,
+      "decoded_sha256": "c9a3040f27615b475b31d887686b49265519c6119d29d1b8800811766c7d3349"
+    },
+    {
+      "path": "preflight/off-axis/oblique/2x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 421700,
+      "decoded_sha256": "ba5c02cbf974b5b00669f870474a33b4678b6ceb82de33fc902ff44e0af1cc16"
+    },
+    {
+      "path": "preflight/off-axis/oblique/4x-tile-191/eligible.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 6475804,
+      "decoded_sha256": "cc7e18b1c897d176621f4ce5c372744a30e668763ad56e20adf5b10edc26271c"
+    },
+    {
+      "path": "preflight/off-axis/oblique/4x-tile-191/plane.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 1458664,
+      "decoded_sha256": "8ad2b1f8d2ebd5d469c1773fa47eeb779aef17774be7ded9f702278dd981fd34"
+    },
+    {
+      "path": "preflight/off-axis/oblique/4x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 6418780,
+      "decoded_sha256": "6a9dea7445057b00edf8737e3da0205eda25a231c7881455f8724d45d466f61a"
+    },
+    {
+      "path": "preflight/off-axis/oblique/4x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 1389220,
+      "decoded_sha256": "05f5a47cfcdd650f4c9bc290a260e9ccc2724fece4e3b84bda9be29a7d1fdd3b"
+    },
+    {
+      "path": "preflight/off-axis/scaled-grazing/1x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 3686400,
+      "encoded_bytes": 750992,
+      "decoded_sha256": "bf7b24be78d0b7fdc599f721ca7bae3f78fdf3c0459303d686932c4a8c61e818"
+    },
+    {
+      "path": "preflight/off-axis/scaled-grazing/1x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 3686400,
+      "encoded_bytes": 862460,
+      "decoded_sha256": "f027b13f5a4e9bf5ff1793132d6a15eff6d865f4d05fdb38bea7341cdb556a78"
+    },
+    {
+      "path": "preflight/off-axis/scaled-grazing/2x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 2781056,
+      "decoded_sha256": "860af30829a5ebebcb94c987749c89e9bf187d4f0ac5a563d67f76724a9dc763"
+    },
+    {
+      "path": "preflight/off-axis/scaled-grazing/2x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 3339104,
+      "decoded_sha256": "8e73c6d1573649f1bb54461ba99a6db8b0c1a82ff49619527832ec5eb5f20611"
+    },
+    {
+      "path": "preflight/off-axis/scaled-grazing/4x-tile-191/eligible.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 9916416,
+      "decoded_sha256": "b8b37ab291204ec31c83d6a7d4bac7c42da8931e4fdb769da25c9a632ed78aa6"
+    },
+    {
+      "path": "preflight/off-axis/scaled-grazing/4x-tile-191/plane.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 13756948,
+      "decoded_sha256": "e20c5b1d1457e3ea9237617dfffddf27a14fbe81f2d95a2df416822e8c432dd3"
+    },
+    {
+      "path": "preflight/off-axis/scaled-grazing/4x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 9936616,
+      "decoded_sha256": "3a8977a19008ae7e4a8e3a83dcfc0ed9a4c58b318177e7e7ba3e330be6affe65"
+    },
+    {
+      "path": "preflight/off-axis/scaled-grazing/4x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 13765560,
+      "decoded_sha256": "3636c5ce04c4fd766c0071fff9ea602fd05e24c8dc4ea2937f489e181bdda602"
+    },
+    {
+      "path": "preflight/off-axis/silhouette/1x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 3686400,
+      "encoded_bytes": 365556,
+      "decoded_sha256": "b6b2f16464907c232ee0f3b149c3bbc60f2078070bac4f3384154eb9ca58f9a4"
+    },
+    {
+      "path": "preflight/off-axis/silhouette/1x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 3686400,
+      "encoded_bytes": 113416,
+      "decoded_sha256": "d10f464c1558eb3fb15e771cea489dfd27c18acee716e8aca948e074d4687708"
+    },
+    {
+      "path": "preflight/off-axis/silhouette/2x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 1515168,
+      "decoded_sha256": "ef04f17f8cd2da852c124775c27d339ac06c4006080b34ac75291144dfd85fef"
+    },
+    {
+      "path": "preflight/off-axis/silhouette/2x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 14745600,
+      "encoded_bytes": 353224,
+      "decoded_sha256": "cc641ffa7765054ee7a8bd8618926984e76ec0c5136051d7bfb791643d4bf413"
+    },
+    {
+      "path": "preflight/off-axis/silhouette/4x-tile-191/eligible.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 5493260,
+      "decoded_sha256": "1d01e1a9aec269b381bca95c6bbd32741569817abda9ff4a18413a1fac4e1851"
+    },
+    {
+      "path": "preflight/off-axis/silhouette/4x-tile-191/plane.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 1244380,
+      "decoded_sha256": "5c160d7aaf222e26fe0ae8e9359b63a307a5ecffcffe747d8da84d6629071273"
+    },
+    {
+      "path": "preflight/off-axis/silhouette/4x-tile-256/eligible.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 5456724,
+      "decoded_sha256": "d652c8bb99aa8f43108a01bd42aa1991182acf17abff8234018fac56ddfcff7b"
+    },
+    {
+      "path": "preflight/off-axis/silhouette/4x-tile-256/plane.rgba32f.xz",
+      "decoded_bytes": 58982400,
+      "encoded_bytes": 1198044,
+      "decoded_sha256": "e16c867c29ccc99a4fd0b067cf23f8dc82d757c01f7d03f17a231cbf4c39846b"
+    }
+  ],
+  "decoded_bytes": 3546316800,
+  "encoded_bytes": 294815300
+}

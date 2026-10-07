@@ -1,0 +1,20 @@
+{
+  "context_uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+  "coverage_acceptance": false,
+  "gpu_target_bytes": 2359296,
+  "pixel_bytes": 29491200,
+  "pixel_reads": 30,
+  "renderer": "Quadro M1000M/PCIe/SSE2",
+  "sampling_factor": 2,
+  "schema": 1,
+  "tile_edge": 256,
+  "tile_method": "Unchanged full projection with translated viewport and bounded scissor",
+  "tiles": 15,
+  "timing_acceptance": false,
+  "version": "3.3.0 NVIDIA 580.178.04",
+  "vertex_bytes": 216,
+  "viewport": [
+    1280,
+    720
+  ]
+}

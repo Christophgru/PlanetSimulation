@@ -1,0 +1,862 @@
+{
+  "schema": 1,
+  "scope": "Known-geometry area qualification; no route or timing acceptance",
+  "declared_relative_tolerance": 0.01,
+  "declared_tile_area_tolerance": 0.0001,
+  "minimum_band_samples": 100,
+  "cases": [
+    {
+      "case": "front",
+      "exact_band_m2": [
+        78.53981633974482,
+        526.3233827465318,
+        295.13679420820074
+      ],
+      "samples": [
+        {
+          "factor": 1,
+          "tile_edge": 256,
+          "analytic_band_m2": [
+            78.54687441478018,
+            526.3437460784335,
+            295.1093728012638
+          ],
+          "finite_quad_band_m2": [
+            78.5468776486814,
+            526.3436993639916,
+            295.1094557342585
+          ],
+          "analytic_relative_error": [
+            8.986620244733068e-05,
+            3.8689772427380476e-05,
+            -9.291083821150181e-05
+          ],
+          "eligible_pixels": [
+            20108,
+            134744,
+            75548
+          ],
+          "receipt": {
+            "context_uuid": "GPU-6d657361-3232-2e33-2e36-000000000000",
+            "coverage_acceptance": false,
+            "gpu_target_bytes": 2359296,
+            "pixel_bytes": 7372800,
+            "pixel_reads": 12,
+            "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+            "sampling_factor": 1,
+            "schema": 1,
+            "tile_edge": 256,
+            "tile_method": "Unchanged full projection with translated viewport and bounded scissor",
+            "tiles": 6,
+            "timing_acceptance": false,
+            "version": "4.5 (Core Profile) Mesa 22.3.6",
+            "vertex_bytes": 216,
+            "viewport": [
+              640,
+              360
+            ]
+          },
+          "raw_sha256": {
+            "eligible": "4b5b5468ea6be4d65b9cf00554754cfc40e46632d4629425369742c37ef8599e",
+            "plane": "46f302fee92abc5ae150786cdf617e4b24093add17fb07ec73e208e364d10f57"
+          }
+        },
+        {
+          "factor": 2,
+          "tile_edge": 256,
+          "analytic_band_m2": [
+            78.56640566463466,
+            526.2812460788991,
+            295.1523415509437
+          ],
+          "finite_quad_band_m2": [
+            78.56640065921238,
+            526.2811468073633,
+            295.15247202909086
+          ],
+          "analytic_relative_error": [
+            0.0003385457991755825,
+            -8.005851348047432e-05,
+            5.267842928446953e-05
+          ],
+          "eligible_pixels": [
+            80452,
+            538912,
+            302236
+          ],
+          "receipt": {
+            "context_uuid": "GPU-6d657361-3232-2e33-2e36-000000000000",
+            "coverage_acceptance": false,
+            "gpu_target_bytes": 2359296,
+            "pixel_bytes": 29491200,
+            "pixel_reads": 30,
+            "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+            "sampling_factor": 2,
+            "schema": 1,
+            "tile_edge": 256,
+            "tile_method": "Unchanged full projection with translated viewport and bounded scissor",
+            "tiles": 15,
+            "timing_acceptance": false,
+            "version": "4.5 (Core Profile) Mesa 22.3.6",
+            "vertex_bytes": 216,
+            "viewport": [
+              1280,
+              720
+            ]
+          },
+          "raw_sha256": {
+            "eligible": "d8721973fb4a3a52d0a95009447607a7ff42e7bc313b18e2c2e93879b57712a3",
+            "plane": "81ac41e299248819101e9ee2138a9e1461974eff49ccd2b96578b63d2c2c31f6"
+          }
+        },
+        {
+          "factor": 4,
+          "tile_edge": 256,
+          "analytic_band_m2": [
+            78.53906191483838,
+            526.3281210785499,
+            295.1328103010892
+          ],
+          "finite_quad_band_m2": [
+            78.53905244336056,
+            526.3280992600485,
+            295.1329366136051
+          ],
+          "analytic_relative_error": [
+            -9.605636244081062e-06,
+            9.002700950500042e-06,
+            -1.349851048637607e-05
+          ],
+          "eligible_pixels": [
+            321696,
+            2155840,
+            1208864
+          ],
+          "receipt": {
+            "context_uuid": "GPU-6d657361-3232-2e33-2e36-000000000000",
+            "coverage_acceptance": false,
+            "gpu_target_bytes": 2359296,
+            "pixel_bytes": 117964800,
+            "pixel_reads": 120,
+            "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+            "sampling_factor": 4,
+            "schema": 1,
+            "tile_edge": 256,
+            "tile_method": "Unchanged full projection with translated viewport and bounded scissor",
+            "tiles": 60,
+            "timing_acceptance": false,
+            "version": "4.5 (Core Profile) Mesa 22.3.6",
+            "vertex_bytes": 216,
+            "viewport": [
+              2560,
+              1440
+            ]
+          },
+          "raw_sha256": {
+            "eligible": "85bd1387faee85740f2ba71f2ee8248a56de782cfbc176d1f7ce3f8bc4751bd6",
+            "plane": "0ee7d348e4f889874d88f1ed830ae7817a5aec2490c535734fa448f29dcc78a4"
+          }
+        },
+        {
+          "factor": 4,
+          "tile_edge": 191,
+          "analytic_band_m2": [
+            78.53906191483838,
+            526.3281210785499,
+            295.1328103010892
+          ],
+          "finite_quad_band_m2": [
+            78.53905649243097,
+            526.3280072858324,
+            295.13281136209844
+          ],
+          "analytic_relative_error": [
+            -9.605636244081062e-06,
+            9.002700950500042e-06,
+            -1.349851048637607e-05
+          ],
+          "eligible_pixels": [
+            321696,
+            2155840,
+            1208864
+          ],
+          "receipt": {
+            "context_uuid": "GPU-6d657361-3232-2e33-2e36-000000000000",
+            "coverage_acceptance": false,
+            "gpu_target_bytes": 1313316,
+            "pixel_bytes": 117964800,
+            "pixel_reads": 224,
+            "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+            "sampling_factor": 4,
+            "schema": 1,
+            "tile_edge": 191,
+            "tile_method": "Unchanged full projection with translated viewport and bounded scissor",
+            "tiles": 112,
+            "timing_acceptance": false,
+            "version": "4.5 (Core Profile) Mesa 22.3.6",
+            "vertex_bytes": 216,
+            "viewport": [
+              2560,
+              1440
+            ]
+          },
+          "raw_sha256": {
+            "eligible": "59d6ac22a78ca725692b5018e643c7501aa7cf0418e06ce4419739884a285ab0",
+            "plane": "ef765bc35a3d549da9e91de0d8e446369f7b523e793addac6f415479b8272967"
+          }
+        }
+      ],
+      "two_to_four_relative_change": [
+        -0.000348033610102938,
+        8.906834511024364e-05,
+        -6.617345385728779e-05
+      ],
+      "tile_relative_change": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "qualified": true
+    },
+    {
+      "case": "oblique",
+      "exact_band_m2": [
+        78.53981633974472,
+        474.45946262090575,
+        633.2323159257918
+      ],
+      "samples": [
+        {
+          "factor": 1,
+          "tile_edge": 256,
+          "analytic_band_m2": [
+            78.5746733805683,
+            473.9601396045583,
+            634.1677863665375
+          ],
+          "finite_quad_band_m2": [
+            78.57868363428861,
+            473.9747252180532,
+            634.2460420981806
+          ],
+          "analytic_relative_error": [
+            0.00044381362789036594,
+            -0.0010524039579465905,
+            0.0014772942208074458
+          ],
+          "eligible_pixels": [
+            9202,
+            119342,
+            15928
+          ],
+          "receipt": {
+            "context_uuid": "GPU-6d657361-3232-2e33-2e36-000000000000",
+            "coverage_acceptance": false,
+            "gpu_target_bytes": 2359296,
+            "pixel_bytes": 7372800,
+            "pixel_reads": 12,
+            "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+            "sampling_factor": 1,
+            "schema": 1,
+            "tile_edge": 256,
+            "tile_method": "Unchanged full projection with translated viewport and bounded scissor",
+            "tiles": 6,
+            "timing_acceptance": false,
+            "version": "4.5 (Core Profile) Mesa 22.3.6",
+            "vertex_bytes": 216,
+            "viewport": [
+              640,
+              360
+            ]
+          },
+          "raw_sha256": {
+            "eligible": "a487ff306d4a464ca107e96bdd0ff29a17978d2c6259df3868cd71905f42aa97",
+            "plane": "32636b6e07bfdda9fc8fe7ea5427628dc5ddd59d8afafe9749497c3812a8d92d"
+          }
+        },
+        {
+          "factor": 2,
+          "tile_edge": 256,
+          "analytic_band_m2": [
+            78.52749306969982,
+            474.60126346864513,
+            633.3547737771821
+          ],
+          "finite_quad_band_m2": [
+            78.52858382067643,
+            474.6083619582496,
+            633.3733595256635
+          ],
+          "analytic_relative_error": [
+            -0.00015690474741625327,
+            0.0002988682045796942,
+            0.00019338534738433388
+          ],
+          "eligible_pixels": [
+            36778,
+            477424,
+            63682
+          ],
+          "receipt": {
+            "context_uuid": "GPU-6d657361-3232-2e33-2e36-000000000000",
+            "coverage_acceptance": false,
+            "gpu_target_bytes": 2359296,
+            "pixel_bytes": 29491200,
+            "pixel_reads": 30,
+            "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+            "sampling_factor": 2,
+            "schema": 1,
+            "tile_edge": 256,
+            "tile_method": "Unchanged full projection with translated viewport and bounded scissor",
+            "tiles": 15,
+            "timing_acceptance": false,
+            "version": "4.5 (Core Profile) Mesa 22.3.6",
+            "vertex_bytes": 216,
+            "viewport": [
+              1280,
+              720
+            ]
+          },
+          "raw_sha256": {
+            "eligible": "0137e1d409d40a9d4d4d5a62ee746d67460b6078713ea07094c56624265334b7",
+            "plane": "d2a440bdeb151d4854863b0dc43cd36c0affb04e92384a4ca590ac2b6f2be583"
+          }
+        },
+        {
+          "factor": 4,
+          "tile_edge": 256,
+          "analytic_band_m2": [
+            78.53819384730421,
+            474.4501421167882,
+            633.4245949804895
+          ],
+          "finite_quad_band_m2": [
+            78.53878544550389,
+            474.45140741322575,
+            633.4281367923031
+          ],
+          "analytic_relative_error": [
+            -2.065821536278989e-05,
+            -1.9644468815305238e-05,
+            0.00030364693945950094
+          ],
+          "eligible_pixels": [
+            147150,
+            1909702,
+            254680
+          ],
+          "receipt": {
+            "context_uuid": "GPU-6d657361-3232-2e33-2e36-000000000000",
+            "coverage_acceptance": false,
+            "gpu_target_bytes": 2359296,
+            "pixel_bytes": 117964800,
+            "pixel_reads": 120,
+            "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+            "sampling_factor": 4,
+            "schema": 1,
+            "tile_edge": 256,
+            "tile_method": "Unchanged full projection with translated viewport and bounded scissor",
+            "tiles": 60,
+            "timing_acceptance": false,
+            "version": "4.5 (Core Profile) Mesa 22.3.6",
+            "vertex_bytes": 216,
+            "viewport": [
+              2560,
+              1440
+            ]
+          },
+          "raw_sha256": {
+            "eligible": "da9c3bc8859265cbd40552bca054c8852c98cd0f7263574c019a7bf927c7d27c",
+            "plane": "abb99e4e77ad496d7147c4a2d74a155a52c1dfbe03f9d6acb94cce044972dbb6"
+          }
+        },
+        {
+          "factor": 4,
+          "tile_edge": 191,
+          "analytic_band_m2": [
+            78.53821141203855,
+            474.4497695543728,
+            633.4211132108386
+          ],
+          "finite_quad_band_m2": [
+            78.5383506497019,
+            474.4469521465271,
+            633.4067754822609
+          ],
+          "analytic_relative_error": [
+            -2.043457421929684e-05,
+            -2.0429704319591124e-05,
+            0.00029814853142928754
+          ],
+          "eligible_pixels": [
+            147150,
+            1909703,
+            254679
+          ],
+          "receipt": {
+            "context_uuid": "GPU-6d657361-3232-2e33-2e36-000000000000",
+            "coverage_acceptance": false,
+            "gpu_target_bytes": 1313316,
+            "pixel_bytes": 117964800,
+            "pixel_reads": 224,
+            "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+            "sampling_factor": 4,
+            "schema": 1,
+            "tile_edge": 191,
+            "tile_method": "Unchanged full projection with translated viewport and bounded scissor",
+            "tiles": 112,
+            "timing_acceptance": false,
+            "version": "4.5 (Core Profile) Mesa 22.3.6",
+            "vertex_bytes": 216,
+            "viewport": [
+              2560,
+              1440
+            ]
+          },
+          "raw_sha256": {
+            "eligible": "03e4ac799279a4048ebb58ead49e918cc7f28c649ec890984b1571463f82b738",
+            "plane": "48be4ba5f72393b108877b8f4795f155f150f38c3894c547328270e8ee1d1ef0"
+          }
+        }
+      ],
+      "two_to_four_relative_change": [
+        0.00013626791313581244,
+        -0.00031841750852590334,
+        0.00011024027322159569
+      ],
+      "tile_relative_change": [
+        2.236457636861644e-07,
+        -7.852509301686794e-07,
+        -5.496738962218473e-06
+      ],
+      "qualified": true
+    },
+    {
+      "case": "silhouette",
+      "exact_band_m2": [
+        2.4861282968232814,
+        352.02597552108443,
+        563.1841049841437
+      ],
+      "samples": [
+        {
+          "factor": 1,
+          "tile_edge": 256,
+          "analytic_band_m2": [
+            2.494590919876955,
+            351.4792142292873,
+            563.9315328298533
+          ],
+          "finite_quad_band_m2": [
+            2.4946546577848494,
+            351.4901233642886,
+            564.0048800662917
+          ],
+          "analytic_relative_error": [
+            0.003403936580621103,
+            -0.0015531845085799967,
+            0.0013271465566853102
+          ],
+          "eligible_pixels": [
+            315,
+            105625,
+            14812
+          ],
+          "receipt": {
+            "context_uuid": "GPU-6d657361-3232-2e33-2e36-000000000000",
+            "coverage_acceptance": false,
+            "gpu_target_bytes": 2359296,
+            "pixel_bytes": 7372800,
+            "pixel_reads": 12,
+            "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+            "sampling_factor": 1,
+            "schema": 1,
+            "tile_edge": 256,
+            "tile_method": "Unchanged full projection with translated viewport and bounded scissor",
+            "tiles": 6,
+            "timing_acceptance": false,
+            "version": "4.5 (Core Profile) Mesa 22.3.6",
+            "vertex_bytes": 324,
+            "viewport": [
+              640,
+              360
+            ]
+          },
+          "raw_sha256": {
+            "eligible": "25e4171f4d2afe2cfdb606682d2ecafe63681d53def8c55e98a5086bee6426e3",
+            "plane": "a2855412cf969fff0f6f0ae67c2e7c30cc1261549c2cb64db6a9f479be2662ae"
+          }
+        },
+        {
+          "factor": 2,
+          "tile_edge": 256,
+          "analytic_band_m2": [
+            2.4849981254701423,
+            352.20488694817664,
+            563.3566556468054
+          ],
+          "finite_quad_band_m2": [
+            2.485031977761537,
+            352.21047516983526,
+            563.3715477130318
+          ],
+          "analytic_relative_error": [
+            -0.0004545909213869992,
+            0.0005082335950561401,
+            0.00030638411335592863
+          ],
+          "eligible_pixels": [
+            1254,
+            422568,
+            59227
+          ],
+          "receipt": {
+            "context_uuid": "GPU-6d657361-3232-2e33-2e36-000000000000",
+            "coverage_acceptance": false,
+            "gpu_target_bytes": 2359296,
+            "pixel_bytes": 29491200,
+            "pixel_reads": 30,
+            "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+            "sampling_factor": 2,
+            "schema": 1,
+            "tile_edge": 256,
+            "tile_method": "Unchanged full projection with translated viewport and bounded scissor",
+            "tiles": 15,
+            "timing_acceptance": false,
+            "version": "4.5 (Core Profile) Mesa 22.3.6",
+            "vertex_bytes": 324,
+            "viewport": [
+              1280,
+              720
+            ]
+          },
+          "raw_sha256": {
+            "eligible": "5ae49b2215386a145a1b9d366b192c85d74be2e18278d44f773ed5df8287b892",
+            "plane": "827443dc21b6d2fceae5571153b76acbf393931ddac9a4e95d34ba24e05951bf"
+          }
+        },
+        {
+          "factor": 4,
+          "tile_edge": 256,
+          "analytic_band_m2": [
+            2.485855577435743,
+            351.99707069933953,
+            563.3571846004977
+          ],
+          "finite_quad_band_m2": [
+            2.4858659158053342,
+            351.99819090946585,
+            563.3602234570208
+          ],
+          "analytic_relative_error": [
+            -0.0001096964255170585,
+            -8.210991163970505e-05,
+            0.0003073233332089309
+          ],
+          "eligible_pixels": [
+            5017,
+            1690236,
+            236852
+          ],
+          "receipt": {
+            "context_uuid": "GPU-6d657361-3232-2e33-2e36-000000000000",
+            "coverage_acceptance": false,
+            "gpu_target_bytes": 2359296,
+            "pixel_bytes": 117964800,
+            "pixel_reads": 120,
+            "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+            "sampling_factor": 4,
+            "schema": 1,
+            "tile_edge": 256,
+            "tile_method": "Unchanged full projection with translated viewport and bounded scissor",
+            "tiles": 60,
+            "timing_acceptance": false,
+            "version": "4.5 (Core Profile) Mesa 22.3.6",
+            "vertex_bytes": 324,
+            "viewport": [
+              2560,
+              1440
+            ]
+          },
+          "raw_sha256": {
+            "eligible": "6f1dd754e72d5298bde1626c65b5c4156976bad6924c84a5fcdafdcb198b2263",
+            "plane": "eb1e5d2bbd12dfb568df01f098d10a5ab664c725b9da348211de658304432bf7"
+          }
+        },
+        {
+          "factor": 4,
+          "tile_edge": 191,
+          "analytic_band_m2": [
+            2.4858556903890516,
+            351.9968446575567,
+            563.3540810007989
+          ],
+          "finite_quad_band_m2": [
+            2.4858329732669517,
+            351.9951473154197,
+            563.3414505364199
+          ],
+          "analytic_relative_error": [
+            -0.00010965099209803153,
+            -8.275202841090401e-05,
+            0.00030181252480487863
+          ],
+          "eligible_pixels": [
+            5017,
+            1690237,
+            236851
+          ],
+          "receipt": {
+            "context_uuid": "GPU-6d657361-3232-2e33-2e36-000000000000",
+            "coverage_acceptance": false,
+            "gpu_target_bytes": 1313316,
+            "pixel_bytes": 117964800,
+            "pixel_reads": 224,
+            "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+            "sampling_factor": 4,
+            "schema": 1,
+            "tile_edge": 191,
+            "tile_method": "Unchanged full projection with translated viewport and bounded scissor",
+            "tiles": 112,
+            "timing_acceptance": false,
+            "version": "4.5 (Core Profile) Mesa 22.3.6",
+            "vertex_bytes": 324,
+            "viewport": [
+              2560,
+              1440
+            ]
+          },
+          "raw_sha256": {
+            "eligible": "1921e12004b52f5b7c9aedce80ba3eb41bb1bc8efc33cb16b05eebac9e07e276",
+            "plane": "5d81cd6e3c3bb1149b69c1d3b55c41183d1b1e99cae87b43fcdf49c8640050b3"
+          }
+        }
+      ],
+      "two_to_four_relative_change": [
+        0.0003450513530824928,
+        -0.0005900436267021192,
+        9.389321791175576e-07
+      ],
+      "tile_relative_change": [
+        4.5438403484254763e-08,
+        -6.421694997982286e-07,
+        -5.509115324375813e-06
+      ],
+      "qualified": true
+    },
+    {
+      "case": "scaled-grazing",
+      "exact_band_m2": [
+        2.488571536998414,
+        258.0138005956152,
+        408.32837058366954
+      ],
+      "samples": [
+        {
+          "factor": 1,
+          "tile_edge": 256,
+          "analytic_band_m2": [
+            2.557177775970658,
+            256.8212921852072,
+            406.6588333864457
+          ],
+          "finite_quad_band_m2": [
+            2.557629071176052,
+            256.99614440105506,
+            407.0490747165204
+          ],
+          "analytic_relative_error": [
+            0.02756852192201542,
+            -0.004621878394315049,
+            -0.004088712216683388
+          ],
+          "eligible_pixels": [
+            108,
+            32658,
+            71968
+          ],
+          "receipt": {
+            "context_uuid": "GPU-6d657361-3232-2e33-2e36-000000000000",
+            "coverage_acceptance": false,
+            "gpu_target_bytes": 2359296,
+            "pixel_bytes": 7372800,
+            "pixel_reads": 12,
+            "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+            "sampling_factor": 1,
+            "schema": 1,
+            "tile_edge": 256,
+            "tile_method": "Unchanged full projection with translated viewport and bounded scissor",
+            "tiles": 6,
+            "timing_acceptance": false,
+            "version": "4.5 (Core Profile) Mesa 22.3.6",
+            "vertex_bytes": 324,
+            "viewport": [
+              640,
+              360
+            ]
+          },
+          "raw_sha256": {
+            "eligible": "ed68991cad331fbe6649d014ab578e555ac4beb6b2aaf9bb358b6e73604cc846",
+            "plane": "2811fffc890c0d8aa68ad99bb4e16816f5c7620717d613b6d86fb262100fe0ce"
+          }
+        },
+        {
+          "factor": 2,
+          "tile_edge": 256,
+          "analytic_band_m2": [
+            2.4762992117183487,
+            256.99281801287367,
+            407.43398949952166
+          ],
+          "finite_quad_band_m2": [
+            2.47645619045943,
+            257.041378777707,
+            407.58955188922937
+          ],
+          "analytic_relative_error": [
+            -0.004931473778273521,
+            -0.003957085165152474,
+            -0.0021903476431711644
+          ],
+          "eligible_pixels": [
+            420,
+            130613,
+            287911
+          ],
+          "receipt": {
+            "context_uuid": "GPU-6d657361-3232-2e33-2e36-000000000000",
+            "coverage_acceptance": false,
+            "gpu_target_bytes": 2359296,
+            "pixel_bytes": 29491200,
+            "pixel_reads": 30,
+            "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+            "sampling_factor": 2,
+            "schema": 1,
+            "tile_edge": 256,
+            "tile_method": "Unchanged full projection with translated viewport and bounded scissor",
+            "tiles": 15,
+            "timing_acceptance": false,
+            "version": "4.5 (Core Profile) Mesa 22.3.6",
+            "vertex_bytes": 324,
+            "viewport": [
+              1280,
+              720
+            ]
+          },
+          "raw_sha256": {
+            "eligible": "743d31f2868837ab0674c584bba2855194fc451457bb5726056c20d989c1c7e6",
+            "plane": "6d7e219331a75ad7fce8954a0d42a5392bf18ac5e5c9ab2e7e04130dad6f57e9"
+          }
+        },
+        {
+          "factor": 4,
+          "tile_edge": 256,
+          "analytic_band_m2": [
+            2.48339279515712,
+            257.13265853300055,
+            406.91977914858035
+          ],
+          "finite_quad_band_m2": [
+            2.484618649352342,
+            257.1459292616055,
+            406.9558229023869
+          ],
+          "analytic_relative_error": [
+            -0.0020810098340755534,
+            -0.0034150966366160995,
+            -0.003449653603730063
+          ],
+          "eligible_pixels": [
+            1683,
+            522433,
+            1151642
+          ],
+          "receipt": {
+            "context_uuid": "GPU-6d657361-3232-2e33-2e36-000000000000",
+            "coverage_acceptance": false,
+            "gpu_target_bytes": 2359296,
+            "pixel_bytes": 117964800,
+            "pixel_reads": 120,
+            "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+            "sampling_factor": 4,
+            "schema": 1,
+            "tile_edge": 256,
+            "tile_method": "Unchanged full projection with translated viewport and bounded scissor",
+            "tiles": 60,
+            "timing_acceptance": false,
+            "version": "4.5 (Core Profile) Mesa 22.3.6",
+            "vertex_bytes": 324,
+            "viewport": [
+              2560,
+              1440
+            ]
+          },
+          "raw_sha256": {
+            "eligible": "c7664fa8693371dbf424f59b073432e8916cec0738985ff9b7edfceccfdeb440",
+            "plane": "41291a462b27b1274b85128e6236e712e1f55b9c018f2e35ba07f2c9098411ea"
+          }
+        },
+        {
+          "factor": 4,
+          "tile_edge": 191,
+          "analytic_band_m2": [
+            2.4833968419512282,
+            257.13257504771474,
+            406.919897720074
+          ],
+          "finite_quad_band_m2": [
+            2.4846200401661918,
+            257.1434787288381,
+            406.95568255937246
+          ],
+          "analytic_relative_error": [
+            -0.0020793836826676904,
+            -0.003415420205687303,
+            -0.0034493632210327307
+          ],
+          "eligible_pixels": [
+            1683,
+            522433,
+            1151642
+          ],
+          "receipt": {
+            "context_uuid": "GPU-6d657361-3232-2e33-2e36-000000000000",
+            "coverage_acceptance": false,
+            "gpu_target_bytes": 1313316,
+            "pixel_bytes": 117964800,
+            "pixel_reads": 224,
+            "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+            "sampling_factor": 4,
+            "schema": 1,
+            "tile_edge": 191,
+            "tile_method": "Unchanged full projection with translated viewport and bounded scissor",
+            "tiles": 112,
+            "timing_acceptance": false,
+            "version": "4.5 (Core Profile) Mesa 22.3.6",
+            "vertex_bytes": 324,
+            "viewport": [
+              2560,
+              1440
+            ]
+          },
+          "raw_sha256": {
+            "eligible": "a3dd5b988674e78d63cb9d1da798954906d934638dd00543383ba4ed8c43543f",
+            "plane": "dc376b924f659d29a2ac57bcb6cb1b0218850c11486fb04ba53651deeb6b8ddf"
+          }
+        }
+      ],
+      "two_to_four_relative_change": [
+        0.0028645905976156794,
+        0.0005441417437583862,
+        -0.001262070333339027
+      ],
+      "tile_relative_change": [
+        1.6295425018242327e-06,
+        -3.24677877472368e-07,
+        2.9138788470994825e-07
+      ],
+      "qualified": true
+    }
+  ],
+  "failures": []
+}

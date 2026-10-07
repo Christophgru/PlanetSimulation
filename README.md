@@ -825,6 +825,10 @@ and ground/root receipts. Eight of twelve declared pairs pass; analytic area
 sensitivity identifies an estimator issue requiring qualification and fresh
 repeats. Two repeated stationary pairs exceed the 5% performance limit.
 Coverage/cost acceptance remains pending and CPU stays default.
+The [analytic area qualifier](docs/journal/architecture/terrain-gpu/async/hardware/cost/coverage/area/study.md)
+passes four known plane/silhouette scenes on software GL and Quadro, with
+32 independently checked snapshots and a bounded 2.25 MiB GPU target.
+Live terrain convergence and fresh route comparisons are next.
 
 Within **1.2 body diameters from its centre (2.4 radii)**, orientation follows
 the nearby planet or moon. Beyond that region, free-space mouse look lets you

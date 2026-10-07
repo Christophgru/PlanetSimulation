@@ -1,0 +1,862 @@
+{
+  "schema": 1,
+  "scope": "Known-geometry area qualification; no route or timing acceptance",
+  "declared_relative_tolerance": 0.01,
+  "declared_tile_area_tolerance": 0.0001,
+  "minimum_band_samples": 100,
+  "cases": [
+    {
+      "case": "front",
+      "exact_band_m2": [
+        78.53981633974482,
+        526.3233827465318,
+        295.13679420820074
+      ],
+      "samples": [
+        {
+          "factor": 1,
+          "tile_edge": 256,
+          "analytic_band_m2": [
+            78.54687441478018,
+            526.3437460784335,
+            295.1093728012638
+          ],
+          "finite_quad_band_m2": [
+            78.54692174959928,
+            526.3440561625175,
+            295.1095108068548
+          ],
+          "analytic_relative_error": [
+            8.986620244733068e-05,
+            3.8689772427380476e-05,
+            -9.291083821150181e-05
+          ],
+          "eligible_pixels": [
+            20108,
+            134744,
+            75548
+          ],
+          "receipt": {
+            "context_uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+            "coverage_acceptance": false,
+            "gpu_target_bytes": 2359296,
+            "pixel_bytes": 7372800,
+            "pixel_reads": 12,
+            "renderer": "Quadro M1000M/PCIe/SSE2",
+            "sampling_factor": 1,
+            "schema": 1,
+            "tile_edge": 256,
+            "tile_method": "Unchanged full projection with translated viewport and bounded scissor",
+            "tiles": 6,
+            "timing_acceptance": false,
+            "version": "3.3.0 NVIDIA 580.178.04",
+            "vertex_bytes": 216,
+            "viewport": [
+              640,
+              360
+            ]
+          },
+          "raw_sha256": {
+            "eligible": "3f6ea354e600ae55d3f25258d7d6060a6efee1e30bd41e153890d93777d83496",
+            "plane": "2a230d4f98891e731f0da51fbab3ea5f3889af87771d143ef11cae496a977fc5"
+          }
+        },
+        {
+          "factor": 2,
+          "tile_edge": 256,
+          "analytic_band_m2": [
+            78.56640566463466,
+            526.2812460788991,
+            295.1523415509437
+          ],
+          "finite_quad_band_m2": [
+            78.56646360456944,
+            526.2816582304658,
+            295.15251476166304
+          ],
+          "analytic_relative_error": [
+            0.0003385457991755825,
+            -8.005851348047432e-05,
+            5.267842928446953e-05
+          ],
+          "eligible_pixels": [
+            80452,
+            538912,
+            302236
+          ],
+          "receipt": {
+            "context_uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+            "coverage_acceptance": false,
+            "gpu_target_bytes": 2359296,
+            "pixel_bytes": 29491200,
+            "pixel_reads": 30,
+            "renderer": "Quadro M1000M/PCIe/SSE2",
+            "sampling_factor": 2,
+            "schema": 1,
+            "tile_edge": 256,
+            "tile_method": "Unchanged full projection with translated viewport and bounded scissor",
+            "tiles": 15,
+            "timing_acceptance": false,
+            "version": "3.3.0 NVIDIA 580.178.04",
+            "vertex_bytes": 216,
+            "viewport": [
+              1280,
+              720
+            ]
+          },
+          "raw_sha256": {
+            "eligible": "523aee1766c9b49be5dc4859b3380959dc54b88784be5f328f4fa24c31828c69",
+            "plane": "bc71e4d25ff8a606a7253c8ab922e1ee98af90b68d3451e0dd24cc83dd7c61e3"
+          }
+        },
+        {
+          "factor": 4,
+          "tile_edge": 256,
+          "analytic_band_m2": [
+            78.53906191483838,
+            526.3281210785499,
+            295.1328103010892
+          ],
+          "finite_quad_band_m2": [
+            78.53910813777475,
+            526.3289228943759,
+            295.1324382250896
+          ],
+          "analytic_relative_error": [
+            -9.605636244081062e-06,
+            9.002700950500042e-06,
+            -1.349851048637607e-05
+          ],
+          "eligible_pixels": [
+            321696,
+            2155840,
+            1208864
+          ],
+          "receipt": {
+            "context_uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+            "coverage_acceptance": false,
+            "gpu_target_bytes": 2359296,
+            "pixel_bytes": 117964800,
+            "pixel_reads": 120,
+            "renderer": "Quadro M1000M/PCIe/SSE2",
+            "sampling_factor": 4,
+            "schema": 1,
+            "tile_edge": 256,
+            "tile_method": "Unchanged full projection with translated viewport and bounded scissor",
+            "tiles": 60,
+            "timing_acceptance": false,
+            "version": "3.3.0 NVIDIA 580.178.04",
+            "vertex_bytes": 216,
+            "viewport": [
+              2560,
+              1440
+            ]
+          },
+          "raw_sha256": {
+            "eligible": "95dc6f259634865faac5026c703a9f8d48dc23a879ed9738a8086ec0daeae011",
+            "plane": "fe46c0642604c8369165c214724edf257a7e8a3697dd8d8fb2fc425d57fe6788"
+          }
+        },
+        {
+          "factor": 4,
+          "tile_edge": 191,
+          "analytic_band_m2": [
+            78.53906191483838,
+            526.3281210785499,
+            295.1328103010892
+          ],
+          "finite_quad_band_m2": [
+            78.53907386399806,
+            526.3281867783517,
+            295.13292479724623
+          ],
+          "analytic_relative_error": [
+            -9.605636244081062e-06,
+            9.002700950500042e-06,
+            -1.349851048637607e-05
+          ],
+          "eligible_pixels": [
+            321696,
+            2155840,
+            1208864
+          ],
+          "receipt": {
+            "context_uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+            "coverage_acceptance": false,
+            "gpu_target_bytes": 1313316,
+            "pixel_bytes": 117964800,
+            "pixel_reads": 224,
+            "renderer": "Quadro M1000M/PCIe/SSE2",
+            "sampling_factor": 4,
+            "schema": 1,
+            "tile_edge": 191,
+            "tile_method": "Unchanged full projection with translated viewport and bounded scissor",
+            "tiles": 112,
+            "timing_acceptance": false,
+            "version": "3.3.0 NVIDIA 580.178.04",
+            "vertex_bytes": 216,
+            "viewport": [
+              2560,
+              1440
+            ]
+          },
+          "raw_sha256": {
+            "eligible": "6dae53e4ff53efdec9b19ae97cf4f0fd2d206180e88b71f054fc39c1ed11717b",
+            "plane": "023fbf0c57dafd56700579894836e3530cf9a03f296122cd6ce6e1880547349f"
+          }
+        }
+      ],
+      "two_to_four_relative_change": [
+        -0.000348033610102938,
+        8.906834511024364e-05,
+        -6.617345385728779e-05
+      ],
+      "tile_relative_change": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "qualified": true
+    },
+    {
+      "case": "oblique",
+      "exact_band_m2": [
+        78.53981633974472,
+        474.45946262090575,
+        633.2323159257918
+      ],
+      "samples": [
+        {
+          "factor": 1,
+          "tile_edge": 256,
+          "analytic_band_m2": [
+            78.57469142911377,
+            473.9602884936587,
+            634.1673924165596
+          ],
+          "finite_quad_band_m2": [
+            78.57097218604758,
+            473.97890787624056,
+            634.2384315482632
+          ],
+          "analytic_relative_error": [
+            0.00044404342910842054,
+            -0.0010520901501038793,
+            0.0014766720952967827
+          ],
+          "eligible_pixels": [
+            9202,
+            119342,
+            15928
+          ],
+          "receipt": {
+            "context_uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+            "coverage_acceptance": false,
+            "gpu_target_bytes": 2359296,
+            "pixel_bytes": 7372800,
+            "pixel_reads": 12,
+            "renderer": "Quadro M1000M/PCIe/SSE2",
+            "sampling_factor": 1,
+            "schema": 1,
+            "tile_edge": 256,
+            "tile_method": "Unchanged full projection with translated viewport and bounded scissor",
+            "tiles": 6,
+            "timing_acceptance": false,
+            "version": "3.3.0 NVIDIA 580.178.04",
+            "vertex_bytes": 216,
+            "viewport": [
+              640,
+              360
+            ]
+          },
+          "raw_sha256": {
+            "eligible": "8e130ceee6eb41cd98675de08843283ace2071682b0dc11d6529f6f8c9e8dca9",
+            "plane": "7ad035d6e8a7070576073a07fab435ce45b2df76a0cb051abc605e780d298db9"
+          }
+        },
+        {
+          "factor": 2,
+          "tile_edge": 256,
+          "analytic_band_m2": [
+            78.52751471206665,
+            474.6013238158035,
+            633.3541578861725
+          ],
+          "finite_quad_band_m2": [
+            78.52685198490508,
+            474.606187197518,
+            633.3649757526437
+          ],
+          "analytic_relative_error": [
+            -0.00015662918824332905,
+            0.000298995395969337,
+            0.00019241273276238147
+          ],
+          "eligible_pixels": [
+            36778,
+            477424,
+            63682
+          ],
+          "receipt": {
+            "context_uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+            "coverage_acceptance": false,
+            "gpu_target_bytes": 2359296,
+            "pixel_bytes": 29491200,
+            "pixel_reads": 30,
+            "renderer": "Quadro M1000M/PCIe/SSE2",
+            "sampling_factor": 2,
+            "schema": 1,
+            "tile_edge": 256,
+            "tile_method": "Unchanged full projection with translated viewport and bounded scissor",
+            "tiles": 15,
+            "timing_acceptance": false,
+            "version": "3.3.0 NVIDIA 580.178.04",
+            "vertex_bytes": 216,
+            "viewport": [
+              1280,
+              720
+            ]
+          },
+          "raw_sha256": {
+            "eligible": "3dc9ae5ee477bbf828356752743f052161da17c79060c0a66b3914550165522e",
+            "plane": "c4c731c6caf2a9f10437618d6a3e9b4d64eaca11c1f725c02647afaa772d5c5b"
+          }
+        },
+        {
+          "factor": 4,
+          "tile_edge": 256,
+          "analytic_band_m2": [
+            78.53904861674202,
+            474.4491050396222,
+            633.423529843782
+          ],
+          "finite_quad_band_m2": [
+            78.53720714335213,
+            474.4492259835479,
+            633.4143490842907
+          ],
+          "analytic_relative_error": [
+            -9.77495286436092e-06,
+            -2.1830276555778738e-05,
+            0.00030196487636713343
+          ],
+          "eligible_pixels": [
+            147152,
+            1909704,
+            254676
+          ],
+          "receipt": {
+            "context_uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+            "coverage_acceptance": false,
+            "gpu_target_bytes": 2359296,
+            "pixel_bytes": 117964800,
+            "pixel_reads": 120,
+            "renderer": "Quadro M1000M/PCIe/SSE2",
+            "sampling_factor": 4,
+            "schema": 1,
+            "tile_edge": 256,
+            "tile_method": "Unchanged full projection with translated viewport and bounded scissor",
+            "tiles": 60,
+            "timing_acceptance": false,
+            "version": "3.3.0 NVIDIA 580.178.04",
+            "vertex_bytes": 216,
+            "viewport": [
+              2560,
+              1440
+            ]
+          },
+          "raw_sha256": {
+            "eligible": "bfadaa22418495667ca271bf851591cd8ade2eecd6ae67ea467c9299baa6d50e",
+            "plane": "c5a5fad72a055b57fbc1fc59ad42fba9fc2ecb0cc2b989ebb1f605c2ba37e778"
+          }
+        },
+        {
+          "factor": 4,
+          "tile_edge": 191,
+          "analytic_band_m2": [
+            78.53903630585201,
+            474.4494312777786,
+            633.4223198603202
+          ],
+          "finite_quad_band_m2": [
+            78.53679051698418,
+            474.44393674092316,
+            633.3975606785625
+          ],
+          "analytic_relative_error": [
+            -9.931699984311315e-06,
+            -2.1142676914331915e-05,
+            0.0003000540713886668
+          ],
+          "eligible_pixels": [
+            147152,
+            1909704,
+            254676
+          ],
+          "receipt": {
+            "context_uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+            "coverage_acceptance": false,
+            "gpu_target_bytes": 1313316,
+            "pixel_bytes": 117964800,
+            "pixel_reads": 224,
+            "renderer": "Quadro M1000M/PCIe/SSE2",
+            "sampling_factor": 4,
+            "schema": 1,
+            "tile_edge": 191,
+            "tile_method": "Unchanged full projection with translated viewport and bounded scissor",
+            "tiles": 112,
+            "timing_acceptance": false,
+            "version": "3.3.0 NVIDIA 580.178.04",
+            "vertex_bytes": 216,
+            "viewport": [
+              2560,
+              1440
+            ]
+          },
+          "raw_sha256": {
+            "eligible": "b73e30ae2a80eb14ab8167d9d63596d7231c53fa35ded230d157184e98b0307a",
+            "plane": "a61b92de1b1d8622468053efb8d64acb5e8e75974bb2e9ba3667b0d6b9f7d643"
+          }
+        }
+      ],
+      "two_to_four_relative_change": [
+        0.000146877240641885,
+        -0.00032072977579877815,
+        0.0001095310684327
+      ],
+      "tile_relative_change": [
+        -1.5674865216919187e-07,
+        6.8761465232825e-07,
+        -1.9102281567651147e-06
+      ],
+      "qualified": true
+    },
+    {
+      "case": "silhouette",
+      "exact_band_m2": [
+        2.4861282968232814,
+        352.02597552108443,
+        563.1841049841437
+      ],
+      "samples": [
+        {
+          "factor": 1,
+          "tile_edge": 256,
+          "analytic_band_m2": [
+            2.4945917179257235,
+            351.4793096101727,
+            563.9312195550484
+          ],
+          "finite_quad_band_m2": [
+            2.4874229808337986,
+            351.49519173410954,
+            563.99813489386
+          ],
+          "analytic_relative_error": [
+            0.0034042575812585074,
+            -0.001552913560149971,
+            0.0013265903002106505
+          ],
+          "eligible_pixels": [
+            315,
+            105625,
+            14812
+          ],
+          "receipt": {
+            "context_uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+            "coverage_acceptance": false,
+            "gpu_target_bytes": 2359296,
+            "pixel_bytes": 7372800,
+            "pixel_reads": 12,
+            "renderer": "Quadro M1000M/PCIe/SSE2",
+            "sampling_factor": 1,
+            "schema": 1,
+            "tile_edge": 256,
+            "tile_method": "Unchanged full projection with translated viewport and bounded scissor",
+            "tiles": 6,
+            "timing_acceptance": false,
+            "version": "3.3.0 NVIDIA 580.178.04",
+            "vertex_bytes": 324,
+            "viewport": [
+              640,
+              360
+            ]
+          },
+          "raw_sha256": {
+            "eligible": "9dac429692313e8c5aa92824e7c44bbf94c953da386cbf12347cf5a3ecff3e1e",
+            "plane": "e6d964b9846ef6ac566aea1448af201887053fc741c5148467a3e1123b8016a1"
+          }
+        },
+        {
+          "factor": 2,
+          "tile_edge": 256,
+          "analytic_band_m2": [
+            2.484998235663255,
+            352.20496785716995,
+            563.3561180146473
+          ],
+          "finite_quad_band_m2": [
+            2.485013665049337,
+            352.20812463884795,
+            563.3640844480688
+          ],
+          "analytic_relative_error": [
+            -0.000454546598206651,
+            0.0005084634331899984,
+            0.00030542948386025337
+          ],
+          "eligible_pixels": [
+            1254,
+            422568,
+            59227
+          ],
+          "receipt": {
+            "context_uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+            "coverage_acceptance": false,
+            "gpu_target_bytes": 2359296,
+            "pixel_bytes": 29491200,
+            "pixel_reads": 30,
+            "renderer": "Quadro M1000M/PCIe/SSE2",
+            "sampling_factor": 2,
+            "schema": 1,
+            "tile_edge": 256,
+            "tile_method": "Unchanged full projection with translated viewport and bounded scissor",
+            "tiles": 15,
+            "timing_acceptance": false,
+            "version": "3.3.0 NVIDIA 580.178.04",
+            "vertex_bytes": 324,
+            "viewport": [
+              1280,
+              720
+            ]
+          },
+          "raw_sha256": {
+            "eligible": "e10c0241f523386dcd35c61fc10ba07cc288949efb9aa1b3ade4f529ae837127",
+            "plane": "35f195852d5f125a82c1f96f52fe42e0224915c570cb65b102835b1870ac7d12"
+          }
+        },
+        {
+          "factor": 4,
+          "tile_edge": 256,
+          "analytic_band_m2": [
+            2.4862490051707082,
+            351.9965343724988,
+            563.3561869313254
+          ],
+          "finite_quad_band_m2": [
+            2.485849475575378,
+            351.9963303315035,
+            563.347966876383
+          ],
+          "analytic_relative_error": [
+            4.855274266457599e-05,
+            -8.363345500872477e-05,
+            0.0003055518535746149
+          ],
+          "eligible_pixels": [
+            5018,
+            1690239,
+            236848
+          ],
+          "receipt": {
+            "context_uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+            "coverage_acceptance": false,
+            "gpu_target_bytes": 2359296,
+            "pixel_bytes": 117964800,
+            "pixel_reads": 120,
+            "renderer": "Quadro M1000M/PCIe/SSE2",
+            "sampling_factor": 4,
+            "schema": 1,
+            "tile_edge": 256,
+            "tile_method": "Unchanged full projection with translated viewport and bounded scissor",
+            "tiles": 60,
+            "timing_acceptance": false,
+            "version": "3.3.0 NVIDIA 580.178.04",
+            "vertex_bytes": 324,
+            "viewport": [
+              2560,
+              1440
+            ]
+          },
+          "raw_sha256": {
+            "eligible": "8e910d1ef07a2355c9a425ef494a4ec9f17365c0e5c58c08e4d175f8547bcd7a",
+            "plane": "fb98adb19a44b210541bafc1fd41cf18d78ff5048fe8c370a9e30d3dcf311a65"
+          }
+        },
+        {
+          "factor": 4,
+          "tile_edge": 191,
+          "analytic_band_m2": [
+            2.486248102989599,
+            351.9967277842736,
+            563.3551563175573
+          ],
+          "finite_quad_band_m2": [
+            2.4858148707426153,
+            351.9926404562884,
+            563.3331293006431
+          ],
+          "analytic_relative_error": [
+            4.818985668220144e-05,
+            -8.30840302836755e-05,
+            0.0003037218769135208
+          ],
+          "eligible_pixels": [
+            5018,
+            1690239,
+            236848
+          ],
+          "receipt": {
+            "context_uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+            "coverage_acceptance": false,
+            "gpu_target_bytes": 1313316,
+            "pixel_bytes": 117964800,
+            "pixel_reads": 224,
+            "renderer": "Quadro M1000M/PCIe/SSE2",
+            "sampling_factor": 4,
+            "schema": 1,
+            "tile_edge": 191,
+            "tile_method": "Unchanged full projection with translated viewport and bounded scissor",
+            "tiles": 112,
+            "timing_acceptance": false,
+            "version": "3.3.0 NVIDIA 580.178.04",
+            "vertex_bytes": 324,
+            "viewport": [
+              2560,
+              1440
+            ]
+          },
+          "raw_sha256": {
+            "eligible": "e4b7c3c9c883fceca124fe433071dfede507f9fe6d36b43b094142ce73fa8f9c",
+            "plane": "9057e24f0e5150d1b82a012be7376696d170eb3f0548f2009f4d37a02330a3b1"
+          }
+        }
+      ],
+      "two_to_four_relative_change": [
+        0.0005033281269590795,
+        -0.0005917959815822105,
+        1.223323504717655e-07
+      ],
+      "tile_relative_change": [
+        -3.6286836413435e-07,
+        5.494706791786541e-07,
+        -1.8294176792332806e-06
+      ],
+      "qualified": true
+    },
+    {
+      "case": "scaled-grazing",
+      "exact_band_m2": [
+        2.488571536998414,
+        258.0138005956152,
+        408.32837058366954
+      ],
+      "samples": [
+        {
+          "factor": 1,
+          "tile_edge": 256,
+          "analytic_band_m2": [
+            2.5571877906659055,
+            256.8371177069017,
+            406.65956363837836
+          ],
+          "finite_quad_band_m2": [
+            2.557457871735096,
+            256.99239366766415,
+            406.9948284499442
+          ],
+          "analytic_relative_error": [
+            0.027572546196623637,
+            -0.00456054244384263,
+            -0.004086923822867794
+          ],
+          "eligible_pixels": [
+            108,
+            32660,
+            71968
+          ],
+          "receipt": {
+            "context_uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+            "coverage_acceptance": false,
+            "gpu_target_bytes": 2359296,
+            "pixel_bytes": 7372800,
+            "pixel_reads": 12,
+            "renderer": "Quadro M1000M/PCIe/SSE2",
+            "sampling_factor": 1,
+            "schema": 1,
+            "tile_edge": 256,
+            "tile_method": "Unchanged full projection with translated viewport and bounded scissor",
+            "tiles": 6,
+            "timing_acceptance": false,
+            "version": "3.3.0 NVIDIA 580.178.04",
+            "vertex_bytes": 324,
+            "viewport": [
+              640,
+              360
+            ]
+          },
+          "raw_sha256": {
+            "eligible": "6964e537f3526ef5fb94a4ccda6546e21c6d78fb24059eef059ef18c049b9a73",
+            "plane": "7db064978136f36b70791d1c83aa472a4d3f104e97248fcff32f3f1e3fcde30b"
+          }
+        },
+        {
+          "factor": 2,
+          "tile_edge": 256,
+          "analytic_band_m2": [
+            2.482979288476642,
+            257.02049376163575,
+            407.4838851771877
+          ],
+          "finite_quad_band_m2": [
+            2.483345926273614,
+            257.08555084941327,
+            407.5088131144021
+          ],
+          "analytic_relative_error": [
+            -0.002247172097980865,
+            -0.003849820558770145,
+            -0.0020681526617284396
+          ],
+          "eligible_pixels": [
+            421,
+            130621,
+            287913
+          ],
+          "receipt": {
+            "context_uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+            "coverage_acceptance": false,
+            "gpu_target_bytes": 2359296,
+            "pixel_bytes": 29491200,
+            "pixel_reads": 30,
+            "renderer": "Quadro M1000M/PCIe/SSE2",
+            "sampling_factor": 2,
+            "schema": 1,
+            "tile_edge": 256,
+            "tile_method": "Unchanged full projection with translated viewport and bounded scissor",
+            "tiles": 15,
+            "timing_acceptance": false,
+            "version": "3.3.0 NVIDIA 580.178.04",
+            "vertex_bytes": 324,
+            "viewport": [
+              1280,
+              720
+            ]
+          },
+          "raw_sha256": {
+            "eligible": "7a07ffadf2e46025a7cb7213781103f585756a60d312305bc4cb9c2fa35f1d4f",
+            "plane": "4d3160ac3a43dea767d25b7bd7c7c62d9f2c8d25e0bbc07413e7fe1268e7376a"
+          }
+        },
+        {
+          "factor": 4,
+          "tile_edge": 256,
+          "analytic_band_m2": [
+            2.4934370013383944,
+            257.1517822891086,
+            406.96879980197707
+          ],
+          "finite_quad_band_m2": [
+            2.494660103577189,
+            257.1635674002573,
+            407.00111943173783
+          ],
+          "analytic_relative_error": [
+            0.0019551233579762073,
+            -0.0033409775156082455,
+            -0.003329601564909801
+          ],
+          "eligible_pixels": [
+            1690,
+            522466,
+            1151649
+          ],
+          "receipt": {
+            "context_uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+            "coverage_acceptance": false,
+            "gpu_target_bytes": 2359296,
+            "pixel_bytes": 117964800,
+            "pixel_reads": 120,
+            "renderer": "Quadro M1000M/PCIe/SSE2",
+            "sampling_factor": 4,
+            "schema": 1,
+            "tile_edge": 256,
+            "tile_method": "Unchanged full projection with translated viewport and bounded scissor",
+            "tiles": 60,
+            "timing_acceptance": false,
+            "version": "3.3.0 NVIDIA 580.178.04",
+            "vertex_bytes": 324,
+            "viewport": [
+              2560,
+              1440
+            ]
+          },
+          "raw_sha256": {
+            "eligible": "7bdb3d334b626df100ce29d09668ac80ea1c8a8694d9f81265f9258a7b63eac9",
+            "plane": "3fca486592247d9533aade56a7bd6f92a53bf654538849a8f13292475110710b"
+          }
+        },
+        {
+          "factor": 4,
+          "tile_edge": 191,
+          "analytic_band_m2": [
+            2.4934344620795548,
+            257.15149353663435,
+            406.9684384475175
+          ],
+          "finite_quad_band_m2": [
+            2.4946616172092035,
+            257.1611042698187,
+            407.0010174285071
+          ],
+          "analytic_relative_error": [
+            0.001954102989945028,
+            -0.003342096651381521,
+            -0.003330486525362275
+          ],
+          "eligible_pixels": [
+            1690,
+            522466,
+            1151649
+          ],
+          "receipt": {
+            "context_uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+            "coverage_acceptance": false,
+            "gpu_target_bytes": 1313316,
+            "pixel_bytes": 117964800,
+            "pixel_reads": 224,
+            "renderer": "Quadro M1000M/PCIe/SSE2",
+            "sampling_factor": 4,
+            "schema": 1,
+            "tile_edge": 191,
+            "tile_method": "Unchanged full projection with translated viewport and bounded scissor",
+            "tiles": 112,
+            "timing_acceptance": false,
+            "version": "3.3.0 NVIDIA 580.178.04",
+            "vertex_bytes": 324,
+            "viewport": [
+              2560,
+              1440
+            ]
+          },
+          "raw_sha256": {
+            "eligible": "65581ea02d10ebf119c4077e34c4aca5ee41bb97a81c353e3dbc75efa16df537",
+            "plane": "d34d4b472c1e6bc3d5b8f0cb17de7c612da7e5853f40f1029337716efa1c41c9"
+          }
+        }
+      ],
+      "two_to_four_relative_change": [
+        0.004211760005524923,
+        0.0005108095683397096,
+        -0.0012640631788092271
+      ],
+      "tile_relative_change": [
+        -1.01837697852325e-06,
+        -1.122887314575216e-06,
+        -8.879168618136646e-07
+      ],
+      "qualified": true
+    }
+  ],
+  "failures": []
+}

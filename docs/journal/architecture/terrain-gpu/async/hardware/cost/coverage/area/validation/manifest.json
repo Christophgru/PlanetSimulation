@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "scope": "Known-geometry qualification, not native route acceptance",
+  "base_revision": "41f956d",
+  "expected_quadro_uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+  "final": [
+    {
+      "path": "final/software",
+      "device": "software"
+    },
+    {
+      "path": "final/quadro",
+      "device": "quadro"
+    }
+  ],
+  "preflight": [
+    {
+      "path": "preflight/coarse",
+      "scope": "320x180 ideal geometry reference; off-axis per-tile projection",
+      "failures": [
+        "scaled-grazing"
+      ]
+    },
+    {
+      "path": "preflight/off-axis",
+      "scope": "640x360 float-rounded geometry reference; off-axis per-tile projection",
+      "failures": [
+        "silhouette"
+      ]
+    }
+  ],
+  "input_sha256": {
+    "inputs/analysis/area.py": "3e6fc020bf49329308a8c8b103928b39fd4612eafea73b313fb131c93bb178f5",
+    "inputs/analysis/cases.py": "bb12b36c906a200c5ffd1b0b17e5805ee50ce27737dd73dd1f55546377041fa0",
+    "inputs/analysis/geometry.py": "0085530c1a135334f42d9e25244c833f397951e4e572e7ab4795195aa7cd1f6f",
+    "inputs/analysis/test_area.py": "06072475c12febc63e3d646a99183cad6d43ee3872f0c789ebef8e1ff2e49624",
+    "inputs/build/.gitattributes": "1bf20d35c925fb35f85a72acd6ad7a696648e35db8801c547647e34e27b25875",
+    "inputs/build/CMakeLists.txt": "a008b61eea78d0feb6564c13f31cc1d7fc1d366f56c86c0ba328f876727cbbca",
+    "inputs/probe/Probe.cpp": "eabd5ab020841903ebf872c6e685f49e1f186b9a199dd0396f2da01a70add452",
+    "inputs/probe/Target.h": "c8b87182af21c42da8aced552dd1f8d9519cebe2935ef6e348bd1294810fa121",
+    "inputs/shaders/ground.frag": "dc0e5c279b9a935e53bc5e1e77c0e505579329d079b6c0f1a7992fa5dc0ea7b6",
+    "inputs/shaders/ground.vert": "e663e28b308efe0d13d6b350c525582e0a5b3a9d33fd10441152f14674f671af"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "context_uuid": "GPU-6d657361-3232-2e33-2e36-000000000000",
+  "coverage_acceptance": false,
+  "gpu_target_bytes": 1313316,
+  "pixel_bytes": 29491200,
+  "pixel_reads": 56,
+  "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+  "sampling_factor": 4,
+  "schema": 1,
+  "tile_edge": 191,
+  "tiles": 28,
+  "timing_acceptance": false,
+  "version": "4.5 (Core Profile) Mesa 22.3.6",
+  "vertex_bytes": 216,
+  "viewport": [
+    1280,
+    720
+  ]
+}

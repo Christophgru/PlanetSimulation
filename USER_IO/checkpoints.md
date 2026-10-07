@@ -1,6 +1,39 @@
 # Page to document progress of AI Agents working on this Project
 
 
+## Known-geometry analytic area qualification — 2026-10-07
+
+- T3c5c2b2c1 is tested; b2c parent stays in progress. Resume b2c2 live
+  production inspection integration/convergence, then b2c3 fresh route pairs.
+- New private terrain_area_probe uses unchanged matched ground shaders and
+  actual float-rounded triangle inputs. GPU owns raster visibility/eligibility
+  and planes; excluded CPU owns ray intersections and analytic band integrals.
+- Four fixtures cover front/65-degree planes, foreground occlusion and an
+  82-degree grazing silhouette with 1000 m scale/rotation/world translation.
+  Independent exact polygon/circle references use homogeneous frustum and
+  projective silhouette clipping, including horizon-crossing foreground.
+- One software CTest passes in 53.80 s; 16 identical-scope native Quadro
+  snapshots pass with actual GL 3.3 and UUID verification. All 32 final raw
+  snapshots rechecked independently. Max 4x reference error 0.34497%, 2x/4x
+  change 0.42118%, tile change 0.000551%; gates remain 1%/1%/0.01%.
+- GPU target bound is 2.25 MiB logical attachments; CPU raw maps reach
+  112.5 MiB plus analysis temporaries. This is excluded diagnostic readback,
+  not native timing or measured NVML peak. Software is llvmpipe, not hardware.
+- Initial coarse grazing convergence failure and refined off-axis tile edge
+  failure retained. Actual rounded reference replaces ideal construction;
+  unchanged projection plus translated viewport/scissor removes edge rounding.
+- Journal/PDF, full lossless final/preflight maps, inputs/logs/provenance and
+  archive validator in cost/coverage/area/. Product source/shaders and all 43
+  previous executables are unchanged. No new full-suite or route acceptance.
+- b2c2 must qualify production biomes/planes and subpixel character/other-body
+  occlusion at the declared mask resolution; merely upscaling native stencil
+  is insufficient. Preserve live generations/anchors/publication/workload and
+  verify restoration/ordinary inspections before frozen b2c3 routes.
+- Earlier coverage failures, overshoot/topology-root variance and stationary
+  regressions remain. CPU default, wind/raster investigation b3 and later
+  migration/near-density tasks remain. User environment notes stay unstaged.
+
+
 ## Matched native foliage comparison — 2026-10-07
 
 - T3c5c2b2b comparison/inspection qualification is documented and tested;
