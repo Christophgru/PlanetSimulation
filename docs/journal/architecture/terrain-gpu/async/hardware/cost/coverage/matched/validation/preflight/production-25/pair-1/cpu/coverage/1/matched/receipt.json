@@ -1,0 +1,192 @@
+{
+  "additional_pixel_bytes": 38707200,
+  "additional_pixel_reads": 6,
+  "composed_rgb_threshold": 1,
+  "coverage_acceptance": false,
+  "cpu_preparations_skipped": 4,
+  "final_exposures": [
+    {
+      "exposure": 3.9179494969359294,
+      "hdr": true,
+      "pass": 1
+    },
+    {
+      "exposure": 3.9179494969359294,
+      "hdr": true,
+      "pass": 2
+    }
+  ],
+  "native_publication_after": {
+    "managed": false
+  },
+  "native_publication_before": {
+    "managed": false
+  },
+  "native_workload_after": {
+    "bodies": [
+      {
+        "body": 0,
+        "bulk_evaluations": 150006,
+        "cpu_render_bytes": 12000000,
+        "foliage": {
+          "budget": 2000000,
+          "budget_source": "legacy_configured_hard_cap",
+          "candidates": 1999988,
+          "compute_placement": true,
+          "configured_budget": 2000000,
+          "configured_density": 120.72,
+          "configured_distance_m": 150.0,
+          "density": 47.08076986563337,
+          "distance_m": 150.0,
+          "enabled": true,
+          "gpu_bytes": 255998496,
+          "patches": 26752,
+          "plan_eye": [
+            0.15406275243805112,
+            0.9481650072500702,
+            -0.2963836605843023
+          ]
+        },
+        "gpu_input_bytes": 0,
+        "planning_evaluations": 70881,
+        "terrain_plan_eye": [
+          0.17800330255715835,
+          0.950415956246809,
+          -0.29988671481256485
+        ],
+        "topology_input_bytes": 2800064,
+        "triangles": 100000,
+        "unique_samples": 50002
+      },
+      {
+        "body": 1,
+        "bulk_evaluations": 1446,
+        "cpu_render_bytes": 115200,
+        "foliage": {
+          "budget": 0,
+          "budget_source": "legacy_configured_hard_cap",
+          "candidates": 0,
+          "compute_placement": false,
+          "configured_budget": 100000,
+          "configured_density": 30.72,
+          "configured_distance_m": 40.0,
+          "density": 0.0,
+          "distance_m": 0.0,
+          "enabled": false,
+          "gpu_bytes": 0,
+          "patches": 0,
+          "plan_eye": null
+        },
+        "gpu_input_bytes": 0,
+        "planning_evaluations": 482,
+        "terrain_plan_eye": [
+          3.175497021110467,
+          0.9504159562468086,
+          -0.29988671481256485
+        ],
+        "topology_input_bytes": 26944,
+        "triangles": 960,
+        "unique_samples": 482
+      }
+    ],
+    "quality_scale": 1.0,
+    "scene_size": [
+      1280,
+      720
+    ],
+    "swap_interval_requested": 0,
+    "viewport": [
+      1280,
+      720
+    ]
+  },
+  "native_workload_before": {
+    "bodies": [
+      {
+        "body": 0,
+        "bulk_evaluations": 150006,
+        "cpu_render_bytes": 12000000,
+        "foliage": {
+          "budget": 2000000,
+          "budget_source": "legacy_configured_hard_cap",
+          "candidates": 1999988,
+          "compute_placement": true,
+          "configured_budget": 2000000,
+          "configured_density": 120.72,
+          "configured_distance_m": 150.0,
+          "density": 47.08076986563337,
+          "distance_m": 150.0,
+          "enabled": true,
+          "gpu_bytes": 255998496,
+          "patches": 26752,
+          "plan_eye": [
+            0.15406275243805112,
+            0.9481650072500702,
+            -0.2963836605843023
+          ]
+        },
+        "gpu_input_bytes": 0,
+        "planning_evaluations": 70881,
+        "terrain_plan_eye": [
+          0.17800330255715835,
+          0.950415956246809,
+          -0.29988671481256485
+        ],
+        "topology_input_bytes": 2800064,
+        "triangles": 100000,
+        "unique_samples": 50002
+      },
+      {
+        "body": 1,
+        "bulk_evaluations": 1446,
+        "cpu_render_bytes": 115200,
+        "foliage": {
+          "budget": 0,
+          "budget_source": "legacy_configured_hard_cap",
+          "candidates": 0,
+          "compute_placement": false,
+          "configured_budget": 100000,
+          "configured_density": 30.72,
+          "configured_distance_m": 40.0,
+          "density": 0.0,
+          "distance_m": 0.0,
+          "enabled": false,
+          "gpu_bytes": 0,
+          "patches": 0,
+          "plan_eye": null
+        },
+        "gpu_input_bytes": 0,
+        "planning_evaluations": 482,
+        "terrain_plan_eye": [
+          3.175497021110467,
+          0.9504159562468086,
+          -0.29988671481256485
+        ],
+        "topology_input_bytes": 26944,
+        "triangles": 960,
+        "unique_samples": 482
+      }
+    ],
+    "quality_scale": 1.0,
+    "scene_size": [
+      1280,
+      720
+    ],
+    "swap_interval_requested": 0,
+    "viewport": [
+      1280,
+      720
+    ]
+  },
+  "revisions": [
+    1,
+    1
+  ],
+  "root_visibility_method": "Ray intersection with live triangle plane at projected root; one-sided view-depth occlusion allowance",
+  "root_visibility_tolerance_m": 0.15,
+  "schema": 1,
+  "scope": "Controlled live-plan scene; nearest opaque grass stencil after character plus RGB contribution after water/atmosphere/tone mapping; flare/overlays excluded",
+  "source_native_frame": 70,
+  "source_native_request": 1,
+  "timing_acceptance": false
+}

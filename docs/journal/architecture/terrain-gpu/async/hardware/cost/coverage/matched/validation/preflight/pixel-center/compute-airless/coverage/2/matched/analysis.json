@@ -1,0 +1,54 @@
+{
+  "bands": [
+    {
+      "band_m": [
+        0,
+        5
+      ],
+      "eligible_visible_m2": 52.39740437788714,
+      "eligible_pixels": 20895,
+      "generated_roots": 38,
+      "ground_visible_roots": 19,
+      "visible_fade_sum": 18.05749585479498,
+      "visible_roots_per_eligible_m2": 0.3626133818189364,
+      "fade_per_eligible_m2": 0.34462577047834914,
+      "composed_projected_eligible_coverage": 0.07498182470123023
+    },
+    {
+      "band_m": [
+        5,
+        15
+      ],
+      "eligible_visible_m2": 130.1042217281647,
+      "eligible_pixels": 1603,
+      "generated_roots": 183,
+      "ground_visible_roots": 9,
+      "visible_fade_sum": 6.839986436069012,
+      "visible_roots_per_eligible_m2": 0.06917531099647398,
+      "fade_per_eligible_m2": 0.052573132102970835,
+      "composed_projected_eligible_coverage": 0.10570489260174655
+    },
+    {
+      "band_m": [
+        15,
+        30
+      ],
+      "eligible_visible_m2": 398.9351343587041,
+      "eligible_pixels": 755,
+      "generated_roots": 160,
+      "ground_visible_roots": 1,
+      "visible_fade_sum": 1.0,
+      "visible_roots_per_eligible_m2": 0.00250667317534596,
+      "fade_per_eligible_m2": 0.00250667317534596,
+      "composed_projected_eligible_coverage": 0.1256041409452077
+    }
+  ],
+  "nearest_opaque_grass_pixels": 1272,
+  "composed_grass_pixels": 1272,
+  "character_pixels": 1361,
+  "scope": "Controlled live-plan scene; nearest opaque grass stencil after character plus RGB contribution after water/atmosphere/tone mapping; flare/overlays excluded",
+  "coverage_acceptance": false,
+  "eligible_area_method": "Live triangle raster derivatives times expected biome/rock retention; no Gaussian falloff",
+  "root_visibility_method": "Generated root projected onto eligible bare ground; view-depth tolerance 0.15 m",
+  "density_scope": "Screen-visible generated root centers per expected eligible ground area; not physical blade count"
+}

@@ -1,0 +1,54 @@
+{
+  "bands": [
+    {
+      "band_m": [
+        0,
+        5
+      ],
+      "eligible_visible_m2": 52.39181339612696,
+      "eligible_pixels": 20903,
+      "generated_roots": 39,
+      "ground_visible_roots": 26,
+      "visible_fade_sum": 24.112619061022997,
+      "visible_roots_per_eligible_m2": 0.49626073836035683,
+      "fade_per_eligible_m2": 0.460236389962511,
+      "composed_projected_eligible_coverage": 0.07871453539078692
+    },
+    {
+      "band_m": [
+        5,
+        15
+      ],
+      "eligible_visible_m2": 130.54995181504637,
+      "eligible_pixels": 1601,
+      "generated_roots": 181,
+      "ground_visible_roots": 32,
+      "visible_fade_sum": 27.00282271951437,
+      "visible_roots_per_eligible_m2": 0.24511690395209998,
+      "fade_per_eligible_m2": 0.20683900946796208,
+      "composed_projected_eligible_coverage": 0.11063818970145681
+    },
+    {
+      "band_m": [
+        15,
+        30
+      ],
+      "eligible_visible_m2": 399.781856790185,
+      "eligible_pixels": 766,
+      "generated_roots": 160,
+      "ground_visible_roots": 9,
+      "visible_fade_sum": 7.440976500511169,
+      "visible_roots_per_eligible_m2": 0.022512277251049474,
+      "fade_per_eligible_m2": 0.01861259177756126,
+      "composed_projected_eligible_coverage": 0.132393563158142
+    }
+  ],
+  "nearest_opaque_grass_pixels": 1366,
+  "composed_grass_pixels": 1366,
+  "character_pixels": 1350,
+  "scope": "Controlled live-plan scene; nearest opaque grass stencil after character plus RGB contribution after water/atmosphere/tone mapping; flare/overlays excluded",
+  "coverage_acceptance": false,
+  "eligible_area_method": "Live triangle raster derivatives times expected biome/rock retention; no Gaussian falloff",
+  "root_visibility_method": "Ray intersection with live triangle plane at projected root; one-sided view-depth occlusion allowance; tolerance 0.15 m",
+  "density_scope": "Screen-visible generated root centers per expected eligible ground area; not physical blade count"
+}

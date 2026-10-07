@@ -1,0 +1,2210 @@
+{
+  "snapshots": 48,
+  "matched_snapshots": 40,
+  "groups": [
+    {
+      "group": "production/sprint-25",
+      "pairs": 3,
+      "passing_pairs": 3
+    },
+    {
+      "group": "production/walking-25",
+      "pairs": 3,
+      "passing_pairs": 2
+    },
+    {
+      "group": "production/sprint-350",
+      "pairs": 3,
+      "passing_pairs": 0
+    },
+    {
+      "group": "production/walking-350",
+      "pairs": 3,
+      "passing_pairs": 3
+    }
+  ],
+  "raw_checks": [
+    {
+      "path": "software/compute-airless/coverage/1",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 50.053607271271176,
+          "eligible_pixels": 18727,
+          "generated_roots": 35,
+          "ground_visible_roots": 22,
+          "visible_fade_sum": 19.80797279975377,
+          "visible_roots_per_eligible_m2": 0.4395287612492845,
+          "fade_per_eligible_m2": 0.3957351703425135,
+          "composed_projected_eligible_coverage": 0.08873127364032672
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 172.29053761111572,
+          "eligible_pixels": 2679,
+          "generated_roots": 192,
+          "ground_visible_roots": 46,
+          "visible_fade_sum": 39.443498893175274,
+          "visible_roots_per_eligible_m2": 0.26699086692635754,
+          "fade_per_eligible_m2": 0.22893595574125417,
+          "composed_projected_eligible_coverage": 0.08033416301612352
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 434.4527521505952,
+          "eligible_pixels": 899,
+          "generated_roots": 150,
+          "ground_visible_roots": 18,
+          "visible_fade_sum": 15.55539058148861,
+          "visible_roots_per_eligible_m2": 0.04143143278733478,
+          "fade_per_eligible_m2": 0.0358045621865381,
+          "composed_projected_eligible_coverage": 0.06917644230110317
+        }
+      ],
+      "composed_grass_pixels": 1741,
+      "nearest_opaque_grass_pixels": 1741
+    },
+    {
+      "path": "software/compute-airless/coverage/2",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 52.39181339612696,
+          "eligible_pixels": 20903,
+          "generated_roots": 39,
+          "ground_visible_roots": 26,
+          "visible_fade_sum": 24.112619061022997,
+          "visible_roots_per_eligible_m2": 0.49626073836035683,
+          "fade_per_eligible_m2": 0.460236389962511,
+          "composed_projected_eligible_coverage": 0.07871453539078692
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 130.54995181504637,
+          "eligible_pixels": 1601,
+          "generated_roots": 181,
+          "ground_visible_roots": 32,
+          "visible_fade_sum": 27.00282271951437,
+          "visible_roots_per_eligible_m2": 0.24511690395209998,
+          "fade_per_eligible_m2": 0.20683900946796208,
+          "composed_projected_eligible_coverage": 0.11063818970145681
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 399.781856790185,
+          "eligible_pixels": 766,
+          "generated_roots": 160,
+          "ground_visible_roots": 9,
+          "visible_fade_sum": 7.440976500511169,
+          "visible_roots_per_eligible_m2": 0.022512277251049474,
+          "fade_per_eligible_m2": 0.01861259177756126,
+          "composed_projected_eligible_coverage": 0.132393563158142
+        }
+      ],
+      "composed_grass_pixels": 1366,
+      "nearest_opaque_grass_pixels": 1366
+    },
+    {
+      "path": "software/compute-hdr/coverage/1",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 50.053607271271176,
+          "eligible_pixels": 18727,
+          "generated_roots": 35,
+          "ground_visible_roots": 22,
+          "visible_fade_sum": 19.80797279975377,
+          "visible_roots_per_eligible_m2": 0.4395287612492845,
+          "fade_per_eligible_m2": 0.3957351703425135,
+          "composed_projected_eligible_coverage": 0.08873127364032672
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 172.29053761111572,
+          "eligible_pixels": 2679,
+          "generated_roots": 192,
+          "ground_visible_roots": 46,
+          "visible_fade_sum": 39.443498893175274,
+          "visible_roots_per_eligible_m2": 0.26699086692635754,
+          "fade_per_eligible_m2": 0.22893595574125417,
+          "composed_projected_eligible_coverage": 0.08033416301612352
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 434.4527521505952,
+          "eligible_pixels": 899,
+          "generated_roots": 150,
+          "ground_visible_roots": 18,
+          "visible_fade_sum": 15.55539058148861,
+          "visible_roots_per_eligible_m2": 0.04143143278733478,
+          "fade_per_eligible_m2": 0.0358045621865381,
+          "composed_projected_eligible_coverage": 0.06917644230110317
+        }
+      ],
+      "composed_grass_pixels": 1741,
+      "nearest_opaque_grass_pixels": 1741
+    },
+    {
+      "path": "software/compute-hdr/coverage/2",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 52.269516136686434,
+          "eligible_pixels": 20893,
+          "generated_roots": 39,
+          "ground_visible_roots": 24,
+          "visible_fade_sum": 21.191413173713954,
+          "visible_roots_per_eligible_m2": 0.4591586410947299,
+          "fade_per_eligible_m2": 0.40542585315497737,
+          "composed_projected_eligible_coverage": 0.07831920036021886
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 129.65467343572527,
+          "eligible_pixels": 1575,
+          "generated_roots": 182,
+          "ground_visible_roots": 28,
+          "visible_fade_sum": 24.627862207591534,
+          "visible_roots_per_eligible_m2": 0.21595827792417108,
+          "fade_per_eligible_m2": 0.1899496682609015,
+          "composed_projected_eligible_coverage": 0.11192038451571582
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 412.84785547852516,
+          "eligible_pixels": 824,
+          "generated_roots": 160,
+          "ground_visible_roots": 10,
+          "visible_fade_sum": 8.648282051086426,
+          "visible_roots_per_eligible_m2": 0.02422199817026823,
+          "fade_per_eligible_m2": 0.0209478672017379,
+          "composed_projected_eligible_coverage": 0.13827162735074222
+        }
+      ],
+      "composed_grass_pixels": 1488,
+      "nearest_opaque_grass_pixels": 1488
+    },
+    {
+      "path": "software/cpu-airless/coverage/1",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 50.053607271271176,
+          "eligible_pixels": 18727,
+          "generated_roots": 35,
+          "ground_visible_roots": 22,
+          "visible_fade_sum": 19.80797279975377,
+          "visible_roots_per_eligible_m2": 0.4395287612492845,
+          "fade_per_eligible_m2": 0.3957351703425135,
+          "composed_projected_eligible_coverage": 0.08873127364032672
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 172.29053761111572,
+          "eligible_pixels": 2679,
+          "generated_roots": 192,
+          "ground_visible_roots": 46,
+          "visible_fade_sum": 39.443498893175274,
+          "visible_roots_per_eligible_m2": 0.26699086692635754,
+          "fade_per_eligible_m2": 0.22893595574125417,
+          "composed_projected_eligible_coverage": 0.08033416301612352
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 434.4527521505952,
+          "eligible_pixels": 899,
+          "generated_roots": 150,
+          "ground_visible_roots": 18,
+          "visible_fade_sum": 15.55539058148861,
+          "visible_roots_per_eligible_m2": 0.04143143278733478,
+          "fade_per_eligible_m2": 0.0358045621865381,
+          "composed_projected_eligible_coverage": 0.06917644230110317
+        }
+      ],
+      "composed_grass_pixels": 1741,
+      "nearest_opaque_grass_pixels": 1741
+    },
+    {
+      "path": "software/cpu-airless/coverage/2",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 52.39181339612696,
+          "eligible_pixels": 20903,
+          "generated_roots": 39,
+          "ground_visible_roots": 26,
+          "visible_fade_sum": 24.112619061022997,
+          "visible_roots_per_eligible_m2": 0.49626073836035683,
+          "fade_per_eligible_m2": 0.460236389962511,
+          "composed_projected_eligible_coverage": 0.07871453539078692
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 130.54995181504637,
+          "eligible_pixels": 1601,
+          "generated_roots": 181,
+          "ground_visible_roots": 32,
+          "visible_fade_sum": 27.00282271951437,
+          "visible_roots_per_eligible_m2": 0.24511690395209998,
+          "fade_per_eligible_m2": 0.20683900946796208,
+          "composed_projected_eligible_coverage": 0.11063818970145681
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 399.781856790185,
+          "eligible_pixels": 766,
+          "generated_roots": 160,
+          "ground_visible_roots": 9,
+          "visible_fade_sum": 7.440976500511169,
+          "visible_roots_per_eligible_m2": 0.022512277251049474,
+          "fade_per_eligible_m2": 0.01861259177756126,
+          "composed_projected_eligible_coverage": 0.132393563158142
+        }
+      ],
+      "composed_grass_pixels": 1366,
+      "nearest_opaque_grass_pixels": 1366
+    },
+    {
+      "path": "software/cpu-hdr/coverage/1",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 50.053607271271176,
+          "eligible_pixels": 18727,
+          "generated_roots": 35,
+          "ground_visible_roots": 22,
+          "visible_fade_sum": 19.80797279975377,
+          "visible_roots_per_eligible_m2": 0.4395287612492845,
+          "fade_per_eligible_m2": 0.3957351703425135,
+          "composed_projected_eligible_coverage": 0.08873127364032672
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 172.29053761111572,
+          "eligible_pixels": 2679,
+          "generated_roots": 192,
+          "ground_visible_roots": 46,
+          "visible_fade_sum": 39.443498893175274,
+          "visible_roots_per_eligible_m2": 0.26699086692635754,
+          "fade_per_eligible_m2": 0.22893595574125417,
+          "composed_projected_eligible_coverage": 0.08033416301612352
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 434.4527521505952,
+          "eligible_pixels": 899,
+          "generated_roots": 150,
+          "ground_visible_roots": 18,
+          "visible_fade_sum": 15.55539058148861,
+          "visible_roots_per_eligible_m2": 0.04143143278733478,
+          "fade_per_eligible_m2": 0.0358045621865381,
+          "composed_projected_eligible_coverage": 0.06917644230110317
+        }
+      ],
+      "composed_grass_pixels": 1741,
+      "nearest_opaque_grass_pixels": 1741
+    },
+    {
+      "path": "software/cpu-hdr/coverage/2",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 52.269516136686434,
+          "eligible_pixels": 20893,
+          "generated_roots": 39,
+          "ground_visible_roots": 24,
+          "visible_fade_sum": 21.191413173713954,
+          "visible_roots_per_eligible_m2": 0.4591586410947299,
+          "fade_per_eligible_m2": 0.40542585315497737,
+          "composed_projected_eligible_coverage": 0.07831920036021886
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 129.65467343572527,
+          "eligible_pixels": 1575,
+          "generated_roots": 182,
+          "ground_visible_roots": 28,
+          "visible_fade_sum": 24.627862207591534,
+          "visible_roots_per_eligible_m2": 0.21595827792417108,
+          "fade_per_eligible_m2": 0.1899496682609015,
+          "composed_projected_eligible_coverage": 0.11192038451571582
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 412.84785547852516,
+          "eligible_pixels": 824,
+          "generated_roots": 160,
+          "ground_visible_roots": 10,
+          "visible_fade_sum": 8.648282051086426,
+          "visible_roots_per_eligible_m2": 0.02422199817026823,
+          "fade_per_eligible_m2": 0.0209478672017379,
+          "composed_projected_eligible_coverage": 0.13827162735074222
+        }
+      ],
+      "composed_grass_pixels": 1488,
+      "nearest_opaque_grass_pixels": 1488
+    },
+    {
+      "path": "quadro/compute-airless/coverage/1",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 50.59635776327923,
+          "eligible_pixels": 18668,
+          "generated_roots": 34,
+          "ground_visible_roots": 21,
+          "visible_fade_sum": 19.421248281374574,
+          "visible_roots_per_eligible_m2": 0.4150496385184655,
+          "fade_per_eligible_m2": 0.38384676565532794,
+          "composed_projected_eligible_coverage": 0.0916015164771091
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 384.1970234219916,
+          "eligible_pixels": 2744,
+          "generated_roots": 191,
+          "ground_visible_roots": 54,
+          "visible_fade_sum": 47.16336639970541,
+          "visible_roots_per_eligible_m2": 0.14055288486888629,
+          "fade_per_eligible_m2": 0.1227582816223499,
+          "composed_projected_eligible_coverage": 0.07070030376160281
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 500.22805462032557,
+          "eligible_pixels": 934,
+          "generated_roots": 152,
+          "ground_visible_roots": 14,
+          "visible_fade_sum": 12.348042072728276,
+          "visible_roots_per_eligible_m2": 0.027987234763604048,
+          "fade_per_eligible_m2": 0.0246848251685933,
+          "composed_projected_eligible_coverage": 0.11673845812212345
+        }
+      ],
+      "composed_grass_pixels": 1819,
+      "nearest_opaque_grass_pixels": 1819
+    },
+    {
+      "path": "quadro/compute-airless/coverage/2",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 51.655382843011466,
+          "eligible_pixels": 20776,
+          "generated_roots": 37,
+          "ground_visible_roots": 25,
+          "visible_fade_sum": 22.355682034045458,
+          "visible_roots_per_eligible_m2": 0.4839766665940467,
+          "fade_per_eligible_m2": 0.43278513881094954,
+          "composed_projected_eligible_coverage": 0.07701097807537265
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 147.1035869414918,
+          "eligible_pixels": 1756,
+          "generated_roots": 187,
+          "ground_visible_roots": 44,
+          "visible_fade_sum": 36.99615622489364,
+          "visible_roots_per_eligible_m2": 0.2991089538659606,
+          "fade_per_eligible_m2": 0.25149730876112686,
+          "composed_projected_eligible_coverage": 0.14772573587173496
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 396.60658187419176,
+          "eligible_pixels": 709,
+          "generated_roots": 158,
+          "ground_visible_roots": 8,
+          "visible_fade_sum": 5.868259936571121,
+          "visible_roots_per_eligible_m2": 0.020171122632900967,
+          "fade_per_eligible_m2": 0.014796173852789467,
+          "composed_projected_eligible_coverage": 0.14023383221456379
+        }
+      ],
+      "composed_grass_pixels": 1150,
+      "nearest_opaque_grass_pixels": 1150
+    },
+    {
+      "path": "quadro/compute-hdr/coverage/1",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 50.59635776327923,
+          "eligible_pixels": 18668,
+          "generated_roots": 34,
+          "ground_visible_roots": 21,
+          "visible_fade_sum": 19.421248281374574,
+          "visible_roots_per_eligible_m2": 0.4150496385184655,
+          "fade_per_eligible_m2": 0.38384676565532794,
+          "composed_projected_eligible_coverage": 0.0916015164771091
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 384.1970234219916,
+          "eligible_pixels": 2744,
+          "generated_roots": 191,
+          "ground_visible_roots": 54,
+          "visible_fade_sum": 47.16336639970541,
+          "visible_roots_per_eligible_m2": 0.14055288486888629,
+          "fade_per_eligible_m2": 0.1227582816223499,
+          "composed_projected_eligible_coverage": 0.07070030376160281
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 500.22805462032557,
+          "eligible_pixels": 934,
+          "generated_roots": 152,
+          "ground_visible_roots": 14,
+          "visible_fade_sum": 12.348042072728276,
+          "visible_roots_per_eligible_m2": 0.027987234763604048,
+          "fade_per_eligible_m2": 0.0246848251685933,
+          "composed_projected_eligible_coverage": 0.11673845812212345
+        }
+      ],
+      "composed_grass_pixels": 1819,
+      "nearest_opaque_grass_pixels": 1819
+    },
+    {
+      "path": "quadro/compute-hdr/coverage/2",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 51.59417345532711,
+          "eligible_pixels": 20780,
+          "generated_roots": 37,
+          "ground_visible_roots": 25,
+          "visible_fade_sum": 22.356320206075907,
+          "visible_roots_per_eligible_m2": 0.4845508383160026,
+          "fade_per_eligible_m2": 0.43331094790060276,
+          "composed_projected_eligible_coverage": 0.07875306652757903
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 146.5765812736936,
+          "eligible_pixels": 1755,
+          "generated_roots": 187,
+          "ground_visible_roots": 44,
+          "visible_fade_sum": 37.002431268658256,
+          "visible_roots_per_eligible_m2": 0.30018437882543775,
+          "fade_per_eligible_m2": 0.25244436012302574,
+          "composed_projected_eligible_coverage": 0.14823414567836507
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 396.50167748332024,
+          "eligible_pixels": 709,
+          "generated_roots": 158,
+          "ground_visible_roots": 8,
+          "visible_fade_sum": 5.871099196374416,
+          "visible_roots_per_eligible_m2": 0.020176459405613835,
+          "fade_per_eligible_m2": 0.014807249325247553,
+          "composed_projected_eligible_coverage": 0.14128808688978028
+        }
+      ],
+      "composed_grass_pixels": 1160,
+      "nearest_opaque_grass_pixels": 1160
+    },
+    {
+      "path": "quadro/cpu-airless/coverage/1",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 50.59635776327923,
+          "eligible_pixels": 18668,
+          "generated_roots": 34,
+          "ground_visible_roots": 21,
+          "visible_fade_sum": 19.421248281374574,
+          "visible_roots_per_eligible_m2": 0.4150496385184655,
+          "fade_per_eligible_m2": 0.38384676565532794,
+          "composed_projected_eligible_coverage": 0.0916015164771091
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 384.1970234219916,
+          "eligible_pixels": 2744,
+          "generated_roots": 191,
+          "ground_visible_roots": 54,
+          "visible_fade_sum": 47.16336639970541,
+          "visible_roots_per_eligible_m2": 0.14055288486888629,
+          "fade_per_eligible_m2": 0.1227582816223499,
+          "composed_projected_eligible_coverage": 0.07070030376160281
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 500.22805462032557,
+          "eligible_pixels": 934,
+          "generated_roots": 152,
+          "ground_visible_roots": 14,
+          "visible_fade_sum": 12.348042072728276,
+          "visible_roots_per_eligible_m2": 0.027987234763604048,
+          "fade_per_eligible_m2": 0.0246848251685933,
+          "composed_projected_eligible_coverage": 0.11673845812212345
+        }
+      ],
+      "composed_grass_pixels": 1819,
+      "nearest_opaque_grass_pixels": 1819
+    },
+    {
+      "path": "quadro/cpu-airless/coverage/2",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 51.655382843011466,
+          "eligible_pixels": 20776,
+          "generated_roots": 37,
+          "ground_visible_roots": 25,
+          "visible_fade_sum": 22.355682034045458,
+          "visible_roots_per_eligible_m2": 0.4839766665940467,
+          "fade_per_eligible_m2": 0.43278513881094954,
+          "composed_projected_eligible_coverage": 0.07701097807537265
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 147.1035869414918,
+          "eligible_pixels": 1756,
+          "generated_roots": 187,
+          "ground_visible_roots": 44,
+          "visible_fade_sum": 36.99615622489364,
+          "visible_roots_per_eligible_m2": 0.2991089538659606,
+          "fade_per_eligible_m2": 0.25149730876112686,
+          "composed_projected_eligible_coverage": 0.14772573587173496
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 396.60658187419176,
+          "eligible_pixels": 709,
+          "generated_roots": 158,
+          "ground_visible_roots": 8,
+          "visible_fade_sum": 5.868259936571121,
+          "visible_roots_per_eligible_m2": 0.020171122632900967,
+          "fade_per_eligible_m2": 0.014796173852789467,
+          "composed_projected_eligible_coverage": 0.14023383221456379
+        }
+      ],
+      "composed_grass_pixels": 1150,
+      "nearest_opaque_grass_pixels": 1150
+    },
+    {
+      "path": "quadro/cpu-hdr/coverage/1",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 50.59635776327923,
+          "eligible_pixels": 18668,
+          "generated_roots": 34,
+          "ground_visible_roots": 21,
+          "visible_fade_sum": 19.421248281374574,
+          "visible_roots_per_eligible_m2": 0.4150496385184655,
+          "fade_per_eligible_m2": 0.38384676565532794,
+          "composed_projected_eligible_coverage": 0.0916015164771091
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 384.1970234219916,
+          "eligible_pixels": 2744,
+          "generated_roots": 191,
+          "ground_visible_roots": 54,
+          "visible_fade_sum": 47.16336639970541,
+          "visible_roots_per_eligible_m2": 0.14055288486888629,
+          "fade_per_eligible_m2": 0.1227582816223499,
+          "composed_projected_eligible_coverage": 0.07070030376160281
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 500.22805462032557,
+          "eligible_pixels": 934,
+          "generated_roots": 152,
+          "ground_visible_roots": 14,
+          "visible_fade_sum": 12.348042072728276,
+          "visible_roots_per_eligible_m2": 0.027987234763604048,
+          "fade_per_eligible_m2": 0.0246848251685933,
+          "composed_projected_eligible_coverage": 0.11673845812212345
+        }
+      ],
+      "composed_grass_pixels": 1819,
+      "nearest_opaque_grass_pixels": 1819
+    },
+    {
+      "path": "quadro/cpu-hdr/coverage/2",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 51.59417345532711,
+          "eligible_pixels": 20780,
+          "generated_roots": 37,
+          "ground_visible_roots": 25,
+          "visible_fade_sum": 22.356320206075907,
+          "visible_roots_per_eligible_m2": 0.4845508383160026,
+          "fade_per_eligible_m2": 0.43331094790060276,
+          "composed_projected_eligible_coverage": 0.07875306652757903
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 146.5765812736936,
+          "eligible_pixels": 1755,
+          "generated_roots": 187,
+          "ground_visible_roots": 44,
+          "visible_fade_sum": 37.002431268658256,
+          "visible_roots_per_eligible_m2": 0.30018437882543775,
+          "fade_per_eligible_m2": 0.25244436012302574,
+          "composed_projected_eligible_coverage": 0.14823414567836507
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 396.50167748332024,
+          "eligible_pixels": 709,
+          "generated_roots": 158,
+          "ground_visible_roots": 8,
+          "visible_fade_sum": 5.871099196374416,
+          "visible_roots_per_eligible_m2": 0.020176459405613835,
+          "fade_per_eligible_m2": 0.014807249325247553,
+          "composed_projected_eligible_coverage": 0.14128808688978028
+        }
+      ],
+      "composed_grass_pixels": 1160,
+      "nearest_opaque_grass_pixels": 1160
+    },
+    {
+      "path": "ordinary/compute-airless/coverage/1",
+      "ordinary_snapshot": true,
+      "opaque_grass_pixels": 437
+    },
+    {
+      "path": "ordinary/compute-airless/coverage/2",
+      "ordinary_snapshot": true,
+      "opaque_grass_pixels": 477
+    },
+    {
+      "path": "ordinary/compute-hdr/coverage/1",
+      "ordinary_snapshot": true,
+      "opaque_grass_pixels": 682
+    },
+    {
+      "path": "ordinary/compute-hdr/coverage/2",
+      "ordinary_snapshot": true,
+      "opaque_grass_pixels": 712
+    },
+    {
+      "path": "ordinary/cpu-airless/coverage/1",
+      "ordinary_snapshot": true,
+      "opaque_grass_pixels": 438
+    },
+    {
+      "path": "ordinary/cpu-airless/coverage/2",
+      "ordinary_snapshot": true,
+      "opaque_grass_pixels": 506
+    },
+    {
+      "path": "ordinary/cpu-hdr/coverage/1",
+      "ordinary_snapshot": true,
+      "opaque_grass_pixels": 702
+    },
+    {
+      "path": "ordinary/cpu-hdr/coverage/2",
+      "ordinary_snapshot": true,
+      "opaque_grass_pixels": 751
+    },
+    {
+      "path": "production/sprint-25/pair-1/compute/coverage/1",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 59.171803399791315,
+          "eligible_pixels": 391387,
+          "generated_roots": 3637,
+          "ground_visible_roots": 2701,
+          "visible_fade_sum": 2451.047922968136,
+          "visible_roots_per_eligible_m2": 45.646741265444106,
+          "fade_per_eligible_m2": 41.42256585299173,
+          "composed_projected_eligible_coverage": 0.8906694535156017
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 278.0077317141986,
+          "eligible_pixels": 175312,
+          "generated_roots": 23560,
+          "ground_visible_roots": 12682,
+          "visible_fade_sum": 11519.89605716579,
+          "visible_roots_per_eligible_m2": 45.61743632740951,
+          "fade_per_eligible_m2": 41.4373225742104,
+          "composed_projected_eligible_coverage": 0.9978043548687946
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 772.9210267579183,
+          "eligible_pixels": 47763,
+          "generated_roots": 34368,
+          "ground_visible_roots": 30944,
+          "visible_fade_sum": 26085.47242403883,
+          "visible_roots_per_eligible_m2": 40.03513803964836,
+          "fade_per_eligible_m2": 33.74920790220512,
+          "composed_projected_eligible_coverage": 0.9998462738244557
+        }
+      ],
+      "composed_grass_pixels": 576417,
+      "nearest_opaque_grass_pixels": 606141
+    },
+    {
+      "path": "production/sprint-25/pair-1/cpu/coverage/1",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 59.171803399791315,
+          "eligible_pixels": 391387,
+          "generated_roots": 3643,
+          "ground_visible_roots": 2706,
+          "visible_fade_sum": 2455.0237467028996,
+          "visible_roots_per_eligible_m2": 45.73124097160005,
+          "fade_per_eligible_m2": 41.48975704045481,
+          "composed_projected_eligible_coverage": 0.8909900862742215
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 278.0077317141986,
+          "eligible_pixels": 175312,
+          "generated_roots": 23587,
+          "ground_visible_roots": 12699,
+          "visible_fade_sum": 11538.45414689139,
+          "visible_roots_per_eligible_m2": 45.678585705864485,
+          "fade_per_eligible_m2": 41.50407643609464,
+          "composed_projected_eligible_coverage": 0.9978149534013936
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 772.9210267579183,
+          "eligible_pixels": 47763,
+          "generated_roots": 34421,
+          "ground_visible_roots": 30992,
+          "visible_fade_sum": 26127.469040878957,
+          "visible_roots_per_eligible_m2": 40.09724011520107,
+          "fade_per_eligible_m2": 33.80354284120437,
+          "composed_projected_eligible_coverage": 0.9998462738244557
+        }
+      ],
+      "composed_grass_pixels": 576603,
+      "nearest_opaque_grass_pixels": 606291
+    },
+    {
+      "path": "production/sprint-25/pair-2/compute/coverage/1",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 59.171803399791315,
+          "eligible_pixels": 391387,
+          "generated_roots": 3637,
+          "ground_visible_roots": 2701,
+          "visible_fade_sum": 2451.047922968136,
+          "visible_roots_per_eligible_m2": 45.646741265444106,
+          "fade_per_eligible_m2": 41.42256585299173,
+          "composed_projected_eligible_coverage": 0.8906694535156017
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 278.0077317141986,
+          "eligible_pixels": 175312,
+          "generated_roots": 23560,
+          "ground_visible_roots": 12682,
+          "visible_fade_sum": 11519.89605716579,
+          "visible_roots_per_eligible_m2": 45.61743632740951,
+          "fade_per_eligible_m2": 41.4373225742104,
+          "composed_projected_eligible_coverage": 0.9978043548687946
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 772.9210267579183,
+          "eligible_pixels": 47763,
+          "generated_roots": 34368,
+          "ground_visible_roots": 30944,
+          "visible_fade_sum": 26085.47242403883,
+          "visible_roots_per_eligible_m2": 40.03513803964836,
+          "fade_per_eligible_m2": 33.74920790220512,
+          "composed_projected_eligible_coverage": 0.9998462738244557
+        }
+      ],
+      "composed_grass_pixels": 576417,
+      "nearest_opaque_grass_pixels": 606141
+    },
+    {
+      "path": "production/sprint-25/pair-2/cpu/coverage/1",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 59.171803399791315,
+          "eligible_pixels": 391387,
+          "generated_roots": 3640,
+          "ground_visible_roots": 2703,
+          "visible_fade_sum": 2453.529555770401,
+          "visible_roots_per_eligible_m2": 45.68054114790648,
+          "fade_per_eligible_m2": 41.46450530150741,
+          "composed_projected_eligible_coverage": 0.8908620260745153
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 278.0077317141986,
+          "eligible_pixels": 175312,
+          "generated_roots": 23577,
+          "ground_visible_roots": 12693,
+          "visible_fade_sum": 11531.482919744805,
+          "visible_roots_per_eligible_m2": 45.65700357229214,
+          "fade_per_eligible_m2": 41.47900077685451,
+          "composed_projected_eligible_coverage": 0.9978106837150774
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 772.9210267579183,
+          "eligible_pixels": 47763,
+          "generated_roots": 34402,
+          "ground_visible_roots": 30974,
+          "visible_fade_sum": 26111.69304117234,
+          "visible_roots_per_eligible_m2": 40.0739518368688,
+          "fade_per_eligible_m2": 33.78313195941895,
+          "composed_projected_eligible_coverage": 0.9998462738244557
+        }
+      ],
+      "composed_grass_pixels": 576536,
+      "nearest_opaque_grass_pixels": 606239
+    },
+    {
+      "path": "production/sprint-25/pair-3/compute/coverage/1",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 59.171803399791315,
+          "eligible_pixels": 391387,
+          "generated_roots": 3637,
+          "ground_visible_roots": 2701,
+          "visible_fade_sum": 2451.047922968136,
+          "visible_roots_per_eligible_m2": 45.646741265444106,
+          "fade_per_eligible_m2": 41.42256585299173,
+          "composed_projected_eligible_coverage": 0.8906694535156017
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 278.0077317141986,
+          "eligible_pixels": 175312,
+          "generated_roots": 23560,
+          "ground_visible_roots": 12682,
+          "visible_fade_sum": 11519.89605716579,
+          "visible_roots_per_eligible_m2": 45.61743632740951,
+          "fade_per_eligible_m2": 41.4373225742104,
+          "composed_projected_eligible_coverage": 0.9978043548687946
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 772.9210267579183,
+          "eligible_pixels": 47763,
+          "generated_roots": 34368,
+          "ground_visible_roots": 30944,
+          "visible_fade_sum": 26085.47242403883,
+          "visible_roots_per_eligible_m2": 40.03513803964836,
+          "fade_per_eligible_m2": 33.74920790220512,
+          "composed_projected_eligible_coverage": 0.9998462738244557
+        }
+      ],
+      "composed_grass_pixels": 576417,
+      "nearest_opaque_grass_pixels": 606141
+    },
+    {
+      "path": "production/sprint-25/pair-3/cpu/coverage/1",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 59.171803399791315,
+          "eligible_pixels": 391387,
+          "generated_roots": 3624,
+          "ground_visible_roots": 2691,
+          "visible_fade_sum": 2444.9124338729803,
+          "visible_roots_per_eligible_m2": 45.47774185313221,
+          "fade_per_eligible_m2": 41.318876447859,
+          "composed_projected_eligible_coverage": 0.8902394083240237
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 278.0077317141986,
+          "eligible_pixels": 175312,
+          "generated_roots": 23511,
+          "ground_visible_roots": 12650,
+          "visible_fade_sum": 11491.206901475423,
+          "visible_roots_per_eligible_m2": 45.50233161502368,
+          "fade_per_eligible_m2": 41.33412704251253,
+          "composed_projected_eligible_coverage": 0.997792222205747
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 772.9210267579183,
+          "eligible_pixels": 47763,
+          "generated_roots": 34294,
+          "ground_visible_roots": 30880,
+          "visible_fade_sum": 26020.558098725334,
+          "visible_roots_per_eligible_m2": 39.95233527224474,
+          "fade_per_eligible_m2": 33.665222186891114,
+          "composed_projected_eligible_coverage": 0.9998462738244557
+        }
+      ],
+      "composed_grass_pixels": 576132,
+      "nearest_opaque_grass_pixels": 605915
+    },
+    {
+      "path": "production/walking-25/pair-1/compute/coverage/1",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 59.31924106234692,
+          "eligible_pixels": 396908,
+          "generated_roots": 3819,
+          "ground_visible_roots": 2869,
+          "visible_fade_sum": 2612.6615995867587,
+          "visible_roots_per_eligible_m2": 48.365419864097134,
+          "fade_per_eligible_m2": 44.04408338334514,
+          "composed_projected_eligible_coverage": 0.9003818923178782
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 277.9164321719436,
+          "eligible_pixels": 171768,
+          "generated_roots": 23041,
+          "ground_visible_roots": 12631,
+          "visible_fade_sum": 11481.371535120144,
+          "visible_roots_per_eligible_m2": 45.44891391015465,
+          "fade_per_eligible_m2": 41.31231624338339,
+          "composed_projected_eligible_coverage": 0.998011370409609
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 771.4797333923634,
+          "eligible_pixels": 46882,
+          "generated_roots": 34462,
+          "ground_visible_roots": 31085,
+          "visible_fade_sum": 26225.45066684049,
+          "visible_roots_per_eligible_m2": 40.29269811575286,
+          "fade_per_eligible_m2": 33.993700069762696,
+          "composed_projected_eligible_coverage": 0.9999793790850189
+        }
+      ],
+      "composed_grass_pixels": 580271,
+      "nearest_opaque_grass_pixels": 612340
+    },
+    {
+      "path": "production/walking-25/pair-1/cpu/coverage/1",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 59.31924106234692,
+          "eligible_pixels": 396908,
+          "generated_roots": 3644,
+          "ground_visible_roots": 2723,
+          "visible_fade_sum": 2470.07933053471,
+          "visible_roots_per_eligible_m2": 45.90416113277675,
+          "fade_per_eligible_m2": 41.64044054337373,
+          "composed_projected_eligible_coverage": 0.8856066900002665
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 277.9164321719436,
+          "eligible_pixels": 171768,
+          "generated_roots": 23078,
+          "ground_visible_roots": 12624,
+          "visible_fade_sum": 11461.235259413184,
+          "visible_roots_per_eligible_m2": 45.42372648260568,
+          "fade_per_eligible_m2": 41.239861816886936,
+          "composed_projected_eligible_coverage": 0.9976598049965573
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 771.4166736265179,
+          "eligible_pixels": 46881,
+          "generated_roots": 34346,
+          "ground_visible_roots": 30951,
+          "visible_fade_sum": 26078.212843774534,
+          "visible_roots_per_eligible_m2": 40.12228547575439,
+          "fade_per_eligible_m2": 33.80561210996112,
+          "composed_projected_eligible_coverage": 0.999899335307473
+        }
+      ],
+      "composed_grass_pixels": 564605,
+      "nearest_opaque_grass_pixels": 599707
+    },
+    {
+      "path": "production/walking-25/pair-2/compute/coverage/1",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 59.31924106234692,
+          "eligible_pixels": 396908,
+          "generated_roots": 3644,
+          "ground_visible_roots": 2723,
+          "visible_fade_sum": 2470.07933053471,
+          "visible_roots_per_eligible_m2": 45.90416113277675,
+          "fade_per_eligible_m2": 41.64044054337373,
+          "composed_projected_eligible_coverage": 0.8856066900002665
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 277.9164321719436,
+          "eligible_pixels": 171768,
+          "generated_roots": 23078,
+          "ground_visible_roots": 12624,
+          "visible_fade_sum": 11461.235259413184,
+          "visible_roots_per_eligible_m2": 45.42372648260568,
+          "fade_per_eligible_m2": 41.239861816886936,
+          "composed_projected_eligible_coverage": 0.9976598049965573
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 771.4166736265179,
+          "eligible_pixels": 46881,
+          "generated_roots": 34346,
+          "ground_visible_roots": 30951,
+          "visible_fade_sum": 26078.212843774534,
+          "visible_roots_per_eligible_m2": 40.12228547575439,
+          "fade_per_eligible_m2": 33.80561210996112,
+          "composed_projected_eligible_coverage": 0.999899335307473
+        }
+      ],
+      "composed_grass_pixels": 564605,
+      "nearest_opaque_grass_pixels": 599707
+    },
+    {
+      "path": "production/walking-25/pair-2/cpu/coverage/1",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 59.31924106234692,
+          "eligible_pixels": 396908,
+          "generated_roots": 3644,
+          "ground_visible_roots": 2723,
+          "visible_fade_sum": 2470.07933053471,
+          "visible_roots_per_eligible_m2": 45.90416113277675,
+          "fade_per_eligible_m2": 41.64044054337373,
+          "composed_projected_eligible_coverage": 0.8856066900002665
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 277.9164321719436,
+          "eligible_pixels": 171768,
+          "generated_roots": 23078,
+          "ground_visible_roots": 12624,
+          "visible_fade_sum": 11461.235259413184,
+          "visible_roots_per_eligible_m2": 45.42372648260568,
+          "fade_per_eligible_m2": 41.239861816886936,
+          "composed_projected_eligible_coverage": 0.9976598049965573
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 771.4166736265179,
+          "eligible_pixels": 46881,
+          "generated_roots": 34346,
+          "ground_visible_roots": 30951,
+          "visible_fade_sum": 26078.212843774534,
+          "visible_roots_per_eligible_m2": 40.12228547575439,
+          "fade_per_eligible_m2": 33.80561210996112,
+          "composed_projected_eligible_coverage": 0.999899335307473
+        }
+      ],
+      "composed_grass_pixels": 564605,
+      "nearest_opaque_grass_pixels": 599707
+    },
+    {
+      "path": "production/walking-25/pair-3/compute/coverage/1",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 59.31924106234692,
+          "eligible_pixels": 396908,
+          "generated_roots": 3644,
+          "ground_visible_roots": 2723,
+          "visible_fade_sum": 2470.07933053471,
+          "visible_roots_per_eligible_m2": 45.90416113277675,
+          "fade_per_eligible_m2": 41.64044054337373,
+          "composed_projected_eligible_coverage": 0.8856066900002665
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 277.9164321719436,
+          "eligible_pixels": 171768,
+          "generated_roots": 23078,
+          "ground_visible_roots": 12624,
+          "visible_fade_sum": 11461.235259413184,
+          "visible_roots_per_eligible_m2": 45.42372648260568,
+          "fade_per_eligible_m2": 41.239861816886936,
+          "composed_projected_eligible_coverage": 0.9976598049965573
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 771.4166736265179,
+          "eligible_pixels": 46881,
+          "generated_roots": 34346,
+          "ground_visible_roots": 30951,
+          "visible_fade_sum": 26078.212843774534,
+          "visible_roots_per_eligible_m2": 40.12228547575439,
+          "fade_per_eligible_m2": 33.80561210996112,
+          "composed_projected_eligible_coverage": 0.999899335307473
+        }
+      ],
+      "composed_grass_pixels": 564605,
+      "nearest_opaque_grass_pixels": 599707
+    },
+    {
+      "path": "production/walking-25/pair-3/cpu/coverage/1",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 59.31924106234692,
+          "eligible_pixels": 396908,
+          "generated_roots": 3644,
+          "ground_visible_roots": 2723,
+          "visible_fade_sum": 2470.07933053471,
+          "visible_roots_per_eligible_m2": 45.90416113277675,
+          "fade_per_eligible_m2": 41.64044054337373,
+          "composed_projected_eligible_coverage": 0.8856066900002665
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 277.9164321719436,
+          "eligible_pixels": 171768,
+          "generated_roots": 23078,
+          "ground_visible_roots": 12624,
+          "visible_fade_sum": 11461.235259413184,
+          "visible_roots_per_eligible_m2": 45.42372648260568,
+          "fade_per_eligible_m2": 41.239861816886936,
+          "composed_projected_eligible_coverage": 0.9976598049965573
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 771.4166736265179,
+          "eligible_pixels": 46881,
+          "generated_roots": 34346,
+          "ground_visible_roots": 30951,
+          "visible_fade_sum": 26078.212843774534,
+          "visible_roots_per_eligible_m2": 40.12228547575439,
+          "fade_per_eligible_m2": 33.80561210996112,
+          "composed_projected_eligible_coverage": 0.999899335307473
+        }
+      ],
+      "composed_grass_pixels": 564605,
+      "nearest_opaque_grass_pixels": 599707
+    },
+    {
+      "path": "production/sprint-350/pair-1/compute/coverage/1",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 58.47891991283541,
+          "eligible_pixels": 403191,
+          "generated_roots": 4459,
+          "ground_visible_roots": 3291,
+          "visible_fade_sum": 3001.7486612791213,
+          "visible_roots_per_eligible_m2": 56.276689188263646,
+          "fade_per_eligible_m2": 51.33043951142255,
+          "composed_projected_eligible_coverage": 0.9433339573738214
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 275.90275581838796,
+          "eligible_pixels": 192254,
+          "generated_roots": 20484,
+          "ground_visible_roots": 15295,
+          "visible_fade_sum": 13890.900419226933,
+          "visible_roots_per_eligible_m2": 55.43619872382819,
+          "fade_per_eligible_m2": 50.347088335611154,
+          "composed_projected_eligible_coverage": 0.9990896254232013
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 845.1707057121675,
+          "eligible_pixels": 51078,
+          "generated_roots": 43790,
+          "ground_visible_roots": 36502,
+          "visible_fade_sum": 30779.463527324653,
+          "visible_roots_per_eligible_m2": 43.18890817357691,
+          "fade_per_eligible_m2": 36.41804350209808,
+          "composed_projected_eligible_coverage": 0.9998217967918092
+        }
+      ],
+      "composed_grass_pixels": 646230,
+      "nearest_opaque_grass_pixels": 672389
+    },
+    {
+      "path": "production/sprint-350/pair-1/cpu/coverage/1",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 58.47891991283541,
+          "eligible_pixels": 403191,
+          "generated_roots": 4580,
+          "ground_visible_roots": 3420,
+          "visible_fade_sum": 3110.28952651985,
+          "visible_roots_per_eligible_m2": 58.482612283154566,
+          "fade_per_eligible_m2": 53.186507739127705,
+          "composed_projected_eligible_coverage": 0.9425467198728353
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 275.90275581838796,
+          "eligible_pixels": 192254,
+          "generated_roots": 20780,
+          "ground_visible_roots": 15519,
+          "visible_fade_sum": 14111.456814094749,
+          "visible_roots_per_eligible_m2": 56.248078979737805,
+          "fade_per_eligible_m2": 51.1464873637709,
+          "composed_projected_eligible_coverage": 0.9986903313190725
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 895.4028125086334,
+          "eligible_pixels": 51160,
+          "generated_roots": 44853,
+          "ground_visible_roots": 37407,
+          "visible_fade_sum": 31623.946027973234,
+          "visible_roots_per_eligible_m2": 41.77672828075836,
+          "fade_per_eligible_m2": 35.31812228663099,
+          "composed_projected_eligible_coverage": 0.9999110887192442
+        }
+      ],
+      "composed_grass_pixels": 645081,
+      "nearest_opaque_grass_pixels": 671831
+    },
+    {
+      "path": "production/sprint-350/pair-2/compute/coverage/1",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 58.47891991283541,
+          "eligible_pixels": 403191,
+          "generated_roots": 4492,
+          "ground_visible_roots": 3324,
+          "visible_fade_sum": 3019.951504775164,
+          "visible_roots_per_eligible_m2": 56.84099509625899,
+          "fade_per_eligible_m2": 51.641711394062895,
+          "composed_projected_eligible_coverage": 0.9437184945617838
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 275.90275581838796,
+          "eligible_pixels": 192254,
+          "generated_roots": 20146,
+          "ground_visible_roots": 15318,
+          "visible_fade_sum": 13904.37131505538,
+          "visible_roots_per_eligible_m2": 55.519561428676056,
+          "fade_per_eligible_m2": 50.39591313182781,
+          "composed_projected_eligible_coverage": 0.9992156233516842
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 845.1707057121675,
+          "eligible_pixels": 51078,
+          "generated_roots": 43711,
+          "ground_visible_roots": 36462,
+          "visible_fade_sum": 30888.075427177264,
+          "visible_roots_per_eligible_m2": 43.14158045654927,
+          "fade_per_eligible_m2": 36.546552333649565,
+          "composed_projected_eligible_coverage": 0.9999029326058193
+        }
+      ],
+      "composed_grass_pixels": 647921,
+      "nearest_opaque_grass_pixels": 672486
+    },
+    {
+      "path": "production/sprint-350/pair-2/cpu/coverage/1",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 58.47891991283541,
+          "eligible_pixels": 403191,
+          "generated_roots": 4591,
+          "ground_visible_roots": 3389,
+          "visible_fade_sum": 3082.5530722353083,
+          "visible_roots_per_eligible_m2": 57.952506733219536,
+          "fade_per_eligible_m2": 52.71220940520014,
+          "composed_projected_eligible_coverage": 0.9477112453686534
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 275.90275581838796,
+          "eligible_pixels": 192254,
+          "generated_roots": 20845,
+          "ground_visible_roots": 15594,
+          "visible_fade_sum": 14186.033252718593,
+          "visible_roots_per_eligible_m2": 56.5199138868504,
+          "fade_per_eligible_m2": 51.41678708731891,
+          "composed_projected_eligible_coverage": 0.9993574346310042
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 899.5913159686606,
+          "eligible_pixels": 51163,
+          "generated_roots": 44745,
+          "ground_visible_roots": 37391,
+          "visible_fade_sum": 31580.706909306376,
+          "visible_roots_per_eligible_m2": 41.564429687427754,
+          "fade_per_eligible_m2": 35.10561557088948,
+          "composed_projected_eligible_coverage": 0.99995135291726
+        }
+      ],
+      "composed_grass_pixels": 652966,
+      "nearest_opaque_grass_pixels": 678289
+    },
+    {
+      "path": "production/sprint-350/pair-3/compute/coverage/1",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 58.47891991283541,
+          "eligible_pixels": 403191,
+          "generated_roots": 4457,
+          "ground_visible_roots": 3310,
+          "visible_fade_sum": 3023.5469054092628,
+          "visible_roots_per_eligible_m2": 56.60159258983673,
+          "fade_per_eligible_m2": 51.703193388591146,
+          "composed_projected_eligible_coverage": 0.9365475858023679
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 275.90275581838796,
+          "eligible_pixels": 192254,
+          "generated_roots": 20302,
+          "ground_visible_roots": 15189,
+          "visible_fade_sum": 13818.197720369017,
+          "visible_roots_per_eligible_m2": 55.052005388442396,
+          "fade_per_eligible_m2": 50.08357991706613,
+          "composed_projected_eligible_coverage": 0.9990245539636942
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 845.4769204843324,
+          "eligible_pixels": 51079,
+          "generated_roots": 43606,
+          "ground_visible_roots": 36315,
+          "visible_fade_sum": 30592.190902375343,
+          "visible_roots_per_eligible_m2": 42.952089075591694,
+          "fade_per_eligible_m2": 36.183354224324155,
+          "composed_projected_eligible_coverage": 0.999870340420358
+        }
+      ],
+      "composed_grass_pixels": 644121,
+      "nearest_opaque_grass_pixels": 672530
+    },
+    {
+      "path": "production/sprint-350/pair-3/cpu/coverage/1",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 58.47891991283541,
+          "eligible_pixels": 403191,
+          "generated_roots": 4571,
+          "ground_visible_roots": 3399,
+          "visible_fade_sum": 3092.036768437287,
+          "visible_roots_per_eligible_m2": 58.12350852352116,
+          "fade_per_eligible_m2": 52.87438230812164,
+          "composed_projected_eligible_coverage": 0.9439966993507112
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 275.90275581838796,
+          "eligible_pixels": 192254,
+          "generated_roots": 20768,
+          "ground_visible_roots": 15517,
+          "visible_fade_sum": 14117.440754061463,
+          "visible_roots_per_eligible_m2": 56.24083004888147,
+          "fade_per_eligible_m2": 51.16817594730449,
+          "composed_projected_eligible_coverage": 0.9991039347118591
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 896.2057309725787,
+          "eligible_pixels": 51176,
+          "generated_roots": 44450,
+          "ground_visible_roots": 37173,
+          "visible_fade_sum": 31405.101125203473,
+          "visible_roots_per_eligible_m2": 41.47819938582538,
+          "fade_per_eligible_m2": 35.04229000089308,
+          "composed_projected_eligible_coverage": 0.9999633513006111
+        }
+      ],
+      "composed_grass_pixels": 649282,
+      "nearest_opaque_grass_pixels": 674833
+    },
+    {
+      "path": "production/walking-350/pair-1/compute/coverage/1",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 58.605008667800575,
+          "eligible_pixels": 409814,
+          "generated_roots": 4590,
+          "ground_visible_roots": 3433,
+          "visible_fade_sum": 3122.3974569485135,
+          "visible_roots_per_eligible_m2": 58.578610907811324,
+          "fade_per_eligible_m2": 53.27867921063983,
+          "composed_projected_eligible_coverage": 0.9425336490788813
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 274.78933713342485,
+          "eligible_pixels": 189312,
+          "generated_roots": 20535,
+          "ground_visible_roots": 15469,
+          "visible_fade_sum": 14051.133414611853,
+          "visible_roots_per_eligible_m2": 56.29403295401152,
+          "fade_per_eligible_m2": 51.13420178960321,
+          "composed_projected_eligible_coverage": 0.9989946263380175
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 757.0145057594636,
+          "eligible_pixels": 45028,
+          "generated_roots": 46753,
+          "ground_visible_roots": 37521,
+          "visible_fade_sum": 31713.35537554079,
+          "visible_roots_per_eligible_m2": 49.56443993415636,
+          "fade_per_eligible_m2": 41.89266537729661,
+          "composed_projected_eligible_coverage": 0.9998983531310608
+        }
+      ],
+      "composed_grass_pixels": 648754,
+      "nearest_opaque_grass_pixels": 675190
+    },
+    {
+      "path": "production/walking-350/pair-1/cpu/coverage/1",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 58.60503206089197,
+          "eligible_pixels": 409814,
+          "generated_roots": 4656,
+          "ground_visible_roots": 3480,
+          "visible_fade_sum": 3169.7255224104747,
+          "visible_roots_per_eligible_m2": 59.38056643982722,
+          "fade_per_eligible_m2": 54.08623476422736,
+          "composed_projected_eligible_coverage": 0.9447232429525884
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 274.78933713342485,
+          "eligible_pixels": 189312,
+          "generated_roots": 21290,
+          "ground_visible_roots": 15729,
+          "visible_fade_sum": 14295.258105666195,
+          "visible_roots_per_eligible_m2": 57.24021231712762,
+          "fade_per_eligible_m2": 52.022608499998256,
+          "composed_projected_eligible_coverage": 0.9992843862627286
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 757.0145057594636,
+          "eligible_pixels": 45028,
+          "generated_roots": 47169,
+          "ground_visible_roots": 37811,
+          "visible_fade_sum": 31864.921646236187,
+          "visible_roots_per_eligible_m2": 49.947523742714374,
+          "fade_per_eligible_m2": 42.092881184975674,
+          "composed_projected_eligible_coverage": 0.9998851403387204
+        }
+      ],
+      "composed_grass_pixels": 650508,
+      "nearest_opaque_grass_pixels": 676001
+    },
+    {
+      "path": "production/walking-350/pair-2/compute/coverage/1",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 58.60503206089197,
+          "eligible_pixels": 409814,
+          "generated_roots": 4615,
+          "ground_visible_roots": 3427,
+          "visible_fade_sum": 3118.9704161416284,
+          "visible_roots_per_eligible_m2": 58.476207238301114,
+          "fade_per_eligible_m2": 53.220181040101586,
+          "composed_projected_eligible_coverage": 0.9475628311432676
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 274.78933713342485,
+          "eligible_pixels": 189312,
+          "generated_roots": 21033,
+          "ground_visible_roots": 15675,
+          "visible_fade_sum": 14250.324377202338,
+          "visible_roots_per_eligible_m2": 57.043698141711204,
+          "fade_per_eligible_m2": 51.85908785930455,
+          "composed_projected_eligible_coverage": 0.9994329478225054
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 757.0145057594636,
+          "eligible_pixels": 45028,
+          "generated_roots": 46837,
+          "ground_visible_roots": 37468,
+          "visible_fade_sum": 31567.908485420565,
+          "visible_roots_per_eligible_m2": 49.49442806569576,
+          "fade_per_eligible_m2": 41.7005331407098,
+          "composed_projected_eligible_coverage": 0.999860259657255
+        }
+      ],
+      "composed_grass_pixels": 651196,
+      "nearest_opaque_grass_pixels": 675243
+    },
+    {
+      "path": "production/walking-350/pair-2/cpu/coverage/1",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 58.60503206089197,
+          "eligible_pixels": 409814,
+          "generated_roots": 4575,
+          "ground_visible_roots": 3397,
+          "visible_fade_sum": 3088.7954172494606,
+          "visible_roots_per_eligible_m2": 57.96430580347502,
+          "fade_per_eligible_m2": 52.7052935324757,
+          "composed_projected_eligible_coverage": 0.9407226275694038
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 274.78933713342485,
+          "eligible_pixels": 189312,
+          "generated_roots": 20925,
+          "ground_visible_roots": 15541,
+          "visible_fade_sum": 14111.839648015499,
+          "visible_roots_per_eligible_m2": 56.556051854566746,
+          "fade_per_eligible_m2": 51.35512096367644,
+          "composed_projected_eligible_coverage": 0.9994254146256644
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 757.0145057594636,
+          "eligible_pixels": 45028,
+          "generated_roots": 46558,
+          "ground_visible_roots": 37286,
+          "visible_fade_sum": 31478.80982525386,
+          "visible_roots_per_eligible_m2": 49.25400995135935,
+          "fade_per_eligible_m2": 41.58283571286815,
+          "composed_projected_eligible_coverage": 0.9999336299881282
+        }
+      ],
+      "composed_grass_pixels": 645532,
+      "nearest_opaque_grass_pixels": 671783
+    },
+    {
+      "path": "production/walking-350/pair-3/compute/coverage/1",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 58.60503206089197,
+          "eligible_pixels": 409814,
+          "generated_roots": 4591,
+          "ground_visible_roots": 3430,
+          "visible_fade_sum": 3120.8851051848296,
+          "visible_roots_per_eligible_m2": 58.52739738178372,
+          "fade_per_eligible_m2": 53.25285210905027,
+          "composed_projected_eligible_coverage": 0.9420205980337579
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 274.78933713342485,
+          "eligible_pixels": 189312,
+          "generated_roots": 20970,
+          "ground_visible_roots": 15609,
+          "visible_fade_sum": 14191.758705624725,
+          "visible_roots_per_eligible_m2": 56.80351414953557,
+          "fade_per_eligible_m2": 51.64595851379004,
+          "composed_projected_eligible_coverage": 0.9992081455229015
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 757.0145057594636,
+          "eligible_pixels": 45028,
+          "generated_roots": 46763,
+          "ground_visible_roots": 37411,
+          "visible_fade_sum": 31530.235037191098,
+          "visible_roots_per_eligible_m2": 49.41913228263435,
+          "fade_per_eligible_m2": 41.65076731991926,
+          "composed_projected_eligible_coverage": 0.9998149320219193
+        }
+      ],
+      "composed_grass_pixels": 645642,
+      "nearest_opaque_grass_pixels": 670700
+    },
+    {
+      "path": "production/walking-350/pair-3/cpu/coverage/1",
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 58.60503206089197,
+          "eligible_pixels": 409814,
+          "generated_roots": 4581,
+          "ground_visible_roots": 3397,
+          "visible_fade_sum": 3098.0179162857,
+          "visible_roots_per_eligible_m2": 57.96430580347502,
+          "fade_per_eligible_m2": 52.862660548786806,
+          "composed_projected_eligible_coverage": 0.9462345957277392
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 274.78933713342485,
+          "eligible_pixels": 189312,
+          "generated_roots": 20903,
+          "ground_visible_roots": 15527,
+          "visible_fade_sum": 14115.289281089492,
+          "visible_roots_per_eligible_m2": 56.505103735014345,
+          "fade_per_eligible_m2": 51.36767470069542,
+          "composed_projected_eligible_coverage": 0.9992230862433955
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 757.0145057594636,
+          "eligible_pixels": 45028,
+          "generated_roots": 46627,
+          "ground_visible_roots": 37363,
+          "visible_fade_sum": 31542.93285147833,
+          "visible_roots_per_eligible_m2": 49.35572530742475,
+          "fade_per_eligible_m2": 41.667540861496896,
+          "composed_projected_eligible_coverage": 0.9998364073971784
+        }
+      ],
+      "composed_grass_pixels": 648855,
+      "nearest_opaque_grass_pixels": 674662
+    }
+  ],
+  "unchanged_prior_executables": 42,
+  "timing_acceptance": false,
+  "stationary_repeat": {
+    "runs": [
+      {
+        "pair": 1,
+        "backend": "cpu",
+        "upper_outlier_fence_ms": 84.68827574999997,
+        "upper_outliers_retained": 1,
+        "physical_rows": 103,
+        "gpu_work_rows": 580,
+        "publication_rows": 2,
+        "geometry": [
+          {
+            "body": 0,
+            "land_field": "10975133402283726949",
+            "land_topology": "12212879353327077826",
+            "water_field": "8343445989074671795",
+            "water_topology": "2325588265975571714"
+          },
+          {
+            "body": 1,
+            "land_field": "13005042368953784910",
+            "land_topology": "8896015313400212575",
+            "water_field": "0",
+            "water_topology": "0"
+          }
+        ]
+      },
+      {
+        "pair": 1,
+        "backend": "compute",
+        "upper_outlier_fence_ms": 87.327935,
+        "upper_outliers_retained": 2,
+        "physical_rows": 117,
+        "gpu_work_rows": 576,
+        "publication_rows": 2,
+        "geometry": [
+          {
+            "body": 0,
+            "land_field": "10975133402283726949",
+            "land_topology": "12212879353327077826",
+            "water_field": "8343445989074671795",
+            "water_topology": "2325588265975571714"
+          },
+          {
+            "body": 1,
+            "land_field": "13005042368953784910",
+            "land_topology": "8896015313400212575",
+            "water_field": "0",
+            "water_topology": "0"
+          }
+        ]
+      },
+      {
+        "pair": 2,
+        "backend": "compute",
+        "upper_outlier_fence_ms": 85.23002537500001,
+        "upper_outliers_retained": 21,
+        "physical_rows": 108,
+        "gpu_work_rows": 556,
+        "publication_rows": 2,
+        "geometry": [
+          {
+            "body": 0,
+            "land_field": "10975133402283726949",
+            "land_topology": "12212879353327077826",
+            "water_field": "8343445989074671795",
+            "water_topology": "2325588265975571714"
+          },
+          {
+            "body": 1,
+            "land_field": "13005042368953784910",
+            "land_topology": "8896015313400212575",
+            "water_field": "0",
+            "water_topology": "0"
+          }
+        ]
+      },
+      {
+        "pair": 2,
+        "backend": "cpu",
+        "upper_outlier_fence_ms": 81.07791925000004,
+        "upper_outliers_retained": 15,
+        "physical_rows": 101,
+        "gpu_work_rows": 554,
+        "publication_rows": 2,
+        "geometry": [
+          {
+            "body": 0,
+            "land_field": "10975133402283726949",
+            "land_topology": "12212879353327077826",
+            "water_field": "8343445989074671795",
+            "water_topology": "2325588265975571714"
+          },
+          {
+            "body": 1,
+            "land_field": "13005042368953784910",
+            "land_topology": "8896015313400212575",
+            "water_field": "0",
+            "water_topology": "0"
+          }
+        ]
+      },
+      {
+        "pair": 3,
+        "backend": "cpu",
+        "upper_outlier_fence_ms": 81.07031975000001,
+        "upper_outliers_retained": 15,
+        "physical_rows": 101,
+        "gpu_work_rows": 552,
+        "publication_rows": 2,
+        "geometry": [
+          {
+            "body": 0,
+            "land_field": "10975133402283726949",
+            "land_topology": "12212879353327077826",
+            "water_field": "8343445989074671795",
+            "water_topology": "2325588265975571714"
+          },
+          {
+            "body": 1,
+            "land_field": "13005042368953784910",
+            "land_topology": "8896015313400212575",
+            "water_field": "0",
+            "water_topology": "0"
+          }
+        ]
+      },
+      {
+        "pair": 3,
+        "backend": "compute",
+        "upper_outlier_fence_ms": 85.64235437500002,
+        "upper_outliers_retained": 14,
+        "physical_rows": 108,
+        "gpu_work_rows": 556,
+        "publication_rows": 2,
+        "geometry": [
+          {
+            "body": 0,
+            "land_field": "10975133402283726949",
+            "land_topology": "12212879353327077826",
+            "water_field": "8343445989074671795",
+            "water_topology": "2325588265975571714"
+          },
+          {
+            "body": 1,
+            "land_field": "13005042368953784910",
+            "land_topology": "8896015313400212575",
+            "water_field": "0",
+            "water_topology": "0"
+          }
+        ]
+      }
+    ],
+    "pairs": [
+      {
+        "pair": 1,
+        "field_topology_keys_equal": true,
+        "exact_camera_root_and_planning_anchors": true
+      },
+      {
+        "pair": 2,
+        "field_topology_keys_equal": true,
+        "exact_camera_root_and_planning_anchors": true
+      },
+      {
+        "pair": 3,
+        "field_topology_keys_equal": true,
+        "exact_camera_root_and_planning_anchors": true
+      }
+    ],
+    "measured_frames": 1440,
+    "excluded_frames": 1610,
+    "gpu_work_rows": 3374,
+    "publication_rows": 12
+  },
+  "stationary_p95_ratios": [
+    1.0578910984176009,
+    1.110578035250711,
+    1.049648725910859
+  ]
+}

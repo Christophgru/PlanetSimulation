@@ -1,6 +1,54 @@
 # Page to document progress of AI Agents working on this Project
 
 
+## Matched native foliage comparison — 2026-10-07
+
+- T3c5c2b2b comparison/inspection qualification is documented and tested;
+  overall coverage and cost acceptance remain pending. Resume T3c5c2b2c first.
+- The private probe wraps CPU GrassRenderer::prepare only for controlled
+  renderScene inspections, keeping actual native generations/anchors/budgets.
+  Common first-CPU camera/projection/full grounded pose/trails, scene time 12 s,
+  and empty exhaust are shared. Saved motion/trail owner state is restored.
+  Workload, publication and geometry revisions must stay unchanged.
+- Full grass/suppressed-grass scenes retain character/water/atmosphere/tone map.
+  Nearest opaque grass stencil 5 plus RGB difference >=1 is a composed proxy;
+  both exposures retained. Live VAO ground pass exports offsets, weighted area,
+  geometric plane and unweighted area. Ray/plane root visibility fixes a
+  pixel-center bias with an analytical test. Flare/overlays are outside scope.
+- Two scoped software groups pass in 44.98 s; eight Quadro fixtures pass.
+  Independent raw checks cover 48 native snapshots, including 40 controlled
+  (8 software +8 Quadro fixtures +24 production routes). Product source/shaders,
+  app/timed probe and 42 prior executables/driver fixtures stay unchanged;
+  all 43 final executable/input hashes remain frozen through measurements.
+- Three alternating pairs each walking/sprint at first 25/350 m crossings
+  retain 12,910 excluded inspection frames. Eight of twelve primary pairs pass
+  the declared +/-5% per-band gate. Walking-25 pair 1 has near density/fade
+  ratios 1.05362/1.05772; same ground but different topology/seeds, zero exact
+  generated-root overlap. Do not loosen/remove this discrepancy.
+- Sprint-350 outer finite-quad area ratios 0.94390/0.93951/0.94340 fail.
+  Analytic differential area sensitivity gives 1.01073/1.00559/1.01030,
+  identifying finite-quad/silhouette bias. These are post hoc diagnostics,
+  not retroactive acceptance or proof of actual ground loss. b2c plan:
+  GPU live raster eligibility/planes in bounded tiles; CPU excluded analytic
+  integration; qualify known planes/silhouettes and <1% 2x/4x band convergence,
+  then fresh frozen three-pair runs. First crossings overshoot up to 5.518 m;
+  common roots are 25.546/25.048/351.020/355.518 m, not exact target landmarks.
+- Stationary repeat via unchanged ordinary timed probe retains 1,440 measured
+  +1,610 excluded frames. p95 ratios 1.05789/1.11058/1.04965: two fail 5%.
+  GPU opaque p95 differs by 4–6 ms; placement means only +0.18–0.35 ms per
+  view. Record/match wind clocks and isolate grass raster/overdraw (b3).
+  Wind was active and absent from timed receipts; effect clocks are not wind.
+- Original import/path/NumPy launcher failures and superseded pixel-center
+  preflight retained separately. Full queues/depth/colors/stencil/ground maps,
+  traces and inputs in journal cost/coverage/matched/validation. Standard XZ
+  losslessly shrinks 52 large ground maps by 187.4 MiB; decoded lengths/SHA
+  match original readbacks. Validator supports gzip/XZ. This is not runtime
+  BSON caching. No new full-suite or migration-speedup claim; CPU stays default.
+- Gallery and ten historical PNG hashes unchanged. Rebuilt/reviewed journal
+  figure/PDF and TODO document remaining gates. Preserve the user's unstaged
+  environmental footer in todo.md byte-for-byte; only stage the agent prefix.
+
+
 ## Live native foliage inspection — 2026-10-07
 
 - T3c5c2b2a is tested; b2 parent remains in progress and b2b is next.

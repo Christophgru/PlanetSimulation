@@ -1,0 +1,688 @@
+{
+  "schema": 1,
+  "scope": "Excluded matched live-plan coverage; not cost timing",
+  "base_revision": "715ef305ceebf1a7a81790c2b5147b4b8ba5892f",
+  "utc": "2026-10-07T08:11:47.358922+00:00",
+  "frozen_provenance": {
+    "source_sha256": "7ba8a7378dcf2f326282295fa3c686513e1ee40f50a5012b366dfed52d35e2a9",
+    "build_test_sha256": "8f98df560b46fccedbbea3ed8c29a6bcd855d8c26519fbb184bb159ce32741c7",
+    "inspection_probe_sha256": "21688f49d67c36ee495c97f15386c7c5b40f18f385d58ec030693e11c27428fb"
+  },
+  "replay_sha256": "aabd25986fd7ceaec4a3cb8dc6aa7cd9f1a57d15c6f2e63b171ae310b0122234",
+  "case": "sprint",
+  "target_distance_m": 350,
+  "expected_uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+  "declared_relative_tolerance": 0.05,
+  "minimum_eligible_pixels_per_band": 100,
+  "minimum_visible_roots_per_band": 100,
+  "runs": [
+    {
+      "pair": 1,
+      "backend": "cpu",
+      "path": "pair-1/cpu",
+      "command": [
+        "/workspace/build-resume/tests/terrain_coverage_probe",
+        "--replay",
+        "/workspace/build-resume/matched-routes/sprint-350/production-input.json",
+        "--terrain-backend",
+        "cpu",
+        "--terrain-grass-planner",
+        "cpu",
+        "--performance-trace",
+        "/workspace/build-resume/matched-routes/sprint-350/pair-1/cpu/performance.csv"
+      ],
+      "audit": {
+        "frames": 314,
+        "rendered": 0,
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "memory_queries": 0,
+          "polls": 0,
+          "server_waits": 0
+        },
+        "peak_logical_bytes": 0
+      },
+      "analysis": {
+        "bands": [
+          {
+            "band_m": [
+              0,
+              5
+            ],
+            "eligible_visible_m2": 58.47891991283541,
+            "eligible_pixels": 403191,
+            "generated_roots": 4580,
+            "ground_visible_roots": 3420,
+            "visible_fade_sum": 3110.28952651985,
+            "visible_roots_per_eligible_m2": 58.482612283154566,
+            "fade_per_eligible_m2": 53.186507739127705,
+            "composed_projected_eligible_coverage": 0.9425467198728353
+          },
+          {
+            "band_m": [
+              5,
+              15
+            ],
+            "eligible_visible_m2": 275.90275581838796,
+            "eligible_pixels": 192254,
+            "generated_roots": 20780,
+            "ground_visible_roots": 15519,
+            "visible_fade_sum": 14111.456814094749,
+            "visible_roots_per_eligible_m2": 56.248078979737805,
+            "fade_per_eligible_m2": 51.1464873637709,
+            "composed_projected_eligible_coverage": 0.9986903313190725
+          },
+          {
+            "band_m": [
+              15,
+              30
+            ],
+            "eligible_visible_m2": 895.4028125086334,
+            "eligible_pixels": 51160,
+            "generated_roots": 44853,
+            "ground_visible_roots": 37407,
+            "visible_fade_sum": 31623.946027973234,
+            "visible_roots_per_eligible_m2": 41.77672828075836,
+            "fade_per_eligible_m2": 35.31812228663099,
+            "composed_projected_eligible_coverage": 0.9999110887192442
+          }
+        ],
+        "nearest_opaque_grass_pixels": 671831,
+        "composed_grass_pixels": 645081,
+        "character_pixels": 9187,
+        "scope": "Controlled live-plan scene; nearest opaque grass stencil after character plus RGB contribution after water/atmosphere/tone mapping; flare/overlays excluded",
+        "coverage_acceptance": false,
+        "eligible_area_method": "Live triangle raster derivatives times expected biome/rock retention; no Gaussian falloff",
+        "root_visibility_method": "Ray intersection with live triangle plane at projected root; one-sided view-depth occlusion allowance; tolerance 0.15 m",
+        "density_scope": "Screen-visible generated root centers per expected eligible ground area; not physical blade count"
+      },
+      "walked_m": 351.02017962168105,
+      "all_native_frames_excluded_from_cost_acceptance": 314
+    },
+    {
+      "pair": 1,
+      "backend": "compute",
+      "path": "pair-1/compute",
+      "command": [
+        "/workspace/build-resume/tests/terrain_coverage_probe",
+        "--replay",
+        "/workspace/build-resume/matched-routes/sprint-350/production-input.json",
+        "--terrain-backend",
+        "compute",
+        "--terrain-grass-planner",
+        "gpu",
+        "--performance-trace",
+        "/workspace/build-resume/matched-routes/sprint-350/pair-1/compute/performance.csv"
+      ],
+      "audit": {
+        "frames": 882,
+        "rendered": 344,
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "memory_queries": 0,
+          "polls": 88,
+          "server_waits": 0
+        },
+        "peak_logical_bytes": 580997096
+      },
+      "analysis": {
+        "bands": [
+          {
+            "band_m": [
+              0,
+              5
+            ],
+            "eligible_visible_m2": 58.47891991283541,
+            "eligible_pixels": 403191,
+            "generated_roots": 4459,
+            "ground_visible_roots": 3291,
+            "visible_fade_sum": 3001.7486612791213,
+            "visible_roots_per_eligible_m2": 56.276689188263646,
+            "fade_per_eligible_m2": 51.33043951142255,
+            "composed_projected_eligible_coverage": 0.9433339573738214
+          },
+          {
+            "band_m": [
+              5,
+              15
+            ],
+            "eligible_visible_m2": 275.90275581838796,
+            "eligible_pixels": 192254,
+            "generated_roots": 20484,
+            "ground_visible_roots": 15295,
+            "visible_fade_sum": 13890.900419226933,
+            "visible_roots_per_eligible_m2": 55.43619872382819,
+            "fade_per_eligible_m2": 50.347088335611154,
+            "composed_projected_eligible_coverage": 0.9990896254232013
+          },
+          {
+            "band_m": [
+              15,
+              30
+            ],
+            "eligible_visible_m2": 845.1707057121675,
+            "eligible_pixels": 51078,
+            "generated_roots": 43790,
+            "ground_visible_roots": 36502,
+            "visible_fade_sum": 30779.463527324653,
+            "visible_roots_per_eligible_m2": 43.18890817357691,
+            "fade_per_eligible_m2": 36.41804350209808,
+            "composed_projected_eligible_coverage": 0.9998217967918092
+          }
+        ],
+        "nearest_opaque_grass_pixels": 672389,
+        "composed_grass_pixels": 646230,
+        "character_pixels": 9174,
+        "scope": "Controlled live-plan scene; nearest opaque grass stencil after character plus RGB contribution after water/atmosphere/tone mapping; flare/overlays excluded",
+        "coverage_acceptance": false,
+        "eligible_area_method": "Live triangle raster derivatives times expected biome/rock retention; no Gaussian falloff",
+        "root_visibility_method": "Ray intersection with live triangle plane at projected root; one-sided view-depth occlusion allowance; tolerance 0.15 m",
+        "density_scope": "Screen-visible generated root centers per expected eligible ground area; not physical blade count"
+      },
+      "walked_m": 351.24143145334307,
+      "all_native_frames_excluded_from_cost_acceptance": 882
+    },
+    {
+      "pair": 2,
+      "backend": "compute",
+      "path": "pair-2/compute",
+      "command": [
+        "/workspace/build-resume/tests/terrain_coverage_probe",
+        "--replay",
+        "/workspace/build-resume/matched-routes/sprint-350/production-input.json",
+        "--terrain-backend",
+        "compute",
+        "--terrain-grass-planner",
+        "gpu",
+        "--performance-trace",
+        "/workspace/build-resume/matched-routes/sprint-350/pair-2/compute/performance.csv"
+      ],
+      "audit": {
+        "frames": 885,
+        "rendered": 340,
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "memory_queries": 0,
+          "polls": 89,
+          "server_waits": 0
+        },
+        "peak_logical_bytes": 580997096
+      },
+      "analysis": {
+        "bands": [
+          {
+            "band_m": [
+              0,
+              5
+            ],
+            "eligible_visible_m2": 58.47891991283541,
+            "eligible_pixels": 403191,
+            "generated_roots": 4492,
+            "ground_visible_roots": 3324,
+            "visible_fade_sum": 3019.951504775164,
+            "visible_roots_per_eligible_m2": 56.84099509625899,
+            "fade_per_eligible_m2": 51.641711394062895,
+            "composed_projected_eligible_coverage": 0.9437184945617838
+          },
+          {
+            "band_m": [
+              5,
+              15
+            ],
+            "eligible_visible_m2": 275.90275581838796,
+            "eligible_pixels": 192254,
+            "generated_roots": 20146,
+            "ground_visible_roots": 15318,
+            "visible_fade_sum": 13904.37131505538,
+            "visible_roots_per_eligible_m2": 55.519561428676056,
+            "fade_per_eligible_m2": 50.39591313182781,
+            "composed_projected_eligible_coverage": 0.9992156233516842
+          },
+          {
+            "band_m": [
+              15,
+              30
+            ],
+            "eligible_visible_m2": 845.1707057121675,
+            "eligible_pixels": 51078,
+            "generated_roots": 43711,
+            "ground_visible_roots": 36462,
+            "visible_fade_sum": 30888.075427177264,
+            "visible_roots_per_eligible_m2": 43.14158045654927,
+            "fade_per_eligible_m2": 36.546552333649565,
+            "composed_projected_eligible_coverage": 0.9999029326058193
+          }
+        ],
+        "nearest_opaque_grass_pixels": 672486,
+        "composed_grass_pixels": 647921,
+        "character_pixels": 9196,
+        "scope": "Controlled live-plan scene; nearest opaque grass stencil after character plus RGB contribution after water/atmosphere/tone mapping; flare/overlays excluded",
+        "coverage_acceptance": false,
+        "eligible_area_method": "Live triangle raster derivatives times expected biome/rock retention; no Gaussian falloff",
+        "root_visibility_method": "Ray intersection with live triangle plane at projected root; one-sided view-depth occlusion allowance; tolerance 0.15 m",
+        "density_scope": "Screen-visible generated root centers per expected eligible ground area; not physical blade count"
+      },
+      "walked_m": 350.64847478275965,
+      "all_native_frames_excluded_from_cost_acceptance": 885
+    },
+    {
+      "pair": 2,
+      "backend": "cpu",
+      "path": "pair-2/cpu",
+      "command": [
+        "/workspace/build-resume/tests/terrain_coverage_probe",
+        "--replay",
+        "/workspace/build-resume/matched-routes/sprint-350/production-input.json",
+        "--terrain-backend",
+        "cpu",
+        "--terrain-grass-planner",
+        "cpu",
+        "--performance-trace",
+        "/workspace/build-resume/matched-routes/sprint-350/pair-2/cpu/performance.csv"
+      ],
+      "audit": {
+        "frames": 298,
+        "rendered": 0,
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "memory_queries": 0,
+          "polls": 0,
+          "server_waits": 0
+        },
+        "peak_logical_bytes": 0
+      },
+      "analysis": {
+        "bands": [
+          {
+            "band_m": [
+              0,
+              5
+            ],
+            "eligible_visible_m2": 58.47891991283541,
+            "eligible_pixels": 403191,
+            "generated_roots": 4591,
+            "ground_visible_roots": 3389,
+            "visible_fade_sum": 3082.5530722353083,
+            "visible_roots_per_eligible_m2": 57.952506733219536,
+            "fade_per_eligible_m2": 52.71220940520014,
+            "composed_projected_eligible_coverage": 0.9477112453686534
+          },
+          {
+            "band_m": [
+              5,
+              15
+            ],
+            "eligible_visible_m2": 275.90275581838796,
+            "eligible_pixels": 192254,
+            "generated_roots": 20845,
+            "ground_visible_roots": 15594,
+            "visible_fade_sum": 14186.033252718593,
+            "visible_roots_per_eligible_m2": 56.5199138868504,
+            "fade_per_eligible_m2": 51.41678708731891,
+            "composed_projected_eligible_coverage": 0.9993574346310042
+          },
+          {
+            "band_m": [
+              15,
+              30
+            ],
+            "eligible_visible_m2": 899.5913159686606,
+            "eligible_pixels": 51163,
+            "generated_roots": 44745,
+            "ground_visible_roots": 37391,
+            "visible_fade_sum": 31580.706909306376,
+            "visible_roots_per_eligible_m2": 41.564429687427754,
+            "fade_per_eligible_m2": 35.10561557088948,
+            "composed_projected_eligible_coverage": 0.99995135291726
+          }
+        ],
+        "nearest_opaque_grass_pixels": 678289,
+        "composed_grass_pixels": 652966,
+        "character_pixels": 9215,
+        "scope": "Controlled live-plan scene; nearest opaque grass stencil after character plus RGB contribution after water/atmosphere/tone mapping; flare/overlays excluded",
+        "coverage_acceptance": false,
+        "eligible_area_method": "Live triangle raster derivatives times expected biome/rock retention; no Gaussian falloff",
+        "root_visibility_method": "Ray intersection with live triangle plane at projected root; one-sided view-depth occlusion allowance; tolerance 0.15 m",
+        "density_scope": "Screen-visible generated root centers per expected eligible ground area; not physical blade count"
+      },
+      "walked_m": 350.2610491899471,
+      "all_native_frames_excluded_from_cost_acceptance": 298
+    },
+    {
+      "pair": 3,
+      "backend": "cpu",
+      "path": "pair-3/cpu",
+      "command": [
+        "/workspace/build-resume/tests/terrain_coverage_probe",
+        "--replay",
+        "/workspace/build-resume/matched-routes/sprint-350/production-input.json",
+        "--terrain-backend",
+        "cpu",
+        "--terrain-grass-planner",
+        "cpu",
+        "--performance-trace",
+        "/workspace/build-resume/matched-routes/sprint-350/pair-3/cpu/performance.csv"
+      ],
+      "audit": {
+        "frames": 306,
+        "rendered": 0,
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "memory_queries": 0,
+          "polls": 0,
+          "server_waits": 0
+        },
+        "peak_logical_bytes": 0
+      },
+      "analysis": {
+        "bands": [
+          {
+            "band_m": [
+              0,
+              5
+            ],
+            "eligible_visible_m2": 58.47891991283541,
+            "eligible_pixels": 403191,
+            "generated_roots": 4571,
+            "ground_visible_roots": 3399,
+            "visible_fade_sum": 3092.036768437287,
+            "visible_roots_per_eligible_m2": 58.12350852352116,
+            "fade_per_eligible_m2": 52.87438230812164,
+            "composed_projected_eligible_coverage": 0.9439966993507112
+          },
+          {
+            "band_m": [
+              5,
+              15
+            ],
+            "eligible_visible_m2": 275.90275581838796,
+            "eligible_pixels": 192254,
+            "generated_roots": 20768,
+            "ground_visible_roots": 15517,
+            "visible_fade_sum": 14117.440754061463,
+            "visible_roots_per_eligible_m2": 56.24083004888147,
+            "fade_per_eligible_m2": 51.16817594730449,
+            "composed_projected_eligible_coverage": 0.9991039347118591
+          },
+          {
+            "band_m": [
+              15,
+              30
+            ],
+            "eligible_visible_m2": 896.2057309725787,
+            "eligible_pixels": 51176,
+            "generated_roots": 44450,
+            "ground_visible_roots": 37173,
+            "visible_fade_sum": 31405.101125203473,
+            "visible_roots_per_eligible_m2": 41.47819938582538,
+            "fade_per_eligible_m2": 35.04229000089308,
+            "composed_projected_eligible_coverage": 0.9999633513006111
+          }
+        ],
+        "nearest_opaque_grass_pixels": 674833,
+        "composed_grass_pixels": 649282,
+        "character_pixels": 9220,
+        "scope": "Controlled live-plan scene; nearest opaque grass stencil after character plus RGB contribution after water/atmosphere/tone mapping; flare/overlays excluded",
+        "coverage_acceptance": false,
+        "eligible_area_method": "Live triangle raster derivatives times expected biome/rock retention; no Gaussian falloff",
+        "root_visibility_method": "Ray intersection with live triangle plane at projected root; one-sided view-depth occlusion allowance; tolerance 0.15 m",
+        "density_scope": "Screen-visible generated root centers per expected eligible ground area; not physical blade count"
+      },
+      "walked_m": 351.4675024620799,
+      "all_native_frames_excluded_from_cost_acceptance": 306
+    },
+    {
+      "pair": 3,
+      "backend": "compute",
+      "path": "pair-3/compute",
+      "command": [
+        "/workspace/build-resume/tests/terrain_coverage_probe",
+        "--replay",
+        "/workspace/build-resume/matched-routes/sprint-350/production-input.json",
+        "--terrain-backend",
+        "compute",
+        "--terrain-grass-planner",
+        "gpu",
+        "--performance-trace",
+        "/workspace/build-resume/matched-routes/sprint-350/pair-3/compute/performance.csv"
+      ],
+      "audit": {
+        "frames": 871,
+        "rendered": 326,
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "memory_queries": 0,
+          "polls": 91,
+          "server_waits": 0
+        },
+        "peak_logical_bytes": 580997096
+      },
+      "analysis": {
+        "bands": [
+          {
+            "band_m": [
+              0,
+              5
+            ],
+            "eligible_visible_m2": 58.47891991283541,
+            "eligible_pixels": 403191,
+            "generated_roots": 4457,
+            "ground_visible_roots": 3310,
+            "visible_fade_sum": 3023.5469054092628,
+            "visible_roots_per_eligible_m2": 56.60159258983673,
+            "fade_per_eligible_m2": 51.703193388591146,
+            "composed_projected_eligible_coverage": 0.9365475858023679
+          },
+          {
+            "band_m": [
+              5,
+              15
+            ],
+            "eligible_visible_m2": 275.90275581838796,
+            "eligible_pixels": 192254,
+            "generated_roots": 20302,
+            "ground_visible_roots": 15189,
+            "visible_fade_sum": 13818.197720369017,
+            "visible_roots_per_eligible_m2": 55.052005388442396,
+            "fade_per_eligible_m2": 50.08357991706613,
+            "composed_projected_eligible_coverage": 0.9990245539636942
+          },
+          {
+            "band_m": [
+              15,
+              30
+            ],
+            "eligible_visible_m2": 845.4769204843324,
+            "eligible_pixels": 51079,
+            "generated_roots": 43606,
+            "ground_visible_roots": 36315,
+            "visible_fade_sum": 30592.190902375343,
+            "visible_roots_per_eligible_m2": 42.952089075591694,
+            "fade_per_eligible_m2": 36.183354224324155,
+            "composed_projected_eligible_coverage": 0.999870340420358
+          }
+        ],
+        "nearest_opaque_grass_pixels": 672530,
+        "composed_grass_pixels": 644121,
+        "character_pixels": 9232,
+        "scope": "Controlled live-plan scene; nearest opaque grass stencil after character plus RGB contribution after water/atmosphere/tone mapping; flare/overlays excluded",
+        "coverage_acceptance": false,
+        "eligible_area_method": "Live triangle raster derivatives times expected biome/rock retention; no Gaussian falloff",
+        "root_visibility_method": "Ray intersection with live triangle plane at projected root; one-sided view-depth occlusion allowance; tolerance 0.15 m",
+        "density_scope": "Screen-visible generated root centers per expected eligible ground area; not physical blade count"
+      },
+      "walked_m": 350.5195796774504,
+      "all_native_frames_excluded_from_cost_acceptance": 871
+    }
+  ],
+  "pairs": [
+    {
+      "pair": 1,
+      "relative_tolerance": 0.05,
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0,
+            "visible_roots_per_eligible_m2": 0.962280701754386,
+            "fade_per_eligible_m2": 0.9651026490250326,
+            "composed_projected_eligible_coverage": 1.0008352238508584
+          },
+          "within_declared_tolerance": true
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0,
+            "visible_roots_per_eligible_m2": 0.9855660802886783,
+            "fade_per_eligible_m2": 0.984370402165174,
+            "composed_projected_eligible_coverage": 1.0003998177328917
+          },
+          "within_declared_tolerance": true
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 0.9438999899322056,
+            "visible_roots_per_eligible_m2": 1.0338030274493508,
+            "fade_per_eligible_m2": 1.0311432529323181,
+            "composed_projected_eligible_coverage": 0.9999107001327995
+          },
+          "within_declared_tolerance": false
+        }
+      ],
+      "coverage_parity": false,
+      "timing_acceptance": false,
+      "sample_minimums_met": true
+    },
+    {
+      "pair": 2,
+      "relative_tolerance": 0.05,
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0,
+            "visible_roots_per_eligible_m2": 0.9808203009737385,
+            "fade_per_eligible_m2": 0.9796916497483856,
+            "composed_projected_eligible_coverage": 0.9957869542791841
+          },
+          "within_declared_tolerance": true
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0,
+            "visible_roots_per_eligible_m2": 0.9823008849557523,
+            "fade_per_eligible_m2": 0.980145123541901,
+            "composed_projected_eligible_coverage": 0.9998580975390728
+          },
+          "within_declared_tolerance": true
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 0.9395051849762532,
+            "visible_roots_per_eligible_m2": 1.037944722951379,
+            "fade_per_eligible_m2": 1.0410457626031473,
+            "composed_projected_eligible_coverage": 0.9999515773329378
+          },
+          "within_declared_tolerance": false
+        }
+      ],
+      "coverage_parity": false,
+      "timing_acceptance": false,
+      "sample_minimums_met": true
+    },
+    {
+      "pair": 3,
+      "relative_tolerance": 0.05,
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0,
+            "visible_roots_per_eligible_m2": 0.9738158281847602,
+            "fade_per_eligible_m2": 0.9778495961861933,
+            "composed_projected_eligible_coverage": 0.9921089622946067
+          },
+          "within_declared_tolerance": true
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0,
+            "visible_roots_per_eligible_m2": 0.9788618934072307,
+            "fade_per_eligible_m2": 0.9788033086941514,
+            "composed_projected_eligible_coverage": 0.9999205480577075
+          },
+          "within_declared_tolerance": true
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 0.9433960208743649,
+            "visible_roots_per_eligible_m2": 1.0355340808325928,
+            "fade_per_eligible_m2": 1.0325624901626576,
+            "composed_projected_eligible_coverage": 0.9999069857108942
+          },
+          "within_declared_tolerance": false
+        }
+      ],
+      "coverage_parity": false,
+      "timing_acceptance": false,
+      "sample_minimums_met": true
+    }
+  ]
+}

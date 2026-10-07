@@ -1,0 +1,10 @@
+Internal ctest changing into directory: /workspace/build-resume
+Test project /workspace/build-resume
+    Start 55: TerrainMatchedCoverageIntegration
+1/2 Test #55: TerrainMatchedCoverageIntegration ......   Passed   26.73 sec
+    Start 56: TerrainCoverageInspectionIntegration
+2/2 Test #56: TerrainCoverageInspectionIntegration ...   Passed   18.23 sec
+
+100% tests passed, 0 tests failed out of 2
+
+Total Test time (real) =  44.98 sec

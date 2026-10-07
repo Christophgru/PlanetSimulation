@@ -1,0 +1,32 @@
+Internal ctest changing into directory: /workspace/build-resume
+Test project /workspace/build-resume
+    Start 55: TerrainMatchedCoverageIntegration
+1/1 Test #55: TerrainMatchedCoverageIntegration ...***Failed    6.01 sec
+Traceback (most recent call last):
+  File "/workspace/tests/app/terrain/native/coverage/matched/test_matched.py", line 7, in <module>
+    runpy.run_path(str(Path(__file__).resolve().parents[1] / 'test_inspection.py'), run_name='__main__')
+  File "<frozen runpy>", line 291, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/workspace/tests/app/terrain/native/coverage/test_inspection.py", line 73, in <module>
+    result = analyze(folder / 'coverage' / str(token))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/tests/app/terrain/native/coverage/matched/analyze.py", line 16, in analyze
+    common = json.loads((folder / 'controls.json').read_text())
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/pathlib.py", line 1059, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/pathlib.py", line 1045, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/workspace/build-resume/terrain-matched-coverage/cpu-airless/coverage/1/controls.json'
+
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) =   6.02 sec
+
+The following tests FAILED:
+	 55 - TerrainMatchedCoverageIntegration (Failed)
+Errors while running CTest

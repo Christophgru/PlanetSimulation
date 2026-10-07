@@ -1,0 +1,423 @@
+{
+  "scope": "Storage encoding only; decoded bytes equal original inspection readbacks",
+  "files": [
+    {
+      "path": "preflight/production-25/pair-1/compute/coverage/1/matched/ground/eligible.rgba32f.xz",
+      "decoded_sha256": "e64058ee997b495cb46090e3eaacce5f2ca18bfa394b5d5afbbc748f33ea2588",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 9778367,
+      "xz_bytes": 5218272,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "preflight/production-25/pair-1/compute/coverage/1/matched/ground/plane.rgba32f.xz",
+      "decoded_sha256": "d29fae82f6b1f6f8aaaee3920404915e88aa4bdb52700b579ff08b00dbeeb90a",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 6660308,
+      "xz_bytes": 4245200,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "preflight/production-25/pair-1/cpu/coverage/1/matched/ground/eligible.rgba32f.xz",
+      "decoded_sha256": "e64058ee997b495cb46090e3eaacce5f2ca18bfa394b5d5afbbc748f33ea2588",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 9778367,
+      "xz_bytes": 5218272,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "preflight/production-25/pair-1/cpu/coverage/1/matched/ground/plane.rgba32f.xz",
+      "decoded_sha256": "d29fae82f6b1f6f8aaaee3920404915e88aa4bdb52700b579ff08b00dbeeb90a",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 6660308,
+      "xz_bytes": 4245200,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/sprint-25/pair-1/compute/coverage/1/matched/ground/eligible.rgba32f.xz",
+      "decoded_sha256": "0480ba090a7d1ec01294e7739ba68738842964fefaabaf4feac0fb5d2be4893c",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 9707100,
+      "xz_bytes": 5078260,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/sprint-25/pair-1/compute/coverage/1/matched/ground/plane.rgba32f.xz",
+      "decoded_sha256": "1ffefe32261a71eeaa165736957d8ece1b6c4e9bc452c95d78662314a9a3b978",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 6589078,
+      "xz_bytes": 4286432,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/sprint-25/pair-1/cpu/coverage/1/matched/ground/eligible.rgba32f.xz",
+      "decoded_sha256": "0480ba090a7d1ec01294e7739ba68738842964fefaabaf4feac0fb5d2be4893c",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 9707100,
+      "xz_bytes": 5078260,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/sprint-25/pair-1/cpu/coverage/1/matched/ground/plane.rgba32f.xz",
+      "decoded_sha256": "1ffefe32261a71eeaa165736957d8ece1b6c4e9bc452c95d78662314a9a3b978",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 6589078,
+      "xz_bytes": 4286432,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/sprint-25/pair-2/compute/coverage/1/matched/ground/eligible.rgba32f.xz",
+      "decoded_sha256": "0480ba090a7d1ec01294e7739ba68738842964fefaabaf4feac0fb5d2be4893c",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 9707100,
+      "xz_bytes": 5078260,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/sprint-25/pair-2/compute/coverage/1/matched/ground/plane.rgba32f.xz",
+      "decoded_sha256": "1ffefe32261a71eeaa165736957d8ece1b6c4e9bc452c95d78662314a9a3b978",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 6589078,
+      "xz_bytes": 4286432,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/sprint-25/pair-2/cpu/coverage/1/matched/ground/eligible.rgba32f.xz",
+      "decoded_sha256": "0480ba090a7d1ec01294e7739ba68738842964fefaabaf4feac0fb5d2be4893c",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 9707100,
+      "xz_bytes": 5078260,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/sprint-25/pair-2/cpu/coverage/1/matched/ground/plane.rgba32f.xz",
+      "decoded_sha256": "1ffefe32261a71eeaa165736957d8ece1b6c4e9bc452c95d78662314a9a3b978",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 6589078,
+      "xz_bytes": 4286432,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/sprint-25/pair-3/compute/coverage/1/matched/ground/eligible.rgba32f.xz",
+      "decoded_sha256": "0480ba090a7d1ec01294e7739ba68738842964fefaabaf4feac0fb5d2be4893c",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 9707100,
+      "xz_bytes": 5078260,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/sprint-25/pair-3/compute/coverage/1/matched/ground/plane.rgba32f.xz",
+      "decoded_sha256": "1ffefe32261a71eeaa165736957d8ece1b6c4e9bc452c95d78662314a9a3b978",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 6589078,
+      "xz_bytes": 4286432,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/sprint-25/pair-3/cpu/coverage/1/matched/ground/eligible.rgba32f.xz",
+      "decoded_sha256": "0480ba090a7d1ec01294e7739ba68738842964fefaabaf4feac0fb5d2be4893c",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 9707100,
+      "xz_bytes": 5078260,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/sprint-25/pair-3/cpu/coverage/1/matched/ground/plane.rgba32f.xz",
+      "decoded_sha256": "1ffefe32261a71eeaa165736957d8ece1b6c4e9bc452c95d78662314a9a3b978",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 6589078,
+      "xz_bytes": 4286432,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/sprint-350/pair-1/compute/coverage/1/matched/ground/eligible.rgba32f.xz",
+      "decoded_sha256": "975ece63d0b5c4fe8ad61feaa677978ff24ca8169ec1e289637365d5cf4bdf54",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 11737456,
+      "xz_bytes": 6689012,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/sprint-350/pair-1/compute/coverage/1/matched/ground/plane.rgba32f.xz",
+      "decoded_sha256": "fc6d83c263399ce72820c6e06743e2b395b5a73aead18e64612674b1b9d92854",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 8939869,
+      "xz_bytes": 5695664,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/sprint-350/pair-1/cpu/coverage/1/matched/ground/eligible.rgba32f.xz",
+      "decoded_sha256": "ce5f33c999c59e0eac0e27a7cb11ba1a321a5a2eea0a0f6e96562b4bef7c067a",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 11730041,
+      "xz_bytes": 6684216,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/sprint-350/pair-1/cpu/coverage/1/matched/ground/plane.rgba32f.xz",
+      "decoded_sha256": "dc0272fd4a2982b4e77b544c060d2638e777c251d7ceb75fb430f4cb341b9a59",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 8931221,
+      "xz_bytes": 5688792,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/sprint-350/pair-2/compute/coverage/1/matched/ground/eligible.rgba32f.xz",
+      "decoded_sha256": "1198ba2c29afa19931c216376af0dfab86f61103f3f5ac495240a93f7e9ce9ef",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 11738087,
+      "xz_bytes": 6688544,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/sprint-350/pair-2/compute/coverage/1/matched/ground/plane.rgba32f.xz",
+      "decoded_sha256": "36c97b5c7421c1e99461a558dc9ecda1bcb660d7a4e31f1f60bc296174344e63",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 8940938,
+      "xz_bytes": 5697404,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/sprint-350/pair-2/cpu/coverage/1/matched/ground/eligible.rgba32f.xz",
+      "decoded_sha256": "9eedbe5404a734e34d53be164ec454d320030d4c00e76f34208211aac5d6273d",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 11728858,
+      "xz_bytes": 6683468,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/sprint-350/pair-2/cpu/coverage/1/matched/ground/plane.rgba32f.xz",
+      "decoded_sha256": "8f72a543016d39814e8f9c11ae5b1663d93dd7e4559209e346fc5ab988040858",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 8929309,
+      "xz_bytes": 5687200,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/sprint-350/pair-3/compute/coverage/1/matched/ground/eligible.rgba32f.xz",
+      "decoded_sha256": "da6ace08b160007a720f014a4a0df5e5161f2d92e5eca229e76034a938bba15e",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 11736671,
+      "xz_bytes": 6688304,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/sprint-350/pair-3/compute/coverage/1/matched/ground/plane.rgba32f.xz",
+      "decoded_sha256": "d51a932b2b886204a36449d927f8bb3e36de1032d236addedbdc670bd4de11c7",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 8938468,
+      "xz_bytes": 5694176,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/sprint-350/pair-3/cpu/coverage/1/matched/ground/eligible.rgba32f.xz",
+      "decoded_sha256": "10f054cf8676b9337cd71f9b438a28e5cd4f6ee15ea635552703cef6f3cc3ced",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 11730059,
+      "xz_bytes": 6684192,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/sprint-350/pair-3/cpu/coverage/1/matched/ground/plane.rgba32f.xz",
+      "decoded_sha256": "de7a6c649eb761a7d440e43caa6f2ce3d94a17a7c51fe69545ac1cfeb9068bcd",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 8931165,
+      "xz_bytes": 5688720,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/walking-25/pair-1/compute/coverage/1/matched/ground/eligible.rgba32f.xz",
+      "decoded_sha256": "d3cabf2f2c3bb80c7e1d29e2e694d563f5310ed313e29883646485e70a34aff0",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 9718637,
+      "xz_bytes": 5085520,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/walking-25/pair-1/compute/coverage/1/matched/ground/plane.rgba32f.xz",
+      "decoded_sha256": "8551db69d41dd9c0d97cee7fcdea709f90f3275e5451229db04f9ae1bb96e567",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 6575483,
+      "xz_bytes": 4262756,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/walking-25/pair-1/cpu/coverage/1/matched/ground/eligible.rgba32f.xz",
+      "decoded_sha256": "9b5ff3e9c4aab0ed03f169784063d244e6e9aa7e67db7679d2cd289e023b0639",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 9716821,
+      "xz_bytes": 5082980,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/walking-25/pair-1/cpu/coverage/1/matched/ground/plane.rgba32f.xz",
+      "decoded_sha256": "975512064d9ecfb745b459bea2bd5c9135b19f75440cbd5238227da8d5869847",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 6569063,
+      "xz_bytes": 4255860,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/walking-25/pair-2/compute/coverage/1/matched/ground/eligible.rgba32f.xz",
+      "decoded_sha256": "9b5ff3e9c4aab0ed03f169784063d244e6e9aa7e67db7679d2cd289e023b0639",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 9716821,
+      "xz_bytes": 5082980,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/walking-25/pair-2/compute/coverage/1/matched/ground/plane.rgba32f.xz",
+      "decoded_sha256": "975512064d9ecfb745b459bea2bd5c9135b19f75440cbd5238227da8d5869847",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 6569063,
+      "xz_bytes": 4255860,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/walking-25/pair-2/cpu/coverage/1/matched/ground/eligible.rgba32f.xz",
+      "decoded_sha256": "9b5ff3e9c4aab0ed03f169784063d244e6e9aa7e67db7679d2cd289e023b0639",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 9716821,
+      "xz_bytes": 5082980,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/walking-25/pair-2/cpu/coverage/1/matched/ground/plane.rgba32f.xz",
+      "decoded_sha256": "975512064d9ecfb745b459bea2bd5c9135b19f75440cbd5238227da8d5869847",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 6569063,
+      "xz_bytes": 4255860,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/walking-25/pair-3/compute/coverage/1/matched/ground/eligible.rgba32f.xz",
+      "decoded_sha256": "9b5ff3e9c4aab0ed03f169784063d244e6e9aa7e67db7679d2cd289e023b0639",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 9716821,
+      "xz_bytes": 5082980,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/walking-25/pair-3/compute/coverage/1/matched/ground/plane.rgba32f.xz",
+      "decoded_sha256": "975512064d9ecfb745b459bea2bd5c9135b19f75440cbd5238227da8d5869847",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 6569063,
+      "xz_bytes": 4255860,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/walking-25/pair-3/cpu/coverage/1/matched/ground/eligible.rgba32f.xz",
+      "decoded_sha256": "9b5ff3e9c4aab0ed03f169784063d244e6e9aa7e67db7679d2cd289e023b0639",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 9716821,
+      "xz_bytes": 5082980,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/walking-25/pair-3/cpu/coverage/1/matched/ground/plane.rgba32f.xz",
+      "decoded_sha256": "975512064d9ecfb745b459bea2bd5c9135b19f75440cbd5238227da8d5869847",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 6569063,
+      "xz_bytes": 4255860,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/walking-350/pair-1/compute/coverage/1/matched/ground/eligible.rgba32f.xz",
+      "decoded_sha256": "6e0a2f69424d2ac1a94d5b469b72f865d21e01359b4040288e9a21267969f608",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 11763469,
+      "xz_bytes": 6767220,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/walking-350/pair-1/compute/coverage/1/matched/ground/plane.rgba32f.xz",
+      "decoded_sha256": "53d80b87e30452db22eb839e78b6d998b35e8ce2e42b028e8b1c5f0ebfbd81c0",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 8869310,
+      "xz_bytes": 5612184,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/walking-350/pair-1/cpu/coverage/1/matched/ground/eligible.rgba32f.xz",
+      "decoded_sha256": "590e6299761ce02427ee9ef563bb11edf3462aa9354af711657c4e4220c23ba4",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 11760230,
+      "xz_bytes": 6764116,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/walking-350/pair-1/cpu/coverage/1/matched/ground/plane.rgba32f.xz",
+      "decoded_sha256": "5a6f0fadf2e1b855eb2bb8604973f30bc591ef31e56bab1d7ddd659c6ab7383c",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 8866290,
+      "xz_bytes": 5609680,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/walking-350/pair-2/compute/coverage/1/matched/ground/eligible.rgba32f.xz",
+      "decoded_sha256": "dcc697f8da2d04cef35635af0518badf8c8e2929c78152f221fa51ab3390642c",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 11761205,
+      "xz_bytes": 6764804,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/walking-350/pair-2/compute/coverage/1/matched/ground/plane.rgba32f.xz",
+      "decoded_sha256": "a03cc14ce7790c7a1fc00b53861338547cf0bb9b566c8f83b4c00a37aa8c37d6",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 8867038,
+      "xz_bytes": 5610344,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/walking-350/pair-2/cpu/coverage/1/matched/ground/eligible.rgba32f.xz",
+      "decoded_sha256": "c9b7c07fc9b4df7cb4443abcde76bd562d0a637efa1c2701d77154e536a98562",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 11760234,
+      "xz_bytes": 6764120,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/walking-350/pair-2/cpu/coverage/1/matched/ground/plane.rgba32f.xz",
+      "decoded_sha256": "68e81011394dafe64f8dd9e5fc22860f40cc2479b494b70f2093380454d3922e",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 8866308,
+      "xz_bytes": 5609680,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/walking-350/pair-3/compute/coverage/1/matched/ground/eligible.rgba32f.xz",
+      "decoded_sha256": "aa99c02c75fa3506859690540374ff2607f62c2171b7dfaf112426c30e02c1bf",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 11761704,
+      "xz_bytes": 6764976,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/walking-350/pair-3/compute/coverage/1/matched/ground/plane.rgba32f.xz",
+      "decoded_sha256": "b9bdfe65ee8421aa97a2619eb5afcaa4830399ef86a4821b1bea9cb8e12904ce",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 8867389,
+      "xz_bytes": 5610540,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/walking-350/pair-3/cpu/coverage/1/matched/ground/eligible.rgba32f.xz",
+      "decoded_sha256": "1f3fe34e052fbea22bc97dbd5d73c2fc6121faba1b28d65a899fa5cb7df88e93",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 11760230,
+      "xz_bytes": 6764108,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    },
+    {
+      "path": "production/walking-350/pair-3/cpu/coverage/1/matched/ground/plane.rgba32f.xz",
+      "decoded_sha256": "1162d9372ce665d9244a350efe4e1cece7e0f1f91a6d6291f8947446603e9ded",
+      "decoded_bytes": 14745600,
+      "previous_gzip_bytes": 8866297,
+      "xz_bytes": 5609704,
+      "format": "standard XZ, lossless byte-delta 16 then LZMA2 preset 3"
+    }
+  ],
+  "previous_gzip_bytes": 476159804,
+  "xz_bytes": 279678740
+}

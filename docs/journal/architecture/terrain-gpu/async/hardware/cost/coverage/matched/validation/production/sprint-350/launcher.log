@@ -1,0 +1,7 @@
+sprint 350 m pair 1 cpu: 351.020 m, 645081 composed grass pixels
+sprint 350 m pair 1 compute: 351.241 m, 646230 composed grass pixels
+sprint 350 m pair 2 compute: 350.648 m, 647921 composed grass pixels
+sprint 350 m pair 2 cpu: 350.261 m, 652966 composed grass pixels
+sprint 350 m pair 3 cpu: 351.468 m, 649282 composed grass pixels
+sprint 350 m pair 3 compute: 350.520 m, 644121 composed grass pixels
+Coverage comparisons retained; all route frames excluded from timing

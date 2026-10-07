@@ -1,0 +1,22 @@
+Internal ctest changing into directory: /workspace/build-resume
+Test project /workspace/build-resume
+    Start 55: TerrainMatchedCoverageIntegration
+1/1 Test #55: TerrainMatchedCoverageIntegration ...***Failed    0.16 sec
+Traceback (most recent call last):
+  File "/workspace/tests/app/terrain/native/coverage/matched/test_matched.py", line 7, in <module>
+    runpy.run_path(str(Path(__file__).resolve().parents[1] / 'test_inspection.py'), run_name='__main__')
+  File "<frozen runpy>", line 291, in run_path
+  File "<frozen runpy>", line 98, in _run_module_code
+  File "<frozen runpy>", line 88, in _run_code
+  File "/workspace/tests/app/terrain/native/coverage/test_inspection.py", line 11, in <module>
+    from analyze import analyze
+ModuleNotFoundError: No module named 'analyze'
+
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) =   0.17 sec
+
+The following tests FAILED:
+	 55 - TerrainMatchedCoverageIntegration (Failed)
+Errors while running CTest

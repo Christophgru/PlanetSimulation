@@ -1,0 +1,18 @@
+Traceback (most recent call last):
+  File "/workspace/scripts/benchmarks/terrain_cost/matched.py", line 16, in <module>
+    spec.loader.exec_module(analysis)
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/workspace/tests/app/terrain/native/coverage/matched/measure.py", line 5, in <module>
+    import numpy as np
+  File "/usr/lib/python3/dist-packages/numpy/__init__.py", line 154, in <module>
+    from . import ma
+  File "/usr/lib/python3/dist-packages/numpy/ma/__init__.py", line 42, in <module>
+    from . import core
+  File "/usr/lib/python3/dist-packages/numpy/ma/core.py", line 7761, in <module>
+    inner.__doc__ = doc_note(np.inner.__doc__,
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/numpy/ma/core.py", line 125, in doc_note
+    notesplit = re.split(r'\n\s*?Notes\n\s*?-----', inspect.cleandoc(initialdoc))
+                                                    ^^^^^^^^^^^^^^^^
+AttributeError: module 'inspect' has no attribute 'cleandoc'

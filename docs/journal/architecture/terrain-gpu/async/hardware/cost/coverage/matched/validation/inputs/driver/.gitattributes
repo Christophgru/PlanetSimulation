@@ -1,0 +1,2 @@
+# Keep the measured CMake input byte-for-byte, including existing whitespace.
+CMakeLists.txt -whitespace

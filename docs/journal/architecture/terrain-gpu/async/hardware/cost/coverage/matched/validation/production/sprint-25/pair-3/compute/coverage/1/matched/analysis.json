@@ -1,0 +1,54 @@
+{
+  "bands": [
+    {
+      "band_m": [
+        0,
+        5
+      ],
+      "eligible_visible_m2": 59.171803399791315,
+      "eligible_pixels": 391387,
+      "generated_roots": 3637,
+      "ground_visible_roots": 2701,
+      "visible_fade_sum": 2451.047922968136,
+      "visible_roots_per_eligible_m2": 45.646741265444106,
+      "fade_per_eligible_m2": 41.42256585299173,
+      "composed_projected_eligible_coverage": 0.8906694535156017
+    },
+    {
+      "band_m": [
+        5,
+        15
+      ],
+      "eligible_visible_m2": 278.0077317141986,
+      "eligible_pixels": 175312,
+      "generated_roots": 23560,
+      "ground_visible_roots": 12682,
+      "visible_fade_sum": 11519.89605716579,
+      "visible_roots_per_eligible_m2": 45.61743632740951,
+      "fade_per_eligible_m2": 41.4373225742104,
+      "composed_projected_eligible_coverage": 0.9978043548687946
+    },
+    {
+      "band_m": [
+        15,
+        30
+      ],
+      "eligible_visible_m2": 772.9210267579183,
+      "eligible_pixels": 47763,
+      "generated_roots": 34368,
+      "ground_visible_roots": 30944,
+      "visible_fade_sum": 26085.47242403883,
+      "visible_roots_per_eligible_m2": 40.03513803964836,
+      "fade_per_eligible_m2": 33.74920790220512,
+      "composed_projected_eligible_coverage": 0.9998462738244557
+    }
+  ],
+  "nearest_opaque_grass_pixels": 606141,
+  "composed_grass_pixels": 576417,
+  "character_pixels": 8901,
+  "scope": "Controlled live-plan scene; nearest opaque grass stencil after character plus RGB contribution after water/atmosphere/tone mapping; flare/overlays excluded",
+  "coverage_acceptance": false,
+  "eligible_area_method": "Live triangle raster derivatives times expected biome/rock retention; no Gaussian falloff",
+  "root_visibility_method": "Ray intersection with live triangle plane at projected root; one-sided view-depth occlusion allowance; tolerance 0.15 m",
+  "density_scope": "Screen-visible generated root centers per expected eligible ground area; not physical blade count"
+}

@@ -1,0 +1,580 @@
+{
+  "astronaut": {
+    "airborne": false,
+    "arm_swing": 0.0,
+    "body_offset_m": [
+      0.0030781180692391456,
+      0.29514103604038644,
+      0.002171430284055547
+    ],
+    "boost_pulse_s": 0.0,
+    "boosting": false,
+    "effect_s": 1.3217033720000009,
+    "exhaust": {
+      "capacity": 64,
+      "draw_calls_per_view": 0,
+      "emission_phase_s": 0.0,
+      "instance_bytes_per_view": 0,
+      "next_id": 0,
+      "particles": [],
+      "schema": 1
+    },
+    "feet": [
+      {
+        "ankle": [
+          -208.94440585758392,
+          905.7796894894054,
+          -364.4806836635683
+        ],
+        "duration_s": 0.24,
+        "forward": [
+          -0.08211556148512271,
+          0.3556815734761061,
+          0.9309928317938567
+        ],
+        "hip": [
+          -209.14323635635688,
+          906.6409189978965,
+          -364.82724975126735
+        ],
+        "knee": [
+          -209.0499945493851,
+          906.2368154556674,
+          -364.58454356542705
+        ],
+        "normal": [
+          -0.24059848079009177,
+          0.8900586507889862,
+          -0.3871795051357828
+        ],
+        "position": [
+          -208.92275199287363,
+          905.6995842046107,
+          -364.4458375041399
+        ],
+        "progress": 1.0,
+        "reached": true,
+        "start": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "target": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "ankle": [
+          -209.27325343630443,
+          905.6926449388294,
+          -364.47643374845916
+        ],
+        "duration_s": 0.24,
+        "forward": [
+          -0.08211556148512271,
+          0.3556815734761061,
+          0.9309928317938567
+        ],
+        "hip": [
+          -209.47452217838386,
+          906.5644356394196,
+          -364.82724975126735
+        ],
+        "knee": [
+          -209.37388780734415,
+          906.1285402891244,
+          -364.65184174986325
+        ],
+        "normal": [
+          -0.24059848079009177,
+          0.8900586507889862,
+          -0.3871795051357828
+        ],
+        "position": [
+          -209.25159957303333,
+          905.6125396602584,
+          -364.44158759299694
+        ],
+        "progress": 1.0,
+        "reached": true,
+        "start": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "target": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "flight_physics": {
+      "air_density_kg_m3": 1.207299207175622,
+      "air_pressure_pa": 100887.66784568658,
+      "commanded_horizontal_speed_mps": 100.0,
+      "drag_area_cd_m2": 0.7,
+      "estimated_exhaust_input_w": 0.0,
+      "mass_kg": 100.0,
+      "maximum_thrust_n": 8370.926347129773
+    },
+    "forward": [
+      -0.08211556148512274,
+      0.3556815734761063,
+      0.9309928317938566
+    ],
+    "grass_plan_eye": [
+      -0.2100561025559049,
+      0.9098529404670583,
+      -0.3661325723047198
+    ],
+    "grass_trail": [],
+    "height_m": 0.0,
+    "jetpack_armed": false,
+    "right": [
+      -0.9743700647852352,
+      -0.22495105434386548,
+      1.6653345369377353e-16
+    ],
+    "root": [
+      -209.08717674165644,
+      905.65606167867,
+      -364.4437125361786
+    ],
+    "suit_up": [
+      -0.20942781909860905,
+      0.9071315458295696,
+      -0.36503745992494496
+    ],
+    "terrain_plan_eye_world_units": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "thrust_n": 0.0,
+    "up": [
+      -0.20942781909860905,
+      0.9071315458295696,
+      -0.36503745992494496
+    ],
+    "velocity_mps": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "vertical_velocity_mps": 0.0,
+    "walked_m": 4.749728450380071e-12,
+    "wind_time_s": 2.589032463
+  },
+  "backend": "compute",
+  "body": 0,
+  "depth_scope": "main opaque ground before grass and immediately after both queues; later astronaut/water/atmosphere occlusion excluded",
+  "inspection": {
+    "blocking": true,
+    "buffer_reads": 6,
+    "encoding": "little-endian IEEE754 float32, OpenGL bottom row first",
+    "pixel_reads": 2,
+    "read_bytes": 485408,
+    "timing_acceptance": false
+  },
+  "land_field": "2419672671769440127",
+  "land_revision": 1,
+  "land_topology": "5630403185118082568",
+  "meters_per_radius": 1000.0,
+  "model": [
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    9.368748664855957,
+    0.876392126083374,
+    0.00011741206253645942,
+    1.0
+  ],
+  "profile_frame": 199,
+  "projection": [
+    0.882948100566864,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.569685459136963,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    -1.0000016689300537,
+    -1.0,
+    0.0,
+    0.0,
+    -4.000003173132427e-05,
+    0.0
+  ],
+  "publication_after_frame": {
+    "astronaut_contact_revision": 1,
+    "character_previews": 3,
+    "consumers": [
+      {
+        "body": "earth",
+        "contacts": {
+          "field": "2419672671769440127",
+          "field_version": 1,
+          "topology": "5630403185118082568",
+          "topology_version": 1
+        },
+        "epoch": 1,
+        "grass": {
+          "field": "2419672671769440127",
+          "field_version": 1,
+          "topology": "5630403185118082568",
+          "topology_version": 1
+        },
+        "grass_draw_revision": 1,
+        "grass_plan_eye": [
+          -0.2100561025559049,
+          0.9098529404670583,
+          -0.3661325723047198
+        ],
+        "grass_revision": 1,
+        "land": {
+          "field": "2419672671769440127",
+          "field_version": 1,
+          "topology": "5630403185118082568",
+          "topology_version": 1
+        },
+        "land_buffer": 45,
+        "land_revision": 1,
+        "main_revision": 1,
+        "reflection_revision": 1,
+        "serial": 3,
+        "shadow_revision": 1,
+        "shadows_enabled": true,
+        "water": {
+          "field": "3324964492147381434",
+          "field_version": 1,
+          "topology": "1322894248878833978",
+          "topology_version": 1
+        },
+        "water_buffer": 51,
+        "water_draw_revision": 1,
+        "water_enabled": true,
+        "water_revision": 1
+      },
+      {
+        "body": "moon",
+        "contacts": {
+          "field": "18263967029803681483",
+          "field_version": 1,
+          "topology": "8798661789141761227",
+          "topology_version": 1
+        },
+        "epoch": 1,
+        "grass": {
+          "field": "18263967029803681483",
+          "field_version": 1,
+          "topology": "8798661789141761227",
+          "topology_version": 1
+        },
+        "grass_draw_revision": 0,
+        "grass_plan_eye": [
+          10.323176225143936,
+          3.4721559552181547,
+          -1.3188013991049325
+        ],
+        "grass_revision": 1,
+        "land": {
+          "field": "18263967029803681483",
+          "field_version": 1,
+          "topology": "8798661789141761227",
+          "topology_version": 1
+        },
+        "land_buffer": 39,
+        "land_revision": 1,
+        "main_revision": 1,
+        "reflection_revision": 1,
+        "serial": 2,
+        "shadow_revision": 1,
+        "shadows_enabled": true,
+        "water": {
+          "field": "0",
+          "field_version": 1,
+          "topology": "0",
+          "topology_version": 1
+        },
+        "water_buffer": 0,
+        "water_draw_revision": 0,
+        "water_enabled": false,
+        "water_revision": 1
+      }
+    ],
+    "failed": 0,
+    "grass_only_published": 0,
+    "interactive_failures": 0,
+    "interactive_frames": 200,
+    "loading": false,
+    "managed": true,
+    "obsolete": 1,
+    "peak_reserved_bytes": 5215340,
+    "pending": false,
+    "published": 2,
+    "reserved_bytes": 5215340,
+    "retired": 2
+  },
+  "publication_before_grass": {
+    "astronaut_contact_revision": 1,
+    "character_previews": 3,
+    "consumers": [
+      {
+        "body": "earth",
+        "contacts": {
+          "field": "2419672671769440127",
+          "field_version": 1,
+          "topology": "5630403185118082568",
+          "topology_version": 1
+        },
+        "epoch": 1,
+        "grass": {
+          "field": "2419672671769440127",
+          "field_version": 1,
+          "topology": "5630403185118082568",
+          "topology_version": 1
+        },
+        "grass_draw_revision": 0,
+        "grass_plan_eye": [
+          -0.2100561025559049,
+          0.9098529404670583,
+          -0.3661325723047198
+        ],
+        "grass_revision": 1,
+        "land": {
+          "field": "2419672671769440127",
+          "field_version": 1,
+          "topology": "5630403185118082568",
+          "topology_version": 1
+        },
+        "land_buffer": 45,
+        "land_revision": 1,
+        "main_revision": 1,
+        "reflection_revision": 0,
+        "serial": 3,
+        "shadow_revision": 1,
+        "shadows_enabled": true,
+        "water": {
+          "field": "3324964492147381434",
+          "field_version": 1,
+          "topology": "1322894248878833978",
+          "topology_version": 1
+        },
+        "water_buffer": 51,
+        "water_draw_revision": 0,
+        "water_enabled": true,
+        "water_revision": 1
+      },
+      {
+        "body": "moon",
+        "contacts": {
+          "field": "18263967029803681483",
+          "field_version": 1,
+          "topology": "8798661789141761227",
+          "topology_version": 1
+        },
+        "epoch": 1,
+        "grass": {
+          "field": "18263967029803681483",
+          "field_version": 1,
+          "topology": "8798661789141761227",
+          "topology_version": 1
+        },
+        "grass_draw_revision": 0,
+        "grass_plan_eye": [
+          10.323176225143936,
+          3.4721559552181547,
+          -1.3188013991049325
+        ],
+        "grass_revision": 1,
+        "land": {
+          "field": "18263967029803681483",
+          "field_version": 1,
+          "topology": "8798661789141761227",
+          "topology_version": 1
+        },
+        "land_buffer": 39,
+        "land_revision": 1,
+        "main_revision": 0,
+        "reflection_revision": 0,
+        "serial": 2,
+        "shadow_revision": 1,
+        "shadows_enabled": true,
+        "water": {
+          "field": "0",
+          "field_version": 1,
+          "topology": "0",
+          "topology_version": 1
+        },
+        "water_buffer": 0,
+        "water_draw_revision": 0,
+        "water_enabled": false,
+        "water_revision": 1
+      }
+    ],
+    "failed": 0,
+    "grass_only_published": 0,
+    "interactive_failures": 0,
+    "interactive_frames": 200,
+    "loading": false,
+    "managed": true,
+    "obsolete": 1,
+    "peak_reserved_bytes": 5215340,
+    "pending": false,
+    "published": 2,
+    "reserved_bytes": 5215340,
+    "retired": 2
+  },
+  "queues": [
+    {
+      "capacity": 9728,
+      "instances": 380,
+      "offset_bytes": 0,
+      "queue": 0,
+      "record_bytes": 64,
+      "vertices_per_blade": 14
+    },
+    {
+      "capacity": 9728,
+      "instances": 3,
+      "offset_bytes": 622592,
+      "queue": 1,
+      "record_bytes": 64,
+      "vertices_per_blade": 4
+    }
+  ],
+  "reflection_instances_after_main": [
+    380,
+    3
+  ],
+  "request": 1,
+  "root_m": [
+    -209.08717674165644,
+    905.65606167867,
+    -364.4437125361786
+  ],
+  "schema": 1,
+  "trail_segments_m": [],
+  "view": [
+    -0.9743700623512268,
+    -0.22491636872291565,
+    -0.003950508777052164,
+    0.0,
+    -0.22495105862617493,
+    0.974219799041748,
+    0.017111534252762794,
+    0.0,
+    -6.865688573221007e-11,
+    0.017561636865139008,
+    -0.9998458027839661,
+    0.0,
+    9.325770378112793,
+    0.3292991518974304,
+    -0.36338213086128235,
+    1.0
+  ],
+  "view_identity": "main",
+  "viewport": [
+    320,
+    180
+  ],
+  "walked_m": 4.749728450380071e-12,
+  "wind_s": 2.5890324115753174,
+  "workload": {
+    "bodies": [
+      {
+        "body": 0,
+        "bulk_evaluations": 0,
+        "cpu_render_bytes": 0,
+        "foliage": {
+          "budget": 10000,
+          "budget_source": "resident_summary",
+          "candidates": 9728,
+          "compute_placement": true,
+          "configured_budget": 10000,
+          "configured_density": 30.72,
+          "configured_distance_m": 40.0,
+          "density": 0.39921823286178526,
+          "distance_m": 40.0,
+          "enabled": true,
+          "gpu_bytes": 1924380,
+          "patches": 20,
+          "plan_eye": [
+            -0.2100561025559049,
+            0.9098529404670583,
+            -0.3661325723047198
+          ]
+        },
+        "gpu_input_bytes": 242032,
+        "planning_evaluations": 4679,
+        "terrain_plan_eye": [
+          -0.2100561025559049,
+          0.9098529404670583,
+          -0.3661325723047198
+        ],
+        "topology_input_bytes": 241984,
+        "triangles": 8640,
+        "unique_samples": 4322
+      },
+      {
+        "body": 1,
+        "bulk_evaluations": 0,
+        "cpu_render_bytes": 0,
+        "foliage": {
+          "budget": 0,
+          "budget_source": "legacy_configured_hard_cap",
+          "candidates": 0,
+          "compute_placement": false,
+          "configured_budget": 100000,
+          "configured_density": 30.72,
+          "configured_distance_m": 40.0,
+          "density": 0.0,
+          "distance_m": 0.0,
+          "enabled": false,
+          "gpu_bytes": 0,
+          "patches": 0,
+          "plan_eye": [
+            10.323176225143936,
+            3.4721559552181547,
+            -1.3188013991049325
+          ]
+        },
+        "gpu_input_bytes": 27696,
+        "planning_evaluations": 482,
+        "terrain_plan_eye": [
+          8.597869768737427,
+          14.991384131240556,
+          8.001221514660177
+        ],
+        "topology_input_bytes": 26944,
+        "triangles": 960,
+        "unique_samples": 482
+      }
+    ],
+    "quality_scale": 1.0,
+    "scene_size": [
+      320,
+      180
+    ],
+    "swap_interval_requested": 0,
+    "viewport": [
+      320,
+      180
+    ]
+  }
+}

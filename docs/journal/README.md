@@ -70,6 +70,15 @@ retain actual generations, pose/wind/trails and independently checked masks.
 Fixed-view eligible-ground and final rendered-density acceptance remains pending;
 shipping app and timed probe remain unchanged.
 
+The [matched live-plan study](architecture/terrain-gpu/async/hardware/cost/coverage/matched/study.md)
+adds fixed camera/pose/trail/wind scene inspection and eligible-area/root/composed
+coverage receipts for 24 fresh Quadro routes. Eight of twelve declared pairs
+pass. Analytic area sensitivity reveals finite-quad estimator bias at grazing
+triangle boundaries; qualification and fresh repeats remain. Three unchanged
+timed stationary pairs retain two >5% regressions, localized for further wind
+and opaque-raster controls. Raw buffers, all discrepancies, independent checks
+and lossless storage hashes are retained; CPU stays default.
+
 The [GPU timing prerequisite](architecture/terrain-gpu/async/hardware/timing/study.md)
 adds bounded request-keyed dispatch timings and complete frame timestamp spans.
 It separates nested placement costs from render-stage totals and preserves

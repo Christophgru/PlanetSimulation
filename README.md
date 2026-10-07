@@ -819,7 +819,12 @@ Matched 400 m CPU/compute walking and sprint receipts are in the
 rendered near-root coverage and migration acceptance remain pending.
 The [live grass inspection study](docs/journal/architecture/terrain-gpu/async/hardware/cost/coverage/study.md)
 adds a separate private probe for actual main-view blade roots and opaque grass
-masks; fixed-view eligible-ground coverage checks remain pending.
+masks. The [matched live-plan comparison](docs/journal/architecture/terrain-gpu/async/hardware/cost/coverage/matched/study.md)
+adds 24 fixed-state Quadro routes and independently checked final-compositing
+and ground/root receipts. Eight of twelve declared pairs pass; analytic area
+sensitivity identifies an estimator issue requiring qualification and fresh
+repeats. Two repeated stationary pairs exceed the 5% performance limit.
+Coverage/cost acceptance remains pending and CPU stays default.
 
 Within **1.2 body diameters from its centre (2.4 radii)**, orientation follows
 the nearby planet or moon. Beyond that region, free-space mouse look lets you

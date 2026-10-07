@@ -1,0 +1,7 @@
+walking 350 m pair 1 cpu: 355.518 m, 650508 composed grass pixels
+walking 350 m pair 1 compute: 350.630 m, 648754 composed grass pixels
+walking 350 m pair 2 compute: 350.237 m, 651196 composed grass pixels
+walking 350 m pair 2 cpu: 351.965 m, 645532 composed grass pixels
+walking 350 m pair 3 cpu: 351.696 m, 648855 composed grass pixels
+walking 350 m pair 3 compute: 350.264 m, 645642 composed grass pixels
+Coverage comparisons retained; all route frames excluded from timing

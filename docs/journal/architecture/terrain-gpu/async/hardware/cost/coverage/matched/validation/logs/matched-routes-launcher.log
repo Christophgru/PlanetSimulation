@@ -1,0 +1,37 @@
+Starting sprint-25
+sprint 25 m pair 1 cpu: 25.546 m, 576603 composed grass pixels
+sprint 25 m pair 1 compute: 25.642 m, 576417 composed grass pixels
+sprint 25 m pair 2 compute: 25.789 m, 576417 composed grass pixels
+sprint 25 m pair 2 cpu: 25.328 m, 576536 composed grass pixels
+sprint 25 m pair 3 cpu: 27.502 m, 576132 composed grass pixels
+sprint 25 m pair 3 compute: 25.857 m, 576417 composed grass pixels
+Coverage comparisons retained; all route frames excluded from timing
+
+Starting walking-25
+walking 25 m pair 1 cpu: 25.048 m, 564605 composed grass pixels
+walking 25 m pair 1 compute: 26.117 m, 580271 composed grass pixels
+walking 25 m pair 2 compute: 25.600 m, 564605 composed grass pixels
+walking 25 m pair 2 cpu: 25.179 m, 564605 composed grass pixels
+walking 25 m pair 3 cpu: 25.117 m, 564605 composed grass pixels
+walking 25 m pair 3 compute: 25.750 m, 564605 composed grass pixels
+Coverage comparisons retained; all route frames excluded from timing
+
+Starting sprint-350
+sprint 350 m pair 1 cpu: 351.020 m, 645081 composed grass pixels
+sprint 350 m pair 1 compute: 351.241 m, 646230 composed grass pixels
+sprint 350 m pair 2 compute: 350.648 m, 647921 composed grass pixels
+sprint 350 m pair 2 cpu: 350.261 m, 652966 composed grass pixels
+sprint 350 m pair 3 cpu: 351.468 m, 649282 composed grass pixels
+sprint 350 m pair 3 compute: 350.520 m, 644121 composed grass pixels
+Coverage comparisons retained; all route frames excluded from timing
+
+Starting walking-350
+walking 350 m pair 1 cpu: 355.518 m, 650508 composed grass pixels
+walking 350 m pair 1 compute: 350.630 m, 648754 composed grass pixels
+walking 350 m pair 2 compute: 350.237 m, 651196 composed grass pixels
+walking 350 m pair 2 cpu: 351.965 m, 645532 composed grass pixels
+walking 350 m pair 3 cpu: 351.696 m, 648855 composed grass pixels
+walking 350 m pair 3 compute: 350.264 m, 645642 composed grass pixels
+Coverage comparisons retained; all route frames excluded from timing
+
+All 24 excluded routes complete

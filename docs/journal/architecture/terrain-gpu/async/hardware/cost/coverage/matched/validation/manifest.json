@@ -1,0 +1,346 @@
+{
+  "schema": 1,
+  "hardware_uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+  "snapshots": [
+    {
+      "path": "software/compute-airless/coverage/1",
+      "frames": "software/compute-airless/frames.jsonl.gz",
+      "hardware": false
+    },
+    {
+      "path": "software/compute-airless/coverage/2",
+      "frames": "software/compute-airless/frames.jsonl.gz",
+      "hardware": false
+    },
+    {
+      "path": "software/compute-hdr/coverage/1",
+      "frames": "software/compute-hdr/frames.jsonl.gz",
+      "hardware": false
+    },
+    {
+      "path": "software/compute-hdr/coverage/2",
+      "frames": "software/compute-hdr/frames.jsonl.gz",
+      "hardware": false
+    },
+    {
+      "path": "software/cpu-airless/coverage/1",
+      "frames": "software/cpu-airless/frames.jsonl.gz",
+      "hardware": false
+    },
+    {
+      "path": "software/cpu-airless/coverage/2",
+      "frames": "software/cpu-airless/frames.jsonl.gz",
+      "hardware": false
+    },
+    {
+      "path": "software/cpu-hdr/coverage/1",
+      "frames": "software/cpu-hdr/frames.jsonl.gz",
+      "hardware": false
+    },
+    {
+      "path": "software/cpu-hdr/coverage/2",
+      "frames": "software/cpu-hdr/frames.jsonl.gz",
+      "hardware": false
+    },
+    {
+      "path": "quadro/compute-airless/coverage/1",
+      "frames": "quadro/compute-airless/frames.jsonl.gz",
+      "hardware": true,
+      "memory": "quadro/compute-airless/performance.csv.memory.csv.gz"
+    },
+    {
+      "path": "quadro/compute-airless/coverage/2",
+      "frames": "quadro/compute-airless/frames.jsonl.gz",
+      "hardware": true,
+      "memory": "quadro/compute-airless/performance.csv.memory.csv.gz"
+    },
+    {
+      "path": "quadro/compute-hdr/coverage/1",
+      "frames": "quadro/compute-hdr/frames.jsonl.gz",
+      "hardware": true,
+      "memory": "quadro/compute-hdr/performance.csv.memory.csv.gz"
+    },
+    {
+      "path": "quadro/compute-hdr/coverage/2",
+      "frames": "quadro/compute-hdr/frames.jsonl.gz",
+      "hardware": true,
+      "memory": "quadro/compute-hdr/performance.csv.memory.csv.gz"
+    },
+    {
+      "path": "quadro/cpu-airless/coverage/1",
+      "frames": "quadro/cpu-airless/frames.jsonl.gz",
+      "hardware": true,
+      "memory": "quadro/cpu-airless/performance.csv.memory.csv.gz"
+    },
+    {
+      "path": "quadro/cpu-airless/coverage/2",
+      "frames": "quadro/cpu-airless/frames.jsonl.gz",
+      "hardware": true,
+      "memory": "quadro/cpu-airless/performance.csv.memory.csv.gz"
+    },
+    {
+      "path": "quadro/cpu-hdr/coverage/1",
+      "frames": "quadro/cpu-hdr/frames.jsonl.gz",
+      "hardware": true,
+      "memory": "quadro/cpu-hdr/performance.csv.memory.csv.gz"
+    },
+    {
+      "path": "quadro/cpu-hdr/coverage/2",
+      "frames": "quadro/cpu-hdr/frames.jsonl.gz",
+      "hardware": true,
+      "memory": "quadro/cpu-hdr/performance.csv.memory.csv.gz"
+    },
+    {
+      "path": "ordinary/compute-airless/coverage/1",
+      "frames": "ordinary/compute-airless/frames.jsonl.gz",
+      "hardware": false
+    },
+    {
+      "path": "ordinary/compute-airless/coverage/2",
+      "frames": "ordinary/compute-airless/frames.jsonl.gz",
+      "hardware": false
+    },
+    {
+      "path": "ordinary/compute-hdr/coverage/1",
+      "frames": "ordinary/compute-hdr/frames.jsonl.gz",
+      "hardware": false
+    },
+    {
+      "path": "ordinary/compute-hdr/coverage/2",
+      "frames": "ordinary/compute-hdr/frames.jsonl.gz",
+      "hardware": false
+    },
+    {
+      "path": "ordinary/cpu-airless/coverage/1",
+      "frames": "ordinary/cpu-airless/frames.jsonl.gz",
+      "hardware": false
+    },
+    {
+      "path": "ordinary/cpu-airless/coverage/2",
+      "frames": "ordinary/cpu-airless/frames.jsonl.gz",
+      "hardware": false
+    },
+    {
+      "path": "ordinary/cpu-hdr/coverage/1",
+      "frames": "ordinary/cpu-hdr/frames.jsonl.gz",
+      "hardware": false
+    },
+    {
+      "path": "ordinary/cpu-hdr/coverage/2",
+      "frames": "ordinary/cpu-hdr/frames.jsonl.gz",
+      "hardware": false
+    },
+    {
+      "path": "production/sprint-25/pair-1/compute/coverage/1",
+      "frames": "production/sprint-25/pair-1/compute/frames.jsonl.gz",
+      "hardware": true,
+      "production": true,
+      "memory": "production/sprint-25/pair-1/compute/performance.csv.memory.csv.gz",
+      "distance_m": 25
+    },
+    {
+      "path": "production/sprint-25/pair-1/cpu/coverage/1",
+      "frames": "production/sprint-25/pair-1/cpu/frames.jsonl.gz",
+      "hardware": true,
+      "production": true,
+      "memory": "production/sprint-25/pair-1/cpu/performance.csv.memory.csv.gz",
+      "distance_m": 25
+    },
+    {
+      "path": "production/sprint-25/pair-2/compute/coverage/1",
+      "frames": "production/sprint-25/pair-2/compute/frames.jsonl.gz",
+      "hardware": true,
+      "production": true,
+      "memory": "production/sprint-25/pair-2/compute/performance.csv.memory.csv.gz",
+      "distance_m": 25
+    },
+    {
+      "path": "production/sprint-25/pair-2/cpu/coverage/1",
+      "frames": "production/sprint-25/pair-2/cpu/frames.jsonl.gz",
+      "hardware": true,
+      "production": true,
+      "memory": "production/sprint-25/pair-2/cpu/performance.csv.memory.csv.gz",
+      "distance_m": 25
+    },
+    {
+      "path": "production/sprint-25/pair-3/compute/coverage/1",
+      "frames": "production/sprint-25/pair-3/compute/frames.jsonl.gz",
+      "hardware": true,
+      "production": true,
+      "memory": "production/sprint-25/pair-3/compute/performance.csv.memory.csv.gz",
+      "distance_m": 25
+    },
+    {
+      "path": "production/sprint-25/pair-3/cpu/coverage/1",
+      "frames": "production/sprint-25/pair-3/cpu/frames.jsonl.gz",
+      "hardware": true,
+      "production": true,
+      "memory": "production/sprint-25/pair-3/cpu/performance.csv.memory.csv.gz",
+      "distance_m": 25
+    },
+    {
+      "path": "production/walking-25/pair-1/compute/coverage/1",
+      "frames": "production/walking-25/pair-1/compute/frames.jsonl.gz",
+      "hardware": true,
+      "production": true,
+      "memory": "production/walking-25/pair-1/compute/performance.csv.memory.csv.gz",
+      "distance_m": 25
+    },
+    {
+      "path": "production/walking-25/pair-1/cpu/coverage/1",
+      "frames": "production/walking-25/pair-1/cpu/frames.jsonl.gz",
+      "hardware": true,
+      "production": true,
+      "memory": "production/walking-25/pair-1/cpu/performance.csv.memory.csv.gz",
+      "distance_m": 25
+    },
+    {
+      "path": "production/walking-25/pair-2/compute/coverage/1",
+      "frames": "production/walking-25/pair-2/compute/frames.jsonl.gz",
+      "hardware": true,
+      "production": true,
+      "memory": "production/walking-25/pair-2/compute/performance.csv.memory.csv.gz",
+      "distance_m": 25
+    },
+    {
+      "path": "production/walking-25/pair-2/cpu/coverage/1",
+      "frames": "production/walking-25/pair-2/cpu/frames.jsonl.gz",
+      "hardware": true,
+      "production": true,
+      "memory": "production/walking-25/pair-2/cpu/performance.csv.memory.csv.gz",
+      "distance_m": 25
+    },
+    {
+      "path": "production/walking-25/pair-3/compute/coverage/1",
+      "frames": "production/walking-25/pair-3/compute/frames.jsonl.gz",
+      "hardware": true,
+      "production": true,
+      "memory": "production/walking-25/pair-3/compute/performance.csv.memory.csv.gz",
+      "distance_m": 25
+    },
+    {
+      "path": "production/walking-25/pair-3/cpu/coverage/1",
+      "frames": "production/walking-25/pair-3/cpu/frames.jsonl.gz",
+      "hardware": true,
+      "production": true,
+      "memory": "production/walking-25/pair-3/cpu/performance.csv.memory.csv.gz",
+      "distance_m": 25
+    },
+    {
+      "path": "production/sprint-350/pair-1/compute/coverage/1",
+      "frames": "production/sprint-350/pair-1/compute/frames.jsonl.gz",
+      "hardware": true,
+      "production": true,
+      "memory": "production/sprint-350/pair-1/compute/performance.csv.memory.csv.gz",
+      "distance_m": 350
+    },
+    {
+      "path": "production/sprint-350/pair-1/cpu/coverage/1",
+      "frames": "production/sprint-350/pair-1/cpu/frames.jsonl.gz",
+      "hardware": true,
+      "production": true,
+      "memory": "production/sprint-350/pair-1/cpu/performance.csv.memory.csv.gz",
+      "distance_m": 350
+    },
+    {
+      "path": "production/sprint-350/pair-2/compute/coverage/1",
+      "frames": "production/sprint-350/pair-2/compute/frames.jsonl.gz",
+      "hardware": true,
+      "production": true,
+      "memory": "production/sprint-350/pair-2/compute/performance.csv.memory.csv.gz",
+      "distance_m": 350
+    },
+    {
+      "path": "production/sprint-350/pair-2/cpu/coverage/1",
+      "frames": "production/sprint-350/pair-2/cpu/frames.jsonl.gz",
+      "hardware": true,
+      "production": true,
+      "memory": "production/sprint-350/pair-2/cpu/performance.csv.memory.csv.gz",
+      "distance_m": 350
+    },
+    {
+      "path": "production/sprint-350/pair-3/compute/coverage/1",
+      "frames": "production/sprint-350/pair-3/compute/frames.jsonl.gz",
+      "hardware": true,
+      "production": true,
+      "memory": "production/sprint-350/pair-3/compute/performance.csv.memory.csv.gz",
+      "distance_m": 350
+    },
+    {
+      "path": "production/sprint-350/pair-3/cpu/coverage/1",
+      "frames": "production/sprint-350/pair-3/cpu/frames.jsonl.gz",
+      "hardware": true,
+      "production": true,
+      "memory": "production/sprint-350/pair-3/cpu/performance.csv.memory.csv.gz",
+      "distance_m": 350
+    },
+    {
+      "path": "production/walking-350/pair-1/compute/coverage/1",
+      "frames": "production/walking-350/pair-1/compute/frames.jsonl.gz",
+      "hardware": true,
+      "production": true,
+      "memory": "production/walking-350/pair-1/compute/performance.csv.memory.csv.gz",
+      "distance_m": 350
+    },
+    {
+      "path": "production/walking-350/pair-1/cpu/coverage/1",
+      "frames": "production/walking-350/pair-1/cpu/frames.jsonl.gz",
+      "hardware": true,
+      "production": true,
+      "memory": "production/walking-350/pair-1/cpu/performance.csv.memory.csv.gz",
+      "distance_m": 350
+    },
+    {
+      "path": "production/walking-350/pair-2/compute/coverage/1",
+      "frames": "production/walking-350/pair-2/compute/frames.jsonl.gz",
+      "hardware": true,
+      "production": true,
+      "memory": "production/walking-350/pair-2/compute/performance.csv.memory.csv.gz",
+      "distance_m": 350
+    },
+    {
+      "path": "production/walking-350/pair-2/cpu/coverage/1",
+      "frames": "production/walking-350/pair-2/cpu/frames.jsonl.gz",
+      "hardware": true,
+      "production": true,
+      "memory": "production/walking-350/pair-2/cpu/performance.csv.memory.csv.gz",
+      "distance_m": 350
+    },
+    {
+      "path": "production/walking-350/pair-3/compute/coverage/1",
+      "frames": "production/walking-350/pair-3/compute/frames.jsonl.gz",
+      "hardware": true,
+      "production": true,
+      "memory": "production/walking-350/pair-3/compute/performance.csv.memory.csv.gz",
+      "distance_m": 350
+    },
+    {
+      "path": "production/walking-350/pair-3/cpu/coverage/1",
+      "frames": "production/walking-350/pair-3/cpu/frames.jsonl.gz",
+      "hardware": true,
+      "production": true,
+      "memory": "production/walking-350/pair-3/cpu/performance.csv.memory.csv.gz",
+      "distance_m": 350
+    }
+  ],
+  "production_groups": [
+    "production/sprint-25",
+    "production/walking-25",
+    "production/sprint-350",
+    "production/walking-350"
+  ],
+  "qualification_scope": "Final common-state snapshots only; superseded/failing preflights retained separately",
+  "inspection_inputs_sha256": {
+    "inputs/probe/Inspection.h": "6ceddcc89bf2c2d4046a12aee3bba4771e93fe15eaad96a368606a671b260209",
+    "inputs/probe/Probe.cpp": "c426e7a374d4de1a0de90f1a3a9771ad67fc6a1018824873b48b367de00604d8",
+    "inputs/probe/Render.h": "cf71f7952f67daa0bf13861299843f91a743514d1ff8dde31c6d4e7ecec6fa31",
+    "inputs/probe/ground.vert": "e663e28b308efe0d13d6b350c525582e0a5b3a9d33fd10441152f14674f671af",
+    "inputs/probe/ground.frag": "dc0e5c279b9a935e53bc5e1e77c0e505579329d079b6c0f1a7992fa5dc0ea7b6",
+    "inputs/analysis/measure.py": "d837549cf1fef119545fc8ed54fa2b3c0a8a97221be402ce65e671129915cee5",
+    "inputs/analysis/test_matched.py": "c3b81ad2e1fd96fe65ecd540a3f027156ae6ccc92ffa69efa5feca88a576c29a",
+    "inputs/analysis/test_inspection.py": "555517ae24ebf06be816c3b61e29b9c453fe905aeb390d07b01575765e38f09e",
+    "inputs/analysis/analyze.py": "d5fc526236d4c3f737901acba08555f72b99561ec0bf7e0b2b07f604e7904006",
+    "inputs/driver/matched.py": "8f442b1d8090c6301fb3347f43c078916732a84595748e45328a9dc2447e1ad2",
+    "inputs/driver/CMakeLists.txt": "290b70a0ba794375850a7e4dbeb1f577df4df5b3554673b6faf3ae3c088c729c"
+  }
+}
