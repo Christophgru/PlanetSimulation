@@ -840,8 +840,13 @@ pairs meet the unchanged 5% band gates; maximum area-convergence change is
 0.61349%. Adjacent native frames bracket every crossing, with overshoot up to
 4.665 m and actual root separation up to 4.448 m. The displayed color proxy
 retains its 13.45% near-band edge-area uncertainty. Stationary wind/raster
-investigation is next; CPU stays default and timing/migration acceptance remains
-pending.
+investigation is documented in the
+[stationary wind/raster study](docs/journal/architecture/terrain-gpu/async/hardware/cost/raster/study.md).
+All 54 native Quadro runs and 27 pairs pass raw validation. Fixed-wind full
+draws remain 9.44–15.03% slower on compute; discard and suppressed-draw controls
+localize the repeatable difference to raster-enabled and downstream work.
+The cause and correction remain pending. CPU stays default; the 5% full-draw
+cost limit and earlier failures remain in force.
 
 Within **1.2 body diameters from its centre (2.4 radii)**, orientation follows
 the nearby planet or moon. Beyond that region, free-space mouse look lets you

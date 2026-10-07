@@ -1,0 +1,20 @@
+Reconstructed native full 3 pairs /1440 measured frames
+Reconstructed native discard 3 pairs /1440 measured frames
+Reconstructed native suppress 3 pairs /1440 measured frames
+Reconstructed fixed full 3 pairs /1440 measured frames
+Reconstructed fixed discard 3 pairs /1440 measured frames
+Reconstructed fixed suppress 3 pairs /1440 measured frames
+Reconstructed indexed full 3 pairs /1440 measured frames
+Reconstructed indexed discard 3 pairs /1440 measured frames
+Reconstructed indexed suppress 3 pairs /1440 measured frames
+{
+  "runs": 54,
+  "pairs": 27,
+  "measured_frames": 12960,
+  "excluded_frames": 18320,
+  "upper_outliers_retained": 426,
+  "qualification_frames": 216,
+  "preflight_frames": 216,
+  "timing_acceptance": false,
+  "migration_acceptance": false
+}

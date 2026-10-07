@@ -1,0 +1,20 @@
+Traceback (most recent call last):
+  File "/workspace/docs/journal/architecture/terrain-gpu/async/hardware/cost/raster/validate.py", line 138, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/workspace/docs/journal/architecture/terrain-gpu/async/hardware/cost/raster/validate.py", line 99, in main
+    actual=records.analysis(folder/'trace/performance.csv',frames,uuid,wind,raster,240)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/docs/journal/architecture/terrain-gpu/async/hardware/cost/raster/validation/inputs/driver/records.py", line 53, in analysis
+    result=summarize(trace,normalized,uuid)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/docs/journal/architecture/terrain-gpu/async/hardware/cost/raster/validation/inputs/standard/receipts.py", line 25, in summarize
+    native = {int(r['frame']): r for r in rows(str(trace) + '.native-loop.csv')}
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/docs/journal/architecture/terrain-gpu/async/hardware/cost/raster/validate.py", line 23, in rows
+    def rows(path):return list(csv.DictReader(io.StringIO(read(path))))
+                                                          ^^^^^^^^^^
+  File "/workspace/docs/journal/architecture/terrain-gpu/async/hardware/cost/raster/validate.py", line 18, in read
+    if not path.exists():path=path.with_suffix(path.suffix+'.gz')
+           ^^^^^^^^^^^
+AttributeError: 'str' object has no attribute 'exists'

@@ -105,8 +105,19 @@ including 4.665 m overshoot and 4.448 m pair root separation. Generation/anchor
 and raw root-set diagnostics retain topology variance. Native displayed color
 coverage keeps its 13.45% edge-area limitation. Two repeated software groups
 and eight native fixtures requalify a strict clip-provenance correction; the
-shipping app and 43 other executables stay unchanged. Stationary wind/raster
-cost investigation is next; CPU remains default.
+shipping app and 43 other executables stay unchanged. The stationary wind/raster
+study follows below; CPU remains default.
+
+The [stationary wind/raster study](architecture/terrain-gpu/async/hardware/cost/raster/study.md)
+completes 54 verified Quadro runs across native/fixed/indexed wind and
+full/discard/suppressed grass draws. Independent checks reconstruct all 27
+pairs, 12,960 measured frames and every retained outlier. Fixed-wind full
+draws fail the 5% limit in all three pairs (9.44–15.03% slower); matching wind
+does not remove the regression. Ablations locate the repeatable difference
+in raster-enabled and downstream scene work without proving an overdraw or
+ordering cause. Software/Quadro controls and 703 byte-verified payloads remain
+archived. Correction and full-workload repeats follow as T3c5c2b4; CPU stays
+default and migration acceptance remains pending.
 
 The [GPU timing prerequisite](architecture/terrain-gpu/async/hardware/timing/study.md)
 adds bounded request-keyed dispatch timings and complete frame timestamp spans.

@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+  "wind_modes": [
+    "native",
+    "fixed",
+    "indexed"
+  ],
+  "raster_modes": [
+    "full",
+    "discard",
+    "suppress"
+  ],
+  "frames_per_run": 240,
+  "pairs_per_case": 3,
+  "native_p95_limit": 1.05,
+  "timing_acceptance": false,
+  "migration_acceptance": false
+}

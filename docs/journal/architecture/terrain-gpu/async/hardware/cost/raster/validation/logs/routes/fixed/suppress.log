@@ -1,0 +1,7 @@
+fixed suppress pair 1 cpu native p95 46.061
+fixed suppress pair 1 compute native p95 46.569
+fixed suppress pair 2 compute native p95 46.469
+fixed suppress pair 2 cpu native p95 46.414
+fixed suppress pair 3 cpu native p95 45.941
+fixed suppress pair 3 compute native p95 46.795
+Retained three alternating pairs; earlier failures and all remaining migration gates stay explicit

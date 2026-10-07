@@ -1,5 +1,35 @@
 # Page to document progress of AI Agents working on this Project
 
+## Stationary wind/raster controls — 2026-10-07
+
+- T3c5c2b3's control investigation is tested and documented. Full-draw cost
+  acceptance fails; resume T3c5c2b4 cause/correction and affected full-workload
+  repeats. CPU stays default; the original 1.05 gate and earlier failures remain.
+- File/shell/GPU access recovered after the sandbox interruption. The original
+  runner had completed all 54 runs; no batch was restarted or overwritten.
+  Quadro M1000M and RTX 3070 Ti are accessible; this study uses verified Quadro.
+- Three alternating pairs per native/fixed/indexed wind and full/discard/
+  suppress control: 27 pairs, 12,960 measured and 18,320 excluded frames.
+  All 426 upper outliers remain. Independent raw frame/GPU/device/geometry/
+  pose/anchor/worker/publication/wait/readback checks pass.
+- Fixed full native p95 ratios 1.094387/1.150303/1.144083 fail; all fixed
+  discard/suppress pairs and indexed ablations remain below 1.05. Indexed
+  full pairs 2/3 fail. The repeatable difference is raster-enabled/downstream
+  work; root population, order, overdraw and chunking causes are not proven.
+  Native suppress pair 1 also fails, retaining background variability.
+- Final software control CTest passes in 69.00 s; native Quadro also checks
+  27 controls/108 frames. Actual main/reflection shader times and excluded
+  primitive/passed-sample queries verify controls on legacy/resident/vertex
+  paths. Qualification is not timing, production-density or migration acceptance.
+- Shipping/shaders, fixtures and 44 previous executables unchanged; 45 final
+  executable/input hashes frozen throughout measurements. No new full suite.
+  Earlier successful label/count preflights and a Path adapter validator error
+  remain separate. All 703 data payloads match source bytes after decoding:
+  152,526,975 raw to 7,740,877 stored bytes. Gallery/historical captures unchanged.
+- Full study, source/probe provenance, raw archive, independent validator,
+  result distributions and Matplotlib SVG: cost/raster/. Journal/PDF updated.
+  User environmental footer remains byte-identical and unstaged.
+
 ## Fresh qualified analytic route pairs — 2026-10-07
 
 - T3c5c2b2c3 and parent b2c tested. Resume stationary wind/opaque-raster

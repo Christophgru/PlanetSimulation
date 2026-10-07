@@ -201,6 +201,19 @@ Adjacent complete native frames bracket every first crossing. Overshoot reaches 
   caption: [Fresh qualified Quadro comparisons: three alternating pairs for each nominal crossing/case, with native generations retained. All bands meet the shaded ±5% gate. Color measures a native display-grid proxy with separately recorded edge-area uncertainty, not physical supersampled blade coverage. Every route frame is excluded from timing acceptance.],
 ) <fig:analytic-route-coverage>
 
+== Stationary wind and raster controls
+
+T3c5c2b3 completes 54 native Quadro runs: three alternating CPU/compute pairs for each native/fixed/indexed wind and full/discard/suppressed grass draw control. The unchanged production workload retains 1280×720, quality 1, 100,000 Earth triangles and a two-million configured/effective budget. Each run keeps 240 synchronized measured wind indices; all 12,960 measured frames, 18,320 exclusions and 426 upper outliers remain. Wind is recorded separately for main/reflection blade and placement shaders. Fixed wind uses 12 s; indexed wind uses $12 + 0.125 i$ s for matched cohort index $i$. Native wind advances freely and is not phase-matched across runs. Hook/receipt observation remains inside complete native timing; blocking qualification queries are absent.
+
+Fixed-wind full native p95 compute/CPU ratios are 1.094387, 1.150303 and 1.144083; all fail the original 1.05 limit. Their CPU/compute p95 values are 88.923/97.316, 86.197/99.153 and 86.932/99.457 ms. All fixed discard and suppressed-draw pairs stay below the limit. Indexed full pairs 2/3 also fail (1.068332/1.102773), while their ablations remain below it. Native full pair 3 and suppressed pair 1 fail, preserving background variability. @fig:stationary-raster shows every pair without filtering. Passing ablations do not accept full-workload costs.
+
+#figure(
+  image("architecture/terrain-gpu/async/hardware/cost/raster/raster.svg", width: 100%),
+  caption: [All 27 stationary Quadro pair ratios. Full draws execute the production grass path; discard retains placement/vertex work but disables rasterization; suppression omits grass draws after placement. The dashed 1.05 limit applies to full-draw costs. Ablations diagnose work and cannot qualify migration. All outliers remain.],
+) <fig:stationary-raster>
+
+Matching wind does not remove the repeatable regression. Discard and suppression localize it to work enabled by grass rasterization and downstream scene effects, without proving atomic order, root-population, overdraw or chunking causation. Fixed full GPU opaque p95 CPU/compute is 21.117/27.073, 21.842/27.118 and 21.783/27.082 ms; placement means increase only 0.210–0.311 ms per view. Reflection and atmosphere distributions also change. Removing grass changes their color/depth inputs, so independent stage percentiles and full-minus-discard p95 are not an additive frame decomposition or standalone fragment cost. T3c5c2b4 will distinguish the mechanism, apply a bounded correction and repeat affected full-workload pairs. CPU stays default; earlier failed samples, Moon/reload, protected near-density and final migration gates remain. Full evidence and reproducible checks are in `architecture/terrain-gpu/async/hardware/cost/raster/`.
+
 = Orbital motion and light transport
 
 == Prescribed Kepler ellipses with collective mass
@@ -623,6 +636,8 @@ T3c5c2b2c2 passes three frozen scoped software groups in 161.68 s and eight nati
 
 T3c5c2b2c3 passes four driver checks and two repeated software groups (126.34 s), plus eight requalification snapshots on verified Quadro. Independent reconstruction checks 40 final live inspections /120 sampling grids /360 biome diagnostics and 80 native/controlled queue-depth snapshots, including all 24 fresh route crossings and twelve pair decisions. The strict projection assertion now derives clip provenance from the renderer's actual double-precision chase eye; qualified raster/area math and shipping source are unchanged, with only the private coverage probe rebuilt. Initial projection, slow storage and manifest-order packaging preflights remain lossless. Exact recovered preflight source bytes reproduce both frozen build/test tree hashes. Runtime/43 other executable provenance and all final inputs remain frozen. This is scoped coverage verification, not a full suite or timing/migration acceptance.
 
+T3c5c2b3 passes the scoped software raster-control CTest in 69.00 s and the same 27 controls/108 frames on verified Quadro. Legacy compute placement, resident planning and vertex placement use independently queried blade/placement uniforms, generated primitives and passing depth/stencil samples. Fixed/indexed full/discard primitive counts match; discard samples and suppressed primitives/samples are zero. These blocking checks are excluded from timings and do not measure fragment shader invocations or production density. Independent archive reconstruction verifies all 54 runs, 27 pairs, native publication/wait/readback audits and every stage distribution. All 703 source payloads match after lossless decoding (152,526,975 raw bytes to 7,740,877 stored). Successful label/count preflights and an archive string/Path adapter failure remain separate. Shipping/shaders and 44 previous executables are unchanged; 45 final executable/input hashes stay frozen. This is scoped control/archive verification, not a full suite or accepted hardware speedup. Full-draw failures remain.
+
 
 
 
@@ -679,6 +694,7 @@ R6. NASA Glenn Research Center, #link("https://www.grc.nasa.gov/www/k-12/Numbers
   [Analytic area measurement prerequisite], [`coverage/area/`, tiled private raster probe], [32 known-geometry GPU snapshots, exact band references and 1% convergence],
   [Live analytic inspection qualification], [`coverage/live/`, installed-VAO raster and excluded analysis], [20 snapshots, 60 grids, true opaque occlusion, 180 biome checks; fresh route acceptance pending],
   [Fresh analytic route comparisons], [`coverage/repeats/`, fixed qualified area and native plans], [24 routes /12 passing pairs; crossing brackets, root variance and display-mask uncertainty; timing pending],
+  [Stationary wind/raster investigation], [`cost/raster/`, private shader/draw wrappers], [54 runs /27 pairs; qualified controls, retained full-draw failures and raster-enabled localization],
   [Device-verified memory], [`diagnostics/memory/`], [UUID/error/bounded-reader cases, GPU and native receipts],
   [Bounded asynchronous GPU timings], [`diagnostics/timing/`, `FrameProfiler.h`], [Controlled query tests and traced resident publication],
   [Stable terrain under LOD], [`src/rendering/geometry/Terrain.h`], [`TerrainTests`, surface capture],

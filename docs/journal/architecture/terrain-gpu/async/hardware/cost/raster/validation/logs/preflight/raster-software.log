@@ -1,0 +1,8 @@
+Internal ctest changing into directory: /workspace/build-resume
+Test project /workspace/build-resume
+    Start 55: TerrainRasterControlIntegration
+1/1 Test #55: TerrainRasterControlIntegration ...   Passed  224.37 sec
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) = 224.38 sec

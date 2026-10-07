@@ -1,0 +1,7 @@
+native discard pair 1 cpu native p95 55.394
+native discard pair 1 compute native p95 52.377
+native discard pair 2 compute native p95 52.517
+native discard pair 2 cpu native p95 52.662
+native discard pair 3 cpu native p95 63.193
+native discard pair 3 compute native p95 53.025
+Retained three alternating pairs; earlier failures and all remaining migration gates stay explicit

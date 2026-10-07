@@ -24,6 +24,10 @@ build.ninja
 *.dll
 *.exe
 
+# Generated Python bytecode
+__pycache__/
+*.pyc
+
 # Generated render output
 /render-test.png
 

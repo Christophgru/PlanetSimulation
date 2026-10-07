@@ -1,0 +1,19 @@
+Starting raster-native-full
+Finished raster-native-full ratios [1.047608, 1.036985, 1.10621]
+Starting raster-native-discard
+Finished raster-native-discard ratios [0.945534, 0.997245, 0.839104]
+Starting raster-native-suppress
+Finished raster-native-suppress ratios [1.086817, 0.875511, 1.021815]
+Starting raster-fixed-full
+Finished raster-fixed-full ratios [1.094387, 1.150303, 1.144083]
+Starting raster-fixed-discard
+Finished raster-fixed-discard ratios [1.041136, 0.998776, 1.011265]
+Starting raster-fixed-suppress
+Finished raster-fixed-suppress ratios [1.011026, 1.001188, 1.018595]
+Starting raster-indexed-full
+Finished raster-indexed-full ratios [0.977918, 1.068332, 1.102773]
+Starting raster-indexed-discard
+Finished raster-indexed-discard ratios [1.021654, 1.023504, 0.962707]
+Starting raster-indexed-suppress
+Finished raster-indexed-suppress ratios [0.931938, 1.014612, 0.83597]
+All 54 runs retained

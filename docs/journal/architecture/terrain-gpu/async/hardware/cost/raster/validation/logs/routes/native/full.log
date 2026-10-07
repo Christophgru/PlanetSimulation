@@ -1,0 +1,7 @@
+native full pair 1 cpu native p95 74.783
+native full pair 1 compute native p95 78.344
+native full pair 2 compute native p95 80.075
+native full pair 2 cpu native p95 77.219
+native full pair 3 cpu native p95 78.713
+native full pair 3 compute native p95 87.074
+Retained three alternating pairs; earlier failures and all remaining migration gates stay explicit
