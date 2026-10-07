@@ -74,7 +74,7 @@ The [matched live-plan study](architecture/terrain-gpu/async/hardware/cost/cover
 adds fixed camera/pose/trail/wind scene inspection and eligible-area/root/composed
 coverage receipts for 24 fresh Quadro routes. Eight of twelve declared pairs
 pass. Analytic area sensitivity reveals finite-quad estimator bias at grazing
-triangle boundaries; qualification and fresh repeats remain. Three unchanged
+triangle boundaries; qualification and fresh repeats follow below. Three unchanged
 timed stationary pairs retain two >5% regressions, localized for further wind
 and opaque-raster controls. Raw buffers, all discrepancies, independent checks
 and lossless storage hashes are retained; CPU stays default.
@@ -85,7 +85,7 @@ production-scale transforms, on software GL and native Quadro. Thirty-two
 raw GPU snapshots meet exact area and 2×/4× convergence gates below 1%.
 Fixed-projection viewport tiling bounds targets to 2.25 MiB and resolves a
 retained tile-edge rounding failure. Live qualification follows below; fresh
-matched route repeats and earlier coverage/cost failures stay pending.
+matched route repeats follow below; earlier failures remain recorded.
 
 The [live analytic inspection qualification](architecture/terrain-gpu/async/hardware/cost/coverage/live/study.md)
 passes 20 CPU/compute snapshots and 60 GPU sampling grids on software GL and
@@ -93,9 +93,20 @@ verified Quadro, including four unchanged production walking/sprint inspections.
 Actual terrain, other bodies and astronaut meshes provide fresh occlusion at
 each grid; maximum 2×/4× area change is 0.78655%, with exact native opaque tags.
 The native composed color mask retains a measured edge-area uncertainty;
-fresh three-pair route coverage and stationary timing acceptance remain pending.
+fresh three-pair route coverage follows below; stationary timing acceptance remains pending.
 Raw maps, 180 biome checks, retained preflights and private close-harness correction
 are archived with frozen inputs. CPU stays default.
+
+The [fresh analytic route comparison](architecture/terrain-gpu/async/hardware/cost/coverage/repeats/study.md)
+retains 24 verified Quadro inspections and twelve passing alternating pairs
+across walking/sprint at 25/350 m. All area-convergence changes remain below 1%
+(maximum 0.61349%); pair gates remain 5%. Actual first crossings are bracketed,
+including 4.665 m overshoot and 4.448 m pair root separation. Generation/anchor
+and raw root-set diagnostics retain topology variance. Native displayed color
+coverage keeps its 13.45% edge-area limitation. Two repeated software groups
+and eight native fixtures requalify a strict clip-provenance correction; the
+shipping app and 43 other executables stay unchanged. Stationary wind/raster
+cost investigation is next; CPU remains default.
 
 The [GPU timing prerequisite](architecture/terrain-gpu/async/hardware/timing/study.md)
 adds bounded request-keyed dispatch timings and complete frame timestamp spans.

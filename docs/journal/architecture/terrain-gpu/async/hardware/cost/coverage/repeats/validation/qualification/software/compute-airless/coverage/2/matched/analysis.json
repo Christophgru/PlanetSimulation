@@ -1,0 +1,54 @@
+{
+  "bands": [
+    {
+      "band_m": [
+        0,
+        5
+      ],
+      "eligible_visible_m2": 51.73865302156082,
+      "eligible_pixels": 83482,
+      "generated_roots": 38,
+      "ground_visible_roots": 25,
+      "visible_fade_sum": 22.422174781560898,
+      "visible_roots_per_eligible_m2": 0.483197735928337,
+      "fade_per_eligible_m2": 0.4333737635615872,
+      "composed_projected_eligible_coverage": 0.0770146949866138
+    },
+    {
+      "band_m": [
+        5,
+        15
+      ],
+      "eligible_visible_m2": 130.34079927019775,
+      "eligible_pixels": 6491,
+      "generated_roots": 183,
+      "ground_visible_roots": 31,
+      "visible_fade_sum": 25.66457485035062,
+      "visible_roots_per_eligible_m2": 0.23783803823188698,
+      "fade_per_eligible_m2": 0.196903617240736,
+      "composed_projected_eligible_coverage": 0.1183420826890113
+    },
+    {
+      "band_m": [
+        15,
+        30
+      ],
+      "eligible_visible_m2": 381.3559339977801,
+      "eligible_pixels": 3032,
+      "generated_roots": 161,
+      "ground_visible_roots": 9,
+      "visible_fade_sum": 7.240886762738228,
+      "visible_roots_per_eligible_m2": 0.023599999888955156,
+      "fade_per_eligible_m2": 0.01898721408850656,
+      "composed_projected_eligible_coverage": 0.11836803532865292
+    }
+  ],
+  "nearest_opaque_grass_pixels": 5062,
+  "composed_grass_pixels": 5062,
+  "character_pixels": 5443,
+  "scope": "Controlled live-plan scene; nearest opaque grass stencil after character plus RGB contribution after water/atmosphere/tone mapping; flare/overlays excluded",
+  "coverage_acceptance": false,
+  "eligible_area_method": "Live triangle raster derivatives times expected biome/rock retention; no Gaussian falloff",
+  "root_visibility_method": "Ray intersection with live triangle plane at projected root; one-sided view-depth occlusion allowance; tolerance 0.15 m",
+  "density_scope": "Screen-visible generated root centers per expected eligible ground area; not physical blade count"
+}

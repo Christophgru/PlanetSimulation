@@ -1,5 +1,34 @@
 # Page to document progress of AI Agents working on this Project
 
+## Fresh qualified analytic route pairs — 2026-10-07
+
+- T3c5c2b2c3 and parent b2c tested. Resume stationary wind/opaque-raster
+  investigation T3c5c2b3. CPU remains default; earlier failed samples,
+  configured near-density and timing/migration gates remain recorded/pending.
+- Twenty-four native Quadro inspections form twelve passing alternating pairs
+  across walking/sprint at 25/350 m. Gates remain 5% per band/pair and 1%
+  area convergence; maximum production change 0.61349%, native tags exact.
+- Adjacent frames bracket first crossings: overshoot up to 4.665 m, bracket
+  width 5.988 m and paired native root separation 4.448 m. Native plans,
+  topology/field/anchors/revisions and effective-density receipts retained.
+- Five same-topology pairs share the smaller generated rounded-1-mm root set;
+  seven different-topology pairs share at most 0.0224%. This is diagnostic
+  correlation, not causal proof or the opaque-visible density metric.
+- Full independent raw reconstruction passes: final 40 live snapshots,
+  120 grids, 360 biome checks and 80 queue/depth snapshots; three preflight
+  queues separately retained. Two scoped software groups pass (126.34 s),
+  four driver tests and eight fresh verified native fixtures pass.
+- Float inverse-view clip mismatch fixed using the actual double-precision
+  chase eye, retaining exact projection assertions. Only the private probe
+  rebuilt; product/shaders and 43 other executables unchanged.
+- All 13,012 route frames are excluded from timing. Native displayed color
+  proxy retains 13.45% edge-area uncertainty; no physical compositing bound.
+- Byte-verified lossless storage keeps 2,136 raw entries and all failures,
+  including interrupted codec and manifest-order packaging preflights.
+  Full study/provenance/validator, journal/PDF: cost/coverage/repeats/.
+- User environmental footer in todo.md remains byte-identical and unstaged.
+
+
 ## Live analytic inspection qualification — 2026-10-07
 
 - T3c5c2b2c2 tested; parent b2c remains in progress. Resume b2c3 three

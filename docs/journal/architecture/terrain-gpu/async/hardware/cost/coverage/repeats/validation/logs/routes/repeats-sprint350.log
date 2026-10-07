@@ -1,0 +1,13 @@
+sprint 350 m pair 1 cpu: 350.120 m, 651730 composed grass pixels
+Verified lossless raw storage for pair-1/cpu
+sprint 350 m pair 1 compute: 350.500 m, 648848 composed grass pixels
+Verified lossless raw storage for pair-1/compute
+sprint 350 m pair 2 compute: 350.363 m, 650727 composed grass pixels
+Verified lossless raw storage for pair-2/compute
+sprint 350 m pair 2 cpu: 352.313 m, 650697 composed grass pixels
+Verified lossless raw storage for pair-2/cpu
+sprint 350 m pair 3 cpu: 350.363 m, 648615 composed grass pixels
+Verified lossless raw storage for pair-3/cpu
+sprint 350 m pair 3 compute: 350.340 m, 646429 composed grass pixels
+Verified lossless raw storage for pair-3/compute
+Coverage comparisons retained; all route frames excluded from timing

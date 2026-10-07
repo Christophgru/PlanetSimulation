@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "files": [
+    {
+      "path": "pair-1/cpu/coverage/1/detailed.blades.gz",
+      "encoded_bytes": 1570901,
+      "decoded_bytes": 1957952,
+      "decoded_sha256": "86eac14faad0393696f9a001878dca3e5c9eb2d1cfb43a0e8f312015a0d522bf"
+    },
+    {
+      "path": "pair-1/cpu/coverage/1/grass.depth.gz",
+      "encoded_bytes": 1590491,
+      "decoded_bytes": 3686400,
+      "decoded_sha256": "e756b2869dadd25040fb73d93c802b419e185236333b49e914b869db02c975f7"
+    },
+    {
+      "path": "pair-1/cpu/coverage/1/ground.depth.gz",
+      "encoded_bytes": 983867,
+      "decoded_bytes": 3686400,
+      "decoded_sha256": "578c416192b24d04159dcc4e6110906962af97b2f4b3e6e506df4362fd71e7be"
+    },
+    {
+      "path": "pair-1/cpu/coverage/1/quads.blades.gz",
+      "encoded_bytes": 7354568,
+      "decoded_bytes": 9391808,
+      "decoded_sha256": "f8a048b87f2814785977a9bf3a329355b3100a15d3c7a7055f79ae6d147d298e"
+    }
+  ]
+}

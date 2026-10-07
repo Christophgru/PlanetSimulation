@@ -1,0 +1,317 @@
+{
+  "schema": 1,
+  "files": [
+    {
+      "path": "coverage/1/detailed.blades.gz",
+      "encoded_bytes": 1281337,
+      "decoded_bytes": 1613824,
+      "decoded_sha256": "da00bf705ffbcbf1f632542516f7e7b6f859cc3aa0cc07f4fa14fd700f75d718"
+    },
+    {
+      "path": "coverage/1/grass.depth.gz",
+      "encoded_bytes": 1748878,
+      "decoded_bytes": 3686400,
+      "decoded_sha256": "72cd025f23ab65f8f8c07f4bdbe812c01d8d540a660d891d31b08b3a906cdb7d"
+    },
+    {
+      "path": "coverage/1/ground.depth.gz",
+      "encoded_bytes": 1214699,
+      "decoded_bytes": 3686400,
+      "decoded_sha256": "d139366479c323323ab175870f4c0bd7071e95d9aab28c4989b976487909610d"
+    },
+    {
+      "path": "coverage/1/matched/grass/detailed.blades.gz",
+      "encoded_bytes": 1281879,
+      "decoded_bytes": 1613056,
+      "decoded_sha256": "ca8e9643c0ad47ff739374166a642aa82222d3da09658add30d217f13734c7f8"
+    },
+    {
+      "path": "coverage/1/matched/grass/grass.depth.gz",
+      "encoded_bytes": 1810782,
+      "decoded_bytes": 3686400,
+      "decoded_sha256": "fa9530d5eedd00777bb55835f6f883a952202a4da155feec789a3b0f0dfcda72"
+    },
+    {
+      "path": "coverage/1/matched/grass/ground.depth.gz",
+      "encoded_bytes": 1230708,
+      "decoded_bytes": 3686400,
+      "decoded_sha256": "2767a14fc0cebfaabbcadd786b1db036dddb814408d61744798a13e5316bb125"
+    },
+    {
+      "path": "coverage/1/matched/grass/quads.blades.gz",
+      "encoded_bytes": 7600822,
+      "decoded_bytes": 9753792,
+      "decoded_sha256": "6a295d8d2a129012f65e0d3ffebf0b87ca3d08a594e5275ba7f2b34594d23a34"
+    },
+    {
+      "path": "coverage/1/matched/ground/eligible.rgba32f.gz",
+      "encoded_bytes": 11743188,
+      "decoded_bytes": 14745600,
+      "decoded_sha256": "43d7b0f4ed90684d8470c4c1805fda715be12fd971a587c7a3d06e298e6f919e"
+    },
+    {
+      "path": "coverage/1/matched/ground/plane.rgba32f.gz",
+      "encoded_bytes": 8930853,
+      "decoded_bytes": 14745600,
+      "decoded_sha256": "376971b7aa7c0d6899c5b22c775ee18bef7d77a64263756db4816cd1b92d5cbf"
+    },
+    {
+      "path": "coverage/1/matched/images/bare.rgba.gz",
+      "encoded_bytes": 100632,
+      "decoded_bytes": 3686400,
+      "decoded_sha256": "85b84f05123c74fec7516bb371f2540d1b5bca55e0d7115e6332b7bd542e2f49"
+    },
+    {
+      "path": "coverage/1/matched/images/bare.stencil.gz",
+      "encoded_bytes": 3056,
+      "decoded_bytes": 921600,
+      "decoded_sha256": "1ff224a27e790c6e05c8e0287882f81f7adfd816388c3413aa7c214dd127d4bb"
+    },
+    {
+      "path": "coverage/1/matched/images/grass.rgba.gz",
+      "encoded_bytes": 371169,
+      "decoded_bytes": 3686400,
+      "decoded_sha256": "59cecce2b1f910058c37ecf5fc78a217456d251660d9e2f94c5786ebb3e2f464"
+    },
+    {
+      "path": "coverage/1/matched/images/grass.stencil.gz",
+      "encoded_bytes": 23972,
+      "decoded_bytes": 921600,
+      "decoded_sha256": "4adab466ec58ea39c3eeededdd09af21fbd482a7268e835a86f2a221a7a08469"
+    },
+    {
+      "path": "coverage/1/matched/live/1x/eligible.rgba32f.xz",
+      "encoded_bytes": 6097068,
+      "decoded_bytes": 14745600,
+      "decoded_sha256": "dda3ce6830972f933e042bfeec44b932126a15a9c434d56c5d48b054094b2cd8"
+    },
+    {
+      "path": "coverage/1/matched/live/1x/material.rgba32f.xz",
+      "encoded_bytes": 1626584,
+      "decoded_bytes": 14745600,
+      "decoded_sha256": "561eedfcbf6d434823f611bdb9781aa864fa9a268240294f5f3dc332b9cb57ed"
+    },
+    {
+      "path": "coverage/1/matched/live/1x/normal-height.rgba32f.xz",
+      "encoded_bytes": 4001196,
+      "decoded_bytes": 14745600,
+      "decoded_sha256": "dc3d9dd270c2ef95d027ff5bf37dc75a9fe8a5e6ae45b42811aca734d0338849"
+    },
+    {
+      "path": "coverage/1/matched/live/1x/objects.stencil.xz",
+      "encoded_bytes": 1516,
+      "decoded_bytes": 921600,
+      "decoded_sha256": "1ff224a27e790c6e05c8e0287882f81f7adfd816388c3413aa7c214dd127d4bb"
+    },
+    {
+      "path": "coverage/1/matched/live/1x/plane.rgba32f.xz",
+      "encoded_bytes": 5668968,
+      "decoded_bytes": 14745600,
+      "decoded_sha256": "653b7ddb6bed57fb0ba0681ae899e27c3651c8a2a5794c5e21b8864c56d05b3b"
+    },
+    {
+      "path": "coverage/1/matched/live/2x/eligible.rgba32f.xz",
+      "encoded_bytes": 20970108,
+      "decoded_bytes": 58982400,
+      "decoded_sha256": "f544746b382a8e3a045ed32b9c34dde95be7b4baead8301001d1d85e549ef2b6"
+    },
+    {
+      "path": "coverage/1/matched/live/2x/objects.stencil.xz",
+      "encoded_bytes": 5548,
+      "decoded_bytes": 3686400,
+      "decoded_sha256": "6bec4eb05a54ca6c37698c02637f73c16c4488bf82f4b4aa9f29d47d49850ef9"
+    },
+    {
+      "path": "coverage/1/matched/live/2x/plane.rgba32f.xz",
+      "encoded_bytes": 22688260,
+      "decoded_bytes": 58982400,
+      "decoded_sha256": "8608032f2f1d790bbd431000f37f3ce9f3ebfac152221807f8512b7e0a5d3a2e"
+    },
+    {
+      "path": "coverage/1/matched/live/4x/eligible.rgba32f.xz",
+      "encoded_bytes": 72245968,
+      "decoded_bytes": 235929600,
+      "decoded_sha256": "d39fc183aa1a574a69a5f27eb3af4c17876e0c66132ecfeb5159b131481c0caa"
+    },
+    {
+      "path": "coverage/1/matched/live/4x/objects.stencil.xz",
+      "encoded_bytes": 9460,
+      "decoded_bytes": 14745600,
+      "decoded_sha256": "4c2e4de51b5bb0036180f391b5f63f409c1f94467687639bb4084360fb59d242"
+    },
+    {
+      "path": "coverage/1/matched/live/4x/plane.rgba32f.xz",
+      "encoded_bytes": 92147576,
+      "decoded_bytes": 235929600,
+      "decoded_sha256": "c8303b079c9116642a819b7c449de9a9858fe3e8f8d0908aafd9ee7031c9c915"
+    },
+    {
+      "path": "coverage/1/matched/live/biomes/beach/material.rgba32f.xz",
+      "encoded_bytes": 75464,
+      "decoded_bytes": 1048576,
+      "decoded_sha256": "98eb91eeea4920c5b9e2f378d8194d277ee4819e24a5dd5c3bc1d9b493ce908d"
+    },
+    {
+      "path": "coverage/1/matched/live/biomes/beach/normal-height.rgba32f.xz",
+      "encoded_bytes": 226400,
+      "decoded_bytes": 1048576,
+      "decoded_sha256": "59f9a4df2fde8a663af1e769b04d0c4e3fc373b035217f279b3ee71e78ae8ab0"
+    },
+    {
+      "path": "coverage/1/matched/live/biomes/beach/position.rgba32f.xz",
+      "encoded_bytes": 371992,
+      "decoded_bytes": 1048576,
+      "decoded_sha256": "d0e0b6286ae9c11dd21a2662451954475b5001dfda1cee38ca2bbd7a291606ad"
+    },
+    {
+      "path": "coverage/1/matched/live/biomes/beach-edge/material.rgba32f.xz",
+      "encoded_bytes": 75468,
+      "decoded_bytes": 1048576,
+      "decoded_sha256": "377eb522716838a017d1362a58776bccc19d87a9c045d514717af9b2eac3f564"
+    },
+    {
+      "path": "coverage/1/matched/live/biomes/beach-edge/normal-height.rgba32f.xz",
+      "encoded_bytes": 226400,
+      "decoded_bytes": 1048576,
+      "decoded_sha256": "59f9a4df2fde8a663af1e769b04d0c4e3fc373b035217f279b3ee71e78ae8ab0"
+    },
+    {
+      "path": "coverage/1/matched/live/biomes/beach-edge/position.rgba32f.xz",
+      "encoded_bytes": 500616,
+      "decoded_bytes": 1048576,
+      "decoded_sha256": "ef064a94d1cd4ccb879ac049e9710f0f817f4223d422d0400c415225b40d0487"
+    },
+    {
+      "path": "coverage/1/matched/live/biomes/green-pass/material.rgba32f.xz",
+      "encoded_bytes": 75468,
+      "decoded_bytes": 1048576,
+      "decoded_sha256": "377eb522716838a017d1362a58776bccc19d87a9c045d514717af9b2eac3f564"
+    },
+    {
+      "path": "coverage/1/matched/live/biomes/green-pass/normal-height.rgba32f.xz",
+      "encoded_bytes": 226400,
+      "decoded_bytes": 1048576,
+      "decoded_sha256": "59f9a4df2fde8a663af1e769b04d0c4e3fc373b035217f279b3ee71e78ae8ab0"
+    },
+    {
+      "path": "coverage/1/matched/live/biomes/green-pass/position.rgba32f.xz",
+      "encoded_bytes": 500616,
+      "decoded_bytes": 1048576,
+      "decoded_sha256": "ef064a94d1cd4ccb879ac049e9710f0f817f4223d422d0400c415225b40d0487"
+    },
+    {
+      "path": "coverage/1/matched/live/biomes/green-reject/material.rgba32f.xz",
+      "encoded_bytes": 75464,
+      "decoded_bytes": 1048576,
+      "decoded_sha256": "98eb91eeea4920c5b9e2f378d8194d277ee4819e24a5dd5c3bc1d9b493ce908d"
+    },
+    {
+      "path": "coverage/1/matched/live/biomes/green-reject/normal-height.rgba32f.xz",
+      "encoded_bytes": 226400,
+      "decoded_bytes": 1048576,
+      "decoded_sha256": "59f9a4df2fde8a663af1e769b04d0c4e3fc373b035217f279b3ee71e78ae8ab0"
+    },
+    {
+      "path": "coverage/1/matched/live/biomes/green-reject/position.rgba32f.xz",
+      "encoded_bytes": 371992,
+      "decoded_bytes": 1048576,
+      "decoded_sha256": "d0e0b6286ae9c11dd21a2662451954475b5001dfda1cee38ca2bbd7a291606ad"
+    },
+    {
+      "path": "coverage/1/matched/live/biomes/meadow/material.rgba32f.xz",
+      "encoded_bytes": 75468,
+      "decoded_bytes": 1048576,
+      "decoded_sha256": "377eb522716838a017d1362a58776bccc19d87a9c045d514717af9b2eac3f564"
+    },
+    {
+      "path": "coverage/1/matched/live/biomes/meadow/normal-height.rgba32f.xz",
+      "encoded_bytes": 226400,
+      "decoded_bytes": 1048576,
+      "decoded_sha256": "59f9a4df2fde8a663af1e769b04d0c4e3fc373b035217f279b3ee71e78ae8ab0"
+    },
+    {
+      "path": "coverage/1/matched/live/biomes/meadow/position.rgba32f.xz",
+      "encoded_bytes": 500616,
+      "decoded_bytes": 1048576,
+      "decoded_sha256": "ef064a94d1cd4ccb879ac049e9710f0f817f4223d422d0400c415225b40d0487"
+    },
+    {
+      "path": "coverage/1/matched/live/biomes/rock-half/material.rgba32f.xz",
+      "encoded_bytes": 123272,
+      "decoded_bytes": 1048576,
+      "decoded_sha256": "afd3db18f6ab83e0ded88f0720a0070830f5297fc982881851ede4c01853dc8f"
+    },
+    {
+      "path": "coverage/1/matched/live/biomes/rock-half/normal-height.rgba32f.xz",
+      "encoded_bytes": 226400,
+      "decoded_bytes": 1048576,
+      "decoded_sha256": "59f9a4df2fde8a663af1e769b04d0c4e3fc373b035217f279b3ee71e78ae8ab0"
+    },
+    {
+      "path": "coverage/1/matched/live/biomes/rock-half/position.rgba32f.xz",
+      "encoded_bytes": 504836,
+      "decoded_bytes": 1048576,
+      "decoded_sha256": "4fa315c38b45109232b3f7087fe22fc6e72a3c8086701914c6bf4d9d5be146a5"
+    },
+    {
+      "path": "coverage/1/matched/live/biomes/snow/material.rgba32f.xz",
+      "encoded_bytes": 75464,
+      "decoded_bytes": 1048576,
+      "decoded_sha256": "98eb91eeea4920c5b9e2f378d8194d277ee4819e24a5dd5c3bc1d9b493ce908d"
+    },
+    {
+      "path": "coverage/1/matched/live/biomes/snow/normal-height.rgba32f.xz",
+      "encoded_bytes": 226400,
+      "decoded_bytes": 1048576,
+      "decoded_sha256": "59f9a4df2fde8a663af1e769b04d0c4e3fc373b035217f279b3ee71e78ae8ab0"
+    },
+    {
+      "path": "coverage/1/matched/live/biomes/snow/position.rgba32f.xz",
+      "encoded_bytes": 371992,
+      "decoded_bytes": 1048576,
+      "decoded_sha256": "d0e0b6286ae9c11dd21a2662451954475b5001dfda1cee38ca2bbd7a291606ad"
+    },
+    {
+      "path": "coverage/1/matched/live/biomes/water-pass/material.rgba32f.xz",
+      "encoded_bytes": 75468,
+      "decoded_bytes": 1048576,
+      "decoded_sha256": "377eb522716838a017d1362a58776bccc19d87a9c045d514717af9b2eac3f564"
+    },
+    {
+      "path": "coverage/1/matched/live/biomes/water-pass/normal-height.rgba32f.xz",
+      "encoded_bytes": 226400,
+      "decoded_bytes": 1048576,
+      "decoded_sha256": "59f9a4df2fde8a663af1e769b04d0c4e3fc373b035217f279b3ee71e78ae8ab0"
+    },
+    {
+      "path": "coverage/1/matched/live/biomes/water-pass/position.rgba32f.xz",
+      "encoded_bytes": 500616,
+      "decoded_bytes": 1048576,
+      "decoded_sha256": "ef064a94d1cd4ccb879ac049e9710f0f817f4223d422d0400c415225b40d0487"
+    },
+    {
+      "path": "coverage/1/matched/live/biomes/water-reject/material.rgba32f.xz",
+      "encoded_bytes": 75464,
+      "decoded_bytes": 1048576,
+      "decoded_sha256": "98eb91eeea4920c5b9e2f378d8194d277ee4819e24a5dd5c3bc1d9b493ce908d"
+    },
+    {
+      "path": "coverage/1/matched/live/biomes/water-reject/normal-height.rgba32f.xz",
+      "encoded_bytes": 226400,
+      "decoded_bytes": 1048576,
+      "decoded_sha256": "59f9a4df2fde8a663af1e769b04d0c4e3fc373b035217f279b3ee71e78ae8ab0"
+    },
+    {
+      "path": "coverage/1/matched/live/biomes/water-reject/position.rgba32f.xz",
+      "encoded_bytes": 371992,
+      "decoded_bytes": 1048576,
+      "decoded_sha256": "d0e0b6286ae9c11dd21a2662451954475b5001dfda1cee38ca2bbd7a291606ad"
+    },
+    {
+      "path": "coverage/1/quads.blades.gz",
+      "encoded_bytes": 7688771,
+      "decoded_bytes": 9868032,
+      "decoded_sha256": "ae74c8c77eb37a1b85fadd6a94370576414217456ac14d704f1e8f78b0559e6b"
+    }
+  ]
+}

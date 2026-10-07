@@ -1,0 +1,43 @@
+Requalified preserved projection: software
+Requalified preserved projection: quadro
+Reconstructed walking25 1 cpu
+Reconstructed walking25 1 compute
+Reconstructed walking25 2 compute
+Reconstructed walking25 2 cpu
+Reconstructed walking25 3 cpu
+Reconstructed walking25 3 compute
+Reconstructed walking350 1 cpu
+Reconstructed walking350 1 compute
+Reconstructed walking350 2 compute
+Reconstructed walking350 2 cpu
+Reconstructed walking350 3 cpu
+Reconstructed walking350 3 compute
+Reconstructed sprint25 1 cpu
+Reconstructed sprint25 1 compute
+Reconstructed sprint25 2 compute
+Reconstructed sprint25 2 cpu
+Reconstructed sprint25 3 cpu
+Reconstructed sprint25 3 compute
+Reconstructed sprint350 1 cpu
+Reconstructed sprint350 1 compute
+Reconstructed sprint350 2 compute
+Reconstructed sprint350 2 cpu
+Reconstructed sprint350 3 cpu
+Reconstructed sprint350 3 compute
+{
+  "qualification_snapshots": 16,
+  "qualification_maximum_area_change": 0.007865545160299803,
+  "preflight_queue_depth_snapshots": 3,
+  "live_snapshots": 24,
+  "live_grids": 72,
+  "biome_cases": 216,
+  "queue_depth_snapshots": 48,
+  "passing_pairs": 12,
+  "total_pairs": 12,
+  "maximum_area_change": 0.006134887710498527,
+  "maximum_native_mask_edge_fraction": 0.13450199299975504,
+  "maximum_crossing_overshoot_m": 4.664801419790194,
+  "maximum_crossing_bracket_m": 5.988052855645094,
+  "timing_acceptance": false,
+  "migration_acceptance": false
+}

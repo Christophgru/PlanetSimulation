@@ -1,0 +1,8 @@
+{
+  "coverage_request": 1,
+  "coverage_distance_m": 25,
+  "coverage_matched": true,
+  "coverage_close": true,
+  "coverage_live": true,
+  "coverage_reference": "/workspace/build-resume/repeats-sprint25/pair-1/cpu/coverage/1/matched/controls.json"
+}

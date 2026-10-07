@@ -1,0 +1,1027 @@
+{
+  "qualification_snapshots": 16,
+  "qualification_maximum_area_change": 0.007865545160299803,
+  "preflight_queue_depth_snapshots": 3,
+  "live_snapshots": 24,
+  "live_grids": 72,
+  "biome_cases": 216,
+  "queue_depth_snapshots": 48,
+  "passing_pairs": 12,
+  "total_pairs": 12,
+  "maximum_area_change": 0.006134887710498527,
+  "maximum_native_mask_edge_fraction": 0.13450199299975504,
+  "maximum_crossing_overshoot_m": 4.664801419790194,
+  "maximum_crossing_bracket_m": 5.988052855645094,
+  "pairs": [
+    {
+      "case": "walking25",
+      "pair": 1,
+      "coverage_parity": true,
+      "topology_equal": true,
+      "native_root_separation_m": 0.17262653299817443,
+      "root_identity_bands": {
+        "exact": [
+          {
+            "cpu_unique_roots": 3645,
+            "compute_unique_roots": 3641,
+            "shared_roots": 3641
+          },
+          {
+            "cpu_unique_roots": 23360,
+            "compute_unique_roots": 23340,
+            "shared_roots": 23340
+          },
+          {
+            "cpu_unique_roots": 34364,
+            "compute_unique_roots": 34329,
+            "shared_roots": 34329
+          }
+        ],
+        "rounded_mm": [
+          {
+            "cpu_unique_roots": 3645,
+            "compute_unique_roots": 3641,
+            "shared_roots": 3641
+          },
+          {
+            "cpu_unique_roots": 23359,
+            "compute_unique_roots": 23339,
+            "shared_roots": 23339
+          },
+          {
+            "cpu_unique_roots": 34364,
+            "compute_unique_roots": 34329,
+            "shared_roots": 34329
+          }
+        ]
+      },
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0,
+            "visible_roots_per_eligible_m2": 0.9988978692138134,
+            "fade_per_eligible_m2": 0.9989937657068607,
+            "composed_projected_eligible_coverage": 0.9997843928676291
+          },
+          "within_declared_tolerance": true
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0,
+            "visible_roots_per_eligible_m2": 0.9988127275605508,
+            "fade_per_eligible_m2": 0.9989905234230002,
+            "composed_projected_eligible_coverage": 0.9999854159059823
+          },
+          "within_declared_tolerance": true
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0,
+            "visible_roots_per_eligible_m2": 0.9989662079214318,
+            "fade_per_eligible_m2": 0.9989919235153145,
+            "composed_projected_eligible_coverage": 0.9999966244622243
+          },
+          "within_declared_tolerance": true
+        }
+      ]
+    },
+    {
+      "case": "walking25",
+      "pair": 2,
+      "coverage_parity": true,
+      "topology_equal": false,
+      "native_root_separation_m": 0.047424217648856314,
+      "root_identity_bands": {
+        "exact": [
+          {
+            "cpu_unique_roots": 3649,
+            "compute_unique_roots": 3755,
+            "shared_roots": 0
+          },
+          {
+            "cpu_unique_roots": 23376,
+            "compute_unique_roots": 23459,
+            "shared_roots": 0
+          },
+          {
+            "cpu_unique_roots": 34390,
+            "compute_unique_roots": 34564,
+            "shared_roots": 0
+          }
+        ],
+        "rounded_mm": [
+          {
+            "cpu_unique_roots": 3649,
+            "compute_unique_roots": 3755,
+            "shared_roots": 0
+          },
+          {
+            "cpu_unique_roots": 23375,
+            "compute_unique_roots": 23458,
+            "shared_roots": 2
+          },
+          {
+            "cpu_unique_roots": 34390,
+            "compute_unique_roots": 34563,
+            "shared_roots": 1
+          }
+        ]
+      },
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0,
+            "visible_roots_per_eligible_m2": 1.0267791636096846,
+            "fade_per_eligible_m2": 1.0269865306109685,
+            "composed_projected_eligible_coverage": 1.0020479161767184
+          },
+          "within_declared_tolerance": true
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0,
+            "visible_roots_per_eligible_m2": 1.0060112315115084,
+            "fade_per_eligible_m2": 1.0041146602679814,
+            "composed_projected_eligible_coverage": 0.9995132085304901
+          },
+          "within_declared_tolerance": true
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 0.999997717512984,
+            "visible_roots_per_eligible_m2": 1.0060067511155126,
+            "fade_per_eligible_m2": 1.0074514914820702,
+            "composed_projected_eligible_coverage": 1.0000111432908434
+          },
+          "within_declared_tolerance": true
+        }
+      ]
+    },
+    {
+      "case": "walking25",
+      "pair": 3,
+      "coverage_parity": true,
+      "topology_equal": true,
+      "native_root_separation_m": 0.1356883595679486,
+      "root_identity_bands": {
+        "exact": [
+          {
+            "cpu_unique_roots": 3649,
+            "compute_unique_roots": 3641,
+            "shared_roots": 3641
+          },
+          {
+            "cpu_unique_roots": 23379,
+            "compute_unique_roots": 23340,
+            "shared_roots": 23340
+          },
+          {
+            "cpu_unique_roots": 34393,
+            "compute_unique_roots": 34329,
+            "shared_roots": 34329
+          }
+        ],
+        "rounded_mm": [
+          {
+            "cpu_unique_roots": 3649,
+            "compute_unique_roots": 3641,
+            "shared_roots": 3641
+          },
+          {
+            "cpu_unique_roots": 23378,
+            "compute_unique_roots": 23339,
+            "shared_roots": 23339
+          },
+          {
+            "cpu_unique_roots": 34393,
+            "compute_unique_roots": 34329,
+            "shared_roots": 34329
+          }
+        ]
+      },
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0,
+            "visible_roots_per_eligible_m2": 0.9974321349963317,
+            "fade_per_eligible_m2": 0.9981845676491058,
+            "composed_projected_eligible_coverage": 0.99961373682786
+          },
+          "within_declared_tolerance": true
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0,
+            "visible_roots_per_eligible_m2": 0.9979438513246343,
+            "fade_per_eligible_m2": 0.9981795836441092,
+            "composed_projected_eligible_coverage": 0.9999814491079092
+          },
+          "within_declared_tolerance": true
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0,
+            "visible_roots_per_eligible_m2": 0.9981600439007068,
+            "fade_per_eligible_m2": 0.9981819452904671,
+            "composed_projected_eligible_coverage": 0.9999966244622243
+          },
+          "within_declared_tolerance": true
+        }
+      ]
+    },
+    {
+      "case": "walking350",
+      "pair": 1,
+      "coverage_parity": true,
+      "topology_equal": false,
+      "native_root_separation_m": 1.7350911777031317,
+      "root_identity_bands": {
+        "exact": [
+          {
+            "cpu_unique_roots": 4597,
+            "compute_unique_roots": 4517,
+            "shared_roots": 0
+          },
+          {
+            "cpu_unique_roots": 20089,
+            "compute_unique_roots": 20108,
+            "shared_roots": 0
+          },
+          {
+            "cpu_unique_roots": 45601,
+            "compute_unique_roots": 45184,
+            "shared_roots": 0
+          }
+        ],
+        "rounded_mm": [
+          {
+            "cpu_unique_roots": 4597,
+            "compute_unique_roots": 4517,
+            "shared_roots": 0
+          },
+          {
+            "cpu_unique_roots": 20088,
+            "compute_unique_roots": 20107,
+            "shared_roots": 1
+          },
+          {
+            "cpu_unique_roots": 45597,
+            "compute_unique_roots": 45184,
+            "shared_roots": 4
+          }
+        ]
+      },
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0,
+            "visible_roots_per_eligible_m2": 0.9776292852992446,
+            "fade_per_eligible_m2": 0.9815537603368912,
+            "composed_projected_eligible_coverage": 0.9973877701875358
+          },
+          "within_declared_tolerance": true
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.000000606457813,
+            "visible_roots_per_eligible_m2": 1.0009603154453823,
+            "fade_per_eligible_m2": 1.0009262082422559,
+            "composed_projected_eligible_coverage": 0.9997858419261683
+          },
+          "within_declared_tolerance": true
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0,
+            "visible_roots_per_eligible_m2": 0.989297274720685,
+            "fade_per_eligible_m2": 0.9885676987433505,
+            "composed_projected_eligible_coverage": 0.9999913089625999
+          },
+          "within_declared_tolerance": true
+        }
+      ]
+    },
+    {
+      "case": "walking350",
+      "pair": 2,
+      "coverage_parity": true,
+      "topology_equal": false,
+      "native_root_separation_m": 1.1567257612154558,
+      "root_identity_bands": {
+        "exact": [
+          {
+            "cpu_unique_roots": 4529,
+            "compute_unique_roots": 4527,
+            "shared_roots": 0
+          },
+          {
+            "cpu_unique_roots": 20162,
+            "compute_unique_roots": 19969,
+            "shared_roots": 0
+          },
+          {
+            "cpu_unique_roots": 45019,
+            "compute_unique_roots": 44810,
+            "shared_roots": 0
+          }
+        ],
+        "rounded_mm": [
+          {
+            "cpu_unique_roots": 4529,
+            "compute_unique_roots": 4526,
+            "shared_roots": 1
+          },
+          {
+            "cpu_unique_roots": 20161,
+            "compute_unique_roots": 19969,
+            "shared_roots": 0
+          },
+          {
+            "cpu_unique_roots": 45018,
+            "compute_unique_roots": 44810,
+            "shared_roots": 2
+          }
+        ]
+      },
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0000002838518263,
+            "visible_roots_per_eligible_m2": 1.0017743385371598,
+            "fade_per_eligible_m2": 1.0033284402869824,
+            "composed_projected_eligible_coverage": 1.0059482466879597
+          },
+          "within_declared_tolerance": true
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0,
+            "visible_roots_per_eligible_m2": 0.9954586739327883,
+            "fade_per_eligible_m2": 0.9948083110794036,
+            "composed_projected_eligible_coverage": 0.9996703436094737
+          },
+          "within_declared_tolerance": true
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0,
+            "visible_roots_per_eligible_m2": 0.9944491435821528,
+            "fade_per_eligible_m2": 0.9960660346288457,
+            "composed_projected_eligible_coverage": 0.9999902608732668
+          },
+          "within_declared_tolerance": true
+        }
+      ]
+    },
+    {
+      "case": "walking350",
+      "pair": 3,
+      "coverage_parity": true,
+      "topology_equal": false,
+      "native_root_separation_m": 4.4482050119104395,
+      "root_identity_bands": {
+        "exact": [
+          {
+            "cpu_unique_roots": 4690,
+            "compute_unique_roots": 4506,
+            "shared_roots": 0
+          },
+          {
+            "cpu_unique_roots": 20605,
+            "compute_unique_roots": 19779,
+            "shared_roots": 0
+          },
+          {
+            "cpu_unique_roots": 46692,
+            "compute_unique_roots": 44438,
+            "shared_roots": 0
+          }
+        ],
+        "rounded_mm": [
+          {
+            "cpu_unique_roots": 4690,
+            "compute_unique_roots": 4505,
+            "shared_roots": 0
+          },
+          {
+            "cpu_unique_roots": 20605,
+            "compute_unique_roots": 19779,
+            "shared_roots": 1
+          },
+          {
+            "cpu_unique_roots": 46692,
+            "compute_unique_roots": 44438,
+            "shared_roots": 4
+          }
+        ]
+      },
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 0.9999608370118864,
+            "visible_roots_per_eligible_m2": 0.9669894371473998,
+            "fade_per_eligible_m2": 0.9676731513978919,
+            "composed_projected_eligible_coverage": 0.9965719846762476
+          },
+          "within_declared_tolerance": true
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0000009010725837,
+            "visible_roots_per_eligible_m2": 0.9527284605996006,
+            "fade_per_eligible_m2": 0.9523930109106885,
+            "composed_projected_eligible_coverage": 0.9997316333564429
+          },
+          "within_declared_tolerance": true
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0,
+            "visible_roots_per_eligible_m2": 0.9518339276617424,
+            "fade_per_eligible_m2": 0.9538671385236448,
+            "composed_projected_eligible_coverage": 0.999963365245794
+          },
+          "within_declared_tolerance": true
+        }
+      ]
+    },
+    {
+      "case": "sprint25",
+      "pair": 1,
+      "coverage_parity": true,
+      "topology_equal": true,
+      "native_root_separation_m": 0.30699025286246656,
+      "root_identity_bands": {
+        "exact": [
+          {
+            "cpu_unique_roots": 3644,
+            "compute_unique_roots": 3639,
+            "shared_roots": 3639
+          },
+          {
+            "cpu_unique_roots": 23857,
+            "compute_unique_roots": 23815,
+            "shared_roots": 23815
+          },
+          {
+            "cpu_unique_roots": 34483,
+            "compute_unique_roots": 34398,
+            "shared_roots": 34398
+          }
+        ],
+        "rounded_mm": [
+          {
+            "cpu_unique_roots": 3644,
+            "compute_unique_roots": 3639,
+            "shared_roots": 3639
+          },
+          {
+            "cpu_unique_roots": 23856,
+            "compute_unique_roots": 23814,
+            "shared_roots": 23814
+          },
+          {
+            "cpu_unique_roots": 34483,
+            "compute_unique_roots": 34398,
+            "shared_roots": 34398
+          }
+        ]
+      },
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0,
+            "visible_roots_per_eligible_m2": 0.9981549815498154,
+            "fade_per_eligible_m2": 0.997816758448968,
+            "composed_projected_eligible_coverage": 0.9996340577264672
+          },
+          "within_declared_tolerance": true
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0,
+            "visible_roots_per_eligible_m2": 0.9981862629130196,
+            "fade_per_eligible_m2": 0.9979005789857781,
+            "composed_projected_eligible_coverage": 0.9999750856305472
+          },
+          "within_declared_tolerance": true
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0,
+            "visible_roots_per_eligible_m2": 0.997521645369983,
+            "fade_per_eligible_m2": 0.997889469187476,
+            "composed_projected_eligible_coverage": 1.0
+          },
+          "within_declared_tolerance": true
+        }
+      ]
+    },
+    {
+      "case": "sprint25",
+      "pair": 2,
+      "coverage_parity": true,
+      "topology_equal": true,
+      "native_root_separation_m": 1.8231913714653554,
+      "root_identity_bands": {
+        "exact": [
+          {
+            "cpu_unique_roots": 3632,
+            "compute_unique_roots": 3639,
+            "shared_roots": 3632
+          },
+          {
+            "cpu_unique_roots": 23796,
+            "compute_unique_roots": 23815,
+            "shared_roots": 23796
+          },
+          {
+            "cpu_unique_roots": 34349,
+            "compute_unique_roots": 34398,
+            "shared_roots": 34349
+          }
+        ],
+        "rounded_mm": [
+          {
+            "cpu_unique_roots": 3632,
+            "compute_unique_roots": 3639,
+            "shared_roots": 3632
+          },
+          {
+            "cpu_unique_roots": 23795,
+            "compute_unique_roots": 23814,
+            "shared_roots": 23795
+          },
+          {
+            "cpu_unique_roots": 34349,
+            "compute_unique_roots": 34398,
+            "shared_roots": 34349
+          }
+        ]
+      },
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0,
+            "visible_roots_per_eligible_m2": 1.0018518518518518,
+            "fade_per_eligible_m2": 1.001466373022377,
+            "composed_projected_eligible_coverage": 1.0002855516494302
+          },
+          "within_declared_tolerance": true
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0,
+            "visible_roots_per_eligible_m2": 1.0008697714873094,
+            "fade_per_eligible_m2": 1.001411979841312,
+            "composed_projected_eligible_coverage": 1.0000094059716875
+          },
+          "within_declared_tolerance": true
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0,
+            "visible_roots_per_eligible_m2": 1.0013570274636512,
+            "fade_per_eligible_m2": 1.0014193283767845,
+            "composed_projected_eligible_coverage": 1.0000042110370606
+          },
+          "within_declared_tolerance": true
+        }
+      ]
+    },
+    {
+      "case": "sprint25",
+      "pair": 3,
+      "coverage_parity": true,
+      "topology_equal": true,
+      "native_root_separation_m": 0.23066157684525726,
+      "root_identity_bands": {
+        "exact": [
+          {
+            "cpu_unique_roots": 3639,
+            "compute_unique_roots": 3639,
+            "shared_roots": 3639
+          },
+          {
+            "cpu_unique_roots": 23815,
+            "compute_unique_roots": 23815,
+            "shared_roots": 23815
+          },
+          {
+            "cpu_unique_roots": 34398,
+            "compute_unique_roots": 34398,
+            "shared_roots": 34398
+          }
+        ],
+        "rounded_mm": [
+          {
+            "cpu_unique_roots": 3639,
+            "compute_unique_roots": 3639,
+            "shared_roots": 3639
+          },
+          {
+            "cpu_unique_roots": 23814,
+            "compute_unique_roots": 23814,
+            "shared_roots": 23814
+          },
+          {
+            "cpu_unique_roots": 34398,
+            "compute_unique_roots": 34398,
+            "shared_roots": 34398
+          }
+        ]
+      },
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0,
+            "visible_roots_per_eligible_m2": 1.0,
+            "fade_per_eligible_m2": 1.0,
+            "composed_projected_eligible_coverage": 1.0
+          },
+          "within_declared_tolerance": true
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0,
+            "visible_roots_per_eligible_m2": 1.0,
+            "fade_per_eligible_m2": 1.0,
+            "composed_projected_eligible_coverage": 1.0
+          },
+          "within_declared_tolerance": true
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0,
+            "visible_roots_per_eligible_m2": 1.0,
+            "fade_per_eligible_m2": 1.0,
+            "composed_projected_eligible_coverage": 1.0
+          },
+          "within_declared_tolerance": true
+        }
+      ]
+    },
+    {
+      "case": "sprint350",
+      "pair": 1,
+      "coverage_parity": true,
+      "topology_equal": false,
+      "native_root_separation_m": 0.37980078320892036,
+      "root_identity_bands": {
+        "exact": [
+          {
+            "cpu_unique_roots": 4569,
+            "compute_unique_roots": 4506,
+            "shared_roots": 0
+          },
+          {
+            "cpu_unique_roots": 20781,
+            "compute_unique_roots": 20461,
+            "shared_roots": 0
+          },
+          {
+            "cpu_unique_roots": 43979,
+            "compute_unique_roots": 43429,
+            "shared_roots": 0
+          }
+        ],
+        "rounded_mm": [
+          {
+            "cpu_unique_roots": 4569,
+            "compute_unique_roots": 4506,
+            "shared_roots": 1
+          },
+          {
+            "cpu_unique_roots": 20780,
+            "compute_unique_roots": 20461,
+            "shared_roots": 0
+          },
+          {
+            "cpu_unique_roots": 43978,
+            "compute_unique_roots": 43427,
+            "shared_roots": 4
+          }
+        ]
+      },
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0,
+            "visible_roots_per_eligible_m2": 0.990521327014218,
+            "fade_per_eligible_m2": 0.9930779153899469,
+            "composed_projected_eligible_coverage": 0.996620871953362
+          },
+          "within_declared_tolerance": true
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0,
+            "visible_roots_per_eligible_m2": 0.9861944390684472,
+            "fade_per_eligible_m2": 0.9865134947531188,
+            "composed_projected_eligible_coverage": 1.0000391085886686
+          },
+          "within_declared_tolerance": true
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 0.9978242432990323,
+            "visible_roots_per_eligible_m2": 0.9912365844251951,
+            "fade_per_eligible_m2": 0.9913735694643735,
+            "composed_projected_eligible_coverage": 0.9999277904646154
+          },
+          "within_declared_tolerance": true
+        }
+      ]
+    },
+    {
+      "case": "sprint350",
+      "pair": 2,
+      "coverage_parity": true,
+      "topology_equal": false,
+      "native_root_separation_m": 1.949914779405481,
+      "root_identity_bands": {
+        "exact": [
+          {
+            "cpu_unique_roots": 4645,
+            "compute_unique_roots": 4493,
+            "shared_roots": 0
+          },
+          {
+            "cpu_unique_roots": 20501,
+            "compute_unique_roots": 20337,
+            "shared_roots": 0
+          },
+          {
+            "cpu_unique_roots": 45088,
+            "compute_unique_roots": 43248,
+            "shared_roots": 0
+          }
+        ],
+        "rounded_mm": [
+          {
+            "cpu_unique_roots": 4645,
+            "compute_unique_roots": 4493,
+            "shared_roots": 0
+          },
+          {
+            "cpu_unique_roots": 20501,
+            "compute_unique_roots": 20337,
+            "shared_roots": 1
+          },
+          {
+            "cpu_unique_roots": 45086,
+            "compute_unique_roots": 43247,
+            "shared_roots": 1
+          }
+        ]
+      },
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.000010155973441,
+            "visible_roots_per_eligible_m2": 0.9645026107690691,
+            "fade_per_eligible_m2": 0.9642486098716644,
+            "composed_projected_eligible_coverage": 1.0019742448086353
+          },
+          "within_declared_tolerance": true
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0000015981720956,
+            "visible_roots_per_eligible_m2": 0.9550560600356246,
+            "fade_per_eligible_m2": 0.9547886261940768,
+            "composed_projected_eligible_coverage": 1.0000690859608299
+          },
+          "within_declared_tolerance": true
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0,
+            "visible_roots_per_eligible_m2": 0.958341958186711,
+            "fade_per_eligible_m2": 0.9603830403828509,
+            "composed_projected_eligible_coverage": 0.9999404115355792
+          },
+          "within_declared_tolerance": true
+        }
+      ]
+    },
+    {
+      "case": "sprint350",
+      "pair": 3,
+      "coverage_parity": true,
+      "topology_equal": false,
+      "native_root_separation_m": 0.022314921288189026,
+      "root_identity_bands": {
+        "exact": [
+          {
+            "cpu_unique_roots": 4606,
+            "compute_unique_roots": 4481,
+            "shared_roots": 0
+          },
+          {
+            "cpu_unique_roots": 20549,
+            "compute_unique_roots": 20104,
+            "shared_roots": 0
+          },
+          {
+            "cpu_unique_roots": 44674,
+            "compute_unique_roots": 43357,
+            "shared_roots": 0
+          }
+        ],
+        "rounded_mm": [
+          {
+            "cpu_unique_roots": 4605,
+            "compute_unique_roots": 4481,
+            "shared_roots": 1
+          },
+          {
+            "cpu_unique_roots": 20549,
+            "compute_unique_roots": 20104,
+            "shared_roots": 1
+          },
+          {
+            "cpu_unique_roots": 44673,
+            "compute_unique_roots": 43357,
+            "shared_roots": 1
+          }
+        ]
+      },
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 0.9999883975020541,
+            "visible_roots_per_eligible_m2": 0.9706507968575977,
+            "fade_per_eligible_m2": 0.9756850517731657,
+            "composed_projected_eligible_coverage": 0.9992524637010063
+          },
+          "within_declared_tolerance": true
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0,
+            "visible_roots_per_eligible_m2": 0.9674925543374945,
+            "fade_per_eligible_m2": 0.9675436402958022,
+            "composed_projected_eligible_coverage": 0.9999314054773318
+          },
+          "within_declared_tolerance": true
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "compute_over_cpu": {
+            "eligible_visible_m2": 1.0,
+            "visible_roots_per_eligible_m2": 0.970407710188837,
+            "fade_per_eligible_m2": 0.9706110544485728,
+            "composed_projected_eligible_coverage": 0.9999475487774955
+          },
+          "within_declared_tolerance": true
+        }
+      ]
+    }
+  ],
+  "timing_acceptance": false,
+  "migration_acceptance": false
+}

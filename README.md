@@ -834,7 +834,14 @@ production walking/sprint crossings. All 60 grids meet the 1% area-convergence
 gate with independently rasterized astronaut/other-body occlusion in 4.25 MiB
 tiles. The native color mask retains explicit edge uncertainty; fresh three-pair
 coverage repeats and stationary cost acceptance remain pending.
-Fresh three-pair route comparisons are next.
+The [fresh analytic route comparison](docs/journal/architecture/terrain-gpu/async/hardware/cost/coverage/repeats/study.md) adds 24 verified Quadro
+inspections: three alternating pairs each walking/sprint at 25/350 m. All twelve
+pairs meet the unchanged 5% band gates; maximum area-convergence change is
+0.61349%. Adjacent native frames bracket every crossing, with overshoot up to
+4.665 m and actual root separation up to 4.448 m. The displayed color proxy
+retains its 13.45% near-band edge-area uncertainty. Stationary wind/raster
+investigation is next; CPU stays default and timing/migration acceptance remains
+pending.
 
 Within **1.2 body diameters from its centre (2.4 radii)**, orientation follows
 the nearby planet or moon. Beyond that region, free-space mouse look lets you

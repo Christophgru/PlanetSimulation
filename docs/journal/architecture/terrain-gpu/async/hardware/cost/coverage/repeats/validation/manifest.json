@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "expected_uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+  "cases": [
+    "walking25",
+    "walking350",
+    "sprint25",
+    "sprint350"
+  ],
+  "qualification": [
+    "software",
+    "quadro"
+  ],
+  "scope": "Fresh excluded coverage comparisons, no timing/migration acceptance",
+  "preflight": [
+    "projection",
+    "storage"
+  ],
+  "preflight_inputs": "Recovered initial storage/tests and prior Render.h reproduce both frozen full build/test tree SHA-256 values"
+}

@@ -1,0 +1,620 @@
+{
+  "additional_pixel_bytes": 38707200,
+  "additional_pixel_reads": 6,
+  "composed_rgb_threshold": 1,
+  "coverage_acceptance": false,
+  "cpu_preparations_skipped": 4,
+  "final_exposures": [
+    {
+      "exposure": 3.9422047233151742,
+      "hdr": true,
+      "pass": 1
+    },
+    {
+      "exposure": 3.9422047233151742,
+      "hdr": true,
+      "pass": 2
+    }
+  ],
+  "live": {
+    "biome_retention_tolerance": 0.002,
+    "biomes": {
+      "cases": [
+        {
+          "name": "water-pass",
+          "native_pixel_origin": [
+            512,
+            0
+          ],
+          "parameters": {
+            "green_ratio": 0.1,
+            "landscape": false,
+            "landscape_levels": [
+              -10000,
+              0.1,
+              20000
+            ],
+            "meters_per_radius": 1000.0,
+            "planet_color": [
+              0.2,
+              0.4,
+              1.0
+            ],
+            "rock_range": [
+              2,
+              3
+            ],
+            "root_body": [
+              0.15097853541374207,
+              0.9459500908851624,
+              -0.2953678071498871
+            ],
+            "water": true,
+            "water_clearance_m": 0.15
+          },
+          "pixel_bytes": 3145728,
+          "pixel_reads": 3,
+          "viewport": [
+            256,
+            256
+          ]
+        },
+        {
+          "name": "water-reject",
+          "native_pixel_origin": [
+            512,
+            0
+          ],
+          "parameters": {
+            "green_ratio": 0.1,
+            "landscape": false,
+            "landscape_levels": [
+              10000,
+              0.1,
+              20000
+            ],
+            "meters_per_radius": 1000.0,
+            "planet_color": [
+              0.2,
+              0.4,
+              1.0
+            ],
+            "rock_range": [
+              2,
+              3
+            ],
+            "root_body": [
+              0.15097853541374207,
+              0.9459500908851624,
+              -0.2953678071498871
+            ],
+            "water": true,
+            "water_clearance_m": 0.15
+          },
+          "pixel_bytes": 3145728,
+          "pixel_reads": 3,
+          "viewport": [
+            256,
+            256
+          ]
+        },
+        {
+          "name": "green-pass",
+          "native_pixel_origin": [
+            512,
+            0
+          ],
+          "parameters": {
+            "green_ratio": 0.1,
+            "landscape": false,
+            "landscape_levels": [
+              0.0,
+              0.1,
+              239.5
+            ],
+            "meters_per_radius": 1000.0,
+            "planet_color": [
+              0.2,
+              0.4,
+              1.0
+            ],
+            "rock_range": [
+              2,
+              3
+            ],
+            "root_body": [
+              0.15097853541374207,
+              0.9459500908851624,
+              -0.2953678071498871
+            ],
+            "water": false,
+            "water_clearance_m": 0.15
+          },
+          "pixel_bytes": 3145728,
+          "pixel_reads": 3,
+          "viewport": [
+            256,
+            256
+          ]
+        },
+        {
+          "name": "green-reject",
+          "native_pixel_origin": [
+            512,
+            0
+          ],
+          "parameters": {
+            "green_ratio": 100,
+            "landscape": false,
+            "landscape_levels": [
+              0.0,
+              0.1,
+              239.5
+            ],
+            "meters_per_radius": 1000.0,
+            "planet_color": [
+              0.2,
+              0.4,
+              1.0
+            ],
+            "rock_range": [
+              2,
+              3
+            ],
+            "root_body": [
+              0.15097853541374207,
+              0.9459500908851624,
+              -0.2953678071498871
+            ],
+            "water": false,
+            "water_clearance_m": 0.15
+          },
+          "pixel_bytes": 3145728,
+          "pixel_reads": 3,
+          "viewport": [
+            256,
+            256
+          ]
+        },
+        {
+          "name": "meadow",
+          "native_pixel_origin": [
+            512,
+            0
+          ],
+          "parameters": {
+            "green_ratio": 1.15,
+            "landscape": true,
+            "landscape_levels": [
+              -100,
+              0.1,
+              10000
+            ],
+            "meters_per_radius": 1000.0,
+            "planet_color": [
+              0.2,
+              0.4,
+              1
+            ],
+            "rock_range": [
+              2,
+              3
+            ],
+            "root_body": [
+              0.15097853541374207,
+              0.9459500908851624,
+              -0.2953678071498871
+            ],
+            "water": false,
+            "water_clearance_m": 0.15
+          },
+          "pixel_bytes": 3145728,
+          "pixel_reads": 3,
+          "viewport": [
+            256,
+            256
+          ]
+        },
+        {
+          "name": "beach",
+          "native_pixel_origin": [
+            512,
+            0
+          ],
+          "parameters": {
+            "green_ratio": 1.15,
+            "landscape": true,
+            "landscape_levels": [
+              100,
+              0.1,
+              10000
+            ],
+            "meters_per_radius": 1000.0,
+            "planet_color": [
+              0.2,
+              0.4,
+              1
+            ],
+            "rock_range": [
+              2,
+              3
+            ],
+            "root_body": [
+              0.15097853541374207,
+              0.9459500908851624,
+              -0.2953678071498871
+            ],
+            "water": false,
+            "water_clearance_m": 0.15
+          },
+          "pixel_bytes": 3145728,
+          "pixel_reads": 3,
+          "viewport": [
+            256,
+            256
+          ]
+        },
+        {
+          "name": "snow",
+          "native_pixel_origin": [
+            512,
+            0
+          ],
+          "parameters": {
+            "green_ratio": 1.15,
+            "landscape": true,
+            "landscape_levels": [
+              -10000,
+              0.1,
+              1
+            ],
+            "meters_per_radius": 1000.0,
+            "planet_color": [
+              0.2,
+              0.4,
+              1
+            ],
+            "rock_range": [
+              2,
+              3
+            ],
+            "root_body": [
+              0.15097853541374207,
+              0.9459500908851624,
+              -0.2953678071498871
+            ],
+            "water": false,
+            "water_clearance_m": 0.15
+          },
+          "pixel_bytes": 3145728,
+          "pixel_reads": 3,
+          "viewport": [
+            256,
+            256
+          ]
+        },
+        {
+          "name": "rock-half",
+          "native_pixel_origin": [
+            512,
+            0
+          ],
+          "parameters": {
+            "green_ratio": 0.1,
+            "landscape": false,
+            "landscape_levels": [
+              0.0,
+              0.1,
+              239.5
+            ],
+            "meters_per_radius": 1000.0,
+            "planet_color": [
+              0.2,
+              0.4,
+              1.0
+            ],
+            "rock_range": [
+              -1,
+              1
+            ],
+            "root_body": [
+              0.15097853541374207,
+              0.9459500908851624,
+              -0.2953678071498871
+            ],
+            "water": false,
+            "water_clearance_m": 0.15
+          },
+          "pixel_bytes": 3145728,
+          "pixel_reads": 3,
+          "viewport": [
+            256,
+            256
+          ]
+        },
+        {
+          "name": "beach-edge",
+          "native_pixel_origin": [
+            512,
+            0
+          ],
+          "parameters": {
+            "green_ratio": 1.15,
+            "landscape": true,
+            "landscape_levels": [
+              -0.2,
+              0.1,
+              1000
+            ],
+            "meters_per_radius": 1000.0,
+            "planet_color": [
+              0.2,
+              0.4,
+              1
+            ],
+            "rock_range": [
+              2,
+              3
+            ],
+            "root_body": [
+              0.15097853541374207,
+              0.9459500908851624,
+              -0.2953678071498871
+            ],
+            "water": false,
+            "water_clearance_m": 0.15
+          },
+          "pixel_bytes": 3145728,
+          "pixel_reads": 3,
+          "viewport": [
+            256,
+            256
+          ]
+        }
+      ],
+      "scope": "Uniform-only predicate diagnostics on installed native land; excluded from area/coverage samples"
+    },
+    "composed_mask": "Native display grid; color contribution proxy, with separate edge-area bound",
+    "convergence_tolerance": 0.01,
+    "coverage_acceptance": false,
+    "cpu_read_tile_bytes": 1114112,
+    "gpu_target_bytes": 4456448,
+    "native_tag_mismatch_tolerance": 0.0001,
+    "occlusion": "Actual Sun/other-body land VAOs and full procedural astronaut meshes at each sampling grid",
+    "parameters": {
+      "green_ratio": 1.15,
+      "landscape": true,
+      "landscape_levels": [
+        0.0,
+        0.1,
+        239.5
+      ],
+      "meters_per_radius": 1000.0,
+      "planet_color": [
+        0.2,
+        0.4,
+        1.0
+      ],
+      "rock_range": [
+        0.1808479557110082,
+        0.42642356364895384
+      ],
+      "root_body": [
+        0.15097853541374207,
+        0.9459500908851624,
+        -0.2953678071498871
+      ],
+      "water": true,
+      "water_clearance_m": 0.15
+    },
+    "samples": [
+      {
+        "factor": 1,
+        "pixel_bytes": 59904000,
+        "pixel_reads": 75,
+        "tiles": 15,
+        "viewport": [
+          1280,
+          720
+        ]
+      },
+      {
+        "factor": 2,
+        "pixel_bytes": 121651200,
+        "pixel_reads": 180,
+        "tiles": 60,
+        "viewport": [
+          2560,
+          1440
+        ]
+      },
+      {
+        "factor": 4,
+        "pixel_bytes": 486604800,
+        "pixel_reads": 720,
+        "tiles": 240,
+        "viewport": [
+          5120,
+          2880
+        ]
+      }
+    ],
+    "schema": 1,
+    "tile_edge": 256,
+    "tile_method": "Unchanged full projection, translated viewport and bounded scissor",
+    "timing_acceptance": false
+  },
+  "native_publication_after": {
+    "managed": false
+  },
+  "native_publication_before": {
+    "managed": false
+  },
+  "native_workload_after": {
+    "bodies": [
+      {
+        "body": 0,
+        "bulk_evaluations": 150006,
+        "cpu_render_bytes": 12000000,
+        "foliage": {
+          "budget": 2000000,
+          "budget_source": "legacy_configured_hard_cap",
+          "candidates": 1999996,
+          "compute_placement": true,
+          "configured_budget": 2000000,
+          "configured_density": 120.72,
+          "configured_distance_m": 150.0,
+          "density": 47.08310026419328,
+          "distance_m": 150.0,
+          "enabled": true,
+          "gpu_bytes": 255999520,
+          "patches": 26752,
+          "plan_eye": [
+            0.15408419667892836,
+            0.9481611986921533,
+            -0.2963850900046208
+          ]
+        },
+        "gpu_input_bytes": 0,
+        "planning_evaluations": 70881,
+        "terrain_plan_eye": [
+          0.17800330255715835,
+          0.950415956246809,
+          -0.29988671481256485
+        ],
+        "topology_input_bytes": 2800064,
+        "triangles": 100000,
+        "unique_samples": 50002
+      },
+      {
+        "body": 1,
+        "bulk_evaluations": 1446,
+        "cpu_render_bytes": 115200,
+        "foliage": {
+          "budget": 0,
+          "budget_source": "legacy_configured_hard_cap",
+          "candidates": 0,
+          "compute_placement": false,
+          "configured_budget": 100000,
+          "configured_density": 30.72,
+          "configured_distance_m": 40.0,
+          "density": 0.0,
+          "distance_m": 0.0,
+          "enabled": false,
+          "gpu_bytes": 0,
+          "patches": 0,
+          "plan_eye": null
+        },
+        "gpu_input_bytes": 0,
+        "planning_evaluations": 482,
+        "terrain_plan_eye": [
+          3.175497021110467,
+          0.9504159562468086,
+          -0.29988671481256485
+        ],
+        "topology_input_bytes": 26944,
+        "triangles": 960,
+        "unique_samples": 482
+      }
+    ],
+    "quality_scale": 1.0,
+    "scene_size": [
+      1280,
+      720
+    ],
+    "swap_interval_requested": 0,
+    "viewport": [
+      1280,
+      720
+    ]
+  },
+  "native_workload_before": {
+    "bodies": [
+      {
+        "body": 0,
+        "bulk_evaluations": 150006,
+        "cpu_render_bytes": 12000000,
+        "foliage": {
+          "budget": 2000000,
+          "budget_source": "legacy_configured_hard_cap",
+          "candidates": 1999996,
+          "compute_placement": true,
+          "configured_budget": 2000000,
+          "configured_density": 120.72,
+          "configured_distance_m": 150.0,
+          "density": 47.08310026419328,
+          "distance_m": 150.0,
+          "enabled": true,
+          "gpu_bytes": 255999520,
+          "patches": 26752,
+          "plan_eye": [
+            0.15408419667892836,
+            0.9481611986921533,
+            -0.2963850900046208
+          ]
+        },
+        "gpu_input_bytes": 0,
+        "planning_evaluations": 70881,
+        "terrain_plan_eye": [
+          0.17800330255715835,
+          0.950415956246809,
+          -0.29988671481256485
+        ],
+        "topology_input_bytes": 2800064,
+        "triangles": 100000,
+        "unique_samples": 50002
+      },
+      {
+        "body": 1,
+        "bulk_evaluations": 1446,
+        "cpu_render_bytes": 115200,
+        "foliage": {
+          "budget": 0,
+          "budget_source": "legacy_configured_hard_cap",
+          "candidates": 0,
+          "compute_placement": false,
+          "configured_budget": 100000,
+          "configured_density": 30.72,
+          "configured_distance_m": 40.0,
+          "density": 0.0,
+          "distance_m": 0.0,
+          "enabled": false,
+          "gpu_bytes": 0,
+          "patches": 0,
+          "plan_eye": null
+        },
+        "gpu_input_bytes": 0,
+        "planning_evaluations": 482,
+        "terrain_plan_eye": [
+          3.175497021110467,
+          0.9504159562468086,
+          -0.29988671481256485
+        ],
+        "topology_input_bytes": 26944,
+        "triangles": 960,
+        "unique_samples": 482
+      }
+    ],
+    "quality_scale": 1.0,
+    "scene_size": [
+      1280,
+      720
+    ],
+    "swap_interval_requested": 0,
+    "viewport": [
+      1280,
+      720
+    ]
+  },
+  "revisions": [
+    1,
+    1
+  ],
+  "root_visibility_method": "Ray intersection with live triangle plane at projected root; one-sided view-depth occlusion allowance",
+  "root_visibility_tolerance_m": 0.15,
+  "schema": 1,
+  "scope": "Controlled live-plan scene; nearest opaque grass stencil after character plus RGB contribution after water/atmosphere/tone mapping; flare/overlays excluded",
+  "source_native_frame": 76,
+  "source_native_request": 1,
+  "timing_acceptance": false
+}
