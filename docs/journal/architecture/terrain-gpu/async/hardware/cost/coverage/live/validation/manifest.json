@@ -1,0 +1,95 @@
+{
+  "schema": 1,
+  "scope": "Live area qualification; no cost or fresh three-pair coverage acceptance",
+  "base_revision": "07f8563",
+  "expected_uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+  "final": [
+    {
+      "path": "final/software/live",
+      "kind": "fixtures",
+      "device": "software"
+    },
+    {
+      "path": "final/software/matched",
+      "kind": "compatibility",
+      "device": "software"
+    },
+    {
+      "path": "final/software/ordinary",
+      "kind": "compatibility",
+      "device": "software"
+    },
+    {
+      "path": "final/quadro",
+      "kind": "fixtures",
+      "device": "quadro"
+    },
+    {
+      "path": "final/production/walking25",
+      "kind": "routes",
+      "device": "quadro"
+    },
+    {
+      "path": "final/production/sprint350",
+      "kind": "routes",
+      "device": "quadro"
+    }
+  ],
+  "preflight": [
+    "coarse",
+    "schema",
+    "close",
+    "passing",
+    "matched",
+    "ordinary"
+  ],
+  "expected_counts": {
+    "native_snapshots": 64,
+    "controlled_snapshots": 28,
+    "live_snapshots": 20,
+    "live_grids": 60,
+    "biome_cases": 180
+  },
+  "area_failures": [],
+  "input_sha256": {
+    "inputs/build/.gitattributes": "296b2376c44c3cc40d425d0a28904a65d3116532ed149bcd7c63052d023d4e4d",
+    "inputs/build/CMakeLists.txt": "514b3a0a00c755ec9f3a0fa2fd44544baa12c8f16db36c0ecf0d57bc2f1ac3b1",
+    "inputs/native/NativeProbe.cpp": "dcecada69c79be499d3dbbe1882c5b18a154d2be53b011d2311f5ef4f8cb97a2",
+    "inputs/native/NativeSession.py": "7a37b6db45a6f715127789b7b7046711bc5de9ac4ea35176c305bb8c6f12df6f",
+    "inputs/native/coverage/Inspection.h": "6ceddcc89bf2c2d4046a12aee3bba4771e93fe15eaad96a368606a671b260209",
+    "inputs/native/coverage/Probe.cpp": "78414865598c6a96ecca8dbde4685e14712f98cda4205f396c8f06b88c56b73c",
+    "inputs/native/coverage/analyze.py": "d5fc526236d4c3f737901acba08555f72b99561ec0bf7e0b2b07f604e7904006",
+    "inputs/native/coverage/area/Probe.cpp": "eabd5ab020841903ebf872c6e685f49e1f186b9a199dd0396f2da01a70add452",
+    "inputs/native/coverage/area/Target.h": "c8b87182af21c42da8aced552dd1f8d9519cebe2935ef6e348bd1294810fa121",
+    "inputs/native/coverage/area/area.py": "3e6fc020bf49329308a8c8b103928b39fd4612eafea73b313fb131c93bb178f5",
+    "inputs/native/coverage/area/cases.py": "bb12b36c906a200c5ffd1b0b17e5805ee50ce27737dd73dd1f55546377041fa0",
+    "inputs/native/coverage/area/geometry.py": "0085530c1a135334f42d9e25244c833f397951e4e572e7ab4795195aa7cd1f6f",
+    "inputs/native/coverage/area/test_area.py": "06072475c12febc63e3d646a99183cad6d43ee3872f0c789ebef8e1ff2e49624",
+    "inputs/native/coverage/live/Render.h": "d21bd30e61e7364d1404e61b89c3d54bed8c64e978f128d2143aa0f989039eda",
+    "inputs/native/coverage/live/Target.h": "c5b03fb1629523d2cb27e84a6020f8208351954d8be425cabf7eca01abcc29af",
+    "inputs/native/coverage/live/biomes/Render.h": "0f8af8ef1e2bdbbec4eabafa59da2b4b9e0d59a66d493652cf290943001c3f41",
+    "inputs/native/coverage/live/ground.frag": "d9eafd56f96135f7ff8c485bc83b89ad71f031f72c18a87a9d0f5ad609e81bc4",
+    "inputs/native/coverage/live/ground.vert": "428ffb216adfeda4924508dde288aa09bb33039b1c6bca14bc5c91d7119868bf",
+    "inputs/native/coverage/live/mask.frag": "c9b0961e5a6e4d3a6d15917b2b6bc0f6b8719012b7ecbfc288c1698301d55e69",
+    "inputs/native/coverage/live/mask.vert": "98dc9283991e4ae96370db2ebf9e71d72bf1e18a9f3975908fd78408369623e9",
+    "inputs/native/coverage/live/measure.py": "09de3ee7b97eceebe33f5f1e69f9f1c3f60c6a548c9637e2e43edad265949ab1",
+    "inputs/native/coverage/matched/Render.h": "348e358a6861d968c16004eb58c8d74e58fe9635e67bd52364579a80a7e57c2e",
+    "inputs/native/coverage/matched/ground.frag": "dc0e5c279b9a935e53bc5e1e77c0e505579329d079b6c0f1a7992fa5dc0ea7b6",
+    "inputs/native/coverage/matched/ground.vert": "e663e28b308efe0d13d6b350c525582e0a5b3a9d33fd10441152f14674f671af",
+    "inputs/native/coverage/matched/measure.py": "d837549cf1fef119545fc8ed54fa2b3c0a8a97221be402ce65e671129915cee5",
+    "inputs/native/coverage/matched/test_matched.py": "c3b81ad2e1fd96fe65ecd540a3f027156ae6ccc92ffa69efa5feca88a576c29a",
+    "inputs/native/coverage/test_inspection.py": "bda31df549cf97ced9c8d0116157b2e7ae3f1d7b3e3cdcd10b3b7fee69785cd3",
+    "inputs/scripts/terrain_cost/coverage/matched.py": "ab23f558a984ee96b0a923325130a5ca047294a53c3a0dc06eeee552042d5625",
+    "inputs/scripts/terrain_cost/inspect.py": "32fb564a294e687604af45f7eca851ffe68af32bfe2ed9e002fc983cf1290828",
+    "inputs/scripts/terrain_cost/receipts.py": "97654374b7679693beb043122c4b61d98bdd7d14be9a7af3f68fe10299e7c078",
+    "inputs/scripts/terrain_cost/route_receipts.py": "a1d836940540a4767e732a46f60fb69806317394bacb9f95ab28cc0e3c570090",
+    "inputs/scripts/terrain_cost/routes.py": "c47692fb8b77dc4ce4cf28f62689d1da73005e83f145014d7441d10da7c92c5c",
+    "inputs/scripts/terrain_cost/run.py": "960dbdc0e5c25756d59b7c53508ee466985aa1d2c757a6aa3f923a5042b97666",
+    "inputs/scripts/terrain_cost/speed.py": "e8bceb5c478efe3d125cc14e06b11e2c803f085f71a394cf4c7b7763e68b46d4",
+    "inputs/storage/archive_live.py": "a34a17b77c406930d9e98ec13bf0620330780e4ff092dbb938bb2df1e202bbc8"
+  },
+  "archive_validation_preflight": [
+    "logs/preflight/live-archive-first-validation.log",
+    "logs/preflight/live-archive-second-validation.log"
+  ]
+}

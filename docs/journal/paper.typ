@@ -187,7 +187,10 @@ Post hoc evaluation on saved live planes gives outer-band compute/CPU ratios 1.0
 
 Three fresh stationary pairs using the unchanged ordinary timed probe retain 1,440 measured and 1,610 excluded frames, with native p95 ratios 1.05789/1.11058/1.04965; two exceed 5%. GPU opaque p95 is 4–6 ms higher, while grass placement means increase only 0.18–0.35 ms per view. Independent stage percentiles cannot be added as a whole-frame decomposition. Wind is active but its phase is absent from timed receipts; record/match it and isolate raster/overdraw cost before attribution or optimization. CPU remains default. Complete raw evidence, independent checks, declared controls and failure diagnostics are in `architecture/terrain-gpu/async/hardware/cost/coverage/matched/`.
 
-T3c5c2b2c1 qualifies the analytic area on four known GPU geometries: front and 65-degree oblique planes, a foreground silhouette, and an 82-degree grazing silhouette with 1,000 m body scale, rotation and world translation. An exact float-rounded polygon/circle reference uses homogeneous frustum clipping and projected foreground halfplanes. The GPU rasterizes eligibility and planes into fixed tiles; excluded CPU analysis intersects original pixel rays and integrates 0–5/5–15/15–30 m bands. At a 640×360 base viewport, all software and Quadro scenes meet the declared 1% limits for 4× reference error and 2×/4× convergence. Worst errors are 0.34497% software and 0.33410% Quadro; worst convergence change is 0.42118%. A translated full-size viewport with unchanged projection bounds attachments to 2.25 MiB and meets a separate 0.01% tile gate. A failed coarse batch and one-pixel off-axis tile rounding failure remain archived. These known scenes qualify a measurement prerequisite, not live production eligibility, character/water occlusion, route coverage or timing acceptance. Live inspection integration and frozen route repeats remain T3c5c2b2c2–c3. Details are in `architecture/terrain-gpu/async/hardware/cost/coverage/area/`.
+T3c5c2b2c1 qualifies the analytic area on four known GPU geometries: front and 65-degree oblique planes, a foreground silhouette, and an 82-degree grazing silhouette with 1,000 m body scale, rotation and world translation. An exact float-rounded polygon/circle reference uses homogeneous frustum clipping and projected foreground halfplanes. The GPU rasterizes eligibility and planes into fixed tiles; excluded CPU analysis intersects original pixel rays and integrates 0–5/5–15/15–30 m bands. At a 640×360 base viewport, all software and Quadro scenes meet the declared 1% limits for 4× reference error and 2×/4× convergence. Worst errors are 0.34497% software and 0.33410% Quadro; worst convergence change is 0.42118%. A translated full-size viewport with unchanged projection bounds attachments to 2.25 MiB and meets a separate 0.01% tile gate. A failed coarse batch and one-pixel off-axis tile rounding failure remain archived. These known scenes qualify a measurement prerequisite, not live production eligibility, character/water occlusion, route coverage or timing acceptance. Live inspection qualification follows below; frozen route repeats remain T3c5c2b2c3. Details are in `architecture/terrain-gpu/async/hardware/cost/coverage/area/`.
+
+T3c5c2b2c2 qualifies excluded live analytic inspection on 20 CPU/compute snapshots: eight software fixtures, eight verified Quadro fixtures and four unchanged production walking-25/sprint-350 inspections. Installed land/other-body VAOs and full astronaut meshes supply independent opaque occlusion at 1×/2×/4×; fixed-projection tiles bound the new GPU target to 4.25 MiB. All 60 grids meet the 1% area-convergence gate: maximum change 0.78655% across fixtures and 0.27135% on production. Native 1× opaque tags match exactly; 180 separate biome diagnostics check recorded attributes and expected retention. Plans, anchors, revisions and publication/workload identities stay native, with complete character/trail telemetry restored. The native composed color proxy retains its display grid and a separately quantified edge-area uncertainty, reaching 13.45% of production near-band eligible area. This establishes neither 1% physical compositing accuracy nor native timing acceptance. Two single qualification pairs pass the 5% ratios; the required three alternating pairs across all four routes remain T3c5c2b2c3. Coarse/schema/rebuild and close-handshake preflights remain archived; the private session now joins clean shutdown before checking its final trace. See `architecture/terrain-gpu/async/hardware/cost/coverage/live/`.
+
 
 = Orbital motion and light transport
 
@@ -607,6 +610,9 @@ T3c5c2b2b passes two scoped software groups in 44.98 s and eight matched Quadro 
 
 T3c5c2b2c1 passes one scoped software CTest in 53.80 s and the same 16 GPU snapshots on verified native Quadro OpenGL 3.3. Independent raw reconstruction checks all 32 final snapshots against the explicitly reused exact polygon/circle oracle, readback/resource bounds and unchanged declared gates. Both failed qualification batches, their float maps/inputs and all final evidence are retained losslessly in `architecture/terrain-gpu/async/hardware/cost/coverage/area/validation/`. Product sources/shaders and all 43 previous executables remain unchanged; only the private area probe and test inputs are added. This is known-geometry measurement qualification, not a full CTest suite, physical-memory peak or live route acceptance.
 
+T3c5c2b2c2 passes three frozen scoped software groups in 161.68 s and eight native Quadro fixture snapshots, plus four excluded production inspections. Raw reconstruction verifies 64 queue/depth snapshots, 28 matched scene receipts, 60 live sampling grids and 180 biome diagnostics, explicitly reusing the frozen qualified analytic accumulator. Complete final/preflight payloads and unchanged shipping/43-other-executable provenance remain in `architecture/terrain-gpu/async/hardware/cost/coverage/live/validation/`. This is live inspection qualification, not a full suite, physical-memory measurement, fresh three-pair coverage or migration acceptance.
+
+
 
 
 
@@ -641,7 +647,7 @@ R5. _PlanetSimulation_ repository: implementation in `src/`, shaders in `shaders
 
 R6. NASA Glenn Research Center, #link("https://www.grc.nasa.gov/www/k-12/Numbers/Math/Mathematical_Thinking/ideal_gases_under_constant.htm")[Ideal Gases under Constant Volume, Constant Pressure, Constant Temperature, and Adiabatic Conditions]. The hydrostatic, isothermal scale-height derivation is the physical motivation for the exponential profile, not the formula used to set the renderer's shell-relative scale heights.
 
-#block(breakable: false)[
+#block(breakable: true)[
 #set text(size: 9pt)
 #set par(justify: false, leading: 0.5em)
 == Claim-to-artifact map
@@ -650,7 +656,7 @@ R6. NASA Glenn Research Center, #link("https://www.grc.nasa.gov/www/k-12/Numbers
   columns: (1.55fr, 2.35fr, 1.8fr),
   inset: 4pt,
   stroke: 0.4pt + rgb("#dfe8eb"),
-  [*Claim*], [*Primary implementation*], [*Validation*],
+  table.header([*Claim*], [*Primary implementation*], [*Validation*]),
   [Matched physical-GPU throughput], [`scripts/benchmarks/gpu_compare/`], [Twelve runs, UUID checks, complete queries and paired images],
   [Complete native loop wall], [`diagnostics/timing/NativeLoopProfiler.h`, `Interactive.cpp`], [Controlled clock cases and real GLFW loading/minimized/resume],
   [Complete publication lifecycle], [`diagnostics/timing/PublicationProfiler.h`, worker/reload/draw endpoints], [Controlled scopes, terminal families, capture/grass anchors and actual destination contacts],
@@ -659,7 +665,8 @@ R6. NASA Glenn Research Center, #link("https://www.grc.nasa.gov/www/k-12/Numbers
   [Production native route cost preflight], [`scripts/benchmarks/terrain_cost/routes.py`, archive validator], [Twelve 400 m runs, distance cohorts/landmarks, full raw outcomes; rendered coverage pending],
   [Live native grass inspection], [`tests/app/terrain/native/coverage/`], [26 final root/depth/frame snapshots; excluded blocking reads; matched density pending],
   [Matched live-plan coverage comparison], [`coverage/matched/`, private prepare/draw wrappers], [24 excluded routes, 48 native /40 controlled snapshots; estimator sensitivity and stationary failures retained],
-  [Analytic area measurement prerequisite], [`coverage/area/`, tiled private raster probe], [32 known-geometry GPU snapshots, exact band references and 1% convergence; live route acceptance pending],
+  [Analytic area measurement prerequisite], [`coverage/area/`, tiled private raster probe], [32 known-geometry GPU snapshots, exact band references and 1% convergence],
+  [Live analytic inspection qualification], [`coverage/live/`, installed-VAO raster and excluded analysis], [20 snapshots, 60 grids, true opaque occlusion, 180 biome checks; fresh route acceptance pending],
   [Device-verified memory], [`diagnostics/memory/`], [UUID/error/bounded-reader cases, GPU and native receipts],
   [Bounded asynchronous GPU timings], [`diagnostics/timing/`, `FrameProfiler.h`], [Controlled query tests and traced resident publication],
   [Stable terrain under LOD], [`src/rendering/geometry/Terrain.h`], [`TerrainTests`, surface capture],

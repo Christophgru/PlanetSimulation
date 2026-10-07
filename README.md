@@ -828,7 +828,13 @@ Coverage/cost acceptance remains pending and CPU stays default.
 The [analytic area qualifier](docs/journal/architecture/terrain-gpu/async/hardware/cost/coverage/area/study.md)
 passes four known plane/silhouette scenes on software GL and Quadro, with
 32 independently checked snapshots and a bounded 2.25 MiB GPU target.
-Live terrain convergence and fresh route comparisons are next.
+The [live analytic inspection qualification](docs/journal/architecture/terrain-gpu/async/hardware/cost/coverage/live/study.md)
+adds 20 CPU/compute snapshots on software GL and verified Quadro, including
+production walking/sprint crossings. All 60 grids meet the 1% area-convergence
+gate with independently rasterized astronaut/other-body occlusion in 4.25 MiB
+tiles. The native color mask retains explicit edge uncertainty; fresh three-pair
+coverage repeats and stationary cost acceptance remain pending.
+Fresh three-pair route comparisons are next.
 
 Within **1.2 body diameters from its centre (2.4 radii)**, orientation follows
 the nearby planet or moon. Beyond that region, free-space mouse look lets you

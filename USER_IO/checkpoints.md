@@ -1,5 +1,29 @@
 # Page to document progress of AI Agents working on this Project
 
+## Live analytic inspection qualification — 2026-10-07
+
+- T3c5c2b2c2 tested; parent b2c remains in progress. Resume b2c3 three
+  alternating pairs each walking/sprint at 25/350 m; retain the 5% pair gate.
+- Private coverage_live pass draws installed land/other-body VAOs and full
+  astronaut meshes independently at 1x/2x/4x, using fixed-projection viewport
+  tiles. GPU target 4.25 MiB; C++ tile read buffers 1.0625 MiB; existing native
+  diagnostic targets and Python arrays are additional, not included in that bound.
+- Three frozen software CTest groups pass in 161.68 s. Eight software/eight
+  verified Quadro fixtures plus four unchanged production snapshots qualify
+  60 grids and 180 biome diagnostics. Max convergence 0.78655%; production
+  max 0.27135%; native opaque tags exact. 64 queue/depth receipts rechecked.
+- Native color-comtribution mask stays at display resolution; production
+  boundary-area uncertainty reaches 13.45% near the astronaut. No physical
+  supersampled composition, timing or three-pair route acceptance is claimed.
+- Plans/anchors/publication/workload/revisions stay native; complete character,
+  trail/effect telemetry restored. Shipping source/shaders and 43 other
+  executables unchanged. NativeSession close race fixed and final checks repeated.
+- Coarse convergence, mixed analyzer schema, preliminary rebuild and clean-exit
+  handshake preflights retained separately. Full lossless evidence, validator,
+  journal/PDF in cost/coverage/live/. CPU default and wind/raster b3 remain.
+- User environmental footer in todo.md remains byte-identical and unstaged.
+
+
 
 ## Known-geometry analytic area qualification — 2026-10-07
 

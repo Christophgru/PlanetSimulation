@@ -1,0 +1,22 @@
+Internal ctest changing into directory: /workspace/build-resume
+Test project /workspace/build-resume
+    Start 57: TerrainLiveAreaIntegration
+1/1 Test #57: TerrainLiveAreaIntegration .......***Failed  101.70 sec
+Traceback (most recent call last):
+  File "/workspace/tests/app/terrain/native/coverage/test_inspection.py", line 109, in <module>
+    live_result = live_module.analyze(matched)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/tests/app/terrain/native/coverage/live/measure.py", line 164, in analyze
+    for case in live['biomes']['cases']:
+                ~~~~^^^^^^^^^^
+KeyError: 'biomes'
+
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) = 101.71 sec
+
+The following tests FAILED:
+	 57 - TerrainLiveAreaIntegration (Failed)
+Errors while running CTest
+xvfb-run: error: problem while cleaning up temporary directory

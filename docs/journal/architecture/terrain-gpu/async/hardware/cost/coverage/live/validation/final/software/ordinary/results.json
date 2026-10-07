@@ -1,0 +1,450 @@
+[
+  {
+    "backend": "cpu",
+    "hdr": false,
+    "request": 1,
+    "generated_instances": [
+      389,
+      3
+    ],
+    "queues": [
+      {
+        "queue": "detailed",
+        "instances": 389,
+        "root_bands": [
+          37,
+          188,
+          160
+        ]
+      },
+      {
+        "queue": "quads",
+        "instances": 3,
+        "root_bands": [
+          0,
+          0,
+          2
+        ]
+      }
+    ],
+    "root_bands_m": [
+      [
+        0,
+        5
+      ],
+      [
+        5,
+        15
+      ],
+      [
+        15,
+        30
+      ]
+    ],
+    "root_band_counts": [
+      37,
+      188,
+      162
+    ],
+    "root_band_fade_sum": [
+      33.16266609728336,
+      166.99395862338133,
+      136.7401975216344
+    ],
+    "opaque_grass_pixels": 419,
+    "scope": "main opaque ground before grass and immediately after both queues; later astronaut/water/atmosphere occlusion excluded",
+    "coverage_acceptance": false
+  },
+  {
+    "backend": "cpu",
+    "hdr": false,
+    "request": 2,
+    "generated_instances": [
+      389,
+      5
+    ],
+    "queues": [
+      {
+        "queue": "detailed",
+        "instances": 389,
+        "root_bands": [
+          30,
+          199,
+          154
+        ]
+      },
+      {
+        "queue": "quads",
+        "instances": 5,
+        "root_bands": [
+          0,
+          0,
+          4
+        ]
+      }
+    ],
+    "root_bands_m": [
+      [
+        0,
+        5
+      ],
+      [
+        5,
+        15
+      ],
+      [
+        15,
+        30
+      ]
+    ],
+    "root_band_counts": [
+      30,
+      199,
+      158
+    ],
+    "root_band_fade_sum": [
+      28.315192371606827,
+      176.72928316300386,
+      137.1401773134712
+    ],
+    "opaque_grass_pixels": 492,
+    "scope": "main opaque ground before grass and immediately after both queues; later astronaut/water/atmosphere occlusion excluded",
+    "coverage_acceptance": false
+  },
+  {
+    "backend": "compute",
+    "hdr": false,
+    "request": 1,
+    "generated_instances": [
+      380,
+      3
+    ],
+    "queues": [
+      {
+        "queue": "detailed",
+        "instances": 380,
+        "root_bands": [
+          35,
+          184,
+          157
+        ]
+      },
+      {
+        "queue": "quads",
+        "instances": 3,
+        "root_bands": [
+          0,
+          0,
+          2
+        ]
+      }
+    ],
+    "root_bands_m": [
+      [
+        0,
+        5
+      ],
+      [
+        5,
+        15
+      ],
+      [
+        15,
+        30
+      ]
+    ],
+    "root_band_counts": [
+      35,
+      184,
+      159
+    ],
+    "root_band_fade_sum": [
+      31.52763018384576,
+      161.22236135182902,
+      130.03816908822046
+    ],
+    "opaque_grass_pixels": 436,
+    "scope": "main opaque ground before grass and immediately after both queues; later astronaut/water/atmosphere occlusion excluded",
+    "coverage_acceptance": false
+  },
+  {
+    "backend": "compute",
+    "hdr": false,
+    "request": 2,
+    "generated_instances": [
+      375,
+      5
+    ],
+    "queues": [
+      {
+        "queue": "detailed",
+        "instances": 375,
+        "root_bands": [
+          30,
+          192,
+          147
+        ]
+      },
+      {
+        "queue": "quads",
+        "instances": 5,
+        "root_bands": [
+          0,
+          0,
+          4
+        ]
+      }
+    ],
+    "root_bands_m": [
+      [
+        0,
+        5
+      ],
+      [
+        5,
+        15
+      ],
+      [
+        15,
+        30
+      ]
+    ],
+    "root_band_counts": [
+      30,
+      192,
+      151
+    ],
+    "root_band_fade_sum": [
+      27.172665800899267,
+      169.7327290937974,
+      132.74885743111372
+    ],
+    "opaque_grass_pixels": 456,
+    "scope": "main opaque ground before grass and immediately after both queues; later astronaut/water/atmosphere occlusion excluded",
+    "coverage_acceptance": false
+  },
+  {
+    "backend": "cpu",
+    "hdr": true,
+    "request": 1,
+    "generated_instances": [
+      389,
+      3
+    ],
+    "queues": [
+      {
+        "queue": "detailed",
+        "instances": 389,
+        "root_bands": [
+          37,
+          188,
+          160
+        ]
+      },
+      {
+        "queue": "quads",
+        "instances": 3,
+        "root_bands": [
+          0,
+          0,
+          2
+        ]
+      }
+    ],
+    "root_bands_m": [
+      [
+        0,
+        5
+      ],
+      [
+        5,
+        15
+      ],
+      [
+        15,
+        30
+      ]
+    ],
+    "root_band_counts": [
+      37,
+      188,
+      162
+    ],
+    "root_band_fade_sum": [
+      33.16266609728336,
+      166.99395862338133,
+      136.7401975216344
+    ],
+    "opaque_grass_pixels": 275,
+    "scope": "main opaque ground before grass and immediately after both queues; later astronaut/water/atmosphere occlusion excluded",
+    "coverage_acceptance": false
+  },
+  {
+    "backend": "cpu",
+    "hdr": true,
+    "request": 2,
+    "generated_instances": [
+      389,
+      5
+    ],
+    "queues": [
+      {
+        "queue": "detailed",
+        "instances": 389,
+        "root_bands": [
+          31,
+          196,
+          156
+        ]
+      },
+      {
+        "queue": "quads",
+        "instances": 5,
+        "root_bands": [
+          0,
+          0,
+          4
+        ]
+      }
+    ],
+    "root_bands_m": [
+      [
+        0,
+        5
+      ],
+      [
+        5,
+        15
+      ],
+      [
+        15,
+        30
+      ]
+    ],
+    "root_band_counts": [
+      31,
+      196,
+      160
+    ],
+    "root_band_fade_sum": [
+      29.383128196001053,
+      174.53592982585542,
+      138.55243608151795
+    ],
+    "opaque_grass_pixels": 343,
+    "scope": "main opaque ground before grass and immediately after both queues; later astronaut/water/atmosphere occlusion excluded",
+    "coverage_acceptance": false
+  },
+  {
+    "backend": "compute",
+    "hdr": true,
+    "request": 1,
+    "generated_instances": [
+      380,
+      3
+    ],
+    "queues": [
+      {
+        "queue": "detailed",
+        "instances": 380,
+        "root_bands": [
+          35,
+          184,
+          157
+        ]
+      },
+      {
+        "queue": "quads",
+        "instances": 3,
+        "root_bands": [
+          0,
+          0,
+          2
+        ]
+      }
+    ],
+    "root_bands_m": [
+      [
+        0,
+        5
+      ],
+      [
+        5,
+        15
+      ],
+      [
+        15,
+        30
+      ]
+    ],
+    "root_band_counts": [
+      35,
+      184,
+      159
+    ],
+    "root_band_fade_sum": [
+      31.52763018384576,
+      161.22236135182902,
+      130.03816908822046
+    ],
+    "opaque_grass_pixels": 440,
+    "scope": "main opaque ground before grass and immediately after both queues; later astronaut/water/atmosphere occlusion excluded",
+    "coverage_acceptance": false
+  },
+  {
+    "backend": "compute",
+    "hdr": true,
+    "request": 2,
+    "generated_instances": [
+      378,
+      6
+    ],
+    "queues": [
+      {
+        "queue": "detailed",
+        "instances": 378,
+        "root_bands": [
+          29,
+          195,
+          148
+        ]
+      },
+      {
+        "queue": "quads",
+        "instances": 6,
+        "root_bands": [
+          0,
+          0,
+          5
+        ]
+      }
+    ],
+    "root_bands_m": [
+      [
+        0,
+        5
+      ],
+      [
+        5,
+        15
+      ],
+      [
+        15,
+        30
+      ]
+    ],
+    "root_band_counts": [
+      29,
+      195,
+      153
+    ],
+    "root_band_fade_sum": [
+      26.93711319565773,
+      171.92539264913648,
+      132.33142830070574
+    ],
+    "opaque_grass_pixels": 333,
+    "scope": "main opaque ground before grass and immediately after both queues; later astronaut/water/atmosphere occlusion excluded",
+    "coverage_acceptance": false
+  }
+]

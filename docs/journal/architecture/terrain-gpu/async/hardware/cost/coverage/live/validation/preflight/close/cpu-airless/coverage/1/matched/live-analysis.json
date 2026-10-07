@@ -1,0 +1,317 @@
+{
+  "schema": 1,
+  "coverage_acceptance": false,
+  "timing_acceptance": false,
+  "composed_mask_grid": [
+    640,
+    360
+  ],
+  "composed_grass_pixels": 7033,
+  "edge_bound_scope": "Eligible area touching a native 4-neighbour composed-mask boundary; not a proof of supersampled compositing",
+  "samples": [
+    {
+      "factor": 1,
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 50.53744572889379,
+          "eligible_pixels": 74982,
+          "ground_visible_roots": 22,
+          "visible_fade_sum": 19.80796135061246,
+          "visible_roots_per_eligible_m2": 0.43532077418431797,
+          "fade_per_eligible_m2": 0.3919462304618938,
+          "composed_projected_eligible_coverage": 0.09197999719415445,
+          "composed_boundary_m2": 3.900913235744248,
+          "composed_boundary_fraction": 0.07718857135500178
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 216.99749157214447,
+          "eligible_pixels": 10675,
+          "ground_visible_roots": 49,
+          "visible_fade_sum": 41.92948897765018,
+          "visible_roots_per_eligible_m2": 0.2258090618697734,
+          "fade_per_eligible_m2": 0.1932256851167794,
+          "composed_projected_eligible_coverage": 0.0740394683890102,
+          "composed_boundary_m2": 42.771449348999404,
+          "composed_boundary_fraction": 0.19710573167975684
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 620.9597367462485,
+          "eligible_pixels": 3602,
+          "ground_visible_roots": 18,
+          "visible_fade_sum": 15.681966066360474,
+          "visible_roots_per_eligible_m2": 0.02898738667714231,
+          "fade_per_eligible_m2": 0.025254400790189743,
+          "composed_projected_eligible_coverage": 0.1597992008618205,
+          "composed_boundary_m2": 173.51964020754352,
+          "composed_boundary_fraction": 0.2794378281541486
+        }
+      ],
+      "character_pixels": 5919,
+      "other_body_pixels": 0,
+      "native_opaque_tag_mismatches": 0,
+      "native_opaque_tag_mismatch_fraction": 0.0,
+      "biome": {
+        "height_rounding_max_m": 0.00015536380881808753,
+        "cpu_retention_max_error": 0.0,
+        "threshold_tie_pixels": 0,
+        "checked_pixels": 92913,
+        "eligible_pixels": 92913,
+        "ineligible_pixels": 0
+      }
+    },
+    {
+      "factor": 2,
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 50.49814550843063,
+          "eligible_pixels": 299924,
+          "ground_visible_roots": 22,
+          "visible_fade_sum": 19.80796135061246,
+          "visible_roots_per_eligible_m2": 0.4356595629106244,
+          "fade_per_eligible_m2": 0.3922512629162893,
+          "composed_projected_eligible_coverage": 0.09178386862402933,
+          "composed_boundary_m2": 3.897738555604444,
+          "composed_boundary_fraction": 0.07718577615793276
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 214.31581650618455,
+          "eligible_pixels": 42719,
+          "ground_visible_roots": 51,
+          "visible_fade_sum": 43.92948897765018,
+          "visible_roots_per_eligible_m2": 0.2379665711631147,
+          "fade_per_eligible_m2": 0.20497548754822068,
+          "composed_projected_eligible_coverage": 0.10293767675960024,
+          "composed_boundary_m2": 41.684608544504954,
+          "composed_boundary_fraction": 0.1945008503061278
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 615.5255165878812,
+          "eligible_pixels": 14393,
+          "ground_visible_roots": 18,
+          "visible_fade_sum": 15.555383324623108,
+          "visible_roots_per_eligible_m2": 0.029243304322754366,
+          "fade_per_eligible_m2": 0.02527171157883623,
+          "composed_projected_eligible_coverage": 0.10540319949410147,
+          "composed_boundary_m2": 139.01881434617445,
+          "composed_boundary_fraction": 0.225853860806315
+        }
+      ],
+      "character_pixels": 23627,
+      "other_body_pixels": 0
+    },
+    {
+      "factor": 4,
+      "bands": [
+        {
+          "band_m": [
+            0,
+            5
+          ],
+          "eligible_visible_m2": 50.472717966656624,
+          "eligible_pixels": 1199632,
+          "ground_visible_roots": 22,
+          "visible_fade_sum": 19.80796135061246,
+          "visible_roots_per_eligible_m2": 0.4358790429026168,
+          "fade_per_eligible_m2": 0.39244887433440834,
+          "composed_projected_eligible_coverage": 0.09176885005136609,
+          "composed_boundary_m2": 3.8961188347888798,
+          "composed_boundary_fraction": 0.07719257039739252
+        },
+        {
+          "band_m": [
+            5,
+            15
+          ],
+          "eligible_visible_m2": 215.94863232680626,
+          "eligible_pixels": 170916,
+          "ground_visible_roots": 52,
+          "visible_fade_sum": 44.92288907454349,
+          "visible_roots_per_eligible_m2": 0.2407980057095509,
+          "fade_per_eligible_m2": 0.2080258096127201,
+          "composed_projected_eligible_coverage": 0.10488481579516656,
+          "composed_boundary_m2": 43.65027529670522,
+          "composed_boundary_fraction": 0.2021326776946056
+        },
+        {
+          "band_m": [
+            15,
+            30
+          ],
+          "eligible_visible_m2": 617.8439170486835,
+          "eligible_pixels": 57596,
+          "ground_visible_roots": 19,
+          "visible_fade_sum": 16.424344420433044,
+          "visible_roots_per_eligible_m2": 0.03075210336416225,
+          "fade_per_eligible_m2": 0.026583323016092553,
+          "composed_projected_eligible_coverage": 0.10937753190560717,
+          "composed_boundary_m2": 143.7103193267793,
+          "composed_boundary_fraction": 0.23259971549652006
+        }
+      ],
+      "character_pixels": 94534,
+      "other_body_pixels": 0
+    }
+  ],
+  "biome_diagnostics": [
+    {
+      "name": "water-pass",
+      "height_rounding_max_m": 0.0001293219912268384,
+      "cpu_retention_max_error": 0.0,
+      "threshold_tie_pixels": 0,
+      "checked_pixels": 38474,
+      "eligible_pixels": 38474,
+      "ineligible_pixels": 0
+    },
+    {
+      "name": "water-reject",
+      "height_rounding_max_m": 0.0001293219912268384,
+      "cpu_retention_max_error": 0.0,
+      "threshold_tie_pixels": 0,
+      "checked_pixels": 38474,
+      "eligible_pixels": 0,
+      "ineligible_pixels": 38474
+    },
+    {
+      "name": "green-pass",
+      "height_rounding_max_m": 0.0001293219912268384,
+      "cpu_retention_max_error": 0.0,
+      "threshold_tie_pixels": 0,
+      "checked_pixels": 38474,
+      "eligible_pixels": 38474,
+      "ineligible_pixels": 0
+    },
+    {
+      "name": "green-reject",
+      "height_rounding_max_m": 0.0001293219912268384,
+      "cpu_retention_max_error": 0.0,
+      "threshold_tie_pixels": 0,
+      "checked_pixels": 38474,
+      "eligible_pixels": 0,
+      "ineligible_pixels": 38474
+    },
+    {
+      "name": "meadow",
+      "height_rounding_max_m": 0.0001293219912268384,
+      "cpu_retention_max_error": 0.0,
+      "threshold_tie_pixels": 0,
+      "checked_pixels": 38474,
+      "eligible_pixels": 38474,
+      "ineligible_pixels": 0
+    },
+    {
+      "name": "beach",
+      "height_rounding_max_m": 0.0001293219912268384,
+      "cpu_retention_max_error": 0.0,
+      "threshold_tie_pixels": 0,
+      "checked_pixels": 38474,
+      "eligible_pixels": 0,
+      "ineligible_pixels": 38474
+    },
+    {
+      "name": "snow",
+      "height_rounding_max_m": 0.0001293219912268384,
+      "cpu_retention_max_error": 0.0,
+      "threshold_tie_pixels": 0,
+      "checked_pixels": 38474,
+      "eligible_pixels": 0,
+      "ineligible_pixels": 38474
+    },
+    {
+      "name": "rock-half",
+      "height_rounding_max_m": 0.0001293219912268384,
+      "cpu_retention_max_error": 1.7881393454821648e-07,
+      "threshold_tie_pixels": 0,
+      "checked_pixels": 38474,
+      "eligible_pixels": 38474,
+      "ineligible_pixels": 0
+    },
+    {
+      "name": "beach-edge",
+      "height_rounding_max_m": 0.0001293219912268384,
+      "cpu_retention_max_error": 0.0,
+      "threshold_tie_pixels": 0,
+      "checked_pixels": 38474,
+      "eligible_pixels": 0,
+      "ineligible_pixels": 38474
+    }
+  ],
+  "two_to_four_relative_change": [
+    -0.0005035341697797735,
+    0.007618736905377288,
+    0.003766538345403081
+  ],
+  "area_converged": true,
+  "sample_minimums_met": true,
+  "qualified_area": true,
+  "bands": [
+    {
+      "band_m": [
+        0,
+        5
+      ],
+      "eligible_visible_m2": 50.472717966656624,
+      "eligible_pixels": 1199632,
+      "ground_visible_roots": 22,
+      "visible_fade_sum": 19.80796135061246,
+      "visible_roots_per_eligible_m2": 0.4358790429026168,
+      "fade_per_eligible_m2": 0.39244887433440834,
+      "composed_projected_eligible_coverage": 0.09176885005136609,
+      "composed_boundary_m2": 3.8961188347888798,
+      "composed_boundary_fraction": 0.07719257039739252
+    },
+    {
+      "band_m": [
+        5,
+        15
+      ],
+      "eligible_visible_m2": 215.94863232680626,
+      "eligible_pixels": 170916,
+      "ground_visible_roots": 52,
+      "visible_fade_sum": 44.92288907454349,
+      "visible_roots_per_eligible_m2": 0.2407980057095509,
+      "fade_per_eligible_m2": 0.2080258096127201,
+      "composed_projected_eligible_coverage": 0.10488481579516656,
+      "composed_boundary_m2": 43.65027529670522,
+      "composed_boundary_fraction": 0.2021326776946056
+    },
+    {
+      "band_m": [
+        15,
+        30
+      ],
+      "eligible_visible_m2": 617.8439170486835,
+      "eligible_pixels": 57596,
+      "ground_visible_roots": 19,
+      "visible_fade_sum": 16.424344420433044,
+      "visible_roots_per_eligible_m2": 0.03075210336416225,
+      "fade_per_eligible_m2": 0.026583323016092553,
+      "composed_projected_eligible_coverage": 0.10937753190560717,
+      "composed_boundary_m2": 143.7103193267793,
+      "composed_boundary_fraction": 0.23259971549652006
+    }
+  ]
+}

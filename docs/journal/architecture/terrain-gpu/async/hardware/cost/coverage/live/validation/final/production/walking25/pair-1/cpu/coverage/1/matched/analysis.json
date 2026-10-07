@@ -1,0 +1,54 @@
+{
+  "bands": [
+    {
+      "band_m": [
+        0,
+        5
+      ],
+      "eligible_visible_m2": 59.32265843296773,
+      "eligible_pixels": 393584,
+      "generated_roots": 3646,
+      "ground_visible_roots": 2722,
+      "visible_fade_sum": 2471.2150056381215,
+      "visible_roots_per_eligible_m2": 45.88465978940834,
+      "fade_per_eligible_m2": 41.65718581931889,
+      "composed_projected_eligible_coverage": 0.8891191061822646
+    },
+    {
+      "band_m": [
+        5,
+        15
+      ],
+      "eligible_visible_m2": 278.247900096525,
+      "eligible_pixels": 174034,
+      "generated_roots": 23383,
+      "ground_visible_roots": 12633,
+      "visible_fade_sum": 11477.813023624081,
+      "visible_roots_per_eligible_m2": 45.40195989122497,
+      "fade_per_eligible_m2": 41.25031319065623,
+      "composed_projected_eligible_coverage": 0.9978093117211997
+    },
+    {
+      "band_m": [
+        15,
+        30
+      ],
+      "eligible_visible_m2": 772.1007706443779,
+      "eligible_pixels": 47415,
+      "generated_roots": 34377,
+      "ground_visible_roots": 30975,
+      "visible_fade_sum": 26109.341698076176,
+      "visible_roots_per_eligible_m2": 40.117820338592544,
+      "fade_per_eligible_m2": 33.81597673615312,
+      "composed_projected_eligible_coverage": 0.9999192578040557
+    }
+  ],
+  "nearest_opaque_grass_pixels": 605326,
+  "composed_grass_pixels": 572658,
+  "character_pixels": 9127,
+  "scope": "Controlled live-plan scene; nearest opaque grass stencil after character plus RGB contribution after water/atmosphere/tone mapping; flare/overlays excluded",
+  "coverage_acceptance": false,
+  "eligible_area_method": "Live triangle raster derivatives times expected biome/rock retention; no Gaussian falloff",
+  "root_visibility_method": "Ray intersection with live triangle plane at projected root; one-sided view-depth occlusion allowance; tolerance 0.15 m",
+  "density_scope": "Screen-visible generated root centers per expected eligible ground area; not physical blade count"
+}

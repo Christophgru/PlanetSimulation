@@ -1,0 +1,22 @@
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 0.0 s
+Sun radius: 2.5
+Planets: 2
+Camera position: (15, 15, 8)
+Left-drag to orbit; scroll to zoom gently. Press 1 for Sun orbit, 2 for the planet surface view (free mouse look and WASD at 80 m/s), 3 for planet orbit, 4 to follow the astronaut (WASD at 6 m/s; Space to jump/upward thrust; airborne WASD directs thrust). Press T to pause/resume orbits and spin. Press O for ten past orbit paths and body labels. Press Y to halve or U to double simulation speed. Press Esc to release the walking cursor and 2 or 4 to capture it again. /workspace/build-resume/terrain-matched-coverage/hdr.json reloads on save; press R to reload manually. Close the window to exit.
+Simulation time: 0.0 s
+Surface camera position (world, km): [9.189572298242435,0.9098529404670583,-0.3661325723047198]
+Surface camera direction (world, unit vector): [-0.08211556148512276,0.3556815734761064,0.9309928317938566]
+Surface camera position (planet LLA): latitude=-21.409888069265286 deg, longitude=103.0 deg, altitude=3.0 m above reference sphere
+Surface camera ground clearance: 3.0 m
+surface_camera start value: {"altitude":0.003,"direction_ned":[1.0,0.0,-5.551115123125783e-17],"fov":65.0,"latitude_deg":-21.409888069265286,"longitude_deg":103.0,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":0.0,"up_ned":[0.0,0.0,-1.0],"walk_speed_mps":80.0}
+Scene render resolution: 320x180 (100%)
+Camera 4: following the astronaut at 6 m/s; Space to jump/upward thrust; airborne WASD directs thrust
+Simulation time: 0.0 s
+Surface camera position (world, km): [9.191881923432806,0.9094938793583618,-0.3683358312082728]
+Surface camera direction (world, unit vector): [-0.20586925040662,0.9065745440684112,-0.3684297053498384]
+Surface camera position (planet LLA): latitude=-21.54513964443862 deg, longitude=102.86674899340534 deg, altitude=3.0 m above reference sphere
+Surface camera ground clearance: 3.0 m
+surface_camera start value: {"altitude":0.003,"direction_ned":[-0.0012859898501813571,-0.0011800005127300395,-0.9999984769132877],"fov":65.0,"latitude_deg":-21.54513964443862,"longitude_deg":102.86674899340534,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":0.0,"up_ned":[0.7368171609618331,0.6760898055295906,-0.0017453283658992458],"walk_speed_mps":80.0}
+Native audit: {"blocking_polls":0,"bulk_reads":0,"finishes":0,"injected_fence_failures":0,"injected_poll_failures":0,"memory_queries":0,"polls":0,"server_waits":0}

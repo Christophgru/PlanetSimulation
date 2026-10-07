@@ -1,0 +1,54 @@
+{
+  "bands": [
+    {
+      "band_m": [
+        0,
+        5
+      ],
+      "eligible_visible_m2": 51.59202446629206,
+      "eligible_pixels": 20867,
+      "generated_roots": 37,
+      "ground_visible_roots": 25,
+      "visible_fade_sum": 21.012103533372283,
+      "visible_roots_per_eligible_m2": 0.4845710215603943,
+      "fade_per_eligible_m2": 0.4072742589719591,
+      "composed_projected_eligible_coverage": 0.07570670312560909
+    },
+    {
+      "band_m": [
+        5,
+        15
+      ],
+      "eligible_visible_m2": 123.47552683530375,
+      "eligible_pixels": 1473,
+      "generated_roots": 183,
+      "ground_visible_roots": 37,
+      "visible_fade_sum": 33.87421800009906,
+      "visible_roots_per_eligible_m2": 0.2996545222224642,
+      "fade_per_eligible_m2": 0.2743395300129535,
+      "composed_projected_eligible_coverage": 0.15374820910930437
+    },
+    {
+      "band_m": [
+        15,
+        30
+      ],
+      "eligible_visible_m2": 436.6037088483572,
+      "eligible_pixels": 1086,
+      "generated_roots": 164,
+      "ground_visible_roots": 11,
+      "visible_fade_sum": 8.115812346339226,
+      "visible_roots_per_eligible_m2": 0.02519447218855523,
+      "fade_per_eligible_m2": 0.018588509858852433,
+      "composed_projected_eligible_coverage": 0.16377074279696344
+    }
+  ],
+  "nearest_opaque_grass_pixels": 1524,
+  "composed_grass_pixels": 1524,
+  "character_pixels": 1367,
+  "scope": "Controlled live-plan scene; nearest opaque grass stencil after character plus RGB contribution after water/atmosphere/tone mapping; flare/overlays excluded",
+  "coverage_acceptance": false,
+  "eligible_area_method": "Live triangle raster derivatives times expected biome/rock retention; no Gaussian falloff",
+  "root_visibility_method": "Ray intersection with live triangle plane at projected root; one-sided view-depth occlusion allowance; tolerance 0.15 m",
+  "density_scope": "Screen-visible generated root centers per expected eligible ground area; not physical blade count"
+}

@@ -1,0 +1,29 @@
+Archived final/software/live
+Archived final/software/matched
+Archived final/software/ordinary
+Archived final/quadro
+Archived final/production/walking25
+Archived final/production/sprint350
+Verified/encoded 100 raw files; unique payloads 61
+Verified/encoded 200 raw files; unique payloads 94
+Verified/encoded 300 raw files; unique payloads 103
+Verified/encoded 400 raw files; unique payloads 109
+Verified/encoded 500 raw files; unique payloads 160
+Verified/encoded 600 raw files; unique payloads 225
+Verified/encoded 700 raw files; unique payloads 260
+Verified/encoded 800 raw files; unique payloads 292
+Verified/encoded 900 raw files; unique payloads 300
+Verified/encoded 1000 raw files; unique payloads 328
+Verified/encoded 1100 raw files; unique payloads 370
+Verified/encoded 1200 raw files; unique payloads 407
+Verified/encoded 1300 raw files; unique payloads 458
+Verified/encoded 1400 raw files; unique payloads 472
+Verified/encoded 1500 raw files; unique payloads 505
+Verified/encoded 1600 raw files; unique payloads 512
+Verified/encoded 1700 raw files; unique payloads 543
+Verified/encoded 1800 raw files; unique payloads 576
+Verified/encoded 1900 raw files; unique payloads 585
+Verified/encoded 2000 raw files; unique payloads 591
+Verified/encoded 2100 raw files; unique payloads 628
+Final counts {'native_snapshots': 64, 'controlled_snapshots': 28, 'live_snapshots': 20, 'live_grids': 60, 'biome_cases': 180} failures []
+Stored 2177 raw files; 10000.114196777344 decoded MiB; 2168.0377740859985 encoded MiB

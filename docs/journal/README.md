@@ -84,8 +84,18 @@ passes known planes and foreground silhouettes, including grazing views and
 production-scale transforms, on software GL and native Quadro. Thirty-two
 raw GPU snapshots meet exact area and 2×/4× convergence gates below 1%.
 Fixed-projection viewport tiling bounds targets to 2.25 MiB and resolves a
-retained tile-edge rounding failure. Live terrain/occlusion qualification and
-fresh matched route repeats remain; earlier coverage/cost failures stay pending.
+retained tile-edge rounding failure. Live qualification follows below; fresh
+matched route repeats and earlier coverage/cost failures stay pending.
+
+The [live analytic inspection qualification](architecture/terrain-gpu/async/hardware/cost/coverage/live/study.md)
+passes 20 CPU/compute snapshots and 60 GPU sampling grids on software GL and
+verified Quadro, including four unchanged production walking/sprint inspections.
+Actual terrain, other bodies and astronaut meshes provide fresh occlusion at
+each grid; maximum 2×/4× area change is 0.78655%, with exact native opaque tags.
+The native composed color mask retains a measured edge-area uncertainty;
+fresh three-pair route coverage and stationary timing acceptance remain pending.
+Raw maps, 180 biome checks, retained preflights and private close-harness correction
+are archived with frozen inputs. CPU stays default.
 
 The [GPU timing prerequisite](architecture/terrain-gpu/async/hardware/timing/study.md)
 adds bounded request-keyed dispatch timings and complete frame timestamp spans.

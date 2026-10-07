@@ -1,0 +1,17 @@
+{
+  "scope": "Excluded live area fixture qualification; no route/cost acceptance",
+  "area_convergence_tolerance": 0.01,
+  "native_tag_mismatch_tolerance": 0.0001,
+  "biome_retention_tolerance": 0.002,
+  "minimum_eligible_pixels": 100,
+  "base_viewport": [
+    640,
+    360
+  ],
+  "sampling_factors": [
+    1,
+    2,
+    4
+  ],
+  "expected_uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79"
+}

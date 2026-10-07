@@ -1,0 +1,7 @@
+{
+  "coverage_request": 2,
+  "coverage_distance_m": 3,
+  "coverage_matched": true,
+  "coverage_live": true,
+  "coverage_reference": "/workspace/build-resume/terrain-live-area/cpu-hdr/coverage/2/matched/controls.json"
+}

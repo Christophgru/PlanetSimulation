@@ -1,0 +1,17 @@
+Internal ctest changing into directory: /workspace/build-resume
+Test project /workspace/build-resume
+    Start 57: TerrainLiveAreaIntegration
+1/1 Test #57: TerrainLiveAreaIntegration .......***Failed    6.61 sec
+Traceback (most recent call last):
+  File "/workspace/tests/app/terrain/native/coverage/test_inspection.py", line 107, in <module>
+    assert live_result['qualified_area'], live_result['two_to_four_relative_change']
+AssertionError: [-0.0007949801802208389, -0.016079988038410264, 0.006669074158688115]
+
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) =   6.62 sec
+
+The following tests FAILED:
+	 57 - TerrainLiveAreaIntegration (Failed)
+Errors while running CTest

@@ -1,0 +1,362 @@
+{
+  "astronaut": {
+    "airborne": false,
+    "arm_swing": 0.0,
+    "body_offset_m": [
+      -0.003736033964323611,
+      0.29389683110578424,
+      0.00047862590580023917
+    ],
+    "boost_pulse_s": 0.0,
+    "boosting": false,
+    "effect_s": 0.04515226600000011,
+    "exhaust": {
+      "capacity": 64,
+      "draw_calls_per_view": 0,
+      "emission_phase_s": 0.0,
+      "instance_bytes_per_view": 0,
+      "next_id": 0,
+      "particles": [],
+      "schema": 1
+    },
+    "feet": [
+      {
+        "ankle": [
+          -209.2200649373899,
+          905.6607165850354,
+          -364.58288354496807
+        ],
+        "duration_s": 0.24,
+        "forward": [
+          0.7187026019810487,
+          -0.11033120237955792,
+          -0.6865082633786364
+        ],
+        "hip": [
+          -209.42133367946929,
+          906.5325072856277,
+          -364.93369954777086
+        ],
+        "knee": [
+          -209.3206993084296,
+          906.0966119353316,
+          -364.7582915463695
+        ],
+        "normal": [
+          -0.24059848079009177,
+          0.8900586507889862,
+          -0.3871795051357828
+        ],
+        "position": [
+          -209.1984110741188,
+          905.5806113064644,
+          -364.54803738950585
+        ],
+        "progress": 1.0,
+        "reached": true,
+        "start": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "target": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "ankle": [
+          -208.99759470077663,
+          905.8116184057158,
+          -364.37423236423933
+        ],
+        "duration_s": 0.24,
+        "forward": [
+          0.7187026019810487,
+          -0.11033120237955792,
+          -0.6865082633786364
+        ],
+        "hip": [
+          -209.19590404929212,
+          906.6705905678525,
+          -364.7198900788313
+        ],
+        "knee": [
+          -209.0377180513452,
+          906.2320626890022,
+          -364.60339763499314
+        ],
+        "normal": [
+          -0.24059848079009177,
+          0.8900586507889862,
+          -0.3871795051357828
+        ],
+        "position": [
+          -208.97594083478762,
+          905.7315131187971,
+          -364.3393862062414
+        ],
+        "progress": 1.0,
+        "reached": true,
+        "start": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "target": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    ],
+    "flight_physics": {
+      "air_density_kg_m3": 0.0,
+      "air_pressure_pa": 0.0,
+      "commanded_horizontal_speed_mps": 100.0,
+      "drag_area_cd_m2": 0.7,
+      "estimated_exhaust_input_w": 0.0,
+      "mass_kg": 100.0,
+      "maximum_thrust_n": 6948.36980587836
+    },
+    "forward": [
+      0.7187026019810555,
+      -0.11033120237958736,
+      -0.6865082633786246
+    ],
+    "grass_plan_eye": [
+      -0.2100561025559049,
+      0.9098529404670583,
+      -0.3661325723047198
+    ],
+    "grass_trail": [],
+    "height_m": 0.0,
+    "jetpack_armed": false,
+    "right": [
+      0.6630283240505346,
+      0.4061273006611721,
+      0.6288513792339245
+    ],
+    "root": [
+      -209.08717674165644,
+      905.65606167867,
+      -364.4437125361786
+    ],
+    "suit_up": [
+      -0.20942781909860905,
+      0.9071315458295696,
+      -0.36503745992494496
+    ],
+    "terrain_plan_eye_world_units": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "thrust_n": 0.0,
+    "up": [
+      -0.20942781909860905,
+      0.9071315458295696,
+      -0.36503745992494496
+    ],
+    "velocity_mps": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "vertical_velocity_mps": 0.0,
+    "walked_m": 5.5582865413045686e-14,
+    "wind_time_s": 0.8234289410000001
+  },
+  "backend": "cpu",
+  "body": 0,
+  "depth_scope": "main opaque ground before grass and immediately after both queues; later astronaut/water/atmosphere occlusion excluded",
+  "inspection": {
+    "blocking": true,
+    "buffer_reads": 5,
+    "encoding": "little-endian IEEE754 float32, OpenGL bottom row first",
+    "pixel_reads": 2,
+    "read_bytes": 1867808,
+    "timing_acceptance": false
+  },
+  "land_field": "2419672671769440127",
+  "land_revision": 1,
+  "land_topology": "5630403185118082568",
+  "meters_per_radius": 1000.0,
+  "model": [
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    9.399628639221191,
+    -3.519899334151426e-19,
+    -1.2811386251918364e-19,
+    1.0
+  ],
+  "profile_frame": 22,
+  "projection": [
+    0.882948100566864,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.569685459136963,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    -1.0000016689300537,
+    -1.0,
+    0.0,
+    0.0,
+    -4.000003173132427e-05,
+    0.0
+  ],
+  "publication_after_frame": {
+    "managed": false
+  },
+  "publication_before_grass": {
+    "managed": false
+  },
+  "queues": [
+    {
+      "capacity": 9728,
+      "instances": 383,
+      "offset_bytes": 0,
+      "queue": 0,
+      "record_bytes": 64,
+      "vertices_per_blade": 14
+    },
+    {
+      "capacity": 9728,
+      "instances": 0,
+      "offset_bytes": 622592,
+      "queue": 1,
+      "record_bytes": 64,
+      "vertices_per_blade": 4
+    }
+  ],
+  "reflection_instances_after_main": [
+    383,
+    0
+  ],
+  "request": 1,
+  "root_m": [
+    -209.08717674165644,
+    905.65606167867,
+    -364.4437125361786
+  ],
+  "schema": 1,
+  "trail_segments_m": [],
+  "view": [
+    0.663028359413147,
+    -0.26259300112724304,
+    -0.7010266184806824,
+    0.0,
+    0.40612730383872986,
+    0.9128426313400269,
+    0.04217788204550743,
+    0.0,
+    0.6288513541221619,
+    -0.3126711845397949,
+    0.7118867039680481,
+    0.0,
+    -6.2322163581848145,
+    1.471458911895752,
+    6.660139560699463,
+    1.0
+  ],
+  "view_identity": "main",
+  "viewport": [
+    640,
+    360
+  ],
+  "walked_m": 5.5582865413045686e-14,
+  "wind_s": 12.0,
+  "workload": {
+    "bodies": [
+      {
+        "body": 0,
+        "bulk_evaluations": 12966,
+        "cpu_render_bytes": 1036800,
+        "foliage": {
+          "budget": 10000,
+          "budget_source": "legacy_configured_hard_cap",
+          "candidates": 9728,
+          "compute_placement": true,
+          "configured_budget": 10000,
+          "configured_density": 30.72,
+          "configured_distance_m": 40.0,
+          "density": 0.39921823286178515,
+          "distance_m": 40.0,
+          "enabled": true,
+          "gpu_bytes": 1245216,
+          "patches": 20,
+          "plan_eye": [
+            -0.2100561025559049,
+            0.9098529404670583,
+            -0.3661325723047198
+          ]
+        },
+        "gpu_input_bytes": 0,
+        "planning_evaluations": 4679,
+        "terrain_plan_eye": [
+          -0.2100561025559049,
+          0.9098529404670583,
+          -0.3661325723047198
+        ],
+        "topology_input_bytes": 241984,
+        "triangles": 8640,
+        "unique_samples": 4322
+      },
+      {
+        "body": 1,
+        "bulk_evaluations": 1446,
+        "cpu_render_bytes": 115200,
+        "foliage": {
+          "budget": 0,
+          "budget_source": "legacy_configured_hard_cap",
+          "candidates": 0,
+          "compute_placement": false,
+          "configured_budget": 100000,
+          "configured_density": 30.72,
+          "configured_distance_m": 40.0,
+          "density": 0.0,
+          "distance_m": 0.0,
+          "enabled": false,
+          "gpu_bytes": 0,
+          "patches": 0,
+          "plan_eye": null
+        },
+        "gpu_input_bytes": 0,
+        "planning_evaluations": 482,
+        "terrain_plan_eye": [
+          2.787437615997404,
+          0.909852940467058,
+          -0.3661325723047199
+        ],
+        "topology_input_bytes": 26944,
+        "triangles": 960,
+        "unique_samples": 482
+      }
+    ],
+    "quality_scale": 1.0,
+    "scene_size": [
+      640,
+      360
+    ],
+    "swap_interval_requested": 0,
+    "viewport": [
+      640,
+      360
+    ]
+  }
+}

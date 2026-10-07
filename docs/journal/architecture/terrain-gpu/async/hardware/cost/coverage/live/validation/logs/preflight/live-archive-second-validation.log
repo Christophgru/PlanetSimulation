@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "/workspace/docs/journal/architecture/terrain-gpu/async/hardware/cost/coverage/live/validate.py", line 96, in <module>
+    if __name__ == '__main__': main()
+                               ^^^^^^
+  File "/workspace/docs/journal/architecture/terrain-gpu/async/hardware/cost/coverage/live/validate.py", line 71, in main
+    expected = read(controlled/'analysis.json'); actual = matched.analyze(controlled)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/docs/journal/architecture/terrain-gpu/async/hardware/cost/coverage/live/validate.py", line 16, in read
+    def read(path): return json.loads(path.read_text())
+                                      ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/pathlib.py", line 1059, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/pathlib.py", line 1045, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/workspace/docs/journal/architecture/terrain-gpu/async/hardware/cost/coverage/live/validation/final/production/walking25/pair-1/compute/coverage/1/matched/analysis.json'

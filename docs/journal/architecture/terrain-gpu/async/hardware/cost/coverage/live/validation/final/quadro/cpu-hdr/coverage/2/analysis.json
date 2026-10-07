@@ -1,0 +1,53 @@
+{
+  "generated_instances": [
+    389,
+    0
+  ],
+  "queues": [
+    {
+      "queue": "detailed",
+      "instances": 389,
+      "root_bands": [
+        38,
+        183,
+        160
+      ]
+    },
+    {
+      "queue": "quads",
+      "instances": 0,
+      "root_bands": [
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "root_bands_m": [
+    [
+      0,
+      5
+    ],
+    [
+      5,
+      15
+    ],
+    [
+      15,
+      30
+    ]
+  ],
+  "root_band_counts": [
+    38,
+    183,
+    160
+  ],
+  "root_band_fade_sum": [
+    33.96742049977183,
+    162.55922412127256,
+    137.53868154465454
+  ],
+  "opaque_grass_pixels": 5034,
+  "scope": "main opaque ground before grass and immediately after both queues; later astronaut/water/atmosphere occlusion excluded",
+  "coverage_acceptance": false
+}

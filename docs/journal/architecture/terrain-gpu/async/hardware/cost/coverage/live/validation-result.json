@@ -1,0 +1,13 @@
+{
+  "native_snapshots": 64,
+  "controlled_snapshots": 28,
+  "live_snapshots": 20,
+  "live_grids": 60,
+  "biome_cases": 180,
+  "maximum_two_to_four_relative_change": 0.007865545160299803,
+  "maximum_native_tag_mismatch_fraction": 0.0,
+  "area_failures": [],
+  "preflight_storage_verified": true,
+  "coverage_acceptance": false,
+  "timing_acceptance": false
+}

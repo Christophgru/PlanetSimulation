@@ -1,0 +1,58 @@
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 0.0 s
+Sun radius: 2.5
+Planets: 2
+Camera position: (15, 15, 8)
+Left-drag to orbit; scroll to zoom gently. Press 1 for Sun orbit, 2 for the planet surface view (free mouse look and WASD at 80 m/s), 3 for planet orbit, 4 to follow the astronaut (WASD at 6 m/s; Space to jump/upward thrust; airborne WASD directs thrust). Press T to pause/resume orbits and spin. Press O for ten past orbit paths and body labels. Press Y to halve or U to double simulation speed. Press Esc to release the walking cursor and 2 or 4 to capture it again. /workspace/build-resume/live-production-sprint350/production-input.json reloads on save; press R to reload manually. Close the window to exit.
+Simulation time: 0.0 s
+Surface camera position (world, km): [9.577631703355499,0.9956661579439665,0.043260068593440726]
+Surface camera direction (world, unit vector): [-0.9901167960478935,0.07594789363877721,0.11790100778062677]
+Surface camera position (planet LLA): latitude=-17.23072754436555 deg, longitude=79.39197457588234 deg, altitude=12.377255439326891 m above reference sphere
+Surface camera ground clearance: 2.0 m
+surface_camera start value: {"altitude":0.002,"direction_ned":[0.0595365512313363,0.9937565852932968,0.09435702546013867],"fov":80.0,"latitude_deg":-17.23072754436555,"longitude_deg":79.39197457588234,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":0.0,"up_ned":[0.005642867970075183,0.09418814306884689,-0.9955384230386667],"walk_speed_mps":80.0}
+Camera 4: following the astronaut at 6 m/s; Space to jump/upward thrust; airborne WASD directs thrust
+Scene render resolution: 1280x720 (100%)
+Simulation time: 0.0 s
+Surface camera position (world, km): [9.577631703355499,0.9956661579439665,0.043260068593440726]
+Surface camera direction (world, unit vector): [-0.9901167960478935,0.07594789363877721,0.11790100778062677]
+Surface camera position (planet LLA): latitude=-17.23072754436555 deg, longitude=79.39197457588234 deg, altitude=12.377255439326891 m above reference sphere
+Surface camera ground clearance: 2.0 m
+surface_camera start value: {"altitude":0.002,"direction_ned":[0.0595365512313363,0.9937565852932968,0.09435702546013867],"fov":80.0,"latitude_deg":-17.23072754436555,"longitude_deg":79.39197457588234,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":0.0,"up_ned":[0.005642867970075183,0.09418814306884689,-0.9955384230386667],"walk_speed_mps":80.0}
+Simulation time: 0.0 s
+Surface camera position (world, km): [9.533591373408463,0.9940747162357686,0.04818693343613106]
+Surface camera direction (world, unit vector): [-0.9927689296151625,0.03287075822255048,0.11545287196358268]
+Surface camera position (planet LLA): latitude=-17.06611227840447 deg, longitude=81.97848252329135 deg, altitude=4.217406761973145 m above reference sphere
+Surface camera ground clearance: 2.0 m
+surface_camera start value: {"altitude":0.002,"direction_ned":[0.07276019251432236,0.992875977215479,0.09435702546014538],"fov":80.0,"latitude_deg":-17.06611227840447,"longitude_deg":81.97848252329135,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":0.0,"up_ned":[0.006896203279230309,0.09410467912924447,-0.995538423038666],"walk_speed_mps":80.0}
+Simulation time: 0.0 s
+Surface camera position (world, km): [9.473843232405,0.9999865928763275,0.05538647630251525]
+Surface camera direction (world, unit vector): [-0.9933708342757457,-0.027222778157397345,0.11168395569508692]
+Surface camera position (planet LLA): latitude=-16.782402432745464 deg, longitude=85.57309767537491 deg, altitude=4.265248288528606 m above reference sphere
+Surface camera ground clearance: 2.0 m
+surface_camera start value: {"altitude":0.002,"direction_ned":[0.09088588280500001,0.991381111406238,0.09435702546015466],"fov":80.0,"latitude_deg":-16.782402432745464,"longitude_deg":85.57309767537491,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":0.0,"up_ned":[0.008614154270032627,0.09396299590743347,-0.995538423038665],"walk_speed_mps":80.0}
+Simulation time: 0.0 s
+Surface camera position (world, km): [9.414173822417522,1.0020402264071109,0.06233063793457694]
+Surface camera direction (world, unit vector): [-0.990399408290348,-0.08686201596433255,0.10753605088871622]
+Surface camera position (planet LLA): latitude=-16.438800916817772 deg, longitude=89.13458973934411 deg, altitude=4.082313883391296 m above reference sphere
+Surface camera ground clearance: 2.0 m
+surface_camera start value: {"altitude":0.002,"direction_ned":[0.10849207890808546,0.9896091251400791,0.09435702546015856],"fov":80.0,"latitude_deg":-16.438800916817772,"longitude_deg":89.13458973934411,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":0.0,"up_ned":[0.010282867657191531,0.09379504723829345,-0.9955384230386647],"walk_speed_mps":80.0}
+Simulation time: 0.0 s
+Surface camera position (world, km): [9.35385878859158,1.0015248243968944,0.06918445495324294]
+Surface camera direction (world, unit vector): [-0.9838005445448696,-0.14675199507598008,0.10295795498375793]
+Surface camera position (planet LLA): latitude=-16.031233924577474 deg, longitude=92.71607966162617 deg, altitude=4.954387070360821 m above reference sphere
+Surface camera ground clearance: 2.0 m
+surface_camera start value: {"altitude":0.002,"direction_ned":[0.12577441125089076,0.9875614154171896,0.0943570254601582],"fov":80.0,"latitude_deg":-16.031233924577474,"longitude_deg":92.71607966162617,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":0.0,"up_ned":[0.011920885271723733,0.09360096552935414,-0.9955384230386647],"walk_speed_mps":80.0}
+Simulation time: 0.0 s
+Surface camera position (world, km): [9.293560945517395,0.9940002337342553,0.0755886944108003]
+Surface camera direction (world, unit vector): [-0.9735301450016813,-0.2064968594843636,0.09796991270844636]
+Surface camera position (planet LLA): latitude=-15.56123311314066 deg, longitude=96.3054650655662 deg, altitude=2.4970924926707263 m above reference sphere
+Surface camera ground clearance: 2.0 m
+surface_camera start value: {"altitude":0.002,"direction_ned":[0.14260188389311945,0.9852722742757183,0.09435702546015014],"fov":80.0,"latitude_deg":-15.56123311314066,"longitude_deg":96.3054650655662,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":0.0,"up_ned":[0.013515791332391253,0.09338400097632721,-0.9955384230386655],"walk_speed_mps":80.0}
+Simulation time: 0.0 s
+Surface camera position (world, km): [9.234678127501327,0.986255087211321,0.08181728228402477]
+Surface camera direction (world, unit vector): [-0.9599887407802299,-0.26423774148560303,0.09273636584305171]
+Surface camera position (planet LLA): latitude=-15.045176435772241 deg, longitude=99.80201750325212 deg, altitude=3.2954487045745346 m above reference sphere
+Surface camera ground clearance: 2.0 m
+surface_camera start value: {"altitude":0.002,"direction_ned":[0.15845672417394613,0.9828469963887428,0.0943570254601559],"fov":80.0,"latitude_deg":-15.045176435772241,"longitude_deg":99.80201750325212,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":0.0,"up_ned":[0.01501851140167719,0.09315413339710804,-0.9955384230386648],"walk_speed_mps":80.0}
+Native audit: {"blocking_polls":0,"bulk_reads":0,"finishes":0,"injected_fence_failures":0,"injected_poll_failures":0,"memory_queries":0,"polls":88,"server_waits":0}
