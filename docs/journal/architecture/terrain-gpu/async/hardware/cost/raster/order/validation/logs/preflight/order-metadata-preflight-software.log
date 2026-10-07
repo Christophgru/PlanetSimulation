@@ -1,0 +1,27 @@
+Internal ctest changing into directory: /workspace/build-resume
+UpdateCTestConfiguration  from :/workspace/build-resume/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/workspace/build-resume/DartConfiguration.tcl
+Test project /workspace/build-resume
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 56
+    Start 56: TerrainBladeOrderIntegration
+
+56: Test command: /usr/bin/python3 "/workspace/tests/app/terrain/native/raster/order/test_order.py" "--probe" "/workspace/build-resume/tests/terrain_order_probe" "--output-dir" "/workspace/build-resume/terrain-blade-order"
+56: Working Directory: /workspace
+56: Test timeout computed to be: 300
+56: Order output: /workspace/build-resume/terrain-blade-order-1791401605248402268
+56: cpu qualified 9 frames / exact Blade permutations and depth; color discrepancies retained
+56: compute qualified 9 frames / exact Blade permutations and depth; color discrepancies retained
+1/1 Test #56: TerrainBladeOrderIntegration .....   Passed   35.16 sec
+
+The following tests passed:
+	TerrainBladeOrderIntegration
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =  35.18 sec

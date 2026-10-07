@@ -1,0 +1,2 @@
+*.log -whitespace
+inputs/native/CMakeLists.txt -whitespace

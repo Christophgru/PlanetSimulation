@@ -1,0 +1,34 @@
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 0.0 s
+Sun radius: 2.5
+Planets: 2
+Camera position: (15, 15, 8)
+Left-drag to orbit; scroll to zoom gently. Press 1 for Sun orbit, 2 for the planet surface view (free mouse look and WASD at 80 m/s), 3 for planet orbit, 4 to follow the astronaut (WASD at 6 m/s; Space to jump/upward thrust; airborne WASD directs thrust). Press T to pause/resume orbits and spin. Press O for ten past orbit paths and body labels. Press Y to halve or U to double simulation speed. Press Esc to release the walking cursor and 2 or 4 to capture it again. /workspace/build-resume/order-refined-software/input.json reloads on save; press R to reload manually. Close the window to exit.
+Simulation time: 0.0 s
+Surface camera position (world, km): [9.378057335431183,0.09343454922044568,-0.03759885837226934]
+Surface camera direction (world, unit vector): [-0.08211556148512276,0.3556815734761064,0.9309928317938566]
+Surface camera position (planet LLA): latitude=-21.409888069265286 deg, longitude=103.0 deg, altitude=3.0 m above reference sphere
+Surface camera ground clearance: 3.0 m
+surface_camera start value: {"altitude":0.003,"direction_ned":[1.0,0.0,-5.551115123125783e-17],"fov":65.0,"latitude_deg":-21.409888069265286,"longitude_deg":103.0,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":0.0,"up_ned":[0.0,0.0,-1.0],"walk_speed_mps":80.0}
+Camera 4: following the astronaut at 6 m/s; Space to jump/upward thrust; airborne WASD directs thrust
+Simulation time: 0.0 s
+Surface camera position (world, km): [9.378057335431183,0.09343454922044568,-0.03759885837226934]
+Surface camera direction (world, unit vector): [-0.2077229980005339,0.9075013191550968,-0.36509247025024977]
+Surface camera position (planet LLA): latitude=-21.409888069265286 deg, longitude=103.0 deg, altitude=3.0 m above reference sphere
+Surface camera ground clearance: 3.0 m
+surface_camera start value: {"altitude":0.003,"direction_ned":[-5.968500198044735e-05,-0.0017443075432238553,-0.9999984769132878],"fov":65.0,"latitude_deg":-21.409888069265286,"longitude_deg":103.0,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":0.0,"up_ned":[0.03419695241380071,0.9994135891984378,-0.001745328365898257],"walk_speed_mps":80.0}
+Scene render resolution: 320x180 (100%)
+Simulation time: 0.0 s
+Surface camera position (world, km): [9.378057335431183,0.09343454922044568,-0.03759885837226934]
+Surface camera direction (world, unit vector): [-0.2077229980005339,0.9075013191550968,-0.36509247025024977]
+Surface camera position (planet LLA): latitude=-21.409888069265286 deg, longitude=103.0 deg, altitude=3.0 m above reference sphere
+Surface camera ground clearance: 3.0 m
+surface_camera start value: {"altitude":0.003,"direction_ned":[-5.968500198044735e-05,-0.0017443075432238553,-0.9999984769132878],"fov":65.0,"latitude_deg":-21.409888069265286,"longitude_deg":103.0,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":0.0,"up_ned":[0.03419695241380071,0.9994135891984378,-0.001745328365898257],"walk_speed_mps":80.0}
+Simulation time: 0.0 s
+Surface camera position (world, km): [9.378057335431183,0.09343454922044568,-0.03759885837226934]
+Surface camera direction (world, unit vector): [-0.2077229980005339,0.9075013191550968,-0.36509247025024977]
+Surface camera position (planet LLA): latitude=-21.409888069265286 deg, longitude=103.0 deg, altitude=3.0 m above reference sphere
+Surface camera ground clearance: 3.0 m
+surface_camera start value: {"altitude":0.003,"direction_ned":[-5.968500198044735e-05,-0.0017443075432238553,-0.9999984769132878],"fov":65.0,"latitude_deg":-21.409888069265286,"longitude_deg":103.0,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":0.0,"up_ned":[0.03419695241380071,0.9994135891984378,-0.001745328365898257],"walk_speed_mps":80.0}
+Native audit: {"blocking_polls":0,"bulk_reads":0,"finishes":0,"injected_fence_failures":0,"injected_poll_failures":0,"memory_queries":0,"polls":8,"server_waits":0}

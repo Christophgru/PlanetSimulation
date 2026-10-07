@@ -1,0 +1,245 @@
+{
+  "frames": 9,
+  "exact_multisets": true,
+  "depth_equal": true,
+  "color_differences": [
+    {
+      "path": "/workspace/build-resume/terrain-blade-order/cpu/captures/1/0",
+      "changed_rgb_pixels": 0,
+      "fraction": 0.0
+    },
+    {
+      "path": "/workspace/build-resume/terrain-blade-order/cpu/captures/1/1",
+      "changed_rgb_pixels": 0,
+      "fraction": 0.0
+    },
+    {
+      "path": "/workspace/build-resume/terrain-blade-order/cpu/captures/1/2",
+      "changed_rgb_pixels": 0,
+      "fraction": 0.0
+    },
+    {
+      "path": "/workspace/build-resume/terrain-blade-order/cpu/captures/2/0",
+      "changed_rgb_pixels": 0,
+      "fraction": 0.0
+    },
+    {
+      "path": "/workspace/build-resume/terrain-blade-order/cpu/captures/2/1",
+      "changed_rgb_pixels": 0,
+      "fraction": 0.0
+    },
+    {
+      "path": "/workspace/build-resume/terrain-blade-order/cpu/captures/2/2",
+      "changed_rgb_pixels": 0,
+      "fraction": 0.0
+    },
+    {
+      "path": "/workspace/build-resume/terrain-blade-order/cpu/captures/3/0",
+      "changed_rgb_pixels": 0,
+      "fraction": 0.0
+    },
+    {
+      "path": "/workspace/build-resume/terrain-blade-order/cpu/captures/3/1",
+      "changed_rgb_pixels": 0,
+      "fraction": 0.0
+    },
+    {
+      "path": "/workspace/build-resume/terrain-blade-order/cpu/captures/3/2",
+      "changed_rgb_pixels": 0,
+      "fraction": 0.0
+    }
+  ],
+  "controls": {
+    "native": {
+      "main/detailed": {
+        "instances": 390,
+        "draw_gpu_ms": [
+          3.779548,
+          6.616813,
+          3.551355
+        ],
+        "draw_gpu_median_ms": 3.779548,
+        "passed_samples": [
+          5211,
+          5211,
+          5211
+        ]
+      },
+      "main/quads": {
+        "instances": 0,
+        "draw_gpu_ms": [
+          0.008538,
+          0.002157,
+          0.000409
+        ],
+        "draw_gpu_median_ms": 0.002157,
+        "passed_samples": [
+          0,
+          0,
+          0
+        ]
+      },
+      "reflection/detailed": {
+        "instances": 390,
+        "draw_gpu_ms": [
+          0.007627,
+          0.012156,
+          0.002783
+        ],
+        "draw_gpu_median_ms": 0.007627,
+        "passed_samples": [
+          0,
+          0,
+          0
+        ]
+      },
+      "reflection/quads": {
+        "instances": 0,
+        "draw_gpu_ms": [
+          0.010629,
+          0.006526,
+          0.002952
+        ],
+        "draw_gpu_median_ms": 0.006526,
+        "passed_samples": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "near": {
+      "main/detailed": {
+        "instances": 390,
+        "draw_gpu_ms": [
+          3.21506,
+          3.365176,
+          3.353132
+        ],
+        "draw_gpu_median_ms": 3.353132,
+        "passed_samples": [
+          5203,
+          5203,
+          5203
+        ]
+      },
+      "main/quads": {
+        "instances": 0,
+        "draw_gpu_ms": [
+          0.000234,
+          0.007343,
+          0.002714
+        ],
+        "draw_gpu_median_ms": 0.002714,
+        "passed_samples": [
+          0,
+          0,
+          0
+        ]
+      },
+      "reflection/detailed": {
+        "instances": 390,
+        "draw_gpu_ms": [
+          0.006483,
+          0.005279,
+          0.008619
+        ],
+        "draw_gpu_median_ms": 0.006483,
+        "passed_samples": [
+          0,
+          0,
+          0
+        ]
+      },
+      "reflection/quads": {
+        "instances": 0,
+        "draw_gpu_ms": [
+          0.016977,
+          9.7e-05,
+          0.003842
+        ],
+        "draw_gpu_median_ms": 0.003842,
+        "passed_samples": [
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "far": {
+      "main/detailed": {
+        "instances": 390,
+        "draw_gpu_ms": [
+          3.58836,
+          3.495584,
+          4.011707
+        ],
+        "draw_gpu_median_ms": 3.58836,
+        "passed_samples": [
+          5253,
+          5253,
+          5253
+        ]
+      },
+      "main/quads": {
+        "instances": 0,
+        "draw_gpu_ms": [
+          0.000797,
+          0.015183,
+          0.002063
+        ],
+        "draw_gpu_median_ms": 0.002063,
+        "passed_samples": [
+          0,
+          0,
+          0
+        ]
+      },
+      "reflection/detailed": {
+        "instances": 390,
+        "draw_gpu_ms": [
+          0.019455,
+          0.142363,
+          0.018559
+        ],
+        "draw_gpu_median_ms": 0.019455,
+        "passed_samples": [
+          0,
+          0,
+          0
+        ]
+      },
+      "reflection/quads": {
+        "instances": 0,
+        "draw_gpu_ms": [
+          0.000221,
+          0.006695,
+          0.008746
+        ],
+        "draw_gpu_median_ms": 0.006695,
+        "passed_samples": [
+          0,
+          0,
+          0
+        ]
+      }
+    }
+  },
+  "timing_acceptance": false,
+  "migration_acceptance": false,
+  "audit": {
+    "frames": 57,
+    "rendered": 0,
+    "gl": {
+      "blocking_polls": 0,
+      "bulk_reads": 0,
+      "finishes": 0,
+      "injected_fence_failures": 0,
+      "injected_poll_failures": 0,
+      "memory_queries": 0,
+      "polls": 0,
+      "server_waits": 0
+    },
+    "peak_logical_bytes": 0
+  }
+}

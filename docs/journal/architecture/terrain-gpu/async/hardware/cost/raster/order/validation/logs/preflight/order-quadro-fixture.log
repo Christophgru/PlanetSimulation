@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/workspace/tests/app/terrain/native/raster/order/test_order.py", line 42, in <module>
+    session.focus()
+  File "/workspace/tests/app/terrain/native/NativeSession.py", line 72, in focus
+    self.wait(lambda frame: True, 'No native frames')
+  File "/workspace/tests/app/terrain/native/NativeSession.py", line 67, in wait
+    assert self.process.poll() is None, f'Native exit {self.process.returncode}:\n' + self.text()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Native exit 1:
+Native probe failed: Failed to create GLFW window
+

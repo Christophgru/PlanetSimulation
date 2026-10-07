@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/workspace/docs/journal/architecture/terrain-gpu/async/hardware/cost/raster/order/validate.py", line 88, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/workspace/docs/journal/architecture/terrain-gpu/async/hardware/cost/raster/order/validate.py", line 72, in main
+    assert all(f['pose']['root']==selected[0]['pose']['root'] and f['camera_local']==selected[0]['camera_local'] and
+AssertionError

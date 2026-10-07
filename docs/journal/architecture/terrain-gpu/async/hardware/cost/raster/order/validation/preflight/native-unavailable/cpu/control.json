@@ -1,0 +1,7 @@
+{
+  "wind_mode": "fixed",
+  "wind_start_s": 12,
+  "raster_mode": "full",
+  "qualify_raster": false,
+  "phase": "warmup"
+}

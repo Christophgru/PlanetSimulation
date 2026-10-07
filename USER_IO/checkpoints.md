@@ -1,5 +1,42 @@
 # Page to document progress of AI Agents working on this Project
 
+## Blade-order private controls; native GPU access blocker — 2026-10-07
+
+- Keep T3c5c2b4 as one remaining TODO outcome: diagnose and fix the regression,
+  then verify affected full workloads. Detailed checkpoints stay in the journal
+  rather than new TODO topics. CPU default and original 1.05 gate retained.
+- Source difference found: CPU descriptors are camera-distance ordered within
+  slot levels; resident references retain triangle order. This is a hypothesis,
+  not causal attribution. No shipping source/shader optimization was applied.
+- New private `terrain_order_probe` reuses the frozen native/wind wrappers.
+  Reads actual main/reflection queues, saves every 64-byte Blade and command,
+  applies stable native/near/far permutations using actual float camera depths,
+  and counts excluded reads/query/roundtrip uploads. Restores original buffers.
+  Every frame explicitly rejects timing/migration acceptance; captured frames
+  join their own inspection receipt exactly.
+- Final software CTest passes in 35.27 s, including fresh-output reuse:
+  18 snapshots, exact contents/matrices/depth and zero RGB pixel changes.
+  Main detailed/quad counts 772/396; reflection 11/166 on both backends.
+  All queues nonempty. Retain 57 CPU and 1,253 compute native observations.
+- Independent archive validation checks all 72 final/preflight snapshots and
+  1,675 payloads, byte-verified after gzip: 110,730,278 raw to 32,018,882 stored.
+  Coarse empty-quad 50.23 s fixture, first refined run and the 18-frame
+  preflight before explicit per-frame exclusion flags remain separate.
+  Exact-double assertion exposed 1.421e-14 m contact roundoff; exact float roots,
+  native camera and GPU matrices are verified and raw double drift is reported.
+- Shipping/shaders and all 45 previous executables/fixtures unchanged;
+  final 46 executable/input hashes frozen. Exact old driver recovery reproduces
+  coarse preflight input-tree hash. New probe/scoped checks only, no full suite.
+- Native Quadro fixture fails before frames: GLFW window creation fails;
+  offloaded GLX returns X_GLXCreateNewContext BadValue, EGL returns 0x3001.
+  NVIDIA0/1/control/modeset/UVM opens all return EPERM despite available NVML
+  inventory/telemetry. Sysfs-derived temporary DRM nodes also fail and were
+  removed. This is external device access, not a benchmark or code regression.
+- Preserve all failures and restore device access before using the recorded
+  fresh native fixture/production commands. Full study, helper sources,
+  provenance, codec receipts, raw images/queues/frames and validator:
+  cost/raster/order/. Journal/PDF updated; user TODO footer unchanged/unstaged.
+
 ## Stationary wind/raster controls — 2026-10-07
 
 - T3c5c2b3's control investigation is tested and documented. Full-draw cost

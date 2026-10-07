@@ -1,0 +1,8 @@
+{
+  "native_fixture": "Failed to create GLFW window",
+  "glx": "X_GLXCreateNewContext BadValue",
+  "egl": "eglInitialize EGL_NOT_INITIALIZED 0x3001",
+  "nvidia_smi": "Inventory/telemetry accessible for Quadro M1000M and RTX 3070 Ti",
+  "device_open": "O_RDWR returns EPERM for nvidia0, nvidia1, nvidiactl, modeset and UVM; temporary sysfs-derived DRM nodes also EPERM and removed",
+  "hardware_timing_acceptance": false
+}

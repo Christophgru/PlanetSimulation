@@ -119,6 +119,17 @@ ordering cause. Software/Quadro controls and 703 byte-verified payloads remain
 archived. Correction and full-workload repeats follow as T3c5c2b4; CPU stays
 default and migration acceptance remains pending.
 
+The [blade-order control prerequisite](architecture/terrain-gpu/async/hardware/cost/raster/order/study.md)
+adds a separate private inspection probe and a passing 35.27 s software CTest.
+All 18 final snapshots preserve exact Blade multisets, matrices and depth,
+with zero displayed RGB differences across native/near/far permutations.
+Both detailed/quad queues are populated in main and reflection. Independent
+archive checks include 54 preflight snapshots and 1,675 byte-verified payloads.
+Physical-GPU qualification and production diagnosis remain blocked: direct
+NVIDIA device opens return EPERM, GLX/GLFW and EGL cannot create contexts,
+while NVML inventory remains available. CPU stays default; the ordering cause,
+bounded GPU correction and full-workload repeats remain pending.
+
 The [GPU timing prerequisite](architecture/terrain-gpu/async/hardware/timing/study.md)
 adds bounded request-keyed dispatch timings and complete frame timestamp spans.
 It separates nested placement costs from render-stage totals and preserves

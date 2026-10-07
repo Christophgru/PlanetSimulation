@@ -1,0 +1,19 @@
+Rechecked final cpu 9 exact permutation/depth snapshots
+Rechecked final compute 9 exact permutation/depth snapshots
+Rechecked coarse cpu 9 exact permutation/depth snapshots
+Rechecked coarse compute 9 exact permutation/depth snapshots
+Rechecked refined cpu 9 exact permutation/depth snapshots
+Rechecked refined compute 9 exact permutation/depth snapshots
+Rechecked metadata cpu 9 exact permutation/depth snapshots
+Rechecked metadata compute 9 exact permutation/depth snapshots
+{
+  "final_frames": 18,
+  "preflight_frames": 54,
+  "all_frames": 72,
+  "payloads": 1675,
+  "raw_bytes": 110730278,
+  "stored_bytes": 32018882,
+  "hardware_complete": false,
+  "timing_acceptance": false,
+  "migration_acceptance": false
+}

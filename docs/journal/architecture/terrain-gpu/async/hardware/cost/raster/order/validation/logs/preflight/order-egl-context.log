@@ -1,0 +1,6 @@
+EGL devices 2
+device 0 extensions b'EGL_EXT_device_drm EGL_EXT_device_drm_render_node'
+Traceback (most recent call last):
+  File "/workspace/build-resume/gpu-comparison/probe.py", line 20, in <module>
+    assert E.eglInitialize(display,c.byref(major),c.byref(minor)),hex(E.eglGetError())
+AssertionError: 0x3001

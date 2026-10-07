@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "final_cases": [
+    "software"
+  ],
+  "hardware_complete": false,
+  "final_snapshot_frames": 18,
+  "preflight_snapshot_frames": 54,
+  "timing_acceptance": false,
+  "migration_acceptance": false,
+  "probe_sha256": "51634ea4652d38bcbfd797e9c914188534f765e9e0b0f87955d45bbaddd0a456"
+}

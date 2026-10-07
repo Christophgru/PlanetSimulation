@@ -1,0 +1,483 @@
+{
+  "controls": {
+    "order_frames": 3,
+    "order_mode": "near",
+    "order_request": 2,
+    "phase": "near",
+    "qualify_raster": false,
+    "raster_mode": "full",
+    "wind_mode": "fixed",
+    "wind_start_s": 12
+  },
+  "depth_scope": "opaque before/after the two grass queues; later character/water/atmosphere excluded",
+  "depth_viewports": {
+    "main": [
+      320,
+      180
+    ],
+    "reflection": [
+      320,
+      180
+    ]
+  },
+  "events": [
+    {
+      "command": [
+        14,
+        772,
+        0,
+        0
+      ],
+      "draw_gpu_ns": 13116445,
+      "generated_primitives": 9264,
+      "mode": "near",
+      "model": [
+        0.10000000149011612,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.10000000149011612,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.10000000149011612,
+        0.0,
+        9.399628639221191,
+        -3.519899334151426e-19,
+        -1.2811386251918364e-19,
+        1.0
+      ],
+      "passed_samples": 20554,
+      "projection": [
+        0.882948100566864,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.569685459136963,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        -1.0000015497207642,
+        -1.0,
+        0.0,
+        0.0,
+        -4.000003173132427e-05,
+        0.0
+      ],
+      "queue": 0,
+      "source_buffer_bytes": 1277824,
+      "view": "main",
+      "view_model": [
+        -0.004874697420746088,
+        -0.028188174590468407,
+        -0.09582100063562393,
+        0.0,
+        0.03631662204861641,
+        0.0888686403632164,
+        -0.027990495786070824,
+        0.0,
+        0.09304483234882355,
+        -0.03616340085864067,
+        0.005904914811253548,
+        0.0,
+        2.2649765014648438e-06,
+        -0.10080122947692871,
+        0.0035457611083984375,
+        1.0
+      ],
+      "wind_s": 12.0
+    },
+    {
+      "command": [
+        4,
+        396,
+        0,
+        0
+      ],
+      "draw_gpu_ns": 1940929,
+      "generated_primitives": 792,
+      "mode": "near",
+      "model": [
+        0.10000000149011612,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.10000000149011612,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.10000000149011612,
+        0.0,
+        9.399628639221191,
+        -3.519899334151426e-19,
+        -1.2811386251918364e-19,
+        1.0
+      ],
+      "passed_samples": 563,
+      "projection": [
+        0.882948100566864,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.569685459136963,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        -1.0000015497207642,
+        -1.0,
+        0.0,
+        0.0,
+        -4.000003173132427e-05,
+        0.0
+      ],
+      "queue": 1,
+      "source_buffer_bytes": 1277824,
+      "view": "main",
+      "view_model": [
+        -0.004874697420746088,
+        -0.028188174590468407,
+        -0.09582100063562393,
+        0.0,
+        0.03631662204861641,
+        0.0888686403632164,
+        -0.027990495786070824,
+        0.0,
+        0.09304483234882355,
+        -0.03616340085864067,
+        0.005904914811253548,
+        0.0,
+        2.2649765014648438e-06,
+        -0.10080122947692871,
+        0.0035457611083984375,
+        1.0
+      ],
+      "wind_s": 12.0
+    },
+    {
+      "command": [
+        14,
+        11,
+        0,
+        0
+      ],
+      "draw_gpu_ns": 5086,
+      "generated_primitives": 132,
+      "mode": "near",
+      "model": [
+        0.10000000149011612,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.10000000149011612,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.10000000149011612,
+        0.0,
+        9.399628639221191,
+        -3.519899334151426e-19,
+        -1.2811386251918364e-19,
+        1.0
+      ],
+      "passed_samples": 0,
+      "projection": [
+        0.882948100566864,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.569685459136963,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        -1.0000015497207642,
+        -1.0,
+        0.0,
+        0.0,
+        -4.000003173132427e-05,
+        0.0
+      ],
+      "queue": 0,
+      "source_buffer_bytes": 1277824,
+      "view": "reflection",
+      "view_model": [
+        0.004875812213867903,
+        0.02138531394302845,
+        -0.09756483137607574,
+        0.0,
+        -0.03632066026329994,
+        -0.09061413258314133,
+        -0.021676914766430855,
+        0.0,
+        -0.09304320067167282,
+        0.03649311512708664,
+        0.0033491116482764482,
+        0.0,
+        1.7881393432617188e-06,
+        0.07908749580383301,
+        -0.0027828216552734375,
+        1.0
+      ],
+      "wind_s": 12.0
+    },
+    {
+      "command": [
+        4,
+        166,
+        0,
+        0
+      ],
+      "draw_gpu_ns": 18571,
+      "generated_primitives": 332,
+      "mode": "near",
+      "model": [
+        0.10000000149011612,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.10000000149011612,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.10000000149011612,
+        0.0,
+        9.399628639221191,
+        -3.519899334151426e-19,
+        -1.2811386251918364e-19,
+        1.0
+      ],
+      "passed_samples": 0,
+      "projection": [
+        0.882948100566864,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.569685459136963,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        -1.0000015497207642,
+        -1.0,
+        0.0,
+        0.0,
+        -4.000003173132427e-05,
+        0.0
+      ],
+      "queue": 1,
+      "source_buffer_bytes": 1277824,
+      "view": "reflection",
+      "view_model": [
+        0.004875812213867903,
+        0.02138531394302845,
+        -0.09756483137607574,
+        0.0,
+        -0.03632066026329994,
+        -0.09061413258314133,
+        -0.021676914766430855,
+        0.0,
+        -0.09304320067167282,
+        0.03649311512708664,
+        0.0033491116482764482,
+        0.0,
+        1.7881393432617188e-06,
+        0.07908749580383301,
+        -0.0027828216552734375,
+        1.0
+      ],
+      "wind_s": 12.0
+    }
+  ],
+  "inspection": {
+    "blocking": true,
+    "buffer_read_bytes": 86144,
+    "buffer_reads": 8,
+    "buffer_upload_bytes": 172160,
+    "pixel_reads": 5,
+    "query_reads": 12,
+    "timing_acceptance": false
+  },
+  "iteration": 2,
+  "profile_frame": 50,
+  "publication_after": {
+    "managed": false
+  },
+  "publication_before": {
+    "managed": false
+  },
+  "request": 2,
+  "viewport": [
+    320,
+    180
+  ],
+  "workload": {
+    "bodies": [
+      {
+        "body": 0,
+        "bulk_evaluations": 12966,
+        "cpu_render_bytes": 1036800,
+        "foliage": {
+          "budget": 10000,
+          "budget_source": "legacy_configured_hard_cap",
+          "candidates": 9983,
+          "compute_placement": true,
+          "configured_budget": 10000,
+          "configured_density": 30.72,
+          "configured_distance_m": 40.0,
+          "density": 2.6275600303106534,
+          "distance_m": 40.0,
+          "enabled": true,
+          "gpu_bytes": 1277856,
+          "patches": 540,
+          "plan_eye": [
+            -0.21571065367156805,
+            0.9343454922044567,
+            -0.3759885837226934
+          ]
+        },
+        "gpu_input_bytes": 0,
+        "planning_evaluations": 6801,
+        "terrain_plan_eye": [
+          -0.021571065367156805,
+          0.09343454922044568,
+          -0.03759885837226934
+        ],
+        "topology_input_bytes": 241984,
+        "triangles": 8640,
+        "unique_samples": 4322
+      },
+      {
+        "body": 1,
+        "bulk_evaluations": 1446,
+        "cpu_render_bytes": 115200,
+        "foliage": {
+          "budget": 0,
+          "budget_source": "legacy_configured_hard_cap",
+          "candidates": 0,
+          "compute_placement": false,
+          "configured_budget": 100000,
+          "configured_density": 30.72,
+          "configured_distance_m": 40.0,
+          "density": 0.0,
+          "distance_m": 0.0,
+          "enabled": false,
+          "gpu_bytes": 0,
+          "patches": 0,
+          "plan_eye": null
+        },
+        "gpu_input_bytes": 0,
+        "planning_evaluations": 482,
+        "terrain_plan_eye": [
+          2.975922653186152,
+          0.0934345492204454,
+          -0.03759885837226944
+        ],
+        "topology_input_bytes": 26944,
+        "triangles": 960,
+        "unique_samples": 482
+      }
+    ],
+    "quality_scale": 1.0,
+    "scene_size": [
+      320,
+      180
+    ],
+    "swap_interval_requested": 0,
+    "viewport": [
+      320,
+      180
+    ]
+  },
+  "workload_after": {
+    "bodies": [
+      {
+        "body": 0,
+        "bulk_evaluations": 12966,
+        "cpu_render_bytes": 1036800,
+        "foliage": {
+          "budget": 10000,
+          "budget_source": "legacy_configured_hard_cap",
+          "candidates": 9983,
+          "compute_placement": true,
+          "configured_budget": 10000,
+          "configured_density": 30.72,
+          "configured_distance_m": 40.0,
+          "density": 2.6275600303106534,
+          "distance_m": 40.0,
+          "enabled": true,
+          "gpu_bytes": 1277856,
+          "patches": 540,
+          "plan_eye": [
+            -0.21571065367156805,
+            0.9343454922044567,
+            -0.3759885837226934
+          ]
+        },
+        "gpu_input_bytes": 0,
+        "planning_evaluations": 6801,
+        "terrain_plan_eye": [
+          -0.021571065367156805,
+          0.09343454922044568,
+          -0.03759885837226934
+        ],
+        "topology_input_bytes": 241984,
+        "triangles": 8640,
+        "unique_samples": 4322
+      },
+      {
+        "body": 1,
+        "bulk_evaluations": 1446,
+        "cpu_render_bytes": 115200,
+        "foliage": {
+          "budget": 0,
+          "budget_source": "legacy_configured_hard_cap",
+          "candidates": 0,
+          "compute_placement": false,
+          "configured_budget": 100000,
+          "configured_density": 30.72,
+          "configured_distance_m": 40.0,
+          "density": 0.0,
+          "distance_m": 0.0,
+          "enabled": false,
+          "gpu_bytes": 0,
+          "patches": 0,
+          "plan_eye": null
+        },
+        "gpu_input_bytes": 0,
+        "planning_evaluations": 482,
+        "terrain_plan_eye": [
+          2.975922653186152,
+          0.0934345492204454,
+          -0.03759885837226944
+        ],
+        "topology_input_bytes": 26944,
+        "triangles": 960,
+        "unique_samples": 482
+      }
+    ],
+    "quality_scale": 1.0,
+    "scene_size": [
+      320,
+      180
+    ],
+    "swap_interval_requested": 0,
+    "viewport": [
+      320,
+      180
+    ]
+  }
+}

@@ -1,0 +1,498 @@
+{
+  "backends": {
+    "cpu": {
+      "frames": 9,
+      "exact_multisets": true,
+      "depth_equal": true,
+      "color_differences": [
+        {
+          "path": "/workspace/build-resume/order-refined-software/cpu/captures/1/0",
+          "changed_rgb_pixels": 0,
+          "fraction": 0.0
+        },
+        {
+          "path": "/workspace/build-resume/order-refined-software/cpu/captures/1/1",
+          "changed_rgb_pixels": 0,
+          "fraction": 0.0
+        },
+        {
+          "path": "/workspace/build-resume/order-refined-software/cpu/captures/1/2",
+          "changed_rgb_pixels": 0,
+          "fraction": 0.0
+        },
+        {
+          "path": "/workspace/build-resume/order-refined-software/cpu/captures/2/0",
+          "changed_rgb_pixels": 0,
+          "fraction": 0.0
+        },
+        {
+          "path": "/workspace/build-resume/order-refined-software/cpu/captures/2/1",
+          "changed_rgb_pixels": 0,
+          "fraction": 0.0
+        },
+        {
+          "path": "/workspace/build-resume/order-refined-software/cpu/captures/2/2",
+          "changed_rgb_pixels": 0,
+          "fraction": 0.0
+        },
+        {
+          "path": "/workspace/build-resume/order-refined-software/cpu/captures/3/0",
+          "changed_rgb_pixels": 0,
+          "fraction": 0.0
+        },
+        {
+          "path": "/workspace/build-resume/order-refined-software/cpu/captures/3/1",
+          "changed_rgb_pixels": 0,
+          "fraction": 0.0
+        },
+        {
+          "path": "/workspace/build-resume/order-refined-software/cpu/captures/3/2",
+          "changed_rgb_pixels": 0,
+          "fraction": 0.0
+        }
+      ],
+      "controls": {
+        "native": {
+          "main/detailed": {
+            "instances": 772,
+            "draw_gpu_ms": [
+              12.54334,
+              16.844625,
+              15.470924
+            ],
+            "draw_gpu_median_ms": 15.470924,
+            "passed_samples": [
+              21992,
+              21978,
+              22009
+            ]
+          },
+          "main/quads": {
+            "instances": 396,
+            "draw_gpu_ms": [
+              1.972372,
+              1.938126,
+              1.941659
+            ],
+            "draw_gpu_median_ms": 1.941659,
+            "passed_samples": [
+              593,
+              593,
+              593
+            ]
+          },
+          "reflection/detailed": {
+            "instances": 11,
+            "draw_gpu_ms": [
+              0.0038,
+              0.001622,
+              0.008478
+            ],
+            "draw_gpu_median_ms": 0.0038,
+            "passed_samples": [
+              0,
+              0,
+              0
+            ]
+          },
+          "reflection/quads": {
+            "instances": 166,
+            "draw_gpu_ms": [
+              0.02184,
+              0.018929,
+              0.019954
+            ],
+            "draw_gpu_median_ms": 0.019954,
+            "passed_samples": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "near": {
+          "main/detailed": {
+            "instances": 772,
+            "draw_gpu_ms": [
+              12.491961,
+              15.708718,
+              13.116445
+            ],
+            "draw_gpu_median_ms": 13.116445,
+            "passed_samples": [
+              20554,
+              20554,
+              20554
+            ]
+          },
+          "main/quads": {
+            "instances": 396,
+            "draw_gpu_ms": [
+              1.9358,
+              1.925915,
+              1.940929
+            ],
+            "draw_gpu_median_ms": 1.9358,
+            "passed_samples": [
+              563,
+              563,
+              563
+            ]
+          },
+          "reflection/detailed": {
+            "instances": 11,
+            "draw_gpu_ms": [
+              0.003132,
+              0.000642,
+              0.005086
+            ],
+            "draw_gpu_median_ms": 0.003132,
+            "passed_samples": [
+              0,
+              0,
+              0
+            ]
+          },
+          "reflection/quads": {
+            "instances": 166,
+            "draw_gpu_ms": [
+              0.020494,
+              0.017997,
+              0.018571
+            ],
+            "draw_gpu_median_ms": 0.018571,
+            "passed_samples": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "far": {
+          "main/detailed": {
+            "instances": 772,
+            "draw_gpu_ms": [
+              14.658171,
+              13.670612,
+              13.071591
+            ],
+            "draw_gpu_median_ms": 13.670612,
+            "passed_samples": [
+              24698,
+              24698,
+              24698
+            ]
+          },
+          "main/quads": {
+            "instances": 396,
+            "draw_gpu_ms": [
+              1.831514,
+              2.19161,
+              2.357997
+            ],
+            "draw_gpu_median_ms": 2.19161,
+            "passed_samples": [
+              609,
+              609,
+              609
+            ]
+          },
+          "reflection/detailed": {
+            "instances": 11,
+            "draw_gpu_ms": [
+              0.02454,
+              0.007809,
+              0.011601
+            ],
+            "draw_gpu_median_ms": 0.011601,
+            "passed_samples": [
+              0,
+              0,
+              0
+            ]
+          },
+          "reflection/quads": {
+            "instances": 166,
+            "draw_gpu_ms": [
+              0.036608,
+              0.019165,
+              0.031532
+            ],
+            "draw_gpu_median_ms": 0.031532,
+            "passed_samples": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      },
+      "timing_acceptance": false,
+      "migration_acceptance": false,
+      "audit": {
+        "frames": 57,
+        "rendered": 0,
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "memory_queries": 0,
+          "polls": 0,
+          "server_waits": 0
+        },
+        "peak_logical_bytes": 0
+      }
+    },
+    "compute": {
+      "frames": 9,
+      "exact_multisets": true,
+      "depth_equal": true,
+      "color_differences": [
+        {
+          "path": "/workspace/build-resume/order-refined-software/compute/captures/1/0",
+          "changed_rgb_pixels": 0,
+          "fraction": 0.0
+        },
+        {
+          "path": "/workspace/build-resume/order-refined-software/compute/captures/1/1",
+          "changed_rgb_pixels": 0,
+          "fraction": 0.0
+        },
+        {
+          "path": "/workspace/build-resume/order-refined-software/compute/captures/1/2",
+          "changed_rgb_pixels": 0,
+          "fraction": 0.0
+        },
+        {
+          "path": "/workspace/build-resume/order-refined-software/compute/captures/2/0",
+          "changed_rgb_pixels": 0,
+          "fraction": 0.0
+        },
+        {
+          "path": "/workspace/build-resume/order-refined-software/compute/captures/2/1",
+          "changed_rgb_pixels": 0,
+          "fraction": 0.0
+        },
+        {
+          "path": "/workspace/build-resume/order-refined-software/compute/captures/2/2",
+          "changed_rgb_pixels": 0,
+          "fraction": 0.0
+        },
+        {
+          "path": "/workspace/build-resume/order-refined-software/compute/captures/3/0",
+          "changed_rgb_pixels": 0,
+          "fraction": 0.0
+        },
+        {
+          "path": "/workspace/build-resume/order-refined-software/compute/captures/3/1",
+          "changed_rgb_pixels": 0,
+          "fraction": 0.0
+        },
+        {
+          "path": "/workspace/build-resume/order-refined-software/compute/captures/3/2",
+          "changed_rgb_pixels": 0,
+          "fraction": 0.0
+        }
+      ],
+      "controls": {
+        "native": {
+          "main/detailed": {
+            "instances": 772,
+            "draw_gpu_ms": [
+              13.55117,
+              12.734657,
+              15.393284
+            ],
+            "draw_gpu_median_ms": 13.55117,
+            "passed_samples": [
+              22485,
+              22357,
+              22267
+            ]
+          },
+          "main/quads": {
+            "instances": 396,
+            "draw_gpu_ms": [
+              2.34077,
+              2.037806,
+              2.182969
+            ],
+            "draw_gpu_median_ms": 2.182969,
+            "passed_samples": [
+              583,
+              583,
+              583
+            ]
+          },
+          "reflection/detailed": {
+            "instances": 11,
+            "draw_gpu_ms": [
+              0.003277,
+              0.000599,
+              0.006463
+            ],
+            "draw_gpu_median_ms": 0.003277,
+            "passed_samples": [
+              0,
+              0,
+              0
+            ]
+          },
+          "reflection/quads": {
+            "instances": 166,
+            "draw_gpu_ms": [
+              0.04983,
+              0.083252,
+              0.022837
+            ],
+            "draw_gpu_median_ms": 0.04983,
+            "passed_samples": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "near": {
+          "main/detailed": {
+            "instances": 772,
+            "draw_gpu_ms": [
+              13.908484,
+              16.369345,
+              17.806082
+            ],
+            "draw_gpu_median_ms": 16.369345,
+            "passed_samples": [
+              20554,
+              20554,
+              20554
+            ]
+          },
+          "main/quads": {
+            "instances": 396,
+            "draw_gpu_ms": [
+              1.958431,
+              1.835151,
+              1.835725
+            ],
+            "draw_gpu_median_ms": 1.835725,
+            "passed_samples": [
+              563,
+              563,
+              563
+            ]
+          },
+          "reflection/detailed": {
+            "instances": 11,
+            "draw_gpu_ms": [
+              0.000413,
+              0.011607,
+              0.014608
+            ],
+            "draw_gpu_median_ms": 0.011607,
+            "passed_samples": [
+              0,
+              0,
+              0
+            ]
+          },
+          "reflection/quads": {
+            "instances": 166,
+            "draw_gpu_ms": [
+              0.017518,
+              0.017169,
+              0.025972
+            ],
+            "draw_gpu_median_ms": 0.017518,
+            "passed_samples": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "far": {
+          "main/detailed": {
+            "instances": 772,
+            "draw_gpu_ms": [
+              11.978392,
+              15.869365,
+              13.58596
+            ],
+            "draw_gpu_median_ms": 13.58596,
+            "passed_samples": [
+              24698,
+              24698,
+              24698
+            ]
+          },
+          "main/quads": {
+            "instances": 396,
+            "draw_gpu_ms": [
+              1.746638,
+              1.632503,
+              2.974162
+            ],
+            "draw_gpu_median_ms": 1.746638,
+            "passed_samples": [
+              609,
+              609,
+              609
+            ]
+          },
+          "reflection/detailed": {
+            "instances": 11,
+            "draw_gpu_ms": [
+              0.013517,
+              0.000234,
+              0.000598
+            ],
+            "draw_gpu_median_ms": 0.000598,
+            "passed_samples": [
+              0,
+              0,
+              0
+            ]
+          },
+          "reflection/quads": {
+            "instances": 166,
+            "draw_gpu_ms": [
+              0.01868,
+              0.056383,
+              0.030301
+            ],
+            "draw_gpu_median_ms": 0.030301,
+            "passed_samples": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      },
+      "timing_acceptance": false,
+      "migration_acceptance": false,
+      "audit": {
+        "frames": 1278,
+        "rendered": 55,
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "memory_queries": 0,
+          "polls": 8,
+          "server_waits": 0
+        },
+        "peak_logical_bytes": 5215340
+      }
+    }
+  },
+  "production": false,
+  "expected_uuid": null,
+  "timing_acceptance": false,
+  "migration_acceptance": false
+}

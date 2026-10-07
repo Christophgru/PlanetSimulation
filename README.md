@@ -847,6 +847,12 @@ draws remain 9.44–15.03% slower on compute; discard and suppressed-draw contro
 localize the repeatable difference to raster-enabled and downstream work.
 The cause and correction remain pending. CPU stays default; the 5% full-draw
 cost limit and earlier failures remain in force.
+The [blade-order probe qualification](docs/journal/architecture/terrain-gpu/async/hardware/cost/raster/order/study.md)
+adds controlled native/near/far permutations of actual main/reflection queues.
+Eighteen software snapshots retain exact blade contents, shader matrices,
+depth and displayed color. Physical-GPU production diagnosis is currently
+blocked by denied graphics-device access; no runtime correction or new
+hardware performance result is claimed.
 
 Within **1.2 body diameters from its centre (2.4 radii)**, orientation follows
 the nearby planet or moon. Beyond that region, free-space mouse look lets you

@@ -1,0 +1,8 @@
+Internal ctest changing into directory: /workspace/build-resume
+Test project /workspace/build-resume
+    Start 56: TerrainBladeOrderIntegration
+1/1 Test #56: TerrainBladeOrderIntegration .....   Passed   50.23 sec
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =  50.24 sec

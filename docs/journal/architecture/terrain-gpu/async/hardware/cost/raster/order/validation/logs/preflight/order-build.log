@@ -1,0 +1,44 @@
+[0/1] Re-running CMake...
+-- Using the multi-header code from /workspace/build/_deps/nlohmann_json-src/include/
+-- GLM: Version 1.0.1
+-- GLM: Build with C++ features auto detection
+-- ---------------------------------------------------------
+-- Default build type is: RelWithDebInfo
+-- The following compilation flags will be used:
+CMAKE_CXX_FLAGS 
+CMAKE_C_FLAGS 
+CMAKE_CXX_FLAGS_DEBUG -g
+CMAKE_C_FLAGS_DEBUG -g
+CMAKE_CXX_FLAGS_MINSIZEREL -Os -DNDEBUG
+CMAKE_C_FLAGS_MINSIZEREL -Os -DNDEBUG
+CMAKE_CXX_FLAGS_RELWITHDEBINFO -O2 -g -DNDEBUG
+CMAKE_C_FLAGS_RELWITHDEBINFO -O2 -g -DNDEBUG
+CMAKE_CXX_FLAGS_RELEASE -O3 -DNDEBUG
+CMAKE_C_FLAGS_RELEASE -O3 -DNDEBUG
+-- ---------------------------------------------------------
+-- Directory Compile Options:
+-- -Wall
+-- -Werror
+-- -Wno-ignored-attributes
+-- ---------------------------------------------------------
+-- Directory Compile Definitions:
+-- ---------------------------------------------------------
+Optional program clang-format not found.
+-- ---------------------------------------------------------
+-- Selected options:
+-- - BUILD_SHARED_LIBS: OFF
+-- - ozz_build_tools: OFF
+-- - ozz_build_fbx: OFF
+-- - ozz_build_gltf: OFF
+-- - ozz_build_data: OFF
+-- - ozz_build_samples: OFF
+-- - ozz_build_howtos: OFF
+-- - ozz_build_tests: OFF
+-- - ozz_build_simd_ref: OFF
+-- - ozz_build_msvc_rt_dll: OFF
+-- - ozz_build_postfix: ON
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /workspace/build-resume
+[1/2] Building CXX object tests/CMakeFiles/terrain_order_probe.dir/app/terrain/native/raster/order/Probe.cpp.o
+[2/2] Linking CXX executable tests/terrain_order_probe
