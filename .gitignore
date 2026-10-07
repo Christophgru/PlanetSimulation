@@ -38,5 +38,6 @@ __pycache__/
 *.swp
 *~
 .DS_Store
-docs/journal/**.xz
-docs/journal/**.gz
+# Generated benchmark archives stay local, including nested validation folders.
+docs/journal/**/*.xz
+docs/journal/**/*.gz
