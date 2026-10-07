@@ -38,3 +38,4 @@ __pycache__/
 *.swp
 *~
 .DS_Store
+docs/journal/**.xz
