@@ -1,0 +1,18 @@
+Internal ctest changing into directory: /workspace/build-resume
+Test project /workspace/build-resume
+    Start 55: TerrainCoverageInspectionIntegration
+1/1 Test #55: TerrainCoverageInspectionIntegration ...***Failed    7.98 sec
+Traceback (most recent call last):
+  File "/workspace/tests/app/terrain/native/coverage/test_inspection.py", line 69, in <module>
+    consumer = receipt['publication_after_frame']['consumers'][0]
+               ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'publication_after_frame'
+
+
+0% tests passed, 1 tests failed out of 1
+
+Total Test time (real) =   8.00 sec
+
+The following tests FAILED:
+	 55 - TerrainCoverageInspectionIntegration (Failed)
+Errors while running CTest

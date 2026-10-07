@@ -1,6 +1,42 @@
 # Page to document progress of AI Agents working on this Project
 
 
+## Live native foliage inspection — 2026-10-07
+
+- T3c5c2b2a is tested; b2 parent remains in progress and b2b is next.
+  terrain_coverage_probe links unchanged product libraries, reusing NativeProbe
+  with a renamed presentation interposer. Only this private binary hooks draws.
+- It reads both main-view command/64-byte Blade queue prefixes before reflection
+  reuse and opaque depth before grass/after both queues. Raw buffers and masks
+  retain actual camera matrices, field/topology/revision, publication before/after,
+  grass anchor/effective density, wind, full astronaut pose and trail history.
+  Synchronizing read counts/bytes and exclusion from timing are explicit; normal
+  native audits remain separate, so zero ordinary reads does not hide inspection.
+- Two final scoped software tests pass (22.93/28.56 s), including reused output.
+  Eight actual Quadro CPU/compute airless/HDR standing/moving fixture snapshots
+  and two production 1280x720/100k Earth/2M budget 350 m sprint snapshots pass.
+  Independent archive checks cover all 26 final roots/depth/native-frame joins,
+  masks, band counts and verified hardware UUIDs. No new full CTest run claimed.
+- An 8.00 s rerun exposed stale snapshot readiness after an initial 53.70 s pass.
+  JSON now publishes atomically, requests remove stale metadata and native-frame
+  joins verify fresh pose/distance. Failed mixed old/new preflight artifacts/log
+  remain separate, excluded from final qualification.
+- Production actual crossings are CPU 350.122 m, compute 350.711 m, wind
+  35.438/35.569 s and trails 536/563. Main queues are 25,947+159,532 versus
+  25,656+158,001; later reflection queues differ. Opaque grass pixels
+  674,457/673,039 are illustrative, not parity. These endpoints do not reproduce
+  the larger earlier compute sprint lags; repeating common landmarks is essential.
+- Shipping renderer sources/shaders, app, timed native probe, all 42 prior
+  executables and driver fixtures are unchanged; only the inspection executable
+  is added. Raw final/preflight evidence and frozen new test/script inputs are
+  in journal cost/coverage/validation; README, journal/PDF and TODO updated.
+- Resume T3c5c2b2b: fixed common camera/wind/pose/trail state and repeated native
+  generation landmarks, eligible visible-ground area, later character/water/
+  atmospheric occlusion and declared tolerances. Root queues/opaque masks alone
+  do not establish roots/m² or final rendered density. Prior stationary p95
+  ratio 1.0853 still needs investigation/repeat; Moon/reload/final gates and
+  protected near-density B1 remain. CPU stays default.
+
 ## Native route cost receipts — 2026-10-06
 
 - T3c5c2b1 is tested: twelve fresh Quadro native production 400 m routes,

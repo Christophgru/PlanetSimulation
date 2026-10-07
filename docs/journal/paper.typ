@@ -161,6 +161,13 @@ T3c5c2b1 collects three alternating native CPU/compute pairs each for 400 m walk
   caption: [Complete native route p95 on production Quadro. Each pair covers the common interval from 5 m to less than 400 m at commanded walking/sprint speed. Observer overhead and every measured spike remain included. Rendered near-root coverage is pending; these bars do not establish accepted migration speedups or uncertainty bounds.],
 )
 
+T3c5c2b2a adds a separate private native inspection executable, linking unchanged product libraries. It copies both 64-byte main-view Blade queue prefixes before reflection reuse and reads opaque depth before/after grass to export a pixel mask. Actual matrices, live terrain/grass keys and anchors, wind, astronaut pose and trail history remain attached to every snapshot. All synchronizing read calls/bytes are explicit and excluded from timing acceptance. Two final scoped software passes and eight Quadro fixture snapshots qualify the probe; two production sprint observations at 350.122/350.711 m retain 674,457/673,039 opaque grass pixels and distinct later reflection queue counts. These crossings have different wind/trail/pose state and much smaller anchor distances than the largest earlier lags. Similar raw counts cannot establish near-root density parity or dismiss the route discrepancy. Generated roots can be occluded; the opaque mask precedes character/water/atmospheric compositing and has no eligible-ground-area denominator. Fixed common-view repeated coverage remains T3c5c2b2b. CPU stays default. Source, complete evidence and next inspection controls are in `architecture/terrain-gpu/async/hardware/cost/coverage/`.
+
+#figure(
+  image("architecture/terrain-gpu/async/hardware/cost/coverage/masks.svg", width: 100%),
+  caption: [Illustrative actual native grass depth-change masks on production Quadro sprint. White pixels mark nearest opaque fragments changed by grass. Crossing pose, wind and trail states differ. Eligible visible ground area and final compositing are not measured, so these observations do not establish rendered density parity.],
+)
+
 = Orbital motion and light transport
 
 == Prescribed Kepler ellipses with collective mass
@@ -573,6 +580,9 @@ T3c5c2a has passing scoped results for seven relevant CTest groups. Six pass in 
 
 T3c5c2b1 independently verifies twelve fresh production native 400 m routes and all distance-cohort joins from compressed archives. Actual speed, fixed quality/budgets, device UUID, bounded worker state and compute draw/contact keys pass; every measured GPU frame and 12,798 full-run GPU work rows are ready. All 511 publication outcomes, memory age/status rows and 192 landmark brackets remain. The first complete CPU preflight exposed an analyzer assuming a managed memory ledger on the unmanaged CPU path; corrected null semantics are checked against that retained real trace, and the fresh paired runs use the frozen corrected scripts. Source/runtime, all 42 executables and driver fixtures remain unchanged from T3c5c2a. No new runtime build, CTest suite or coverage acceptance is claimed. Gallery/historical image hashes are retained. Independent speed/p95/bin/landmark/quality/outcome/memory checks and artifact digests are in `architecture/terrain-gpu/async/hardware/cost/routes/validation/`.
 
+T3c5c2b2a passes one new scoped inspection group twice (22.93 s and 28.56 s), including reused-output readiness. Eight CPU/compute airless/HDR native Quadro snapshots and two excluded production sprint snapshots also pass. The independent archive validator recomputes all 26 final raw queue/depth/frame joins, masks, distance-band counts and device identities. An 8.00 s qualification rerun exposed stale snapshot files after an earlier successful pass; atomic JSON publication, removal of stale request metadata and current-frame joins fix the fixture. Failed mixed old/new preflight evidence remains separate. Product source/shaders and all 42 prior executables/driver fixtures remain unchanged; only the new private inspection binary and test inputs are added. This is scoped probe qualification, not a new full suite or rendered-density/cost acceptance. Gallery/historical hashes remain unchanged. Evidence is in `architecture/terrain-gpu/async/hardware/cost/coverage/validation/`.
+
+
 
 
 
@@ -621,6 +631,7 @@ R6. NASA Glenn Research Center, #link("https://www.grc.nasa.gov/www/k-12/Numbers
   [Production stationary workload preflight], [`scripts/benchmarks/terrain_cost/`, private native probe], [Three CPU/compute pairs; exact geometry/pose/anchors, complete GPU and memory receipts],
   [Native real-time grounded speed], [`Interactive.cpp`, private native input/speed tools], [Production monotonic speeds, delayed frames, suspension bound and fresh stationary controls],
   [Production native route cost preflight], [`scripts/benchmarks/terrain_cost/routes.py`, archive validator], [Twelve 400 m runs, distance cohorts/landmarks, full raw outcomes; rendered coverage pending],
+  [Live native grass inspection], [`tests/app/terrain/native/coverage/`], [26 final root/depth/frame snapshots; excluded blocking reads; matched density pending],
   [Device-verified memory], [`diagnostics/memory/`], [UUID/error/bounded-reader cases, GPU and native receipts],
   [Bounded asynchronous GPU timings], [`diagnostics/timing/`, `FrameProfiler.h`], [Controlled query tests and traced resident publication],
   [Stable terrain under LOD], [`src/rendering/geometry/Terrain.h`], [`TerrainTests`, surface capture],

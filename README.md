@@ -817,6 +817,9 @@ suspension longer than one second is limited to one second. See the
 Matched 400 m CPU/compute walking and sprint receipts are in the
 [route cost study](docs/journal/architecture/terrain-gpu/async/hardware/cost/routes/study.md);
 rendered near-root coverage and migration acceptance remain pending.
+The [live grass inspection study](docs/journal/architecture/terrain-gpu/async/hardware/cost/coverage/study.md)
+adds a separate private probe for actual main-view blade roots and opaque grass
+masks; fixed-view eligible-ground coverage checks remain pending.
 
 Within **1.2 body diameters from its centre (2.4 radii)**, orientation follows
 the nearby planet or moon. Beyond that region, free-space mouse look lets you

@@ -1,0 +1,392 @@
+[
+  {
+    "path": "software/first/compute-airless/coverage/1",
+    "native_frame": 197,
+    "instances": [
+      380,
+      3
+    ],
+    "root_bands": [
+      35,
+      184,
+      159
+    ],
+    "opaque_grass_pixels": 446,
+    "coverage_acceptance": false
+  },
+  {
+    "path": "software/first/compute-airless/coverage/2",
+    "native_frame": 204,
+    "instances": [
+      374,
+      5
+    ],
+    "root_bands": [
+      31,
+      188,
+      153
+    ],
+    "opaque_grass_pixels": 481,
+    "coverage_acceptance": false
+  },
+  {
+    "path": "software/first/compute-hdr/coverage/1",
+    "native_frame": 187,
+    "instances": [
+      380,
+      3
+    ],
+    "root_bands": [
+      35,
+      184,
+      159
+    ],
+    "opaque_grass_pixels": 613,
+    "coverage_acceptance": false
+  },
+  {
+    "path": "software/first/compute-hdr/coverage/2",
+    "native_frame": 189,
+    "instances": [
+      374,
+      5
+    ],
+    "root_bands": [
+      32,
+      187,
+      153
+    ],
+    "opaque_grass_pixels": 659,
+    "coverage_acceptance": false
+  },
+  {
+    "path": "software/first/cpu-airless/coverage/1",
+    "native_frame": 4,
+    "instances": [
+      389,
+      3
+    ],
+    "root_bands": [
+      37,
+      188,
+      162
+    ],
+    "opaque_grass_pixels": 446,
+    "coverage_acceptance": false
+  },
+  {
+    "path": "software/first/cpu-airless/coverage/2",
+    "native_frame": 11,
+    "instances": [
+      389,
+      5
+    ],
+    "root_bands": [
+      30,
+      199,
+      158
+    ],
+    "opaque_grass_pixels": 475,
+    "coverage_acceptance": false
+  },
+  {
+    "path": "software/first/cpu-hdr/coverage/1",
+    "native_frame": 3,
+    "instances": [
+      389,
+      3
+    ],
+    "root_bands": [
+      37,
+      188,
+      162
+    ],
+    "opaque_grass_pixels": 667,
+    "coverage_acceptance": false
+  },
+  {
+    "path": "software/first/cpu-hdr/coverage/2",
+    "native_frame": 6,
+    "instances": [
+      392,
+      5
+    ],
+    "root_bands": [
+      31,
+      196,
+      162
+    ],
+    "opaque_grass_pixels": 715,
+    "coverage_acceptance": false
+  },
+  {
+    "path": "software/repeat/compute-airless/coverage/1",
+    "native_frame": 199,
+    "instances": [
+      380,
+      3
+    ],
+    "root_bands": [
+      35,
+      184,
+      159
+    ],
+    "opaque_grass_pixels": 434,
+    "coverage_acceptance": false
+  },
+  {
+    "path": "software/repeat/compute-airless/coverage/2",
+    "native_frame": 206,
+    "instances": [
+      374,
+      5
+    ],
+    "root_bands": [
+      31,
+      189,
+      152
+    ],
+    "opaque_grass_pixels": 469,
+    "coverage_acceptance": false
+  },
+  {
+    "path": "software/repeat/compute-hdr/coverage/1",
+    "native_frame": 209,
+    "instances": [
+      380,
+      3
+    ],
+    "root_bands": [
+      35,
+      184,
+      159
+    ],
+    "opaque_grass_pixels": 445,
+    "coverage_acceptance": false
+  },
+  {
+    "path": "software/repeat/compute-hdr/coverage/2",
+    "native_frame": 213,
+    "instances": [
+      376,
+      5
+    ],
+    "root_bands": [
+      29,
+      191,
+      156
+    ],
+    "opaque_grass_pixels": 179,
+    "coverage_acceptance": false
+  },
+  {
+    "path": "software/repeat/cpu-airless/coverage/1",
+    "native_frame": 4,
+    "instances": [
+      389,
+      3
+    ],
+    "root_bands": [
+      37,
+      188,
+      162
+    ],
+    "opaque_grass_pixels": 447,
+    "coverage_acceptance": false
+  },
+  {
+    "path": "software/repeat/cpu-airless/coverage/2",
+    "native_frame": 11,
+    "instances": [
+      392,
+      5
+    ],
+    "root_bands": [
+      30,
+      198,
+      161
+    ],
+    "opaque_grass_pixels": 494,
+    "coverage_acceptance": false
+  },
+  {
+    "path": "software/repeat/cpu-hdr/coverage/1",
+    "native_frame": 3,
+    "instances": [
+      389,
+      3
+    ],
+    "root_bands": [
+      37,
+      188,
+      162
+    ],
+    "opaque_grass_pixels": 694,
+    "coverage_acceptance": false
+  },
+  {
+    "path": "software/repeat/cpu-hdr/coverage/2",
+    "native_frame": 6,
+    "instances": [
+      391,
+      5
+    ],
+    "root_bands": [
+      32,
+      194,
+      162
+    ],
+    "opaque_grass_pixels": 761,
+    "coverage_acceptance": false
+  },
+  {
+    "path": "hardware/compute-airless/coverage/1",
+    "native_frame": 366,
+    "instances": [
+      380,
+      3
+    ],
+    "root_bands": [
+      35,
+      184,
+      159
+    ],
+    "opaque_grass_pixels": 701,
+    "coverage_acceptance": false
+  },
+  {
+    "path": "hardware/compute-airless/coverage/2",
+    "native_frame": 498,
+    "instances": [
+      373,
+      5
+    ],
+    "root_bands": [
+      32,
+      189,
+      149
+    ],
+    "opaque_grass_pixels": 793,
+    "coverage_acceptance": false
+  },
+  {
+    "path": "hardware/compute-hdr/coverage/1",
+    "native_frame": 371,
+    "instances": [
+      380,
+      3
+    ],
+    "root_bands": [
+      35,
+      184,
+      159
+    ],
+    "opaque_grass_pixels": 623,
+    "coverage_acceptance": false
+  },
+  {
+    "path": "hardware/compute-hdr/coverage/2",
+    "native_frame": 452,
+    "instances": [
+      373,
+      5
+    ],
+    "root_bands": [
+      33,
+      188,
+      149
+    ],
+    "opaque_grass_pixels": 830,
+    "coverage_acceptance": false
+  },
+  {
+    "path": "hardware/cpu-airless/coverage/1",
+    "native_frame": 19,
+    "instances": [
+      389,
+      3
+    ],
+    "root_bands": [
+      37,
+      188,
+      162
+    ],
+    "opaque_grass_pixels": 417,
+    "coverage_acceptance": false
+  },
+  {
+    "path": "hardware/cpu-airless/coverage/2",
+    "native_frame": 169,
+    "instances": [
+      388,
+      5
+    ],
+    "root_bands": [
+      33,
+      194,
+      158
+    ],
+    "opaque_grass_pixels": 537,
+    "coverage_acceptance": false
+  },
+  {
+    "path": "hardware/cpu-hdr/coverage/1",
+    "native_frame": 15,
+    "instances": [
+      389,
+      3
+    ],
+    "root_bands": [
+      37,
+      188,
+      162
+    ],
+    "opaque_grass_pixels": 640,
+    "coverage_acceptance": false
+  },
+  {
+    "path": "hardware/cpu-hdr/coverage/2",
+    "native_frame": 96,
+    "instances": [
+      388,
+      5
+    ],
+    "root_bands": [
+      33,
+      194,
+      158
+    ],
+    "opaque_grass_pixels": 856,
+    "coverage_acceptance": false
+  },
+  {
+    "path": "production/compute/coverage/1",
+    "native_frame": 911,
+    "instances": [
+      25656,
+      158001
+    ],
+    "root_bands": [
+      4586,
+      20189,
+      44469
+    ],
+    "opaque_grass_pixels": 673039,
+    "coverage_acceptance": false
+  },
+  {
+    "path": "production/cpu/coverage/1",
+    "native_frame": 315,
+    "instances": [
+      25947,
+      159532
+    ],
+    "root_bands": [
+      4545,
+      20696,
+      43774
+    ],
+    "opaque_grass_pixels": 674457,
+    "coverage_acceptance": false
+  }
+]

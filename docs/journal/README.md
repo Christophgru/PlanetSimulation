@@ -62,6 +62,14 @@ near-root coverage remains pending; these are cost preflight receipts. The
 archive includes every spike, fixed-distance landmarks, device/memory outcomes,
 unchanged runtime/binary hashes and independent checks. CPU stays default.
 
+The [live foliage inspection](architecture/terrain-gpu/async/hardware/cost/coverage/study.md)
+adds a separate private native probe that reads both main Blade queues before
+reflection reuse and compares opaque depth before/after grass. Twenty-six final
+software/hardware snapshots, including two production sprint observations,
+retain actual generations, pose/wind/trails and independently checked masks.
+Fixed-view eligible-ground and final rendered-density acceptance remains pending;
+shipping app and timed probe remain unchanged.
+
 The [GPU timing prerequisite](architecture/terrain-gpu/async/hardware/timing/study.md)
 adds bounded request-keyed dispatch timings and complete frame timestamp spans.
 It separates nested placement costs from render-stage totals and preserves

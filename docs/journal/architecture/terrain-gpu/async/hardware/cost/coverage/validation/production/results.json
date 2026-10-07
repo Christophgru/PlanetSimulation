@@ -1,0 +1,162 @@
+{
+  "scope": "Blocking live-generation inspection foundation; coverage/cost acceptance pending",
+  "frozen_provenance": {
+    "source_sha256": "7ba8a7378dcf2f326282295fa3c686513e1ee40f50a5012b366dfed52d35e2a9",
+    "build_test_sha256": "924fa1f5ae867d35c2d1f5c00214e1f70513bbb3743fd7947d693c8d2347b935",
+    "inspection_probe_sha256": "dc3e4e2ff5dd4645024fd693b56822f48684e9ed15682478585038c338de243a"
+  },
+  "replay_sha256": "aabd25986fd7ceaec4a3cb8dc6aa7cd9f1a57d15c6f2e63b171ae310b0122234",
+  "case": "sprint",
+  "target_distance_m": 350,
+  "expected_uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+  "runs": [
+    {
+      "backend": "cpu",
+      "audit": {
+        "frames": 317,
+        "rendered": 0,
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "memory_queries": 0,
+          "polls": 0,
+          "server_waits": 0
+        },
+        "peak_logical_bytes": 0
+      },
+      "analysis": {
+        "generated_instances": [
+          25947,
+          159532
+        ],
+        "queues": [
+          {
+            "queue": "detailed",
+            "instances": 25947,
+            "root_bands": [
+              4545,
+              17374,
+              4024
+            ]
+          },
+          {
+            "queue": "quads",
+            "instances": 159532,
+            "root_bands": [
+              0,
+              3322,
+              39750
+            ]
+          }
+        ],
+        "root_bands_m": [
+          [
+            0,
+            5
+          ],
+          [
+            5,
+            15
+          ],
+          [
+            15,
+            30
+          ]
+        ],
+        "root_band_counts": [
+          4545,
+          20696,
+          43774
+        ],
+        "root_band_fade_sum": [
+          4138.197375784072,
+          18812.97871885566,
+          37049.819216591146
+        ],
+        "opaque_grass_pixels": 674457,
+        "scope": "main opaque ground before grass and immediately after both queues; later astronaut/water/atmosphere occlusion excluded",
+        "coverage_acceptance": false
+      },
+      "profile_frame": 315,
+      "walked_m": 350.1215589509466,
+      "all_native_frames_excluded_from_cost_acceptance": 317
+    },
+    {
+      "backend": "compute",
+      "audit": {
+        "frames": 913,
+        "rendered": 366,
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "memory_queries": 0,
+          "polls": 87,
+          "server_waits": 0
+        },
+        "peak_logical_bytes": 580997096
+      },
+      "analysis": {
+        "generated_instances": [
+          25656,
+          158001
+        ],
+        "queues": [
+          {
+            "queue": "detailed",
+            "instances": 25656,
+            "root_bands": [
+              4586,
+              16699,
+              4361
+            ]
+          },
+          {
+            "queue": "quads",
+            "instances": 158001,
+            "root_bands": [
+              0,
+              3490,
+              40108
+            ]
+          }
+        ],
+        "root_bands_m": [
+          [
+            0,
+            5
+          ],
+          [
+            5,
+            15
+          ],
+          [
+            15,
+            30
+          ]
+        ],
+        "root_band_counts": [
+          4586,
+          20189,
+          44469
+        ],
+        "root_band_fade_sum": [
+          4178.581761375379,
+          18352.97836164748,
+          37590.836483327745
+        ],
+        "opaque_grass_pixels": 673039,
+        "scope": "main opaque ground before grass and immediately after both queues; later astronaut/water/atmosphere occlusion excluded",
+        "coverage_acceptance": false
+      },
+      "profile_frame": 911,
+      "walked_m": 350.7106363997891,
+      "all_native_frames_excluded_from_cost_acceptance": 913
+    }
+  ]
+}

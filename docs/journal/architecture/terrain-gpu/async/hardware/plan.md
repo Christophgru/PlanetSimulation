@@ -172,3 +172,13 @@ on compute, and scalar density ratios vary. Resume T3c5c2b2 independent
 rendered coverage using the study's separate live-generation inspection plan;
 do not replace native generations with synchronous capture replanning. The
 stationary regression investigation and T3c5c3–c4 remain; CPU stays default.
+
+[T3c5c2b2a](cost/coverage/study.md) verifies a separate live-generation inspection
+probe with main queue roots, opaque depth-change masks and complete pose/wind/
+trail/anchor receipts. All synchronizing reads are excluded from cost acceptance;
+the app/timed probe stay unchanged. Two final software passes, eight Quadro
+fixture snapshots and two production sprint observations pass independent archive
+checks. Resume T3c5c2b2b repeated common-view coverage: fixed camera/wind/pose/
+trail state, eligible visible-ground area and later compositing must precede
+density parity claims. The earlier stationary regression and remaining gates stay
+open; CPU remains default.

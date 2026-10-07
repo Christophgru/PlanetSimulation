@@ -1,0 +1,163 @@
+{
+  "scope": "Private live-generation inspection foundation; matched coverage/cost acceptance pending",
+  "hardware_uuid": "GPU-2cefee61-6b3b-a670-c390-c7449dad3f79",
+  "snapshots": [
+    {
+      "path": "software/first/compute-airless/coverage/1",
+      "frames": "software/first/compute-airless/frames.jsonl.gz",
+      "hardware": false,
+      "production": false
+    },
+    {
+      "path": "software/first/compute-airless/coverage/2",
+      "frames": "software/first/compute-airless/frames.jsonl.gz",
+      "hardware": false,
+      "production": false
+    },
+    {
+      "path": "software/first/compute-hdr/coverage/1",
+      "frames": "software/first/compute-hdr/frames.jsonl.gz",
+      "hardware": false,
+      "production": false
+    },
+    {
+      "path": "software/first/compute-hdr/coverage/2",
+      "frames": "software/first/compute-hdr/frames.jsonl.gz",
+      "hardware": false,
+      "production": false
+    },
+    {
+      "path": "software/first/cpu-airless/coverage/1",
+      "frames": "software/first/cpu-airless/frames.jsonl.gz",
+      "hardware": false,
+      "production": false
+    },
+    {
+      "path": "software/first/cpu-airless/coverage/2",
+      "frames": "software/first/cpu-airless/frames.jsonl.gz",
+      "hardware": false,
+      "production": false
+    },
+    {
+      "path": "software/first/cpu-hdr/coverage/1",
+      "frames": "software/first/cpu-hdr/frames.jsonl.gz",
+      "hardware": false,
+      "production": false
+    },
+    {
+      "path": "software/first/cpu-hdr/coverage/2",
+      "frames": "software/first/cpu-hdr/frames.jsonl.gz",
+      "hardware": false,
+      "production": false
+    },
+    {
+      "path": "software/repeat/compute-airless/coverage/1",
+      "frames": "software/repeat/compute-airless/frames.jsonl.gz",
+      "hardware": false,
+      "production": false
+    },
+    {
+      "path": "software/repeat/compute-airless/coverage/2",
+      "frames": "software/repeat/compute-airless/frames.jsonl.gz",
+      "hardware": false,
+      "production": false
+    },
+    {
+      "path": "software/repeat/compute-hdr/coverage/1",
+      "frames": "software/repeat/compute-hdr/frames.jsonl.gz",
+      "hardware": false,
+      "production": false
+    },
+    {
+      "path": "software/repeat/compute-hdr/coverage/2",
+      "frames": "software/repeat/compute-hdr/frames.jsonl.gz",
+      "hardware": false,
+      "production": false
+    },
+    {
+      "path": "software/repeat/cpu-airless/coverage/1",
+      "frames": "software/repeat/cpu-airless/frames.jsonl.gz",
+      "hardware": false,
+      "production": false
+    },
+    {
+      "path": "software/repeat/cpu-airless/coverage/2",
+      "frames": "software/repeat/cpu-airless/frames.jsonl.gz",
+      "hardware": false,
+      "production": false
+    },
+    {
+      "path": "software/repeat/cpu-hdr/coverage/1",
+      "frames": "software/repeat/cpu-hdr/frames.jsonl.gz",
+      "hardware": false,
+      "production": false
+    },
+    {
+      "path": "software/repeat/cpu-hdr/coverage/2",
+      "frames": "software/repeat/cpu-hdr/frames.jsonl.gz",
+      "hardware": false,
+      "production": false
+    },
+    {
+      "path": "hardware/compute-airless/coverage/1",
+      "frames": "hardware/compute-airless/frames.jsonl.gz",
+      "hardware": true,
+      "production": false
+    },
+    {
+      "path": "hardware/compute-airless/coverage/2",
+      "frames": "hardware/compute-airless/frames.jsonl.gz",
+      "hardware": true,
+      "production": false
+    },
+    {
+      "path": "hardware/compute-hdr/coverage/1",
+      "frames": "hardware/compute-hdr/frames.jsonl.gz",
+      "hardware": true,
+      "production": false
+    },
+    {
+      "path": "hardware/compute-hdr/coverage/2",
+      "frames": "hardware/compute-hdr/frames.jsonl.gz",
+      "hardware": true,
+      "production": false
+    },
+    {
+      "path": "hardware/cpu-airless/coverage/1",
+      "frames": "hardware/cpu-airless/frames.jsonl.gz",
+      "hardware": true,
+      "production": false
+    },
+    {
+      "path": "hardware/cpu-airless/coverage/2",
+      "frames": "hardware/cpu-airless/frames.jsonl.gz",
+      "hardware": true,
+      "production": false
+    },
+    {
+      "path": "hardware/cpu-hdr/coverage/1",
+      "frames": "hardware/cpu-hdr/frames.jsonl.gz",
+      "hardware": true,
+      "production": false
+    },
+    {
+      "path": "hardware/cpu-hdr/coverage/2",
+      "frames": "hardware/cpu-hdr/frames.jsonl.gz",
+      "hardware": true,
+      "production": false
+    },
+    {
+      "path": "production/compute/coverage/1",
+      "frames": "production/compute/frames.jsonl.gz",
+      "hardware": true,
+      "production": true
+    },
+    {
+      "path": "production/cpu/coverage/1",
+      "frames": "production/cpu/frames.jsonl.gz",
+      "hardware": true,
+      "production": true
+    }
+  ],
+  "retained_stale_fixture_failure": "preflight-stale"
+}

@@ -1,0 +1,25 @@
+PlanetSimulation v0.0.1 initialized
+Scenario: Solar System
+Simulation time: 0.0 s
+Sun radius: 2.5
+Planets: 2
+Camera position: (15, 15, 8)
+Left-drag to orbit; scroll to zoom gently. Press 1 for Sun orbit, 2 for the planet surface view (free mouse look and WASD at 80 m/s), 3 for planet orbit, 4 to follow the astronaut (WASD at 6 m/s; Space to jump/upward thrust; airborne WASD directs thrust). Press T to pause/resume orbits and spin. Press O for ten past orbit paths and body labels. Press Y to halve or U to double simulation speed. Press Esc to release the walking cursor and 2 or 4 to capture it again. /workspace/build-resume/terrain-coverage-inspection/hdr.json reloads on save; press R to reload manually. Close the window to exit.
+Camera 4: following the astronaut at 6 m/s; Space to jump/upward thrust; airborne WASD directs thrust
+Simulation time: 0.05223675899999991 s
+Surface camera position (world, km): [9.189559712037868,0.9275555551885729,-0.3661301992089579]
+Surface camera direction (world, unit vector): [-0.08211556148512276,0.3556815734761064,0.9309928317938566]
+Surface camera position (planet LLA): latitude=-21.409888069265286 deg, longitude=103.0 deg, altitude=3.0 m above reference sphere
+Surface camera ground clearance: 3.0 m
+surface_camera start value: {"altitude":0.003,"direction_ned":[1.0,0.0,-5.551115123125783e-17],"fov":65.0,"latitude_deg":-21.409888069265286,"longitude_deg":103.0,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":0.05223675899999991,"up_ned":[0.0,0.0,-1.0],"walk_speed_mps":80.0}
+Scene render resolution: 320x180 (100%)
+Scene render resolution: 256x144 (80%)
+Simulation time: 10.631744792000001 s
+Surface camera position (world, km): [8.678918495810809,4.444580141841744,-0.3656639877579379]
+Surface camera direction (world, unit vector): [-0.08211556148512276,0.3556815734761064,0.9309928317938566]
+Surface camera position (planet LLA): latitude=-21.409888069265286 deg, longitude=103.0 deg, altitude=3.0 m above reference sphere
+Surface camera ground clearance: 3.0 m
+surface_camera start value: {"altitude":0.003,"direction_ned":[1.0,0.0,-5.551115123125783e-17],"fov":65.0,"latitude_deg":-21.409888069265286,"longitude_deg":103.0,"planet_index":0,"reference_frame":"planet_spherical_ned","simulation_time_seconds":10.631744792000001,"up_ned":[0.0,0.0,-1.0],"walk_speed_mps":80.0}
+Scene render resolution: 208x117 (65%)
+Scene render resolution: 160x90 (50%)
+Native audit: {"blocking_polls":0,"bulk_reads":0,"finishes":0,"injected_fence_failures":0,"injected_poll_failures":0,"memory_queries":0,"polls":8,"server_waits":0}

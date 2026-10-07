@@ -318,6 +318,14 @@ find_program(IMAGEMAGICK_CONVERT_EXECUTABLE convert)
 if(UNIX AND XDOTOOL_EXECUTABLE AND IMAGEMAGICK_IMPORT_EXECUTABLE AND IMAGEMAGICK_CONVERT_EXECUTABLE)
     add_executable(terrain_native_probe app/terrain/native/NativeProbe.cpp)
     target_link_libraries(terrain_native_probe PRIVATE planet_app ${CMAKE_DL_LIBS})
+    add_executable(terrain_coverage_probe app/terrain/native/coverage/Probe.cpp)
+    target_link_libraries(terrain_coverage_probe PRIVATE planet_app ${CMAKE_DL_LIBS})
+    add_test(NAME TerrainCoverageInspectionIntegration COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/app/terrain/native/coverage/test_inspection.py
+        --probe $<TARGET_FILE:terrain_coverage_probe>
+        --output-dir ${CMAKE_BINARY_DIR}/terrain-coverage-inspection)
+    set_tests_properties(TerrainCoverageInspectionIntegration PROPERTIES
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 300 RUN_SERIAL TRUE)
     add_test(NAME NativeLoopTimingIntegration COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_CURRENT_SOURCE_DIR}/diagnostics/timing/test_native_loop.py
         --probe $<TARGET_FILE:terrain_native_probe>
