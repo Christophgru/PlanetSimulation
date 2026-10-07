@@ -39,3 +39,4 @@ __pycache__/
 *~
 .DS_Store
 docs/journal/**.xz
+docs/journal/**.gz
