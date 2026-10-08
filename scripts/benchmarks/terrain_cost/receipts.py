@@ -38,6 +38,7 @@ def summarize(trace, frames, expected_uuid):
     assert all(r['context_uuid'] == expected_uuid and r['nvml_status'] == 'ok' and
                r['context_status'] == 'uuid_verified' for r in memory)
     assert not any(int(r['dropped_events']) for r in memory)
+    assert all(not r['overlap_reserved_bytes'] or int(r['overlap_reserved_bytes']) <= 1024**3 for r in memory)
     first = observed[measured[0]]
     start_ns, end_ns = first['observed_ns'], observed[measured[-1]]['observed_ns']
     physical = [int(r['used_bytes']) for r in memory if r['kind'] == 'sample' and
@@ -88,6 +89,8 @@ def compare_pair(cpu, compute):
         for key in ['enabled', 'configured_density', 'configured_budget', 'configured_distance_m', 'budget', 'distance_m', 'compute_placement']:
             if x['foliage'][key] != y['foliage'][key]:
                 differences.append({'body': body, 'key': key, 'cpu': x['foliage'][key], 'compute': y['foliage'][key]})
+        if x['foliage'].get('policy') != y['foliage'].get('policy'):
+            differences.append({'body': body, 'key': 'effective_policy', 'cpu': x['foliage'].get('policy'), 'compute': y['foliage'].get('policy')})
         cd, gd = x['foliage']['density'], y['foliage']['density']
         if not math.isclose(cd, gd, rel_tol=.001, abs_tol=1e-6):
             differences.append({'body': body, 'key': 'effective_density', 'cpu': cd, 'compute': gd})

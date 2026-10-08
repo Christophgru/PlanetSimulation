@@ -82,6 +82,7 @@ add_library(planet_geometry STATIC
     src/rendering/foliage/GrassPlacement.cpp
     src/rendering/foliage/GrassLod.cpp)
 target_sources(planet_geometry PRIVATE src/rendering/foliage/procedural/GrassPlan.cpp
+    src/rendering/foliage/procedural/GrassPolicyPlan.cpp
     src/rendering/foliage/trails/GrassTrail.cpp)
 target_link_libraries(planet_geometry PUBLIC planet_config planet_diagnostics glm::glm Threads::Threads)
 
@@ -102,6 +103,7 @@ add_library(planet_rendering STATIC
     src/rendering/foliage/GrassRenderer.cpp)
 target_sources(planet_rendering PRIVATE src/rendering/foliage/procedural/ProceduralGrass.cpp)
 target_sources(planet_rendering PRIVATE src/rendering/foliage/procedural/GrassPreparation.cpp)
+target_sources(planet_rendering PRIVATE src/rendering/foliage/procedural/GrassCpuPolicy.cpp)
 target_sources(planet_rendering PRIVATE src/rendering/foliage/procedural/GrassCompute.cpp
     src/rendering/foliage/trails/TrailUpload.cpp)
 target_sources(planet_rendering PRIVATE src/rendering/character/AstronautRenderer.cpp

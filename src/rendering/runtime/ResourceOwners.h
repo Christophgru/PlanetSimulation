@@ -3,6 +3,12 @@
 #include "rendering/geometry/Mesh.h"
 
 namespace rendering {
+inline std::uint64_t terrainStorageBytes(const std::vector<Mesh>& meshes) {
+    std::uint64_t bytes=0;
+    for(const auto& mesh:meshes) bytes+=mesh.terrainStats.gpuWorkingBytes ? mesh.terrainStats.gpuWorkingBytes :
+        mesh.vertices.size()*sizeof(float)+mesh.indices.size()*sizeof(unsigned);
+    return bytes;
+}
 class OwnedShader : public Shader {
 public:
     using Shader::Shader;
@@ -28,6 +34,7 @@ struct SceneMeshes {
     }
     SceneMeshes(const SceneMeshes&) = delete;
     SceneMeshes& operator=(const SceneMeshes&) = delete;
+    std::uint64_t terrainBytes() const {return terrainStorageBytes(planetMeshes)+terrainStorageBytes(waterMeshes);}
     Mesh sunMesh, skyboxMesh;
     std::vector<Mesh> planetMeshes, waterMeshes;
 };

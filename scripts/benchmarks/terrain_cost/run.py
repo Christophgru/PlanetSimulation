@@ -45,6 +45,21 @@ def inputs():
     return groups
 
 
+def production_input(scene, quality_replay=None):
+    """Use a public saved policy to compare cost at the same foliage quality."""
+    data = {'scenario': scene, 'surface_camera': scene['surface_camera']}
+    if quality_replay:
+        saved = json.loads(quality_replay.read_text())
+        if saved['scenario'] != scene:
+            raise ValueError('Quality replay must use the unchanged production scenario')
+        policies = saved['render']['foliage_policy']
+        if len(policies) != len(scene['planets']):
+            raise ValueError('Quality replay must contain every production body')
+        # Public render replays require dimensions, even for native sessions.
+        data['render'] = {'width': 1280, 'height': 720, 'foliage_policy': policies}
+    return data
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--probe', type=Path, required=True)
@@ -53,6 +68,7 @@ def main():
     p.add_argument('--pairs', type=int, default=3)
     p.add_argument('--seconds', type=float, default=10)
     p.add_argument('--frames', type=int, default=240)
+    p.add_argument('--quality-replay', type=Path, help='Public production capture with a common locked foliage policy')
     args = p.parse_args()
     if args.pairs < 3 or args.seconds < 5 or args.frames < 200:
         p.error('Require at least three pairs, five seconds and 200 measured frames')
@@ -64,7 +80,7 @@ def main():
     source = ROOT / 'configs/scenarios/solar_system.json'
     scene = json.loads(source.read_text())
     replay = out / 'production-input.json'
-    write_json(replay, {'scenario': scene, 'surface_camera': scene['surface_camera']})
+    write_json(replay, production_input(scene, args.quality_replay))
     devices = subprocess.check_output(['nvidia-smi', '--query-gpu=index,name,uuid,pci.bus_id,driver_version,memory.total', '--format=csv'], text=True)
     (out / 'devices.csv').write_text(devices)
     report = {'base_revision': subprocess.check_output(['git', '-c', f'safe.directory={ROOT}', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),

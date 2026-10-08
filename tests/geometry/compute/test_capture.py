@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Exercise opt-in terrain generation, replay, CPU override and GL 3.3 fallback."""
+"""Exercise default compute terrain, replay, CPU override and GL 3.3 fallback."""
 import argparse
 import hashlib
 import json
@@ -39,7 +39,7 @@ def compare(a,b):
     # Numerical parity is required across drivers; exact PNG parity is retained when observed.
     assert sum(delta)/len(delta)<.1 and max(delta)<32,(sum(delta)/len(delta),max(delta))
     return {'exact':a.read_bytes()==b.read_bytes(),'mean_channel_error':sum(delta)/len(delta),'max_channel_error':max(delta)}
-cpu,c=run('cpu');gpu,g=run('gpu',('--terrain-backend','compute'))
+cpu,c=run('cpu',('--terrain-backend','cpu'));gpu,g=run('gpu')
 def publication(data):
     state=data['render']['terrain_publication']
     assert state['managed'] and not state['pending'] and state['failed']==state['obsolete']==0
@@ -75,6 +75,7 @@ assert metadata['diagnostic_read_bytes']==0
 assert metadata['summary_read_bytes']==224
 assert 0<metadata['effective_candidate_budget']<=4096
 policy=g['render']['foliage_policy'][0]
+assert c['render']['foliage_policy']==g['render']['foliage_policy']
 assert policy['version']==1 and policy['body']==scene['planets'][0]['name']
 assert policy['capacity']==4096 and policy['budget']==metadata['effective_candidate_budget']
 assert policy['protected_m']==10 and policy['density']==metadata['placement_density_per_m2']
@@ -102,6 +103,13 @@ assert r['render']['terrain_backend']=='compute' and replay.read_bytes()==gpu.re
 assert r['render']['foliage_policy']==g['render']['foliage_policy']
 override,o=run('cpu-override',('--terrain-backend','cpu'),gpu.with_suffix('.png.json'))
 assert o['render']['terrain_backend']=='cpu' and override.read_bytes()==cpu.read_bytes()
+assert o['render']['foliage_policy']==g['render']['foliage_policy']
+cpuReplay,cr=run('cpu-replay',replay=cpu.with_suffix('.png.json'))
+assert cpuReplay.read_bytes()==cpu.read_bytes() and cr['render']['foliage_policy']==c['render']['foliage_policy']
+historical=out/'historical-cpu.json';saved=json.loads(cpu.with_suffix('.png.json').read_text())
+saved['render'].pop('terrain_backend');historical.write_text(json.dumps(saved))
+historicalReplay,hr=run('historical-cpu-replay',replay=historical)
+assert hr['render']['terrain_backend']=='cpu' and historicalReplay.read_bytes()==cpu.read_bytes()
 walker,w=run('walking',('--terrain-backend','compute','--benchmark-frames','6','--benchmark-walk-step','.06','--benchmark-step','0'),astronaut=True)
 assert w['render']['astronaut_pixels']>150 and w['astronaut_pose']['grass_trail']
 contacts=w['render']['terrain_contacts']
@@ -132,11 +140,17 @@ error=run('locked-vertex-rejected',replay=incompatible,fail=True)
 assert 'Locked GPU grass replay requires compute_placement' in error
 oldgl={'MESA_GL_VERSION_OVERRIDE':'3.3','MESA_GLSL_VERSION_OVERRIDE':'330',
        '__GLX_VENDOR_LIBRARY_NAME':'mesa','__NV_PRIME_RENDER_OFFLOAD':'0'}
-fallback,f=run('gl33-fallback',('--terrain-backend','compute'),env=oldgl)
+fallback,f=run('gl33-fallback',env=oldgl)
 assert f['render']['terrain_backend']=='cpu' and '4.3' in f['render']['terrain_fallback']
 assert not f['render']['terrain_compute']['cpu_compatibility_mirror']
 assert f['render']['foliage_gpu_metadata']['resident_bytes']==0
 assert not f['render']['terrain_publication']['managed']
+assert f['render']['foliage_policy']==c['render']['foliage_policy']
+fallbackReplay,fr=run('gl33-replay',replay=fallback.with_suffix('.png.json'),env=oldgl)
+assert fallbackReplay.read_bytes()==fallback.read_bytes()
+fallbackOverride,fo=run('gl33-cpu-override',('--terrain-backend','cpu'),gpu.with_suffix('.png.json'),env=oldgl)
+assert fo['render']['foliage_policy']==g['render']['foliage_policy']
+assert fallbackOverride.read_bytes()==fallback.read_bytes()
 error=run('gl33-locked-rejected',replay=gpu.with_suffix('.png.json'),env=oldgl,fail=True)
 assert 'Locked compute replay' in error
 invalid=out/'invalid.json';bad=json.loads(gpu.with_suffix('.png.json').read_text());bad['render']['terrain_backend']='invalid'
@@ -148,8 +162,7 @@ assert 'Unsupported terrain compute replay versions' in error and 'initialized' 
 bad=json.loads(gpu.with_suffix('.png.json').read_text());bad['render']['terrain_grass_planner']='gpu-v2'
 invalid.write_text(json.dumps(bad));error=run('planner-version-rejected',replay=invalid,fail=True)
 assert 'Unsupported terrain grass replay planner' in error and 'initialized' not in error
-# New falloff changes quality deliberately; terrain numerical parity is checked
-# through the legacy planner above. Replaying effective policy must remain exact.
+# Both planners now use protected falloff; locked policy replay remains exact.
 for key,value in [('version',2),('budget',policy['capacity']+1),('density',4097),('sigma_m',-1),('body','other')]:
     bad=json.loads(gpu.with_suffix('.png.json').read_text());bad['render']['foliage_policy'][0][key]=value
     invalid.write_text(json.dumps(bad));error=run('policy-'+key+'-rejected',replay=invalid,fail=True)
@@ -162,7 +175,10 @@ assert t['render']['foliage_candidates']<=2
 tinyReplay,tr=run('tiny-replay',replay=tiny.with_suffix('.png.json'),scene_path=tinyPath)
 assert tinyReplay.read_bytes()==tiny.read_bytes()
 assert tr['render']['foliage_policy']==t['render']['foliage_policy']
-report={'cpu_legacy_gpu_surface':compare(cpu,legacy),'adaptive_policy':policy,'compute_replay_exact':True,'compute_walking_replay_exact':True,
+tinyCpu,tc=run('tiny-cpu-budget',scene_path=tinyPath)
+assert tc['render']['foliage_policy']==t['render']['foliage_policy']
+assert tc['render']['foliage_candidates']<=2
+report={'cpu_gpu_surface':compare(cpu,gpu),'cpu_legacy_gpu_surface':compare(cpu,legacy),'adaptive_policy':policy,'cpu_replay_exact':True,'gl33_policy_replay_exact':True,'compute_replay_exact':True,'compute_walking_replay_exact':True,
         'cpu_override_exact':True,'legacy_compute_replay_exact':True,'vertex_config_fallback':True,'locked_vertex_config_rejected':True,'unknown_grass_planner_rejected_before_window':True,'gl33_fallback':True,'locked_unavailable_rejected':True,'invalid_backend_rejected_before_window':True,
         'unknown_field_version_rejected_before_window':True,'terrain_compute':g['render']['terrain_compute'],'commands':commands,
         'sparse_contacts':contacts,'grass_metadata':metadata,'terrain_cpu_worker':worker,

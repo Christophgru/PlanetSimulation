@@ -21,11 +21,17 @@ MemoryObservation Renderer::Impl::memorySnapshot(MemoryPhase phase,const SceneTe
     o.reloadAttempt=attempt?attempt:(pendingResidentReload?pendingResidentReload->traceAttempt:0);
     o.replacementEpoch=targetEpoch?targetEpoch:(pendingResidentReload?pendingResidentReload->epoch:0);
     o.epoch=terrainSceneEpoch;o.serial=terrainRequestSerial;o.nvx=memoryNvx;
-    o.managedLedger=bool(terrainPublication);
+    o.managedLedger=bool(terrainPublication)||grass.procedural.adaptiveBudget();
     if(terrainPublication) o.liveReserved=terrainPublication->reservedBytes();
+    else if(grass.procedural.adaptiveBudget()) o.liveReserved=meshes.terrainBytes()+grass.procedural.ownedBytes();
     if(!replacement && pendingResidentReload) replacement=pendingResidentReload->transaction.get();
     if(replacement) o.replacementReserved=replacement->reservedBytes();
     o.overlapReserved=std::max(o.liveReserved,o.replacementReserved);
+    if(!terrainPublication && grass.procedural.adaptiveBudget()) {
+        if(legacy) o.replacementReserved=legacy->meshes.terrainBytes()+legacy->grass.procedural.ownedBytes();
+        o.overlapReserved=o.liveReserved+o.replacementReserved;
+        if(retiredLegacyScene) o.overlapReserved+=retiredLegacyScene->meshes.terrainBytes()+retiredLegacyScene->grass.procedural.ownedBytes();
+    }
     o.meshVectorBytes=meshBytes(meshes.planetMeshes)+meshBytes(meshes.waterMeshes);
     if(replacement) o.meshVectorBytes+=replacementBytes(*replacement);
     if(retiredResidentScene) o.meshVectorBytes+=replacementBytes(*retiredResidentScene);
@@ -41,6 +47,11 @@ MemoryObservation Renderer::Impl::memorySnapshot(MemoryPhase phase,const SceneTe
 void Renderer::Impl::observeMemory(MemoryPhase phase,bool event,const SceneTerrainReplacement* replacement,
     const LegacySceneReplacement* legacy,std::uint64_t attempt,std::uint64_t targetEpoch) {
     if(grass.procedural.adaptiveBudget()) {
+        if(!terrainPublication) {
+            grass.procedural.terrainBudgetBytes(meshes.terrainBytes());
+            grass.procedural.externalBudgetBytes(retiredLegacyScene ?
+                retiredLegacyScene->meshes.terrainBytes()+retiredLegacyScene->grass.procedural.ownedBytes() : 0);
+        }
         auto signals=grass.procedural.budgetSignals();signals.nowNs=memoryClockNs();signals.capBytes=options.videoMemoryCapBytes;
         if(memorySampler) if(const auto cached=memorySampler->cached()) {
             signals.memoryNs=cached->sampledNs;signals.sampleReserved=cached->reserved;

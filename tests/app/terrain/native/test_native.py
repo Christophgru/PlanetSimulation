@@ -221,9 +221,9 @@ write_json(clock_config, clock_scene)
 # Force the Mesa vendor for version overrides even during NVIDIA offload runs.
 old_gl = {'MESA_GL_VERSION_OVERRIDE': '3.3', 'MESA_GLSL_VERSION_OVERRIDE': '330',
           '__GLX_VENDOR_LIBRARY_NAME': 'mesa', '__NV_PRIME_RENDER_OFFLOAD': '0'}
-for name, flags, environment in [('clock-compute', ['--config', str(clock_config), '--terrain-backend', 'compute'], {}),
-                                  ('default-cpu', ['--config', str(clock_config)], {}),
-                                  ('gl33-fallback', ['--config', str(clock_config), '--terrain-backend', 'compute'], old_gl)]:
+for name, flags, environment in [('clock-compute', ['--config', str(clock_config)], {}),
+                                  ('explicit-cpu', ['--config', str(clock_config), '--terrain-backend', 'cpu'], {}),
+                                  ('gl33-fallback', ['--config', str(clock_config)], old_gl)]:
     session = Session(args.probe, root, out / name, flags, environment)
     try:
         session.focus()

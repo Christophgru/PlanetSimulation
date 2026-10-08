@@ -184,3 +184,41 @@ TEST(GrassBudget, EffectiveReplayRoundTripsAndRejectsInvalidLimits) {
     auto signedValues=p.json();signedValues["capacity"]=10000;signedValues["budget"]=7000;
     EXPECT_NO_THROW(GrassFalloff::replay(signedValues,f));
 }
+
+TEST(GrassBudget, CpuProtectedAllocationPreservesNearDensityAndReportsPhysicalDeficits) {
+    using namespace rendering;
+    config::FoliageConfig f;f.max_blades=128;f.max_candidates_per_triangle=128;
+    f.draw_distance_m=150;f.density_per_m2=8;
+    std::vector<GrassPlanTriangle> triangles;
+    for(unsigned i=0;i<103;++i) {
+        GrassPlanTriangle t;t.patch.triangle=i;t.area=1;
+        t.distance=t.minimumDistance=i<3?double(i+1):11.+(i-3)*.8;
+        triangles.push_back(t);
+    }
+    GrassFalloff p;p.enabled=true;p.capacity=128;p.budget=80;
+    p.protectedMeters=10;p.sigmaMeters=40;p.density=8;
+    const auto normal=allocateProtectedGrass(triangles,f,p);
+    p.budget=40;const auto busy=allocateProtectedGrass(triangles,f,p);
+    EXPECT_EQ(normal.density,8);EXPECT_EQ(busy.density,8);
+    EXPECT_FALSE(normal.falloff.nearInfeasible);EXPECT_FALSE(busy.falloff.nearInfeasible);
+    EXPECT_LT(busy.falloff.sigmaMeters,normal.falloff.sigmaMeters);
+    EXPECT_LE(normal.candidates,80);EXPECT_LE(busy.candidates,40);
+    for(const auto* plan:{&normal,&busy}) {
+        const auto batch=plan->batches[3];
+        for(unsigned id=0;id<3;++id) {
+            EXPECT_TRUE(std::any_of(plan->patches.begin()+batch.first,plan->patches.begin()+batch.first+batch.count,
+                [id](const auto& t) {return t.triangle==id;}));
+        }
+        auto locked=plan->falloff;locked.locked=true;
+        const auto restored=allocateProtectedGrass(triangles,f,locked);
+        EXPECT_EQ(restored.candidates,plan->candidates);EXPECT_EQ(restored.falloff.json(),locked.json());
+    }
+    p.budget=1;const auto nearOnly=allocateProtectedGrass(triangles,f,p);
+    EXPECT_EQ(nearOnly.falloff.budget,24);EXPECT_EQ(nearOnly.candidates,24);EXPECT_EQ(nearOnly.density,8);
+    p.capacity=2;const auto tiny=allocateProtectedGrass(triangles,f,p);
+    EXPECT_TRUE(tiny.falloff.nearInfeasible);EXPECT_LE(tiny.candidates,2);EXPECT_GT(tiny.candidates,0);
+    for(const auto& t:tiny.patches) EXPECT_LT(t.triangle,3);
+    p.capacity=p.budget=128;p.locked=true;p.sigmaMeters=0;p.nearInfeasible=false;
+    f.max_candidates_per_triangle=2;
+    EXPECT_TRUE(allocateProtectedGrass(triangles,f,p).falloff.nearInfeasible);
+}

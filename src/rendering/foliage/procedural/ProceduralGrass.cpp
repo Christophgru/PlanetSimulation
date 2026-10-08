@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cmath>
+#include <cstdio>
 
 namespace rendering {
 ProceduralGrass::ProceduralGrass() :
@@ -42,7 +43,8 @@ void ProceduralGrass::upload(Patch& patch,const GrassPlan& plan) {
         patch.bounds.push_back({center,radius});
     }
     glBufferData(GL_ARRAY_BUFFER,references.size()*sizeof(std::uint32_t),references.data(),GL_STATIC_DRAW);
-    patch.density=plan.density;patch.allocationBudget=0;
+    patch.density=plan.density;patch.falloff=plan.falloff;
+    patch.allocationBudget=plan.falloff.enabled?plan.falloff.budget:0;
     patch.draws.clear();
     for (std::size_t level=0;level<grassCandidateSlots.size();++level) {
         auto& batch=patch.batches[level];
@@ -86,13 +88,14 @@ void ProceduralGrass::clear() {
     for (const auto& [index,data]:trails_) {
         glDeleteBuffers(1,&data.buffer);glDeleteTextures(1,&data.texture);
     }
-    trails_.clear();replayPlanEyes_.clear();replayPolicies_.clear();
+    trails_.clear();replayPlanEyes_.clear();replayPolicies_.clear();terrainBudgetBytes_=externalBudgetBytes_=0;
 }
 void ProceduralGrass::swapState(ProceduralGrass& other) noexcept {
     patches_.swap(other.patches_);trails_.swap(other.trails_);replayPlanEyes_.swap(other.replayPlanEyes_);
     compute_.swap(other.compute_);metadataCompute_.swap(other.metadataCompute_);
     allocationCompute_.swap(other.allocationCompute_);
     std::swap(adaptiveBudget_,other.adaptiveBudget_);std::swap(budget_,other.budget_);replayPolicies_.swap(other.replayPolicies_);
+    std::swap(terrainBudgetBytes_,other.terrainBudgetBytes_);std::swap(externalBudgetBytes_,other.externalBudgetBytes_);
 }
 void ProceduralGrass::reserve(std::size_t index) {
     if(patches_.size()<=index) patches_.resize(index+1);
@@ -128,12 +131,13 @@ GrassPreparationStats ProceduralGrass::prepare(std::size_t index,const Mesh& mes
     patch.water=planet.water.enabled; patch.landscape=planet.terrain_landscape.enabled;
     patch.scale=planet.radius*metersPerWorldUnit;
     if (!planet.foliage.enabled || !mesh.hasVertexColors) {
+        patch.falloff={};patch.stageAdmittedBytes=patch.gpuCapacity*128+(patch.commands?32:0);
         for (auto& batch:patch.batches) batch.count=0;
         patch.patches=0; patch.distanceMeters=0; patch.density=0;patch.allocationBudget=0; patch.ready=false; patch.computeUsed=false; patch.draws.clear(); patch.metadata.reset(); patch.allocation.reset(); glDeleteBuffers(1,&patch.buffer);patch.buffer=0; return {};
     }
     const double scale=planet.radius*metersPerWorldUnit;
     const double margin=grassRebuildDistance(planet.foliage);
-    if (patch.ready && patch.revision==mesh.revision && glm::length(eyeBody-patch.eye)*scale<margin) {
+    if (patch.ready && patch.revision==mesh.revision && !policyChanged(index) && glm::length(eyeBody-patch.eye)*scale<margin) {
         updateDraws(patch,scale,planet.foliage.quadDistanceMeters(),eyeBody);
         return {};
     }
@@ -171,9 +175,18 @@ GrassPreparationStats ProceduralGrass::prepare(std::size_t index,const Mesh& mes
         metadata=metadataCompute_->generate(mesh.vbo,mesh.ebo,mesh.terrainStats,planet,metersPerWorldUnit,planningEye);
     }
     patch.allocation.reset();
-    const auto plan=planGrass(mesh.vertices,mesh.indices,planet,metersPerWorldUnit,planningEye);
+    const auto policy=cpuPolicy(planet,mesh.indices.size()/3);
+    const auto plan=planGrass(mesh.vertices,mesh.indices,planet,metersPerWorldUnit,planningEye,policy);
     const auto planned=std::chrono::steady_clock::now();
+    if(plan.falloff.nearInfeasible && (!patch.falloff.nearInfeasible || plan.falloff.capacity!=patch.falloff.capacity))
+        std::fprintf(stderr,"Foliage near density infeasible: capacity=%u density=%.6g protected_m=%.6g\n",
+            plan.falloff.capacity,plan.falloff.density,plan.falloff.protectedMeters);
+    if(policy.enabled && patch.gpuCapacity>policy.capacity) {
+        glDeleteBuffers(1,&patch.gpuBlades);patch.gpuBlades=0;patch.gpuCapacity=0;
+    }
     upload(patch,plan);
+    patch.policyRevision=budget_.revision();
+    patch.stageAdmittedBytes=policy.enabled?128ull*policy.capacity+mesh.indices.size()/3*4+32:0;
     const auto uploaded=std::chrono::steady_clock::now();
     patch.metadata=std::move(metadata);
     patch.eye=planningEye; patch.revision=mesh.revision; patch.ready=true;
@@ -253,6 +266,8 @@ void ProceduralGrass::draw(std::size_t index,const GrassPass* pass) const {
     shader.setInt("uTerrainVertices",8); shader.setInt("uTerrainIndices",9);
     shader.setInt("uGrassSeed",patch.seed);
     shader.setFloat("uPlacementDensity",patch.density);
+    shader.setInt("uAdaptiveFalloff",patch.falloff.enabled);
+    if(patch.falloff.enabled) shader.setFloat("uGaussianSigma",patch.falloff.sigmaMeters);
     glActiveTexture(GL_TEXTURE8); glBindTexture(GL_TEXTURE_BUFFER,patch.vertexTexture);
     glActiveTexture(GL_TEXTURE9); glBindTexture(GL_TEXTURE_BUFFER,patch.indexTexture);
     glActiveTexture(GL_TEXTURE0);

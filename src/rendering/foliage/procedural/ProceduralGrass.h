@@ -91,6 +91,7 @@ private:
     std::map<std::size_t,glm::dvec3> replayPlanEyes_;
     bool adaptiveBudget_=false;
     GrassBudgetController budget_;
+    std::uint64_t terrainBudgetBytes_=0,externalBudgetBytes_=0;
     std::map<std::string,GrassFalloff> replayPolicies_;
     void bindTrail(std::size_t index,double scale) const;
     mutable std::unique_ptr<Shader> compute_;
@@ -102,12 +103,18 @@ private:
     void drawComputed(const Patch& patch,const GrassPass& pass) const;
     void allocateComputed(const Patch& patch,std::size_t count) const;
     static ProceduralGrassStats patchStats(const Patch& patch);
+    GrassFalloff cpuPolicy(const config::PlanetConfig& planet,std::size_t triangles) const;
 public:
     void enableAdaptiveBudget(bool enabled=true) {adaptiveBudget_=enabled;}
     bool adaptiveBudget() const {return adaptiveBudget_;}
     const GrassBudgetSignals& budgetSignals() const {return budget_.signals();}
     void observeBudget(GrassBudgetSignals signals) {budget_.observe(std::move(signals));}
     void inheritBudget(const ProceduralGrass& live) {adaptiveBudget_=live.adaptiveBudget_;budget_=live.budget_;}
+    void terrainBudgetBytes(std::uint64_t bytes) {terrainBudgetBytes_=bytes;}
+    void admitCpuTerrain(std::uint64_t bytes) const;
+    void externalBudgetBytes(std::uint64_t bytes) {externalBudgetBytes_=bytes;}
+    std::uint64_t ownedBytes() const;
+    std::uint64_t reservedBytes() const {return terrainBudgetBytes_+externalBudgetBytes_+ownedBytes();}
     bool policyChanged(std::size_t index) const;
     nlohmann::json policy(std::size_t index) const;
     void restorePolicies(const nlohmann::json& replay,const std::vector<config::PlanetConfig>& planets);

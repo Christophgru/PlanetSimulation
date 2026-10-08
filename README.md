@@ -311,7 +311,7 @@ CPU grass-only rebuilds retain terrain serials and record actual anchors. Actual
 character handoffs record `origin_body` and `contact_bound_ms`, with a `handoff`
 kind whose latency covers binding through consumption. Preview handoffs and
 unchanged grass are excluded. These intervals overlap. Matched hardware cost
-acceptance remains pending. See the
+acceptance is recorded in [F6](docs/journal/architecture/terrain-gpu/grass-allocation/cpu-integration.md). See the
 [publication tracing study](docs/journal/architecture/terrain-gpu/async/hardware/publication/study.md),
 the [reload tracing study](docs/journal/architecture/terrain-gpu/async/hardware/publication/transactions/study.md)
 and [capture/contact/CPU grass study](docs/journal/architecture/terrain-gpu/async/hardware/publication/lifecycle/study.md).
@@ -831,7 +831,7 @@ suspension longer than one second is limited to one second. See the
 [native speed validation](docs/journal/architecture/terrain-gpu/async/hardware/cost/movement/study.md).
 Matched 400 m CPU/compute walking and sprint receipts are in the
 [route cost study](docs/journal/architecture/terrain-gpu/async/hardware/cost/routes/study.md);
-rendered near-root coverage and migration acceptance remain pending.
+that historical study left rendered coverage and migration acceptance unqualified.
 The [live grass inspection study](docs/journal/architecture/terrain-gpu/async/hardware/cost/coverage/study.md)
 adds a separate private probe for actual main-view blade roots and opaque grass
 masks. The [matched live-plan comparison](docs/journal/architecture/terrain-gpu/async/hardware/cost/coverage/matched/study.md)
@@ -839,7 +839,7 @@ adds 24 fixed-state Quadro routes and independently checked final-compositing
 and ground/root receipts. Eight of twelve declared pairs pass; analytic area
 sensitivity identifies an estimator issue requiring qualification and fresh
 repeats. Two repeated stationary pairs exceed the 5% performance limit.
-Coverage/cost acceptance remains pending and CPU stays default.
+That evaluation did not establish coverage/cost acceptance; CPU stayed default.
 The [analytic area qualifier](docs/journal/architecture/terrain-gpu/async/hardware/cost/coverage/area/study.md)
 passes four known plane/silhouette scenes on software GL and Quadro, with
 32 independently checked snapshots and a bounded 2.25 MiB GPU target.
@@ -847,8 +847,8 @@ The [live analytic inspection qualification](docs/journal/architecture/terrain-g
 adds 20 CPU/compute snapshots on software GL and verified Quadro, including
 production walking/sprint crossings. All 60 grids meet the 1% area-convergence
 gate with independently rasterized astronaut/other-body occlusion in 4.25 MiB
-tiles. The native color mask retains explicit edge uncertainty; fresh three-pair
-coverage repeats and stationary cost acceptance remain pending.
+tiles. The native color mask retains explicit edge uncertainty; at that point,
+fresh coverage repeats and stationary cost acceptance were still pending.
 The [fresh analytic route comparison](docs/journal/architecture/terrain-gpu/async/hardware/cost/coverage/repeats/study.md) adds 24 verified Quadro
 inspections: three alternating pairs each walking/sprint at 25/350 m. All twelve
 pairs meet the unchanged 5% band gates; maximum area-convergence change is
@@ -869,9 +869,11 @@ distance-orders resident triangle references on the GPU using existing scratch
 storage. Three alternating production normal-wind pairs pass the unchanged
 1.05 full-frame p95 limit (ratios 1.009/1.021/1.013); fixed-wind pairs also pass.
 Before/after production blade contents, depth and displayed RGB remain exact.
-CPU stays default; earlier failures remain documented. The combined
-[F5 acceptance decision](docs/journal/architecture/terrain-gpu/acceptance.md) keeps
-compute experimental because final foliage coverage is not matched.
+CPU stayed default at that checkpoint; earlier failures remain documented. The combined
+[F5 acceptance decision](docs/journal/architecture/terrain-gpu/acceptance.md) recorded
+unequal foliage coverage. [F6 CPU integration](docs/journal/architecture/terrain-gpu/grass-allocation/cpu-integration.md)
+now matches coverage and passes all 15 bounded quality-matched cost pairs.
+Compute is now the default; CPU remains available explicitly and as the GL 3.3 fallback.
 
 Within **1.2 body diameters from its centre (2.4 radii)**, orientation follows
 the nearby planet or moon. Beyond that region, free-space mouse look lets you
@@ -1109,7 +1111,7 @@ The [CPU–GPU generation plan](docs/journal/architecture/terrain-gpu/plan.md) d
 the next migration: CPU subdivision/sinking and sparse contacts, GPU bulk shape
 and normals, shared terrain/foliage buffers, and the remaining atmospheric work.
 It evaluates hexagonal panels and sets memory, precision and validation gates.
-Interactive rendering and captures default to CPU terrain generation.
+Interactive rendering and fresh captures default to compute terrain generation and resident GPU grass planning.
 The [completed field/topology extraction](docs/journal/architecture/terrain-gpu/contracts/study.md)
 separates indexed radial/sink inputs from bulk evaluation, adds bounded query
 caching and validates generation keys. Capture metadata reports planning and
@@ -1117,15 +1119,16 @@ evaluation counts and contract input bytes; the CPU backend uploads its legacy
 expanded layout.
 
 The [GPU field evaluation proof](docs/journal/architecture/terrain-gpu/compute/study.md)
-is available for captures and interactive use with `--terrain-backend compute`; `--terrain-backend cpu`
-selects the default. It generates height, normals, material factors, sinking and
+is the default for captures and interactive use; `--terrain-backend cpu`
+selects the supported CPU path. It generates height, normals, material factors, sinking and
 draw buffers on GL 4.3, with queried limits and completed land/water publication.
 A 100,000-triangle view uploads 2,800,880 input bytes including parameters and
 control uniforms, compared with the CPU's 12,000,000 shaped-mesh bytes.
 Current compute captures use GPU grass planning and sparse contacts; full CPU
 render vectors are retained only for the legacy planner. No total-frame speedup
 is claimed. A saved compute backend replays explicitly; unavailable GL 4.3 falls back
-for a fresh request and rejects a locked compute replay. CPU remains the default.
+for a fresh request and rejects a locked compute replay. Replays keep their saved backend;
+older replays without backend metadata retain CPU behavior.
 
 The [sparse contact prerequisite](docs/journal/architecture/terrain-gpu/contacts/study.md)
 now finds compute terrain triangles through a spatial index and evaluates only
@@ -1194,7 +1197,7 @@ use the same boundary. The [movement and destination recovery checkpoint](docs/j
 plans contacts for every prospective body and binds destination contacts during
 handoff. Future-epoch reloads supersede old queued/ready work and discard running
 old completions without changing the live epoch on failure. Moving/reordered-body
-and Moon recovery underpin the interactive opt-in; CPU stays default.
+and Moon recovery underpin the default interactive compute path.
 
 The [asynchronous frame core](docs/journal/architecture/terrain-gpu/async/interactive/study.md)
 uses the bounded worker result slot, zero-timeout preparation/retirement polls and
@@ -1206,11 +1209,10 @@ then commits complete consumers and retains old resources until fenced retiremen
 Newer requests supersede pending work; failed reloads keep the live scene.
 [Native input acceptance](docs/journal/architecture/terrain-gpu/async/interactive/native/study.md)
 covers loading, standing, walking/sprint, jump/thrust/trails, space/Moon contact
-binding and manual/file-watch reload recovery. Enable the experimental resident
-path explicitly:
+binding and manual/file-watch reload recovery. The standard launch uses resident compute:
 
 ~~~bash
-./build/PlanetSimulation --config configs/scenarios/solar_system.json --terrain-backend compute
+./build/PlanetSimulation --config configs/scenarios/solar_system.json
 ~~~
 
 Window creation tries GL 4.3 core first and retries GL 3.3 core on older drivers.
@@ -1221,11 +1223,11 @@ and reload progress poll readiness and retirement without capture waits; failed
 replacement keeps the current scene. Fresh requests fall back to CPU when GL 4.3
 is unavailable; a replay locked to compute fails instead. Interactive legacy
 CPU-planner compute replays require an explicit `--terrain-grass-planner gpu`
-upgrade; captures retain legacy planner compatibility. CPU remains the default,
-and compute remains experimental: the combined
-[F5 acceptance run](docs/journal/architecture/terrain-gpu/acceptance.md) passes
-canonical transfer/CPU-work gates but does not establish matched-quality
-full-frame performance acceptance.
+upgrade; captures retain legacy planner compatibility. Use `--terrain-backend cpu`
+for CPU terrain. The [F5 run](docs/journal/architecture/terrain-gpu/acceptance.md)
+passes canonical transfer/CPU-work gates; [F6](docs/journal/architecture/terrain-gpu/grass-allocation/cpu-integration.md)
+adds shared CPU/compute foliage policy, exact matched walking/sprint coverage and
+15 passing bounded full-frame p95 pairs on the Quadro M1000M.
 
 Near water, `terrain_lod.shoreline_edge_m` targets 1 m edges within
 `shoreline_distance_m` (80 m by default). Set the edge target to `0` to disable
@@ -1285,15 +1287,15 @@ with one draw distance and candidate budget.
 The random height multiplier is 0.75–1.5. Budgets include candidates rejected on the GPU; reported candidate counts are not a readback of visible blades. Supported ranges are
 0–2 wind strength, 0.05–3 m height, 0.005–0.3 m width, 5–400 m draw distance,
 positive density up to 4096 blades/m², and 1–25,000,000 reserved candidates per planet.
-Candidate density peaks at the camera and follows a Gaussian with standard deviation
-`draw_distance_m * gaussian_sigma_fraction`: by default about 61% of peak at one third of the distance, 14%
-at two thirds, and 1% at the edge. `density_per_m2` sets the requested peak;
-the integrated distribution is scaled down when necessary to fit the instance
-budget using `budget_fraction` as headroom. A cached patch follows walking, rebuilding after `rebuild_distance_fraction` of the draw
+Fresh CPU and compute runs preserve `density_per_m2` through the configured
+quad-distance region, then fit a Gaussian tail outside it. The maximum tail
+width is `draw_distance_m * gaussian_sigma_fraction`; candidate, memory and
+render-time pressure narrow it. `budget_fraction` supplies soft headroom, while
+near work takes precedence when physical capacity permits it. A cached patch follows walking, rebuilding after `rebuild_distance_fraction` of the draw
 distance; overlapping candidates keep their seeded positions. Candidate slots
 have stable density ranks, so growing a power-of-two batch retains existing
-blades. A 20% band above each rank fades its pixel coverage smoothly as Gaussian
-density changes. Each GPU candidate uses
+blades. Fractional candidate coverage changes continuously with density.
+Historical captures retain their original rank-fade policy. Each GPU candidate uses
 one instance; the terrain triangle budget is unchanged. The default distance is shorter than the
 demo's 100 m to bound work on weaker hardware.
 
@@ -1315,11 +1317,11 @@ placement and Perlin wind once per candidate, rejects invisible blades, and
 compacts survivors into detailed/quad queues. Two indirect draws consume those
 GPU buffers without CPU count readback. Each queue reserves 64 bytes per
 candidate; two queues plus draw commands use `128 * capacity + 32` bytes of
-GPU working memory at that capacity (buffers retain the largest plan until
-cleanup). These records are created on the GPU and never uploaded.
+GPU working memory at that capacity. CPU buffers may shrink when a lower
+admitted capacity requires it. These records are created on the GPU and never uploaded.
 OpenGL 3.3 or `compute_placement=false` uses procedural vertex generation.
 
-The opt-in resident planner (`--terrain-backend compute`, `gpu-v1`) protects
+Both the supported CPU planner and default resident planner (`compute`, `gpu-v1`) protect
 configured density through `quad_distance_m` (including its automatic value).
 Beyond that region it fits a Gaussian tail under candidate, render-time and
 memory limits. The maximum tail width is `draw_distance_m *
@@ -1341,12 +1343,13 @@ precedence over that soft allowance when physical capacity permits it.
 Capture sidecars save each body's effective capacity, budget, density, protected
 radius and Gaussian width in `render.foliage_policy` version 1. Replay locks
 those settings and rejects insufficient memory instead of silently thinning the
-recorded result. Camera-only/older replays without this field use live policy;
-an explicit CPU override uses the supported legacy planner. CPU remains the
-default, with its existing foliage behavior. The
-[combined F5 result](docs/journal/architecture/terrain-gpu/acceptance.md) retains
-compute as experimental because the protected profile and rendered coverage
-differ from the CPU reference; faster unmatched frames do not enable it by default.
+recorded result. Camera-only replays use live policy; historical render captures
+without this field retain legacy distribution. An explicit CPU override preserves
+the saved protected policy, including on GL 3.3. Compute is the default for fresh runs. The
+[F6 integration report](docs/journal/architecture/terrain-gpu/grass-allocation/cpu-integration.md)
+records exact matched walking/sprint coverage and all 15 cost pairs within the
+unchanged 1.05 p95 limit, supporting the compute default; the earlier
+[F5 result](docs/journal/architecture/terrain-gpu/acceptance.md) remains historical.
 
 Interactive wind follows elapsed wall time: `T` pauses planetary orbits and spin,
 while grass keeps moving. `Y`/`U` change orbital speed only. Setting

@@ -14,7 +14,7 @@ import sys
 import time
 
 sys.dont_write_bytecode = True
-from run import ROOT, inputs, sha
+from run import ROOT, inputs, sha, production_input
 from NativeSession import Session, validate, write_json
 from route_receipts import compare_routes, summarize_route
 
@@ -26,6 +26,7 @@ def main():
     p.add_argument('--expected-uuid', required=True)
     p.add_argument('--distance', type=int, default=400)
     p.add_argument('--pairs', type=int, default=3)
+    p.add_argument('--quality-replay', type=Path, help='Public production capture with a common locked foliage policy')
     p.add_argument('--case', choices=('both', 'walking', 'sprint'), default='both',
                    help='Repeat one bounded cohort without repeating completed routes')
     args = p.parse_args()
@@ -37,7 +38,7 @@ def main():
     frozen = {**inputs(), 'probe_sha256': sha(probe), 'application_sha256': sha(probe.parents[1] / 'PlanetSimulation')}
     scene = json.loads((ROOT / 'configs/scenarios/solar_system.json').read_text())
     replay = out / 'production-input.json'
-    write_json(replay, {'scenario': scene, 'surface_camera': scene['surface_camera']})
+    write_json(replay, production_input(scene, args.quality_replay))
     (out / 'devices.csv').write_text(subprocess.check_output(['nvidia-smi', '--query-gpu=name,uuid,driver_version,memory.total', '--format=csv'], text=True))
     report = {'base_revision': subprocess.check_output(['git', '-c', f'safe.directory={ROOT}', 'rev-parse', 'HEAD'], text=True).strip(),
               'utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()), 'scope': 'Native route cost preflight; rendered near-root coverage and final migration acceptance remain pending',

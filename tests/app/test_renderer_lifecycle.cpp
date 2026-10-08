@@ -124,3 +124,16 @@ TEST_F(RendererLifecycle, CameraOnlyComputeReplayKeepsLegacyPlannerUnlessExplici
     EXPECT_NO_THROW({app::SceneSource source(options);});
     EXPECT_EQ(options.terrainGrassPlanner,"gpu-v1");
 }
+
+TEST_F(RendererLifecycle, LegacyReplayRetainsCpuBackendUnderComputeDefault) {
+    const auto replay=output/"legacy-camera.json";
+    std::ofstream(replay) << R"({"enabled":true,"planet_index":0,"latitude_deg":0,"longitude_deg":0})";
+    options.renderTestMode=false;options.replayPath=replay.string();
+    ASSERT_EQ(options.terrainBackend,"compute");
+    EXPECT_NO_THROW({app::SceneSource source(options);});
+    EXPECT_EQ(options.terrainBackend,"cpu");
+    options.terrainBackend="compute";options.explicitTerrainBackend=true;
+    options.explicitTerrainGrassPlanner=true;
+    EXPECT_NO_THROW({app::SceneSource source(options);});
+    EXPECT_EQ(options.terrainBackend,"compute");
+}

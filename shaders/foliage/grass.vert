@@ -20,6 +20,7 @@ uniform vec3 uPlanetColor,uLandscapeLevels;
 uniform vec2 uTerrainRockRange,uHeightMultiplierRange=vec2(.75,1.5),uLeanRange=vec2(.1,.4);
 uniform bool uLandscapeEnabled,uWaterEnabled;
 uniform float uGaussianSigma=13.333333,uGreenRatio=1.15,uWaterClearance=.15,uRootOffset=.005;
+uniform bool uAdaptiveFalloff=false;
 uniform vec3 uWindFrequencies=vec3(.08,.02,.7);
 flat out float vFade,vVariation;
 out vec3 vRoot;
@@ -117,7 +118,7 @@ float grassLodFadeEnd(float variation) {
     // Shared with GrassLod.cpp: a stable, tint-independent retention tier.
     uint h=uint(variation*65536.0);
     h^=h>>16; h*=0x7feb352du; h^=h>>15; h*=0x846ca68bu; h^=h>>16;
-    float nearDistance=min(15.0,uDrawDistance*.25);
+    float nearDistance=uAdaptiveFalloff?uQuadDistance:min(15.0,uDrawDistance*.25);
     return nearDistance+float((h&7u)+1u)*(uDrawDistance-nearDistance)/8.0;
 }
 uint grassHash(uint h) {
@@ -199,9 +200,11 @@ void main() {
         // A slot keeps its own density rank when candidate batches grow or
         // shrink. Dividing acceptance by batch size used to reshuffle roots.
         float d=length(root-uGrassEyeBody)*uMetersPerRadius;
-        float expected=aExpectedCandidates*exp(-d*d/(2.0*uGaussianSigma*uGaussianSigma));
+        float tailDistance=uAdaptiveFalloff?max(0.0,d-uQuadDistance):d;
+        float weight=tailDistance==0.0?1.0:(uGaussianSigma<=0.0?0.0:exp(-tailDistance*tailDistance/(2.0*uGaussianSigma*uGaussianSigma)));
+        float expected=aExpectedCandidates*weight;
         float rank=float(gl_InstanceID % uSlotsPerPatch)+max(grassRandom(seed+3u),1e-5);
-        densityFade=smoothstep(rank,rank*1.2,expected);
+        densityFade=uAdaptiveFalloff?clamp(expected-float(gl_InstanceID % uSlotsPerPatch),0.0,1.0):smoothstep(rank,rank*1.2,expected);
         if (length(root)<1e-9 || d>=uDrawDistance || densityFade<=0.0 ||
             biomeVisibility(root,rootUp,seed)==0.0) return;
         variation=vec4(grassRandom(seed+6u)*6.28318530718,
@@ -215,12 +218,13 @@ void main() {
     // useful, and shares endpoints with the six-segment strip.
     float side=float(gl_VertexID%2);
     float distanceToEye=length(root-uGrassEyeBody)*uMetersPerRadius;
-    float nearDistance=min(15.0,uDrawDistance*.25);
+    float nearDistance=uAdaptiveFalloff?uQuadDistance:min(15.0,uDrawDistance*.25);
     float low=uGpuInstances ? aLow : smoothstep(uQuadDistance*.5,uQuadDistance,distanceToEye);
     float fadeEnd=grassLodFadeEnd(variation.w);
     float tierWidth=(uDrawDistance-nearDistance)/8.0;
     vFade=min(1.0-smoothstep(fadeEnd-tierWidth,fadeEnd,distanceToEye),
-              1.0-smoothstep(uDrawDistance*.75,uDrawDistance,distanceToEye));
+              1.0-smoothstep(uAdaptiveFalloff?max(uQuadDistance,uDrawDistance*.75):uDrawDistance*.75,uDrawDistance,distanceToEye));
+    if(uAdaptiveFalloff && distanceToEye<=uQuadDistance) vFade=1.0;
     vFade*=densityFade;
     if (uGpuInstances) vFade=aCoverage;
     vVisible=vFade;

@@ -155,6 +155,31 @@ AdaptiveResult adaptiveFixture(unsigned capacity,unsigned target,unsigned slotCa
     auto limits=TerrainComputeLimits::query();limits.groups=1;
     GrassAllocationCompute compute(limits);auto allocation=compute.generate(metadata,f);allocation->waitForCapture();
     AdaptiveResult r;r.summary=allocation->readSummary();r.ids=allocation->readReferencesForValidation(r.summary.totals[0]);
+    // CPU default uses the same raw-area/protected-distance contract, including
+    // tiny admission, per-triangle caps and locked replay. Compare actual slot
+    // batches/IDs against the independently dispatched resident implementation.
+    std::vector<GrassPlanTriangle> cpuTriangles;
+    for(unsigned i=0;i<triangles.size();++i) {
+        GrassPlanTriangle t;t.patch.triangle=i;t.area=triangles[i].areaDistance[0];
+        t.distance=t.minimumDistance=triangles[i].areaDistance[1];cpuTriangles.push_back(t);
+    }
+    GrassFalloff policy;policy.enabled=true;policy.capacity=capacity;policy.budget=target;
+    policy.protectedMeters=10;policy.sigmaMeters=40;policy.density=8;
+    f.draw_distance_m=100;f.density_per_m2=8;
+    if(replay) {
+        policy.locked=true;policy.budget=replay->control[0];policy.density=replay->densitySearch[0];
+        policy.sigmaMeters=replay->densitySearch[3];policy.nearInfeasible=replay->padding[0]!=0;
+    }
+    const auto cpu=allocateProtectedGrass(std::move(cpuTriangles),f,policy);
+    EXPECT_EQ(cpu.candidates,r.summary.totals[1]);EXPECT_EQ(cpu.falloff.budget,r.summary.control[0]);
+    EXPECT_EQ(cpu.falloff.nearInfeasible,r.summary.padding[0]!=0);
+    EXPECT_DOUBLE_EQ(cpu.density,r.summary.densitySearch[0]);
+    EXPECT_NEAR(cpu.falloff.sigmaMeters,r.summary.densitySearch[3],1e-7);
+    std::vector<std::uint32_t> cpuIds;for(const auto& t:cpu.patches) cpuIds.push_back(t.triangle);
+    EXPECT_EQ(cpuIds,r.ids);
+    for(unsigned l=0;l<17;++l) {
+        EXPECT_EQ(cpu.batches[l].count,r.summary.counts[l]);EXPECT_EQ(cpu.batches[l].first,r.summary.first[l]);
+    }
     EXPECT_LE(r.summary.totals[1],capacity);EXPECT_LE(r.summary.totals[1],r.summary.control[0]);
     EXPECT_EQ(allocation->summaryReadBytes,224u);EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
     return r;

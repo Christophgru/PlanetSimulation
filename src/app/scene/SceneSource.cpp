@@ -17,6 +17,10 @@ SceneSource::SceneSource(CommandLineOptions& options)
         (void)config::ScenarioConfig(config::Config(nlohmann::json(document)));
         if (!replayPath.empty()) {
             const auto& replay = replayDocument;
+            // Replays predating backend metadata were recorded with CPU terrain.
+            if(!options.explicitTerrainBackend &&
+               !(replay.contains("render") && replay["render"].contains("terrain_backend")))
+                options.terrainBackend="cpu";
             if(replay.contains("render") && replay["render"].contains("terrain_backend")) {
                 const auto& backend=replay["render"]["terrain_backend"];
                 if(!backend.is_string() || (backend!="cpu" && backend!="compute"))

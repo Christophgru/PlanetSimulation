@@ -18,11 +18,11 @@ nlohmann::json ProceduralGrass::policy(std::size_t i) const {
 }
 void ProceduralGrass::restorePolicies(const nlohmann::json& replay,const std::vector<config::PlanetConfig>& planets) {
     replayPolicies_.clear();
-    if(!adaptiveBudget_) return; // Explicit CPU overrides use their supported legacy planner.
+    if(!adaptiveBudget_) return; // Historical captures retain their recorded legacy profile.
     if(!replay.contains("render") || !replay.at("render").contains("foliage_policy")) return;
     const auto& policies=replay.at("render").at("foliage_policy");
     if(!policies.is_array() || policies.size()!=planets.size())
-        throw std::invalid_argument("Foliage policy replay requires matching resident planner/bodies");
+        throw std::invalid_argument("Foliage policy replay requires matching bodies");
     for(std::size_t i=0;i<planets.size();++i) {
         if(policies[i].is_null()) {
             if(planets[i].foliage.enabled) throw std::invalid_argument("Missing enabled-body foliage policy replay");

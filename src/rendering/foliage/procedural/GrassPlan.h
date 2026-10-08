@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <vector>
 #include <glm/glm.hpp>
+#include "rendering/foliage/planning/GrassBudget.h"
 namespace config { struct PlanetConfig; }
 
 namespace rendering {
@@ -22,8 +23,19 @@ struct GrassPlan {
     std::size_t candidates=0;
     double distanceMeters=0;
     double density=0;
+    GrassFalloff falloff;
 };
+// CPU geometry collected with the same conservative reach/movement bounds as
+// resident metadata. Allocation consumes raw area in protected mode.
+struct GrassPlanTriangle {
+    ProceduralGrassPatch patch;
+    double area=0,distance=0;
+    int level=0;
+    double minimumDistance=0;
+};
+GrassPlan allocateProtectedGrass(std::vector<GrassPlanTriangle> triangles,
+    const config::FoliageConfig& settings,GrassFalloff policy);
 GrassPlan planGrass(const std::vector<float>& vertices,
     const std::vector<unsigned>& indices, const config::PlanetConfig& planet,
-    double metersPerWorldUnit, const glm::dvec3& eyeBody);
+    double metersPerWorldUnit, const glm::dvec3& eyeBody,const GrassFalloff& policy={});
 } // namespace rendering

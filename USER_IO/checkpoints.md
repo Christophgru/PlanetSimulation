@@ -1,5 +1,66 @@
 # Page to document progress of AI Agents working on this Project
 
+## Compute default promoted — 2026-10-08
+
+- Fresh launches and captures now default to compute terrain with resident
+  `gpu-v1` grass planning, following the passing F6 acceptance gates. Explicit
+  `--terrain-backend cpu` and automatic GL 3.3 fallback remain supported.
+  Saved replay backends remain authoritative; older replays without backend
+  metadata retain CPU behavior unless explicitly overridden.
+- Full incremental build passes. All 30 lifecycle cases, terrain frame/native
+  input and expanded compute capture groups pass, covering default compute,
+  explicit CPU, walking/sprint, reload, historical/exact replay and GL 3.3
+  fallback/locked rejection. Repository layout and diff whitespace checks pass.
+- Standard config capture without config/backend flags selects managed compute,
+  sparse contacts and zero CPU render vectors. PNG SHA256 remains
+  `40053d719757f468dee76a4fd0b694dfced61bf7981d263b5ee3d5aad718ba22`,
+  identical to the accepted F6 production image, with 1,599,906 candidate slots.
+- README, completed F6 record and foundation audit reflect the new default.
+  Algorithms and measured backend implementations are unchanged; existing F6
+  benchmark hashes predate this selection change. Logs/capture stay local under
+  build-f5/compute-default-*. Nothing staged or committed; no additional TODOs.
+
+## F6 completed — 2026-10-08
+
+- Supported CPU planning now shares resident compute's protected-near/fitted-tail
+  allocation, stable rounded slots, memory/timing controller and explicit deficit
+  reporting. GL 3.3 uses the same profile/coverage; historical render captures
+  retain legacy distribution. Saved effective policy survives CPU override and
+  reload, rejecting insufficient memory rather than silently thinning quality.
+- CPU admission charges terrain, queues, references and live/replacement/retiring
+  owners. Terrain uploads preflight old+new storage. Fixed a production startup
+  bug by consuming fresh worker cache before CPU admission and refreshing the
+  inherited replacement controller; the untraced cache regression passes.
+- Production fresh CPU / compute / CPU override produce byte-identical PNGs,
+  identical policy and 1,599,906 slots: 120.72 blades/m² through 15 m, sigma
+  8.435062249191105 m, no near deficit. Common cost input retains density/width
+  with full 2M allowance for moving/replacement topology.
+- Both 25 m walking/sprint common-view inspections pass exact 1.0 ratios in all
+  three bands for eligible area, root density, fade and composed coverage. All
+  sample minimums pass; composed grass pixels exactly 624,964 / 625,183 per backend.
+- All 15 alternating matched-quality cost pairs pass unchanged <=1.05 p95:
+  stationary .995/.922/1.021; walking .783/.795/.766; sprint .656/.665/.601;
+  grounded Moon .728/.983/1.049497; reload 1.007/1.003/1.034. Identical frozen
+  source/tool/application/probe hashes throughout; no measured outliers removed.
+  Moon uses a public landed pose; handoff remains separately tested.
+- Walking 403–448 frames at 5.978–5.995 m/s; sprint 351–405 at 11.987–11.995 m/s.
+  Peak logical overlap 871,735,956 bytes <1 GiB (CPU reload 551,430,464); largest
+  periodic device-wide used sample 884,146,176 bytes. Every reload finishes epoch
+  2 with one publication, equal final planning eye and no failure/pending/retiring
+  resources. CPU reload still stalls synchronously; retained worst frame 2,579 ms
+  versus compute 176 ms. No claim that p95 describes that stall.
+- Pass: 34 core groups, 35 NVIDIA compute cases, 32 Mesa render cases, GL 3.3
+  protected/fallback/replay, six integration groups plus recovery/reload audits;
+  final cache fix additionally rechecked memory, CPU/legacy reload, allocation
+  and production default/override. Xvfb GLFW initialization race passes on rerun
+  with -noreset. Full feedback verification is Mesa; historical NVIDIA exact-trail
+  feedback limitation is not resolved by F6.
+- Report: docs/journal/architecture/terrain-gpu/grass-allocation/cpu-integration.md.
+  Raw captures/traces/compressed receipts stay ignored/local under
+  build-benchmarks/runs/f6-20261008/. Setup attempts remain excluded/local.
+  CPU stays default, compute opt-in experimental. F6 marked t; no new TODO chain,
+  staging or commits. Other user features remain queued until requested.
+
 ## F5 completed — bounded acceptance decision, 2026-10-08
 
 - Fresh optimized build-f5 built from pinned dependency sources, without project

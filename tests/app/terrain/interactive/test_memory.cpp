@@ -4,14 +4,17 @@
 #include "../../../diagnostics/memory/Csv.h"
 #include <set>
 namespace {
-void verifyMemory(const std::string& path,bool managed,const std::set<std::string>& expected) {
+void verifyMemory(const std::string& path,bool managed,const std::set<std::string>& expected,bool cpuOverlap=false) {
     const auto rows=memory_test::rows(path);ASSERT_GE(rows.size(),2u);std::set<std::string> phases;
     EXPECT_EQ(rows.front().at("phase"),"renderer_ready");EXPECT_EQ(rows.back().at("phase"),"shutdown");
     for(const auto& row:rows) {
         phases.insert(row.at("phase"));EXPECT_EQ(row.at("dropped_events"),"0");
         EXPECT_LE(std::stoull(row.at("dropped_observations")),std::stoull(row.at("skipped_latest_observations")));
         EXPECT_EQ(row.at("logical_status"),managed?"resident_reservation":"unavailable");
-        if(managed) EXPECT_EQ(std::stoull(row.at("overlap_reserved_bytes")),std::max(std::stoull(row.at("live_reserved_bytes")),std::stoull(row.at("replacement_reserved_bytes"))));
+        if(managed && cpuOverlap) {
+            EXPECT_GE(std::stoull(row.at("overlap_reserved_bytes")),std::stoull(row.at("live_reserved_bytes"))+std::stoull(row.at("replacement_reserved_bytes")));
+            EXPECT_LE(std::stoull(row.at("overlap_reserved_bytes")),1024ull*1024*1024);
+        } else if(managed) EXPECT_EQ(std::stoull(row.at("overlap_reserved_bytes")),std::max(std::stoull(row.at("live_reserved_bytes")),std::stoull(row.at("replacement_reserved_bytes"))));
         else EXPECT_TRUE(row.at("overlap_reserved_bytes").empty());
         if(row.at("nvml_status")=="ok") {
             EXPECT_EQ(row.at("context_status"),"uuid_verified");EXPECT_TRUE(rendering::validDeviceUuid(row.at("context_uuid")));
@@ -29,23 +32,36 @@ void verifyMemory(const std::string& path,bool managed,const std::set<std::strin
     for(const auto& phase:expected) EXPECT_TRUE(phases.contains(phase))<<phase;
 }
 }
-TEST(MemoryTracing, DisabledDoesNotCreateReaderOrOutput) {
+TEST(MemoryTracing, UntracedCpuPolicyUsesWorkerWithoutCreatingOutput) {
     auto o=options("memory-disabled");o.terrainBackend=o.terrainGrassPlanner="cpu";
     rendering::Renderer renderer(o);auto& r=Probe::state(renderer);
-    EXPECT_FALSE(r.memorySampler);EXPECT_FALSE(std::filesystem::exists(o.performanceTrace+".memory.csv"));
+    EXPECT_TRUE(r.memorySampler);EXPECT_TRUE(r.grass.procedural.adaptiveBudget());
+    EXPECT_FALSE(std::filesystem::exists(o.performanceTrace+".memory.csv"));
+    ASSERT_TRUE(until([]{},[&]{return bool(r.memorySampler->cached());}));
+    const auto sampled=r.memorySampler->cached()->sampledNs;
+    tick(r);
+    EXPECT_GE(r.grass.procedural.budgetSignals().memoryNs,sampled);
 }
 TEST(MemoryTracing, UntracedResidentPolicyUsesWorkerWithoutCreatingOutput) {
     auto o=options("memory-policy-only");rendering::Renderer renderer(o);auto& r=Probe::state(renderer);
     EXPECT_TRUE(r.memorySampler);EXPECT_TRUE(r.grass.procedural.adaptiveBudget());
     EXPECT_FALSE(std::filesystem::exists(o.performanceTrace+".memory.csv"));
 }
-TEST(MemoryTracing, CpuCaptureReloadHasExplicitUnsupportedLedger) {
+TEST(MemoryTracing, CpuCaptureReloadChargesLiveReplacementAndRetirement) {
     auto o=options("memory-cpu");o.terrainBackend=o.terrainGrassPlanner="cpu";o.performanceTrace=o.configPath+".frames.csv";
     {
-        rendering::Renderer renderer(o);EXPECT_EQ(renderer.run(),0);renderer.reload();EXPECT_EQ(renderer.run(),0);
+        rendering::Renderer renderer(o);EXPECT_EQ(renderer.run(),0);auto& r=Probe::state(renderer);
+        EXPECT_TRUE(r.grass.procedural.adaptiveBudget());EXPECT_GT(r.grass.procedural.ownedBytes(),0u);
+        renderer.reload();
+        ASSERT_TRUE(r.retiredLegacyScene);
+        const auto overlap=r.memorySnapshot(rendering::MemoryPhase::ReloadExchange);
+        EXPECT_EQ(overlap.overlapReserved,overlap.liveReserved+r.retiredLegacyScene->meshes.terrainBytes()+r.retiredLegacyScene->grass.procedural.ownedBytes());
+        EXPECT_EQ(r.grass.procedural.reservedBytes(),overlap.overlapReserved);
+        EXPECT_EQ(renderer.run(),0);EXPECT_FALSE(r.retiredLegacyScene);
+        EXPECT_EQ(r.grass.procedural.reservedBytes(),r.meshes.terrainBytes()+r.grass.procedural.ownedBytes());
         std::ofstream(o.configPath)<<"{}";EXPECT_THROW(renderer.reload(),std::exception);
     }
-    verifyMemory(o.performanceTrace+".memory.csv",false,{"renderer_ready","reload_requested","reload_preparing","reload_exchange","reload_failed","shutdown"});
+    verifyMemory(o.performanceTrace+".memory.csv",true,{"renderer_ready","reload_requested","reload_preparing","reload_exchange","retirement","reload_failed","shutdown"},true);
 }
 TEST(MemoryTracing, ResidentReloadRetainsOverlapSupersessionFailureAndRetirement) {
     auto o=options("memory-resident");o.renderTestMode=false;o.performanceTrace=o.configPath+".frames.csv";

@@ -77,7 +77,12 @@ void Renderer::Impl::reloadScene() {
             resident=std::make_unique<SceneTerrainReplacement>(nextSource.document,std::move(prepared),
                 SceneTerrainDestination{scene,source.document,meshes.planetMeshes,meshes.waterMeshes,grass.procedural,*terrainPublication,terrainSceneEpoch},epoch,time);
             resident->restorePolicies(nextSource.replayDocument);
-        } else legacy=std::make_unique<LegacySceneReplacement>(nextSource.document,std::move(prepared));
+        } else {
+            legacy=std::make_unique<LegacySceneReplacement>(nextSource.document,std::move(prepared));
+            legacy->grass.procedural.inheritBudget(grass.procedural);
+            legacy->grass.procedural.externalBudgetBytes(grass.procedural.reservedBytes());
+            legacy->grass.procedural.restorePolicies(nextSource.replayDocument,legacy->scene.scenario.planets);
+        }
         const auto& stagedScene=resident ? resident->scene() : legacy->scene;
         std::vector<std::optional<TerrainCpuBuild>> builds(count);
         std::vector<TerrainBuildIdentity> identities(count);
@@ -126,6 +131,11 @@ void Renderer::Impl::reloadScene() {
                     legacy->meshes.planetMeshes[i].loadComputedTerrain(std::move(built.geometry),*stage.land,true);
                     if(stage.water) legacy->meshes.waterMeshes[i].loadComputedTerrain(std::move(*built.water),*stage.water,true);
                 } else {
+                    observeMemory(MemoryPhase::ReloadPreparing,false,nullptr,legacy.get(),attempt,epoch);
+                    legacy->grass.procedural.observeBudget(grass.procedural.budgetSignals());
+                    legacy->grass.procedural.terrainBudgetBytes(legacy->meshes.terrainBytes());
+                    const auto bytes=[](const TerrainGeometry& g) {return g.vertices.size()*sizeof(float)+g.indices.size()*sizeof(unsigned);};
+                    legacy->grass.procedural.admitCpuTerrain(bytes(built.geometry)+(built.water?bytes(*built.water):0));
                     legacy->meshes.planetMeshes[i].loadTerrain(std::move(built.geometry));
                     if(built.water) legacy->meshes.waterMeshes[i].loadTerrain(std::move(*built.water));
                 }
@@ -139,6 +149,11 @@ void Renderer::Impl::reloadScene() {
                 grassEye=previewReloadEye(planningScene,previewMeshes.planetMeshes,tracking.eyes,nextSource.replayDocument,nextOptions,time);
             } else grassEye=previewReloadEye(legacy->scene,legacy->meshes.planetMeshes,tracking.eyes,nextSource.replayDocument,nextOptions,time);
             plannedEye=grassEye;
+        }
+        if(legacy) {
+            observeMemory(MemoryPhase::ReloadPreparing,false,nullptr,legacy.get(),attempt,epoch);
+            legacy->grass.procedural.observeBudget(grass.procedural.budgetSignals());
+            legacy->grass.procedural.terrainBudgetBytes(legacy->meshes.terrainBytes());
         }
         for(std::size_t i=0;i<count;++i) {
             const auto& planet=stagedScene.scenario.planets[i];

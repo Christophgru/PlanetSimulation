@@ -22,6 +22,13 @@ void Renderer::Impl::installTerrainBuild(TerrainCpuBuild built,const TerrainBuil
     if(identity.resident) throw std::logic_error("Resident terrain requires complete publication");
     const auto i=identity.bodyIndex;
     profiler.terrainBuild(built.milliseconds);
+    if(identity.backend==TerrainBackend::Cpu) {
+        // CPU generation can occupy the first native frame. Consume the
+        // worker's current cache before admission, not only at frame end.
+        observeMemory(memoryPhase);
+        const auto bytes=[](const TerrainGeometry& g) {return g.vertices.size()*sizeof(float)+g.indices.size()*sizeof(unsigned);};
+        grass.procedural.admitCpuTerrain(bytes(built.geometry)+(built.water?bytes(*built.water):0));
+    }
     std::unique_ptr<TerrainComputeBuffers> computed,computedWater;
     if(identity.backend==TerrainBackend::Compute) {
         const auto attempt=profiler.publications().terrain(identity.epoch,i,identity.serial);

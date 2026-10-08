@@ -23,9 +23,11 @@ int bucket(double expected,int maxSlots) {
 
 GrassPlan planGrass(const std::vector<float>& vertices,
     const std::vector<unsigned>& indices, const config::PlanetConfig& planet,
-    double metersPerWorldUnit, const glm::dvec3& eyeBody) {
+    double metersPerWorldUnit, const glm::dvec3& eyeBody,const GrassFalloff& policy) {
     CpuTrace::Scope scope("planGrass");
     GrassPlan result;
+    result.falloff=policy;
+    if(policy.enabled) result.density=policy.density;
     const auto& settings=planet.foliage;
     if (!settings.enabled || vertices.empty()) return result;
     const double scale=planet.radius*metersPerWorldUnit;
@@ -45,7 +47,7 @@ GrassPlan planGrass(const std::vector<float>& vertices,
     const double snowStart=std::max(water+1.1,water+.25*relief);
     const double snowEnd=std::max(snowStart+1,water+.4*relief);
     if ((glm::length(eyeBody)-1)*scale-maximumHeight>result.distanceMeters+margin) return result;
-    struct Candidate { ProceduralGrassPatch patch; double area, distance; int level=0; };
+    using Candidate=GrassPlanTriangle;
     std::vector<Candidate> candidates;
     double totalArea=0;
     for (std::size_t t=0;t+2<indices.size();t+=3) {
@@ -92,10 +94,11 @@ GrassPlan planGrass(const std::vector<float>& vertices,
         // Reserve a conservative Gaussian bound for camera movement. The GPU
         // evaluates actual density against stable candidate ranks.
         const double minimumDistance=std::max(0.0,distance-reach*scale-margin);
-        const double weighted=area*std::exp(-minimumDistance*minimumDistance/variance2);
-        if (weighted*requestedDensity<1e-6) continue;
-        candidates.push_back({patch,weighted,distance}); totalArea+=weighted;
+        const double weighted=policy.enabled?area:area*std::exp(-minimumDistance*minimumDistance/variance2);
+        if (policy.enabled ? weighted<1e-12 : weighted*requestedDensity<1e-6) continue;
+        candidates.push_back({patch,weighted,distance,0,minimumDistance}); totalArea+=weighted;
     }
+    if(policy.enabled) return allocateProtectedGrass(std::move(candidates),settings,policy);
     const std::size_t budget=std::size_t(settings.max_blades);
     if (candidates.size()>budget) {
         // A very small explicit budget cannot represent every triangle. Keep

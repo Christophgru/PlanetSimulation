@@ -55,6 +55,7 @@ def summarize_route(trace, frames, uuid, sprint, distance, units=1000):
     assert memory[0]['phase'] == 'renderer_ready' and memory[-1]['phase'] == 'shutdown'
     assert all(r['context_uuid'] == uuid and r['context_status'] == 'uuid_verified' and r['nvml_status'] == 'ok'
                and int(r['dropped_events']) == 0 for r in memory)
+    assert all(not r['overlap_reserved_bytes'] or int(r['overlap_reserved_bytes']) <= 1024**3 for r in memory)
     physical = [int(r['used_bytes']) for r in memory if r['kind'] == 'sample' and
                 first['observed_ns'] <= int(r['query_end_ns']) <= last['observed_ns']]
     assert len(physical) >= 3
@@ -120,6 +121,9 @@ def compare_routes(cpu, compute):
                 if x['foliage'][key] != y['foliage'][key]:
                     differences.append({'distance_m': a['distance_m'], 'body': x['body'], 'key': key,
                                         'cpu': x['foliage'][key], 'compute': y['foliage'][key]})
+            if x['foliage'].get('policy') != y['foliage'].get('policy'):
+                differences.append({'distance_m': a['distance_m'], 'body': x['body'], 'key': 'effective_policy',
+                                    'cpu': x['foliage'].get('policy'), 'compute': y['foliage'].get('policy')})
             if x['foliage']['enabled']:
                 cd, gd = x['foliage']['density'], y['foliage']['density']
                 if cd > 0:

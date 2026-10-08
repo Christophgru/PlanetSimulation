@@ -12,7 +12,7 @@ import math
 from pathlib import Path
 import subprocess
 import time
-from run import ROOT, inputs, sha, local_output
+from run import ROOT, inputs, sha, local_output, production_input
 from NativeSession import Session, validate, write_json
 from FlightSeeds import seeds
 from receipts import summarize, compare_pair, rows, percentiles
@@ -27,6 +27,8 @@ def main():
     parser.add_argument('--pairs', type=int, default=3)
     parser.add_argument('--frames', type=int, default=240)
     parser.add_argument('--seconds', type=float, default=10)
+    parser.add_argument('--quality-replay', type=Path, help='Public production capture with a common locked foliage policy')
+    parser.add_argument('--moon-replay', type=Path, help='Public settled Moon capture for matched steady poses; handoff is tested separately')
     args = parser.parse_args()
     if args.pairs < 3 or args.frames < 240 or args.seconds < 10:
         parser.error('Require three pairs, 240 frames and ten seconds per case')
@@ -36,7 +38,19 @@ def main():
     out.mkdir(parents=True)
     probe, binary = args.probe.resolve(), args.binary.resolve()
     scene = json.loads((ROOT/'configs/scenarios/solar_system.json').read_text())
+    common_input = production_input(scene, args.quality_replay)
     paths, launch = seeds(binary, ROOT, out, scene, boosted_launch=True)
+    if args.moon_replay:
+        moon_input = json.loads(args.moon_replay.read_text())
+        assert moon_input['scenario'] == scene
+        assert moon_input['surface_camera']['planet_index'] == 1
+        assert not moon_input['astronaut_pose']['airborne']
+        write_json(paths['moon'][0], moon_input)
+        paths['moon'] = (paths['moon'][0], moon_input['astronaut_pose']['root'])
+    if args.quality_replay:
+        moon_input = json.loads(paths['moon'][0].read_text())
+        moon_input['render']['foliage_policy'] = common_input['render']['foliage_policy']
+        write_json(paths['moon'][0], moon_input)
     moon = next(b for b in launch['astronaut_pose']['navigation']['gravity_bodies'] if b['index']==2)
     frozen = {**inputs(), 'probe_sha256': sha(probe), 'application_sha256': sha(binary)}
     report = {'schema': 1, 'base_revision': subprocess.check_output(
@@ -44,7 +58,7 @@ def main():
         'expected_uuid': args.expected_uuid, 'frozen_provenance': frozen,
         'method': {'pairs': args.pairs, 'frames': args.frames, 'minimum_seconds': args.seconds,
                    'warmup': 'three seconds and 30 ready frames', 'viewport': [1280,720],
-                   'moon': 'common public production saved outer-space pose inside Moon orientation boundary; initial handoff retained as startup latency; post-handoff window keeps natural flight/body changes',
+                   'moon': ('common public settled Moon pose; startup separate, natural grounded physics retained; handoff tested separately' if args.moon_replay else 'common public production saved outer-space pose inside Moon orientation boundary; initial handoff retained as startup latency; post-handoff window keeps natural flight/body changes'),
                    'reload': 'production seed increment; measured interval includes request, preparation, publication and retirement',
                    'outliers': 'none removed; startup/warmup/close are labelled in raw trace',
                    'quality_gate': 'must be established independently; scalar/timing receipts cannot establish rendered coverage'},
@@ -58,7 +72,7 @@ def main():
                 folder.mkdir(parents=True)
                 replay = paths['moon'][0] if case=='moon' else folder/'input.json'
                 if case=='reload':
-                    write_json(replay,{'scenario':scene,'surface_camera':scene['surface_camera']})
+                    write_json(replay,common_input)
                 trace = folder/'performance.csv'
                 flags = ['--replay',str(replay),'--terrain-backend',backend,
                          '--terrain-grass-planner','gpu' if backend=='compute' else 'cpu',
@@ -79,15 +93,19 @@ def main():
                         # Check replay before advancing physics. A production CPU
                         # first frame can take seconds: gravity legitimately moves
                         # the astronaut before the handoff frame is presented.
-                        assert math.dist(initial['pose']['navigation']['position_m'],paths['moon'][1])<.001
-                        assert initial['pose']['navigation']['outer_space']
-                        handed_off = lambda f: ready(f) and f['pose']['navigation']['reference_body']==2
-                        first = next((f for f in session.frames if handed_off(f)),None)
-                        if first is None: first = session.wait(handed_off,timeout=180)
-                        nav = first['pose']['navigation']
-                        assert first['selected']==1 and not nav['outer_space']
-                        assert math.dist(nav['position_m'],moon['position_m'])<2.4*moon['radius_m']
-                        assert len(nav['gravity_indices'])==3 and 2 in nav['gravity_indices']
+                        if args.moon_replay:
+                            assert initial['selected']==1 and not initial['pose']['airborne']
+                            assert math.dist(initial['pose']['root'],paths['moon'][1])<.001
+                        else:
+                            assert math.dist(initial['pose']['navigation']['position_m'],paths['moon'][1])<.001
+                            assert initial['pose']['navigation']['outer_space']
+                            handed_off = lambda f: ready(f) and f['pose']['navigation']['reference_body']==2
+                            first = next((f for f in session.frames if handed_off(f)),None)
+                            if first is None: first = session.wait(handed_off,timeout=180)
+                            nav = first['pose']['navigation']
+                            assert first['selected']==1 and not nav['outer_space']
+                            assert math.dist(nav['position_m'],moon['position_m'])<2.4*moon['radius_m']
+                            assert len(nav['gravity_indices'])==3 and 2 in nav['gravity_indices']
                     warm = session.control({'phase':'warmup'})
                     session.wait(lambda f: ready(f) and f['frame']>=warm['frame']+30 and
                                  f['observed_ns']>=warm['observed_ns']+3_000_000_000,timeout=180)
@@ -97,7 +115,9 @@ def main():
                         replacement = copy.deepcopy(scene)
                         replacement['scenario_name']='F5 production replacement'
                         replacement['planets'][0]['surface_noise'][0]['seed']+=1
-                        write_json(replay,{'scenario':replacement,'surface_camera':replacement['surface_camera']})
+                        replacement_input = copy.deepcopy(common_input)
+                        replacement_input.update({'scenario':replacement,'surface_camera':replacement['surface_camera']})
+                        write_json(replay,replacement_input)
                         requested = time.monotonic_ns()
                         session.key('r')
                     def finished(f):

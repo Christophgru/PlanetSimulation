@@ -23,7 +23,7 @@ sys.dont_write_bytecode = True
 # contains inspect.py. NumPy needs the standard inspect module.
 import inspect
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from run import ROOT, inputs, sha
+from run import ROOT, inputs, sha, production_input
 from NativeSession import Session, validate, write_json
 spec = importlib.util.spec_from_file_location('matched_analysis', ROOT / 'tests/app/terrain/native/coverage/matched/measure.py')
 analysis = importlib.util.module_from_spec(spec)
@@ -38,6 +38,7 @@ def main():
     p.add_argument('--distance', type=int, default=350)
     p.add_argument('--case', choices=('walking', 'sprint'), default='sprint')
     p.add_argument('--pairs', type=int, choices=(1, 3), default=3)
+    p.add_argument('--quality-replay', type=Path, help='Public production capture with a common locked foliage policy')
     p.add_argument('--live', action='store_true', help='Qualify tiled live analytic area; all frames remain excluded')
     p.add_argument('--compress-raw', action='store_true', help='Verify lossless per-run storage before removing duplicate raw files')
     args = p.parse_args()
@@ -54,7 +55,7 @@ def main():
     frozen = {**inputs(), 'inspection_probe_sha256': sha(args.probe)}
     scene = json.loads((ROOT / 'configs/scenarios/solar_system.json').read_text())
     replay = out / 'production-input.json'
-    write_json(replay, {'scenario': scene, 'surface_camera': scene['surface_camera']})
+    write_json(replay, production_input(scene, args.quality_replay))
     report = {'schema': 1, 'scope': 'Excluded matched live-plan coverage; not cost timing',
               'base_revision': subprocess.check_output(['git', '-c', f'safe.directory={ROOT}', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
               'utc': datetime.now(timezone.utc).isoformat(),

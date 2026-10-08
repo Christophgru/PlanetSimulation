@@ -1,4 +1,5 @@
 #include "rendering/runtime/ScenePass.h"
+#include "rendering/runtime/ResourceOwners.h"
 #include "rendering/foliage/GrassWind.h"
 #include "rendering/character/AstronautRenderer.h"
 #include "rendering/geometry/publication/TerrainPublication.h"
@@ -52,6 +53,8 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario, At
     exposure.hdrOutput = hdr;
     lightingScope.stop();
     Scope foliageScope(profiler, Stage::Foliage, false);
+    if(grass && !publication) grass->procedural.terrainBudgetBytes(
+        terrainStorageBytes(planetMeshes)+terrainStorageBytes(waterMeshes));
     if (grass) for (std::size_t i=0;i<scenario.planets.size();++i) {
         const auto& planet=scenario.planets[i];
         if(publication) {

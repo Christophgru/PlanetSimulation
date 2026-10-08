@@ -14,8 +14,8 @@ document checkpoints in USER_IO/checkpoints.md the User might move also finished
 
 ## Clean foundation
 
-These five outcomes replace the nested terrain/atmosphere planning and benchmark
-rows. Implement them using the existing architecture and tools. Completed work
+F1–F6 record the completed foundation work that replaced the nested terrain/atmosphere
+planning and benchmark rows. Reuse the existing architecture and tools. Completed work
 and historical experiments are summarized in [USER_IO/escalded_change.md](USER_IO/escalded_change.md)
 and the journal; they are not additional active tasks. Store raw benchmark output
 locally in ignored build directories, including .gz/.xz files. Commit only source,
@@ -23,15 +23,16 @@ small required fixtures and compact results needed to explain the changes.
 
 |Task |State|Comment|
 |:--|:--:|:--|
+|F6 — Unify automatic foliage budgeting in the CPU and compute renderers.|t|Shared protected-near/fitted-tail allocation, GL 3.3 fallback, cached memory/timing signals, conservative admission, controller inheritance and locked replay now work in the supported CPU path as well as resident compute. Production CPU/compute/CPU-override PNGs and policy match exactly; walking/sprint coverage is exact in all three bands. All 15 matched-quality cost pairs pass the unchanged <=1.05 p95 gate (maximum 1.049497); live/staged/retiring overlap stays below 1 GiB. Core, allocation, contact/replay, fallback and reload checks pass. Report: docs/journal/architecture/terrain-gpu/grass-allocation/cpu-integration.md. Compute now defaults for fresh runs after F6 acceptance; CPU override/GL 3.3 fallback and historical replay compatibility retained. Raw data local, changes uncommitted.|
 |F1 — Make builds and normal tests independent of historical benchmark archives.|t|Clean RelWithDebInfo configure/build and 34/34 headless core checks pass without historical archives. Bulk data stays local; 599 old tracked raw traces removed from Git. Ten optional validators report missing data with exit 2 and regeneration commands; original hash checks and corruption rejection preserved. Storage policy and commands: scripts/benchmarks/archives/README.md. F2–F5 unchanged.|
 |F2 — Fix the compute terrain stationary full-render regression.|t|GPU distance-ordering of triangle references reuses existing scratch storage without CPU blade-queue reads or quality reduction. Three alternating Quadro production normal-wind pairs pass the 1.05 p95 gate at 1.009/1.021/1.013; fixed-wind pairs pass too. Exact production blades/depth/RGB and native contacts/replay preserved. Compact result and verification limits: docs/journal/architecture/terrain-gpu/async/hardware/cost/raster/order/correction.md. Raw runs stay local; CPU remains default. F3–F5 untouched.|
 |F3 — Implement automatic foliage falloff while protecting near-camera density.|t|Resident GPU planner protects the configured quad-distance region, fits distant sigma to timing/memory budgets and reports infeasible near work. Admission includes live/staged/retiring/replacement generations; cached telemetry has conservative missing-data limits and hysteresis. Effective policy is locked in replay. Normal/tiny budgets, actual protected coverage, missing/stale telemetry, exact production/walking replay and native reload/fallback audits pass. Compact results: docs/journal/architecture/terrain-gpu/grass-allocation/adaptive-falloff.md. Raw runs remain local; CPU stays default. F4/F5 unchanged.|
 |F4 — Keep atmospheric highlight/exposure reduction on the GPU.|t|Exact GL 4.3 histogram preserves weighted 5% exclusion, partial tiles, sparse stars and current-frame/cached/manual/reflection behaviour; GL 3.3 keeps the supported reference. At 1080p readback falls 259,200→8 bytes and focused saturated median 3.558→1.580 ms; small-view dispatch overhead is documented. Core, render/fallback, canonical scenario/replay and reload checks pass; twelve images/metrics per driver match baseline. Report: docs/journal/architecture/atmosphere/highlights.md. Raw runs local; F5 untouched.|
 |F5 — Complete a bounded terrain acceptance run and document the supported defaults.|t|Bounded evaluation complete: 15 alternating production pairs, canonical 100k measurement and fresh-build core/compute/input/reload/fallback/replay checks. Transfer drops 76.66%; bulk CPU field evaluations fall to zero; bounded replacement/contact audits pass. Rendered foliage/quality differs, so matched-quality full-frame speed acceptance fails. CPU remains supported/default and compute opt-in experimental; speed goal is not claimed complete. One compact report: docs/journal/architecture/terrain-gpu/acceptance.md. Raw receipts stay local; no additional task chain.|
 
-Order: F1 first; F2–F4 are separate implementation outcomes; F5 verifies the
-combined result. A blocked hardware run does not mark its task complete or
-prevent independent work on another implementation outcome.
+F1–F6 are completed records. F6 closes the default-renderer integration limits
+found in the F1–F5 audit. Remaining requested features are queued below;
+no additional foundation task chain is needed.
 
 ## Remaining requested features
 

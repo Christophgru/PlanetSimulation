@@ -70,7 +70,11 @@ Renderer::Impl::Impl(app::CommandLineOptions arguments)
         throw std::runtime_error("Interactive compute terrain requires GPU grass planning");
     if(terrainCompute && options.terrainGrassPlanner=="gpu-v1")
         terrainPublication=std::make_unique<TerrainPublication>(grass.procedural,scene.scenario.planets.size());
-    grass.procedural.enableAdaptiveBudget(bool(terrainPublication));
+    // Fresh CPU/GL 3.3 operation shares the protected profile. Old captures
+    // without an effective policy retain their recorded legacy distribution.
+    const bool legacyCapture=source.replayDocument.contains("render") &&
+        !source.replayDocument.at("render").contains("foliage_policy");
+    grass.procedural.enableAdaptiveBudget(bool(terrainPublication) || !legacyCapture);
     grass.procedural.restorePolicies(source.replayDocument,scene.scenario.planets);
     scene.updateSimulation(simulationTime);
     cameraInput.setThirdPersonWalkSpeed(6.0/scene.scenario.metersPerWorldUnit());
@@ -143,7 +147,7 @@ Renderer::Impl::Impl(app::CommandLineOptions arguments)
     grass.diagnostics(&profiler.publications(),&terrainSceneEpoch,&installedTerrainSerial,&lastLocalMask,&meshes.waterMeshes);
     adaptiveQuality = AdaptiveQuality(availableMemory);
     glEnable(GL_DEPTH_TEST);
-    if(!options.performanceTrace.empty() || terrainPublication) {
+    if(!options.performanceTrace.empty() || grass.procedural.adaptiveBudget()) {
         auto identity=contextMemory();memoryNvx=identity.nvx;
         memorySampler=std::make_unique<MemorySampler>(options.performanceTrace.empty()?"":options.performanceTrace+".memory.csv",
             std::move(identity),memorySnapshot(MemoryPhase::RendererReady));

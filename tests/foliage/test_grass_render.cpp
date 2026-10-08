@@ -483,3 +483,56 @@ TEST(ProceduralGrassRender, ResidentProtectedRegionKeepsConfiguredCoverageWithou
     EXPECT_LE(fractional,2u);EXPECT_NEAR(coverage,2100.,.01);
     EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
 }
+
+TEST(ProceduralGrassRender, CpuProtectedCoverageSurvivesVertexFallbackAndLockedReplay) {
+    GrassProbe probe;
+    probe.planet.foliage.density_per_m2=4;
+    probe.planet.foliage.quad_distance_m=probe.planet.foliage.draw_distance_m;
+    probe.planet.foliage.frustum_culling=false;
+    probe.grass.enableAdaptiveBudget();
+    ++probe.mesh.revision;
+    probe.grass.prepare(0,probe.mesh,probe.planet,100,{0,0,1.02});
+    const auto policy=probe.grass.policy(0);
+    EXPECT_FALSE(policy.at("near_infeasible").get<bool>());
+    EXPECT_EQ(probe.grass.stats(0).density,4.);
+    const auto vertex=probe.capture();
+    double coverage=0;
+    for(std::size_t i=0;i<vertex.size();i+=12*3*10) coverage+=vertex[i+9];
+    EXPECT_NEAR(coverage,2100.,.01);
+    if(GLEW_VERSION_4_3) {
+        const auto computed=probe.capture(0,true);
+        double computedCoverage=0;
+        for(std::size_t i=0;i<computed.size();i+=12*3*10) computedCoverage+=computed[i+9];
+        EXPECT_NEAR(computedCoverage,coverage,.01);
+    }
+    auto saved=policy;saved["body"]=probe.planet.name;
+    probe.grass.restorePolicies({{"render",{{"foliage_policy",nlohmann::json::array({saved})}}}}, {probe.planet});
+    ++probe.mesh.revision;
+    probe.grass.prepare(0,probe.mesh,probe.planet,100,{0,0,1.02});
+    EXPECT_EQ(probe.grass.policy(0),policy);
+    EXPECT_EQ(probe.capture(),vertex);
+    EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+}
+
+TEST(ProceduralGrassRender, CpuAdmissionChargesLiveTerrainAndReplacementBeforeLockedReplay) {
+    GrassProbe probe;
+    probe.grass.enableAdaptiveBudget();
+    probe.grass.terrainBudgetBytes(1024);
+    probe.grass.externalBudgetBytes(2048);
+    ++probe.mesh.revision;
+    probe.grass.prepare(0,probe.mesh,probe.planet,100,{0,0,1.02});
+    EXPECT_EQ(probe.grass.reservedBytes(),3072+probe.grass.ownedBytes());
+    EXPECT_EQ(probe.grass.ownedBytes(),4096*128+2*4+32);
+    const auto before=probe.grass.policy(0);
+    auto saved=before;saved["body"]=probe.planet.name;
+    probe.grass.restorePolicies({{"render",{{"foliage_policy",nlohmann::json::array({saved})}}}}, {probe.planet});
+    auto signals=probe.grass.budgetSignals();
+    signals.capBytes=probe.grass.reservedBytes()+2*4+32+128;
+    probe.grass.observeBudget(signals);
+    EXPECT_NO_THROW(probe.grass.admitCpuTerrain(2*4+32+128));
+    EXPECT_THROW(probe.grass.admitCpuTerrain(2*4+32+129),std::runtime_error);
+    ++probe.mesh.revision;
+    EXPECT_THROW(probe.grass.prepare(0,probe.mesh,probe.planet,100,{0,0,1.02}),std::runtime_error);
+    EXPECT_EQ(probe.grass.policy(0),before);
+    EXPECT_EQ(probe.grass.reservedBytes(),3072+probe.grass.ownedBytes());
+}

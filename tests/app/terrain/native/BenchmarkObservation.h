@@ -21,8 +21,9 @@ inline nlohmann::json benchmarkObservation(State& r, GLFWwindow* window) {
                 {"configured_budget",configured.max_blades},{"configured_distance_m",configured.draw_distance_m},
                 {"density",grass.density},{"distance_m",grass.distanceMeters},
                 {"enabled",configured.enabled},
+                {"policy",r.grass.procedural.policy(i)},
                 {"budget",configured.enabled ? (grass.allocationBudget ? grass.allocationBudget : std::uint64_t(configured.max_blades)) : 0},
-                {"budget_source",grass.allocationBudget ? "resident_summary" : "legacy_configured_hard_cap"},
+                {"budget_source",grass.allocationBudget ? (r.terrainPublication ? "resident_summary" : "cpu_policy") : "legacy_configured_hard_cap"},
                 {"candidates",grass.candidates},{"patches",grass.patches},
                 {"gpu_bytes",grass.gpuBytes},{"compute_placement",r.grass.procedural.usesCompute(i)},
                 {"plan_eye",eye ? nlohmann::json{eye->x,eye->y,eye->z} : nlohmann::json(nullptr)}}}});
