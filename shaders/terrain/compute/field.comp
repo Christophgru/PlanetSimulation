@@ -12,6 +12,9 @@ layout(std430,binding=3) readonly buffer Topology { uint corners[]; };
 layout(std430,binding=4) writeonly buffer Vertices { float vertices[]; };
 layout(std430,binding=5) writeonly buffer Indices { uint indices[]; };
 layout(std430,binding=6) writeonly buffer Heights { double heights[]; };
+layout(std430,binding=7) readonly buffer SurfacePolicy {
+    dvec4 policyEyeEdge,policyDistances; double policySpacing[8];
+};
 uniform int uFirst,uCount,uPhase,uDiagnostics;
 uniform dvec2 uRockRange;
 
@@ -36,7 +39,33 @@ double noise(dvec3 point,uint seed) {
     }
     return result;
 }
-double heightMeters(dvec3 direction) {
+// GLSL has no double-precision acos overload. Two half-angle reductions
+// keep the atan series within tan(pi/16), retaining double policy precision.
+double policyAcos(double x) {
+    double a=abs(clamp(x,-1.0lf,1.0lf));
+    double t=sqrt((1.0lf-a)/(1.0lf+a));
+    t=t/(1.0lf+sqrt(1.0lf+t*t));t=t/(1.0lf+sqrt(1.0lf+t*t));
+    double term=t,sum=t;
+    for(int k=1;k<16;++k) {term*=-t*t;sum+=term/double(2*k+1);}
+    double result=8.0lf*sum;
+    return x<0.0lf?3.1415926535897932384626433832795lf-result:result;
+}
+dvec3 surfaceProfile(dvec3 radial) {
+    if(policyDistances.z==0.0lf) return dvec3(0);
+    if(all(equal(policyEyeEdge.xyz,dvec3(0)))) return dvec3(policySpacing[0],policySpacing[0],0);
+    double distance=policyDistances.z*policyAcos(clamp(dot(radial,policyEyeEdge.xyz),-1.0lf,1.0lf));
+    double level=7.0lf*(1.0lf-clamp((distance-policyDistances.x)/(policyDistances.y-policyDistances.x),0.0lf,1.0lf));
+    int parent=int(floor(level)),fine=min(7,parent+1);
+    double blend=1.0lf-(level-double(parent));blend=blend*blend*(3.0lf-2.0lf*blend);
+    return dvec3(policySpacing[fine],policySpacing[parent],blend);
+}
+double resolvedNoise(double frequency,dvec3 profile) {
+    dvec2 t=clamp((frequency*profile.xy/scale.x/scale.y-.25lf)/.25lf,0.0lf,1.0lf);
+    dvec2 resolved=1.0lf-t*t*(3.0lf-2.0lf*t);
+    return resolved.x*(1.0lf-profile.z)+resolved.y*profile.z;
+}
+double heightMeters(dvec3 direction,dvec3 profile,out double omitted) {
+    omitted=0.0lf;
     precise double height=0.0lf;double detailMask=1.0lf;
     if(flags.z!=0u) {
         double continent=2.0lf*noise(direction*landscapeShape.z,seeds.x)-1.0lf;
@@ -44,7 +73,7 @@ double heightMeters(dvec3 direction) {
             noise(normalized(direction)*2.7lf,seeds.x+1u));
         double cliff=fieldSmooth(landscapeMask.y-.06lf,landscapeMask.y+.06lf,
             noise(normalized(direction)*2.4lf,seeds.x+2u));
-        height=landscapeShape.x+landscapeShape.y*continent*(1.0lf-.8lf*plain);
+        height=landscapeShape.x+landscapeShape.y*continent*(1.0lf-.8lf*plain)*resolvedNoise(landscapeShape.z,profile);
         double signal=2.0lf*noise(direction*landscapeMask.z,seeds.x+3u)-1.0lf;
         precise double distance=abs(signal);
         if(landscapeMask.w>0.0lf) {
@@ -53,25 +82,35 @@ double heightMeters(dvec3 direction) {
         }
         double ridge=1.0lf-clamp(distance,0.0lf,1.0lf);
         precise double fifth=ridge*ridge*ridge*ridge*ridge;
-        height+=landscapeShape.w*cliff*fifth;detailMask=1.0lf-.9lf*plain;
+        height+=landscapeShape.w*cliff*fifth*resolvedNoise(landscapeMask.z,profile);detailMask=1.0lf-.9lf*plain;
+        omitted=landscapeShape.y*(1.0lf-resolvedNoise(landscapeShape.z,profile))+
+            landscapeShape.w*(1.0lf-resolvedNoise(landscapeMask.z,profile));
     }
     for(uint i=0u;i<flags.y;++i) {
         Noise n=noises[i];if(n.amplitude==0.0lf) continue;
         double frequency=n.frequency,weight=1.0lf,weightSum=0.0lf;
-        precise double full=0.0lf;double broad=0.0lf;
+        precise double full=0.0lf;double broad=0.0lf,missing=0.0lf;
         for(uint octave=0u;octave<n.settings.y;++octave) {
-            double v=2.0lf*noise(direction*frequency,n.settings.z)-1.0lf;
-            double sampled=n.settings.x==1u ? 1.0lf-2.0lf*abs(v) : v;
+            double retained=resolvedNoise(frequency,profile);
+            double v=retained>0.0lf?2.0lf*noise(direction*frequency,n.settings.z)-1.0lf:0.0lf;
+            double sampled=(n.settings.x==1u ? 1.0lf-2.0lf*abs(v) : v)*retained;
+            missing+=weight*(1.0lf-retained);
             if(octave==0u) broad=sampled;
             full+=weight*sampled;weightSum+=weight;
             frequency*=n.lacunarity;weight*=n.persistence;
         }
         precise double mixed=broad+(full/weightSum-broad);
-        height+=detailMask*n.amplitude*mixed;
+        height+=detailMask*n.amplitude*mixed;omitted+=n.amplitude*missing/weightSum;
     }
     return height;
 }
-double heightAt(dvec3 direction) { return heightMeters(normalized(direction))/scale.y; }
+dvec2 heightAt(dvec3 direction) {
+    direction=normalized(direction);dvec3 profile=surfaceProfile(direction);double omitted;
+    double h=heightMeters(direction,profile,omitted)/scale.y;
+    double curvature=(profile.x*profile.x*(1.0lf-profile.z)+profile.y*profile.y*profile.z)/(8.0lf*scale.x*scale.y);
+    double sink=policyDistances.z>0.0lf?double(float(min(policyDistances.w,omitted+curvature))):0.0lf;
+    return dvec2(h,sink);
+}
 dvec3 colorAt(double heightWorld,double slope) {
     if(flags.z==0u) {
         double h=scale.z==0.0lf?0.0lf:heightWorld/(scale.z/scale.y);
@@ -100,13 +139,15 @@ void main() {
         indices[i]=i;return;
     }
     dvec3 radial=inputs[i].xyz;
-    double h=heightAt(radial),hm=h*scale.y;
+    dvec2 sampled=heightAt(radial);double h=sampled.x,hm=h*scale.y;
     dvec3 reference=abs(radial.z)<.8lf?dvec3(0,0,1):dvec3(0,1,0);
     dvec3 a=normalized(cross(reference,radial)),b=normalized(cross(radial,a));
     dvec3 sampleA=normalized(gradient.y*radial+gradient.x*a);
     dvec3 sampleB=normalized(gradient.y*radial+gradient.x*b);
-    precise double ga=(heightAt(sampleA)*scale.y-hm)/gradient.z;
-    precise double gb=(heightAt(sampleB)*scale.y-hm)/gradient.z;
+    dvec2 ha=heightAt(sampleA),hb=heightAt(sampleB);
+    double surfaceHeight=hm-(policyDistances.z>0.0lf?inputs[i].w:0.0lf);
+    precise double ga=(ha.x*scale.y-ha.y-surfaceHeight)/gradient.z;
+    precise double gb=(hb.x*scale.y-hb.y-surfaceHeight)/gradient.z;
     precise dvec3 normal=normalized(radial-ga*a-gb*b);
     dvec3 color=colorAt(h,sqrt(ga*ga+gb*gb));
     precise dvec3 p=radial*(1.0lf+h/scale.x);

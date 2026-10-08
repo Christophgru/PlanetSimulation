@@ -215,11 +215,11 @@ TerrainGeometry TerrainSurface::evaluateTopology(const TerrainTopology& topology
     topology.validate();
     if(topology.generation.field!=field_.fingerprint())
         throw std::invalid_argument("Terrain topology belongs to a different planet field");
-    TerrainQueryCache queries(field_);
+    TerrainQueryCache queries(field_,8192,topology.surfacePolicy);
     std::vector<std::array<float,9>> values;values.reserve(topology.samples.size());
     for(const auto& s:topology.samples) {
         const glm::dvec3 radial(s.radial[0],s.radial[1],s.radial[2]);
-        const auto v=field_.sample(radial,queries.heightAt(radial),&queries);
+        const auto v=field_.sample(radial,queries.heightAt(radial),&queries,topology.surfacePolicy);
         std::array<float,9> packed{};
         for(int j=0;j<3;++j) {packed[j]=static_cast<float>(v.position[j]);
             packed[j+3]=static_cast<float>(v.normal[j]);packed[j+6]=static_cast<float>(v.color[j]);}

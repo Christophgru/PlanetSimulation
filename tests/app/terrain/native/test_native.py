@@ -20,6 +20,8 @@ out = args.output_dir.resolve()
 out.mkdir(parents=True, exist_ok=True)
 scene = json.loads((root / 'tests/scenarios/foliage/surface.json').read_text())
 for planet in scene['planets']:
+    planet.setdefault('terrain_lod', {})['relief_sinking'] = True
+    planet['terrain_lod']['geometric_error_m'] = .05
     planet['terrain_lod'] = {**planet.get('terrain_lod', {}), 'max_triangle_budget': 10000}
     planet['rotation'] = {'period_seconds': 0, 'axial_tilt_deg': 0}
     planet['mass_kg'] = 9.81 * (planet['radius'] * 1000)**2 / 6.67430e-11

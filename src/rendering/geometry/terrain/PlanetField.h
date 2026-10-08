@@ -7,6 +7,7 @@
 #include <vector>
 #include <glm/glm.hpp>
 #include "config/ScenarioConfig.h"
+#include "rendering/geometry/terrain/TerrainSurfacePolicy.h"
 
 namespace rendering {
 class TerrainQueryCache;
@@ -43,11 +44,12 @@ public:
                 const config::PlanetConfig::TerrainLandscape& landscape={},
                 std::optional<double> waterLevelMeters=std::nullopt,
                 const config::PlanetConfig::TerrainMaterial& material={});
-    double heightAt(const glm::dvec3& radial) const;
+    double heightAt(const glm::dvec3& radial,const TerrainSurfacePolicy& policy={}) const;
+    double omittedReliefMeters(const glm::dvec3& profile) const;
     double regionPlainWeight(const glm::dvec3& radial) const;
     double regionCliffWeight(const glm::dvec3& radial) const;
     PlanetFieldSample sample(const glm::dvec3& radial,double heightWorld,
-                            TerrainQueryCache* queries=nullptr) const;
+                            TerrainQueryCache* queries=nullptr,const TerrainSurfacePolicy& policy={}) const;
     const auto& functions() const { return functions_; }
     double radiusWorld() const { return radius_; }
     double metersPerUnit() const { return metersPerUnit_; }
@@ -60,11 +62,11 @@ public:
         double waterLevelMeters,double beachWidthMeters,double maximumHeightMeters,
         const config::PlanetConfig::TerrainMaterial& material={});
 private:
-    double heightMeters(const glm::dvec3& direction,double detailWeight) const;
+    double heightMeters(const glm::dvec3& direction,const glm::dvec3& profile) const;
     static std::uint32_t hash(int x,int y,int z,int seed);
     double valueNoise(const glm::dvec3& point,int seed) const;
     PlanetFieldGradient gradientAt(const glm::dvec3& radial,double heightMeters,
-                                  TerrainQueryCache* queries) const;
+                                  TerrainQueryCache* queries,const TerrainSurfacePolicy& policy) const;
     glm::dvec3 colorAt(double heightWorld,double slope) const;
     std::vector<config::PlanetConfig::SurfaceNoiseFunction> functions_;
     config::PlanetConfig::TerrainLandscape landscape_;

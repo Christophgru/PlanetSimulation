@@ -83,7 +83,7 @@ GrassMetadataCompute::~GrassMetadataCompute() {if(shader_) glDeleteProgram(shade
 std::unique_ptr<GrassMetadataBuffers> GrassMetadataCompute::generate(GLuint vertices,GLuint indices,
     const TerrainBuildStats& terrain,const config::PlanetConfig& planet,double metersPerWorldUnit,const glm::dvec3& eye,const GrassFalloff& policy) {
     if(terrain.generation.backend!=TerrainBackend::Compute || !terrain.generation.field || !terrain.generation.topology ||
-        terrain.generation.fieldVersion!=PlanetField::version || terrain.generation.topologyVersion!=1 ||
+        terrain.generation.fieldVersion!=PlanetField::version || !supportedTerrainTopology(terrain.generation.topologyVersion) ||
         !vertices || !indices || !glIsBuffer(vertices) || !glIsBuffer(indices) ||
         !terrain.gpuCorners || terrain.gpuCorners%3 || terrain.gpuCorners>std::numeric_limits<std::uint32_t>::max()/9)
         throw std::invalid_argument("Invalid grass metadata terrain generation");

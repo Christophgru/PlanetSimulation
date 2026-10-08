@@ -8,14 +8,22 @@
 namespace rendering {
 namespace { int seedOffset(int seed,unsigned offset) {
     return std::bit_cast<std::int32_t>(static_cast<std::uint32_t>(seed)+offset);
-} }
-double PlanetField::heightAt(const glm::dvec3& radial) const {
+}
+double policySink(const PlanetField& field,const glm::dvec3& radial,const TerrainSurfacePolicy& policy) {
+    if(!policy.enabled()) return 0;
+    const auto profile=policy.profile(radial);
+    const double curvature=std::lerp(profile.x*profile.x,profile.y*profile.y,profile.z)/(8*policy.distances[2]);
+    // Match the topology's stored float sink, including its safety/config cap.
+    return static_cast<float>(std::min(policy.distances[3],field.omittedReliefMeters(profile)+curvature));
+}
+}
+double PlanetField::heightAt(const glm::dvec3& radial,const TerrainSurfacePolicy& policy) const {
     const double length = glm::length(radial);
     if (!std::isfinite(length) || length <= 0.0) {
         throw std::invalid_argument("Terrain height needs a finite radial direction");
     }
     const glm::dvec3 direction = radial / length;
-    return heightMeters(direction, 1.0) / metersPerUnit_;
+    return heightMeters(direction, policy.profile(direction)) / metersPerUnit_;
 }
 
 double PlanetField::regionPlainWeight(const glm::dvec3& radial) const {
@@ -78,7 +86,8 @@ double PlanetField::smoothstep(double low, double high, double value) {
     return t * t * (3.0 - 2.0 * t);
 }
 
-double PlanetField::heightMeters(const glm::dvec3& direction, double detailWeight) const {
+double PlanetField::heightMeters(const glm::dvec3& direction,const glm::dvec3& profile) const {
+    const auto resolved=[&](double f) { return TerrainSurfacePolicy::weight(f,radius_*metersPerUnit_,profile); };
     double height = 0.0;
     double detailMask = 1.0;
     if (landscape_.enabled) {
@@ -87,7 +96,7 @@ double PlanetField::heightMeters(const glm::dvec3& direction, double detailWeigh
         const double plain = regionPlainWeight(direction);
         const double cliff = regionCliffWeight(direction);
         height = landscape_.elevation_offset_m +
-                 landscape_.continent_amplitude_m * continent * (1.0 - 0.8 * plain);
+                 landscape_.continent_amplitude_m * continent * (1.0 - 0.8 * plain) * resolved(landscape_.continent_frequency);
         const double ridgeSignal = 2.0 * valueNoise(
             direction * landscape_.cliff_frequency, seedOffset(landscape_.seed, 3)) - 1.0;
         double ridgeDistance = std::abs(ridgeSignal);
@@ -98,7 +107,7 @@ double PlanetField::heightMeters(const glm::dvec3& direction, double detailWeigh
                                        smoothing * smoothing) - smoothing) / scale;
         }
         const double ridge = 1.0 - std::clamp(ridgeDistance, 0.0, 1.0);
-        height += landscape_.cliff_amplitude_m * cliff * std::pow(ridge, 5.0);
+        height += landscape_.cliff_amplitude_m * cliff * std::pow(ridge, 5.0) * resolved(landscape_.cliff_frequency);
         detailMask = 1.0 - 0.9 * plain;
     }
     for (const auto& function : functions_) {
@@ -109,21 +118,36 @@ double PlanetField::heightMeters(const glm::dvec3& direction, double detailWeigh
         double weightSum = 0.0;
         double broad = 0.0;
         for (int octave = 0; octave < function.octaves; ++octave) {
-            if (octave > 0 && detailWeight <= 0.0) break;
-            const double signedValue =
-                2.0 * valueNoise(direction * frequency, function.seed) - 1.0;
-            const double sample = function.type == "ridged_fbm" ?
-                1.0 - 2.0 * std::abs(signedValue) : signedValue;
+            const double retained=resolved(frequency);
+            const double signedValue = retained>0 ?
+                2.0 * valueNoise(direction * frequency, function.seed) - 1.0 : 0.0;
+            const double sample = (function.type == "ridged_fbm" ?
+                1.0 - 2.0 * std::abs(signedValue) : signedValue) * retained;
             if (octave == 0) broad = sample;
             full += weight * sample;
             weightSum += weight;
             frequency *= function.lacunarity;
             weight *= function.persistence;
         }
-        const double mixed = broad + detailWeight * (full / weightSum - broad);
+        const double mixed = broad + (full / weightSum - broad);
         height += detailMask * function.amplitude_m * mixed;
     }
     return height;
+}
+
+double PlanetField::omittedReliefMeters(const glm::dvec3& profile) const {
+    const auto omitted=[&](double f) { return 1-TerrainSurfacePolicy::weight(f,radius_*metersPerUnit_,profile); };
+    double bound=landscape_.enabled ? landscape_.continent_amplitude_m*omitted(landscape_.continent_frequency)+
+        landscape_.cliff_amplitude_m*omitted(landscape_.cliff_frequency) : 0;
+    for(const auto& n:functions_) {
+        double frequency=n.frequency,weight=1,total=0,missing=0;
+        for(int octave=0;octave<n.octaves;++octave) {
+            total+=weight;missing+=weight*omitted(frequency);
+            frequency*=n.lacunarity;weight*=n.persistence;
+        }
+        bound+=n.amplitude_m*missing/total;
+    }
+    return bound;
 }
 
 std::uint32_t PlanetField::hash(int x, int y, int z, int seed) {
@@ -161,7 +185,7 @@ double PlanetField::valueNoise(const glm::dvec3& point, int seed) const {
     return result;
 }
 
-PlanetFieldGradient PlanetField::gradientAt(const glm::dvec3& radial, double heightMeters, TerrainQueryCache* queries) const {
+PlanetFieldGradient PlanetField::gradientAt(const glm::dvec3& radial, double heightMeters, TerrainQueryCache* queries,const TerrainSurfacePolicy& policy) const {
     const glm::dvec3 reference = std::abs(radial.z) < 0.8 ?
         glm::dvec3(0.0, 0.0, 1.0) : glm::dvec3(0.0, 1.0, 0.0);
     const glm::dvec3 tangentA = glm::normalize(glm::cross(reference, radial));
@@ -173,10 +197,13 @@ PlanetFieldGradient PlanetField::gradientAt(const glm::dvec3& radial, double hei
         std::cos(angle) * radial + std::sin(angle) * tangentA);
     const glm::dvec3 sampleB = glm::normalize(
         std::cos(angle) * radial + std::sin(angle) * tangentB);
+    const double surfaceHeight=heightMeters-policySink(*this,radial,policy);
     const double gradientA =
-        ((queries ? queries->heightAt(sampleA) : heightAt(sampleA)) * metersPerUnit_ - heightMeters) / distanceMeters;
+        ((queries ? queries->heightAt(sampleA) : heightAt(sampleA,policy)) * metersPerUnit_ -
+         policySink(*this,sampleA,policy)-surfaceHeight) / distanceMeters;
     const double gradientB =
-        ((queries ? queries->heightAt(sampleB) : heightAt(sampleB)) * metersPerUnit_ - heightMeters) / distanceMeters;
+        ((queries ? queries->heightAt(sampleB) : heightAt(sampleB,policy)) * metersPerUnit_ -
+         policySink(*this,sampleB,policy)-surfaceHeight) / distanceMeters;
     return {std::hypot(gradientA, gradientB),
             glm::normalize(radial - gradientA * tangentA - gradientB * tangentB)};
 }
@@ -251,11 +278,11 @@ PlanetField::PlanetField(const std::vector<config::PlanetConfig::SurfaceNoiseFun
 }
 
 PlanetFieldSample PlanetField::sample(const glm::dvec3& radial,double heightWorld,
-                                     TerrainQueryCache* queries) const {
+                                     TerrainQueryCache* queries,const TerrainSurfacePolicy& policy) const {
     const double length2=glm::dot(radial,radial);
     if(!std::isfinite(length2) || std::abs(length2-1)>1e-12 || !std::isfinite(heightWorld) ||
        (queries && &queries->field()!=this)) throw std::invalid_argument("Invalid planet field sample contract");
-    const auto gradient=gradientAt(radial,heightWorld*metersPerUnit_,queries);
+    const auto gradient=gradientAt(radial,heightWorld*metersPerUnit_,queries,policy);
     return {radial*(1.0+heightWorld/radius_),gradient.normal,colorAt(heightWorld,gradient.slope)};
 }
 } // namespace rendering

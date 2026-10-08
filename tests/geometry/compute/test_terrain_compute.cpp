@@ -44,7 +44,7 @@ void parity(const TerrainSurface& surface,const TerrainTopology& t,TerrainComput
     std::vector<std::size_t> firstUse(t.samples.size(),std::numeric_limits<std::size_t>::max());
     for(std::size_t i=0;i<heights.size();++i) {
         ASSERT_TRUE(std::isfinite(heights[i]));const auto& r=t.samples[i].radial;
-        heightError=std::max(heightError,std::abs(heights[i]-surface.heightAt({r[0],r[1],r[2]})*surface.field().metersPerUnit()));
+        heightError=std::max(heightError,std::abs(heights[i]-surface.field().heightAt({r[0],r[1],r[2]},t.surfacePolicy)*surface.field().metersPerUnit()));
     }
     for(std::size_t i=0;i<values.size();i+=9) {
         const auto v=[&](const std::vector<float>& array,int offset) {return glm::dvec3(array[i+offset],array[i+offset+1],array[i+offset+2]);};
@@ -105,6 +105,24 @@ TEST(TerrainCompute, ShorelineMixedLodAndSinkingRetainSharedEndpointsAndTriangle
     EXPECT_GT(t.shorelineAddedTriangles,0);EXPECT_EQ(t.triangleCount(),10000);
     parity(s,t,compute,true);
 }
+TEST(TerrainCompute, ReliefSinkingNoiseAndSparseContactsMatchGpuAtMixedLevels) {
+    auto settings=lod();settings.relief_sinking=true;settings.near_surface_distance_m=50;
+    settings.geometric_error_m=.05;
+    settings.mid_surface_distance_m=1600;
+    config::PlanetConfig::SurfaceNoiseFunction noise;noise.amplitude_m=8;noise.frequency=64;noise.octaves=6;
+    const TerrainSurface surface({noise},settings,1,1000,{},0);
+    const auto topology=surface.buildTopologyForEye({1.002,0,0},{});
+    TerrainCompute compute;parity(surface,topology,compute,true);
+    auto gpu=compute.generate(surface.field(),topology);gpu->waitForCapture();
+    const auto vertices=gpu->readVertices();const auto indices=gpu->readIndices();
+    SurfaceContact rendered,sparse;rendered.bind(vertices,indices,1,1000);
+    sparse.bind(std::make_shared<SparseTerrainContacts>(surface.field(),topology),1);
+    const GroundQuery missing=[](const auto&) -> GroundContact {throw std::logic_error("Missing contact plane");};
+    for(double angle:{0.0,.05,.1,.5,1.0,2.0,3.14}) {
+        const glm::dvec3 direction(std::cos(angle),std::sin(angle),0);
+        EXPECT_LE(glm::length(rendered.sample(direction,missing).position-sparse.sample(direction,missing).position),.002);
+    }
+}
 TEST(TerrainCompute, DriverPackingMatchesTheFieldContractAndScalarOutputStride) {
     TerrainCompute compute;const TerrainSurface s({},lod(),1,1000);
     auto gpu=compute.generate(s.field(),probes(s.field()),true);gpu->waitForCapture();
@@ -133,7 +151,7 @@ TEST(TerrainCompute, ProductionFieldMatchesCpuAndReducesTheCountedInputPayload) 
     EXPECT_EQ(topology.triangleCount(),100000);TerrainCompute compute;parity(s,topology,compute,true);
     auto gpu=compute.generate(s.field(),topology);gpu->waitForCapture();
     EXPECT_LT(gpu->stats.gpuInputBytes,topology.triangleCount()*120*.25);
-    EXPECT_EQ(gpu->stats.gpuInputBytes,topology.topologyInputBytes+16+16*gpu->stats.gpuDispatches);
+    EXPECT_EQ(gpu->stats.gpuInputBytes,topology.topologyInputBytes+16+16*gpu->stats.gpuDispatches+(topology.surfacePolicy.enabled()?0:sizeof(TerrainSurfacePolicy)));
 }
 // F5 canonical receipt: topology is built once outside both timed intervals.
 // Numerical/geometry parity is independently checked by the production test

@@ -59,7 +59,7 @@ std::unique_ptr<GrassAllocationBuffers> GrassAllocationCompute::generate(const G
     if(!n || n>std::numeric_limits<std::uint32_t>::max()/9 || !metadata.descriptors || !metadata.parameters ||
         !glIsBuffer(metadata.descriptors) || !glIsBuffer(metadata.parameters) ||
         metadata.generation.backend!=TerrainBackend::Compute || !metadata.generation.field || !metadata.generation.topology ||
-        metadata.generation.fieldVersion!=PlanetField::version || metadata.generation.topologyVersion!=1)
+        metadata.generation.fieldVersion!=PlanetField::version || !supportedTerrainTopology(metadata.generation.topologyVersion))
         throw std::invalid_argument("Invalid grass allocation source generation");
     if(!limits_.groups) throw std::runtime_error("Zero grass allocation dispatch capacity");
     const std::array<std::uint64_t,7> bytes{n*64,160,224,g*96,n*4,n*8,g*68};

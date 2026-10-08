@@ -5,6 +5,7 @@
 #include <vector>
 #include "rendering/geometry/terrain/TerrainQueryCache.h"
 namespace rendering {
+inline bool supportedTerrainTopology(std::uint32_t version) { return version==1 || version==2; }
 enum class TerrainBackend : std::uint32_t { Cpu=1, Compute=2 };
 struct TerrainGenerationKey {
     std::uint64_t field=0,topology=0;
@@ -18,6 +19,9 @@ struct TerrainBuildStats {
     std::vector<int> faceZones;
     int steepRefinedFaces=0,shorelineAddedTriangles=0;
     int coarseNoiseSamples=0,fineNoiseSamples=0;
+    int errorRefinedTriangles=0;
+    double remainingErrorRatio=0;
+    bool errorBudgetLimited=false;
     TerrainQueryStats planningQueries{},evaluationQueries{};
     std::size_t topologyInputBytes=0,uniqueSamples=0;
     std::uint64_t gpuInputBytes=0,gpuWorkingBytes=0,gpuDispatches=0,gpuCorners=0;
@@ -35,6 +39,7 @@ static_assert(offsetof(TerrainInputSample,sinkMeters)==24);
 // Stable first-use canonical IDs and triangle order. CPU evaluation expands
 // corners for the old mesh/grass/replay layout; future GPU output can stay indexed.
 struct TerrainTopology : TerrainBuildStats {
+    TerrainSurfacePolicy surfacePolicy;
     std::vector<TerrainInputSample> samples;
     std::vector<std::uint32_t> indices;
     // CPU planning scratch for legacy float-rounded shoreline decisions;

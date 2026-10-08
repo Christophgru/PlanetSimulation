@@ -21,12 +21,14 @@ TerrainTopology TerrainSurface::buildTopologyForEye(const glm::dvec3& eyeWorld,
     if (!std::isfinite(cameraDistance) || cameraDistance <= 0.0)
         throw std::invalid_argument("Terrain eye must be outside the planet center");
     const bool localView = cameraDistance < 3.0 * radius_;
+    const bool adaptive = localView && lod_.geometric_error_m > 0.0;
     const glm::dvec3 eyeRadial = offset / cameraDistance;
     const bool nearWater = localView && waterLevelMeters_ && lod_.shoreline_edge_m > 0.0 &&
         std::abs((cameraDistance-radius_)*metersPerUnit_ - *waterLevelMeters_) < lod_.shoreline_distance_m;
     // Reserve local refinement space rather than exceeding the existing cap.
     const int minimumBase = 320 * 3 * lod_.base_edge_segments * (2*ringCount(lod_.base_edge_segments)-1);
-    const int baseBudget = nearWater ? std::max(minimumBase, lod_.max_triangle_budget*3/4)
+    const int baseBudget = adaptive ? std::max(minimumBase, lod_.max_triangle_budget/2)
+                                    : nearWater ? std::max(minimumBase, lod_.max_triangle_budget*3/4)
                                     : lod_.max_triangle_budget;
 
     std::vector<BaseFace> faces = baseFaces();
@@ -56,7 +58,7 @@ TerrainTopology TerrainSurface::buildTopologyForEye(const glm::dvec3& eyeWorld,
                 face.zone = std::max(face.zone, previous);
         }
         face.segments = segmentsForZone(face.zone);
-        if (localView && face.zone > 0 &&
+        if (!adaptive && localView && face.zone > 0 &&
             lod_.steep_edge_segments > lod_.max_edge_segments &&
             maximumSlope(face,queries) >= lod_.steep_slope_threshold) {
             face.steep = true;
@@ -137,7 +139,7 @@ TerrainTopology TerrainSurface::buildTopologyForEye(const glm::dvec3& eyeWorld,
     // Bound inward displacement on tiny planets and near the center.
     const double maximumSink = std::min(lod_.sink_depth_m,
         (radius_ * metersPerUnit_ - totalAmplitudeMeters_) * 0.001);
-    auto faceSink = [&](const BaseFace& face) { return bands.sinkMeters(face.segments, maximumSink); };
+    auto faceSink = [&](const BaseFace& face) { return lod_.relief_sinking ? 0.0 : bands.sinkMeters(face.segments, maximumSink); };
     std::map<VertexKey, double> cornerSinks;
     std::map<EdgeKey, double> edgeSinks;
     for (const auto& face : faces) {
@@ -221,8 +223,27 @@ TerrainTopology TerrainSurface::buildTopologyForEye(const glm::dvec3& eyeWorld,
     }
     if (geometry.triangleCount() != predicted)
         throw std::logic_error("Terrain triangle budget estimation disagrees with mesh");
-    if (nearWater) refineShoreline(geometry, offset/radius_,queries);
+    if (nearWater) refineShoreline(geometry, offset/radius_,queries,
+        adaptive ? std::max(minimumBase, lod_.max_triangle_budget*3/4) : lod_.max_triangle_budget);
+    if(lod_.relief_sinking) {
+        auto& policy=geometry.surfacePolicy;
+        double edgeMeters=0;
+        for(const auto& face:faces) for(int side=0;side<3;++side)
+            edgeMeters=std::max(edgeMeters,radius_*metersPerUnit_*std::acos(std::clamp(
+                glm::dot(face.corners[side],face.corners[(side+1)%3]),-1.0,1.0)));
+        policy.eyeEdge={localView?eyeRadial.x:0,localView?eyeRadial.y:0,localView?eyeRadial.z:0,edgeMeters};
+        policy.distances={lod_.near_surface_distance_m,lod_.mid_surface_distance_m,radius_*metersPerUnit_,maximumSink};
+        for(int level=0;level<7;++level) policy.spacing[level]=edgeMeters/bands.segments[level];
+        // One radial policy is evaluated after shoreline splits, so shared
+        // endpoints agree regardless of face level, hysteresis or budget cuts.
+        for(auto& sample:geometry.samples) {
+            const auto profile=policy.profile({sample.radial[0],sample.radial[1],sample.radial[2]});
+            const double curvature=std::lerp(profile.x*profile.x,profile.y*profile.y,profile.z)/(8*policy.distances[2]);
+            sample.sinkMeters=static_cast<float>(std::min(maximumSink,field_.omittedReliefMeters(profile)+curvature));
+        }
+    }
     geometry.planningQueries=queries.stats();
+    if(adaptive) refineSurfaceError(geometry, offset/radius_);
     geometry.canonicalize(field_.fingerprint());
     return geometry;
 }

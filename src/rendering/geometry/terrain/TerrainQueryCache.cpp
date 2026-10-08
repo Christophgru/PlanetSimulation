@@ -10,7 +10,7 @@ double TerrainQueryCache::heightAt(const glm::dvec3& radial) {
                   std::bit_cast<std::uint64_t>(radial.z)};
     if (const auto it=values_.find(key);it!=values_.end()) { ++stats_.hits; return it->second; }
     // Validate and evaluate before caching; NaN/zero queries never enter it.
-    const double height=field_.heightAt(radial);
+    const double height=field_.heightAt(radial,policy_);
     ++stats_.evaluations;
     if (capacity_) {
         // Deterministic bounded batches avoid an unbounded whole-planet mirror.

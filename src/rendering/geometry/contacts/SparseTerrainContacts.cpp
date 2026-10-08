@@ -88,7 +88,7 @@ std::vector<unsigned> SparseTerrainContacts::candidates(const glm::dvec3& direct
 glm::vec3 SparseTerrainContacts::position(unsigned id) {
     if(const auto it=positions_.find(id);it!=positions_.end()) return it->second;
     const auto& s=topology_.samples.at(id);const auto r=radial(s);
-    const auto height=field_.heightAt(r);++stats_.heightEvaluations;
+    const auto height=field_.heightAt(r,topology_.surfacePolicy);++stats_.heightEvaluations;
     const auto shaped=r*(1.0+height/field_.radiusWorld());
     // Materialize the first conversion. GCC can otherwise keep two SIMD lanes
     // at excess double precision across a float-to-double round trip here.

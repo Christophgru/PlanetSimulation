@@ -59,7 +59,7 @@ void Renderer::Impl::prepareResidentFrame(const glm::dvec3& eye,std::optional<do
     ++residentFrames;plannedCharacterEye.reset();
     const auto identityFor=[&](std::size_t i) {
         TerrainBuildIdentity k;k.epoch=terrainSceneEpoch;k.serial=terrainRequestSerial;k.bodyIndex=i;
-        k.bodyName=scene.scenario.planets[i].name;k.field=scene.terrainSurfaces[i].field().fingerprint();
+        k.bodyName=scene.scenario.planets[i].name;k.field=scene.terrainSurfaces[i].field().fingerprint();k.topologyVersion=scene.terrainSurfaces[i].topologyVersion();
         k.backend=TerrainBackend::Compute;k.resident=true;k.eye=scene.bodies[i+1].toLocalPoint(eye);
         const auto distance=glm::length(k.eye);
         if(!std::isfinite(distance) || distance<=0) throw std::invalid_argument("Camera cannot be at a planet center");

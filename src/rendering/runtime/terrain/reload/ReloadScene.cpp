@@ -103,7 +103,7 @@ void Renderer::Impl::reloadScene() {
                 }
             }
             TerrainBuildIdentity k;k.epoch=epoch;k.serial=++terrainRequestSerial;k.bodyIndex=i;k.bodyName=planet.name;
-            k.field=stagedScene.terrainSurfaces[i].field().fingerprint();k.eye=eye;k.localMask=glm::length(eye)<3*planet.radius ? 1 : 0;
+            k.field=stagedScene.terrainSurfaces[i].field().fingerprint();k.topologyVersion=stagedScene.terrainSurfaces[i].topologyVersion();k.eye=eye;k.localMask=glm::length(eye)<3*planet.radius ? 1 : 0;
             k.backend=terrainCompute ? TerrainBackend::Compute : TerrainBackend::Cpu;k.resident=bool(resident);
             auto request=resident ? resident->requestLocal(i,eye,k.serial,std::move(zones)) :
                 TerrainBuildRequest{k,stagedScene.terrainSurfaces[i],planet,std::move(zones),stagedScene.scenario.metersPerWorldUnit()};

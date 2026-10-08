@@ -62,7 +62,7 @@ std::unique_ptr<ProceduralGrass::Preparation> ProceduralGrass::submitResident(GL
     const TerrainBuildStats& terrain,const config::PlanetConfig& planet,double metersPerWorldUnit,
     const glm::dvec3& eyeBody,std::uint64_t revision,std::uint64_t otherBytes,std::uint64_t byteLimit) {
     if(terrain.generation.backend!=TerrainBackend::Compute || !terrain.generation.field || !terrain.generation.topology ||
-       terrain.generation.fieldVersion!=PlanetField::version || terrain.generation.topologyVersion!=1 ||
+       terrain.generation.fieldVersion!=PlanetField::version || !supportedTerrainTopology(terrain.generation.topologyVersion) ||
        !terrain.gpuCorners || terrain.gpuCorners%3 || !vertices || !indices || !glIsBuffer(vertices) || !glIsBuffer(indices))
         throw std::invalid_argument("Invalid resident grass source");
     // Validate all settings/eye inputs even for the explicit disabled consumer.

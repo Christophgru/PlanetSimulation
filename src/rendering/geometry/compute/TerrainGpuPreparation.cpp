@@ -8,12 +8,12 @@ namespace rendering {
 namespace {
 std::uint64_t terrainBytes(const TerrainTopology& t) {
     t.validate();
-    return 704+t.samples.size()*68ull+t.indices.size()*44ull+8;
+    return 704+t.samples.size()*68ull+t.indices.size()*44ull+8+sizeof(TerrainSurfacePolicy);
 }
 }
 std::uint64_t TerrainGpuPreparation::requiredBytes(const TerrainCpuBuild& cpu,const TerrainBuildIdentity& identity,
     const config::PlanetConfig& planet,const TerrainComputeLimits& limits) {
-    if(!identity.epoch || !identity.serial || identity.fieldVersion!=PlanetField::version || identity.topologyVersion!=1 ||
+    if(!identity.epoch || !identity.serial || identity.fieldVersion!=PlanetField::version || identity.topologyVersion!=cpu.geometry.generation.topologyVersion ||
        identity.backend!=TerrainBackend::Compute || identity.bodyName!=planet.name || !cpu.field || !cpu.topology ||
        !cpu.contacts || cpu.field->fingerprint()!=identity.field || cpu.geometry.generation!=cpu.topology->generation ||
        bool(cpu.water)!=planet.water.enabled ||

@@ -5,7 +5,7 @@
 #include <map>
 
 namespace rendering {
-void TerrainSurface::refineShoreline(TerrainTopology& geometry, const glm::dvec3& eyeBody, TerrainQueryCache& queries) const {
+void TerrainSurface::refineShoreline(TerrainTopology& geometry, const glm::dvec3& eyeBody, TerrainQueryCache& queries, int budget) const {
     CpuTrace::Scope scope("TerrainSurface::refineShoreline");
     const double scale = radius_*metersPerUnit_;
     const int originalCount = geometry.triangleCount();
@@ -13,7 +13,7 @@ void TerrainSurface::refineShoreline(TerrainTopology& geometry, const glm::dvec3
     // of the refinement boundary. Every selected edge adds exactly one
     // triangle per incident face, so the hard budget is known before emitting.
     for (int pass=0;pass<8;++pass) {
-        if (geometry.triangleCount()+2>lod_.max_triangle_budget) break;
+        if (geometry.triangleCount()+2>budget) break;
         struct Edge {
             glm::dvec3 a, b;
             GridSample middle;
@@ -61,7 +61,7 @@ void TerrainSurface::refineShoreline(TerrainTopology& geometry, const glm::dvec3
         std::stable_sort(candidates.begin(),candidates.end(),[](const Edge* a,const Edge* b) {
             return a->distance<b->distance;
         });
-        int spare=lod_.max_triangle_budget-geometry.triangleCount();
+        int spare=budget-geometry.triangleCount();
         int added=0;
         for (auto* edge:candidates) {
             if (edge->uses>spare) continue;

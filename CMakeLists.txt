@@ -73,6 +73,7 @@ add_library(planet_geometry STATIC
     src/rendering/geometry/terrain/PlanetField.cpp
     src/rendering/geometry/terrain/TerrainQueryCache.cpp
     src/rendering/geometry/terrain/TerrainTopology.cpp
+    src/rendering/geometry/terrain/TerrainRefinement.cpp
     src/rendering/geometry/contacts/SparseTerrainContacts.cpp
     src/rendering/geometry/jobs/TerrainBuild.cpp
     src/rendering/geometry/jobs/TerrainBuildScheduler.cpp

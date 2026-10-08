@@ -1077,29 +1077,47 @@ The existing `base_edge_segments`, `medium_edge_segments`, and
 **3, 5, 6, 8, 10, 12, 14, 16** segments in the working scene. Small segment
 ranges can share a density across levels. Steep nearby faces may still use
 `steep_edge_segments` (32 here) when their rise-over-run exceeds
-`steep_slope_threshold`. The hard `max_triangle_budget` (100,000 here) first
-removes optional steep detail, then reduces coarser levels before finer ones.
-Equal-priority choices use stable base-face order.
+`steep_slope_threshold` in the legacy planner. The standard scene sets
+`geometric_error_m=0.05`: it reserves half the existing 100,000-triangle budget
+for local surface-error refinement instead of whole-face steepness upgrades.
+Shared edge midpoints and triangle centers measure deviation from the same
+filtered/sunk field used by the renderer. The largest distance-adjusted errors
+are refined first, splitting both adjacent triangles to preserve shared edges.
+The near target is 5 cm, increasing with distance at 0.001 radians; the triangle
+budget and minimum split size limit refinement. This is a sampled error target,
+not a guaranteed bound between probes. Capture metadata reports added triangles,
+remaining error ratio and budget exhaustion. Zero disables error refinement;
+enabled refinement requires `relief_sinking`. Legacy budget reduction first
+removes optional steep detail, then coarser levels; ties use stable face order.
 
-Coarser regions sink inward by up to `sink_depth_m` (default 1 m, range
-0–100 m; `0` disables sinking). The offset scales with the square of the
-fraction of lost edge segments; the finest and extra-steep samples stay at
-their original height. For small planets the offset is capped at 0.1% of the
-radius remaining after the maximum terrain relief. Shared corners use the
-smallest offset of all incident faces, and shared edges use the finer neighbor.
-Smooth interpolation joins those offsets to the face interior. Shoreline
-subdivision interpolates the same offset field. The water shell uses eight
-levels too, with sinking disabled to preserve sea level.
+The standard scene enables `terrain_lod.relief_sinking`. The finest nearby
+surface retains its full noise and zero sink. Outside the protected near distance,
+a smooth distance-based policy blends existing noise toward coarser filtered
+parent fields, attenuating frequencies with fewer than four samples per wavelength
+and removing them below two. The inward offset follows the omitted amplitude bound
+plus a spherical curvature estimate, capped by `sink_depth_m` and the small-planet
+safety limit. `sink_depth_m=0` disables inward offset while retaining filtering.
+CPU contacts, GPU terrain, normals and all draw passes use the same policy.
+Shared radial samples agree across face levels and shoreline splits.
+
+Configurations omitting `relief_sinking` retain the historical model: the offset
+scales with the square of the fraction of lost edge segments, with finest and
+extra-steep samples unsunk. Shared corners use the smallest incident offset;
+shared edges use the finer neighbor. Both models cap sinking at 0.1% of the radius
+remaining after maximum terrain relief. Water retains its physical level with
+sinking and filtering disabled. The [sinking implementation](docs/journal/architecture/terrain-gpu/sinking.md)
+records scope and verification; centimeter subdivision remains queued.
 
 Each base face contributes only its selected tessellation to **one closed
 terrain mesh**. No overlapping or buried LOD shells are submitted. Main,
 reflection and shadow passes use that same mesh; grass roots sample its
 triangles. A finished background rebuild replaces the previous mesh buffers.
-Sampling and sinking remain fixed within unchanged levels. Faces retain
-their level for another 20 m while moving away from a boundary; the mesh
-rebuilds after about 10 m of surface movement. Level changes can still cause
-small geometric steps: this is spatial sinking with hysteresis, not a temporal
-morph or a strict bound on interpolation error between procedural samples.
+Legacy sampling and sinking remain fixed within unchanged levels; relief-aware
+filtering and sinking follow the generation's camera position. Faces retain their
+level for another 20 m while moving away from a boundary; the mesh rebuilds after
+about 10 m of surface movement. The new blend is spatial: generation replacement
+and topology changes can still produce steps. Exact morphing onto parent triangles,
+temporal interpolation and a centimeter interpolation-error guarantee remain queued.
 
 The older `lod_near_diameters` and `lod_far_diameters` remain for compatibility
 with uniform-distance tests; the renderer uses the eight surface bands.
@@ -1122,8 +1140,8 @@ The [GPU field evaluation proof](docs/journal/architecture/terrain-gpu/compute/s
 is the default for captures and interactive use; `--terrain-backend cpu`
 selects the supported CPU path. It generates height, normals, material factors, sinking and
 draw buffers on GL 4.3, with queried limits and completed land/water publication.
-A 100,000-triangle view uploads 2,800,880 input bytes including parameters and
-control uniforms, compared with the CPU's 12,000,000 shaped-mesh bytes.
+A 100,000-triangle view uploads 2,801,008 input bytes including parameters, the
+128-byte sinking policy and control uniforms, compared with the CPU's 12,000,000 shaped-mesh bytes.
 Current compute captures use GPU grass planning and sparse contacts; full CPU
 render vectors are retained only for the legacy planner. No total-frame speedup
 is claimed. A saved compute backend replays explicitly; unavailable GL 4.3 falls back

@@ -16,6 +16,8 @@ args=p.parse_args()
 root=Path(__file__).resolve().parents[3];out=args.output_dir.resolve();out.mkdir(parents=True,exist_ok=True)
 scene=json.loads((root/'tests/scenarios/foliage/surface.json').read_text())
 for planet in scene['planets']:
+    planet.setdefault('terrain_lod', {})['relief_sinking'] = True
+    planet['terrain_lod']['geometric_error_m'] = .05
     planet.setdefault('terrain_lod',{})['max_triangle_budget']=10000
 scene['planets'][0]['foliage']['max_blades']=4096
 config=out/'scene.json';config.write_text(json.dumps(scene,indent=2)+'\n')
@@ -55,6 +57,7 @@ published=publication(g)
 assert not c['render']['terrain_publication']['managed']
 assert c['render']['terrain_backend']=='cpu' and g['render']['terrain_backend']=='compute'
 assert g['render']['terrain_contract']['backend']=='compute'
+assert g['render']['terrain_contract']['topology_version']==2
 assert not g['render']['terrain_compute']['cpu_compatibility_mirror']
 assert g['render']['terrain_compute']['cpu_render_bytes']==0
 assert g['render']['terrain_compute']['cpu_water_render_bytes']==0
@@ -158,6 +161,9 @@ invalid.write_text(json.dumps(bad));error=run('invalid-rejected',replay=invalid,
 assert 'Invalid terrain replay backend' in error and 'initialized' not in error
 bad=json.loads(gpu.with_suffix('.png.json').read_text());bad['render']['terrain_contract']['field_version']=2
 invalid.write_text(json.dumps(bad));error=run('version-rejected',replay=invalid,fail=True)
+assert 'Unsupported terrain compute replay versions' in error and 'initialized' not in error
+bad=json.loads(gpu.with_suffix('.png.json').read_text());bad['render']['terrain_contract']['topology_version']=3
+invalid.write_text(json.dumps(bad));error=run('topology-version-rejected',replay=invalid,fail=True)
 assert 'Unsupported terrain compute replay versions' in error and 'initialized' not in error
 bad=json.loads(gpu.with_suffix('.png.json').read_text());bad['render']['terrain_grass_planner']='gpu-v2'
 invalid.write_text(json.dumps(bad));error=run('planner-version-rejected',replay=invalid,fail=True)

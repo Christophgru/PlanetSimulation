@@ -1,5 +1,56 @@
 # Page to document progress of AI Agents working on this Project
 
+## Curvature-guided mountain refinement implemented — 2026-10-08
+
+- Reproduced the reported latitude/longitude, 126.914 m reference-sphere altitude
+  and 2 m clearance. The coarse triangular ridge came from distance/whole-face
+  steepness subdivision; sinking alone could not resolve its silhouette.
+- Standard config now sets geometric_error_m=0.05. Shared midpoint/center probes
+  prioritize local interpolation error within the unchanged 100k triangle cap.
+  Conforming longest-edge propagation prevents cracks and collapsed triangle
+  angles. GPU bulk shape/normals, CPU/GL 3.3 rendering, sparse contacts, grass,
+  reflections and shadows share the refined topology.
+- At 2,821 fixed probes near that camera, mean height error improves 0.642 to
+  0.061 m, p95 2.323 to 0.158 m, maximum 8.914 to 0.259 m. The closed mesh has
+  Euler characteristic 2, no reversed triangles and no missed contacts. The
+  sampled target remains budget limited; guaranteed centimeter detail and
+  parent-triangle geomorph remain in the same existing TODO.
+- Pass: full build, 34 core groups (40 terrain cases), all 36 NVIDIA compute
+  cases, and six lifecycle/recovery/frame/reload/capture/native groups. Supplied
+  pose compute/replay/CPU override PNGs match byte for byte. Refined capture and
+  native fixtures cover GL 3.3 fallback, walking/sprint, flight/Moon and reload.
+- CPU planning increases from a measured 569 to 2,599 ms at this pose; async
+  compute workers retain background rebuilds. No FPS/full-frame p95 claim.
+  Resident fixture peak is 12,854,508 logical bytes; supplied-pose production
+  stage admission is 280,833,196 bytes with protected foliage density retained.
+- Before/after captures (including paired lighting diagnostics), raw tests,
+  probe source and receipts stay local in build-f5/ridge-refinement. Report:
+  docs/journal/architecture/terrain-gpu/sinking.md. No staging or commits.
+
+## Relief-aware terrain sinking implemented — 2026-10-08
+
+- Standard config enables terrain_lod.relief_sinking. The finest near surface
+  stays unchanged/unsunk; existing noise blends into coarser filtered fields.
+  Sink depth follows omitted relief plus a curvature estimate, capped by config
+  and planet size. Shared radials agree after shoreline refinement; normals
+  include sink gradients. Water stays at its physical level without filtering.
+- CPU contacts/cache and GPU bulk evaluation share a bounded 128-byte generation
+  policy. Topology version 2 fingerprints the policy; old configs/replays retain
+  version 1 and exact legacy geometry. Worker/reload/publication consumers carry
+  the selected version; unknown versions still fail. Memory admission charges
+  the GPU pack, while readyVectorBytes keeps its vector-only meaning.
+- Pass: full build, all 34 core groups (37 terrain cases), all 36 NVIDIA compute
+  cases, lifecycle/recovery/frame/reload, exact capture/replay/CPU override,
+  GL 3.3 fallback and native walking/sprint/flight/Moon/reload. Final production
+  compute/replay/CPU override PNGs match exactly, with 1,599,906 foliage slots.
+- Canonical 100k transfer remains 76.66% lower than CPU, bulk CPU evaluations
+  150,006 to zero; warm GPU field/expansion median 39.513 ms. No new full-frame
+  p95 claim. Report: docs/journal/architecture/terrain-gpu/sinking.md.
+- Only the sinking/noise-filter portion was authorized and completed. The same
+  terrain TODO stays p: centimeter subdivision, explicit wavelength controls
+  and exact parent-triangle geomorph remain queued. Spatial filtering does not
+  eliminate generation/topology steps. Raw data local in build-f5; no commits.
+
 ## Compute default promoted — 2026-10-08
 
 - Fresh launches and captures now default to compute terrain with resident

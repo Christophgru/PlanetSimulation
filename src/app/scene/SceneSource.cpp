@@ -28,7 +28,7 @@ SceneSource::SceneSource(CommandLineOptions& options)
                 if(backend=="compute" && (!options.explicitTerrainBackend || options.terrainBackend=="compute")) {
                     const auto& contract=replay["render"].at("terrain_contract");
                     for(const auto* name:{"field_version","topology_version"})
-                        if(!contract.at(name).is_number_integer() || contract.at(name)!=1)
+                        if(!contract.at(name).is_number_integer() || (contract.at(name)!=1 && !(std::string(name)=="topology_version" && contract.at(name)==2)))
                             throw std::invalid_argument("Unsupported terrain compute replay versions");
                 }
                 if(!options.explicitTerrainBackend) {

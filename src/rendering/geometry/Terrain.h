@@ -60,6 +60,7 @@ public:
         return field_.functions();
     }
     const config::PlanetConfig::TerrainLod& lodSettings() const { return lod_; }
+    std::uint32_t topologyVersion() const { return lod_.relief_sinking ? 2 : 1; }
     const PlanetField& field() const { return field_; }
     TerrainTopology buildTopology(int edgeSegments) const;
     TerrainTopology buildTopologyForEye(const glm::dvec3& eyeWorld,const glm::dvec3& center,
@@ -68,7 +69,8 @@ public:
 
 private:
     static double smoothstep(double low, double high, double value);
-    void refineShoreline(TerrainTopology& geometry, const glm::dvec3& eyeBody, TerrainQueryCache& queries) const;
+    void refineShoreline(TerrainTopology& geometry, const glm::dvec3& eyeBody, TerrainQueryCache& queries, int budget) const;
+    void refineSurfaceError(TerrainTopology& geometry, const glm::dvec3& eyeBody) const;
     struct GridSample {
         glm::dvec3 radial;
         glm::dvec3 position;

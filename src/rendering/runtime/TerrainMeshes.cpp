@@ -57,7 +57,7 @@ void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalkin
     retireSceneReload(options.renderTestMode);
     const auto identityFor=[&](std::size_t i,const glm::dvec3& localEye,int localMask) {
         TerrainBuildIdentity k;k.epoch=terrainSceneEpoch;k.serial=terrainRequestSerial;
-        k.bodyIndex=i;k.bodyName=scene.scenario.planets[i].name;k.field=scene.terrainSurfaces[i].field().fingerprint();
+        k.bodyIndex=i;k.bodyName=scene.scenario.planets[i].name;k.field=scene.terrainSurfaces[i].field().fingerprint();k.topologyVersion=scene.terrainSurfaces[i].topologyVersion();
         k.backend=terrainCompute ? TerrainBackend::Compute : TerrainBackend::Cpu;
         k.resident=bool(terrainCompute) && options.terrainGrassPlanner=="gpu-v1";
         k.eye=localEye;k.localMask=localMask;return k;

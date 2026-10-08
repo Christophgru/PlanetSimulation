@@ -10,7 +10,7 @@ namespace rendering {
 void TerrainBuildRequest::validate() const {
     const auto& k=identity;
     if(!k.epoch || !k.serial || k.bodyName.empty() || k.bodyName!=planet.name ||
-       k.field!=surface.field().fingerprint() || k.fieldVersion!=PlanetField::version || k.topologyVersion!=1 ||
+       k.field!=surface.field().fingerprint() || k.fieldVersion!=PlanetField::version || k.topologyVersion!=surface.topologyVersion() ||
        (k.backend!=TerrainBackend::Cpu && k.backend!=TerrainBackend::Compute) ||
        (k.resident && k.backend!=TerrainBackend::Compute) || (k.localMask!=0 && k.localMask!=1) ||
        !std::isfinite(k.eye.x) || !std::isfinite(k.eye.y) || !std::isfinite(k.eye.z) || glm::length(k.eye)<=0 ||
@@ -44,7 +44,8 @@ TerrainCpuBuild buildTerrainCpu(const TerrainBuildRequest& request) {
     if(planet.water.enabled) {
         auto lod=planet.terrain_lod;
         lod.base_edge_segments=1;lod.medium_edge_segments=3;lod.max_edge_segments=8;lod.steep_edge_segments=8;
-        lod.sink_depth_m=0;lod.near_surface_distance_m=lod.shoreline_distance_m;
+        lod.sink_depth_m=0;lod.relief_sinking=false;lod.near_surface_distance_m=lod.shoreline_distance_m;
+        lod.geometric_error_m=0;
         lod.mid_surface_distance_m=2*lod.shoreline_distance_m;lod.max_triangle_budget=std::min(60000,lod.max_triangle_budget);
         const TerrainSurface sea({},lod,planet.radius+planet.water.level_m/request.metersPerUnit,
             request.metersPerUnit,{},0.0);

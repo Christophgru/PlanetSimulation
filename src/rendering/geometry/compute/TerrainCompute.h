@@ -18,7 +18,7 @@ struct TerrainComputeLimits {
 // explicit capture/test operations, never a normal walking wait.
 struct TerrainComputeBuffers {
     GLuint vao=0,vbo=0,ebo=0;
-    std::array<GLuint,4> scratch{}; // radial, unique values, corner map, diagnostic heights
+    std::array<GLuint,5> scratch{}; // radial, unique values, corner map, diagnostic heights, surface policy
     std::array<GLuint,2> timers{};
     GLsync fence=nullptr;
     TerrainBuildStats stats;

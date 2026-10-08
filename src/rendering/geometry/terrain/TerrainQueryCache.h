@@ -10,8 +10,8 @@ struct TerrainQueryStats { std::uint64_t requests=0,evaluations=0,hits=0; };
 // order; no rounded coordinate keys and no shared mutable state between workers.
 class TerrainQueryCache {
 public:
-    explicit TerrainQueryCache(const PlanetField& field,std::size_t capacity=8192)
-        : field_(field),capacity_(capacity),fieldFingerprint_(field.fingerprint()) {}
+    explicit TerrainQueryCache(const PlanetField& field,std::size_t capacity=8192,const TerrainSurfacePolicy& policy={})
+        : field_(field),capacity_(capacity),fieldFingerprint_(field.fingerprint()),policy_(policy) {}
     double heightAt(const glm::dvec3& radial);
     const auto& stats() const { return stats_; }
     std::size_t size() const { return values_.size(); }
@@ -24,6 +24,7 @@ private:
     const PlanetField& field_;
     std::size_t capacity_;
     std::uint64_t fieldFingerprint_;
+    TerrainSurfacePolicy policy_;
     TerrainQueryStats stats_{};
     std::unordered_map<Key,double,Hash> values_;
 };

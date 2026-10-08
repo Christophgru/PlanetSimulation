@@ -103,6 +103,8 @@ struct PlanetConfig {
         double near_surface_distance_m = 35.0;
         double mid_surface_distance_m = 110.0;
         double sink_depth_m = 1.0;
+        bool relief_sinking = false; // Opt-in preserves historical replay geometry.
+        double geometric_error_m = 0.0; // Zero retains the legacy face-only planner.
         int max_triangle_budget = 60000;
         double shoreline_edge_m = 1.0;
         double shoreline_distance_m = 80.0;
@@ -124,6 +126,8 @@ struct PlanetConfig {
                 !std::isfinite(mid_surface_distance_m) ||
                 mid_surface_distance_m <= near_surface_distance_m ||
                 !std::isfinite(sink_depth_m) || sink_depth_m < 0.0 || sink_depth_m > 100.0 ||
+                !std::isfinite(geometric_error_m) || geometric_error_m < 0.0 || geometric_error_m > 100.0 ||
+                (geometric_error_m > 0.0 && !relief_sinking) ||
                 max_triangle_budget < 10000 || max_triangle_budget > 100000 ||
                 !std::isfinite(shoreline_edge_m) || shoreline_edge_m < 0.0 || shoreline_edge_m > 100.0 ||
                 (shoreline_edge_m > 0.0 && shoreline_edge_m < 0.1) ||

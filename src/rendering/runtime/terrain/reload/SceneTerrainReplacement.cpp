@@ -56,7 +56,7 @@ TerrainBuildRequest SceneTerrainReplacement::requestLocal(std::size_t i,const gl
     if(published_ || preparing_ || requests_.at(i)) throw std::logic_error("Scene body request already owned or preparation busy");
     const auto& planet=scene_.scenario.planets[i];
     TerrainBuildIdentity k;k.epoch=epoch_;k.serial=serial;k.bodyIndex=i;k.bodyName=planet.name;
-    k.field=scene_.terrainSurfaces[i].field().fingerprint();k.backend=TerrainBackend::Compute;k.resident=true;
+    k.field=scene_.terrainSurfaces[i].field().fingerprint();k.topologyVersion=scene_.terrainSurfaces[i].topologyVersion();k.backend=TerrainBackend::Compute;k.resident=true;
     k.eye=eye;k.localMask=glm::length(k.eye)<3*planet.radius ? 1 : 0;
     TerrainBuildRequest r{k,scene_.terrainSurfaces[i],planet,std::move(zones),scene_.scenario.metersPerWorldUnit()};
     r.validate();requests_[i]=k;return r;
