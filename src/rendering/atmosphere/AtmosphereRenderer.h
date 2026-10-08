@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <numeric>
+#include <memory>
 #include <vector>
 #include <GL/glew.h>
 #include <glm/gtc/type_ptr.hpp>
@@ -11,6 +12,7 @@
 #include "rendering/lighting/TerrainShadowMaps.h"
 #include "rendering/Shader.h"
 #include "rendering/atmosphere/AtmosphereTransmittance.h"
+#include "rendering/atmosphere/HighlightReduction.h"
 
 namespace rendering {
 inline bool hasAtmosphere(const config::ScenarioConfig& scene) {
@@ -189,6 +191,7 @@ public:
     }
 private:
     GLuint meterFramebuffer_ = 0, meterColor_ = 0;
+    std::unique_ptr<HighlightReduction> highlightReduction_;
     std::vector<float> meterPeaks_;
     std::vector<HighlightTile> meterTiles_;
     double meterHighlights(const Shader& shader, int source, double requested) {
@@ -210,6 +213,14 @@ private:
         glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, colors_[source]);
         shader.setInt("uMeterHighlights", 1);
         glDrawArrays(GL_TRIANGLES, 0, 3);
+        if (GLEW_VERSION_4_3) {
+            if (!highlightReduction_) highlightReduction_ = std::make_unique<HighlightReduction>();
+            const double exposure = highlightReduction_->reduce(meterColor_, width_, height_, requested);
+            shader.use(); shader.setInt("uMeterHighlights", 0);
+            glViewport(0, 0, width_, height_);
+            return exposure;
+        }
+        // Supported GL 3.3 fallback retains the exact CPU reference.
         meterPeaks_.resize(static_cast<std::size_t>(tileWidth) * tileHeight * 2);
         glReadPixels(0, 0, tileWidth, tileHeight, GL_RG, GL_FLOAT, meterPeaks_.data());
         meterTiles_.clear(); meterTiles_.reserve(meterPeaks_.size() / 2);

@@ -94,3 +94,8 @@ partial-tile weights and the sparse-star safeguard. The current 1920×1080 meter
 still reads 32,400 RG32F tiles (259,200 bytes) and sorts them on CPU. A1c then
 compares complete atmosphere costs and parity. No transfer reduction or hardware
 FPS improvement is attributed to A1a.
+
+Update 2026-10-08: [F4](../highlights.md) completes exact GPU highlight selection
+and its focused transfer/frame-cost comparison. The earlier pending A1b/A1c
+notes above describe the A1a checkpoint; they are superseded by F4. Combined
+terrain acceptance remains the existing F5 outcome, with CPU terrain default.

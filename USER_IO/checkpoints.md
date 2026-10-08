@@ -1,5 +1,30 @@
 # Page to document progress of AI Agents working on this Project
 
+## F4 completed — 2026-10-08
+
+- GL 4.3 highlight selection now exactly histograms the existing RGBA16F peaks,
+  weights partial tiles by actual pixel area and preserves the actual-white-pixel
+  sparse-star guard. Three dispatches use fixed 131,076-byte histogram storage;
+  GL 3.3 retains the supported CPU reference. Optics/integration are unchanged.
+- One 8-byte double exposure receipt replaces the full tile-map readback and CPU
+  sort. Existing passes consume the current-frame value, cached frames retain it,
+  and fixed reduction resources survive viewport changes. Scalar synchronization
+  remains; no zero-readback claim.
+- Quadro 1080p focused saturated wall median/p95: 3.558/4.123→1.580/1.754 ms;
+  sparse 1.951/2.306→1.521/1.690 ms. Transfer 259,200→8 bytes. At 129×121, fixed
+  dispatch work adds 0.08–0.11 ms. This is focused presentation, not F5 acceptance.
+- Pass: 34 headless core groups; 13 NVIDIA and 13 Mesa GL 4.3 atmosphere cases
+  (72 CPU-reference selections), 12 Mesa GL 3.3 cases plus explicit compute skip;
+  five renderer reload and four interactive reload cases. Nine canonical Mesa
+  atmosphere and three twilight scenarios pass their existing replay checks.
+  Twelve PNGs/metrics per driver match that driver's pre-change baseline exactly.
+- Pre-change NVIDIA airless camera-snippet/twilight saved-replay failures remain
+  recorded; no tolerance changes. One intermediate software run used a stale
+  binary after a shader-format change and is excluded; final runs rebuilt cleanly.
+- Compact report: docs/journal/architecture/atmosphere/highlights.md. Raw receipts,
+  CSV and captures remain ignored/local in build-benchmarks/runs/f4-20261008/.
+  F4 is complete. F5, CPU terrain default and unrelated user documents are unchanged.
+
 ## F3 implementation and verification — 2026-10-08
 
 - Resident GPU planning protects the configured quad-distance region and fits

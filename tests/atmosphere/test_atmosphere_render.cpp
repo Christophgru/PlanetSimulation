@@ -6,6 +6,10 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <vector>
 #include <fstream>
+#include <chrono>
+#include <random>
+#include <cstdlib>
+#include <glm/gtc/packing.hpp>
 #include "rendering/diagnostics/FrameProfiler.h"
 #include "rendering/diagnostics/PerformanceOverlay.h"
 #include "rendering/atmosphere/AtmosphereRenderer.h"
@@ -341,14 +345,130 @@ TEST_F(AtmosphereRender, HighlightProtectionLimitsWhitePixelsAndPreservesCachedE
     EXPECT_EQ(manual[0], 255);
     glDeleteRenderbuffers(1, &outputDepth);
 }
+// Compare the GPU selection with the independent existing CPU sort, including
+// tied/zero peaks, half subnormals, partial tiles and the exact 5% boundary.
+TEST_F(AtmosphereRender, GpuHighlightSelectionMatchesWeightedReferenceAndSparseGuard) {
+    if (!GLEW_VERSION_4_3) GTEST_SKIP() << "GPU reduction requires GL 4.3; fallback is covered above";
+    rendering::HighlightReduction reduction;
+    GLuint tiles = 0;
+    glGenTextures(1, &tiles);
+    std::mt19937 random(41892);
+    for (auto extent : {glm::ivec2(1,1), glm::ivec2(8,8), glm::ivec2(17,9),
+                        glm::ivec2(121,129), glm::ivec2(640,480), glm::ivec2(1921,1081)}) {
+        const int width = (extent.x+7)/8, height = (extent.y+7)/8;
+        for (int trial=0; trial<12; ++trial) {
+            std::vector<float> data(width*height*2);
+            std::vector<rendering::HighlightTile> reference;
+            std::size_t clipped = 0;
+            for (int y=0; y<height; ++y) for (int x=0; x<width; ++x) {
+                const auto weight = std::size_t(std::min(8,extent.x-x*8)*std::min(8,extent.y-y*8));
+                const auto key = trial<3 ? 0u : trial<6 ? 0x4900u : trial==6 ? 1u :
+                    trial==7 ? 0x7c00u : trial==8 ? 0x7bffu : trial==9 ? 0x0400u : random()%0x7c01u;
+                const float peak = glm::unpackHalf1x16(static_cast<glm::uint16>(key));
+                // At/below/above the guard boundary, then densely clipped.
+                const auto remaining = (trial%4<3 ? std::size_t(extent.x)*extent.y/20+trial%4 :
+                    std::size_t(extent.x)*extent.y) - clipped;
+                const auto count = std::min(weight,remaining);
+                data[2*(y*width+x)] = peak; data[2*(y*width+x)+1] = count;
+                clipped += count; reference.push_back({peak,weight});
+            }
+            glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D,tiles);
+            glTexImage2D(GL_TEXTURE_2D,0,GL_RG32F,width,height,0,GL_RG,GL_FLOAT,data.data());
+            glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+            const double requested = trial%2 ? 4096.123 : 0.00123456789;
+            const double expected = clipped<=std::size_t(extent.x)*extent.y/20 ? requested :
+                rendering::highlightLimitedExposure(requested,reference);
+            const double actual = reduction.reduce(tiles,extent.x,extent.y,requested);
+            EXPECT_DOUBLE_EQ(actual,expected) << extent.x << 'x' << extent.y << " trial " << trial;
+            if (expected==requested) EXPECT_DOUBLE_EQ(actual,requested);
+            EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+        }
+    }
+    glDeleteTextures(1,&tiles);
+}
+
+// Opt-in focused old/new full-frame comparison. The legacy capability override
+// is local to this single-threaded test, never exposed as a product setting.
+TEST_F(AtmosphereRender, DISABLED_HighlightFrameCostComparison) {
+    if (!GLEW_VERSION_4_3) GTEST_SKIP();
+    const char* destination = std::getenv("PLANET_HIGHLIGHT_BENCHMARK");
+    ASSERT_NE(destination,nullptr);
+    std::ofstream report(destination);
+    report << "width,height,pattern,backend,frame,cpu_ms,gpu_ms,readback_bytes\n";
+    auto scene = config::ScenarioConfig(config::Config::load("tests/scenarios/atmosphere/base.json"));
+    for (auto& planet:scene.planets) planet.atmosphere.enabled=false;
+    const std::vector<simulation::BodyState> bodies(scene.planets.size()+1);
+    const rendering::FrameLighting lighting;
+    rendering::AtmosphereOpticsCache optics(scene);
+    GLuint target = 0, color = 0, outputDepth = 0, query = 0;
+    glGenFramebuffers(1,&target); glGenTextures(1,&color);
+    glGenRenderbuffers(1,&outputDepth); glGenQueries(1,&query);
+    for (auto extent:{glm::ivec2(129,121),glm::ivec2(640,480),glm::ivec2(1920,1080)}) {
+        glBindFramebuffer(GL_FRAMEBUFFER,target);
+        glBindTexture(GL_TEXTURE_2D,color);
+        glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA8,extent.x,extent.y,0,GL_RGBA,GL_UNSIGNED_BYTE,nullptr);
+        glFramebufferTexture2D(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D,color,0);
+        glBindRenderbuffer(GL_RENDERBUFFER,outputDepth);
+        glRenderbufferStorage(GL_RENDERBUFFER,GL_DEPTH24_STENCIL8,extent.x,extent.y);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER,GL_DEPTH_STENCIL_ATTACHMENT,GL_RENDERBUFFER,outputDepth);
+        ASSERT_EQ(glCheckFramebufferStatus(GL_FRAMEBUFFER),GLenum(GL_FRAMEBUFFER_COMPLETE));
+        for (int pattern=0;pattern<2;++pattern) {
+            std::vector<unsigned char> reference;
+            double referenceExposure=0;
+            for (int pair=0;pair<3;++pair) for (int backend=0;backend<2;++backend) {
+                rendering::AtmosphereRenderer renderer;
+                for (int frame=0;frame<50;++frame) {
+                    renderer.begin(extent.x,extent.y);
+                    glDisable(GL_SCISSOR_TEST); glDepthMask(GL_TRUE);
+                    glClearColor(pattern ? 10000 : 0.1f,pattern ? 10000 : 0.1f,pattern ? 10000 : 0.1f,1);
+                    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
+                    // A small actual bright area touches many tiles.
+                    if (!pattern) {
+                        glEnable(GL_SCISSOR_TEST); glScissor(0,0,extent.x,1);
+                        glClearColor(10000,10000,10000,1); glClear(GL_COLOR_BUFFER_BIT); glDisable(GL_SCISSOR_TEST);
+                    }
+                    const auto start=std::chrono::steady_clock::now();
+                    glBeginQuery(GL_TIME_ELAPSED,query);
+                    const GLboolean capability=GLEW_VERSION_4_3;
+                    if (!backend) __GLEW_VERSION_4_3=GL_FALSE;
+                    const double exposure=renderer.finish(shader,scene,optics,bodies,lighting,1,
+                        glm::mat4(1),projection,{0,0,0},target,true,nullptr,true);
+                    __GLEW_VERSION_4_3=capability;
+                    glEndQuery(GL_TIME_ELAPSED);
+                    // Deliberately synchronous benchmark query after the timed
+                    // call; application queries retain their existing policy.
+                    GLuint64 elapsed=0; glGetQueryObjectui64v(query,GL_QUERY_RESULT,&elapsed);
+                    const double cpu=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();
+                    if (frame==0) {
+                        std::vector<unsigned char> pixels(extent.x*extent.y*4);
+                        glReadPixels(0,0,extent.x,extent.y,GL_RGBA,GL_UNSIGNED_BYTE,pixels.data());
+                        if (!backend) {reference=pixels;referenceExposure=exposure;}
+                        else {EXPECT_EQ(pixels,reference);EXPECT_FLOAT_EQ(float(exposure),float(referenceExposure));}
+                    }
+                    if (frame>=10) report << extent.x << ',' << extent.y << ',' << pattern << ',' << backend << ','
+                        << pair*40+frame-10 << ',' << cpu << ',' << elapsed/1e6 << ','
+                        << (backend ? 8 : ((extent.x+7)/8)*((extent.y+7)/8)*8) << '\n';
+                    ASSERT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+                }
+            }
+        }
+    }
+    glDeleteQueries(1,&query); glDeleteFramebuffers(1,&target); glDeleteTextures(1,&color);
+    glDeleteRenderbuffers(1,&outputDepth);
+}
 } // namespace
 int main(int argc,char** argv) {
     testing::InitGoogleTest(&argc,argv);
     if (!glfwInit()) return 1;
     glfwWindowHint(GLFW_VISIBLE,GLFW_FALSE);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3); glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,4); glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
     glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
     auto* window = glfwCreateWindow(size,size,"Atmospheric refraction tests",nullptr,nullptr);
+    if (!window) {
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3); glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
+        window=glfwCreateWindow(size,size,"Atmospheric fallback tests",nullptr,nullptr);
+    }
     if (!window) { glfwTerminate(); return 1; }
     glfwMakeContextCurrent(window); glewExperimental=GL_TRUE;
     if (glewInit()!=GLEW_OK) { glfwDestroyWindow(window); glfwTerminate(); return 1; }

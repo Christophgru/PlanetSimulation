@@ -147,6 +147,10 @@ Changing optical inputs refreshes the pack; scene reload owns a fresh cache.
 Capture metadata reports evaluation/reuse counts. The
 [shared optics checkpoint](docs/journal/architecture/atmosphere/optics/study.md)
 documents keys, failure retention and software/hardware validation.
+Highlight selection uses an exact weighted GPU histogram on GL 4.3 and retains
+its CPU reference on GL 3.3. The current-frame exposure receipt is eight bytes;
+see [reduction and measured costs](docs/journal/architecture/atmosphere/highlights.md)
+for parity checks, small-viewport overhead and the remaining scalar synchronization.
 
 | Strong bending | Straight-ray control |
 |:--:|:--:|

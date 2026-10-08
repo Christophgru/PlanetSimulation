@@ -1,0 +1,63 @@
+#version 430 core
+layout(local_size_x = 256) in;
+layout(std430, binding = 0) buffer Histogram { uint bins[]; };
+layout(rg32ui, binding = 0) writeonly uniform uimage2D uResult;
+uniform sampler2D uTiles;
+uniform int uMode;
+uniform ivec2 uSize;
+uniform double uRequested;
+uniform double uWhiteLimit;
+shared uint cumulative[256];
+
+// The composed scene is RGBA16F. Its nonnegative peaks have exactly 32768
+// possible half-float bit patterns, so this histogram loses no precision.
+void main() {
+    uint lane = gl_LocalInvocationID.x;
+    uint index = gl_GlobalInvocationID.x;
+    if (uMode == 0) {
+        if (index <= 32768u) bins[index] = 0u;
+        return;
+    }
+    if (uMode == 1) {
+        ivec2 size = textureSize(uTiles, 0);
+        if (index >= uint(size.x * size.y)) return;
+        ivec2 tile = ivec2(int(index) % size.x, int(index) / size.x);
+        vec2 sampleValue = texelFetch(uTiles, tile, 0).rg;
+        uint key = packHalf2x16(vec2(sampleValue.x, 0.0)) & 32767u;
+        ivec2 extent = min(ivec2(8), uSize - tile * 8);
+        atomicAdd(bins[key], uint(extent.x * extent.y));
+        atomicAdd(bins[32768], uint(sampleValue.y));
+        return;
+    }
+    uint allowance = uint(uSize.x * uSize.y) / 20u;
+    // Count actual near-white pixels, not tiles touched by sparse stars.
+    if (bins[32768] <= allowance) {
+        if (lane == 0u) imageStore(uResult, ivec2(0), uvec4(unpackDouble2x32(uRequested), 0u, 0u));
+        return;
+    }
+    uint total = 0u;
+    for (uint j = 0u; j < 128u; ++j) total += bins[32767u - lane * 128u - j];
+    cumulative[lane] = total;
+    barrier();
+    for (uint step = 1u; step < 256u; step *= 2u) {
+        uint previous = lane >= step ? cumulative[lane - step] : 0u;
+        barrier();
+        cumulative[lane] += previous;
+        barrier();
+    }
+    uint excluded = lane == 0u ? 0u : cumulative[lane - 1u];
+    if (excluded <= allowance && cumulative[lane] > allowance) {
+        for (uint j = 0u; j < 128u; ++j) {
+            uint key = 32767u - lane * 128u - j;
+            excluded += bins[key];
+            if (excluded > allowance) {
+                double peak = double(unpackHalf2x16(key).x);
+                // Preserve the CPU reference's double exposure receipt. The
+                // render pass converts it to a float uniform as before.
+                double exposure = peak > 0.0 ? min(uRequested, uWhiteLimit / peak) : uRequested;
+                imageStore(uResult, ivec2(0), uvec4(unpackDouble2x32(exposure), 0u, 0u));
+                break;
+            }
+        }
+    }
+}

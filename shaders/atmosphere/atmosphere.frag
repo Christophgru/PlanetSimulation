@@ -86,7 +86,7 @@ bool resolveAtmosphere(vec3 original,vec3 direction) {
 void main() {
     if (uMeterHighlights) {
         // Full coverage: a small bright patch cannot hide between samples.
-        // Only a peak and clipping count per 8x8 tile reach the CPU.
+        // A peak and clipping count per 8x8 tile feed the exact reduction.
         ivec2 base = ivec2(gl_FragCoord.xy) * 8;
         ivec2 size = textureSize(uSceneColor, 0);
         float peak = 0.0, clipped = 0.0;
