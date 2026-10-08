@@ -1,5 +1,9 @@
 # T3c5c2b4 — private blade-order controls
 
+Update, 2026-10-08: graphics access is restored. The bounded GPU runtime fix
+and passing stationary production pairs are in [the F2 correction](correction.md).
+The blocked attempts below remain historical evidence.
+
 Declared on 2026-10-07 after `8efaec8`, before collecting the new controls.
 CPU descriptors are distance-ordered within slot levels; resident descriptors
 are triangle-ordered. The previous wind/raster study does not prove this causes

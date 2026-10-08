@@ -123,8 +123,8 @@ draws fail the 5% limit in all three pairs (9.44–15.03% slower); matching wind
 does not remove the regression. Ablations locate the repeatable difference
 in raster-enabled and downstream scene work without proving an overdraw or
 ordering cause. Software/Quadro controls and 703 byte-verified payloads remain
-archived. Correction and full-workload repeats follow as T3c5c2b4; CPU stays
-default and migration acceptance remains pending.
+archived. The F2 correction below addresses the stationary regression; CPU
+stays default and combined migration acceptance remains pending.
 
 The [blade-order control prerequisite](architecture/terrain-gpu/async/hardware/cost/raster/order/study.md)
 adds a separate private inspection probe and a passing 35.27 s software CTest.
@@ -132,10 +132,14 @@ All 18 final snapshots preserve exact Blade multisets, matrices and depth,
 with zero displayed RGB differences across native/near/far permutations.
 Both detailed/quad queues are populated in main and reflection. Independent
 archive checks include 54 preflight snapshots and 1,675 byte-verified payloads.
-Physical-GPU qualification and production diagnosis remain blocked: direct
-NVIDIA device opens return EPERM, GLX/GLFW and EGL cannot create contexts,
-while NVML inventory remains available. CPU stays default; the ordering cause,
-bounded GPU correction and full-workload repeats remain pending.
+Graphics access was restored on 2026-10-08. The
+[F2 correction](architecture/terrain-gpu/async/hardware/cost/raster/order/correction.md)
+uses hardware order controls to identify the main detailed-grass regression,
+then distance-orders resident references with existing GPU scratch storage.
+Three alternating normal-wind full-draw pairs pass the 1.05 p95 gate at
+1.009/1.021/1.013; fixed-wind pairs pass too. Production blade contents, depth
+and displayed RGB remain exact before/after. Raw runs stay local; CPU remains
+default and F5 combined acceptance is pending.
 
 The [GPU timing prerequisite](architecture/terrain-gpu/async/hardware/timing/study.md)
 adds bounded request-keyed dispatch timings and complete frame timestamp spans.

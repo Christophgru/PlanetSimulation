@@ -856,14 +856,17 @@ investigation is documented in the
 All 54 native Quadro runs and 27 pairs pass raw validation. Fixed-wind full
 draws remain 9.44–15.03% slower on compute; discard and suppressed-draw controls
 localize the repeatable difference to raster-enabled and downstream work.
-The cause and correction remain pending. CPU stays default; the 5% full-draw
-cost limit and earlier failures remain in force.
 The [blade-order probe qualification](docs/journal/architecture/terrain-gpu/async/hardware/cost/raster/order/study.md)
 adds controlled native/near/far permutations of actual main/reflection queues.
 Eighteen software snapshots retain exact blade contents, shader matrices,
-depth and displayed color. Physical-GPU production diagnosis is currently
-blocked by denied graphics-device access; no runtime correction or new
-hardware performance result is claimed.
+depth and displayed color. With graphics access restored, the
+[F2 runtime correction](docs/journal/architecture/terrain-gpu/async/hardware/cost/raster/order/correction.md)
+distance-orders resident triangle references on the GPU using existing scratch
+storage. Three alternating production normal-wind pairs pass the unchanged
+1.05 full-frame p95 limit (ratios 1.009/1.021/1.013); fixed-wind pairs also pass.
+Before/after production blade contents, depth and displayed RGB remain exact.
+CPU stays default; earlier failures remain documented, and combined F5
+movement/Moon/reload/transfer acceptance is still pending.
 
 Within **1.2 body diameters from its centre (2.4 radii)**, orientation follows
 the nearby planet or moon. Beyond that region, free-space mouse look lets you

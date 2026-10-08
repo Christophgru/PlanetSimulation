@@ -11,10 +11,10 @@ layout(std430,binding=2) buffer State {
 };
 struct Aggregate {dvec2 areaWork;uint count;uint bins[17];uvec2 padding;};
 layout(std430,binding=3) buffer Groups {Aggregate groups[];};
-layout(std430,binding=4) writeonly buffer References {uint references[];};
+layout(std430,binding=4) buffer References {uint references[];};
 layout(std430,binding=5) buffer Ranks {uvec2 ranks[];};
 layout(std430,binding=6) buffer Offsets {uint offsets[];};
-uniform uint uPhase,uFirstGroup,uEndGroup,uGroups;
+uniform uint uPhase,uFirstGroup,uEndGroup,uGroups,uSortWidth;
 shared double areas[64],work[64];shared uint eligible[64],levels[64];
 uint grassHash(uint value) {
     value^=value>>16;value*=0x7feb352du;value^=value>>15;value*=0x846ca68bu;return value^(value>>16);
@@ -23,6 +23,32 @@ uint bucket(double expected) {
     uint level=0u,slots=1u;
     while(level<16u && slots<control.y && double(slots)<expected) {++level;slots*=2u;}
     return level;
+}
+uint sortSource(uint index,bool scratch) {return scratch ? ranks[index].x : references[index];}
+bool nearer(uint a,uint b) {
+    double da=metadata[a].areaDistance.y,db=metadata[b].areaDistance.y;
+    return da<db || (da==db && a<b);
+}
+void sortReference(uint t) {
+    if(t>=totals.x) return;
+    uint level=0u;
+    while(level<16u && t>=first[level]+counts[level]) ++level;
+    uint index=t-first[level],base=(index/(2u*uSortWidth))*(2u*uSortWidth);
+    bool right=index-base>=uSortWidth;
+    uint own=base+(right ? uSortWidth : 0u);
+    uint other=base+(right ? 0u : uSortWidth);
+    uint end=min(other+uSortWidth,counts[level]);
+    bool scratch=(findLSB(uSortWidth)&1)!=0;
+    uint id=sortSource(t,scratch),low=other,high=end;
+    // Independent binary searches merge two sorted runs without atomics or
+    // CPU queue inspection. Triangle ID breaks equal-distance ties stably.
+    while(low<high) {
+        uint middle=low+(high-low)/2u;
+        if(nearer(sortSource(first[level]+middle,scratch),id)) low=middle+1u;
+        else high=middle;
+    }
+    uint target=first[level]+base+(index-own)+(low-other);
+    if(scratch) references[target]=id;else ranks[target].x=id;
 }
 void controller() {
     if(gl_GlobalInvocationID.x!=0u) return;
@@ -63,6 +89,11 @@ void main() {
     uint g=uFirstGroup+gl_WorkGroupID.x,lane=gl_LocalInvocationID.x;
     if(g>=uEndGroup || g>=uGroups) return;
     uint t=g*64u+lane;
+    // Reuse the allocation rank buffer after reference emission. Ordering is
+    // per slot level, matching the CPU planner's near-first submission; root
+    // seeds, density, population and detailed/quad selection stay unchanged.
+    if(uPhase==12u) {sortReference(t);return;}
+    if(uPhase==14u) {if(t<totals.x) references[t]=ranks[t].x;return;}
     if(uPhase==10u) {
         if(t>=flags.w || totals.z!=0u) return;
         uvec2 rank=ranks[t];

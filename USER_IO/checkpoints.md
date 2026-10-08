@@ -1,5 +1,35 @@
 # Page to document progress of AI Agents working on this Project
 
+## F2 completed — 2026-10-08
+
+- NVIDIA device opens and native Quadro GLX work again. Hardware order controls
+  identify the main detailed-grass draw: CPU/compute medians 4.343/8.014 ms;
+  exact near-first permutations bring both to about 3.434 ms.
+- Resident allocation now distance-orders triangle references within slot
+  levels on GPU, using existing rank scratch and stable triangle-ID ties.
+  No added buffers or CPU Blade queue reads; density/quality/placement unchanged.
+- Fresh fixed-wind baseline ratios 1.099687/1.062302/1.089736 fail. Corrected
+  fixed ratios 1.023953/1.018824/1.012084 and normal-wind production ratios
+  1.008686/1.021469/1.012668 all pass the unchanged 1.05 stationary p95 gate.
+  Each cohort has three alternating pairs and 1,440 measured frames.
+- Exact before/after production Blade multisets, commands, matrices, depth
+  and displayed RGB; main counts 35,327/153,563, reflection 35,019/165,221.
+  Runtime audits retain zero blocking waits, bulk reads, finishes/memory queries.
+  Logical compute overlap stays 290,578,652 bytes. Initial plan allocation GPU
+  median increases from 20.318 to 25.532 ms; moving/reload acceptance is F5.
+- 31 compute integration tests pass (direct 44.96 s, CTest 40.80 s); four
+  independent allocation-oracle tests pass on NVIDIA and software GL. Thirteen
+  software grass-render tests and scene-replay/CPU-plan/placement groups pass.
+  Native input checks pass contacts/replay, 6/12 m/s, thrust, reload/watch,
+  space/Moon, delayed clock, default CPU, GL 3.3 fallback and startup rejection.
+- Retain first cold compute CTest timeout (120 s) and the pre-existing NVIDIA
+  trail exact-equality failure at test_grass_render.cpp:393. That same trail
+  test fails unchanged F1; its CPU-planned fixture does not use the new sort.
+  No tolerance or unrelated runtime fix; no full-suite success claim.
+- Compact report: cost/raster/order/correction.md and correction.json. Raw
+  receipts and lossless storage stay in ignored build-benchmarks/runs/f2-20261008/.
+  CPU stays default. Stop after F2; F3–F5 and unrelated user files untouched.
+
 ## F1 completed — 2026-10-08
 
 - Clean source snapshot (no historical compressed maps/JSONL traces) configured

@@ -14,7 +14,7 @@
 using namespace rendering;
 namespace {
 struct Oracle {std::vector<std::uint32_t> ids;std::array<std::uint32_t,17> counts{},first{};double density=0;std::size_t work=0;};
-Oracle oracle(const std::vector<double>& weights,double requested,unsigned cap,unsigned budget) {
+Oracle oracle(const std::vector<double>& weights,const std::vector<double>& distances,double requested,unsigned cap,unsigned budget) {
     Oracle r;std::vector<std::uint32_t> eligible;
     for(std::size_t i=0;i<weights.size();++i) if(weights[i]>0) eligible.push_back(i);
     if(eligible.size()>budget) {
@@ -28,7 +28,9 @@ Oracle oracle(const std::vector<double>& weights,double requested,unsigned cap,u
         for(int i=0;i<32;++i) {double mid=(low+high)*.5;if(work(mid)<=budget) low=mid;else high=mid;}
         density=low;
     }
-    std::sort(eligible.begin(),eligible.end());
+    std::sort(eligible.begin(),eligible.end(),[&](auto a,auto b) {
+        return distances[a]<distances[b] || (distances[a]==distances[b] && a<b);
+    });
     for(int l=0;l<17;++l) {
         r.first[l]=r.ids.size();
         for(auto i:eligible) if(level(weights[i],density)==l) {r.ids.push_back(i);++r.counts[l];r.work+=1u<<l;}
@@ -40,7 +42,15 @@ void fixture(const std::vector<double>& weights,double requested,unsigned slots,
     metadata.planningEye={1.002,0,0};
     GrassMetadataParameters p;p.ranges[3]=requested;p.flags[3]=weights.size();
     std::vector<GrassTriangleMetadata> triangles(weights.size());
-    for(std::size_t i=0;i<weights.size();++i) {triangles[i].areaDistance[0]=weights[i];triangles[i].identity={std::uint32_t(i),std::uint32_t(weights[i]>0),0,0};}
+    std::vector<double> distances(weights.size());
+    for(std::size_t i=0;i<weights.size();++i) {
+        // Repeated and adjacent-double keys exercise stable ties and prevent
+        // a float-rounded sort from silently passing the independent oracle.
+        distances[i]=double((i*37)%19)*.125;
+        if(i%3==0) distances[i]=std::nextafter(distances[i],1e9);
+        triangles[i].areaDistance={weights[i],distances[i]};
+        triangles[i].identity={std::uint32_t(i),std::uint32_t(weights[i]>0),0,0};
+    }
     glGenBuffers(1,&metadata.descriptors);glBindBuffer(GL_SHADER_STORAGE_BUFFER,metadata.descriptors);
     glBufferData(GL_SHADER_STORAGE_BUFFER,triangles.size()*64,triangles.data(),GL_STATIC_DRAW);
     glGenBuffers(1,&metadata.parameters);glBindBuffer(GL_SHADER_STORAGE_BUFFER,metadata.parameters);
@@ -51,7 +61,7 @@ void fixture(const std::vector<double>& weights,double requested,unsigned slots,
     const unsigned effective=std::min<std::uint64_t>(budget,limits.blockBytes/128);
     GrassAllocationCompute compute(limits);auto allocation=compute.generate(metadata,f);
     EXPECT_THROW(allocation->readSummary(),std::logic_error);allocation->waitForCapture();
-    const auto actual=allocation->readSummary();const auto expected=oracle(weights,requested,std::bit_floor(slots),effective);
+    const auto actual=allocation->readSummary();const auto expected=oracle(weights,distances,requested,std::bit_floor(slots),effective);
     EXPECT_EQ(actual.counts,expected.counts);EXPECT_EQ(actual.first,expected.first);
     EXPECT_EQ(actual.totals[0],expected.ids.size());EXPECT_EQ(actual.totals[1],expected.work);
     EXPECT_LE(actual.totals[1],effective);EXPECT_EQ(actual.control[0],effective);
@@ -60,7 +70,7 @@ void fixture(const std::vector<double>& weights,double requested,unsigned slots,
     auto replay=compute.generate(metadata,f);replay->waitForCapture();const auto second=replay->readSummary();
     EXPECT_EQ(second.counts,actual.counts);EXPECT_EQ(second.densitySearch[0],actual.densitySearch[0]);
     EXPECT_EQ(replay->readReferencesForValidation(second.totals[0]),ids);
-    EXPECT_EQ(allocation->inputBytes,228+12*allocation->dispatches);EXPECT_EQ(allocation->summaryReadBytes,224);
+    EXPECT_EQ(allocation->inputBytes,228+12*allocation->dispatches+4*std::bit_width(weights.size()-1));EXPECT_EQ(allocation->summaryReadBytes,224);
     EXPECT_EQ(allocation->diagnosticReadBytes,ids.size()*4);EXPECT_EQ(allocation->generation,metadata.generation);
     std::cout << "GRASS_ALLOCATION triangles=" << weights.size() << " patches=" << actual.totals[0]
         << " candidates=" << actual.totals[1] << " budget=" << effective << " density=" << actual.densitySearch[0]
@@ -74,6 +84,9 @@ TEST(GrassAllocation, RoundedSlotsBoundariesAndNonPowerCapsMatchIndependentOracl
     fixture({1,std::nextafter(1.0,0.0),std::nextafter(1.0,2.0),2,4,8},1,65536,1000);
     std::vector<double> weights(137);for(std::size_t i=0;i<weights.size();++i) weights[i]=(i%9+1)*.25;
     fixture(weights,32,8192,500,true);fixture(weights,32,8192,500,false,true);
+    // Non-power-of-two runs across many work groups, including empty levels.
+    fixture(std::vector<double>(1025,1),1,8192,2048,true);
+    fixture({1},1,1,1);
 }
 TEST(GrassAllocation, TinyBudgetsChooseStableLowestHashesAndEmptyEligibilityStaysEmpty) {
     std::vector<double> weights(73,64);

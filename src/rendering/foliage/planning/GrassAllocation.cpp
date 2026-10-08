@@ -115,6 +115,15 @@ std::unique_ptr<GrassAllocationBuffers> GrassAllocationCompute::generate(const G
     dispatch(4);dispatch(5,true);
     for(int i=0;i<32;++i) {dispatch(6);dispatch(7,true);}
     dispatch(8);dispatch(9,true);dispatch(10);
+    // Match CPU near-first patch submission once per plan, entirely on GPU.
+    // Ping-pong references with the now-unused rank scratch; no new allocation
+    // or Blade queue readback is needed. Each level remains a separate range.
+    unsigned sortPasses=0;
+    for(std::uint64_t width=1;width<n;width*=2) {
+        glUniform1ui(glGetUniformLocation(shader_->id,"uSortWidth"),width);
+        result->inputBytes+=4;dispatch(12);++sortPasses;
+    }
+    if(sortPasses%2) dispatch(14);
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT|GL_BUFFER_UPDATE_BARRIER_BIT);
     timing.stop();
     result->fence=glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE,0);
