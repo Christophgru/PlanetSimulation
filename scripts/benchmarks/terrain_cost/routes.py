@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 """Three alternating production CPU/compute pairs per native movement route."""
+
+import sys
+from pathlib import Path
+_repo = next(p for p in Path(__file__).resolve().parents if (p/'scripts/benchmarks/archives').is_dir())
+sys.path.insert(0, str(_repo/'scripts/benchmarks'))
+from archives.local import local_output
 import argparse
 import json
 from pathlib import Path
@@ -16,7 +22,7 @@ from route_receipts import compare_routes, summarize_route
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--probe', type=Path, required=True)
-    p.add_argument('--output-dir', type=Path, required=True)
+    p.add_argument('--output-dir', type=local_output, required=True)
     p.add_argument('--expected-uuid', required=True)
     p.add_argument('--distance', type=int, default=400)
     p.add_argument('--pairs', type=int, default=3)

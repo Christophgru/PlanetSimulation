@@ -1,3 +1,0 @@
-event,frame,stage,epoch,request_serial,body,field,topology,field_version,topology_version,backend,identity_valid,status,cpu_submit_ms,gpu_ms,query_polls,view
-0,0,grass_placement,0,0,,0,0,1,1,1,0,ready,6.096822,5.694464,1,main
-1,0,grass_placement,0,0,,0,0,1,1,1,0,ready,0.168465,4.37248,1,reflection

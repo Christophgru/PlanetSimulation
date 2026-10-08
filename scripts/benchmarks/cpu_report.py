@@ -5,6 +5,12 @@ Only explicitly instrumented scopes are represented. Self time includes any
 uninstrumented callees, driver waits and tracing overhead. Worker timelines stay
 separate; their elapsed times must not be added to render-thread latency.
 """
+
+import sys
+from pathlib import Path
+_repo = next(p for p in Path(__file__).resolve().parents if (p/'scripts/benchmarks/archives').is_dir())
+sys.path.insert(0, str(_repo/'scripts/benchmarks'))
+from archives.local import local_output
 import argparse
 from collections import defaultdict
 import csv
@@ -199,7 +205,7 @@ def write_report(document, out, skip_frames=0, frame_count=None):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('trace', type=Path)
-    parser.add_argument('--output-dir', type=Path, required=True)
+    parser.add_argument('--output-dir', type=local_output, required=True)
     parser.add_argument('--skip-frames', type=int, default=0)
     parser.add_argument('--frames', type=int)
     args = parser.parse_args()

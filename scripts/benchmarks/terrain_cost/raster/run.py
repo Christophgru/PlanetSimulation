@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 """Three alternating stationary pairs with frozen wind and private raster controls."""
+
+import sys
+from pathlib import Path
+_repo = next(p for p in Path(__file__).resolve().parents if (p/'scripts/benchmarks/archives').is_dir())
+sys.path.insert(0, str(_repo/'scripts/benchmarks'))
+from archives.local import local_output
 import argparse
 import inspect # Preload stdlib before the historical inspect.py CLI directory.
 import json
@@ -22,7 +28,7 @@ stationary=importlib.util.module_from_spec(spec);spec.loader.exec_module(station
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--probe',type=Path,required=True)
-    p.add_argument('--output-dir',type=Path,required=True)
+    p.add_argument('--output-dir',type=local_output,required=True)
     p.add_argument('--expected-uuid',required=True)
     p.add_argument('--wind-mode',choices=('native','fixed','indexed'),required=True)
     p.add_argument('--raster-mode',choices=('full','discard','suppress'),required=True)

@@ -41,3 +41,20 @@ __pycache__/
 # Generated benchmark archives stay local, including nested validation folders.
 docs/journal/**/*.xz
 docs/journal/**/*.gz
+docs/journal/**/*.jsonl
+docs/journal/**/frames.csv
+docs/journal/**/performance.csv*
+docs/journal/**/*.frames.csv*
+docs/journal/**/*.native-loop.csv*
+docs/journal/**/*.gpu-work.csv*
+docs/journal/**/*.memory.csv*
+docs/journal/**/*.publications.csv*
+docs/journal/**/*.depth
+docs/journal/**/*.blades
+docs/journal/**/*.rgba
+docs/journal/**/*.rgba32f
+docs/journal/**/*.stencil
+docs/journal/**/*.indices
+docs/journal/**/*.depth-keys
+docs/journal/**/*.input
+docs/journal/**/*.permuted

@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 """Fixed-resolution, frozen-orbit camera benchmark. Run under a GL display/Xvfb."""
+
+import sys
+from pathlib import Path
+_repo = next(p for p in Path(__file__).resolve().parents if (p/'scripts/benchmarks/archives').is_dir())
+sys.path.insert(0, str(_repo/'scripts/benchmarks'))
+from archives.local import local_output
 import argparse
 import csv
 import hashlib
@@ -19,7 +25,7 @@ p = argparse.ArgumentParser(description=__doc__)
 p.add_argument('--binary', type=Path, required=True)
 p.add_argument('--runtime-dir', type=Path, default=ROOT,
                help='Directory containing shaders/; use a saved tree for baseline comparisons')
-p.add_argument('--output-dir', type=Path, required=True)
+p.add_argument('--output-dir', type=local_output, required=True)
 p.add_argument('--replay', type=Path, default=ROOT / 'docs/captures/replay/foliage/grass-detail.png.json')
 p.add_argument('--config', type=Path, default=ROOT / 'configs/scenarios/solar_system.json')
 p.add_argument('--frames', type=int, default=36)

@@ -407,6 +407,8 @@ if(UNIX AND XDOTOOL_EXECUTABLE AND IMAGEMAGICK_IMPORT_EXECUTABLE AND IMAGEMAGICK
 endif()
 
 add_test(NAME RepositoryLayout COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/check_layout.py)
+add_test(NAME BenchmarkArchiveTests COMMAND ${Python3_EXECUTABLE} -B
+    ${CMAKE_CURRENT_SOURCE_DIR}/diagnostics/archives/test_local.py)
 
 add_executable(adaptive_quality_tests diagnostics/test_adaptive_quality.cpp)
 target_include_directories(adaptive_quality_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
@@ -450,3 +452,13 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set_tests_properties(MemorySamplerTests PROPERTIES TIMEOUT 30
         ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_CURRENT_BINARY_DIR}/fake-memory-nvml")
 endif()
+
+# Headless core checks use source fixtures and freshly generated build output.
+# Rendering/input checks remain available in the normal full CTest suite.
+get_property(planet_tests DIRECTORY PROPERTY TESTS)
+foreach(test IN LISTS planet_tests)
+    if((test MATCHES "Tests$" AND NOT test STREQUAL "RendererLifecycleTests")
+            OR test STREQUAL "RepositoryLayout")
+        set_tests_properties(${test} PROPERTIES LABELS core)
+    endif()
+endforeach()

@@ -743,6 +743,12 @@ touching `Terrain.cpp` rebuilt one object and relinked ten executables in
 the grass replay remained byte-identical to the pre-refactor executable.
 Build times depend on the machine and build configuration.
 
+Run the headless core checks without a display or historical benchmark data:
+
+~~~bash
+ctest --test-dir build -L core --output-on-failure
+~~~
+
 Run all registered tests:
 
 ~~~bash
@@ -751,7 +757,7 @@ ctest --output-on-failure
 cd ..
 ~~~
 
-The suite has 51 CTest entries covering unit tests, GPU shadows, scene captures,
+The suite covers unit tests, GPU shadows, scene captures,
 lighting scenarios, exact replay, and renderer lifecycle/failure recovery.
 Renderer lifecycle checks cover repeated construction, partial startup failure,
 capture write failure, and GPU deletion before context teardown.
@@ -766,6 +772,11 @@ cd build
 xvfb-run -a ctest --output-on-failure
 cd ..
 ~~~
+
+Raw benchmark traces and compressed maps stay local in ignored build directories.
+Normal tests generate fresh output and do not require those historical archives.
+See [local benchmark storage and optional archive checks](scripts/benchmarks/archives/README.md)
+for storage paths, missing-data exit codes and regeneration commands.
 
 For a focused check, run the config test executable from the repository root:
 

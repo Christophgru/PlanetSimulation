@@ -4,6 +4,12 @@
 Run under Xvfb or a real OpenGL display. All workloads run sequentially.
 Callgrind instruction counts are never reported as execution milliseconds.
 """
+
+import sys
+from pathlib import Path
+_repo = next(p for p in Path(__file__).resolve().parents if (p/'scripts/benchmarks/archives').is_dir())
+sys.path.insert(0, str(_repo/'scripts/benchmarks'))
+from archives.local import local_output
 import argparse
 from datetime import datetime, timezone
 import hashlib
@@ -31,7 +37,7 @@ def main():
     parser.add_argument('--binary', type=Path, required=True)
     parser.add_argument('--foliage-benchmark', type=Path, required=True)
     parser.add_argument('--replay', type=Path, required=True)
-    parser.add_argument('--output-dir', type=Path, required=True)
+    parser.add_argument('--output-dir', type=local_output, required=True)
     parser.add_argument('--frames', type=int, default=14)
     args = parser.parse_args()
     if args.frames < 8:

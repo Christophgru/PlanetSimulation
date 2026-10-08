@@ -1,12 +1,18 @@
 #!/usr/bin/env python3
 """Compare the unchanged capture renderer on two physical EGL GPUs."""
+
+import sys
+from pathlib import Path
+_repo = next(p for p in Path(__file__).resolve().parents if (p/'scripts/benchmarks/archives').is_dir())
+sys.path.insert(0, str(_repo/'scripts/benchmarks'))
+from archives.local import local_output
 import argparse,csv,hashlib,json,math,os,platform,re,statistics,subprocess,time
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[3]
 P=argparse.ArgumentParser(description=__doc__)
 P.add_argument('--binary',type=Path,required=True)
-P.add_argument('--output-dir',type=Path,required=True)
+P.add_argument('--output-dir',type=local_output,required=True)
 P.add_argument('--config',type=Path,default=ROOT/'configs/scenarios/solar_system.json')
 P.add_argument('--devices',type=int,nargs=2,default=[0,1])
 P.add_argument('--pairs',type=int,default=3)

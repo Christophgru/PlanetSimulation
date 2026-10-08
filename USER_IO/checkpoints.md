@@ -1,5 +1,23 @@
 # Page to document progress of AI Agents working on this Project
 
+## F1 completed — 2026-10-08
+
+- Clean source snapshot (no historical compressed maps/JSONL traces) configured
+  and built with GCC 12.2, Ninja and RelWithDebInfo. The interrupted build resumed
+  incrementally. With DISPLAY unset, all 34 core CTest groups pass in 13.51 s,
+  including six archive-policy cases. Rendering/performance acceptance is F5.
+- 9,011 raw files (10,421,009,829 bytes) moved without deletion into ignored
+  build-benchmarks/archives/; 599 previously tracked raw traces removed from Git.
+  Source fixtures, compact results and original evidence hashes remain versioned.
+- Ten direct optional validators report UNAVAILABLE/exit 2 with new-run commands
+  when payloads are absent. A complete stationary archive revalidates 1,440
+  measured and 1,955 excluded frames. Changing a gzip header while preserving
+  decoded bytes still fails the original hash check. Original validators are
+  retained byte-for-byte; validation results never overwrite historical summaries.
+- Twelve active benchmark writers restrict output to local build/external dirs.
+  Policy/catalogue: scripts/benchmarks/archives/. Logs and compact receipt remain
+  local in build-f1/. No gameplay/shader changes; F2–F5 untouched. Stop after F1.
+
 ## Blade-order private controls; native GPU access blocker — 2026-10-07
 
 - Keep T3c5c2b4 as one remaining TODO outcome: diagnose and fix the regression,

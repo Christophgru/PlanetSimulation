@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 """Production native walking/sprint speed prerequisite; not cost acceptance."""
+
+import sys
+from pathlib import Path
+_repo = next(p for p in Path(__file__).resolve().parents if (p/'scripts/benchmarks/archives').is_dir())
+sys.path.insert(0, str(_repo/'scripts/benchmarks'))
+from archives.local import local_output
 import argparse
 import json
 from pathlib import Path
@@ -15,7 +21,7 @@ from receipts import rows, percentiles
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--probe', type=Path, required=True)
-    p.add_argument('--output-dir', type=Path, required=True)
+    p.add_argument('--output-dir', type=local_output, required=True)
     p.add_argument('--expected-uuid', required=True)
     p.add_argument('--distance', type=float, default=18)
     p.add_argument('--presentation-delay-ms', type=int, default=0)

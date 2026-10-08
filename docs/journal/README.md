@@ -1,5 +1,12 @@
 # PlanetSimulation engineering journal
 
+Historical measurements below are recorded results. Raw traces and compressed
+GPU maps are optional local data and are no longer distributed in Git. See
+[local archive storage and validation](../../scripts/benchmarks/archives/README.md)
+for the storage manifest, relocation and fresh-run commands. Missing archive
+checks report UNAVAILABLE (exit 2), not a pass. Normal builds/tests use source
+fixtures and fresh build output; they do not depend on these old measurements.
+
 [Read the paper](paper.pdf) or [edit the Typst source](paper.typ). The paper
 explains the physical models behind the renderer, why its approximations were
 chosen, and alternative approaches. It includes 12 generated vector diagrams

@@ -1,5 +1,0 @@
-event,frame,stage,epoch,request_serial,body,field,topology,field_version,topology_version,backend,identity_valid,status,cpu_submit_ms,gpu_ms,query_polls,view,attempt
-0,0,grass_placement,1,1,0,10975133402283726949,6373637851977143750,1,1,1,1,ready,1.552074,0.02704,1,main,1
-1,0,grass_placement,1,1,0,10975133402283726949,6373637851977143750,1,1,1,1,ready,0.024656,0.02,1,reflection,1
-2,4,grass_placement,3,5,0,10975133402283726949,6373637851977143750,1,1,1,1,ready,1.591297,0.033088,1,main,8
-3,4,grass_placement,3,5,0,10975133402283726949,6373637851977143750,1,1,1,1,ready,0.017501,0.027904,1,reflection,8

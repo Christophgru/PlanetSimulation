@@ -1,0 +1,88 @@
+{
+  "schema": 1,
+  "storage": "optional-local-only",
+  "default_root": "build-benchmarks/archives",
+  "historical_receipts": "Original evidence hashes are retained; regenerated runs need new receipts.",
+  "studies": {
+    "docs/journal/architecture/terrain-gpu/async/hardware/cost/preflight": {
+      "evidence": "validation/evidence.json",
+      "regenerate": [
+        "python3 scripts/benchmarks/terrain_cost/run.py --probe build/tests/terrain_native_probe --output-dir build-benchmarks/runs/preflight --expected-uuid YOUR_GPU_UUID"
+      ],
+      "validator": "validation/validator.py",
+      "validator_sha256": "af7760a5acec15a24dea6dc8f970ba11da5999b5d46719a82a0c85dd88f0b308"
+    },
+    "docs/journal/architecture/terrain-gpu/async/hardware/cost/movement": {
+      "evidence": "validation/evidence.json",
+      "regenerate": [
+        "python3 scripts/benchmarks/terrain_cost/speed.py --probe build/tests/terrain_native_probe --distance 100 --output-dir build-benchmarks/runs/speed --expected-uuid YOUR_GPU_UUID"
+      ],
+      "validator": "validation/validator.py",
+      "validator_sha256": "7b10306b1ca37014ac3f8eb520c0299ad5a50990f5bf59e6fbd07bf3734de57b"
+    },
+    "docs/journal/architecture/terrain-gpu/async/hardware/cost/routes": {
+      "evidence": "validation/evidence.json",
+      "regenerate": [
+        "python3 scripts/benchmarks/terrain_cost/routes.py --probe build/tests/terrain_native_probe --case walking --distance 400 --output-dir build-benchmarks/runs/routes --expected-uuid YOUR_GPU_UUID"
+      ],
+      "validator": "validation/validator.py",
+      "validator_sha256": "3cb23401e579944e01fcafec43f39e037cb72cf998293a969f3313d8d8a02353"
+    },
+    "docs/journal/architecture/terrain-gpu/async/hardware/cost/coverage": {
+      "evidence": "validation/evidence.json",
+      "regenerate": [
+        "python3 scripts/benchmarks/terrain_cost/inspect.py --probe build/tests/terrain_coverage_probe --output-dir build-benchmarks/runs/coverage --expected-uuid YOUR_GPU_UUID"
+      ],
+      "validator": "validation/validator.py",
+      "validator_sha256": "6bc45eae33af6eceebee61a6ab378f09c86a212eed3356458f49cb50220eb248"
+    },
+    "docs/journal/architecture/terrain-gpu/async/hardware/cost/coverage/matched": {
+      "evidence": "validation/evidence.json",
+      "regenerate": [
+        "python3 scripts/benchmarks/terrain_cost/coverage/matched.py --probe build/tests/terrain_coverage_probe --case walking --distance 25 --output-dir build-benchmarks/runs/matched --expected-uuid YOUR_GPU_UUID"
+      ],
+      "validator": "validation/validator.py",
+      "validator_sha256": "2fea092a92ca77c3fdd05caa58fafc8661602c9618878cf46ea911178f706b80"
+    },
+    "docs/journal/architecture/terrain-gpu/async/hardware/cost/coverage/area": {
+      "evidence": "validation/evidence.json",
+      "regenerate": [
+        "python3 tests/app/terrain/native/coverage/area/test_area.py --probe build/tests/terrain_area_probe --output-dir build-benchmarks/runs/area"
+      ],
+      "validator": "validation/validator.py",
+      "validator_sha256": "3d73f7b568d4628ca6a3b749078d617b1524054fcb682d77b875afd3c6c30af6"
+    },
+    "docs/journal/architecture/terrain-gpu/async/hardware/cost/coverage/live": {
+      "evidence": "evidence.json",
+      "regenerate": [
+        "python3 tests/app/terrain/native/coverage/test_inspection.py --probe build/tests/terrain_coverage_probe --live --output-dir build-benchmarks/runs/live"
+      ],
+      "validator": "validation/validator.py",
+      "validator_sha256": "b71dc623ce5e75297bda6ae83be212e5df660c91478606f8255ac4b7fb93df15"
+    },
+    "docs/journal/architecture/terrain-gpu/async/hardware/cost/coverage/repeats": {
+      "evidence": "evidence.json",
+      "regenerate": [
+        "python3 scripts/benchmarks/terrain_cost/coverage/matched.py --probe build/tests/terrain_coverage_probe --live --compress-raw --case walking --distance 350 --output-dir build-benchmarks/runs/repeats --expected-uuid YOUR_GPU_UUID"
+      ],
+      "validator": "validation/validator.py",
+      "validator_sha256": "280aba6a5d32cba7c5d1bd0f6b1959b72ecf261a4835c442762996388d2cdd46"
+    },
+    "docs/journal/architecture/terrain-gpu/async/hardware/cost/raster": {
+      "evidence": "evidence.json",
+      "regenerate": [
+        "python3 scripts/benchmarks/terrain_cost/raster/run.py --probe build/tests/terrain_raster_probe --wind-mode fixed --raster-mode full --output-dir build-benchmarks/runs/raster --expected-uuid YOUR_GPU_UUID"
+      ],
+      "validator": "validation/validator.py",
+      "validator_sha256": "131fadf48782a9858e92eb8fe35a6f9cc370f250fae633651e2cfedec330cb5d"
+    },
+    "docs/journal/architecture/terrain-gpu/async/hardware/cost/raster/order": {
+      "evidence": "evidence.json",
+      "regenerate": [
+        "python3 tests/app/terrain/native/raster/order/test_order.py --probe build/tests/terrain_order_probe --output-dir build-benchmarks/runs/order"
+      ],
+      "validator": "validation/validator.py",
+      "validator_sha256": "ef5a1ba3c8588c1ec12a71520ae01569bcbe426774f9b85d29bbd4c6d4b2bfca"
+    }
+  }
+}

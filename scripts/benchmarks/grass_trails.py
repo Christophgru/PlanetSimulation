@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 """Retain an identical-pose grass trail/control pair from the real renderer."""
+
+import sys
+from pathlib import Path
+_repo = next(p for p in Path(__file__).resolve().parents if (p/'scripts/benchmarks/archives').is_dir())
+sys.path.insert(0, str(_repo/'scripts/benchmarks'))
+from archives.local import local_output
 import argparse
 import hashlib
 import json
@@ -8,7 +14,7 @@ import subprocess
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--binary', type=Path, required=True)
-parser.add_argument('--output-dir', type=Path, required=True)
+parser.add_argument('--output-dir', type=local_output, required=True)
 args = parser.parse_args()
 root = Path(__file__).resolve().parents[2]
 out = args.output_dir.resolve()

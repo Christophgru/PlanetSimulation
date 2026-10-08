@@ -4,6 +4,12 @@
 Run under Xvfb or an existing display. Publishes only into --output-dir;
 gallery publication remains a separate review step.
 """
+
+import sys
+from pathlib import Path
+_repo = next(p for p in Path(__file__).resolve().parents if (p/'scripts/benchmarks/archives').is_dir())
+sys.path.insert(0, str(_repo/'scripts/benchmarks'))
+from archives.local import local_output
 import argparse
 from datetime import datetime, timezone
 import hashlib
@@ -25,7 +31,7 @@ def sha(path):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--binary', type=Path, required=True)
-    parser.add_argument('--output-dir', type=Path, required=True)
+    parser.add_argument('--output-dir', type=local_output, required=True)
     parser.add_argument('--width', type=int, default=1920)
     parser.add_argument('--height', type=int, default=1080)
     parser.add_argument('--resume', action='store_true', help='Reuse completed captures after validation')
