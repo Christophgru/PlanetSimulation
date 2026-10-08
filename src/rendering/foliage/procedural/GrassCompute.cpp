@@ -79,7 +79,8 @@ void ProceduralGrass::drawComputed(const Patch& patch,const GrassPass& pass) con
     c.setFloat("uMetersPerRadius",patch.scale); c.setFloat("uDrawDistance",f.draw_distance_m);
     c.setFloat("uQuadDistance",f.quadDistanceMeters());
     c.setFloat("uPlacementDensity",patch.density);
-    c.setFloat("uGaussianSigma",f.draw_distance_m*f.gaussian_sigma_fraction);
+    c.setInt("uAdaptiveFalloff",patch.falloff.enabled);
+    c.setFloat("uGaussianSigma",patch.falloff.enabled?patch.falloff.sigmaMeters:f.draw_distance_m*f.gaussian_sigma_fraction);
     c.setFloat("uGrassHeight",f.height_m); c.setFloat("uGrassWidth",f.width_m);
     c.setFloat("uRootOffset",f.root_offset_m); c.setFloat("uGreenRatio",f.green_ratio);
     c.setFloat("uWaterClearance",f.water_clearance_m);

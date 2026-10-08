@@ -76,6 +76,7 @@ void Renderer::Impl::reloadScene() {
             if(!options.renderTestMode) throw std::logic_error("Interactive compute reload remains gated");
             resident=std::make_unique<SceneTerrainReplacement>(nextSource.document,std::move(prepared),
                 SceneTerrainDestination{scene,source.document,meshes.planetMeshes,meshes.waterMeshes,grass.procedural,*terrainPublication,terrainSceneEpoch},epoch,time);
+            resident->restorePolicies(nextSource.replayDocument);
         } else legacy=std::make_unique<LegacySceneReplacement>(nextSource.document,std::move(prepared));
         const auto& stagedScene=resident ? resident->scene() : legacy->scene;
         std::vector<std::optional<TerrainCpuBuild>> builds(count);
@@ -145,6 +146,7 @@ void Renderer::Impl::reloadScene() {
             const auto child=publications.child(attempt,i);GpuWorkProfiler::Attempt timing(child);
             GpuWorkProfiler::Request request(identities[i].epoch,identities[i].serial,i);
             if(resident) {
+                observeMemory(MemoryPhase::ReloadPreparing,false,resident.get(),nullptr,attempt,epoch);
                 publications.phase(child,PublicationProfiler::Phase::GpuSubmit);
                 if(!resident->submit(std::move(*builds[i]),identities[i],anchor,*terrainCompute)) throw std::logic_error("Replacement terrain submission is busy");
                 resident->waitForCapture();publications.phase(child,PublicationProfiler::Phase::GpuReady);tracking.triangles[i]=resident->land(i).indexCount/3;

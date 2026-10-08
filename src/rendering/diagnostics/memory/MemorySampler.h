@@ -7,6 +7,7 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <thread>
 
@@ -56,6 +57,8 @@ public:
     MemorySampler(const MemorySampler&)=delete;
     MemorySampler& operator=(const MemorySampler&)=delete;
     bool observe(MemoryObservation observation,bool event=false);
+    struct Cached {PhysicalMemory physical;std::uint64_t sampledNs=0,reserved=0;};
+    std::optional<Cached> cached(); // Nonblocking scalar copy; no driver call.
     // Setup/shutdown only; joins the single reader before closing its output.
     void stop(MemoryObservation final);
     std::uint64_t dropped() const {return dropped_.load();}
@@ -69,6 +72,7 @@ private:
     std::mutex mutex_;
     std::condition_variable changed_;
     MemoryObservation initial_,latest_,final_;
+    Cached cached_;
     std::array<MemoryObservation,64> events_;
     std::atomic<std::uint64_t> eventRead_{0},eventWrite_{0};
     std::atomic<bool> stopping_{false};

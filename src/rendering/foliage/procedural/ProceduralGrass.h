@@ -5,6 +5,7 @@
 #include "rendering/foliage/GrassStats.h"
 #include "rendering/foliage/procedural/GrassPlan.h"
 #include "config/FoliageConfig.h"
+#include "rendering/foliage/planning/GrassBudget.h"
 #include <memory>
 #include <map>
 #include <optional>
@@ -59,6 +60,8 @@ private:
         mutable std::array<GLuint,2> gpuVaos{};
         mutable std::size_t gpuCapacity=0;
         mutable bool computeUsed=false;
+        GrassFalloff falloff;
+        std::uint64_t policyRevision=0;
         config::FoliageConfig settings;
         glm::vec3 color{1}, landscapeLevels{0};
         glm::vec2 rockRange{0};
@@ -86,6 +89,9 @@ private:
     };
     std::map<std::size_t,TrailData> trails_;
     std::map<std::size_t,glm::dvec3> replayPlanEyes_;
+    bool adaptiveBudget_=false;
+    GrassBudgetController budget_;
+    std::map<std::string,GrassFalloff> replayPolicies_;
     void bindTrail(std::size_t index,double scale) const;
     mutable std::unique_ptr<Shader> compute_;
     std::unique_ptr<GrassMetadataCompute> metadataCompute_;
@@ -97,6 +103,16 @@ private:
     void allocateComputed(const Patch& patch,std::size_t count) const;
     static ProceduralGrassStats patchStats(const Patch& patch);
 public:
+    void enableAdaptiveBudget(bool enabled=true) {adaptiveBudget_=enabled;}
+    bool adaptiveBudget() const {return adaptiveBudget_;}
+    const GrassBudgetSignals& budgetSignals() const {return budget_.signals();}
+    void observeBudget(GrassBudgetSignals signals) {budget_.observe(std::move(signals));}
+    void inheritBudget(const ProceduralGrass& live) {adaptiveBudget_=live.adaptiveBudget_;budget_=live.budget_;}
+    bool policyChanged(std::size_t index) const;
+    nlohmann::json policy(std::size_t index) const;
+    void restorePolicies(const nlohmann::json& replay,const std::vector<config::PlanetConfig>& planets);
+    config::PlanetConfig budgetPlanet(const config::PlanetConfig& planet,std::uint64_t triangles,std::uint64_t blockBytes,
+        std::uint64_t reserved,std::uint64_t logical,std::uint64_t terrainBytes) const;
     // Context-thread ownership. Submission never mutates a published patch.
     class Preparation {
         friend class ProceduralGrass;

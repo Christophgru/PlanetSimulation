@@ -97,12 +97,17 @@ float grassPerlin(vec3 p) {
             mix(grassGradient(cell+ivec3(0,1,1),f-vec3(0,1,1)),grassGradient(cell+ivec3(1,1,1),f-vec3(1,1,1)),blend.x),blend.y),blend.z);
 }
 
+uniform bool uAdaptiveFalloff=false;
 float grassLodFadeEnd(float variation) {
     // Shared with GrassLod.cpp: a stable, tint-independent retention tier.
     uint h=uint(variation*65536.0);
     h^=h>>16; h*=0x7feb352du; h^=h>>15; h*=0x846ca68bu; h^=h>>16;
-    float nearDistance=min(15.0,uDrawDistance*.25);
+    float nearDistance=uAdaptiveFalloff?uQuadDistance:min(15.0,uDrawDistance*.25);
     return nearDistance+float((h&7u)+1u)*(uDrawDistance-nearDistance)/8.0;
+}
+float grassDensityWeight(float distance) {
+    float d=uAdaptiveFalloff?max(0.0,distance-uQuadDistance):distance;
+    return d==0.0 ? 1.0 : uGaussianSigma<=0.0 ? 0.0 : exp(-d*d/(2.0*uGaussianSigma*uGaussianSigma));
 }
 uint grassHash(uint h) {
     h^=h>>16; h*=0x7feb352du; h^=h>>15; h*=0x846ca68bu; return h^(h>>16);
@@ -144,9 +149,9 @@ void main() {
     float d=length(root-uGrassEyeBody)*uMetersPerRadius;
     vec3 center=(aPatchA+aPatchB+aPatchC)/3.0;
     float reach=max(max(length(aPatchA-center),length(aPatchB-center)),length(aPatchC-center));
-    float expected=aExpectedCandidates*exp(-d*d/(2.0*uGaussianSigma*uGaussianSigma));
+    float expected=aExpectedCandidates*grassDensityWeight(d);
     float rank=float(id%uint(uSlotsPerPatch))+max(grassRandom(seed+3u),1e-5);
-    float densityFade=smoothstep(rank,rank*1.2,expected);
+    float densityFade=uAdaptiveFalloff?clamp(expected-float(id%uint(uSlotsPerPatch)),0.0,1.0):smoothstep(rank,rank*1.2,expected);
     if (d>=uDrawDistance || densityFade<=0.0) return;
     aPatchNormal=normalize(patchNormalA*(1.0-a)+patchNormalB*(a*(1.0-b))+patchNormalC*(a*b));
     aPatchColor=patchColorA*(1.0-a)+patchColorB*(a*(1.0-b))+patchColorC*(a*b);
@@ -154,14 +159,15 @@ void main() {
     vec4 variation=vec4(grassRandom(seed+6u)*6.28318530718,
         mix(uLeanRange.x,uLeanRange.y,grassRandom(seed+7u)),
         mix(uHeightMultiplierRange.x,uHeightMultiplierRange.y,grassRandom(seed+5u)),grassRandom(seed+4u));
-    float nearDistance=min(15.0,uDrawDistance*.25);
+    float nearDistance=uAdaptiveFalloff?uQuadDistance:min(15.0,uDrawDistance*.25);
     uint queue=(length(center-uGrassEyeBody)-reach)*uMetersPerRadius<uQuadDistance+uRootOffset ? 0u : 1u;
     root+=aPatchNormal*(uRootOffset/uMetersPerRadius);
     float shadingDistance=length(root-uGrassEyeBody)*uMetersPerRadius;
     float low=smoothstep(uQuadDistance*.5,uQuadDistance,shadingDistance);
     float end=grassLodFadeEnd(variation.w);
     float fade=min(1.0-smoothstep(end-(uDrawDistance-nearDistance)/8.0,end,shadingDistance),
-        1.0-smoothstep(uDrawDistance*.75,uDrawDistance,shadingDistance));
+        1.0-smoothstep(uAdaptiveFalloff?max(uQuadDistance,uDrawDistance*.75):uDrawDistance*.75,uDrawDistance,shadingDistance));
+    if(uAdaptiveFalloff && shadingDistance<=uQuadDistance) fade=1.0;
     fade*=densityFade;
     if (fade<=0.0) return;
     vec3 p=root*uMetersPerRadius;

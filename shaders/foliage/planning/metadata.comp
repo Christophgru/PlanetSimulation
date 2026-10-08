@@ -49,7 +49,7 @@ void main() {
     if(flags.z!=0u && (abs(dot(normalize(crossed),a))-1.0lf)*eyeScale.w>=biome.w) return;
     if(flags.z==0u && tint.y<=colorGreen.w*max(tint.x,tint.z)) return;
     double minimumDistance=max(0.0lf,distance-reach*eyeScale.w-ranges.y);
-    double weighted=area*gaussianExp(-minimumDistance*minimumDistance/ranges.z);
-    if(weighted*ranges.w<1e-6lf) return;
+    double weighted=padding.x!=0u ? area : area*gaussianExp(-minimumDistance*minimumDistance/ranges.z);
+    if(padding.x!=0u ? weighted<1e-12lf : weighted*ranges.w<1e-6lf) return;
     m.areaDistance.x=weighted;m.identity.y=1u;descriptors[t]=m;
 }

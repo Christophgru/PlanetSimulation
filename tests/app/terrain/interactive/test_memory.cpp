@@ -30,8 +30,14 @@ void verifyMemory(const std::string& path,bool managed,const std::set<std::strin
 }
 }
 TEST(MemoryTracing, DisabledDoesNotCreateReaderOrOutput) {
-    auto o=options("memory-disabled");rendering::Renderer renderer(o);auto& r=Probe::state(renderer);
+    auto o=options("memory-disabled");o.terrainBackend=o.terrainGrassPlanner="cpu";
+    rendering::Renderer renderer(o);auto& r=Probe::state(renderer);
     EXPECT_FALSE(r.memorySampler);EXPECT_FALSE(std::filesystem::exists(o.performanceTrace+".memory.csv"));
+}
+TEST(MemoryTracing, UntracedResidentPolicyUsesWorkerWithoutCreatingOutput) {
+    auto o=options("memory-policy-only");rendering::Renderer renderer(o);auto& r=Probe::state(renderer);
+    EXPECT_TRUE(r.memorySampler);EXPECT_TRUE(r.grass.procedural.adaptiveBudget());
+    EXPECT_FALSE(std::filesystem::exists(o.performanceTrace+".memory.csv"));
 }
 TEST(MemoryTracing, CpuCaptureReloadHasExplicitUnsupportedLedger) {
     auto o=options("memory-cpu");o.terrainBackend=o.terrainGrassPlanner="cpu";o.performanceTrace=o.configPath+".frames.csv";

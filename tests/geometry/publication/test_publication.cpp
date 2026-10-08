@@ -252,3 +252,37 @@ TEST(TerrainPublication, GrassOnlyFenceFailuresAndStaleEpochsRetainAllPublishedC
     EXPECT_FALSE(p.publish(stale,land,water));old.unchanged(p,grass,land,water);
     EXPECT_EQ(p.stats().failed,4u);EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
 }
+TEST(TerrainPublication, AdaptiveAdmissionFitsCompleteOverlapAndLocksEffectiveReplay) {
+    auto r=request(false);r.planet.foliage.max_blades=1000000;
+    TerrainCompute compute;ProceduralGrass grass;grass.enableAdaptiveBudget();OwnedMesh land,water;
+    auto build=buildTerrainCpu(r);auto disabled=r.planet;disabled.foliage.enabled=false;
+    const auto block=compute.limits().blockBytes;
+    auto minimal=r.planet.foliage;minimal.max_blades=1;
+    const auto fixed=TerrainGpuPreparation::requiredBytes(build,r.identity,disabled,compute.limits())+
+        ProceduralGrass::stageBytes(build.topology->triangleCount(),minimal,block)-128;
+    const auto allowance=fixed+128*128+17;constexpr std::uint64_t external=1024*1024;
+    TerrainPublication p(grass,1,external+2*allowance,allowance);p.reserveExternal(external);
+    GrassBudgetSignals signals;signals.nowNs=signals.memoryNs=10000000000ull;signals.freeBytes=1024ull*1024*1024;
+    signals.sampleReserved=external;signals.capBytes=external+allowance;grass.observeBudget(signals);
+    ASSERT_TRUE(p.submit(std::move(build),r.identity,r.planet,r.metersPerUnit,r.identity.eye,land,water,compute));
+    EXPECT_LE(p.reservedBytes(),external+allowance);p.waitForCapture();ASSERT_TRUE(p.publish(r.identity,land,water));retire(p,0);
+    const auto policy=grass.policy(0);ASSERT_FALSE(policy.is_null());EXPECT_EQ(policy.at("capacity"),128);
+    EXPECT_EQ(p.installed(0).foliage.max_blades,128);EXPECT_LE(grass.stats(0).candidates,128u);
+    EXPECT_TRUE(policy.at("near_infeasible").get<bool>());
+    auto saved=policy;saved["body"]=r.planet.name;
+    nlohmann::json replay={{"render",{{"foliage_policy",nlohmann::json::array({saved})}}}};
+    ProceduralGrass restored;restored.enableAdaptiveBudget();restored.restorePolicies(replay,{r.planet});
+    auto generous=signals;generous.capBytes.reset();restored.observeBudget(generous);
+    const auto fitted=restored.budgetPlanet(r.planet,land.indexCount/3,block,0,allowance*2,land.terrainStats.gpuWorkingBytes);
+    EXPECT_EQ(fitted.foliage.max_blades,128); // Replay ignores a more generous live budget.
+    generous.freeBytes=0;restored.observeBudget(generous);
+    EXPECT_THROW(restored.budgetPlanet(r.planet,land.indexCount/3,block,0,allowance*2,land.terrainStats.gpuWorkingBytes),std::runtime_error);
+    const auto before=Snapshot(p,grass,land,water);
+    EXPECT_THROW(p.submitGrass(0,r.planet,r.metersPerUnit,r.identity.eye,land,water),std::runtime_error);
+    before.unchanged(p,grass,land,water);EXPECT_FALSE(p.pending());
+    // Missing telemetry remains usable within its conservative stage ceiling.
+    ProceduralGrass missing;missing.enableAdaptiveBudget();
+    const auto fallback=missing.budgetPlanet(r.planet,land.indexCount/3,block,0,1024ull*1024*1024,land.terrainStats.gpuWorkingBytes);
+    EXPECT_LE(land.terrainStats.gpuWorkingBytes+ProceduralGrass::stageBytes(land.indexCount/3,fallback.foliage,block),64ull*1024*1024);
+    EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+}

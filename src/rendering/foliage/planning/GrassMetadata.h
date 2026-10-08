@@ -7,6 +7,7 @@
 #include <vector>
 #include "rendering/geometry/terrain/TerrainTopology.h"
 #include "rendering/Shader.h"
+#include "rendering/foliage/planning/GrassBudget.h"
 namespace config { struct PlanetConfig; }
 namespace rendering {
 // std430 descriptors retain original terrain triangle IDs. Allocation and
@@ -30,7 +31,7 @@ struct alignas(32) GrassMetadataParameters {
 static_assert(sizeof(GrassMetadataParameters)==160);
 static_assert(offsetof(GrassMetadataParameters,flags)==128);
 GrassMetadataParameters grassMetadataParameters(const config::PlanetConfig& planet,
-    double metersPerWorldUnit,const glm::dvec3& eye,std::uint32_t triangles);
+    double metersPerWorldUnit,const glm::dvec3& eye,std::uint32_t triangles,const GrassFalloff& policy={});
 struct GrassMetadataLimits {
     std::uint64_t blockBytes=0;
     std::uint32_t groups=0;
@@ -44,7 +45,7 @@ struct GrassMetadataBuffers {
     glm::dvec3 planningEye{0};
     std::uint64_t triangles=0,inputBytes=0,workingBytes=0,dispatches=0;
     mutable std::uint64_t diagnosticReadBytes=0;
-    bool complete=false;
+    bool complete=false,adaptive=false;
     ~GrassMetadataBuffers();
     GrassMetadataBuffers()=default;
     GrassMetadataBuffers(const GrassMetadataBuffers&)=delete;
@@ -66,7 +67,7 @@ public:
     // No shaped geometry or triangle descriptors cross the CPU/GPU boundary.
     std::unique_ptr<GrassMetadataBuffers> generate(GLuint vertices,GLuint indices,
         const TerrainBuildStats& terrain,const config::PlanetConfig& planet,
-        double metersPerWorldUnit,const glm::dvec3& eye);
+        double metersPerWorldUnit,const glm::dvec3& eye,const GrassFalloff& policy={});
     GLuint program() const { return shader_ ? shader_->id : 0; }
 };
 }

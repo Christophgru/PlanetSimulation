@@ -1,5 +1,30 @@
 # Page to document progress of AI Agents working on this Project
 
+## F3 implementation and verification — 2026-10-08
+
+- Resident GPU planning protects the configured quad-distance region and fits
+  the distant Gaussian tail before reducing near density. Near-infeasible and
+  per-triangle-cap cases report a deficit and keep queues bounded.
+- Admission includes terrain/planner/queues and live/staged/retiring/replacement
+  reservations. Existing worker supplies cached VRAM without trace files;
+  missing/stale readings use 64 MiB stage / 256 MiB aggregate limits. Existing
+  frame queries/utilization drive a small quota controller with cooldowns.
+- Effective version-1 per-body policy survives capture/replay/reload; incapable
+  admission rejects a locked replay rather than thinning its saved quality.
+- Quadro production initial camera retains 120.72 blades/m² through 15 m;
+  sigma 8.435062249191105 m fits 1,599,906 candidates under 1,600,000. No near
+  deficit. Logical reservation 290,578,652 bytes. Exact production PNG/policy
+  replay; raw runs remain ignored/local in build-benchmarks/runs/f3-20261008/.
+- Pass: 34 core groups, 34 NVIDIA compute cases, seven Mesa allocation/admission
+  cases, 14 Mesa foliage render cases, 13 renderer frame/memory cases, four reload
+  cases, capture contracts and full native input/reload/space/Moon/fallback
+  audits. Native audits
+  retain zero blocking/bulk reads/finishes/GL memory queries. A GL 3.3-only
+  NVIDIA feedback test explicitly skips the new compute coverage case; Mesa
+  GL 4.3 runs it. Existing F2 trail-equality limitation remains unchanged.
+- Compact report: docs/journal/architecture/terrain-gpu/grass-allocation/adaptive-falloff.md.
+  CPU stays default. F3 is complete; F4/F5 and unrelated user files remain untouched.
+
 ## F2 completed — 2026-10-08
 
 - NVIDIA device opens and native Quadro GLX work again. Hardware order controls

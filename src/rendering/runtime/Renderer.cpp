@@ -70,6 +70,8 @@ Renderer::Impl::Impl(app::CommandLineOptions arguments)
         throw std::runtime_error("Interactive compute terrain requires GPU grass planning");
     if(terrainCompute && options.terrainGrassPlanner=="gpu-v1")
         terrainPublication=std::make_unique<TerrainPublication>(grass.procedural,scene.scenario.planets.size());
+    grass.procedural.enableAdaptiveBudget(bool(terrainPublication));
+    grass.procedural.restorePolicies(source.replayDocument,scene.scenario.planets);
     scene.updateSimulation(simulationTime);
     cameraInput.setThirdPersonWalkSpeed(6.0/scene.scenario.metersPerWorldUnit());
     if (!options.replayPath.empty() && scene.surfaceCamera) cameraInput.selectSurface();
@@ -141,9 +143,9 @@ Renderer::Impl::Impl(app::CommandLineOptions arguments)
     grass.diagnostics(&profiler.publications(),&terrainSceneEpoch,&installedTerrainSerial,&lastLocalMask,&meshes.waterMeshes);
     adaptiveQuality = AdaptiveQuality(availableMemory);
     glEnable(GL_DEPTH_TEST);
-    if(!options.performanceTrace.empty()) {
+    if(!options.performanceTrace.empty() || terrainPublication) {
         auto identity=contextMemory();memoryNvx=identity.nvx;
-        memorySampler=std::make_unique<MemorySampler>(options.performanceTrace+".memory.csv",
+        memorySampler=std::make_unique<MemorySampler>(options.performanceTrace.empty()?"":options.performanceTrace+".memory.csv",
             std::move(identity),memorySnapshot(MemoryPhase::RendererReady));
     }
 }

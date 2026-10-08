@@ -57,6 +57,7 @@ public:
         std::vector<int> previousZones={});
     TerrainBuildRequest requestLocal(std::size_t index,const glm::dvec3& localEye,std::uint64_t serial,
         std::vector<int> previousZones={});
+    void restorePolicies(const nlohmann::json& replay) {grass_.restorePolicies(replay,scene_.scenario.planets);}
     bool submit(TerrainCpuBuild build,const TerrainBuildIdentity& identity,
         const glm::dvec3& grassEye,TerrainCompute& compute);
     bool poll(); // Zero-timeout GPU polls; only exchanges off-live body consumers.

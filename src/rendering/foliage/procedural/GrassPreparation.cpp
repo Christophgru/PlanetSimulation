@@ -5,8 +5,49 @@
 #include <algorithm>
 #include <limits>
 #include <utility>
+#include <cstdio>
+#include "config/ScenarioConfig.h"
 
 namespace rendering {
+bool ProceduralGrass::policyChanged(std::size_t i) const {
+    return adaptiveBudget_ && i<patches_.size() && patches_[i] && patches_[i]->falloff.enabled &&
+        !patches_[i]->falloff.locked && patches_[i]->policyRevision!=budget_.revision();
+}
+nlohmann::json ProceduralGrass::policy(std::size_t i) const {
+    return i<patches_.size() && patches_[i] && patches_[i]->falloff.enabled ? patches_[i]->falloff.json() : nlohmann::json(nullptr);
+}
+void ProceduralGrass::restorePolicies(const nlohmann::json& replay,const std::vector<config::PlanetConfig>& planets) {
+    replayPolicies_.clear();
+    if(!adaptiveBudget_) return; // Explicit CPU overrides use their supported legacy planner.
+    if(!replay.contains("render") || !replay.at("render").contains("foliage_policy")) return;
+    const auto& policies=replay.at("render").at("foliage_policy");
+    if(!policies.is_array() || policies.size()!=planets.size())
+        throw std::invalid_argument("Foliage policy replay requires matching resident planner/bodies");
+    for(std::size_t i=0;i<planets.size();++i) {
+        if(policies[i].is_null()) {
+            if(planets[i].foliage.enabled) throw std::invalid_argument("Missing enabled-body foliage policy replay");
+        } else {
+            if(!planets[i].foliage.enabled || policies[i].at("body")!=planets[i].name)
+                throw std::invalid_argument("Foliage policy replay body mismatch");
+            replayPolicies_.emplace(planets[i].name,GrassFalloff::replay(policies[i],planets[i].foliage));
+        }
+    }
+}
+config::PlanetConfig ProceduralGrass::budgetPlanet(const config::PlanetConfig& planet,std::uint64_t n,std::uint64_t block,
+    std::uint64_t reserved,std::uint64_t logical,std::uint64_t terrainBytes) const {
+    auto result=planet;
+    if(!adaptiveBudget_ || !planet.foliage.enabled) return result;
+    auto minimal=planet.foliage;minimal.max_blades=1;
+    const auto fixed=terrainBytes+stageBytes(n,minimal,block)-128;
+    const auto available=budget_.available(reserved,logical);
+    if(available<fixed+128) throw std::runtime_error("Insufficient foliage staging budget (terrain/metadata + one slot)");
+    const auto capacity=std::min<std::uint64_t>({std::uint64_t(planet.foliage.max_blades),block/128,(available-fixed)/128});
+    if(const auto saved=replayPolicies_.find(planet.name);saved!=replayPolicies_.end()) {
+        if(saved->second.capacity>capacity) throw std::runtime_error("Locked foliage replay exceeds available staging memory");
+        result.foliage.max_blades=saved->second.capacity;
+    } else result.foliage.max_blades=capacity;
+    return result;
+}
 ProceduralGrass::Preparation::Preparation():patch_(std::make_unique<Patch>()) {}
 ProceduralGrass::Preparation::~Preparation() {if(resourcesFence_) glDeleteSync(resourcesFence_);}
 ProceduralGrassStats ProceduralGrass::Preparation::stats() const {return patchStats(*patch_);}
@@ -44,12 +85,25 @@ std::unique_ptr<ProceduralGrass::Preparation> ProceduralGrass::submitResident(GL
     patch.landscapeLevels={planet.water.enabled?planet.water.level_m:0,.1,relief};
     patch.water=planet.water.enabled;patch.landscape=planet.terrain_landscape.enabled;
     patch.scale=planet.radius*metersPerWorldUnit;patch.seed=planet.foliage.seed;
-    patch.eye=eyeBody;patch.revision=revision;patch.generation=terrain.generation;
+    patch.eye=eyeBody;patch.revision=revision;
+    patch.policyRevision=budget_.revision();
+    if(adaptiveBudget_ && planet.foliage.enabled) {
+        if(const auto saved=replayPolicies_.find(planet.name);saved!=replayPolicies_.end()) patch.falloff=saved->second;
+        else {
+            auto& p=patch.falloff;p.enabled=true;
+            p.capacity=std::min<std::uint64_t>(planet.foliage.max_blades,limits.blockBytes/128);
+            p.budget=budget_.softBudget(p.capacity,planet.foliage);
+            p.protectedMeters=planet.foliage.quadDistanceMeters();
+            p.sigmaMeters=planet.foliage.draw_distance_m*planet.foliage.gaussian_sigma_fraction;
+            p.density=planet.foliage.density_per_m2;
+        }
+    }
+    patch.generation=terrain.generation;
     patch.workIdentity=GpuWorkProfiler::generation(terrain.generation);
     if(!planet.foliage.enabled) {patch.ready=true;result->ready_=true;return result;}
     if(!metadataCompute_) metadataCompute_=std::make_unique<GrassMetadataCompute>();
     if(!allocationCompute_) allocationCompute_=std::make_unique<GrassAllocationCompute>();
-    patch.metadata=metadataCompute_->generate(vertices,indices,terrain,planet,metersPerWorldUnit,eyeBody);
+    patch.metadata=metadataCompute_->generate(vertices,indices,terrain,planet,metersPerWorldUnit,eyeBody,patch.falloff);
     patch.allocation=allocationCompute_->generate(*patch.metadata,planet.foliage);
     // GPU command order/barriers carry the terrain -> metadata -> allocation
     // dependency. No CPU wait or readback is needed here.
@@ -75,6 +129,10 @@ bool ProceduralGrass::poll(Preparation& p) {
                 if(summary.counts[level]) patch.draws.push_back({summary.first[level],summary.counts[level],int(level),6});
             }
             patch.density=summary.densitySearch[0];patch.allocationBudget=summary.control[0];
+            if(patch.falloff.enabled) {
+                patch.falloff.density=patch.density;patch.falloff.budget=patch.allocationBudget;
+                patch.falloff.sigmaMeters=summary.densitySearch[3];patch.falloff.nearInfeasible=summary.padding[0]!=0;
+            }
             patch.patches=summary.totals[0];patch.distanceMeters=patch.settings.draw_distance_m;
             patch.buffer=std::exchange(patch.allocation->references,0);p.summaryConsumed_=true;
             // All fallible resource creation happens before ready/commit.
@@ -123,6 +181,11 @@ void ProceduralGrass::validateCommit(std::size_t index,const Preparation& p,cons
         throw std::invalid_argument("Grass commit requires reserved matching ready consumers");
 }
 void ProceduralGrass::commitPrepared(std::size_t index,Preparation& p) noexcept {
+    const auto& next=p.patch_->falloff;
+    const auto& old=patches_[index]->falloff;
+    if(next.nearInfeasible && (!old.nearInfeasible || next.capacity!=old.capacity))
+        std::fprintf(stderr,"Foliage near density infeasible: capacity=%u density=%.6g protected_m=%.6g\n",
+            next.capacity,next.density,next.protectedMeters);
     patches_[index].swap(p.patch_);p.ready_=false;p.failed_=true;
     // The previous patch remains owned by p. Whole-generation publication keeps
     // it with the old terrain until the last-use retirement fence signals.

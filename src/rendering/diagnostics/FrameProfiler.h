@@ -122,7 +122,7 @@ public:
                 frame.gpu[static_cast<int>(frame.events[i].stage)] += duration(frame.queries[2+2*i],frame.queries[3+2*i]);
             for (double milliseconds : frame.gpu) frame.gpuMs += milliseconds;
             if (!lastReady_ || frame.number >= lastNumber_) {
-                gpuMilliseconds = frame.gpuMs; lastNumber_ = frame.number; lastReady_ = true;
+                gpuMilliseconds = frame.gpuMs; lastNumber_ = frame.number; lastReady_ = true;lastSample_=frame.start;
             }
             write(frame, true); frame.pending = false;
         }
@@ -142,6 +142,8 @@ public:
         current_->foliageUploadBytes += bytes;
     }
     bool gpuReady() const { return lastReady_; }
+    std::uint64_t gpuSample() const {return lastNumber_;}
+    std::uint64_t gpuSampleNs() const {return std::chrono::duration_cast<std::chrono::nanoseconds>(lastSample_.time_since_epoch()).count();}
     unsigned long long nextFrameNumber() const {return next_;}
     GpuWorkProfiler& gpuWork() {return work_;}
     PublicationProfiler& publications() {return publications_;}
@@ -168,6 +170,7 @@ private:
     std::ofstream trace_;
     unsigned long long next_ = 0, lastNumber_ = 0;
     bool lastReady_ = false;
+    Clock::time_point lastSample_{};
     GpuWorkProfiler work_;
     PublicationProfiler publications_;
     std::optional<GpuWorkProfiler::Binding> workBinding_;

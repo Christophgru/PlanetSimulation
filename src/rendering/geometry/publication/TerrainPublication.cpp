@@ -94,8 +94,14 @@ bool TerrainPublication::submit(TerrainCpuBuild build,const TerrainBuildIdentity
         // Reject overlap before dispatching or allocating GPU resources.
         // Grass uses the live context's block limit, even if the terrain
         // evaluator was constructed with a deliberately smaller test limit.
-        const auto bytes=TerrainGpuPreparation::requiredBytes(build,k,planet,TerrainComputeLimits::query());
+        const auto limits=TerrainComputeLimits::query();
         const auto reserved=reservedBytes();
+        const auto requested=TerrainGpuPreparation::requiredBytes(build,k,planet,limits);
+        const auto triangles=build.topology->triangleCount();
+        const auto fixed=requested-ProceduralGrass::stageBytes(triangles,planet.foliage,limits.blockBytes);
+        const auto effective=grass_.budgetPlanet(planet,triangles,limits.blockBytes,
+            reserved,std::min(perSetLimit_,totalLimit_-std::min(totalLimit_,reserved)),fixed);
+        const auto bytes=fixed+ProceduralGrass::stageBytes(triangles,effective.foliage,limits.blockBytes);
         if(bytes>perSetLimit_ || reserved>totalLimit_ || bytes>totalLimit_-reserved)
             throw std::runtime_error("Complete terrain generations exceed publication budget");
         auto next=std::make_unique<Stage>(liveLand,liveWater);
@@ -104,12 +110,12 @@ bool TerrainPublication::submit(TerrainCpuBuild build,const TerrainBuildIdentity
         next->previousGrassEye=grass_.planningEye(k.bodyIndex);
         next->receipt.identity=k;next->receipt.admittedBytes=bytes;
         next->receipt.landRevision=liveLand.revision+1;next->receipt.waterRevision=liveWater.revision+1;
-        next->receipt.grassEye=grassEye;next->receipt.foliage=planet.foliage;next->receipt.faceZones=build.geometry.faceZones;
+        next->receipt.grassEye=grassEye;next->receipt.foliage=effective.foliage;next->receipt.faceZones=build.geometry.faceZones;
         next->receipt.zoneFaces=build.geometry.zoneFaces;next->receipt.steepRefinedFaces=build.geometry.steepRefinedFaces;
         next->receipt.waterEnabled=bool(build.water);
-        next->terrain=std::make_unique<TerrainGpuPreparation>(std::move(build),k,planet,compute,perSetLimit_);
+        next->terrain=std::make_unique<TerrainGpuPreparation>(std::move(build),k,effective,compute,perSetLimit_);
         auto& t=*next->terrain;
-        next->grass=grass_.submitResident(t.land->vbo,t.land->ebo,t.land->stats,planet,metersPerUnit,grassEye,
+        next->grass=grass_.submitResident(t.land->vbo,t.land->ebo,t.land->stats,effective,metersPerUnit,grassEye,
             next->receipt.landRevision,t.land->stats.gpuWorkingBytes+(t.water ? t.water->stats.gpuWorkingBytes : 0),perSetLimit_);
         if(next->grass->admittedBytes>bytes) throw std::logic_error("Grass reservation exceeds complete generation admission");
         staged_=std::move(next);++stats_.submitted;
@@ -203,15 +209,18 @@ bool TerrainPublication::submitGrass(std::size_t i,const config::PlanetConfig& p
            grass_.planningEye(i)!=old.grassEye || old.waterEnabled!=planet.water.enabled)
             throw std::invalid_argument("Untracked grass publication source");
         const auto occupied=land.terrainStats.gpuWorkingBytes+water.terrainStats.gpuWorkingBytes;
-        const auto bytes=occupied+ProceduralGrass::stageBytes(land.indexCount/3,planet.foliage,TerrainComputeLimits::query().blockBytes);
         const auto reserved=reservedBytes();
+        const auto block=TerrainComputeLimits::query().blockBytes;
+        const auto effective=grass_.budgetPlanet(planet,land.indexCount/3,block,reserved,
+            std::min(perSetLimit_,totalLimit_-std::min(totalLimit_,reserved)),occupied);
+        const auto bytes=occupied+ProceduralGrass::stageBytes(land.indexCount/3,effective.foliage,block);
         if(bytes>perSetLimit_ || reserved>totalLimit_ || bytes>totalLimit_-reserved)
             throw std::runtime_error("Grass replacement exceeds publication budget");
         auto next=std::make_unique<Stage>(land,water);next->grassOnly=true;next->receipt=old;
-        next->receipt.grassEye=eye;next->receipt.foliage=planet.foliage;next->receipt.admittedBytes=bytes;
+        next->receipt.grassEye=eye;next->receipt.foliage=effective.foliage;next->receipt.admittedBytes=bytes;
         next->previousGrass=grass_.residentGeneration(i);next->previousGrassRevision=grass_.residentRevision(i);
         next->previousGrassEye=grass_.planningEye(i);
-        next->grass=grass_.submitResident(land.vbo,land.ebo,land.terrainStats,planet,units,eye,land.revision,occupied,perSetLimit_);
+        next->grass=grass_.submitResident(land.vbo,land.ebo,land.terrainStats,effective,units,eye,land.revision,occupied,perSetLimit_);
         staged_=std::move(next);++stats_.submitted;
         stats_.peakReservedBytes=std::max(stats_.peakReservedBytes,reservedBytes());return true;
     } catch(...) {++stats_.failed;throw;}

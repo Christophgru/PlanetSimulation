@@ -15,9 +15,28 @@ layout(std430,binding=4) buffer References {uint references[];};
 layout(std430,binding=5) buffer Ranks {uvec2 ranks[];};
 layout(std430,binding=6) buffer Offsets {uint offsets[];};
 uniform uint uPhase,uFirstGroup,uEndGroup,uGroups,uSortWidth;
-shared double areas[64],work[64];shared uint eligible[64],levels[64];
+shared double areas[64],work[64];shared uint eligible[64],levels[64],nearCount[64],capFailure[64];
 uint grassHash(uint value) {
     value^=value>>16;value*=0x7feb352du;value^=value>>15;value*=0x846ca68bu;return value^(value>>16);
+}
+bool adaptive() {return padding.x!=0u;}
+bool locked() {return (padding.x&2u)!=0u;}
+double minimumDistance(uint t) {
+    return max(0.0lf,metadata[t].areaDistance.y-metadata[t].centerReach.w*eyeScale.w-ranges.y);
+}
+bool protectedPatch(uint t) {return minimumDistance(t)<=double(uintBitsToFloat(padding.y));}
+double profile(uint t,double sigma) {
+    double d=max(0.0lf,minimumDistance(t)-double(uintBitsToFloat(padding.y)));
+    if(d==0.0lf) return 1.0lf;
+    if(sigma<=0.0lf) return 0.0lf;
+    // Match the metadata Gaussian helper without a float conversion.
+    double x=-d*d/(2.0lf*sigma*sigma);
+    if(x < -700.0lf) return 0.0lf;
+    const double ln2=0.693147180559945309417232121458176568lf;
+    int power=int(roundEven(x/ln2));
+    double r=x-double(power)*ln2,term=1.0lf,sum=1.0lf;
+    for(int i=1;i<=18;++i) {term*=r/double(i);sum+=term;}
+    return ldexp(sum,power);
 }
 uint bucket(double expected) {
     uint level=0u,slots=1u;
@@ -53,10 +72,11 @@ void sortReference(uint t) {
 void controller() {
     if(gl_GlobalInvocationID.x!=0u) return;
     if((uPhase==3u && status.y==0u)||(uPhase==7u && status.z==0u)) return;
-    double area=0.0lf,submitted=0.0lf;uint count=0u;
-    for(uint g=0u;g<uGroups;++g) {area+=groups[g].areaWork.x;submitted+=groups[g].areaWork.y;count+=groups[g].count;}
+    double area=0.0lf,submitted=0.0lf;uint count=0u,near=0u,capped=0u;
+    for(uint g=0u;g<uGroups;++g) {area+=groups[g].areaWork.x;submitted+=groups[g].areaWork.y;count+=groups[g].count;near+=groups[g].padding.x;capped+=groups[g].padding.y;}
     if(uPhase==1u) {
-        status.y=uint(count>control.x);control.z=0u;control.w=0xffffffffu;status.w=0u;
+        totals.w=near;
+        status.y=uint((adaptive()?near:count)>control.x);control.z=0u;control.w=0xffffffffu;status.w=0u;
         status.x=status.y!=0u ? 0x7fffffffu : 0xffffffffu;
     } else if(uPhase==3u && status.y!=0u) {
         // Hash is a bijection (xor-shifts and odd multipliers), so ties cannot
@@ -65,13 +85,37 @@ void controller() {
         status.x=control.z+(control.w-control.z)/2u;
         ++status.w;
     } else if(uPhase==5u) {
-        densitySearch.x=ranges.w;densitySearch.y=0.0lf;densitySearch.z=ranges.w;
-        status.z=uint(submitted>double(control.x));status.w=0u;
-        if(count==0u) densitySearch.x=0.0lf;
-        if(status.z!=0u) {densitySearch.z=min(ranges.w,double(control.x)/area);densitySearch.x=densitySearch.z*0.5lf;}
+        densitySearch.x=ranges.w;status.w=0u;
+        if(adaptive()) {
+            statePadding.x=uint(submitted>double(control.x) || totals.w>control.x || capped>0u);
+            if(locked()) {
+                control.x=min(control.x,padding.w);densitySearch.w=ranges.z;status.z=0u;
+                statePadding.x|=uint((padding.x&4u)!=0u);
+            } else if(submitted>double(control.x)) {
+                // Near density itself is physically infeasible. Keep near
+                // patches first, report the deficit and bound their queues.
+                statePadding.y=2u;densitySearch.w=0.0lf;
+                densitySearch.y=0.0lf;densitySearch.z=ranges.w;
+                densitySearch.x=ranges.w*0.5lf;status.z=1u;
+            } else {
+                // Configured near density outranks the soft timing budget.
+                control.x=min(control.x,max(padding.w,uint(submitted)));
+                statePadding.y=1u;densitySearch.y=0.0lf;
+                densitySearch.z=ranges.z;
+                densitySearch.w=densitySearch.z;status.z=1u;
+            }
+        } else {
+            densitySearch.y=0.0lf;densitySearch.z=ranges.w;
+            status.z=uint(submitted>double(control.x));
+            if(count==0u) densitySearch.x=0.0lf;
+            if(status.z!=0u) {densitySearch.z=min(ranges.w,double(control.x)/area);densitySearch.x=densitySearch.z*0.5lf;}
+        }
     } else if(uPhase==7u && status.z!=0u) {
-        if(submitted<=double(control.x)) densitySearch.y=densitySearch.x;else densitySearch.z=densitySearch.x;
-        ++status.w;densitySearch.x=status.w==32u ? densitySearch.y : (densitySearch.y+densitySearch.z)*0.5lf;
+        double probe=adaptive() && statePadding.y==1u ? densitySearch.w : densitySearch.x;
+        if(submitted<=double(control.x)) densitySearch.y=probe;else densitySearch.z=probe;
+        ++status.w;
+        double next=status.w==32u ? densitySearch.y : (densitySearch.y+densitySearch.z)*0.5lf;
+        if(adaptive() && statePadding.y==1u) densitySearch.w=next;else densitySearch.x=next;
     } else if(uPhase==9u) {
         uint patches=0u,candidates=0u;
         for(uint level=0u;level<17u;++level) {
@@ -80,7 +124,7 @@ void controller() {
             counts[level]=n;first[level]=patches;patches+=n;candidates+=n*(1u<<level);
         }
         // submitted is double to avoid overflow in probes above the hard cap.
-        totals=uvec4(patches,candidates,uint(submitted>double(control.x)),0u);
+        totals=uvec4(patches,candidates,uint(submitted>double(control.x)),totals.w);
     }
 }
 void main() {
@@ -101,11 +145,20 @@ void main() {
         return;
     }
     bool selected=t<flags.w;
-    if(selected) selected=metadata[t].identity.y!=0u && grassHash(t)<=status.x;
+    if(selected) selected=metadata[t].identity.y!=0u;
+    bool near=selected && adaptive() && protectedPatch(t);
+    if(selected && (!adaptive() || status.y!=0u)) selected=(!adaptive() || near) && grassHash(t)<=status.x;
     double area=selected ? metadata[t].areaDistance.x : 0.0lf;
     double density=(uPhase==0u || uPhase==2u || uPhase==4u) ? ranges.w : densitySearch.x;
+    if(adaptive() && uPhase>=4u) {
+        double sigma=uPhase==4u ? 0.0lf : densitySearch.w;
+        area*=profile(t<flags.w?t:0u,sigma);
+        selected=selected && area*density>=1e-6lf;
+    }
     uint level=selected ? bucket(area*density) : 17u;
-    areas[lane]=area;eligible[lane]=uint(selected);levels[lane]=level;
+    areas[lane]=selected?area:0.0lf;eligible[lane]=uint(selected);levels[lane]=level;
+    nearCount[lane]=uint(near);
+    capFailure[lane]=uint(near && selected && area*density>double(control.y));
     work[lane]=selected ? double(1u<<level) : 0.0lf;
     barrier();
     if(uPhase==8u) {
@@ -118,8 +171,8 @@ void main() {
         }
     }
     for(uint stride=32u;stride>0u;stride/=2u) {
-        barrier();if(lane<stride) {areas[lane]+=areas[lane+stride];work[lane]+=work[lane+stride];eligible[lane]+=eligible[lane+stride];}
+        barrier();if(lane<stride) {areas[lane]+=areas[lane+stride];work[lane]+=work[lane+stride];eligible[lane]+=eligible[lane+stride];nearCount[lane]+=nearCount[lane+stride];capFailure[lane]+=capFailure[lane+stride];}
     }
     barrier();
-    if(lane==0u) {groups[g].areaWork=dvec2(areas[0],work[0]);groups[g].count=eligible[0];}
+    if(lane==0u) {groups[g].areaWork=dvec2(areas[0],work[0]);groups[g].count=eligible[0];groups[g].padding=uvec2(nearCount[0],capFailure[0]);}
 }

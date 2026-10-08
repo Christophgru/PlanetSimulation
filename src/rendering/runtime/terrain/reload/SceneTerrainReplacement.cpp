@@ -26,6 +26,7 @@ SceneTerrainReplacement::SceneTerrainReplacement(nlohmann::json document,app::Pr
         if(planet.foliage.enabled && !planet.foliage.compute_placement)
             throw std::invalid_argument("Resident scene replacement requires GPU foliage placement");
     if(!std::isfinite(time)) throw std::invalid_argument("Invalid scene replacement time");
+    grass_.inheritBudget(live.grass);
     publication_->reserveExternal(live.publication.reservedBytes());
     previous_.reserve(live.land.size());
     for(std::size_t i=0;i<live.land.size();++i) previous_.push_back({live.land[i].vbo,live.water[i].vbo,
@@ -67,6 +68,7 @@ bool SceneTerrainReplacement::submit(TerrainCpuBuild build,const TerrainBuildIde
        publication_->installed(k.bodyIndex).identity.serial)
         throw std::invalid_argument("Obsolete or changed replacement body identity");
     const auto i=k.bodyIndex;
+    grass_.inheritBudget(live_.grass);
     if(!publication_->submit(std::move(build),k,scene_.scenario.planets[i],scene_.scenario.metersPerWorldUnit(),
         eye,land_[i],water_[i],compute)) return false;
     preparing_=i;return true;
@@ -88,6 +90,7 @@ bool SceneTerrainReplacement::replanGrass(std::size_t i,const glm::dvec3& eye) {
         throw std::logic_error("Grass replanning requires completed replacement terrain");
     if(publication_->installed(i).grassEye==eye) return true;
     const auto& planet=scene_.scenario.planets[i];
+    grass_.inheritBudget(live_.grass);
     if(!publication_->submitGrass(i,planet,scene_.scenario.metersPerWorldUnit(),eye,land_[i],water_[i])) return false;
     preparing_=i;return true;
 }

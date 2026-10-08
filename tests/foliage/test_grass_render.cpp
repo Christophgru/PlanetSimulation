@@ -456,3 +456,30 @@ TEST(ProceduralGrassRender, PressedTipsFollowRisingGroundInsteadOfDisappearingBe
         EXPECT_GT(tips,0);
     }
 }
+
+TEST(ProceduralGrassRender, ResidentProtectedRegionKeepsConfiguredCoverageWithoutLodOrOuterFade) {
+    if(!GLEW_VERSION_4_3) GTEST_SKIP()<<"Resident foliage requires OpenGL 4.3";
+    GrassProbe probe;
+    probe.planet.foliage.density_per_m2=4;
+    probe.planet.foliage.quad_distance_m=probe.planet.foliage.draw_distance_m;
+    probe.planet.foliage.frustum_culling=false;
+    probe.mesh.terrainStats.generation={123,456,1,1,rendering::TerrainBackend::Compute};
+    probe.mesh.terrainStats.gpuCorners=probe.mesh.indices.size();
+    probe.grass.enableAdaptiveBudget();
+    auto staged=probe.grass.submitResident(probe.mesh.vbo,probe.mesh.ebo,probe.mesh.terrainStats,
+        probe.planet,100,{0,0,1.02},probe.mesh.revision);
+    probe.grass.waitForCapture(*staged);probe.grass.commit(0,*staged,probe.mesh);
+    EXPECT_FALSE(probe.grass.policy(0).at("near_infeasible").get<bool>());
+    EXPECT_EQ(probe.grass.stats(0).density,4.);
+    const auto values=probe.capture(0,true);const auto counts=probe.grass.computedCounts(0);
+    EXPECT_EQ(counts[1],0u);EXPECT_NEAR(double(counts[0]),2100.,2.);
+    double coverage=0;std::size_t fractional=0;
+    // All roots are protected; each detailed blade produces 12 triangles.
+    for(std::size_t i=0;i<values.size();i+=12*3*10) {
+        const auto fade=values[i+9];coverage+=fade;fractional+=fade<1;
+        EXPECT_GT(fade,0.f);EXPECT_LE(fade,1.f);
+        EXPECT_LT(glm::length(glm::dvec3(values[i],values[i+1],values[i+2])-glm::dvec3(0,0,1.02))*100,100);
+    }
+    EXPECT_LE(fractional,2u);EXPECT_NEAR(coverage,2100.,.01);
+    EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+}

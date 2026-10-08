@@ -82,6 +82,7 @@ void Renderer::Impl::requestResidentReload() {
 }
 bool Renderer::Impl::pollResidentReload() {
     if(!pendingResidentReload) return false;
+    observeMemory(memoryPhase);
     CpuTrace::Scope scope("scene.reload_progress");++sceneReloadFrames;
     // A failed old-scene poll retains both retirement and the latest request.
     try {retireSceneReload(false);terrainPublication->pollRetired();}
@@ -99,6 +100,7 @@ bool Renderer::Impl::pollResidentReload() {
             p.transaction=std::make_unique<SceneTerrainReplacement>(p.document,std::move(*p.prepared),
                 SceneTerrainDestination{scene,source.document,meshes.planetMeshes,meshes.waterMeshes,
                     grass.procedural,*terrainPublication,terrainSceneEpoch},p.epoch,p.time);
+            p.transaction->restorePolicies(p.replay);
             p.prepared.reset();
             observeMemory(MemoryPhase::ReloadPreparing,true);
         }

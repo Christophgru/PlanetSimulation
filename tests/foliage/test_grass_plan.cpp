@@ -4,6 +4,7 @@
 #include <gtest/gtest.h>
 #include <limits>
 #include <map>
+#include "rendering/foliage/planning/GrassBudget.h"
 
 namespace {
 struct Fixture {
@@ -129,4 +130,57 @@ TEST(ProceduralGrassPlan, WindNoiseConfigValidatesScaleSeedAndSpeed) {
     }
     auto bad=c; bad.wind_noise.speed_multiplier=-1; EXPECT_THROW(bad.validate(),std::invalid_argument);
     EXPECT_THROW(config::FoliageConfig(config::Config{nlohmann::json{{"wind_noise",3}}}),std::invalid_argument);
+}
+
+TEST(GrassBudget, MissingStaleAndOverlapMemoryAreConservative) {
+    using namespace rendering;
+    constexpr std::uint64_t mib=1024*1024;
+    GrassBudgetController c;
+    EXPECT_EQ(c.available(0,1024*mib),64*mib);
+    EXPECT_EQ(c.available(240*mib,1024*mib),16*mib);
+    EXPECT_EQ(c.available(300*mib,1024*mib),0u);
+    GrassBudgetSignals s;s.nowNs=s.memoryNs=10000000000ull;s.freeBytes=400*mib;s.sampleReserved=100*mib;
+    c.observe(s);EXPECT_EQ(c.available(100*mib,1024*mib),200*mib);
+    EXPECT_EQ(c.available(150*mib,1024*mib),150*mib);
+    EXPECT_EQ(c.available(150*mib,80*mib),80*mib);
+    s.capBytes=180*mib;c.observe(s);EXPECT_EQ(c.available(150*mib,1024*mib),30*mib);
+    s.capBytes.reset();s.nowNs+=2100000000ull;c.observe(s);
+    EXPECT_EQ(c.available(100*mib,1024*mib),64*mib);
+    s.freeBytes=0;s.memoryNs=s.nowNs;c.observe(s);EXPECT_EQ(c.available(0,1024*mib),0u);
+}
+TEST(GrassBudget, DistinctTimingSamplesCooldownAndMemoryHysteresisBoundAdaptation) {
+    using namespace rendering;
+    GrassBudgetController c;GrassBudgetSignals s;s.nowNs=10000000000ull;
+    s.gpuNs=s.nowNs;s.gpuMs=60;s.utilization=99;s.gpuSample=1;c.observe(s);
+    for(int i=0;i<20;++i) c.observe(s);EXPECT_EQ(c.scale(),1.); // Cached sample is counted once.
+    for(unsigned i=2;i<=3;++i) {s.gpuSample=i;c.observe(s);}
+    EXPECT_DOUBLE_EQ(c.scale(),.8);const auto revision=c.revision();
+    for(unsigned i=4;i<20;++i) {s.gpuSample=i;c.observe(s);}
+    EXPECT_DOUBLE_EQ(c.scale(),.8);EXPECT_EQ(c.revision(),revision);
+    s.nowNs+=2100000000ull;s.gpuNs=s.nowNs;++s.gpuSample;c.observe(s);
+    EXPECT_NEAR(c.scale(),.64,1e-12);
+    s.nowNs+=2100000000ull;s.gpuNs=s.nowNs;s.gpuMs=10;
+    for(int i=0;i<3;++i) {++s.gpuSample;c.observe(s);}
+    EXPECT_NEAR(c.scale(),.704,1e-12);
+    s.nowNs+=2100000000ull;s.memoryNs=s.nowNs;s.freeBytes=1000000000;c.observe(s);
+    const auto stable=c.revision();s.nowNs+=2100000000ull;s.memoryNs=s.nowNs;s.freeBytes=990000000;c.observe(s);
+    EXPECT_EQ(c.revision(),stable);
+    s.freeBytes=700000000;c.observe(s);EXPECT_GT(c.revision(),stable);
+    s.nowNs=1;c.observe(s); // A reset clock cannot bypass the cooldown via unsigned underflow.
+    EXPECT_GE(c.scale(),.05);
+}
+TEST(GrassBudget, EffectiveReplayRoundTripsAndRejectsInvalidLimits) {
+    using namespace rendering;
+    config::FoliageConfig f;
+    GrassFalloff p;p.enabled=true;p.capacity=10000;p.budget=7000;p.protectedMeters=f.quadDistanceMeters();
+    p.sigmaMeters=3.12345678901234;p.density=f.density_per_m2;
+    const auto saved=nlohmann::json::parse(p.json().dump());
+    const auto q=GrassFalloff::replay(saved,f);EXPECT_TRUE(q.locked);EXPECT_EQ(q.json(),saved);
+    for(const auto& [key,value]:std::vector<std::pair<std::string,nlohmann::json>>{
+        {"version",2},{"capacity",-1},{"capacity",4294967297ull},{"budget",10001},
+        {"protected_m",.1},{"sigma_m",-1},{"density",f.density_per_m2+1},{"near_infeasible",0}}) {
+        auto bad=saved;bad[key]=value;EXPECT_THROW(GrassFalloff::replay(bad,f),std::exception)<<key;
+    }
+    auto signedValues=p.json();signedValues["capacity"]=10000;signedValues["budget"]=7000;
+    EXPECT_NO_THROW(GrassFalloff::replay(signedValues,f));
 }

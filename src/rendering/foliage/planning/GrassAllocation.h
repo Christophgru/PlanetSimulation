@@ -22,6 +22,7 @@ struct GrassAllocationBuffers {
     glm::dvec3 planningEye{0};
     std::uint64_t triangles=0,inputBytes=0,workingBytes=0,dispatches=0;
     std::uint32_t budget=0,slotCap=0;
+    bool adaptive=false;
     mutable std::uint64_t summaryReadBytes=0,diagnosticReadBytes=0;
     bool complete=false;
     ~GrassAllocationBuffers();

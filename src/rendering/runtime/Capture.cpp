@@ -41,7 +41,7 @@ int Renderer::Impl::capture() {
         CpuTrace::Scope frameScope("capture.frame");
         frameRate.sample(glfwGetTime()-lastBenchmarkFrame); lastBenchmarkFrame=glfwGetTime();
         simulationTime = benchmarkStart + frame * options.benchmarkStep;
-        profiler.beginFrame(simulationTime);
+        profiler.beginFrame(simulationTime,grass.procedural.adaptiveBudget());
         observeMemory(MemoryPhase::Capture);
         { rendering::FrameProfiler::Scope scope(&profiler, rendering::FrameStage::Update, false);
           if (frame > 0) {
@@ -370,6 +370,15 @@ int Renderer::Impl::capture() {
             {"foliage_distance_multiplier",options.foliageDistanceMultiplier}, {"lens_flare",options.lensFlare}};
         metadata["render"]["terrain_backend"]=options.terrainBackend;
         metadata["render"]["terrain_grass_planner"]=options.terrainGrassPlanner;
+        if(grass.procedural.adaptiveBudget()) {
+            auto policies=nlohmann::json::array();
+            for(std::size_t i=0;i<scene.scenario.planets.size();++i) {
+                auto p=grass.procedural.policy(i);
+                if(!p.is_null()) p["body"]=scene.scenario.planets[i].name;
+                policies.push_back(std::move(p));
+            }
+            metadata["render"]["foliage_policy"]=std::move(policies);
+        }
         const auto workerStats=terrainJobs.stats();
         metadata["render"]["terrain_cpu_worker"]={{"submitted",workerStats.submitted},
             {"completed",workerStats.completed},{"failed",workerStats.failed},

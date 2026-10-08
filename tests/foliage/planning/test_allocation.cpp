@@ -131,3 +131,69 @@ TEST(GrassAllocation, ProductionPlanningAndResidentTerrainNeedNoCpuRenderVectors
     p.foliage.enabled=false;grass.prepare(0,mesh,p,scene.metersPerWorldUnit(),eye);EXPECT_EQ(grass.stats(0).allocationBytes,0u);
     grass.clear();mesh.destroy();EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
 }
+namespace {
+struct AdaptiveResult {GrassAllocationSummary summary;std::vector<std::uint32_t> ids;};
+AdaptiveResult adaptiveFixture(unsigned capacity,unsigned target,unsigned slotCap=128,const GrassAllocationSummary* replay=nullptr) {
+    GrassMetadataBuffers metadata;metadata.adaptive=true;metadata.generation={123,456,1,1,TerrainBackend::Compute};
+    // Three protected triangles and many distant triangles. Far pressure cannot
+    // silently lower the requested eight blades/m² on any protected triangle.
+    std::vector<GrassTriangleMetadata> triangles(103);metadata.triangles=triangles.size();
+    for(unsigned i=0;i<triangles.size();++i) {
+        triangles[i].areaDistance={1.,i<3?double(i+1):11.+(i-3)*.8};triangles[i].identity={i,1,0,0};
+    }
+    GrassMetadataParameters p;p.eyeScale[3]=1;p.ranges={100,0,40,8};p.flags[3]=triangles.size();
+    p.padding={1u,std::bit_cast<std::uint32_t>(10.f),0u,target};
+    if(replay) {
+        p.padding[0]=3u|(replay->padding[0]?4u:0u);p.padding[3]=replay->control[0];
+        p.ranges[3]=replay->densitySearch[0];p.ranges[2]=replay->densitySearch[3];
+    }
+    glGenBuffers(1,&metadata.descriptors);glBindBuffer(GL_SHADER_STORAGE_BUFFER,metadata.descriptors);
+    glBufferData(GL_SHADER_STORAGE_BUFFER,triangles.size()*64,triangles.data(),GL_STATIC_DRAW);
+    glGenBuffers(1,&metadata.parameters);glBindBuffer(GL_SHADER_STORAGE_BUFFER,metadata.parameters);
+    glBufferData(GL_SHADER_STORAGE_BUFFER,160,&p,GL_STATIC_DRAW);
+    config::FoliageConfig f;f.max_blades=capacity;f.max_candidates_per_triangle=slotCap;
+    auto limits=TerrainComputeLimits::query();limits.groups=1;
+    GrassAllocationCompute compute(limits);auto allocation=compute.generate(metadata,f);allocation->waitForCapture();
+    AdaptiveResult r;r.summary=allocation->readSummary();r.ids=allocation->readReferencesForValidation(r.summary.totals[0]);
+    EXPECT_LE(r.summary.totals[1],capacity);EXPECT_LE(r.summary.totals[1],r.summary.control[0]);
+    EXPECT_EQ(allocation->summaryReadBytes,224u);EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+    return r;
+}
+void replayAdaptive(const AdaptiveResult& r,unsigned capacity,unsigned cap=128) {
+    const auto locked=adaptiveFixture(capacity,1,cap,&r.summary);
+    EXPECT_EQ(locked.ids,r.ids);EXPECT_EQ(locked.summary.counts,r.summary.counts);
+    EXPECT_EQ(locked.summary.totals,r.summary.totals);EXPECT_EQ(locked.summary.control[0],r.summary.control[0]);
+    EXPECT_EQ(locked.summary.densitySearch[0],r.summary.densitySearch[0]);
+    EXPECT_EQ(locked.summary.densitySearch[3],r.summary.densitySearch[3]);EXPECT_EQ(locked.summary.padding[0],r.summary.padding[0]);
+}
+}
+TEST(GrassAllocation, AdaptiveFalloffProtectsConfiguredNearDensityAndFitsFarTail) {
+    const auto normal=adaptiveFixture(128,80);const auto slower=adaptiveFixture(128,40);
+    for(const auto* r:{&normal,&slower}) {
+        EXPECT_EQ(r->summary.densitySearch[0],8.);EXPECT_EQ(r->summary.padding[0],0u);
+        EXPECT_GT(r->summary.densitySearch[3],0.);EXPECT_LT(r->summary.densitySearch[3],40.);
+        for(unsigned id=0;id<3;++id) EXPECT_NE(std::find(r->ids.begin(),r->ids.end(),id),r->ids.end());
+        // The protected triangles are all in the eight-slot batch.
+        const auto begin=r->ids.begin()+r->summary.first[3],end=begin+r->summary.counts[3];
+        for(unsigned id=0;id<3;++id) EXPECT_NE(std::find(begin,end,id),end);
+        replayAdaptive(*r,128);
+    }
+    EXPECT_LT(slower.summary.densitySearch[3],normal.summary.densitySearch[3]);
+    const auto wide=adaptiveFixture(10000,8000);EXPECT_DOUBLE_EQ(wide.summary.densitySearch[3],40.);
+    replayAdaptive(wide,10000);
+    const auto nearOnly=adaptiveFixture(128,1);EXPECT_EQ(nearOnly.summary.control[0],24u);
+    EXPECT_EQ(nearOnly.summary.densitySearch[0],8.);EXPECT_EQ(nearOnly.summary.totals[1],24u);
+    EXPECT_EQ(nearOnly.ids.size(),3u);replayAdaptive(nearOnly,128);
+    std::cout << "ADAPTIVE_FALLOFF rho=" << normal.summary.densitySearch[0] << " sigma80=" << normal.summary.densitySearch[3]
+        << " sigma40=" << slower.summary.densitySearch[3] << " near_only_budget=" << nearOnly.summary.control[0] << '\n';
+}
+TEST(GrassAllocation, AdaptiveTinyAndPerTriangleCapsReportInfeasibleNearDensity) {
+    for(unsigned capacity:{1u,2u,3u,10u}) {
+        const auto r=adaptiveFixture(capacity,1);EXPECT_EQ(r.summary.padding[0],1u);
+        EXPECT_EQ(r.summary.densitySearch[3],0.);EXPECT_GT(r.summary.totals[1],0u);
+        for(auto id:r.ids) EXPECT_LT(id,3u); // Distant work never displaces protected patches.
+        replayAdaptive(r,capacity);
+    }
+    const auto capped=adaptiveFixture(128,80,4);EXPECT_EQ(capped.summary.padding[0],1u);
+    replayAdaptive(capped,128,4);
+}

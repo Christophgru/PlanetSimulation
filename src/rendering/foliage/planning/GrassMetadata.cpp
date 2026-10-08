@@ -3,12 +3,13 @@
 #include "rendering/foliage/GrassPlacement.h"
 #include "config/ScenarioConfig.h"
 #include <algorithm>
+#include <bit>
 #include <cmath>
 #include <limits>
 #include <stdexcept>
 namespace rendering {
 GrassMetadataParameters grassMetadataParameters(const config::PlanetConfig& planet,
-    double metersPerWorldUnit,const glm::dvec3& eye,std::uint32_t triangles) {
+    double metersPerWorldUnit,const glm::dvec3& eye,std::uint32_t triangles,const GrassFalloff& policy) {
     planet.foliage.validate();
     const double scale=planet.radius*metersPerWorldUnit;
     if(!std::isfinite(scale) || scale<=0 || !std::isfinite(glm::length(eye)) || glm::length(eye)<=0)
@@ -27,6 +28,12 @@ GrassMetadataParameters grassMetadataParameters(const config::PlanetConfig& plan
     p.colorGreen={planet.color[0],planet.color[1],planet.color[2],f.green_ratio};
     p.flags={std::uint32_t(f.enabled && (glm::length(eye)-1)*scale-maximumHeight<=f.draw_distance_m+margin),
         std::uint32_t(planet.water.enabled),std::uint32_t(planet.terrain_landscape.enabled),triangles};
+    if(policy.enabled) {
+        p.ranges[3]=policy.locked?policy.density:f.density_per_m2;
+        p.ranges[2]=policy.sigmaMeters;
+        p.padding={policy.locked?(3u|(policy.nearInfeasible?4u:0u)):1u,std::bit_cast<std::uint32_t>(float(policy.protectedMeters)),
+            0u,policy.budget};
+    }
     return p;
 }
 GrassMetadataLimits GrassMetadataLimits::query() {
@@ -74,7 +81,7 @@ std::vector<GrassTriangleMetadata> GrassMetadataBuffers::readForValidation() con
 }
 GrassMetadataCompute::~GrassMetadataCompute() {if(shader_) glDeleteProgram(shader_->id);}
 std::unique_ptr<GrassMetadataBuffers> GrassMetadataCompute::generate(GLuint vertices,GLuint indices,
-    const TerrainBuildStats& terrain,const config::PlanetConfig& planet,double metersPerWorldUnit,const glm::dvec3& eye) {
+    const TerrainBuildStats& terrain,const config::PlanetConfig& planet,double metersPerWorldUnit,const glm::dvec3& eye,const GrassFalloff& policy) {
     if(terrain.generation.backend!=TerrainBackend::Compute || !terrain.generation.field || !terrain.generation.topology ||
         terrain.generation.fieldVersion!=PlanetField::version || terrain.generation.topologyVersion!=1 ||
         !vertices || !indices || !glIsBuffer(vertices) || !glIsBuffer(indices) ||
@@ -86,7 +93,7 @@ std::unique_ptr<GrassMetadataBuffers> GrassMetadataCompute::generate(GLuint vert
     const std::array<std::uint64_t,4> bytes{160,terrain.gpuCorners*36,terrain.gpuCorners*4,count*64};
     for(auto size:bytes) if(size>limits_.blockBytes || size>std::uint64_t(std::numeric_limits<GLsizeiptr>::max()))
         throw std::runtime_error("Grass metadata exceeds SSBO block limit");
-    const auto parameters=grassMetadataParameters(planet,metersPerWorldUnit,eye,count);
+    const auto parameters=grassMetadataParameters(planet,metersPerWorldUnit,eye,count,policy);
     if(!shader_) shader_=std::make_unique<Shader>("shaders/foliage/planning/metadata.comp");
     // Preserve indexed ranges as well as buffer IDs; caller state can use ranges.
     GLint program=0,storage=0;std::array<GLint,4> bindings{};std::array<GLint64,4> starts{},sizes{};
@@ -113,7 +120,7 @@ std::unique_ptr<GrassMetadataBuffers> GrassMetadataCompute::generate(GLuint vert
         if(actual<0 || std::uint64_t(actual)<needed) throw std::invalid_argument("Truncated grass metadata terrain buffer");
     }
     auto result=std::make_unique<GrassMetadataBuffers>();
-    result->generation=terrain.generation;result->planningEye=eye;result->triangles=count;
+    result->adaptive=policy.enabled;result->generation=terrain.generation;result->planningEye=eye;result->triangles=count;
     result->inputBytes=160;result->workingBytes=160+count*64;
     glGenBuffers(1,&result->parameters);glGenBuffers(1,&result->descriptors);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,result->parameters);glBufferData(GL_SHADER_STORAGE_BUFFER,160,&parameters,GL_STATIC_DRAW);

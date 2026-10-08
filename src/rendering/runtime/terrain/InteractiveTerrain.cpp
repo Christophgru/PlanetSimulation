@@ -55,6 +55,7 @@ void Renderer::Impl::recordResidentPublication(std::size_t i,std::vector<int>& z
 }
 void Renderer::Impl::prepareResidentFrame(const glm::dvec3& eye,std::optional<double> characterElapsed) {
     CpuTrace::Scope scope("terrain.interactive_frame");
+    observeMemory(memoryPhase);
     ++residentFrames;plannedCharacterEye.reset();
     const auto identityFor=[&](std::size_t i) {
         TerrainBuildIdentity k;k.epoch=terrainSceneEpoch;k.serial=terrainRequestSerial;k.bodyIndex=i;
@@ -176,7 +177,7 @@ void Renderer::Impl::prepareResidentFrame(const glm::dvec3& eye,std::optional<do
         if(terrainFailures[i] && residentFrames<residentRetryAfter) continue;
         const auto anchor=scene.bodies[i+1].toLocalPoint(world)/planet.radius;
         const auto previous=grass.procedural.planningEye(i);
-        if(previous && glm::length(anchor-*previous)*planet.radius*scene.scenario.metersPerWorldUnit()<grassRebuildDistance(planet.foliage)) continue;
+        if(!grass.procedural.policyChanged(i) && previous && glm::length(anchor-*previous)*planet.radius*scene.scenario.metersPerWorldUnit()<grassRebuildDistance(planet.foliage)) continue;
         const auto k=terrainPublication->installed(i).identity;
         auto key=PublicationProfiler::Key::from(k);key.eye={anchor.x,anchor.y,anchor.z};
         const auto attempt=profiler.publications().begin(key,PublicationProfiler::Kind::Grass);

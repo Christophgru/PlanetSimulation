@@ -125,3 +125,26 @@ TEST(MemorySampler, RetainsLifecycleEventsWhenLatestSnapshotLockIsBusy) {
     EXPECT_EQ(rows[1].at("replacement_epoch"),"9");EXPECT_EQ(rows.back().at("dropped_events"),"0");
     EXPECT_EQ(rows.back().at("dropped_observations"),"1");EXPECT_EQ(rows.back().at("skipped_latest_observations"),"2");
 }
+
+TEST(MemorySampler, UntracedWorkerPublishesCachedMemoryAndReservationWithoutDriverWorkOnCaller) {
+    Gate gate;std::promise<void> reading;std::atomic<unsigned> calls=0;
+    auto initial=observation();initial.overlapReserved=1234;
+    MemorySampler sampler("",context(),initial,[&](const auto&) {
+        return MemoryReader([&]{if(calls.fetch_add(1)==0) {reading.set_value();gate.wait();}return PhysicalMemory{"ok",0,1024,768,256};});
+    },10s);
+    Release release{gate};ASSERT_EQ(reading.get_future().wait_for(5s),std::future_status::ready);
+    auto pending=sampler.cached();ASSERT_TRUE(pending);EXPECT_EQ(pending->sampledNs,0u);
+    gate.release();
+    const auto until=std::chrono::steady_clock::now()+2s;
+    std::optional<MemorySampler::Cached> cached;
+    do {cached=sampler.cached();if(cached && cached->sampledNs) break;std::this_thread::yield();} while(std::chrono::steady_clock::now()<until);
+    ASSERT_TRUE(cached);EXPECT_GT(cached->sampledNs,0u);EXPECT_EQ(cached->physical.free,256u);EXPECT_EQ(cached->reserved,1234u);
+    for(int i=0;i<100;++i) sampler.cached();EXPECT_EQ(calls,1u);
+    Gate snapshotGate;std::promise<void> held;
+    auto locked=std::async(std::launch::async,[&] {
+        std::lock_guard lock(MemorySamplerProbe::mutex(sampler));held.set_value();snapshotGate.wait();
+    });
+    Release snapshotRelease{snapshotGate};ASSERT_EQ(held.get_future().wait_for(2s),std::future_status::ready);
+    EXPECT_FALSE(sampler.cached().has_value());snapshotGate.release();locked.get();
+    sampler.stop(observation(MemoryPhase::Shutdown));EXPECT_EQ(calls,2u);
+}

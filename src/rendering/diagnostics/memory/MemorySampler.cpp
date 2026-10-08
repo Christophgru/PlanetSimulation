@@ -36,7 +36,7 @@ MemorySampler::MemorySampler(const std::string& path,MemoryContext context,Memor
     :path_(path),context_(std::move(context)),factory_(std::move(factory)),period_(std::max(period,std::chrono::milliseconds(1))),
      initial_(initial),latest_(std::move(initial)) {
     // Fail synchronously for an unwritable diagnostic destination, before any worker exists.
-    std::ofstream probe(path_);if(!probe) throw std::runtime_error("Cannot open memory trace: "+path_);
+    if(!path_.empty()) {std::ofstream probe(path_);if(!probe) throw std::runtime_error("Cannot open memory trace: "+path_);}
     worker_=std::thread([this]{run();});
 }
 MemorySampler::~MemorySampler() {
@@ -65,18 +65,25 @@ bool MemorySampler::observe(MemoryObservation observation,bool event) {
     if(!latest) ++dropped_;
     return latest;
 }
+std::optional<MemorySampler::Cached> MemorySampler::cached() {
+    std::unique_lock lock(mutex_,std::try_to_lock);
+    if(!lock.owns_lock()) return std::nullopt;
+    return cached_;
+}
 void MemorySampler::stop(MemoryObservation final) {
     if(!worker_.joinable()) return;
     {std::lock_guard lock(mutex_);final_=std::move(final);stopping_.store(true,std::memory_order_release);}
     changed_.notify_one();worker_.join();
 }
 void MemorySampler::run() {
-    std::ofstream out(path_);
+    std::ofstream out;
+    if(!path_.empty()) out.open(path_);
     out<<"kind,observed_ns,frame,epoch,serial,reload_attempt,replacement_epoch,phase,query_begin_ns,query_end_ns,query_ms,observation_age_ms,sample_age_ms,sample_after_observation,stale,nvml_status,driver_error,total_bytes,used_bytes,free_bytes,context_status,context_uuid,vendor,renderer,nvx_status,nvx_observed_ns,nvx_age_ms,nvx_dedicated_bytes,nvx_total_available_bytes,nvx_available_bytes,logical_status,live_reserved_bytes,replacement_reserved_bytes,overlap_reserved_bytes,cpu_scope,mesh_vector_bytes,scheduler_status,ready_vector_bytes,worker_running,worker_queued,worker_ready,rss_status,rss_observed_ns,process_rss_bytes,dropped_observations,dropped_events,skipped_latest_observations,physical_scope,transient_peak_scope\n";
     PhysicalMemory physical;MemoryReader reader;
     try {reader=factory_(context_);} catch(...) {physical.status="reader_exception";}
     std::uint64_t begin=0,end=0;
     auto write=[&](const char* kind,const MemoryObservation& o) {
+        if(!out.is_open()) return;
         const auto now=memoryClockNs();const auto rss=residentBytes();
         const auto age=[&](std::uint64_t time){return time && now>=time ? (now-time)/1e6 : 0.;};
         out<<kind<<','<<o.observedNs<<','<<o.frame<<','<<o.epoch<<','<<o.serial<<','<<o.reloadAttempt<<','<<o.replacementEpoch<<','<<memoryPhaseName(o.phase)<<',';
@@ -107,7 +114,9 @@ void MemorySampler::run() {
     auto sample=[&](const MemoryObservation& o) {
         begin=memoryClockNs();
         if(reader) try {physical=reader();} catch(...) {physical={};physical.status="reader_exception";}
-        end=memoryClockNs();write("sample",o);
+        end=memoryClockNs();
+        {std::lock_guard lock(mutex_);cached_={physical,end,o.overlapReserved};}
+        write("sample",o);
     };
     // The initial sample has renderer-ready metadata; its delay is explicit.
     sample(initial_);

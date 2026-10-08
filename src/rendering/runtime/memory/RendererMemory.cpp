@@ -40,6 +40,18 @@ MemoryObservation Renderer::Impl::memorySnapshot(MemoryPhase phase,const SceneTe
 }
 void Renderer::Impl::observeMemory(MemoryPhase phase,bool event,const SceneTerrainReplacement* replacement,
     const LegacySceneReplacement* legacy,std::uint64_t attempt,std::uint64_t targetEpoch) {
+    if(grass.procedural.adaptiveBudget()) {
+        auto signals=grass.procedural.budgetSignals();signals.nowNs=memoryClockNs();signals.capBytes=options.videoMemoryCapBytes;
+        if(memorySampler) if(const auto cached=memorySampler->cached()) {
+            signals.memoryNs=cached->sampledNs;signals.sampleReserved=cached->reserved;
+            signals.freeBytes=cached->physical.status=="ok" ? std::optional<std::uint64_t>(cached->physical.free) : std::nullopt;
+        }
+        if(profiler.gpuReady()) {
+            signals.gpuMs=profiler.gpuMilliseconds;signals.gpuSample=profiler.gpuSample();signals.gpuNs=profiler.gpuSampleNs();
+        }
+        signals.utilization=gpuUtilization.sample(true);
+        grass.procedural.observeBudget(std::move(signals));
+    }
     if(memorySampler) {
         const bool transition=phase!=memoryPhase;memoryPhase=phase;
         memorySampler->observe(memorySnapshot(phase,replacement,legacy,attempt,targetEpoch),event||transition);

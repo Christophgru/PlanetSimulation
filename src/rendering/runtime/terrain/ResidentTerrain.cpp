@@ -8,6 +8,7 @@ void Renderer::Impl::publishResidentBuilds(std::vector<std::optional<TerrainCpuB
     const glm::dvec3& eye,std::optional<double> characterElapsed) {
     CpuTrace::Scope scope("terrain.complete_capture_publication");
     if(!options.renderTestMode) throw std::logic_error("Interactive compute publication remains gated");
+    observeMemory(MemoryPhase::Capture);
     terrainPublication->pollRetired();
     auto grassEyeWorld=eye;
     plannedCharacterEye.reset();
@@ -33,7 +34,7 @@ void Renderer::Impl::publishResidentBuilds(std::vector<std::optional<TerrainCpuB
         const auto planEye=i==selected && replayGrassEye ? *replayGrassEye : scene.bodies[i+1].toLocalPoint(grassEyeWorld)/planet.radius;
         const auto oldEye=grass.procedural.planningEye(i);
         const bool grassChanged=!builds[i] && (bool(i==selected && replayGrassEye) ||
-            (planet.foliage.enabled && (!oldEye || glm::length(planEye-*oldEye)*planet.radius*scene.scenario.metersPerWorldUnit()>=grassRebuildDistance(planet.foliage))));
+            (planet.foliage.enabled && (grass.procedural.policyChanged(i) || !oldEye || glm::length(planEye-*oldEye)*planet.radius*scene.scenario.metersPerWorldUnit()>=grassRebuildDistance(planet.foliage))));
         if(!builds[i] && !grassChanged) continue;
         const auto attempt=builds[i] ? profiler.publications().terrain(identities[i]->epoch,i,identities[i]->serial) : [&] {
             auto key=PublicationProfiler::Key::from(terrainPublication->installed(i).identity);key.eye={planEye.x,planEye.y,planEye.z};

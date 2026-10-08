@@ -1311,6 +1311,33 @@ GPU working memory at that capacity (buffers retain the largest plan until
 cleanup). These records are created on the GPU and never uploaded.
 OpenGL 3.3 or `compute_placement=false` uses procedural vertex generation.
 
+The opt-in resident planner (`--terrain-backend compute`, `gpu-v1`) protects
+configured density through `quad_distance_m` (including its automatic value).
+Beyond that region it fits a Gaussian tail under candidate, render-time and
+memory limits. The maximum tail width is `draw_distance_m *
+gaussian_sigma_fraction`; increasing pressure narrows the tail before reducing
+near density. If near work alone exceeds the physical slot/triangle limits,
+`near_infeasible` reports the deficit and queues remain bounded. Retention fades
+start outside the protected region; terrain biome rejection still applies.
+
+Memory admission includes live, staged, retiring and replacement-scene
+reservations. A cached reading from the existing NVML worker supplies half the
+available physical memory, less reservations added after that sample. Without
+fresh telemetry, admission uses a 64 MiB generation / 256 MiB aggregate ceiling;
+terrain and planner storage count toward those limits. The existing logical
+limits, GL storage limits and `--video-memory-cap-mb` can lower this further.
+Frame timestamps and optional utilization adjust the soft candidate allowance
+with three distinct samples and a two-second cooldown. Near density takes
+precedence over that soft allowance when physical capacity permits it.
+
+Capture sidecars save each body's effective capacity, budget, density, protected
+radius and Gaussian width in `render.foliage_policy` version 1. Replay locks
+those settings and rejects insufficient memory instead of silently thinning the
+recorded result. Camera-only/older replays without this field use live policy;
+an explicit CPU override uses the supported legacy planner. CPU remains the
+default, with its existing foliage behavior; combined acceptance is tracked in
+F5 of `todo.md`.
+
 Interactive wind follows elapsed wall time: `T` pauses planetary orbits and spin,
 while grass keeps moving. `Y`/`U` change orbital speed only. Setting
 `wind_noise.speed_multiplier` or `wind_strength` to zero freezes wind.
@@ -1335,7 +1362,7 @@ rendered frame, without regenerating or uploading roots. Blades straighten
 between half of `quad_distance_m` and that threshold. The default `0` selects
 `min(15 m, draw_distance_m / 4)` automatically; positive values (up to 400 m)
 are capped at the draw distance. For example, `"quad_distance_m": 30.0` morphs
-from 15 to 30 m. Density and retention tiers remain independent. Thus any
+from 15 to 30 m. Geometry morphing keeps roots fixed. Thus any
 triangle switched to quads already has straight blades. Reflections share the
 main camera's geometry choice. Fragment shading evaluates the same palette
 across both geometries. Interpolated lateral offset is normalized by the blade
@@ -1346,7 +1373,7 @@ linear RGB `(0.634375, 0.74375, 0.284375)`. Lighting, slope shading and surface
 grain still apply, so ground and blades share albedo rather than identical
 screen pixels. Beach, snow, seabed and rock transitions retain their materials.
 
-Eight stable retention tiers and the outer-quarter distance fade reduce pixel
+Eight stable retention tiers and the outer distance fade reduce pixel
 coverage using deterministic screen-space dithering. All grass retains its height and ground roots during distance fading: **grass never sinks**. Astronaut trails bend blades while keeping those roots fixed.
 Terrain retains its independent eight LODs and configured sinking. A cached
 plan includes the walking margin and only uploads triangle IDs when the camera

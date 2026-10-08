@@ -73,13 +73,19 @@ assert metadata['resident_bytes']==160+g['render']['body_mesh_triangles'][0]*64
 assert metadata['input_bytes']==160+8*metadata['dispatches']
 assert metadata['diagnostic_read_bytes']==0
 assert metadata['summary_read_bytes']==224
-assert metadata['effective_candidate_budget']==4096
+assert 0<metadata['effective_candidate_budget']<=4096
+policy=g['render']['foliage_policy'][0]
+assert policy['version']==1 and policy['body']==scene['planets'][0]['name']
+assert policy['capacity']==4096 and policy['budget']==metadata['effective_candidate_budget']
+assert policy['protected_m']==10 and policy['density']==metadata['placement_density_per_m2']
+assert policy['near_infeasible'] or policy['density']==scene['planets'][0]['foliage']['density_per_m2']
+assert 0<=policy['sigma_m']<=scene['planets'][0]['foliage']['draw_distance_m']/3*(1+1e-6)
 assert metadata['placement_density_per_m2']>0
 assert metadata['draw_resources_prepared']
 assert metadata['draw_resource_bytes']==128*g['render']['foliage_candidates']+32
 assert 0<metadata['stage_admitted_bytes']<=512*1024*1024
 assert 0<g['render']['terrain_compute']['stage_admitted_bytes']<=512*1024*1024
-assert metadata['allocation_input_bytes']==228+12*metadata['allocation_dispatches']
+assert metadata['allocation_input_bytes']==228+12*metadata['allocation_dispatches']+4*(g['render']['body_mesh_triangles'][0]-1).bit_length()
 assert metadata['allocation_bytes']>0
 assert g['render']['foliage_candidates']<=4096
 assert c['render']['foliage_gpu_metadata']['resident_bytes']==0
@@ -93,6 +99,7 @@ for key in ('field_fingerprint','topology_fingerprint','unique_samples'):
     assert c['render']['terrain_contract'][key]==g['render']['terrain_contract'][key]
 replay,r=run('gpu-replay',replay=gpu.with_suffix('.png.json'))
 assert r['render']['terrain_backend']=='compute' and replay.read_bytes()==gpu.read_bytes(),'Compute replay changed PNG'
+assert r['render']['foliage_policy']==g['render']['foliage_policy']
 override,o=run('cpu-override',('--terrain-backend','cpu'),gpu.with_suffix('.png.json'))
 assert o['render']['terrain_backend']=='cpu' and override.read_bytes()==cpu.read_bytes()
 walker,w=run('walking',('--terrain-backend','compute','--benchmark-frames','6','--benchmark-walk-step','.06','--benchmark-step','0'),astronaut=True)
@@ -123,7 +130,8 @@ assert v['render']['foliage_gpu_metadata']['allocation_bytes']==0
 incompatible=out/'incompatible.json';bad=json.loads(gpu.with_suffix('.png.json').read_text());bad['scenario']['planets'][0]['foliage']['compute_placement']=False;incompatible.write_text(json.dumps(bad))
 error=run('locked-vertex-rejected',replay=incompatible,fail=True)
 assert 'Locked GPU grass replay requires compute_placement' in error
-oldgl={'MESA_GL_VERSION_OVERRIDE':'3.3','MESA_GLSL_VERSION_OVERRIDE':'330'}
+oldgl={'MESA_GL_VERSION_OVERRIDE':'3.3','MESA_GLSL_VERSION_OVERRIDE':'330',
+       '__GLX_VENDOR_LIBRARY_NAME':'mesa','__NV_PRIME_RENDER_OFFLOAD':'0'}
 fallback,f=run('gl33-fallback',('--terrain-backend','compute'),env=oldgl)
 assert f['render']['terrain_backend']=='cpu' and '4.3' in f['render']['terrain_fallback']
 assert not f['render']['terrain_compute']['cpu_compatibility_mirror']
@@ -140,7 +148,21 @@ assert 'Unsupported terrain compute replay versions' in error and 'initialized' 
 bad=json.loads(gpu.with_suffix('.png.json').read_text());bad['render']['terrain_grass_planner']='gpu-v2'
 invalid.write_text(json.dumps(bad));error=run('planner-version-rejected',replay=invalid,fail=True)
 assert 'Unsupported terrain grass replay planner' in error and 'initialized' not in error
-report={'cpu_gpu_surface':compare(cpu,gpu),'compute_replay_exact':True,'compute_walking_replay_exact':True,
+# New falloff changes quality deliberately; terrain numerical parity is checked
+# through the legacy planner above. Replaying effective policy must remain exact.
+for key,value in [('version',2),('budget',policy['capacity']+1),('density',4097),('sigma_m',-1),('body','other')]:
+    bad=json.loads(gpu.with_suffix('.png.json').read_text());bad['render']['foliage_policy'][0][key]=value
+    invalid.write_text(json.dumps(bad));error=run('policy-'+key+'-rejected',replay=invalid,fail=True)
+    assert 'foliage policy replay' in error.lower(),error
+tinyData=json.loads(config.read_text());tinyData['planets'][0]['foliage']['max_blades']=2
+tinyPath=out/'tiny-scene.json';tinyPath.write_text(json.dumps(tinyData))
+tiny,t=run('tiny-budget',('--terrain-backend','compute'),scene_path=tinyPath)
+assert t['render']['foliage_policy'][0]['near_infeasible']
+assert t['render']['foliage_candidates']<=2
+tinyReplay,tr=run('tiny-replay',replay=tiny.with_suffix('.png.json'),scene_path=tinyPath)
+assert tinyReplay.read_bytes()==tiny.read_bytes()
+assert tr['render']['foliage_policy']==t['render']['foliage_policy']
+report={'cpu_legacy_gpu_surface':compare(cpu,legacy),'adaptive_policy':policy,'compute_replay_exact':True,'compute_walking_replay_exact':True,
         'cpu_override_exact':True,'legacy_compute_replay_exact':True,'vertex_config_fallback':True,'locked_vertex_config_rejected':True,'unknown_grass_planner_rejected_before_window':True,'gl33_fallback':True,'locked_unavailable_rejected':True,'invalid_backend_rejected_before_window':True,
         'unknown_field_version_rejected_before_window':True,'terrain_compute':g['render']['terrain_compute'],'commands':commands,
         'sparse_contacts':contacts,'grass_metadata':metadata,'terrain_cpu_worker':worker,

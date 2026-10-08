@@ -86,12 +86,13 @@ void ProceduralGrass::clear() {
     for (const auto& [index,data]:trails_) {
         glDeleteBuffers(1,&data.buffer);glDeleteTextures(1,&data.texture);
     }
-    trails_.clear();replayPlanEyes_.clear();
+    trails_.clear();replayPlanEyes_.clear();replayPolicies_.clear();
 }
 void ProceduralGrass::swapState(ProceduralGrass& other) noexcept {
     patches_.swap(other.patches_);trails_.swap(other.trails_);replayPlanEyes_.swap(other.replayPlanEyes_);
     compute_.swap(other.compute_);metadataCompute_.swap(other.metadataCompute_);
     allocationCompute_.swap(other.allocationCompute_);
+    std::swap(adaptiveBudget_,other.adaptiveBudget_);std::swap(budget_,other.budget_);replayPolicies_.swap(other.replayPolicies_);
 }
 void ProceduralGrass::reserve(std::size_t index) {
     if(patches_.size()<=index) patches_.resize(index+1);

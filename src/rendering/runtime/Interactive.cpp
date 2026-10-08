@@ -42,7 +42,7 @@ int Renderer::Impl::interact() {
           CpuTrace::Scope scope("glfwPollEvents"); glfwPollEvents(); }
         const bool statsVisible = inputContext.statsVisible ||
             glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS;
-        profiler.beginFrame(simulationClock.seconds(), statsVisible);
+        profiler.beginFrame(simulationClock.seconds(), statsVisible || grass.procedural.adaptiveBudget());
         const double watchTime = glfwGetTime();
         if (watchTime >= nextConfigCheckAt) {
             nextConfigCheckAt = watchTime + 0.05;
@@ -320,7 +320,7 @@ int Renderer::Impl::interact() {
             }
             { rendering::FrameProfiler::Scope scope(&profiler, rendering::FrameStage::Overlay);
               performanceOverlay.draw(statsVisible, width, height,
-                  frameRate.fps, frameRate.milliseconds, profiler.gpuMilliseconds, profiler.gpuReady(), gpuUtilization.sample(statsVisible)); }
+                  frameRate.fps, frameRate.milliseconds, profiler.gpuMilliseconds, profiler.gpuReady(), gpuUtilization.sample(statsVisible || grass.procedural.adaptiveBudget())); }
             { rendering::FrameProfiler::Scope scope(&profiler, rendering::FrameStage::Present, false);
               NativeLoopProfiler::Scope::Interval interval(loop,LoopPart::Presentation);
               glfwSwapBuffers(window); }
