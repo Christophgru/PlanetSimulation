@@ -869,8 +869,9 @@ distance-orders resident triangle references on the GPU using existing scratch
 storage. Three alternating production normal-wind pairs pass the unchanged
 1.05 full-frame p95 limit (ratios 1.009/1.021/1.013); fixed-wind pairs also pass.
 Before/after production blade contents, depth and displayed RGB remain exact.
-CPU stays default; earlier failures remain documented, and combined F5
-movement/Moon/reload/transfer acceptance is still pending.
+CPU stays default; earlier failures remain documented. The combined
+[F5 acceptance decision](docs/journal/architecture/terrain-gpu/acceptance.md) keeps
+compute experimental because final foliage coverage is not matched.
 
 Within **1.2 body diameters from its centre (2.4 radii)**, orientation follows
 the nearby planet or moon. Beyond that region, free-space mouse look lets you
@@ -1221,7 +1222,10 @@ replacement keeps the current scene. Fresh requests fall back to CPU when GL 4.3
 is unavailable; a replay locked to compute fails instead. Interactive legacy
 CPU-planner compute replays require an explicit `--terrain-grass-planner gpu`
 upgrade; captures retain legacy planner compatibility. CPU remains the default,
-and hardware frame-time/physical-memory acceptance is still pending.
+and compute remains experimental: the combined
+[F5 acceptance run](docs/journal/architecture/terrain-gpu/acceptance.md) passes
+canonical transfer/CPU-work gates but does not establish matched-quality
+full-frame performance acceptance.
 
 Near water, `terrain_lod.shoreline_edge_m` targets 1 m edges within
 `shoreline_distance_m` (80 m by default). Set the edge target to `0` to disable
@@ -1339,8 +1343,10 @@ radius and Gaussian width in `render.foliage_policy` version 1. Replay locks
 those settings and rejects insufficient memory instead of silently thinning the
 recorded result. Camera-only/older replays without this field use live policy;
 an explicit CPU override uses the supported legacy planner. CPU remains the
-default, with its existing foliage behavior; combined acceptance is tracked in
-F5 of `todo.md`.
+default, with its existing foliage behavior. The
+[combined F5 result](docs/journal/architecture/terrain-gpu/acceptance.md) retains
+compute as experimental because the protected profile and rendered coverage
+differ from the CPU reference; faster unmatched frames do not enable it by default.
 
 Interactive wind follows elapsed wall time: `T` pauses planetary orbits and spin,
 while grass keeps moving. `Y`/`U` change orbital speed only. Setting

@@ -26,6 +26,8 @@ def main():
     p.add_argument('--expected-uuid', required=True)
     p.add_argument('--distance', type=int, default=400)
     p.add_argument('--pairs', type=int, default=3)
+    p.add_argument('--case', choices=('both', 'walking', 'sprint'), default='both',
+                   help='Repeat one bounded cohort without repeating completed routes')
     args = p.parse_args()
     if args.distance < 300 or args.distance > 1000 or args.distance % 25 or args.pairs < 3:
         p.error('Require 300..1000 m routes in 25 m multiples and at least three pairs')
@@ -49,6 +51,8 @@ def main():
                          'observer': 'primary observer measured and included in uncorrected native wall; no outlier removal'},
               'runs': [], 'pairs': []}
     for case, sprint in [('walking', False), ('sprint', True)]:
+        if args.case not in ('both', case):
+            continue
         for pair in range(1, args.pairs + 1):
             matched = {}
             for backend in (('cpu', 'compute') if pair % 2 else ('compute', 'cpu')):

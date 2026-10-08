@@ -1,5 +1,40 @@
 # Page to document progress of AI Agents working on this Project
 
+## F5 completed — bounded acceptance decision, 2026-10-08
+
+- Fresh optimized build-f5 built from pinned dependency sources, without project
+  objects or historical archives. Quadro M1000M / NVIDIA 580.178.04 graphics UUID
+  verified; RTX 3070 Ti is not the rendering device for these receipts.
+- Fifteen alternating CPU/compute pairs completed: stationary, 300 m walking,
+  450 m sprint, common saved production Moon handoff and production seed reload.
+  Rates 5.990–5.991 / 11.982–11.989 m/s. No measured outliers filtered; replacement
+  preparation/publication/retirement included. Largest compute logical overlap
+  871,735,956 bytes <1 GiB; contacts and consumer revisions coherent throughout.
+- Canonical 100k triangles: 76.659% cold / 76.665% warm terrain-transfer reduction;
+  bulk CPU field evaluations 150,006→0. CPU generation median 400.002 ms versus
+  compute CPU submit 13.0627 ms; GPU median 34.6794 ms, capture wait separate.
+- Quality fails: stationary effective density 47.149 CPU versus 120.72 compute.
+  Independent common-view coverage at 25 m finds root-density ratios
+  2.615/1.539/0.000 in 0–5/5–15/15–30 m bands; far-band sample minimum fails.
+  Moon trajectories also differ after natural flight. Faster diagnostic frames
+  therefore do not satisfy matched-quality p95 acceptance. CPU remains supported
+  and default; compute remains opt-in experimental. Speed goal not claimed done.
+- Pass: 34 core groups, 35 NVIDIA compute cases, eight integration groups and
+  three exact capture/replay groups; 30 Mesa GL 4.3 terrain/foliage cases; Mesa
+  GL 3.3 atmosphere 12 pass / one explicit GPU-only skip. Native input covers
+  forced fallback, default CPU, locked replay rejection, directional boost,
+  Moon/reload/fault recovery. Production boosted PNG/pose replays exactly.
+- Small measurement-only changes: canonical receipt, bounded Moon/reload wrapper,
+  production-tilt-aware public flight seed with optional visible boosted launch,
+  single-case route reruns and F3 effective-budget-aware receipt assertions.
+  Unmatched budgets still fail comparison. Initial obscured seed/wrapper setup
+  failures and 197-frame 300 m sprint are retained locally; sprint rerun at 450 m
+  preserves the existing 240-frame minimum. No runtime/default/tolerance changes.
+- Compact report: docs/journal/architecture/terrain-gpu/acceptance.md. README and
+  todo reflect the completed evaluation and failed acceptance decision. Raw logs,
+  traces, captures and receipts stay ignored/local in
+  build-benchmarks/runs/f5-20261008/. No new TODO chain or unrelated feature work.
+
 ## F4 completed — 2026-10-08
 
 - GL 4.3 highlight selection now exactly histograms the existing RGBA16F peaks,

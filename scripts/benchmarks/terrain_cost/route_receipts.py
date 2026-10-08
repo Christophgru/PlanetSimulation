@@ -40,7 +40,10 @@ def summarize_route(trace, frames, uuid, sprint, distance, units=1000):
         assert b['quality_scale'] == 1 and b['viewport'] == b['scene_size'] == [1280, 720]
         assert native[f['profile_frame']]['outcome'] == 'rendered'
         assert abs(float(perf[f['profile_frame']]['simulation_s'])) < 1e-9
-        assert b['bodies'][0]['foliage']['configured_budget'] == b['bodies'][0]['foliage']['budget'] == 2000000
+        assert b['bodies'][0]['foliage']['configured_budget'] == 2000000
+        # F3's adaptive allowance is a measured quality input, not the hard cap.
+        # compare_routes still reports unequal effective budgets as a mismatch.
+        assert 0 < b['bodies'][0]['foliage']['budget'] <= b['bodies'][0]['foliage']['configured_budget']
         assert all(f['gl'][key] == 0 for key in ('blocking_polls', 'server_waits', 'bulk_reads', 'finishes', 'memory_queries'))
     first, last = measured[0], measured[-1]
     moved = last['pose']['walked_m'] - first['pose']['walked_m']

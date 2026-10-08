@@ -116,7 +116,8 @@ def main():
                 native = json.loads((folder / 'coverage/1/snapshot.json').read_text())
                 assert native['workload']['quality_scale'] == 1 and native['viewport'] == [1280, 720]
                 body = native['workload']['bodies'][0]
-                assert body['triangles'] == 100000 and body['foliage']['configured_budget'] == body['foliage']['budget'] == 2000000
+                assert body['triangles'] == 100000 and body['foliage']['configured_budget'] == 2000000
+                assert 0 < body['foliage']['budget'] <= body['foliage']['configured_budget']
                 rows = list(csv.DictReader(Path(str(trace)+'.memory.csv').open()))
                 assert rows and all(r['context_uuid'] == args.expected_uuid and r['context_status'] == 'uuid_verified' and
                                     r['nvml_status'] == 'ok' for r in rows)

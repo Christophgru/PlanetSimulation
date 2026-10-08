@@ -135,6 +135,51 @@ TEST(TerrainCompute, ProductionFieldMatchesCpuAndReducesTheCountedInputPayload) 
     EXPECT_LT(gpu->stats.gpuInputBytes,topology.triangleCount()*120*.25);
     EXPECT_EQ(gpu->stats.gpuInputBytes,topology.topologyInputBytes+16+16*gpu->stats.gpuDispatches);
 }
+// F5 canonical receipt: topology is built once outside both timed intervals.
+// Numerical/geometry parity is independently checked by the production test
+// above. Timing is reported, never asserted as a machine-dependent unit gate.
+TEST(TerrainCompute, Canonical100kTransferAndBulkCpuWorkReceipt) {
+    const config::ScenarioConfig scene(config::Config::load("configs/scenarios/solar_system.json"));
+    const auto& p=scene.planets[0];
+    const TerrainSurface surface(p.surface_noise,p.terrain_lod,p.radius,scene.metersPerWorldUnit(),
+        p.terrain_landscape,p.water.level_m,p.terrain_material);
+    const auto topology=surface.buildTopologyForEye({1.012,0,0},{0,0,0});
+    ASSERT_EQ(topology.triangleCount(),100000);
+    TerrainCompute compute;
+    for(int trial=-1;trial<3;++trial) {
+        TerrainGeometry cpu;
+        std::unique_ptr<TerrainComputeBuffers> gpu;
+        double cpuMs=0,submitMs=0,waitMs=0;
+        const auto cpuWork=[&] {
+            const auto start=std::chrono::steady_clock::now();
+            cpu=surface.evaluateTopology(topology);
+            cpuMs=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();
+        };
+        const auto gpuWork=[&] {
+            const auto start=std::chrono::steady_clock::now();
+            gpu=compute.generate(surface.field(),topology);
+            const auto submitted=std::chrono::steady_clock::now();
+            gpu->waitForCapture();
+            submitMs=std::chrono::duration<double,std::milli>(submitted-start).count();
+            waitMs=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-submitted).count();
+        };
+        if(trial%2) {cpuWork();gpuWork();} else {gpuWork();cpuWork();}
+        const auto cpuBytes=cpu.vertices.size()*sizeof(float)+cpu.indices.size()*sizeof(unsigned);
+        EXPECT_EQ(cpuBytes,12000000u);
+        EXPECT_LE(gpu->stats.gpuInputBytes,cpuBytes/4);
+        EXPECT_GT(cpu.evaluationQueries.evaluations,0u);
+        EXPECT_EQ(gpu->stats.evaluationQueries.requests,0u);
+        EXPECT_EQ(gpu->stats.evaluationQueries.evaluations,0u);
+        EXPECT_EQ(gpu->stats.uniqueSamples,cpu.uniqueSamples);
+        if(trial>=0) std::cout << "CANONICAL trial=" << trial << " triangles=" << topology.triangleCount()
+            << " cpu_input_bytes=" << cpuBytes << " gpu_input_bytes=" << gpu->stats.gpuInputBytes
+            << " cpu_bulk_evaluations=" << cpu.evaluationQueries.evaluations
+            << " gpu_bulk_cpu_evaluations=" << gpu->stats.evaluationQueries.evaluations
+            << " cpu_bulk_ms=" << cpuMs << " gpu_cpu_submit_ms=" << submitMs
+            << " gpu_ms=" << gpu->stats.gpuMilliseconds << " capture_wait_ms=" << waitMs << '\n';
+        EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+    }
+}
 TEST(TerrainCompute, FailedGenerationCannotReplaceAnActiveMeshAndNoCpuVerticesAreUploaded) {
     TerrainCompute compute;const TerrainSurface s({},lod(),1,1000);const auto t=probes(s.field());
     auto gpu=compute.generate(s.field(),t);auto geometry=s.evaluateTopology(t);Mesh mesh;
