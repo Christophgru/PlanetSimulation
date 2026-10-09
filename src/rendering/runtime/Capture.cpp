@@ -82,6 +82,9 @@ int Renderer::Impl::capture() {
                                      options.surfaceRenderMode ? scene.surfaceCamera->position() :
                                      options.planetRenderMode ? glm::dvec3(scene.planetOrbitCamera->position) :
                                                         glm::dvec3(scene.sunCamera.position);
+        if(options.surfaceRenderMode && !options.thirdPersonRenderMode)
+            surfaceClip=surfaceClipPlanes(scene.surfaceCamera->configuredClearance(),
+                glm::length(eyeWorld-scene.sunPosition),scene.scenario.sun.radius);
         { rendering::FrameProfiler::Scope scope(&profiler, rendering::FrameStage::Mesh, false);
           if (!options.thirdPersonRenderMode) preparePlanetMeshes(eyeWorld); }
         if (frame == 0) meshEnd = std::chrono::steady_clock::now();
@@ -330,6 +333,10 @@ int Renderer::Impl::capture() {
                     {"error_refined_triangles", meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats.errorRefinedTriangles},
                     {"remaining_error_ratio", meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats.remainingErrorRatio},
                     {"error_budget_limited", meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats.errorBudgetLimited},
+                    {"local_detail_triangles", meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats.localDetailTriangles},
+                    {"local_max_edge_m", meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats.localMaxEdgeMeters},
+                    {"local_remaining_error_ratio", meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats.localRemainingErrorRatio},
+                    {"local_detail_limited", meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats.localDetailLimited},
                     {"evaluation_requests", meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats.evaluationQueries.requests},
                     {"evaluation_evaluations", meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats.evaluationQueries.evaluations}}},
                 {"foliage_blades", grass.count(scene.orbitPlanetIndex)},
@@ -414,6 +421,14 @@ int Renderer::Impl::capture() {
         metadata["render"]["effective_foliage_budget"]=scene.scenario.planets[scene.orbitPlanetIndex].foliage.max_blades;
         metadata["render"]["sun_mesh_triangles"]=meshes.sunMesh.indices.size()/3;
         metadata["render"]["body_mesh_triangles"]=meshTriangles;
+        if(!options.thirdPersonRenderMode && std::any_of(meshes.planetMeshes.begin(),meshes.planetMeshes.end(),
+            [](const auto& mesh){return mesh.terrainStats.generation.topologyVersion==3;})) {
+            // Bulk geometry may precede the final camera/time in a benchmark.
+            // Preserve its planet-local anchor instead of regenerating a new policy.
+            auto& anchors=metadata["render"]["terrain_plan_eyes_world_units"];
+            anchors=nlohmann::json::array();
+            for(const auto& eye:lastTerrainEyes) anchors.push_back({eye.x,eye.y,eye.z});
+        }
         metadata["render"]["lens_flare_visible_sun_pixels"]=flareEvidence.visibleSunPixels;
         metadata["render"]["lens_flare_strength"]=flareEvidence.strength;
         if (options.thirdPersonRenderMode) {

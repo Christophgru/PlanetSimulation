@@ -68,6 +68,9 @@ PlanetConfig::SurfaceNoiseFunction::SurfaceNoiseFunction(const config::Config& c
     type = cfg.get("type", type);
     amplitude_m = cfg.getDouble("amplitude_m", amplitude_m);
     frequency = cfg.getDouble("frequency", frequency);
+    wavelength_m = cfg.getDouble("wavelength_m", wavelength_m);
+    if(cfg.data().contains("frequency") && cfg.data().contains("wavelength_m"))
+        throw std::invalid_argument("Surface noise chooses frequency or wavelength_m, not both");
     octaves = cfg.getInt("octaves", octaves);
     persistence = cfg.getDouble("persistence", persistence);
     lacunarity = cfg.getDouble("lacunarity", lacunarity);
@@ -88,6 +91,10 @@ PlanetConfig::TerrainLod::TerrainLod(const config::Config& cfg) {
     sink_depth_m = cfg.getDouble("sink_depth_m", sink_depth_m);
     relief_sinking = cfg.getBool("relief_sinking", relief_sinking);
     geometric_error_m = cfg.getDouble("geometric_error_m", geometric_error_m);
+    local_detail_radius_m = cfg.getDouble("local_detail_radius_m", local_detail_radius_m);
+    local_edge_m = cfg.getDouble("local_edge_m", local_edge_m);
+    local_error_m = cfg.getDouble("local_error_m", local_error_m);
+    local_transition_m = cfg.getDouble("local_transition_m", local_transition_m);
     max_triangle_budget = cfg.getInt("max_triangle_budget", max_triangle_budget);
     shoreline_edge_m = cfg.getDouble("shoreline_edge_m", shoreline_edge_m);
     shoreline_distance_m = cfg.getDouble("shoreline_distance_m", shoreline_distance_m);

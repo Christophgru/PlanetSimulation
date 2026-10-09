@@ -2,6 +2,7 @@
 #include <array>
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <glm/glm.hpp>
 
 namespace rendering {
@@ -12,6 +13,10 @@ struct alignas(32) TerrainSurfacePolicy {
     std::array<double,4> distances{}; // near, middle, radius metres, maximum sink
     std::array<double,8> spacing{}; // parent sample spacing, coarse to fine
     bool enabled() const { return distances[2]>0; }
+    std::uint32_t version() const { return !enabled()?1:spacing[7]>0?3:2; }
+    double curvatureMeters(const glm::dvec3& p) const {
+        return std::max(0.0,std::lerp(p.x*p.x,p.y*p.y,p.z)-spacing[7]*spacing[7])/(8*distances[2]);
+    }
     glm::dvec3 profile(const glm::dvec3& radial) const {
         if(!enabled()) return {};
         if(eyeEdge[0]==0 && eyeEdge[1]==0 && eyeEdge[2]==0) return {spacing[0],spacing[0],0};

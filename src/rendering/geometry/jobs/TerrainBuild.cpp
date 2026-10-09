@@ -46,6 +46,7 @@ TerrainCpuBuild buildTerrainCpu(const TerrainBuildRequest& request) {
         lod.base_edge_segments=1;lod.medium_edge_segments=3;lod.max_edge_segments=8;lod.steep_edge_segments=8;
         lod.sink_depth_m=0;lod.relief_sinking=false;lod.near_surface_distance_m=lod.shoreline_distance_m;
         lod.geometric_error_m=0;
+        lod.local_detail_radius_m=0;
         lod.mid_surface_distance_m=2*lod.shoreline_distance_m;lod.max_triangle_budget=std::min(60000,lod.max_triangle_budget);
         const TerrainSurface sea({},lod,planet.radius+planet.water.level_m/request.metersPerUnit,
             request.metersPerUnit,{},0.0);

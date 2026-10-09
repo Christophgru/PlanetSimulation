@@ -189,11 +189,12 @@ void Renderer::Impl::prepareResidentFrame(const glm::dvec3& eye,std::optional<do
     std::optional<TerrainBuildRequest> candidate;double priority=std::numeric_limits<double>::infinity();
     for(std::size_t i=0;i<scene.scenario.planets.size();++i) {
         auto k=identityFor(i);const auto& planet=scene.scenario.planets[i];
+        const double rebuildDistance=planet.terrain_lod.rebuildDistanceMeters();
         if(meshReady[i] && k.localMask==lastLocalMask[i] &&
-            (!k.localMask || movedFrom(i,k.eye,lastTerrainEyes[i])<10)) continue;
+            (!k.localMask || movedFrom(i,k.eye,lastTerrainEyes[i])<rebuildDistance)) continue;
         const auto covered=[&](const TerrainBuildIdentity& pending) {
             return pending.epoch==k.epoch && pending.field==k.field && pending.localMask==k.localMask &&
-                movedFrom(i,k.eye,pending.eye)<10;
+                movedFrom(i,k.eye,pending.eye)<rebuildDistance;
         };
         if(residentStage && residentStage->bodyIndex==i && !residentStageGrassOnly && covered(*residentStage)) continue;
         if(const auto pending=terrainJobs.pendingFor(k.epoch,i);pending && covered(*pending)) continue;

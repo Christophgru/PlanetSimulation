@@ -1,5 +1,129 @@
 # Relief-aware terrain sinking
 
+## Bounded local detail design — 2026-10-09
+
+The next implementation uses the existing longest-edge planner, with an opt-in
+ground-centered detail disk. CPU workers own selection, shared edge IDs and
+error probes. GPU compute owns bulk displacement and normals; sparse contacts
+use the same immutable field and policy. Both incident faces split together,
+preserving a closed shell without introducing a second mesh or GPU readbacks.
+
+`local_detail_radius_m`, `local_edge_m`, `local_error_m` and
+`local_transition_m` select physical edge/error targets. The core disk receives
+priority over its transition and distant curvature refinement. The existing
+triangle cap and staged/resident admission remain authoritative; capture metadata
+reports actual local edge/error maxima and infeasibility. These are sampled
+error targets, not a mathematical error bound between arbitrary probes.
+
+Planet-fixed noise accepts `wavelength_m` instead of dimensionless `frequency`.
+It resolves to radius-in-meters divided by wavelength, retaining the existing
+eight-noise parameter block. Normal probes use at most 5% of the shortest active
+wavelength. Unresolved octaves fade using the shared policy's physical spacing;
+the core has zero sinking. A nonzero finest spacing introduces topology version
+3; legacy versions 1 and 2 retain their layout and behavior.
+
+This pass will expose and verify the feature before enabling it in production.
+Rebuild distance shrinks with the selected disk, but current background planning
+can still lag a moving camera. Exact projection onto parent triangles and a
+continuously streamed detail patch remain outstanding in the same TODO row.
+Stationary centimeter targets must not be represented as a moving-camera guarantee.
+
+### Implementation receipt
+
+Local targets and physical noise are implemented. Existing production defaults
+remain unchanged because whole-shell CPU planning is too slow for a small moving
+patch. To opt in, add these keys to a planet's existing `terrain_lod`:
+
+```json
+{
+  "relief_sinking": true,
+  "geometric_error_m": 0.05,
+  "local_detail_radius_m": 0.5,
+  "local_edge_m": 0.05,
+  "local_error_m": 0.01,
+  "local_transition_m": 3.0
+}
+```
+
+An optional `surface_noise` layer can use
+`{"amplitude_m":0.01,"wavelength_m":0.25,"octaves":1,"seed":-71}`.
+`wavelength_m` specifies base noise lattice spacing in reference-sphere meters;
+octaves divide it by lacunarity. Choose either wavelength or legacy frequency,
+never both. At 5 cm spacing, a 25 cm layer is resolved; a 10 cm layer needs finer
+edges or is filtered out. Original fields, hashes and 704-byte field/128-byte
+policy layouts are retained when these options are omitted.
+
+Stationary production probes use the unchanged 100k cap, production landscape,
+water and existing noise plus the optional layer above. 410 fixed off-center
+radial probes per run check the actual float render mesh against the selected
+field. No compiler or other GPU workload ran concurrently.
+
+| Camera | Core radius | Local triangles | Maximum edge | Maximum probe error | Local target limited | CPU planning |
+|:--|--:|--:|--:|--:|:--:|--:|
+| Production start | 0.5 m | 2,929 | 4.443 cm | 0.050 mm | no | 3,102.788 ms |
+| Production start | 1.5 m | 23,122 | 5.666 cm | 0.050 mm | yes | 2,452.080 ms |
+| Reported mountain | 0.5 m | 5,033 | 4.580 cm | 0.153 mm | no | 1,640.244 ms |
+| Reported mountain | 1.5 m | 41,452 | 4.998 cm | 0.125 mm | no | 1,534.243 ms |
+
+All four runs reach 100,000 triangles because distant refinement still uses the
+remaining budget. They have zero open/non-manifold edges and zero reversed render
+triangles. Each topology transfers 2,800,192 bytes. The very small probe errors
+are observations at these points, not guarantees for arbitrary procedural cliffs.
+Core diagnostics conservatively include faces whose radial bounding disk touches
+the core, so edge targets also cover its boundary. `local_detail_limited` checks
+both the measured edge target and sampled error ratio.
+
+Raw sources/receipts stay ignored under `build-f5/ridge-refinement/detail-*`.
+Exact parent-triangle projection, gradual publication changes and reuse/streaming
+of a moving fine patch remain in the existing terrain row. Reducing rebuild
+distance alone cannot cover walking/sprint motion during seconds of planning.
+
+Verification: full RelWithDebInfo build, all 35 core CTest groups and eight
+terrain integration groups have passing results (43 groups total). Five new CPU
+cases cover physical units/lattice limits, config parsing, independent 1 mm
+central-difference normals, actual float-mesh edges/interior probes at the equator
+and pole, deterministic closed topology and cap exhaustion. All 37 NVIDIA compute
+cases pass; the new physical-noise case has identical CPU/GPU positions/colors,
+maximum height difference 3.34e-14 m and normal difference 2.98e-8 radians.
+
+Version-3 standing CPU/GPU and locked replay PNGs are byte-identical (SHA256
+`923e07efc8fae18756cd08da81c1fd7cc777aad85cba1a35be8aacf07785c1a8`).
+Walking replay is also exact, with sparse contacts, coherent grass/shadow/reflection
+revisions and 16,595,304-byte peak logical publication reservation. CPU override,
+GL 3.3 fallback, version-4 rejection, reload from legacy to version 3, native
+walking/sprint/flight and the held-worker grass-refresh regression pass. The
+initial added walking fixture incorrectly replaced broad height noise below sea
+level and moved less than the 20 cm trail threshold. Its land elevation and path
+length were corrected. After the subsequent anchor/clipping fix, all four
+affected renderer/capture groups pass again in 134.76 seconds; the final capture
+CTest passes in 49.00 seconds.
+
+A short stationary mountain capture uses production foliage settings and the
+0.5 m opt-in disk on the Quadro M1000M, at 480×270 with 30 uncapped offscreen frames
+and 1/60 s simulation steps. After separating the 2,517.443 ms first frame
+(2,238.166 ms topology planning), 29 warm frames have median/p95 wall time
+11.777/14.595 ms and GPU frame span 11.477/14.298 ms (nearest-rank p95). There are no warm terrain
+rebuilds. The GPU field generation is 43.957 ms; terrain/grass stage admission is
+280,833,196 bytes, with zero bulk CPU evaluation requests/render vectors and
+unchanged 120.72/m² protected density policy, without a near-infeasible flag.
+This small stationary offscreen run is not a full-resolution or moving-camera
+60 FPS result. Image inspection confirms the displaced terrain renders, though
+the supplied camera looks toward a dark slope; centimeter detail is concentrated
+under the camera rather than across the entire distant mountain.
+
+That moving-time benchmark also revealed two surface-capture replay dependencies:
+terrain was regenerated at the final camera/time instead of its original planning
+anchor, and clipping planes still came from the first frame. Version-3 surface
+captures now retain the small planet-local planning-eye array, validated before
+opening a window; surface clipping follows the current frame, matching interactive
+rendering. The final 30-frame production capture, saved compute replay and CPU
+override have identical topology fingerprints and PNGs (SHA256
+`a79401ff80e915f50804f90ab34e13102acb2c89c719f5a9eee9544f085b4b83`).
+Legacy captures without the optional anchors retain their previous loading path;
+character captures retain their existing pose/terrain anchors. The automated
+version-3 capture check now covers advancing orbital time and rejects corrupt
+planning anchors before renderer initialization.
+
 2026-10-08. Implements the sinking/filtered-noise part of the centimeter-terrain
 proposal. Implemented and verified; no commits made.
 

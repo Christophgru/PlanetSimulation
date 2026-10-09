@@ -232,14 +232,20 @@ TerrainTopology TerrainSurface::buildTopologyForEye(const glm::dvec3& eyeWorld,
             edgeMeters=std::max(edgeMeters,radius_*metersPerUnit_*std::acos(std::clamp(
                 glm::dot(face.corners[side],face.corners[(side+1)%3]),-1.0,1.0)));
         policy.eyeEdge={localView?eyeRadial.x:0,localView?eyeRadial.y:0,localView?eyeRadial.z:0,edgeMeters};
-        policy.distances={lod_.near_surface_distance_m,lod_.mid_surface_distance_m,radius_*metersPerUnit_,maximumSink};
+        policy.distances={lod_.local_detail_radius_m>0?lod_.local_detail_radius_m:lod_.near_surface_distance_m,
+            lod_.mid_surface_distance_m,radius_*metersPerUnit_,maximumSink};
         for(int level=0;level<7;++level) policy.spacing[level]=edgeMeters/bands.segments[level];
+        if(lod_.local_detail_radius_m>0) {
+            policy.spacing[7]=lod_.local_edge_m;
+            for(int level=6;level>=0;--level) policy.spacing[level]=std::max(policy.spacing[level],policy.spacing[level+1]);
+        }
         // One radial policy is evaluated after shoreline splits, so shared
         // endpoints agree regardless of face level, hysteresis or budget cuts.
         for(auto& sample:geometry.samples) {
             const auto profile=policy.profile({sample.radial[0],sample.radial[1],sample.radial[2]});
-            const double curvature=std::lerp(profile.x*profile.x,profile.y*profile.y,profile.z)/(8*policy.distances[2]);
-            sample.sinkMeters=static_cast<float>(std::min(maximumSink,field_.omittedReliefMeters(profile)+curvature));
+            const double curvature=policy.curvatureMeters(profile);
+            sample.sinkMeters=profile.x==policy.spacing[7] && profile.y==policy.spacing[7] ? 0 :
+                static_cast<float>(std::min(maximumSink,field_.omittedReliefMeters(profile)+curvature));
         }
     }
     geometry.planningQueries=queries.stats();

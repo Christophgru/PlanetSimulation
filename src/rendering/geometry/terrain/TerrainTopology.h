@@ -5,7 +5,7 @@
 #include <vector>
 #include "rendering/geometry/terrain/TerrainQueryCache.h"
 namespace rendering {
-inline bool supportedTerrainTopology(std::uint32_t version) { return version==1 || version==2; }
+inline bool supportedTerrainTopology(std::uint32_t version) { return version>=1 && version<=3; }
 enum class TerrainBackend : std::uint32_t { Cpu=1, Compute=2 };
 struct TerrainGenerationKey {
     std::uint64_t field=0,topology=0;
@@ -22,6 +22,9 @@ struct TerrainBuildStats {
     int errorRefinedTriangles=0;
     double remainingErrorRatio=0;
     bool errorBudgetLimited=false;
+    int localDetailTriangles=0;
+    double localMaxEdgeMeters=0,localRemainingErrorRatio=0;
+    bool localDetailLimited=false;
     TerrainQueryStats planningQueries{},evaluationQueries{};
     std::size_t topologyInputBytes=0,uniqueSamples=0;
     std::uint64_t gpuInputBytes=0,gpuWorkingBytes=0,gpuDispatches=0,gpuCorners=0;

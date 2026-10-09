@@ -1,6 +1,7 @@
 #include "app/scene/SceneSource.h"
 #include "config/ScenarioConfig.h"
 #include "config/SceneReplay.h"
+#include "rendering/geometry/terrain/TerrainTopology.h"
 
 namespace app {
 SceneSource SceneSource::forResidentReload(CommandLineOptions& options) {
@@ -17,6 +18,23 @@ SceneSource::SceneSource(CommandLineOptions& options)
         (void)config::ScenarioConfig(config::Config(nlohmann::json(document)));
         if (!replayPath.empty()) {
             const auto& replay = replayDocument;
+            if(replay.contains("render") && replay["render"].contains("terrain_plan_eyes_world_units")) {
+                const auto& anchors=replay["render"]["terrain_plan_eyes_world_units"];
+                if(!anchors.is_array() || anchors.size()!=document.at("planets").size())
+                    throw std::invalid_argument("Terrain planning anchors require one eye per planet");
+                for(const auto& eye:anchors) {
+                    double length2=0;
+                    if(!eye.is_array() || eye.size()!=3)
+                        throw std::invalid_argument("Terrain planning anchors require finite three-vectors");
+                    for(const auto& value:eye) {
+                        if(!value.is_number() || !std::isfinite(value.get<double>()))
+                            throw std::invalid_argument("Terrain planning anchors require finite three-vectors");
+                        const double v=value.get<double>();length2+=v*v;
+                    }
+                    if(!std::isfinite(length2) || length2<=0)
+                        throw std::invalid_argument("Terrain planning anchors cannot be at body centers");
+                }
+            }
             // Replays predating backend metadata were recorded with CPU terrain.
             if(!options.explicitTerrainBackend &&
                !(replay.contains("render") && replay["render"].contains("terrain_backend")))
@@ -27,9 +45,12 @@ SceneSource::SceneSource(CommandLineOptions& options)
                     throw std::invalid_argument("Invalid terrain replay backend");
                 if(backend=="compute" && (!options.explicitTerrainBackend || options.terrainBackend=="compute")) {
                     const auto& contract=replay["render"].at("terrain_contract");
-                    for(const auto* name:{"field_version","topology_version"})
-                        if(!contract.at(name).is_number_integer() || (contract.at(name)!=1 && !(std::string(name)=="topology_version" && contract.at(name)==2)))
-                            throw std::invalid_argument("Unsupported terrain compute replay versions");
+                    const auto& field=contract.at("field_version");
+                    const auto& topology=contract.at("topology_version");
+                    if(!field.is_number_integer() || field!=rendering::PlanetField::version ||
+                       !topology.is_number_integer() || topology<1 || topology>3 ||
+                       !rendering::supportedTerrainTopology(topology.get<std::uint32_t>()))
+                        throw std::invalid_argument("Unsupported terrain compute replay versions");
                 }
                 if(!options.explicitTerrainBackend) {
                     options.terrainBackend=backend.get<std::string>();

@@ -60,7 +60,7 @@ public:
         return field_.functions();
     }
     const config::PlanetConfig::TerrainLod& lodSettings() const { return lod_; }
-    std::uint32_t topologyVersion() const { return lod_.relief_sinking ? 2 : 1; }
+    std::uint32_t topologyVersion() const { return lod_.local_detail_radius_m>0 ? 3 : lod_.relief_sinking ? 2 : 1; }
     const PlanetField& field() const { return field_; }
     TerrainTopology buildTopology(int edgeSegments) const;
     TerrainTopology buildTopologyForEye(const glm::dvec3& eyeWorld,const glm::dvec3& center,

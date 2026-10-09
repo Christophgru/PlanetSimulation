@@ -123,6 +123,28 @@ TEST(TerrainCompute, ReliefSinkingNoiseAndSparseContactsMatchGpuAtMixedLevels) {
         EXPECT_LE(glm::length(rendered.sample(direction,missing).position-sparse.sample(direction,missing).position),.002);
     }
 }
+TEST(TerrainCompute, PhysicalMicroReliefAndCentimeterTopologyMatchSparseContacts) {
+    auto settings=lod();settings.shoreline_edge_m=0;settings.relief_sinking=true;
+    settings.geometric_error_m=.05;settings.local_detail_radius_m=.25;
+    settings.local_edge_m=.05;settings.local_transition_m=.5;
+    config::PlanetConfig::SurfaceNoiseFunction n;n.amplitude_m=.01;n.wavelength_m=.25;
+    n.octaves=1;n.seed=std::numeric_limits<int>::max();
+    const TerrainSurface surface({n},settings,1,1000);
+    const auto topology=surface.buildTopologyForEye({1.002,0,0},{});
+    ASSERT_EQ(topology.generation.topologyVersion,3u);ASSERT_FALSE(topology.localDetailLimited);
+    TerrainCompute compute;parity(surface,topology,compute,true);
+    auto gpu=compute.generate(surface.field(),topology);gpu->waitForCapture();
+    const auto vertices=gpu->readVertices();const auto indices=gpu->readIndices();
+    SurfaceContact rendered,sparse;rendered.bind(vertices,indices,1,1000);
+    sparse.bind(std::make_shared<SparseTerrainContacts>(surface.field(),topology),1);
+    const GroundQuery missing=[](const auto&) -> GroundContact {throw std::logic_error("Missing contact plane");};
+    for(int i=-10;i<=10;++i) {
+        const auto r=glm::normalize(glm::dvec3(1,i*.017/1000,.013/1000));
+        const auto a=rendered.sample(r,missing),b=sparse.sample(r,missing);
+        EXPECT_LE(glm::length(a.position-b.position),.0001);
+        EXPECT_LE(std::abs(glm::length(a.position)-1000-surface.field().heightAt(r)*1000),.01);
+    }
+}
 TEST(TerrainCompute, DriverPackingMatchesTheFieldContractAndScalarOutputStride) {
     TerrainCompute compute;const TerrainSurface s({},lod(),1,1000);
     auto gpu=compute.generate(s.field(),probes(s.field()),true);gpu->waitForCapture();

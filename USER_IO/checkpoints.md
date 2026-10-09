@@ -1,5 +1,50 @@
 # Page to document progress of AI Agents working on this Project
 
+## Bounded centimeter terrain and physical noise — 2026-10-09
+
+- Continued the existing terrain row, which remains p; no new TODO chain.
+  Design and results: docs/journal/architecture/terrain-gpu/sinking.md.
+  Starting HEAD was 1218cab (the preceding grass fix is already committed).
+- Implemented opt-in `local_detail_radius_m`, physical `local_edge_m` and
+  `local_error_m`, and bounded distance relaxation via `local_transition_m`.
+  Shared longest-edge splitting prioritizes the core, preserves watertightness
+  and keeps the existing 100k cap. Captures report actual local edges, sampled
+  error and `local_detail_limited` instead of claiming infeasible targets.
+- Added planet-fixed `wavelength_m` noise (exclusive with JSON frequency),
+  radius-aware lattice limits and matching CPU/GPU normal steps at 5% of the
+  shortest active physical wavelength. Bulk heights/normals stay on compute;
+  topology/error selection and sparse contacts stay on the existing CPU workers.
+  Finest local terrain is unsunk; unresolved waves fade with shared spacing.
+  Topology v3 uses unchanged 32-byte samples/128-byte policy/704-byte field.
+  Versions 1/2 retain their behavior; unknown v4 is rejected.
+- Four production stationary runs, with 410 independent float-mesh height probes
+  each, have zero open/reversed triangles and maximum height error 0.153 mm.
+  A 0.5 m disk meets 5 cm edges at startup and the reported mountain. A 1.5 m
+  mountain disk meets them; startup reaches the cap and correctly reports a
+  5.666 cm edge. CPU planning takes 1.5–3.1 s: production defaults stay unchanged
+  because the whole-shell planner cannot continuously follow a tiny moving disk.
+- Version-3 surface captures now preserve actual planning eyes; surface benchmark
+  clipping follows the current frame, matching interactive rendering. This fixes
+  a terrain fingerprint mismatch and one-level pixel differences after advancing
+  orbital time. The 30-frame production capture, compute replay and CPU override
+  are byte-identical (SHA256 a79401ff80e915f50804f90ab34e13102acb2c89c719f5a9eee9544f085b4b83).
+- Full build and 43 relevant CTest groups have passing results: 35 core plus
+  compute, lifecycle, recovery, frame, reload, capture, native input and held-worker
+  grass refresh. Five new CPU cases and the new GPU parity/contact case pass.
+  The four affected renderer/capture groups pass again after the replay fix.
+  Version-3 walking/trail replay, CPU override, GL 3.3 fallback, legacy-to-v3 reload,
+  consumer revision agreement and invalid-anchor rejection are covered.
+- Quadro M1000M stationary 480×270, 30-frame uncapped receipt: first frame
+  2,517.443 ms; 29 warm median/p95 wall times 11.777/14.595 ms and GPU spans
+  11.477/14.298 ms. Stage admission 280,833,196 bytes; zero CPU render mirror/bulk
+  evaluations; protected density policy remains 120.72/m² through 15 m. This is
+  a small stationary offscreen observation, not a full-resolution/moving 60 FPS
+  guarantee. Raw artifacts stay ignored/local under build-f5/ridge-refinement
+  and the existing integration output directories.
+- Remaining within this same row: exact parent-triangle geomorph, gradual
+  publication and a reusable/streamed moving detail patch, with movement/cost
+  verification before enabling local centimeter detail in production.
+
 ## Latency-aware grass refresh verified on GPU — 2026-10-09
 
 - Existing grass task is t. Interactive refresh observes body-local motion,

@@ -62,6 +62,9 @@ public:
         double waterLevelMeters,double beachWidthMeters,double maximumHeightMeters,
         const config::PlanetConfig::TerrainMaterial& material={});
 private:
+    double frequencyFor(const config::PlanetConfig::SurfaceNoiseFunction& n) const {
+        return n.wavelength_m>0 ? radius_*metersPerUnit_/n.wavelength_m : n.frequency;
+    }
     double heightMeters(const glm::dvec3& direction,const glm::dvec3& profile) const;
     static std::uint32_t hash(int x,int y,int z,int seed);
     double valueNoise(const glm::dvec3& point,int seed) const;

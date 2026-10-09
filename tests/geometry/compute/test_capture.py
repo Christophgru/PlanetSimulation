@@ -162,7 +162,7 @@ assert 'Invalid terrain replay backend' in error and 'initialized' not in error
 bad=json.loads(gpu.with_suffix('.png.json').read_text());bad['render']['terrain_contract']['field_version']=2
 invalid.write_text(json.dumps(bad));error=run('version-rejected',replay=invalid,fail=True)
 assert 'Unsupported terrain compute replay versions' in error and 'initialized' not in error
-bad=json.loads(gpu.with_suffix('.png.json').read_text());bad['render']['terrain_contract']['topology_version']=3
+bad=json.loads(gpu.with_suffix('.png.json').read_text());bad['render']['terrain_contract']['topology_version']=4
 invalid.write_text(json.dumps(bad));error=run('topology-version-rejected',replay=invalid,fail=True)
 assert 'Unsupported terrain compute replay versions' in error and 'initialized' not in error
 bad=json.loads(gpu.with_suffix('.png.json').read_text());bad['render']['terrain_grass_planner']='gpu-v2'
@@ -191,4 +191,48 @@ report={'cpu_gpu_surface':compare(cpu,gpu),'cpu_legacy_gpu_surface':compare(cpu,
         'terrain_publication':published,'walking_publication':walkingPublication,
         'png_sha256':{q.name:hashlib.sha256(q.read_bytes()).hexdigest() for q in out.glob('*.png')}}
 (out/'results.json').write_text(json.dumps(report,indent=2)+'\n')
-print('PASS GPU terrain/main/reflection/foliage/standing/walking, exact locked replay, CPU override and GL 3.3 fallback')
+# Version 3 exercises physical micro-relief, fine topology and shared consumers.
+detail=json.loads(config.read_text())
+planet=detail['planets'][0]
+planet['surface_noise']=[{'amplitude_m':.01,'wavelength_m':.25,'octaves':1,'seed':-71}]
+planet['terrain_landscape']['elevation_offset_m']=1.5 # Keep walking on land after replacing broad noise.
+planet['terrain_lod'].update(local_detail_radius_m=.25,local_edge_m=.05,
+                             local_error_m=.01,local_transition_m=.5,
+                             max_triangle_budget=30000,shoreline_edge_m=0)
+detailPath=out/'detail-scene.json';detailPath.write_text(json.dumps(detail))
+detailGpu,dg=run('detail-gpu',scene_path=detailPath)
+detailCpu,dc=run('detail-cpu',('--terrain-backend','cpu'),scene_path=detailPath)
+contract=dg['render']['terrain_contract']
+assert contract['topology_version']==3 and contract['local_detail_triangles']>0
+assert not contract['local_detail_limited'] and contract['local_max_edge_m']<=.05
+assert contract['local_remaining_error_ratio']<=1 and contract['evaluation_requests']==0
+publication(dg)
+detailReplay,dr=run('detail-replay',replay=detailGpu.with_suffix('.png.json'))
+assert detailReplay.read_bytes()==detailGpu.read_bytes()
+detailOverride,do=run('detail-override',('--terrain-backend','cpu'),detailGpu.with_suffix('.png.json'))
+assert detailOverride.read_bytes()==detailCpu.read_bytes()
+detailOrbit,orb=run('detail-orbit-steps',('--benchmark-frames','6','--benchmark-step','.016666666667'),scene_path=detailPath)
+detailOrbitReplay,orr=run('detail-orbit-replay',replay=detailOrbit.with_suffix('.png.json'))
+assert orb['render']['terrain_contract']['topology_fingerprint']==orr['render']['terrain_contract']['topology_fingerprint']
+assert detailOrbitReplay.read_bytes()==detailOrbit.read_bytes()
+bad=json.loads(detailOrbit.with_suffix('.png.json').read_text())
+bad['render']['terrain_plan_eyes_world_units'][0]=[0,0,0]
+invalid.write_text(json.dumps(bad));error=run('detail-invalid-anchor',replay=invalid,fail=True)
+assert 'Terrain planning anchors' in error and 'initialized' not in error
+detailFallback,df=run('detail-gl33',env=oldgl,scene_path=detailPath)
+assert df['render']['terrain_backend']=='cpu' and df['render']['terrain_contract']['topology_version']==3
+detailWalker,dw=run('detail-walking',('--benchmark-frames','6','--benchmark-walk-step','.06',
+                                   '--benchmark-step','0'),astronaut=True,scene_path=detailPath)
+publication(dw)
+assert dw['render']['terrain_contract']['topology_version']==3
+assert dw['render']['terrain_contacts']['backend']=='sparse-oracle'
+assert dw['render']['terrain_contacts']['height_evaluations']>0 and dw['astronaut_pose']['grass_trail']
+detailWalkingReplay,dwr=run('detail-walking-replay',replay=detailWalker.with_suffix('.png.json'),astronaut=True)
+publication(dwr)
+assert detailWalkingReplay.read_bytes()==detailWalker.read_bytes()
+report.update(detail_cpu_gpu=compare(detailCpu,detailGpu),detail_contract=contract,
+              detail_replay_exact=True,detail_cpu_override_exact=True,detail_gl33_fallback=True,
+              detail_walking_replay_exact=True,detail_orbit_replay_exact=True)
+report['png_sha256']={q.name:hashlib.sha256(q.read_bytes()).hexdigest() for q in out.glob('*.png')}
+(out/'results.json').write_text(json.dumps(report,indent=2)+'\n')
+print('PASS GPU terrain/main/reflection/foliage/standing/walking, centimeter detail, exact locked replay, CPU override and GL 3.3 fallback')

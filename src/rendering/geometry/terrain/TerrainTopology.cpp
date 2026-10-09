@@ -9,7 +9,7 @@ std::uint64_t terrainHashWord(std::uint64_t hash,std::uint64_t word,int bytes) {
     return hash;
 }
 void TerrainTopology::validate() const {
-    if(indices.size()%3 || generation.fieldVersion!=PlanetField::version || generation.topologyVersion!=(surfacePolicy.enabled()?2u:1u) ||
+    if(indices.size()%3 || generation.fieldVersion!=PlanetField::version || generation.topologyVersion!=surfacePolicy.version() ||
        generation.backend!=TerrainBackend::Cpu) throw std::invalid_argument("Invalid terrain topology contract");
     if(surfacePolicy.enabled()) {
         for(const auto& values:{surfacePolicy.eyeEdge,surfacePolicy.distances})
@@ -22,7 +22,6 @@ void TerrainTopology::validate() const {
         for(int i=0;i<8;++i) if(!std::isfinite(surfacePolicy.spacing[i]) || surfacePolicy.spacing[i]<0 ||
            (i && surfacePolicy.spacing[i]>surfacePolicy.spacing[i-1]))
             throw std::invalid_argument("Invalid terrain parent spacing");
-        if(surfacePolicy.spacing[7]!=0) throw std::invalid_argument("Finest terrain must be unfiltered");
     } else if(surfacePolicy!=TerrainSurfacePolicy{}) throw std::invalid_argument("Invalid disabled terrain surface policy");
     for(const auto& s:samples) {
         double length2=0;
@@ -43,7 +42,7 @@ std::uint64_t TerrainTopology::contentFingerprint() const {
         hash=terrainHashWord(hash,std::bit_cast<std::uint64_t>(s.sinkMeters));
     }
     if(surfacePolicy.enabled()) {
-        hash=terrainHashWord(hash,2);
+        hash=terrainHashWord(hash,surfacePolicy.version());
         for(double x:surfacePolicy.eyeEdge) hash=terrainHashWord(hash,std::bit_cast<std::uint64_t>(x));
         for(double x:surfacePolicy.distances) hash=terrainHashWord(hash,std::bit_cast<std::uint64_t>(x));
         for(double x:surfacePolicy.spacing) hash=terrainHashWord(hash,std::bit_cast<std::uint64_t>(x));
@@ -65,7 +64,7 @@ void TerrainTopology::canonicalize(std::uint64_t fieldFingerprint) {
     }
     samples=std::move(unique);
     std::vector<glm::vec3>().swap(planningPositions);
-    generation.topologyVersion=surfacePolicy.enabled()?2:1;
+    generation.topologyVersion=surfacePolicy.version();
     generation.field=fieldFingerprint;
     generation.topology=contentFingerprint();
     uniqueSamples=samples.size();topologyInputBytes=samples.size()*sizeof(TerrainInputSample)+indices.size()*sizeof(std::uint32_t)+ (surfacePolicy.enabled()?sizeof(surfacePolicy):0);

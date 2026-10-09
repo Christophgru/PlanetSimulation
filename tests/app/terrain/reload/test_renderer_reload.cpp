@@ -80,10 +80,18 @@ TEST(RendererReload, ResidentReloadChangesBodyCountFieldsAndDrawConsumersBeforeC
         const auto before=read(o.outputImagePath+".json");
         auto j=read(o.configPath);j["planets"].erase(1);j["scenario_name"]="Reloaded Earth";
         j["planets"][0]["surface_noise"][0]["seed"]=117;
+        auto& noise=j["planets"][0]["surface_noise"][0];
+        noise.erase("frequency");noise["wavelength_m"]=.25;noise["amplitude_m"]=.01;noise["octaves"]=1;
+        auto& lod=j["planets"][0]["terrain_lod"];
+        lod["relief_sinking"]=true;lod["geometric_error_m"]=.05;
+        lod["local_detail_radius_m"]=.25;lod["local_transition_m"]=.5;
+        lod["max_triangle_budget"]=30000;lod["shoreline_edge_m"]=0;
         j["surface_camera"]["latitude_deg"]=-19;write(o.configPath,j);
         renderer.reload();EXPECT_EQ(read(o.outputImagePath+".json"),before);
         ASSERT_EQ(renderer.run(),0);const auto after=read(o.outputImagePath+".json");
         committed(after);consistent(after["render"]["terrain_publication"]);
+        EXPECT_EQ(after["render"]["terrain_contract"]["topology_version"],3);
+        EXPECT_GT(after["render"]["terrain_contract"]["local_detail_triangles"],0);
         EXPECT_EQ(after["scenario"]["scenario_name"],"Reloaded Earth");EXPECT_EQ(after["scenario"]["planets"].size(),1u);
         for(const auto& c:before["render"]["terrain_publication"]["consumers"])
             EXPECT_FALSE(glIsBuffer(c["land_buffer"].get<GLuint>()));

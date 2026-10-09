@@ -12,7 +12,8 @@ namespace { int seedOffset(int seed,unsigned offset) {
 double policySink(const PlanetField& field,const glm::dvec3& radial,const TerrainSurfacePolicy& policy) {
     if(!policy.enabled()) return 0;
     const auto profile=policy.profile(radial);
-    const double curvature=std::lerp(profile.x*profile.x,profile.y*profile.y,profile.z)/(8*policy.distances[2]);
+    const double curvature=policy.curvatureMeters(profile);
+    if(profile.x==policy.spacing[7] && profile.y==policy.spacing[7]) return 0;
     // Match the topology's stored float sink, including its safety/config cap.
     return static_cast<float>(std::min(policy.distances[3],field.omittedReliefMeters(profile)+curvature));
 }
@@ -112,7 +113,7 @@ double PlanetField::heightMeters(const glm::dvec3& direction,const glm::dvec3& p
     }
     for (const auto& function : functions_) {
         if (function.amplitude_m == 0.0) continue;
-        double frequency = function.frequency;
+        double frequency = frequencyFor(function);
         double weight = 1.0;
         double full = 0.0;
         double weightSum = 0.0;
@@ -140,7 +141,7 @@ double PlanetField::omittedReliefMeters(const glm::dvec3& profile) const {
     double bound=landscape_.enabled ? landscape_.continent_amplitude_m*omitted(landscape_.continent_frequency)+
         landscape_.cliff_amplitude_m*omitted(landscape_.cliff_frequency) : 0;
     for(const auto& n:functions_) {
-        double frequency=n.frequency,weight=1,total=0,missing=0;
+        double frequency=frequencyFor(n),weight=1,total=0,missing=0;
         for(int octave=0;octave<n.octaves;++octave) {
             total+=weight;missing+=weight*omitted(frequency);
             frequency*=n.lacunarity;weight*=n.persistence;
@@ -190,13 +191,11 @@ PlanetFieldGradient PlanetField::gradientAt(const glm::dvec3& radial, double hei
         glm::dvec3(0.0, 0.0, 1.0) : glm::dvec3(0.0, 1.0, 0.0);
     const glm::dvec3 tangentA = glm::normalize(glm::cross(reference, radial));
     const glm::dvec3 tangentB = glm::normalize(glm::cross(radial, tangentA));
-    const double radiusMeters = radius_ * metersPerUnit_;
-    const double angle = std::clamp(0.25 / radiusMeters, 1e-5, 0.01);
-    const double distanceMeters = radiusMeters * angle;
+    const double distanceMeters = parameters_.gradient[2];
     const glm::dvec3 sampleA = glm::normalize(
-        std::cos(angle) * radial + std::sin(angle) * tangentA);
+        parameters_.gradient[1] * radial + parameters_.gradient[0] * tangentA);
     const glm::dvec3 sampleB = glm::normalize(
-        std::cos(angle) * radial + std::sin(angle) * tangentB);
+        parameters_.gradient[1] * radial + parameters_.gradient[0] * tangentB);
     const double surfaceHeight=heightMeters-policySink(*this,radial,policy);
     const double gradientA =
         ((queries ? queries->heightAt(sampleA) : heightAt(sampleA,policy)) * metersPerUnit_ -
@@ -251,14 +250,23 @@ PlanetField::PlanetField(const std::vector<config::PlanetConfig::SurfaceNoiseFun
     parameters_.landscapeMask={landscape_.plain_threshold,landscape_.cliff_threshold,
         landscape_.cliff_frequency,landscape_.ridge_smoothing};
     parameters_.material={material_.rock_start_degrees,material_.rock_end_degrees,.1,0};
-    const double angle=std::clamp(.25/(radius_*metersPerUnit_),1e-5,.01);
+    double step=.25;bool physicalNoise=false;
+    for(const auto& n:functions_) {
+        const double finest=frequencyFor(n)*std::pow(n.lacunarity,n.octaves-1);
+        if(!std::isfinite(finest) || finest>1e9)
+            throw std::invalid_argument("Terrain noise wavelength exceeds the supported lattice precision");
+        if(n.wavelength_m>0 && n.amplitude_m>0) {
+            physicalNoise=true;step=std::min(step,radius_*metersPerUnit_/finest*.05);
+        }
+    }
+    const double angle=std::clamp(step/(radius_*metersPerUnit_),physicalNoise?1e-10:1e-5,.01);
     parameters_.gradient={std::sin(angle),std::cos(angle),radius_*metersPerUnit_*angle,0};
     parameters_.flags={version,static_cast<std::uint32_t>(functions_.size()),
         static_cast<std::uint32_t>(landscape_.enabled),static_cast<std::uint32_t>(waterLevelMeters_.has_value())};
     parameters_.seeds[0]=static_cast<std::uint32_t>(landscape_.seed);
     for(std::size_t i=0;i<functions_.size();++i) {
         const auto& n=functions_[i];auto& out=parameters_.noise[i];
-        out.amplitudeMeters=n.amplitude_m;out.frequency=n.frequency;
+        out.amplitudeMeters=n.amplitude_m;out.frequency=frequencyFor(n);
         out.persistence=n.persistence;out.lacunarity=n.lacunarity;
         out.type=n.type=="ridged_fbm" ? 1 : 0;out.octaves=n.octaves;out.seed=static_cast<std::uint32_t>(n.seed);
     }

@@ -89,6 +89,12 @@ void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalkin
     for (std::size_t i = 0; i < scene.scenario.planets.size(); ++i) {
         const auto& planet = scene.scenario.planets[i];
         glm::dvec3 localEye = scene.bodies[i + 1].toLocalPoint(eye);
+        if(options.renderTestMode && !options.thirdPersonRenderMode && !meshReady[i] &&
+           !options.replayPath.empty() && source.replayDocument.contains("render") &&
+           source.replayDocument["render"].contains("terrain_plan_eyes_world_units")) {
+            const auto& saved=source.replayDocument["render"]["terrain_plan_eyes_world_units"].at(i);
+            localEye={saved.at(0).get<double>(),saved.at(1).get<double>(),saved.at(2).get<double>()};
+        }
         if (options.renderTestMode && options.thirdPersonRenderMode && !meshReady[i] && !options.replayPath.empty()) {
             const auto& replay=source.replayDocument;
             if (replay.contains("astronaut_pose")) {
@@ -125,17 +131,18 @@ void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalkin
         const double movedMeters = meshReady[i] ? planet.radius *
             scene.scenario.metersPerWorldUnit() * std::acos(std::clamp(
                 glm::dot(radial, glm::normalize(lastTerrainEyes[i])), -1.0, 1.0)) : 0.0;
+        const double rebuildDistance=planet.terrain_lod.rebuildDistanceMeters();
         if (meshReady[i] && localMask == lastLocalMask[i] &&
-            (localMask == 0 || movedMeters < 10.0)) continue;
+            (localMask == 0 || movedMeters < rebuildDistance)) continue;
         const auto movedFrom=[&](const glm::dvec3& anchor) {
             return planet.radius*scene.scenario.metersPerWorldUnit()*std::acos(std::clamp(
                 glm::dot(radial,glm::normalize(anchor)),-1.0,1.0));
         };
         if(auto pending=terrainJobs.pendingFor(terrainSceneEpoch,i)) {
-            if(pending->localMask==localMask && movedFrom(pending->eye)<10) continue;
+            if(pending->localMask==localMask && movedFrom(pending->eye)<rebuildDistance) continue;
         }
         if(terrainFailures[i] && terrainFailures[i]->localMask==localMask &&
-            movedFrom(terrainFailures[i]->eye)<10) continue;
+            movedFrom(terrainFailures[i]->eye)<rebuildDistance) continue;
         auto identity=identityFor(i,localEye,localMask);
         identity.serial=++terrainRequestSerial;
         TerrainBuildRequest request{identity,scene.terrainSurfaces[i],planet,lastFaceZones[i],

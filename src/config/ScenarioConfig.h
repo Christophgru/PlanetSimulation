@@ -74,6 +74,7 @@ struct PlanetConfig {
         std::string type = "value_fbm";
         double amplitude_m = 0.0;
         double frequency = 4.0;
+        double wavelength_m = 0.0; // Zero selects legacy planet-relative frequency.
         int octaves = 4;
         double persistence = 0.5;
         double lacunarity = 2.0;
@@ -86,6 +87,8 @@ struct PlanetConfig {
             if ((type != "value_fbm" && type != "ridged_fbm") ||
                 !std::isfinite(amplitude_m) || amplitude_m < 0.0 ||
                 !std::isfinite(frequency) || frequency <= 0.0 || frequency > 64.0 ||
+                !std::isfinite(wavelength_m) || wavelength_m < 0 ||
+                (wavelength_m > 0 && wavelength_m < .01) || wavelength_m > 1e9 ||
                 octaves < 1 || octaves > 6 ||
                 !std::isfinite(persistence) || persistence <= 0.0 || persistence > 1.0 ||
                 !std::isfinite(lacunarity) || lacunarity < 1.0 || lacunarity > 4.0) {
@@ -105,6 +108,11 @@ struct PlanetConfig {
         double sink_depth_m = 1.0;
         bool relief_sinking = false; // Opt-in preserves historical replay geometry.
         double geometric_error_m = 0.0; // Zero retains the legacy face-only planner.
+        double local_detail_radius_m = 0.0; // Opt-in ground-centered centimeter patch.
+        double local_edge_m = .05, local_error_m = .01, local_transition_m = 3.0;
+        double rebuildDistanceMeters() const {
+            return local_detail_radius_m > 0 ? std::min(10.0,.3*local_detail_radius_m) : 10.0;
+        }
         int max_triangle_budget = 60000;
         double shoreline_edge_m = 1.0;
         double shoreline_distance_m = 80.0;
@@ -128,6 +136,11 @@ struct PlanetConfig {
                 !std::isfinite(sink_depth_m) || sink_depth_m < 0.0 || sink_depth_m > 100.0 ||
                 !std::isfinite(geometric_error_m) || geometric_error_m < 0.0 || geometric_error_m > 100.0 ||
                 (geometric_error_m > 0.0 && !relief_sinking) ||
+                !std::isfinite(local_detail_radius_m) || local_detail_radius_m < 0 || local_detail_radius_m > 10 ||
+                (local_detail_radius_m > 0 && (!relief_sinking || geometric_error_m <= 0 || local_detail_radius_m >= near_surface_distance_m)) ||
+                !std::isfinite(local_edge_m) || local_edge_m < .005 || local_edge_m > .5 ||
+                !std::isfinite(local_error_m) || local_error_m < .001 || local_error_m > 1 ||
+                !std::isfinite(local_transition_m) || local_transition_m < .1 || local_transition_m > 30 ||
                 max_triangle_budget < 10000 || max_triangle_budget > 100000 ||
                 !std::isfinite(shoreline_edge_m) || shoreline_edge_m < 0.0 || shoreline_edge_m > 100.0 ||
                 (shoreline_edge_m > 0.0 && shoreline_edge_m < 0.1) ||

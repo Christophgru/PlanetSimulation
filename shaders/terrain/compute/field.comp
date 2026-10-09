@@ -107,8 +107,9 @@ double heightMeters(dvec3 direction,dvec3 profile,out double omitted) {
 dvec2 heightAt(dvec3 direction) {
     direction=normalized(direction);dvec3 profile=surfaceProfile(direction);double omitted;
     double h=heightMeters(direction,profile,omitted)/scale.y;
-    double curvature=(profile.x*profile.x*(1.0lf-profile.z)+profile.y*profile.y*profile.z)/(8.0lf*scale.x*scale.y);
-    double sink=policyDistances.z>0.0lf?double(float(min(policyDistances.w,omitted+curvature))):0.0lf;
+    double curvature=max(0.0lf,profile.x*profile.x*(1.0lf-profile.z)+profile.y*profile.y*profile.z-policySpacing[7]*policySpacing[7])/(8.0lf*scale.x*scale.y);
+    bool finest=profile.x==policySpacing[7] && profile.y==policySpacing[7];
+    double sink=policyDistances.z>0.0lf && !finest?double(float(min(policyDistances.w,omitted+curvature))):0.0lf;
     return dvec2(h,sink);
 }
 dvec3 colorAt(double heightWorld,double slope) {

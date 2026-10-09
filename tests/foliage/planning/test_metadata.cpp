@@ -117,7 +117,7 @@ TEST(GrassMetadata, LimitsTruncatedInputsAndInvalidGenerationsRejectWithoutDistu
     EXPECT_THROW(compute.generate(mesh->vbo,mesh->ebo,wrong,p,1000,eye),std::invalid_argument);
     wrong=mesh->stats;wrong.gpuCorners++;
     EXPECT_THROW(compute.generate(mesh->vbo,mesh->ebo,wrong,p,1000,eye),std::invalid_argument);
-    wrong=mesh->stats;wrong.generation.topologyVersion=3; // Versions 1 and 2 are supported.
+    wrong=mesh->stats;wrong.generation.topologyVersion=4; // Versions 1 through 3 are supported.
     EXPECT_THROW(compute.generate(mesh->vbo,mesh->ebo,wrong,p,1000,eye),std::invalid_argument);
     auto limits=GrassMetadataLimits::query();limits.blockBytes=159;GrassMetadataCompute tiny(limits);
     EXPECT_THROW(tiny.generate(mesh->vbo,mesh->ebo,mesh->stats,p,1000,eye),std::runtime_error);

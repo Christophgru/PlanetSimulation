@@ -20,9 +20,9 @@ void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dv
     const auto sampleAt=[&](const glm::dvec3& radial) {
         auto sample=makeGridSample(radial,queries.heightAt(radial));
         const auto profile=geometry.surfacePolicy.profile(radial);
-        const double curvature=std::lerp(profile.x*profile.x,profile.y*profile.y,profile.z)/(8*scale);
-        sample.sinkMeters=static_cast<float>(std::min(geometry.surfacePolicy.distances[3],
-            field_.omittedReliefMeters(profile)+curvature));
+        const double curvature=geometry.surfacePolicy.curvatureMeters(profile);
+        sample.sinkMeters=profile.x==geometry.surfacePolicy.spacing[7] && profile.y==geometry.surfacePolicy.spacing[7] ? 0 :
+            static_cast<float>(std::min(geometry.surfacePolicy.distances[3],field_.omittedReliefMeters(profile)+curvature));
         sample.position-=radial*(sample.sinkMeters/scale);
         return sample;
     };
@@ -32,7 +32,13 @@ void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dv
     const auto key=[](std::uint32_t a,std::uint32_t b) {return Key{std::min(a,b),std::max(a,b)};};
     constexpr auto absent=std::numeric_limits<std::uint32_t>::max();
     struct Edge {std::array<int,2> faces{-1,-1};std::uint32_t middle=absent;};
-    struct Triangle {std::array<std::uint32_t,3> v;double score=0;bool alive=true;};
+    struct Triangle {
+        std::array<std::uint32_t,3> v;
+        double score=0,errorScore=0,longestPhysical=0;
+        double localDistance=std::numeric_limits<double>::infinity();
+        int priority=0;
+        bool alive=true;
+    };
     struct EdgeHash {
         std::size_t operator()(const Key& k) const {
             return std::hash<std::uint64_t>{}((std::uint64_t(k.first)<<32)|k.second);
@@ -59,8 +65,9 @@ void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dv
     for(std::size_t t=0;t<geometry.indices.size();t+=3)
         attach({geometry.indices[t],geometry.indices[t+1],geometry.indices[t+2]});
 
-    struct Candidate {double score;int face;};
+    struct Candidate {double score;int face,priority;};
     const auto lowerPriority=[](const Candidate& a,const Candidate& b) {
+        if(a.priority!=b.priority) return a.priority<b.priority;
         return a.score==b.score ? a.face>b.face : a.score<b.score;
     };
     std::priority_queue<Candidate,std::vector<Candidate>,decltype(lowerPriority)> pending(lowerPriority);
@@ -83,7 +90,21 @@ void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dv
         if(distance>lod_.mid_surface_distance_m) return;
         // A fixed near error target blends into an angular error target with
         // distance. A steep planar slope has little error; a crest has much more.
-        const double tolerance=std::max(lod_.geometric_error_m,0.001*distance);
+        double tolerance=std::max(lod_.geometric_error_m,0.001*distance),edgeTarget=0;
+        if(lod_.local_detail_radius_m>0) {
+            const auto radialCenter=glm::normalize(vertices[v[0]].radial+vertices[v[1]].radial+vertices[v[2]].radial);
+            double radialReach=0;
+            for(auto corner:v) radialReach=std::max(radialReach,glm::length(vertices[corner].radial-radialCenter)*scale);
+            // Ground-centered footprint, independent of clearance or slope.
+            triangle.localDistance=std::max(0.0,glm::length(radialCenter-glm::normalize(eyeBody))*scale-radialReach);
+            const double beyond=std::max(0.0,triangle.localDistance-lod_.local_detail_radius_m);
+            if(beyond<=lod_.local_transition_m) {
+                triangle.priority=beyond==0 ? 2 : 1;
+                const double blend=beyond/lod_.local_transition_m;
+                tolerance=std::lerp(lod_.local_error_m,tolerance,blend);
+                edgeTarget=lod_.local_edge_m*(1+3*blend)*(1+3*blend);
+            }
+        }
         double error=glm::length(sampleAt(glm::normalize(center)).position-center)*scale;
         double longest=0;
         for(int side=0;side<3;++side) {
@@ -92,10 +113,13 @@ void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dv
             error=std::max(error,glm::length(vertices[mid].position-
                 (vertices[x].position+vertices[y].position)*0.5)*scale);
             longest=std::max(longest,glm::length(vertices[x].radial-vertices[y].radial)*scale);
+            triangle.longestPhysical=std::max(triangle.longestPhysical,glm::length(vertices[x].position-vertices[y].position)*scale);
         }
-        triangle.score=error/tolerance;
-        // The minimum split edge is 4 cm, so its two halves stay >=2 cm.
-        if(triangle.score>1 && longest>=0.04) pending.push({triangle.score,id});
+        triangle.errorScore=error/tolerance;
+        triangle.score=std::max(triangle.errorScore,edgeTarget>0?triangle.longestPhysical/edgeTarget:0);
+        // Preserve the legacy 4 cm floor outside the opt-in detail footprint.
+        if(triangle.score>1 && longest>=(triangle.priority ? .0001 : .04))
+            pending.push({triangle.score,id,triangle.priority});
     };
     for(int id=0;id<originalCount;++id) assess(id);
     const auto edgeLength2=[&](const Key& k) {
@@ -161,14 +185,21 @@ void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dv
         edges.erase(split);
         liveCount+=2;
         for(int face:children) assess(face);
-        if(split!=requested && triangles[id].alive) pending.push({triangles[id].score,id});
+        if(split!=requested && triangles[id].alive) pending.push({triangles[id].score,id,triangles[id].priority});
     }
     geometry.indices.clear();geometry.indices.reserve(3*liveCount);
     geometry.remainingErrorRatio=0;
     for(const auto& t:triangles) if(t.alive) {
         geometry.indices.insert(geometry.indices.end(),t.v.begin(),t.v.end());
-        geometry.remainingErrorRatio=std::max(geometry.remainingErrorRatio,t.score);
+        geometry.remainingErrorRatio=std::max(geometry.remainingErrorRatio,t.errorScore);
+        if(lod_.local_detail_radius_m>0 && t.localDistance<=lod_.local_detail_radius_m) {
+            ++geometry.localDetailTriangles;
+            geometry.localMaxEdgeMeters=std::max(geometry.localMaxEdgeMeters,t.longestPhysical);
+            geometry.localRemainingErrorRatio=std::max(geometry.localRemainingErrorRatio,t.errorScore);
+        }
     }
+    geometry.localDetailLimited=geometry.localDetailTriangles>0 &&
+        (geometry.localMaxEdgeMeters>lod_.local_edge_m || geometry.localRemainingErrorRatio>1);
     geometry.samples.clear();geometry.samples.reserve(vertices.size());
     for(const auto& v:vertices) geometry.samples.push_back({{v.radial.x,v.radial.y,v.radial.z},v.sinkMeters});
     geometry.errorRefinedTriangles=liveCount-originalCount;
