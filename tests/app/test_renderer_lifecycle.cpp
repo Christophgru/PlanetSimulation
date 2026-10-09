@@ -52,6 +52,8 @@ TEST_F(RendererLifecycle, NativeStartupAndReloadRequireResidentComputeGrass) {
 TEST_F(RendererLifecycle, LateConstructorFailureReleasesContextAndCanRecover) {
     // Fail after several GPU owners have initialized, during quality shader load.
     fs::copy(fs::path(PLANET_SOURCE_DIR) / "shaders", output / "shaders", fs::copy_options::recursive);
+    // Runtime ACES data must load so this still reaches the intended late failure.
+    fs::copy(fs::path(PLANET_SOURCE_DIR) / "data", output / "data", fs::copy_options::recursive);
     fs::remove(output / "shaders/diagnostics/quality_present.frag");
     fs::current_path(output);
     EXPECT_THROW({ rendering::Renderer renderer(options); }, std::runtime_error);

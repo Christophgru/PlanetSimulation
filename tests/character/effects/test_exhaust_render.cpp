@@ -1,3 +1,4 @@
+#include "rendering/character/assets/SkinnedSuit.h"
 #include "rendering/character/effects/ExhaustRenderer.h"
 #include "rendering/foliage/wind/WindField.h"
 #include <gtest/gtest.h>
@@ -59,6 +60,57 @@ TEST(WindRender, CpuPerlinMatchesProductionGrassShaderAtNegativeAndWrappedCoordi
     }
     glDisable(GL_RASTERIZER_DISCARD); glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER,0,0); glBindVertexArray(0); glUseProgram(0);
     glDeleteBuffers(1,&buffer); glDeleteVertexArrays(1,&vao); glDeleteProgram(program); glDeleteShader(shader);
+    EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+}
+TEST(AcesRender, ProductionGpuSkinningMatchesIKAndPreservesMaterials) {
+    const auto asset=AcesSuit::load("data/character/aces/suit.bin");
+    SkinnedSuit suit;
+    std::ifstream file("shaders/character/astronaut.vert");
+    const std::string source{std::istreambuf_iterator<char>(file),{}};
+    const char* code=source.c_str();
+    GLuint shader=glCreateShader(GL_VERTEX_SHADER); glShaderSource(shader,1,&code,nullptr); glCompileShader(shader);
+    GLint ok=0; glGetShaderiv(shader,GL_COMPILE_STATUS,&ok); ASSERT_TRUE(ok);
+    GLuint program=glCreateProgram(); glAttachShader(program,shader);
+    const char* outputs[]={"vBodyPosition","vWorldNormal","vSuitColor"};
+    glTransformFeedbackVaryings(program,3,outputs,GL_INTERLEAVED_ATTRIBS);
+    glLinkProgram(program); glGetProgramiv(program,GL_LINK_STATUS,&ok); ASSERT_TRUE(ok);
+    GLuint buffer=0,query=0; glGenBuffers(1,&buffer); glGenQueries(1,&query);
+    glBindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER,buffer);
+    std::vector<float> actual(asset.indices.size()*10);
+    glBufferData(GL_TRANSFORM_FEEDBACK_BUFFER,actual.size()*sizeof(float),nullptr,GL_STREAM_READ);
+    glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER,0,buffer);
+    glUseProgram(program); glUniform1i(glGetUniformLocation(program,"uSkinned"),1);
+    const glm::mat4 identity(1),body=glm::translate(identity,glm::vec3(.1f,.2f,.3f))*glm::scale(identity,glm::vec3(.1f));
+    for (const char* name:{"model","uModelView","projection","uShadowMatrix"})
+        glUniformMatrix4fv(glGetUniformLocation(program,name),1,GL_FALSE,glm::value_ptr(identity));
+    glUniformMatrix4fv(glGetUniformLocation(program,"uBodyModel"),1,GL_FALSE,glm::value_ptr(body));
+    const GroundQuery ground=[](const glm::dvec3& p) { return GroundContact{{p.x,1000,p.z},{0,1,0}}; };
+    AstronautMotion motion;
+    glEnable(GL_RASTERIZER_DISCARD);
+    for (int frame=0;frame<3;++frame) {
+        if (frame==2) { motion.pressSpace(); motion.pressSpace(); motion.holdBoost(true); }
+        motion.update(ground({0,1000,-frame*.1}),{0,0,-1},frame==0 ? 0 : .04,ground);
+        const auto palette=suit.palette(motion.pose());
+        glUniformMatrix4fv(glGetUniformLocation(program,"uBones[0]"),13,GL_FALSE,glm::value_ptr(palette[0]));
+        glBeginQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN,query);
+        glBeginTransformFeedback(GL_TRIANGLES); suit.draw(); glEndTransformFeedback();
+        glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN);
+        GLuint triangles=0; glGetQueryObjectuiv(query,GL_QUERY_RESULT,&triangles); EXPECT_EQ(triangles,88872u);
+        glGetBufferSubData(GL_TRANSFORM_FEEDBACK_BUFFER,0,actual.size()*sizeof(float),actual.data());
+        for (std::size_t i=0;i<asset.indices.size();i+=71) {
+            const auto& v=asset.vertices[asset.indices[i]];
+            const auto skin=palette[v.joints[0]]*v.weights[0]+palette[v.joints[1]]*v.weights[1];
+            const glm::vec3 expected=body*skin*glm::vec4(v.position[0],v.position[1],v.position[2],1);
+            const auto normal=glm::normalize(glm::mat3(skin)*glm::vec3(v.normal[0],v.normal[1],v.normal[2]));
+            const glm::vec3 position(actual[10*i],actual[10*i+1],actual[10*i+2]);
+            const glm::vec3 sampledNormal(actual[10*i+3],actual[10*i+4],actual[10*i+5]);
+            ASSERT_LT(glm::length(position-expected),2e-5f) << frame << ':' << i;
+            ASSERT_LT(glm::length(sampledNormal-normal),2e-5f);
+            for (int channel=0;channel<4;++channel) ASSERT_NEAR(actual[10*i+6+channel],v.color[channel],1e-6f);
+        }
+    }
+    glDisable(GL_RASTERIZER_DISCARD); glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER,0,0); glUseProgram(0);
+    glDeleteQueries(1,&query); glDeleteBuffers(1,&buffer); glDeleteProgram(program); glDeleteShader(shader);
     EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
 }
 int main(int argc,char** argv) {

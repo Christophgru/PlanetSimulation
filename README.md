@@ -886,9 +886,9 @@ the **three closest celestial bodies**, including the Sun. Near a body the
 commanded speed is 100 m/s; space thrust has no artificial speed ceiling.
 See the [space-flight controls and validation](docs/journal/character/space-flight.md).
 
-The procedural astronaut wears a grey suit with blue details and small German
-flags on the upper arms. Planet-local planted feet and ozz two-bone IK provide
-an initial gait. At rest, the body rises into straight knees while the boots
+The astronaut uses the **NASA Advanced Crew Escape Suit (ACES)**: 88,872
+triangles, orange fabric, blue trim and small German upper-arm flags. A custom
+13-joint GPU skin follows planet-local planted feet and ozz two-bone IK. At rest, the body rises into straight knees while the boots
 stay planted; uneven ground retains the bend needed for contact. Jump gravity derives from planet mass, radius and spin;
 flight uses atmospheric drag and a shared thrust limit, with a 100 m/s
 horizontal command target. See the
@@ -898,10 +898,10 @@ The [Sketchfab model shortlist](docs/journal/character/sketchfab-models.md)
 compares downloadable rigs against the requested Ava Turing reference.
 Five [detailed astronaut mesh studies and local renders](USER_IO/astronaut_vis/README.md)
 replace the rejected low-poly shortlist, with full-body, rear and close-up views.
-These NASA meshes are unrigged; the comparison also documents rigged alternatives
-whose downloads require sign-in. The [asset inspection](docs/journal/character/assets.md)
-records measured geometry, source credits, preview repairs and remaining animation checks.
-An external skinned model has not yet been integrated.
+The user selected ACES from these studies. Its original static mesh now has
+a procedural locomotion rig; the [asset notes](data/character/aces/README.md)
+record NASA credit, source hashes, preparation and animation limits. The
+[asset inspection](docs/journal/character/assets.md) retains the comparison history.
 
 Grounded walking leaves persistent flattened grass along a 1.2 m wide path.
 Wind is suppressed at its centre and blends back at the edges. Marks follow
@@ -912,9 +912,9 @@ only when this bound is reached. Capture sidecars preserve the trail for replay.
 [Trail validation and limits](docs/journal/character/trails.md) describe the
 bounded history and GPU checks.
 
-| Follow camera and planted feet | Grey/blue suit and arm flag | Directed jetpack thrust |
+| Follow camera and planted feet | NASA ACES suit and arm flag | Directed jetpack thrust |
 |:--:|:--:|:--:|
-| <a href="docs/screenshots/astronaut.png"><img src="docs/screenshots/astronaut.png" width="220" alt="Astronaut standing on the planet in camera 4"></a> | <a href="docs/screenshots/astronaut-front.png"><img src="docs/screenshots/astronaut-front.png" width="220" alt="Grey and blue astronaut with a German upper-arm flag"></a> | <a href="docs/screenshots/astronaut-jetpack.png"><img src="docs/screenshots/astronaut-jetpack.png" width="220" alt="Flying astronaut with blue bubbles below the backpack"></a> |
+| <a href="docs/screenshots/astronaut.png"><img src="docs/screenshots/astronaut.png" width="220" alt="Astronaut standing on the planet in camera 4"></a> | <a href="docs/screenshots/astronaut-front.png"><img src="docs/screenshots/astronaut-front.png" width="220" alt="NASA ACES astronaut with a German upper-arm flag"></a> | <a href="docs/screenshots/astronaut-jetpack.png"><img src="docs/screenshots/astronaut-jetpack.png" width="220" alt="Flying astronaut with blue bubbles below the backpack"></a> |
 
 <a href="docs/screenshots/astronaut-trail.png"><img src="docs/screenshots/astronaut-trail.png" width="660" alt="Astronaut leaving a persistent pressed grass path"></a>
 

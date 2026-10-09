@@ -102,7 +102,7 @@ for name, source, command, timestamp in records:
 revision = subprocess.check_output(['git', '-c', f'safe.directory={ROOT}', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
 source_hash = hashlib.sha256()
 source_files = [ROOT / 'CMakeLists.txt']
-for directory in ('src', 'shaders', 'configs', 'tests', 'scripts'):
+for directory in ('src', 'shaders', 'configs', 'tests', 'scripts', 'data'):
     source_files.extend(p for p in (ROOT / directory).rglob('*') if p.is_file() and '__pycache__' not in p.parts)
 for path in sorted(source_files):
     source_hash.update(str(path.relative_to(ROOT)).encode() + b'\0' + path.read_bytes() + b'\0')

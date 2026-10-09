@@ -18,12 +18,22 @@ See [space-flight behavior and validation](space-flight.md).
 
 ## Model and animation
 
-The current model is original procedural geometry: a grey suit with blue
-details, dark visor, backpack, articulated limbs and small black/red/gold
-German patches on the upper arms. It supplies a working fallback while an
-external skinned model is selected; the [Sketchfab search](sketchfab-models.md)
-recommends Muko_Art's downloadable rigged astronaut. That asset has not been
-integrated, and its CC BY license differs from the TODO's initial MIT request.
+The default model is the user-selected NASA Advanced Crew Escape Suit (ACES),
+credited to NASA / Michael D. Carbajal. All 88,872 original triangles, loop
+normals and orange/blue linear material colours are retained. The original GLB
+has no bones or clips; our authored 13-joint, two-influence bind rig skins it
+in the GL 3.3 vertex shader. Helmet/body stay rigid; knee bends, contact-aligned
+boots and arm swing use the existing pose. German upper-arm patches follow the
+sleeves, and the custom pack/nozzles retain their existing exhaust attachment.
+There are no imported clips or finger animations. See the
+[asset, credit and regeneration notes](../../../data/character/aces/README.md).
+
+Suit geometry uploads once (about 6.47 MiB); only 13 joint matrices change per
+draw. View/model matrices are precomposed in double precision before the vertex
+shader to preserve small suit details at planet-world offsets. The same mesh
+and pose are drawn in water reflections and receive terrain shadows, atmosphere
+and HDR lighting. Replay stores the existing pose, rather than a second animation
+clock. Captures record the selected model, triangle count and joint count.
 
 The MIT-licensed [ozz-animation](../../../external/ozz-animation/README.md)
 runtime supplies two-bone leg IK. Application logic alternates swinging feet
@@ -125,3 +135,23 @@ climbing over steep ledges need a skinned model and further locomotion work.
 Persistent grass trail deformation is now implemented; see [trail behavior, limits and validation](trails.md).
 
 The acceleration/drag update is validated separately in [the flight study](flight.md).
+
+## ACES replacement validation — 2026-10-09
+
+The 48 CPU character tests pass, including full-mesh standing bind preservation,
+walking IK endpoints/soles, finite bounded deformation and malformed/truncated
+asset rejection. The remaining 34 headless CTest groups also pass. The production
+vertex shader and actual suit VAO are checked by transform feedback: all 88,872
+triangles are submitted, and sampled positions, normals and material channels
+match the CPU palette for standing, walking and flight. This passes with an
+explicit Mesa GL 3.3 context as well as the normal software GL context.
+
+Fresh RTX 3070 Ti captures pass standing/walking/jump/steered-flight/exhaust,
+grass-trail persistence and byte-identical replay. Four 1280×720 README views
+use the new suit; source fingerprints include the runtime data. A Quadro M1000M
+front capture also confirms the native NVIDIA path loads and draws ACES.
+Renderer lifecycle, terrain recovery/frame/reload and actual keyboard-input
+integration groups pass. The late-constructor-failure fixture now copies runtime
+data so it still reaches its intended missing quality shader; its recovery check
+passes separately. Verbose logs and raw captures remain local in
+`build-f5/astronaut-next` and `build-f5/aces-gallery`.

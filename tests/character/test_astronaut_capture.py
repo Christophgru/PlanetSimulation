@@ -33,6 +33,7 @@ def capture(name, frames=1, walk=0, replay=None, extra=()):
     assert result.returncode == 0, result.stdout
     metadata = json.loads(Path(str(path) + '.json').read_text())
     assert metadata['render']['astronaut_pixels'] > 150, metadata['render']
+    assert metadata['render']['astronaut_model'] == {'name':'NASA ACES','triangles':88872,'skin_joints':13}
     assert metadata['render']['terrain_pixels'] > 1000
     assert metadata['render']['camera_mode'] == 'third_person'
     assert all(f['reached'] for f in metadata['astronaut_pose']['feet']), metadata['astronaut_pose']

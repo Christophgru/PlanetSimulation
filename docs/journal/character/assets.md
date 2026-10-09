@@ -1,17 +1,36 @@
-# Detailed astronaut mesh studies — 2026-10-09
+# Selected NASA ACES runtime integration — 2026-10-09
+
+The user chose ACES from the comparison below. It replaces the procedural
+astronaut in camera 4, preserving 6 m/s walking, 12 m/s sprinting, terrain IK,
+jump/flight controls, exhaust and replay. The source GLB, bounded deployment
+mesh, provenance and regeneration receipt are now committed as the selected
+runtime asset in [data/character/aces](../../../data/character/aces/README.md).
+Other original downloads and the Blender installation remain local.
+
+The original model is static. We added a 13-joint GPU skin with blended knees,
+ankles and sleeves, driven by the existing pose. Its 88,872 triangles and original
+orange/blue materials remain intact; no artificial subdivision or authored
+animation clips are claimed. The custom jetpack and German arm flags are
+attached separately. [Runtime model/animation notes](astronaut.md) explain the
+bind pose and limitations. The older shortlist is historical; its download gates
+do not block this selected replacement.
+
+## Earlier comparison
+
+### Detailed astronaut mesh studies — 2026-10-09
 
 The rejected AstroDev and Polygonal Mind preview assets and their preparation
 scripts were removed from the active tree. Their historical study is retained
 in commit `a316d1a`; a local backup stays in ignored
-`build-f5/astronaut-next/rejected-low-poly`. The runtime procedural astronaut
-is still used while a suitable animated replacement is selected.
+`build-f5/astronaut-next/rejected-low-poly`. At this comparison checkpoint the procedural astronaut
+was still used; the ACES integration above supersedes that checkpoint.
 
 [The new comparison](../../../USER_IO/astronaut_vis/README.md) contains five
 actual NASA mesh studies, each rendered in front, rear and close-up views with
 Blender 4.5.4 LTS / Cycles, 64 samples and denoising on the RTX 3070 Ti. A shared
 studio and 2 m display height make geometry and backpack shapes comparable.
-Original downloads are pinned by repository revision, length and SHA256 and
-stay local. No model Python or executable content is run. Published artifacts
+Original comparison downloads were pinned by repository revision, length and SHA256
+and stayed local; the selected ACES source is now a runtime preparation input. No model Python or executable content is run. Published artifacts
 are PNGs, compact receipts, provenance and regeneration scripts.
 
 | Mesh | Imported triangles | Rig / clips | Selection finding |
@@ -50,7 +69,7 @@ artifact hashes; layout and whitespace checks also pass. Game source and
 configuration are unchanged, so game build/tests are not repeated for this
 asset inspection. Local rendering logs and downloaded Blender stay ignored.
 
-Still required within the same astronaut item: acquire a preferred detailed rig,
+At this earlier checkpoint, remaining selection work was: acquire a preferred detailed rig,
 verify licensing/embedded credits, inspect joint chains and weights, sample
 walking/sprint/jump/flight and knee/shoulder/finger deformation, check animation
 export and pack separation, and prepare grey/blue details with the German arm

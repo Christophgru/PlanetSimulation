@@ -435,6 +435,7 @@ int Renderer::Impl::capture() {
             const auto visible=std::count(flippedObjects.begin(),flippedObjects.end(),4);
             metadata["render"]["camera_mode"]="third_person";
             metadata["render"]["astronaut_pixels"]=visible;
+            metadata["render"]["astronaut_model"]={{"name","NASA ACES"},{"triangles",astronaut.triangleCount()},{"skin_joints",AcesSuit::BoneCount}};
             metadata["astronaut_pose"]=astronautState();
             std::cout << "Astronaut pixels: " << visible << '\n';
             if (!visible) throw std::runtime_error("Astronaut capture has no visible astronaut");

@@ -1,0 +1,315 @@
+{
+  "schema": 1,
+  "source_sha256": "6017772d557c30ea86e2e3a7651ad2089499f3d0c577b983467650616bfaebeb",
+  "suit_sha256": "68f6565d2594dbfd065ee0d9c3ed92c2c5eb18fc92db1735281f542fca72b41c",
+  "vertices": 110033,
+  "triangles": 88872,
+  "vertex_stride": 52,
+  "height_m": 2.1,
+  "bind_body_offset_m": [
+    0,
+    0.30104110213871693,
+    0
+  ],
+  "bones": [
+    {
+      "name": "body",
+      "head": [
+        0,
+        1.051041102138717,
+        0
+      ],
+      "tail": [
+        0,
+        1.65,
+        0
+      ]
+    },
+    {
+      "name": "thigh",
+      "head": [
+        -0.17,
+        1.051041102138717,
+        0
+      ],
+      "tail": [
+        -0.17,
+        0.5705205510693585,
+        0
+      ]
+    },
+    {
+      "name": "shin",
+      "head": [
+        -0.17,
+        0.5705205510693585,
+        0
+      ],
+      "tail": [
+        -0.17,
+        0.09,
+        0
+      ]
+    },
+    {
+      "name": "foot",
+      "head": [
+        -0.17,
+        0.09,
+        0
+      ],
+      "tail": [
+        -0.17,
+        0.09,
+        -0.2
+      ]
+    },
+    {
+      "name": "thigh",
+      "head": [
+        0.17,
+        1.051041102138717,
+        0
+      ],
+      "tail": [
+        0.17,
+        0.5705205510693585,
+        0
+      ]
+    },
+    {
+      "name": "shin",
+      "head": [
+        0.17,
+        0.5705205510693585,
+        0
+      ],
+      "tail": [
+        0.17,
+        0.09,
+        0
+      ]
+    },
+    {
+      "name": "foot",
+      "head": [
+        0.17,
+        0.09,
+        0
+      ],
+      "tail": [
+        0.17,
+        0.09,
+        -0.2
+      ]
+    },
+    {
+      "name": "upper_arm",
+      "head": [
+        -0.28,
+        1.55,
+        0
+      ],
+      "tail": [
+        -0.38,
+        1.32,
+        -0.08
+      ]
+    },
+    {
+      "name": "forearm",
+      "head": [
+        -0.38,
+        1.32,
+        -0.08
+      ],
+      "tail": [
+        -0.4,
+        1.12,
+        -0.16
+      ]
+    },
+    {
+      "name": "hand",
+      "head": [
+        -0.4,
+        1.12,
+        -0.16
+      ],
+      "tail": [
+        -0.42,
+        1.01,
+        -0.21
+      ]
+    },
+    {
+      "name": "upper_arm",
+      "head": [
+        0.28,
+        1.55,
+        0
+      ],
+      "tail": [
+        0.38,
+        1.32,
+        -0.08
+      ]
+    },
+    {
+      "name": "forearm",
+      "head": [
+        0.38,
+        1.32,
+        -0.08
+      ],
+      "tail": [
+        0.4,
+        1.12,
+        -0.16
+      ]
+    },
+    {
+      "name": "hand",
+      "head": [
+        0.4,
+        1.12,
+        -0.16
+      ],
+      "tail": [
+        0.42,
+        1.01,
+        -0.21
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "name": "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_lambert4S.002",
+      "linear_rgb": [
+        0.949999988079071,
+        0.949999988079071,
+        0.949999988079071
+      ],
+      "shine": 0.0
+    },
+    {
+      "name": "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_lambert6S.002",
+      "linear_rgb": [
+        0.07000000029802322,
+        0.07000000029802322,
+        0.07000000029802322
+      ],
+      "shine": 0.0
+    },
+    {
+      "name": "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_blinn1SG.003",
+      "linear_rgb": [
+        0.25,
+        0.25,
+        0.25
+      ],
+      "shine": 0.0
+    },
+    {
+      "name": "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_anisotrop.002",
+      "linear_rgb": [
+        0.3100000023841858,
+        0.3100000023841858,
+        0.3100000023841858
+      ],
+      "shine": 0.0
+    },
+    {
+      "name": "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_blinn2SG.003",
+      "linear_rgb": [
+        0.8999999761581421,
+        0.8999999761581421,
+        0.8999999761581421
+      ],
+      "shine": 0.0
+    },
+    {
+      "name": "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_aceshelme.007",
+      "linear_rgb": [
+        0.9300000071525574,
+        0.9300000071525574,
+        0.9300000071525574
+      ],
+      "shine": 0.0
+    },
+    {
+      "name": "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_aceshelme.008",
+      "linear_rgb": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "shine": 1.0
+    },
+    {
+      "name": "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_aceshelme.009",
+      "linear_rgb": [
+        0.5,
+        0.5,
+        0.5
+      ],
+      "shine": 0.0
+    },
+    {
+      "name": "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_lambert8S.002",
+      "linear_rgb": [
+        0.7200000286102295,
+        0.019999999552965164,
+        0.019999999552965164
+      ],
+      "shine": 0.0
+    },
+    {
+      "name": "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_blinn3SG.003",
+      "linear_rgb": [
+        0.6899999976158142,
+        0.25,
+        0.10999999940395355
+      ],
+      "shine": 0.0
+    },
+    {
+      "name": "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_lambert5S.002",
+      "linear_rgb": [
+        0.07000000029802322,
+        0.1899999976158142,
+        0.4699999988079071
+      ],
+      "shine": 0.0
+    },
+    {
+      "name": "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_shoe_lamb.004",
+      "linear_rgb": [
+        0.17000000178813934,
+        0.17000000178813934,
+        0.17000000178813934
+      ],
+      "shine": 0.0
+    },
+    {
+      "name": "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_shoe_lamb.005",
+      "linear_rgb": [
+        0.7200000286102295,
+        0.7200000286102295,
+        0.7200000286102295
+      ],
+      "shine": 0.0
+    },
+    {
+      "name": "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_lambert3S.002",
+      "linear_rgb": [
+        0.7900000214576721,
+        0.25,
+        0.07999999821186066
+      ],
+      "shine": 0.0
+    }
+  ],
+  "max_influences": 2,
+  "blender": "4.5.4 LTS"
+}

@@ -1,5 +1,15 @@
 # README image generation log
 
+## NASA ACES replacement — 2026-10-09 (UTC)
+
+Four astronaut views (standing, front, jetpack and grass trail) are freshly
+rendered at 1280×720 with the selected NASA ACES mesh, GPU skinning and attached
+jetpack/arm flags. Renderer: NVIDIA GeForce RTX 3070 Ti, uncapped EGL pbuffer.
+The other 18 gallery images retain their historical provenance.
+Source fingerprint (including runtime `data/`): `dd15f88909f3e2c5d767bf272ce18ea25e2ed0eed000e87a070c96668bf4ae25`.
+Per-image source/hash/command receipts are in [generation.json](generation.json).
+
+
 ## Dense offline production start — 2026-10-03 (UTC)
 
 The offline image (`offline-render.png`) is freshly rendered at native 1920×1080 using the production initial camera, atmosphere, water and lighting, with an explicit dense foliage study profile and stronger solar flare. Its replay is byte-identical. The other 21 PNGs and per-image provenance are unchanged. The complete gallery contains 22 images.
@@ -20,10 +30,10 @@ Build: GCC 12.2 RelWithDebInfo, Mesa llvmpipe/Xvfb, two rendering workers. The p
 | [terrain-detail.png](../screenshots/terrain-detail.png) | 2026-10-02T17:01:11+00:00 |
 | [shoreline-detail.png](../screenshots/shoreline-detail.png) | 2026-10-02T17:01:22+00:00 |
 | [grass-detail.png](../screenshots/grass-detail.png) | 2026-10-02T17:01:43+00:00 |
-| [astronaut.png](../screenshots/astronaut.png) | 2026-10-02T19:50:10+00:00 |
-| [astronaut-front.png](../screenshots/astronaut-front.png) | 2026-10-02T19:50:10+00:00 |
-| [astronaut-jetpack.png](../screenshots/astronaut-jetpack.png) | 2026-10-03T08:21:41+00:00 |
-| [astronaut-trail.png](../screenshots/astronaut-trail.png) | 2026-10-02T17:02:18+00:00 |
+| [astronaut.png](../screenshots/astronaut.png) | 2026-10-09T18:06:19+00:00 |
+| [astronaut-front.png](../screenshots/astronaut-front.png) | 2026-10-09T18:06:19+00:00 |
+| [astronaut-jetpack.png](../screenshots/astronaut-jetpack.png) | 2026-10-09T18:06:19+00:00 |
+| [astronaut-trail.png](../screenshots/astronaut-trail.png) | 2026-10-09T18:06:19+00:00 |
 | [offline-render.png](../screenshots/offline-render.png) | 2026-10-03T11:09:26+00:00 |
 | [performance-overlay.png](../screenshots/performance-overlay.png) | 2026-10-02T17:07:54+00:00 |
 | [atmosphere-day.png](../screenshots/atmosphere-day.png) | 2026-10-02T17:08:16+00:00 |

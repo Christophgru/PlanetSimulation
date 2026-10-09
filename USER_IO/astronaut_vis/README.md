@@ -4,7 +4,14 @@ Five new NASA meshes are rendered locally below, replacing the three rejected
 low-poly candidates. Each has a full-body, rear and close-up image. These are
 **visual studies, not animation-ready replacements**: inspection of the actual
 files found zero skins, bones and animation clips. Gemini is a historical
-comparison, not a proposed modern design. The existing TODO remains in progress.
+comparison, not a proposed modern design.
+
+**Selected: NASA ACES.** The user chose it on 2026-10-09. The game now uses the
+original ACES mesh with our 13-joint procedural GPU skin, original orange/blue
+colours, German arm flags and the existing jetpack.
+[Runtime asset and credit notes](../../data/character/aces/README.md) ·
+[In-game front view](../../docs/screenshots/astronaut-front.png).
+The images below remain the original static comparison studies.
 
 ![Five locally rendered spacesuits](comparison.png)
 

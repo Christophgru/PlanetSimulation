@@ -1,7 +1,7 @@
 {
   "schema": 2,
   "artifacts": {
-    "USER_IO/astronaut_vis/README.md": "850378faacb755ebfdacbacc4d21f4b24f70751b5c4d30074c6fcd924a054e72",
+    "USER_IO/astronaut_vis/README.md": "ba09b793c7ec0da7170803c521f36451faa2313a044e492930b19f4b3a4272ce",
     "USER_IO/astronaut_vis/comparison.png": "952638304be6e9cb083207bf86c6b64d274f655a1ae5f30b84a9feb198f14ef0",
     "USER_IO/astronaut_vis/nasa-aces.png": "19bc65fcbf2a5aab00434bfc09862f1937a3d7472555e252a0e1e0cba47dd9f8",
     "USER_IO/astronaut_vis/nasa-emu.png": "4c0cc2d188e7a58672340b65ed788b26335b424707e43146524c09d65109b80e",

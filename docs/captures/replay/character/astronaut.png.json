@@ -11,6 +11,15 @@
     "boost_pulse_s": 0.0,
     "boosting": false,
     "effect_s": 0.0,
+    "exhaust": {
+      "capacity": 64,
+      "draw_calls_per_view": 0,
+      "emission_phase_s": 0.0,
+      "instance_bytes_per_view": 0,
+      "next_id": 0,
+      "particles": [],
+      "schema": 1
+    },
     "feet": [
       {
         "ankle": [
@@ -152,12 +161,20 @@
       0.0
     ],
     "vertical_velocity_mps": 0.0,
-    "walked_m": 0.0
+    "walked_m": 0.0,
+    "wind_time_s": 20.0
   },
   "render": {
-    "astronaut_pixels": 5093,
+    "astronaut_model": {
+      "name": "NASA ACES",
+      "skin_joints": 13,
+      "triangles": 88872
+    },
+    "astronaut_pixels": 18166,
     "atmosphere_downsample": 4,
     "atmosphere_liquid_water_g_m3": 0.0,
+    "atmosphere_optics_evaluations": 2,
+    "atmosphere_optics_reuses": 11,
     "atmosphere_refraction_enabled": true,
     "atmosphere_refractive_index": 1.0002899200095918,
     "atmosphere_relative_humidity": 0.8684600670525447,
@@ -174,25 +191,54 @@
     "foliage_blades": 0,
     "foliage_candidates": 0,
     "foliage_gpu_compute": false,
+    "foliage_gpu_count_view": "main",
     "foliage_gpu_drawn_blades": 0,
+    "foliage_gpu_last_pass_drawn_blades": 0,
+    "foliage_gpu_metadata": {
+      "allocation_bytes": 0,
+      "allocation_dispatches": 0,
+      "allocation_input_bytes": 0,
+      "allocator": "cpu",
+      "diagnostic_read_bytes": 0,
+      "dispatches": 0,
+      "draw_resource_bytes": 0,
+      "draw_resources_prepared": false,
+      "effective_candidate_budget": 0,
+      "input_bytes": 0,
+      "placement_density_per_m2": 0.0,
+      "resident_bytes": 0,
+      "stage_admitted_bytes": 0,
+      "summary_read_bytes": 0,
+      "version": 1
+    },
     "foliage_gpu_triangles": 0,
     "foliage_gpu_vertices": 0,
     "foliage_gpu_working_bytes": 0,
     "foliage_patch_bytes": 0,
     "foliage_patches": 0,
-    "height": 360,
+    "height": 720,
     "lens_flare_strength": 0.0,
     "lens_flare_visible_sun_pixels": 0,
     "metered_illuminance": 3.804491335235864,
-    "non_background_pixels": 230028,
+    "non_background_pixels": 920539,
     "offline": {
       "enabled": false,
       "foliage_distance_multiplier": 20.0,
       "lens_flare": true
     },
     "reflected_illuminance": 7.496397295090353e-06,
-    "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+    "renderer": "NVIDIA GeForce RTX 3070 Ti/PCIe/SSE2",
     "samples": 0,
+    "scene_reload": {
+      "epoch": 1,
+      "external_bytes": 0,
+      "failed": 0,
+      "pending": false,
+      "progress_frames": 0,
+      "published": 0,
+      "retiring": false,
+      "superseded": 0
+    },
     "sky_interior_blue": 0.0,
     "sky_interior_green": 0.0,
     "sky_interior_mean_display_luminance": 0.0,
@@ -202,13 +248,63 @@
     "sky_pixels": 0,
     "sky_sensitivity": 0.002737991954454241,
     "sun_mesh_triangles": 2048,
-    "terrain_luminance_stddev": 0.06838100212774544,
+    "terrain_backend": "cpu",
+    "terrain_compute": {
+      "cpu_compatibility_mirror": false,
+      "cpu_render_bytes": 12000000,
+      "cpu_water_render_bytes": 7200000,
+      "dispatches": 0,
+      "generation_peak_bytes": 0,
+      "gpu_ms": 0.0,
+      "input_bytes": 0,
+      "stage_admitted_bytes": 0
+    },
+    "terrain_contacts": {
+      "backend": "cpu-mesh"
+    },
+    "terrain_contract": {
+      "backend": "cpu",
+      "error_budget_limited": false,
+      "error_refined_triangles": 0,
+      "evaluation_evaluations": 150006,
+      "evaluation_requests": 150006,
+      "field_fingerprint": "10975133402283726949",
+      "field_version": 1,
+      "input_bytes": 2800064,
+      "local_detail_limited": false,
+      "local_detail_triangles": 0,
+      "local_max_edge_m": 0.0,
+      "local_remaining_error_ratio": 0.0,
+      "planning_evaluations": 65070,
+      "planning_requests": 68038,
+      "remaining_error_ratio": 0.0,
+      "topology_fingerprint": "1794166691822913879",
+      "topology_version": 1,
+      "unique_samples": 50002
+    },
+    "terrain_cpu_worker": {
+      "coalesced": 0,
+      "completed": 0,
+      "failed": 0,
+      "obsolete": 0,
+      "peak_queued": 0,
+      "peak_running": 0,
+      "pending": false,
+      "rejected_completions": 0,
+      "submitted": 0
+    },
+    "terrain_fallback": "",
+    "terrain_grass_planner": "cpu",
+    "terrain_luminance_stddev": 0.06831103739262621,
     "terrain_max_display_luminance": 0.5776901960784313,
-    "terrain_mean_display_luminance": 0.5109269698607719,
-    "terrain_pixels": 225307,
+    "terrain_mean_display_luminance": 0.510814732596176,
+    "terrain_pixels": 903434,
+    "terrain_publication": {
+      "managed": false
+    },
     "white_clipped_fraction": 0.0,
     "white_clipped_pixels": 0,
-    "width": 640
+    "width": 1280
   },
   "scenario": {
     "camera": {

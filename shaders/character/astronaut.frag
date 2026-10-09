@@ -1,8 +1,9 @@
 #version 330 core
 in vec3 vWorldPosition, vBodyPosition, vWorldNormal;
-uniform vec3 uColor, uSunDirection, uSunlight, uIndirectLight, uEyeWorld;
+in vec4 vSuitColor;
+uniform vec3 uSunDirection, uSunlight, uIndirectLight, uEyeWorld;
 uniform vec3 uClipCenter;
-uniform float uClipRadius, uExposure, uShininess, uGlow;
+uniform float uClipRadius, uExposure, uGlow;
 uniform bool uLinearOutput;
 out vec4 fColor;
 vec3 displayColor(vec3 value) {
@@ -24,7 +25,7 @@ void main() {
     vec3 eye=normalize(uEyeWorld-vWorldPosition);
     vec3 halfway=uSunDirection+eye;
     float specular=length(halfway)>1e-5 ? pow(max(dot(n,normalize(halfway)),0),48) : 0;
-    vec3 radiance=uColor*(indirect+sun*diffuse*visibility)+sun*specular*visibility*uShininess*.35;
-    if (uGlow>0) radiance=uColor*uGlow*(.3+.7*pow(1.0-max(dot(n,eye),0),2));
+    vec3 radiance=vSuitColor.rgb*(indirect+sun*diffuse*visibility)+sun*specular*visibility*vSuitColor.a*.35;
+    if (uGlow>0) radiance=vSuitColor.rgb*uGlow*(.3+.7*pow(1.0-max(dot(n,eye),0),2));
     fColor=vec4(uLinearOutput ? radiance : displayColor(radiance),uGlow>0 ? .65 : 1);
 }

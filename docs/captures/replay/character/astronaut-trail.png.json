@@ -3,9 +3,23 @@
   "astronaut_pose": {
     "airborne": false,
     "arm_swing": -0.06761357676221726,
+    "body_offset_m": [
+      0.0,
+      0.0,
+      0.0
+    ],
     "boost_pulse_s": 0.0,
     "boosting": false,
     "effect_s": 1.0000000000000007,
+    "exhaust": {
+      "capacity": 64,
+      "draw_calls_per_view": 0,
+      "emission_phase_s": 0.0,
+      "instance_bytes_per_view": 0,
+      "next_id": 0,
+      "particles": [],
+      "schema": 1
+    },
     "feet": [
       {
         "ankle": [
@@ -393,12 +407,20 @@
       -0.0
     ],
     "vertical_velocity_mps": 0.0,
-    "walked_m": 5.982596729313473
+    "walked_m": 5.982596729313473,
+    "wind_time_s": 20.0
   },
   "render": {
-    "astronaut_pixels": 11405,
+    "astronaut_model": {
+      "name": "NASA ACES",
+      "skin_joints": 13,
+      "triangles": 88872
+    },
+    "astronaut_pixels": 18043,
     "atmosphere_downsample": 4,
     "atmosphere_liquid_water_g_m3": 0.0,
+    "atmosphere_optics_evaluations": 2,
+    "atmosphere_optics_reuses": 13,
     "atmosphere_refraction_enabled": true,
     "atmosphere_refractive_index": 1.0002899200095918,
     "atmosphere_relative_humidity": 0.8684600670525447,
@@ -415,25 +437,54 @@
     "foliage_blades": 21841,
     "foliage_candidates": 21841,
     "foliage_gpu_compute": true,
-    "foliage_gpu_drawn_blades": 977,
-    "foliage_gpu_triangles": 11684,
-    "foliage_gpu_vertices": 13638,
+    "foliage_gpu_count_view": "main",
+    "foliage_gpu_drawn_blades": 1396,
+    "foliage_gpu_last_pass_drawn_blades": 977,
+    "foliage_gpu_metadata": {
+      "allocation_bytes": 0,
+      "allocation_dispatches": 0,
+      "allocation_input_bytes": 0,
+      "allocator": "cpu",
+      "diagnostic_read_bytes": 0,
+      "dispatches": 0,
+      "draw_resource_bytes": 2795680,
+      "draw_resources_prepared": true,
+      "effective_candidate_budget": 0,
+      "input_bytes": 0,
+      "placement_density_per_m2": 30.72,
+      "resident_bytes": 0,
+      "stage_admitted_bytes": 0,
+      "summary_read_bytes": 0,
+      "version": 1
+    },
+    "foliage_gpu_triangles": 16712,
+    "foliage_gpu_vertices": 19504,
     "foliage_gpu_working_bytes": 2795680,
     "foliage_patch_bytes": 2684,
     "foliage_patches": 671,
-    "height": 540,
+    "height": 720,
     "lens_flare_strength": 0.0,
     "lens_flare_visible_sun_pixels": 0,
     "metered_illuminance": 3.792032668661791,
-    "non_background_pixels": 516960,
+    "non_background_pixels": 919446,
     "offline": {
       "enabled": false,
       "foliage_distance_multiplier": 20.0,
       "lens_flare": true
     },
     "reflected_illuminance": 7.496397295090353e-06,
-    "renderer": "llvmpipe (LLVM 15.0.6, 256 bits)",
+    "renderer": "NVIDIA GeForce RTX 3070 Ti/PCIe/SSE2",
     "samples": 0,
+    "scene_reload": {
+      "epoch": 1,
+      "external_bytes": 0,
+      "failed": 0,
+      "pending": false,
+      "progress_frames": 0,
+      "published": 0,
+      "retiring": false,
+      "superseded": 0
+    },
     "sky_interior_blue": 0.0,
     "sky_interior_green": 0.0,
     "sky_interior_mean_display_luminance": 0.0,
@@ -443,13 +494,63 @@
     "sky_pixels": 0,
     "sky_sensitivity": 0.0027469875860385747,
     "sun_mesh_triangles": 2048,
-    "terrain_luminance_stddev": 0.15618631936665195,
+    "terrain_backend": "cpu",
+    "terrain_compute": {
+      "cpu_compatibility_mirror": false,
+      "cpu_render_bytes": 12000000,
+      "cpu_water_render_bytes": 7200000,
+      "dispatches": 0,
+      "generation_peak_bytes": 0,
+      "gpu_ms": 0.0,
+      "input_bytes": 0,
+      "stage_admitted_bytes": 0
+    },
+    "terrain_contacts": {
+      "backend": "cpu-mesh"
+    },
+    "terrain_contract": {
+      "backend": "cpu",
+      "error_budget_limited": false,
+      "error_refined_triangles": 0,
+      "evaluation_evaluations": 150006,
+      "evaluation_requests": 150006,
+      "field_fingerprint": "10975133402283726949",
+      "field_version": 1,
+      "input_bytes": 2800064,
+      "local_detail_limited": false,
+      "local_detail_triangles": 0,
+      "local_max_edge_m": 0.0,
+      "local_remaining_error_ratio": 0.0,
+      "planning_evaluations": 65070,
+      "planning_requests": 68038,
+      "remaining_error_ratio": 0.0,
+      "topology_fingerprint": "1794166691822913879",
+      "topology_version": 1,
+      "unique_samples": 50002
+    },
+    "terrain_cpu_worker": {
+      "coalesced": 0,
+      "completed": 0,
+      "failed": 0,
+      "obsolete": 0,
+      "peak_queued": 0,
+      "peak_running": 0,
+      "pending": false,
+      "rejected_completions": 0,
+      "submitted": 0
+    },
+    "terrain_fallback": "",
+    "terrain_grass_planner": "cpu",
+    "terrain_luminance_stddev": 0.1560821120824497,
     "terrain_max_display_luminance": 0.642118431372549,
-    "terrain_mean_display_luminance": 0.4419498762701088,
-    "terrain_pixels": 506995,
+    "terrain_mean_display_luminance": 0.44204127830558626,
+    "terrain_pixels": 903557,
+    "terrain_publication": {
+      "managed": false
+    },
     "white_clipped_fraction": 0.0,
     "white_clipped_pixels": 0,
-    "width": 960
+    "width": 1280
   },
   "scenario": {
     "camera": {
@@ -675,9 +776,9 @@
     "surface_camera": {
       "altitude": 0.003,
       "direction_ned": [
-        0.05210100354205738,
+        0.05210100354205727,
         0.9954606687146965,
-        -0.07964635881193702
+        -0.07964635881193699
       ],
       "fov": 65.0,
       "latitude_deg": -21.39243978861784,
@@ -687,8 +788,8 @@
       "simulation_time_seconds": 20.0,
       "up_ned": [
         -0.004162879931641494,
-        -0.07953749369118032,
-        -0.9968231826798573
+        -0.07953749369118018,
+        -0.9968231826798574
       ],
       "walk_speed_mps": 80.0
     }
@@ -697,9 +798,9 @@
   "surface_camera": {
     "altitude": 0.003,
     "direction_ned": [
-      0.05210100354205727,
-      0.9954606687146965,
-      -0.07964635881193699
+      0.052101003542057184,
+      0.9954606687146966,
+      -0.07964635881193702
     ],
     "fov": 65.0,
     "latitude_deg": -21.39243978861784,

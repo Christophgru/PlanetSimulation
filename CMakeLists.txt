@@ -89,6 +89,7 @@ target_link_libraries(planet_geometry PUBLIC planet_config planet_diagnostics gl
 
 add_library(planet_character STATIC
     src/rendering/character/AstronautMotion.cpp
+    src/rendering/character/assets/AcesSuit.cpp
     src/rendering/character/SurfaceContact.cpp
     src/rendering/character/flight/JetpackPhysics.cpp
     src/rendering/character/flight/FlightNavigation.cpp
@@ -108,6 +109,7 @@ target_sources(planet_rendering PRIVATE src/rendering/foliage/procedural/GrassCp
 target_sources(planet_rendering PRIVATE src/rendering/foliage/procedural/GrassCompute.cpp
     src/rendering/foliage/trails/TrailUpload.cpp)
 target_sources(planet_rendering PRIVATE src/rendering/character/AstronautRenderer.cpp
+    src/rendering/character/assets/SkinnedSuit.cpp
     src/rendering/character/effects/ExhaustRenderer.cpp)
 target_sources(planet_rendering PRIVATE src/rendering/postprocessing/LensFlare.cpp)
 target_sources(planet_rendering PRIVATE src/rendering/geometry/compute/TerrainCompute.cpp

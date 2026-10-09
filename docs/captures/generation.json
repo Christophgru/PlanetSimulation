@@ -2,7 +2,7 @@
   "source_sha256": "95d395225a3316c3989b2164e9fc6b07e363bd5281aaa07635ce4089a604fff8",
   "version": "0.0.1",
   "base_revision": "b7cf4aa12875e91490caee1029b5fb39bbdc7578",
-  "source_state": "Mixed generations: offline view uses the dense production-start showcase; jetpack view uses persistent exhaust/shared grass wind; two standing views retain their checkpoint; remaining 18 retain earlier provenance. Per-image source_sha256/base_revision override defaults.",
+  "source_state": "Mixed generations: four astronaut views use NASA ACES; all other images retain earlier provenance. Per-image source_sha256/base_revision override defaults.",
   "renderer": "name of display: :99\ndisplay: :99  screen: 0\ndirect rendering: Yes\nExtended renderer info (GLX_MESA_query_renderer):\n    Vendor: Mesa/X.org (0xffffffff)\n    Device: llvmpipe (LLVM 15.0.6, 256 bits) (0xffffffff)\n    Version: 22.3.6\n    Accelerated: no\n    Video memory: 39925MB\n    Unified memory: yes\n    Preferred profile: core (0x1)\n    Max core profile version: 4.5\n    Max compat profile version: 4.5\n    Max GLES1 profile version: 1.1\n    Max GLES[23] profile version: 3.2\nOpenGL vendor string: Mesa/X.org\nOpenGL renderer string: llvmpipe (LLVM 15.0.6, 256 bits)\nOpenGL core profile version string: 4.5 (Core Profile) Mesa 22.3.6\nOpenGL core profile shading language version string: 4.50\nOpenGL core profile context flags: (none)\nOpenGL core profile profile mask: core profile\n\nOpenGL version string: 4.5 (Compatibility Profile) Mesa 22.3.6\nOpenGL shading language version string: 4.50\nOpenGL context flags: (none)\nOpenGL profile mask: compatibility profile\n\nOpenGL ES profile version string: OpenGL ES 3.2 Mesa 22.3.6\nOpenGL ES profile shading language version string: OpenGL ES GLSL ES 3.20\n\n",
   "display": "GL window/Xvfb",
   "images": [
@@ -79,39 +79,42 @@
     {
       "image": "astronaut.png",
       "version": "0.0.1",
-      "generated_utc": "2026-10-02T19:50:10+00:00",
-      "sha256": "0fe8b2ececc371eb638cbf6748723ee7949fe1124ca9dcf0f7398d6aeb6815d8",
-      "command": "/workspace/build-resume/PlanetSimulation --replay /workspace/docs/journal/character/standing/replay/astronaut-input.json --astronaut-capture /workspace/build-resume/standing/astronaut.png --render-size 640 360",
-      "source_sha256": "d8218b326f4898f0bab98354ebad9aeea8afe36abff7b74424dccf50d4bd81e7",
-      "base_revision": "d77ef01bd3696df1f61c54e1851448f9e5cf63c6",
-      "source_state": "standing update working tree; per-image source fingerprint overrides the gallery default"
+      "generated_utc": "2026-10-09T18:06:19+00:00",
+      "sha256": "ff6218ac49e68abe3e3d8ea62314bb7ea29faa20fdac76e9a18545371079fac4",
+      "command": "/workspace/build-f5/PlanetSimulation --replay /workspace/docs/captures/replay/character/astronaut.png.json --astronaut-capture /workspace/build-f5/aces-gallery/astronaut.png --render-size 1280 720",
+      "source_sha256": "dd15f88909f3e2c5d767bf272ce18ea25e2ed0eed000e87a070c96668bf4ae25",
+      "base_revision": "8efe7903c995c3e5b628befe6bee99a786f96975",
+      "source_state": "NASA ACES integration working tree; source fingerprint includes runtime data; NVIDIA RTX 3070 Ti EGL pbuffer; 1280x720"
     },
     {
       "image": "astronaut-front.png",
       "version": "0.0.1",
-      "generated_utc": "2026-10-02T19:50:10+00:00",
-      "sha256": "7cd2005d12374fea69eb7bb8c1950eee6a4845c7714c610deded497a5d082317",
-      "command": "/workspace/build-resume/PlanetSimulation --replay /workspace/docs/journal/character/standing/replay/astronaut-front-input.json --astronaut-capture /workspace/build-resume/standing/astronaut-front.png --render-size 640 360",
-      "source_sha256": "d8218b326f4898f0bab98354ebad9aeea8afe36abff7b74424dccf50d4bd81e7",
-      "base_revision": "d77ef01bd3696df1f61c54e1851448f9e5cf63c6",
-      "source_state": "standing update working tree; per-image source fingerprint overrides the gallery default"
+      "generated_utc": "2026-10-09T18:06:19+00:00",
+      "sha256": "ccc26023e2c81f0d4e4df8ce242792991032098a1a4783f220624f385ab3bc3d",
+      "command": "/workspace/build-f5/PlanetSimulation --replay /workspace/docs/captures/replay/character/astronaut-front.png.json --astronaut-capture /workspace/build-f5/aces-gallery/astronaut-front.png --render-size 1280 720",
+      "source_sha256": "dd15f88909f3e2c5d767bf272ce18ea25e2ed0eed000e87a070c96668bf4ae25",
+      "base_revision": "8efe7903c995c3e5b628befe6bee99a786f96975",
+      "source_state": "NASA ACES integration working tree; source fingerprint includes runtime data; NVIDIA RTX 3070 Ti EGL pbuffer; 1280x720"
     },
     {
       "image": "astronaut-jetpack.png",
       "version": "0.0.1",
-      "generated_utc": "2026-10-03T08:21:41+00:00",
-      "sha256": "ec8d771c77cf7a626f694d9a8b6e790364c1e499cfddb51b8caaf11d667ba303",
-      "command": "/workspace/build-resume/PlanetSimulation --replay /workspace/docs/captures/replay/character/astronaut-jetpack.png.json --astronaut-capture /workspace/build-resume/astronaut-jetpack.png --render-size 640 360",
-      "source_sha256": "b5c21157f38dc33e8c5d6fa949c99c5b936950f447427087965c00432a1ec6a8",
-      "base_revision": "3eb44a6955ad0e44a7607b01b4b42094ff45e408",
-      "source_state": "Exhaust lifetime and shared-wind working tree; fresh steering capture and exact replay verified"
+      "generated_utc": "2026-10-09T18:06:19+00:00",
+      "sha256": "b56c620fb876b6f9a59210ad931d924b85d791b6f2ee27db746fc1e247afac04",
+      "command": "/workspace/build-f5/PlanetSimulation --replay /workspace/docs/captures/replay/character/astronaut-jetpack.png.json --astronaut-capture /workspace/build-f5/aces-gallery/astronaut-jetpack.png --render-size 1280 720",
+      "source_sha256": "dd15f88909f3e2c5d767bf272ce18ea25e2ed0eed000e87a070c96668bf4ae25",
+      "base_revision": "8efe7903c995c3e5b628befe6bee99a786f96975",
+      "source_state": "NASA ACES integration working tree; source fingerprint includes runtime data; NVIDIA RTX 3070 Ti EGL pbuffer; 1280x720"
     },
     {
       "image": "astronaut-trail.png",
       "version": "0.0.1",
-      "generated_utc": "2026-10-02T17:02:18+00:00",
-      "sha256": "ab77800ed2e2a0717e11f79478d47a717395658346ad63264889ba37cc0b00df",
-      "command": "/workspace/build-resume/PlanetSimulation --replay /workspace/docs/captures/replay/character/astronaut-trail.png.json --surface-capture /workspace/build-resume/readme-captures/astronaut-trail.png"
+      "generated_utc": "2026-10-09T18:06:19+00:00",
+      "sha256": "225bd692f0bd6359dde66cc669600c5f3eb91359a998e773a6e121ae8b831e1d",
+      "command": "/workspace/build-f5/PlanetSimulation --replay /workspace/docs/captures/replay/character/astronaut-trail.png.json --astronaut-capture /workspace/build-f5/aces-gallery/astronaut-trail.png --render-size 1280 720",
+      "source_sha256": "dd15f88909f3e2c5d767bf272ce18ea25e2ed0eed000e87a070c96668bf4ae25",
+      "base_revision": "8efe7903c995c3e5b628befe6bee99a786f96975",
+      "source_state": "NASA ACES integration working tree; source fingerprint includes runtime data; NVIDIA RTX 3070 Ti EGL pbuffer; 1280x720"
     },
     {
       "image": "offline-render.png",

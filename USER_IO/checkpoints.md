@@ -1,5 +1,33 @@
 # Page to document progress of AI Agents working on this Project
 
+## NASA ACES runtime replacement — 2026-10-09
+
+- User selected NASA ACES; only that astronaut item was implemented. The row is
+  now t. No new TODO rows or unrelated features were added.
+- Runtime camera 4 uses all 88,872 triangles, original orange/blue materials,
+  our 13-joint/two-influence GPU skin, existing terrain IK and arm/elbow motion.
+  Walking stays 6 m/s, sprinting 12 m/s. Jump/flight, planet orientation,
+  exhaust, grass trails and replay continue through the existing pose.
+- Custom backpack/nozzles are preserved, German patches follow the sleeves,
+  and view/model transforms are precomposed in double precision. CPU mesh copies
+  are released after the one-time upload (about 6.47 MiB GPU geometry).
+- Selected source.glb, version-1 suit.bin, source/prepared hashes and NASA /
+  Michael D. Carbajal credit live in data/character/aces. Reproduction uses
+  scripts/character/prepare_aces.py with Blender 4.5 LTS. Other source models,
+  Blender, logs and raw test output remain ignored/local. No authored clips or
+  finger articulation are claimed.
+- CPU character/asset tests and the other 34 core groups pass. GPU transform
+  feedback checks production skinning/colours, including explicit Mesa GL 3.3.
+  Native RTX captures verify walking, flight/exhaust and exact replay; a Quadro
+  front capture also passes. Lifecycle, terrain recovery/frame/reload, real
+  astronaut keyboard input and the corrected late-failure fixture pass.
+- Four README astronaut PNGs/replays and per-image provenance are refreshed;
+  fingerprints now include runtime data. Model docs and comparison history
+  distinguish the original static NASA mesh from our runtime rig.
+- The selected asset is the current default. Resume other requested work only
+  when asked; the astronaut replacement requires no additional task chain.
+
+
 ## Detailed astronaut renders — 2026-10-09
 
 - Continued only the requested astronaut comparison. The existing row remains p;
