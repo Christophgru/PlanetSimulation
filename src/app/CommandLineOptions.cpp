@@ -32,6 +32,8 @@ CommandLineOptions CommandLineOptions::parse(int argc, char** argv) {
             options.explicitAtmosphereQuality = true;
         } else if (std::string(argv[i]) == "--benchmark-overlay") {
             options.benchmarkOverlay = true;
+        } else if (std::string(argv[i]) == "--uncapped") {
+            options.uncapped = true;
         } else if (std::string(argv[i]) == "--video-memory-mb" && i + 1 < argc) {
             try {
                 const std::string value = argv[++i];

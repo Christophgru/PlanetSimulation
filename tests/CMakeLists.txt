@@ -318,6 +318,17 @@ find_program(IMAGEMAGICK_CONVERT_EXECUTABLE convert)
 if(UNIX AND XDOTOOL_EXECUTABLE AND IMAGEMAGICK_IMPORT_EXECUTABLE AND IMAGEMAGICK_CONVERT_EXECUTABLE)
     add_executable(terrain_native_probe app/terrain/native/NativeProbe.cpp)
     target_link_libraries(terrain_native_probe PRIVATE planet_app ${CMAKE_DL_LIBS})
+    add_executable(terrain_grass_refresh_probe app/terrain/native/refresh/Probe.cpp)
+    target_link_libraries(terrain_grass_refresh_probe PRIVATE planet_app ${CMAKE_DL_LIBS})
+    target_link_options(terrain_grass_refresh_probe PRIVATE
+        "LINKER:--wrap=_ZN9rendering15buildTerrainCpuERKNS_19TerrainBuildRequestE"
+        "LINKER:--wrap=_ZN9rendering13GrassRenderer7prepareEmRK4MeshRKN6config12PlanetConfigEdRKN3glm3vecILi3EdLNS8_9qualifierE0EEEm")
+    add_test(NAME TerrainGrassRefreshIntegration COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/app/terrain/native/refresh/test_refresh.py
+        --probe $<TARGET_FILE:terrain_grass_refresh_probe>
+        --output-dir ${CMAKE_BINARY_DIR}/terrain-grass-refresh)
+    set_tests_properties(TerrainGrassRefreshIntegration PROPERTIES
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 240 RUN_SERIAL TRUE)
     add_executable(terrain_raster_probe app/terrain/native/raster/Probe.cpp)
     target_link_libraries(terrain_raster_probe PRIVATE planet_app ${CMAKE_DL_LIBS})
     target_link_options(terrain_raster_probe PRIVATE

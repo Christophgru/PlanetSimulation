@@ -1,5 +1,57 @@
 # Page to document progress of AI Agents working on this Project
 
+## Grass replenishment implemented; production GPU verification pending — 2026-10-09
+
+- Removed the pending terrain-worker veto from interactive compute grass-only
+  submission. Refresh requests start at half the unchanged placement margin
+  (11.25 m within production's 22.5 m). Installed terrain remains the owner;
+  density/cutoff/caps, CPU path, saved policies and capture scheduling stay intact.
+- Added TerrainGrassRefreshIntegration with a private held CPU builder and real
+  native input. Compute sprint / configured 80 m/s surface-camera and CPU sprint
+  all refresh during the held interval, over approximately 92 m of travel.
+  Restoring HEAD's refresh code makes the regression fail for grass starvation.
+- Actual main-view roots and opaque grass pixels are inspected beyond 80 m while
+  terrain is held. Near root bands remain populated; compute reservations peak
+  at 33.3 MB, generation consumers agree and native wait/readback audits pass.
+  The software surface-camera run reaches only about 12 m/s of wall travel due
+  to its existing movement-step clamp, so it does not certify true 80 m/s.
+- Full build and final TerrainGrassRefreshIntegration pass. Software reload,
+  compute capture/replay and native input integration checks all pass, including
+  CPU/GL 3.3 fallback. Logs: build-f5/grass-refresh/{build-probe.log,
+  test-refresh-coverage.log,compatibility.log}. Only comments/docs changed since.
+- NVIDIA access was lost after the timing measurements: both device opens return
+  EPERM, nvidia-smi fails and NVIDIA GLFW context creation fails. Grass TODO stays
+  p; do not advance to later features before production GPU coverage checks.
+- Report: docs/journal/architecture/terrain-gpu/grass-refresh/study.md. Local raw
+  receipts/snapshots/control binary: build-f5/grass-refresh and
+  build-f5/terrain-grass-refresh. Timing binaries preserved as
+  build-f5/fps-60/{PlanetSimulation-timing,terrain-native-timing}. Commit requested
+  by the user; raw benchmark data stays local.
+
+## 60 FPS timing pass completed; grass replenishment next — 2026-10-09
+
+- First remaining TODO is t. Added --uncapped and replaced ridge edge tree
+  lookups with a bounded reserved hash table. Final isolated planning medians
+  improve 2,559 to 2,346 ms at startup and 2,000 to 1,535 ms at the mountain
+  pose (8.3% / 23.3%), with unchanged topology, queries and residual error.
+- Twelve alternating before/after CPU/compute image/workload pairs are exact.
+  Warm GPU/render cost is unchanged: Quadro cannot meet 16.67 ms at this quality;
+  RTX warm offscreen p95 fits. Multi-second capture/reload and native generation
+  spikes remain explicit. Native 6/12 m/s speeds stay within 2%; no cached frames
+  or resolution changes enter the measured windows. Both reloads publish epoch 2.
+- Full build, 33 core and eight focused integration groups pass. Native timing
+  initially failed an old CPU-unavailable ledger assertion; validator now checks
+  current CPU/compute reservations and the 1 GiB bound. Recheck passes.
+- Compact report: docs/journal/benchmarks/fps-60/study.md. Raw receipts,
+  prototypes/removed shader experiments and failures are ignored in
+  build-f5/fps-60. No shader/config quality changes retained; nothing committed.
+- Next existing grass TODO is p. Root cause identified in InteractiveTerrain.cpp:
+  a pending terrain CPU job vetoes grass-only submission. Current refresh
+  threshold equals the placement's entire movement allowance, leaving no time
+  for GPU preparation/publication. Plan: reuse installed terrain for grass while
+  topology computes, and request within existing placement headroom. Actual
+  coverage, fast surface-camera movement, bounds/replay/fallback checks pending.
+
 ## Curvature-guided mountain refinement implemented — 2026-10-08
 
 - Reproduced the reported latitude/longitude, 126.914 m reference-sphere altitude

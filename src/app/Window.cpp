@@ -28,7 +28,7 @@ Window::Window(const CommandLineOptions& options) {
         throw std::runtime_error("Failed to create GLFW window");
     }
     makeCurrent();
-    glfwSwapInterval(options.renderTestMode ? 0 : 1);
+    glfwSwapInterval(options.renderTestMode || options.uncapped ? 0 : 1);
     if (glewInit() != GLEW_OK) {
         glfwDestroyWindow(window_);
         glfwTerminate();

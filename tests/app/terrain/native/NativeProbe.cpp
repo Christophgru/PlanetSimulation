@@ -90,6 +90,13 @@ void sample(GLFWwindow* window,bool waiting=false) {
         j["selected"]=r.scene.scenario.surface_camera.planet_index;
         j["camera_position"]=vector(r.scene.surfaceCamera->position());
         j["camera_local"]=vector(r.scene.bodies[r.scene.scenario.surface_camera.planet_index+1].toLocalPoint(r.scene.surfaceCamera->position()));
+        if(benchmarking && (r.cameraInput.mode()==CameraMode::Surface ||
+                            r.cameraInput.mode()==CameraMode::ThirdPerson)) {
+            const auto i=r.scene.scenario.surface_camera.planet_index;
+            const auto target=r.cameraInput.mode()==CameraMode::ThirdPerson ?
+                r.astronautView.eye : r.scene.surfaceCamera->position();
+            j["benchmark"]["surface_target_eye_body"]=vector(r.scene.bodies[i+1].toLocalPoint(target)/r.scene.scenario.planets[i].radius);
+        }
     }
     if(r.astronaut.motion.ready() && r.scene.surfaceCamera) {
         const auto& p=r.astronaut.motion.pose();const auto* trail=r.grass.procedural.existingTrail(r.astronaut.planetIndex);
@@ -169,19 +176,19 @@ int main(int argc,char** argv) {
     std::cout << std::unitbuf;
     try {
         auto options=app::CommandLineOptions::parse(argc,argv);
+        benchmarking=std::getenv("PLANET_NATIVE_BENCHMARK")!=nullptr;
+        // Exercise the production uncapped option at the shipping resolution.
+        if(benchmarking) options.uncapped=true;
         rendering::Renderer instance(options);renderer=&instance;
         contextRenderer=reinterpret_cast<const char*>(glGetString(GL_RENDERER));
         contextVersion=reinterpret_cast<const char*>(glGetString(GL_VERSION));
         if(options.renderTestMode) return instance.run();
         const auto* path=std::getenv("PLANET_NATIVE_TRACE");if(!path) throw std::runtime_error("Missing native trace path");
         trace.open(path);if(!trace) throw std::runtime_error("Cannot open native trace");
-        benchmarking=std::getenv("PLANET_NATIVE_BENCHMARK")!=nullptr;
         if(benchmarking) {
             observerTrace.open(std::string(path)+".observer.csv");
             if(!observerTrace) throw std::runtime_error("Cannot open benchmark observer trace");
             observerTrace << "frame,observer_ms\n";
-            // Keep the shipping 1280x720 window; explicitly uncap both backends.
-            glfwSwapInterval(0);
         } else glfwSetWindowSize(glfwGetCurrentContext(),320,180);
         int result;
         {Audit audit;result=instance.run();}

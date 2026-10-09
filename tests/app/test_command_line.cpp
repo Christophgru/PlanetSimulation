@@ -56,6 +56,15 @@ TEST(CommandLineOptions, InvalidValuesFailBeforeWindowStartup) {
     EXPECT_EQ(walk.benchmarkWalkStep, 2);
     EXPECT_EQ(walk.benchmarkStep, 0);
 }
+TEST(CommandLineOptions, UncappedPresentationDoesNotChangeSimulationSettings) {
+    const auto defaults = parse({});
+    const auto options = parse({"--uncapped"});
+    EXPECT_FALSE(defaults.uncapped);
+    EXPECT_TRUE(options.uncapped);
+    EXPECT_FALSE(options.renderTestMode);
+    EXPECT_EQ(options.benchmarkStep, defaults.benchmarkStep);
+    EXPECT_EQ(options.terrainBackend, defaults.terrainBackend);
+}
 TEST(CommandLineOptions, AstronautCaptureUsesSurfaceReplayAndWalkingBenchmarks) {
     const auto options=parse({"--astronaut-capture","astronaut.png","--benchmark-frames","6",
                               "--benchmark-walk-step","0.08","--benchmark-step","0"});

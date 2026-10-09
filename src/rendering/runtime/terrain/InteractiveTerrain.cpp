@@ -171,13 +171,19 @@ void Renderer::Impl::prepareResidentFrame(const glm::dvec3& eye,std::optional<do
     const auto world=planningEye(nullptr,0);
     for(std::size_t i=0;i<scene.scenario.planets.size();++i) {
         const auto& planet=scene.scenario.planets[i];
-        if(!planet.foliage.enabled || !terrainPublication->canSubmit(i) || terrainJobs.pendingFor(terrainSceneEpoch,i)) continue;
+        // Grass can reuse the installed terrain while its replacement is still
+        // being planned. Waiting for that CPU job lets movement exhaust the
+        // grass placement headroom before a new patch can be submitted.
+        if(!planet.foliage.enabled || !terrainPublication->canSubmit(i)) continue;
         const auto current=identityFor(i);
         if(current.localMask!=lastLocalMask[i]) continue;
         if(terrainFailures[i] && residentFrames<residentRetryAfter) continue;
         const auto anchor=scene.bodies[i+1].toLocalPoint(world)/planet.radius;
         const auto previous=grass.procedural.planningEye(i);
-        if(!grass.procedural.policyChanged(i) && previous && glm::length(anchor-*previous)*planet.radius*scene.scenario.metersPerWorldUnit()<grassRebuildDistance(planet.foliage)) continue;
+        // Spend only half of the existing placement margin before refreshing;
+        // leave the other half for nonblocking GPU preparation/publication.
+        // Capture/replay keeps its original refresh schedule and margin.
+        if(!grass.procedural.policyChanged(i) && previous && glm::length(anchor-*previous)*planet.radius*scene.scenario.metersPerWorldUnit()<0.5*grassRebuildDistance(planet.foliage)) continue;
         const auto k=terrainPublication->installed(i).identity;
         auto key=PublicationProfiler::Key::from(k);key.eye={anchor.x,anchor.y,anchor.z};
         const auto attempt=profiler.publications().begin(key,PublicationProfiler::Kind::Grass);

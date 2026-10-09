@@ -23,11 +23,11 @@ def validate_memory(path, backend, renderer):
             assert all(int(row[k]) <= 1 for k in ('worker_running', 'worker_queued', 'worker_ready'))
         else:
             assert all(not row[k] for k in ('ready_vector_bytes', 'worker_running', 'worker_queued', 'worker_ready'))
-        assert row['logical_status'] == ('resident_reservation' if backend == 'compute' else 'unavailable')
-        if backend == 'compute':
-            assert int(row['overlap_reserved_bytes']) == max(int(row['live_reserved_bytes']), int(row['replacement_reserved_bytes']))
-        else:
-            assert not row['overlap_reserved_bytes']
+        # Fresh CPU/GL 3.3 operation also owns the protected-foliage ledger.
+        # These native fixtures use current configuration, not legacy captures.
+        assert row['logical_status'] == 'resident_reservation'
+        assert int(row['overlap_reserved_bytes']) == max(int(row['live_reserved_bytes']), int(row['replacement_reserved_bytes']))
+        assert int(row['overlap_reserved_bytes']) <= 1024**3
         if row['nvml_status'] == 'ok':
             assert row['context_status'] == 'uuid_verified'
             assert int(row['total_bytes']) > 0
@@ -53,4 +53,4 @@ def validate_memory(path, backend, renderer):
             'dropped_events': int(rows[-1]['dropped_events']),
             'skipped_latest_observations': int(rows[-1]['skipped_latest_observations']),
             'sampled_device_used_peak_bytes': max(physical) if physical else None,
-            'logical_overlap_peak_bytes': max(int(r['overlap_reserved_bytes']) for r in rows) if backend == 'compute' else None}
+            'logical_overlap_peak_bytes': max(int(r['overlap_reserved_bytes']) for r in rows)}

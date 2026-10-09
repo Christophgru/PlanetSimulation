@@ -248,7 +248,10 @@ Identical-model multi-GPU setups deliberately remain unavailable because the
 OpenGL renderer name cannot identify the active physical adapter uniquely.
 FPS uses a rolling wall-clock average over
 roughly 0.25 seconds; GPU timings arrive a few frames later. The interactive
-loop uses vsync without adding a second 16 ms sleep.
+loop uses vsync without adding a second 16 ms sleep. Pass `--uncapped` to
+request rendering without waiting for display refresh; movement still follows
+elapsed wall time. Captures already run uncapped. Count full renders separately
+from cached scene presentation when assessing rendering throughput.
 
 <a href="docs/screenshots/performance-overlay.png"><img src="docs/screenshots/performance-overlay.png" width="640" alt="I performance overlay with a white-bordered black panel showing FPS, frame time, and GPU pass time above atmospheric terrain"></a>
 

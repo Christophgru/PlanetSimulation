@@ -2,7 +2,7 @@
 #include "rendering/diagnostics/tracing/CpuTrace.h"
 #include <algorithm>
 #include <limits>
-#include <map>
+#include <unordered_map>
 #include <queue>
 #include <stdexcept>
 
@@ -33,7 +33,16 @@ void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dv
     constexpr auto absent=std::numeric_limits<std::uint32_t>::max();
     struct Edge {std::array<int,2> faces{-1,-1};std::uint32_t middle=absent;};
     struct Triangle {std::array<std::uint32_t,3> v;double score=0;bool alive=true;};
-    std::map<Key,Edge> edges;
+    struct EdgeHash {
+        std::size_t operator()(const Key& k) const {
+            return std::hash<std::uint64_t>{}((std::uint64_t(k.first)<<32)|k.second);
+        }
+    };
+    // Only keyed lookup is needed: face/queue order determines every split.
+    // A closed triangular shell has 3/2 as many edges as faces. Reserve that
+    // bounded capacity to avoid tree walks and growth during refinement.
+    std::unordered_map<Key,Edge,EdgeHash> edges;
+    edges.reserve(std::size_t(lod_.max_triangle_budget)*3/2);
     std::vector<Triangle> triangles;
     triangles.reserve(2*lod_.max_triangle_budget);
     const auto attach=[&](const std::array<std::uint32_t,3>& v) {
