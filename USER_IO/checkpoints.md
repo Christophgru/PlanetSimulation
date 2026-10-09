@@ -1,5 +1,29 @@
 # Page to document progress of AI Agents working on this Project
 
+## Current NVIDIA feature timings — 2026-10-09
+
+- Restarted after the user closed another renderer instance. Both physical
+  NVIDIA GPUs began at 0% utilization; discarded the contended pilot.
+- Completed 30 primary runs (2,970 retained frames) and six separate CPU
+  diagnostics on Quadro M1000M / RTX 3070 Ti. Verified GPU UUIDs, complete
+  samples, no cached scene renders and unchanged binary/config/ACES asset.
+- Journal: docs/journal/benchmarks/feature-costs/study.md, compact summary,
+  configuration snapshot and vector GPU plot. Reusable runner/reporter:
+  scripts/benchmarks/feature_costs. Raw traces/images/telemetry remain local in
+  build-f5/feature-costs/restarted; no new TODO rows or renderer changes.
+- Warm frame medians: RTX 3.33–6.15 ms, Quadro 23.38–73.78 ms. Quadro startup
+  main atmosphere/HDR is 30.64 ms, opaque 18.39 ms, reflected geometry/atmosphere
+  16.56 ms. These stage scopes do not isolate astronaut or grass shading cost.
+- CPU Earth topology takes about 3.25 s at startup, including 1.46 s shoreline
+  and 1.38–1.41 s surface-error refinement. Walking capture refreshes retain
+  roughly 3.6 s stalls; grass allocation also introduces 84–127 ms GPU bursts.
+  Capture synchronization is not a native UI-stall or sustained-FPS measurement.
+- Preserved the user's unstaged density/width/quad-distance edits in the
+  production config. Adaptive allocation remains active; endpoint grass counts
+  differ between cards, so no fixed-workload hardware speedup is claimed.
+- Python helper compilation, five existing CPU-report tests, pooled data/hash
+  validation, repository layout, whitespace and visual plot checks pass.
+
 ## NASA ACES runtime replacement — 2026-10-09
 
 - User selected NASA ACES; only that astronaut item was implemented. The row is

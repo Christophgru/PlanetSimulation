@@ -442,6 +442,13 @@ records the method, GPU stage costs, raw traces, image agreement, telemetry
 and reproduction commands. Native interactive FPS and CPU-versus-compute
 terrain acceptance remain separate measurements.
 
+The [October 9 feature-cost update](docs/journal/benchmarks/feature-costs/study.md)
+measures the NASA ACES renderer and current 40.72/m² grass configuration on both
+NVIDIA GPUs after closing a competing instance. It separates steady render
+passes from grass-allocation spikes and CPU shoreline/error refinement, with
+three repeats per view, percentile tables and a GPU feature plot. These inputs
+differ from the historical measurements above.
+
 The historical optimization's remaining work was still mostly on the GPU. Moving more CPU algorithms to
 shaders would not address the measured bottleneck: cached CPU mesh preparation
 was about 0.005 ms per frame. The useful reuse rules are now:

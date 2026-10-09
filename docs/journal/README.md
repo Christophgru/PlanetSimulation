@@ -7,6 +7,14 @@ for the storage manifest, relocation and fresh-run commands. Missing archive
 checks report UNAVAILABLE (exit 2), not a pass. Normal builds/tests use source
 fixtures and fresh build output; they do not depend on these old measurements.
 
+The latest [renderer feature-cost study](benchmarks/feature-costs/study.md)
+restarts measurements on both NVIDIA GPUs after closing a competing instance.
+It profiles the NASA ACES renderer with the current grass configuration,
+separating atmosphere/reflections, allocation spikes and CPU terrain refinement.
+Warm RTX views fit 16.67 ms; Quadro rendering and synchronous capture refreshes
+remain above that budget. Compact results and a vector plot are versioned;
+raw traces stay local.
+
 [Read the paper](paper.pdf) or [edit the Typst source](paper.typ). The paper
 explains the physical models behind the renderer, why its approximations were
 chosen, and alternative approaches. It includes 12 generated vector diagrams
