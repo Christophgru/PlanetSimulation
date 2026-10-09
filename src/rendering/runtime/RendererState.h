@@ -12,6 +12,7 @@
 #include "rendering/geometry/publication/TerrainPublication.h"
 #include "rendering/runtime/terrain/reload/LegacySceneReplacement.h"
 #include "rendering/runtime/terrain/reload/SceneTerrainReplacement.h"
+#include "rendering/runtime/terrain/refresh/GrassRefresh.h"
 #include "rendering/diagnostics/PerformanceOverlay.h"
 #include "rendering/diagnostics/OrbitOverlay.h"
 #include "rendering/diagnostics/GpuUtilization.h"
@@ -115,6 +116,9 @@ struct Renderer::Impl {
     std::optional<glm::dvec3> plannedCharacterEye;
     std::optional<TerrainBuildIdentity> residentStage;
     std::uint64_t residentStageAttempt=0;
+    double residentStageSubmittedAt=0;
+    glm::dvec3 residentStageGrassAnchor{0};
+    std::vector<GrassRefresh> grassRefreshMotion;
     std::vector<int> residentStageZones;
     bool residentStageGrassOnly=false,residentRetirementFailed=false;
     std::uint64_t residentFrames=0,residentFrameFailures=0,residentRetryAfter=0;

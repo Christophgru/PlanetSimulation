@@ -22,7 +22,8 @@ def occlusion_depth(points, sampled, normal, view_matrix, scale):
     return depth, np.isfinite(intersection) & (intersection>0)
 
 
-def analyze(folder):
+def analyze(folder, distance_center='astronaut'):
+    assert distance_center in ('astronaut', 'camera')
     folder = Path(folder)
     common = json.loads((folder / 'controls.json').read_text())
     receipt = json.loads((folder / 'receipt.json').read_text())
@@ -60,13 +61,20 @@ def analyze(folder):
     projection = np.array(common['projection']).reshape(4, 4, order='F')
     clip_matrix = projection @ view @ model
     view_matrix = view @ model
+    center = root if distance_center == 'astronaut' else np.linalg.inv(view_matrix)[:3, 3]*scale
+    if distance_center == 'camera':
+        # Ground offsets are relative to the float body-space astronaut root.
+        # Keep that origin for ray/plane visibility, but measure the protected
+        # density band around the actual main eye used by grass placement.
+        raster_origin = (root/scale).astype(np.float32).astype(np.float64)*scale
+        distance = np.linalg.norm(ground[..., :3].astype(np.float64)+raster_origin-center, axis=2)
     generated, visible, faded = np.zeros(3, int), np.zeros(3, int), np.zeros(3, float)
     for q, name in enumerate(('detailed', 'quads')):
         values = np.frombuffer(raw(folder / 'grass' / (name + '.blades')), '<f4').reshape(-1, 16)
         assert len(values) == grass['queues'][q]['instances'] and np.isfinite(values).all()
         assert np.all((values[:, 3] > 0) & (values[:, 3] <= 1))
         points = values[:, :3].astype(np.float64)
-        d = np.linalg.norm(points*scale - root, axis=1)
+        d = np.linalg.norm(points*scale - center, axis=1)
         homogeneous = np.column_stack((points, np.ones(len(points))))
         clip = homogeneous @ clip_matrix.T
         valid = (clip[:, 3] > 0) & np.all(np.abs(clip[:, :3]) <= clip[:, 3:4], axis=1)
@@ -109,8 +117,9 @@ def analyze(folder):
               'scope': receipt['scope'], 'coverage_acceptance': False,
               'eligible_area_method': 'Live triangle raster derivatives times expected biome/rock retention; no Gaussian falloff',
               'root_visibility_method': receipt['root_visibility_method']+'; tolerance 0.15 m',
-              'density_scope': 'Screen-visible generated root centers per expected eligible ground area; not physical blade count'}
-    (folder / 'analysis.json').write_text(json.dumps(result, indent=2) + '\n')
+              'density_scope': 'Screen-visible generated root centers per expected eligible ground area; not physical blade count',
+              'distance_center': distance_center}
+    (folder / ('analysis.json' if distance_center == 'astronaut' else 'camera-analysis.json')).write_text(json.dumps(result, indent=2) + '\n')
     return result
 
 

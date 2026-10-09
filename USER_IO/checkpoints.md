@@ -1,5 +1,64 @@
 # Page to document progress of AI Agents working on this Project
 
+## Latency-aware grass refresh verified on GPU — 2026-10-09
+
+- Existing grass task is t. Interactive refresh observes body-local motion,
+  previews upcoming terrain heights, learns actual clamped surface movement
+  during preparation and advances the grass center within a bounded lead.
+  Publication checks actual coverage after stops/turns; CPU and saved capture
+  schedules, placement reserve, density/capacity settings and ownership persist.
+- Six native production Quadro routes pass at unchanged configuration/scale.
+  The previously failing mountain 320×180 route improves from 36.53 m / seven
+  excess frames to 16.23 m / zero. All routes and their stopping frames stay
+  within 22.5 m. Peak logical 554.08 MiB remains below 1 GiB; sampled device
+  peak 850.06 MiB. UUID is GPU-2cefee61-6b3b-a670-c390-c7449dad3f79.
+- Full build and six focused unit/native/frame/reload/replay groups pass.
+  Extended held-worker stop/reverse checks pass, including true 79.95 m/s in
+  the small fixture, populated near roots and CPU compatibility. Fence fixture
+  ordering was corrected to hold terrain after an independent grass refresh.
+- Blocking production inspections at startup/60 m measure camera-centered
+  protected density 120.82–124.31/m² versus configured 120.72. Actor-centered
+  outer bands include ground beyond the camera's protected radius and thin
+  under the existing adaptive soft budget; near-infeasible flags remain explicit.
+  Production 80 m/s wall speed and global density/60 FPS guarantees are not claimed.
+- Report: docs/journal/architecture/terrain-gpu/grass-refresh/study.md.
+  Repeatable optional hardware check: tests/app/terrain/native/refresh/test_slope.py.
+  All raw output stays ignored under build-f5/grass-refresh and
+  build-f5/terrain-grass-refresh. No new TODO rows and no commit; HEAD is 92b9940.
+  Next queued topic is the existing centimeter terrain refinement row; it was
+  not advanced during this fix.
+
+## GPU restored; fast steep traversal still exceeds grass headroom — 2026-10-09
+
+- NVIDIA device opens, NVML and GLX now work. Every native receipt verifies the
+  Quadro M1000M UUID GPU-2cefee61-6b3b-a670-c390-c7449dad3f79. RTX is visible
+  but these native checks use Quadro. Code remains commit 92b9940.
+- Held-worker regression passes on GPU, with actual 79.97 m/s in the small
+  fixture, seven compute refreshes while terrain is held, populated near roots,
+  and CPU compatibility. This result alone does not certify production density.
+- Six production movement runs use unchanged 100k terrain / 120.72 density,
+  paused orbit, live wind and real input. Both 12 m/s sprint and 1280×720 camera
+  routes stay inside the 22.5 m margin. All grass-only refreshes occur with CPU
+  work pending. No preparation failures; native audits/consumer agreement pass.
+  Logical peak 580,997,736 bytes remains below 1 GiB.
+- Blocking root/eligible-area inspections show startup near density
+  119.25–122.06/m², including a near_infeasible flagged snapshot. Mountain
+  waypoints have no eligible visible ground within the analyzed 0–30 m bands;
+  farther grass is visible. Do not infer missing nearby grass from that biome.
+- Grass TODO stays p: at 320×180 the fast mountain route exceeds its margin in
+  seven frames, max 36.53 m (34.65 m radial change, 10.68 m sphere arc).
+  Allocation costs 89–91 ms GPU; ready takes 124–131 ms and rendered publication
+  147–162 ms. Fixed half-margin refresh is insufficient for fast steep movement.
+  Production 80 m/s input reaches only 44–61 m/s wall travel due to the existing
+  movement-step clamp. A true full-quality 80 m/s claim remains unsupported.
+- Next change belongs to the same existing grass task: measured 3D movement
+  and publication latency should guide refresh/limited lookahead. Keep density,
+  bounded ownership and locked replay. No new TODO rows, runtime edits or commits.
+- Results: docs/journal/architecture/terrain-gpu/grass-refresh/study.md. Raw
+  data remains ignored under build-f5/grass-refresh/{nvidia-regression,
+  production-nvidia,production-speed-nvidia,production-roots}. The earlier
+  diagnostic-settle-roots driver failure is excluded; corrected rerun passed.
+
 ## Grass replenishment implemented; production GPU verification pending — 2026-10-09
 
 - Removed the pending terrain-worker veto from interactive compute grass-only

@@ -16,6 +16,11 @@ FetchContent_MakeAvailable(googletest)
 set(PLANET_FIXTURE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/fixtures/development")
 set(PLANET_FIXTURE_CONFIG "${PLANET_FIXTURE_ROOT}/configs/scenarios/solar_system.json")
 
+add_executable(grass_refresh_tests foliage/refresh/test_prediction.cpp)
+target_link_libraries(grass_refresh_tests PRIVATE GTest::gtest_main glm::glm)
+target_include_directories(grass_refresh_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+add_test(NAME GrassRefreshTests COMMAND grass_refresh_tests)
+
 add_executable(renderer_lifecycle_tests app/test_renderer_lifecycle.cpp app/test_command_line.cpp app/test_offline_quality.cpp
     app/terrain/test_publication.cpp app/terrain/reload/test_scene_replacement.cpp
     app/terrain/reload/test_renderer_reload.cpp)

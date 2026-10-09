@@ -88,6 +88,26 @@ for backend, mode in [('compute', 3), ('compute', 1), ('cpu', 3)]:
             assert last['publication']['interactive_failures'] == 0
         assert all(f['benchmark']['bodies'][0]['foliage']['density'] == 1 and
                    not f['benchmark']['bodies'][0]['foliage']['policy']['near_infeasible'] for f in held)
+        # Let a forward prediction finish after a stop, then reverse while the
+        # terrain builder is still held. Publication must never install a patch
+        # that has lost coverage of the actual camera after its forecast changed.
+        stopped = session.control({'hold_terrain': True, 'phase': 'stopped'})
+        session.wait(lambda f: ready(f) and f['observed_ns'] >= stopped['observed_ns']+1_000_000_000)
+        reverse_first = session.control({'hold_terrain': True, 'phase': 'reversing'})
+        session.down('s')
+        try:
+            def reversed_distance(f):
+                return (f['pose']['walked_m']-reverse_first['pose']['walked_m'] if mode == 3 else
+                        math.dist(f['camera_local'], reverse_first['camera_local'])*1000)
+            reverse_last = session.wait(lambda f: ready(f) and reversed_distance(f) >= 25, timeout=20)
+        finally:
+            session.up('s')
+        assert sum((reverse_last['camera_local'][k]-reverse_first['camera_local'][k]) *
+                   (last['camera_local'][k]-first['camera_local'][k]) for k in range(3)) < 0, 'Route did not reverse'
+        turning = [f for f in session.frames if stopped['frame'] <= f['frame'] <= reverse_last['frame']]
+        turn_offset = max(math.dist(f['benchmark']['surface_target_eye_body'],
+            f['benchmark']['bodies'][0]['foliage']['plan_eye'])*1000 for f in turning)
+        if backend == 'compute': assert turn_offset < margin, (mode, turn_offset)
         session.control({'hold_terrain': False})
         session.wait(lambda f: ready(f) and not f['worker']['running'] and not f['worker']['queued'] and not f['worker']['ready'], timeout=60)
         session.close()
@@ -109,6 +129,7 @@ for backend, mode in [('compute', 3), ('compute', 1), ('cpu', 3)]:
             'wall_speed_mps': traveled(last)/((last['observed_ns']-first['observed_ns'])/1e9),
             'held_frames': len(held), 'grass_refreshes_while_held': len(changes),
             'maximum_plan_offset_m': max(offsets), 'placement_margin_m': margin,
+            'stop_reverse_maximum_offset_m': turn_offset,
             'coverage': coverage, 'audit': validate(session.frames, managed=backend == 'compute')})
         write_json(out/'results.json', results)
         print(results[-1], flush=True)

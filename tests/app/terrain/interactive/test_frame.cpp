@@ -49,7 +49,11 @@ TEST(TerrainFrame, DelayedGpuKeepsBoundedCpuCompletionAndRetainsDrawableRetiredB
     ASSERT_TRUE(until([&]{tick(r);},[&]{return idle(r) && r.terrainPublication->canSubmit(0);}));
     const auto oldBuffer=r.meshes.planetMeshes[0].vbo;const auto oldRevision=r.meshes.planetMeshes[0].revision;
     r.scene.surfaceCamera->walk(1,0,15/(r.scene.surfaceCamera->walkSpeed()*r.scene.scenario.metersPerWorldUnit()));
-    delay=true;ASSERT_TRUE(until([&]{tick(r);},[&]{return r.residentStage && !r.residentStageGrassOnly;}));
+    // Independent grass can win the submission slot while the CPU terrain job
+    // finishes. Select the full terrain stage before holding its fence, rather
+    // than accidentally holding a grass-only stage and starving this test.
+    ASSERT_TRUE(until([&]{tick(r);},[&]{return r.residentStage && !r.residentStageGrassOnly;}));
+    delay=true;
     for(int i=0;i<10;++i) tick(r);
     EXPECT_EQ(r.meshes.planetMeshes[0].revision,oldRevision);draw(r);trace.push_back(r.terrainPublicationState());
     // Complete the real preparation, then hold only the newly created retirement.

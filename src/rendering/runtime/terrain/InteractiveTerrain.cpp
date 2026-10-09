@@ -1,5 +1,6 @@
 #include "rendering/runtime/RendererState.h"
 #include "rendering/foliage/GrassPlacement.h"
+#include <GLFW/glfw3.h>
 #include <algorithm>
 #include <iostream>
 
@@ -83,6 +84,12 @@ void Renderer::Impl::prepareResidentFrame(const glm::dvec3& eye,std::optional<do
         residentRetirementFailed=true;return; // Keep old resources and admission charged.
     }
     if(sceneReloadPreparing()) return; // Lease freezes live generations, not movement/draws.
+    const auto planningEye=[&](const TerrainCpuBuild* build,std::size_t body) {
+        if(!characterElapsed || !residentSceneReady()) return eye;
+        auto contacts=characterTerrainContacts();
+        if(build) contacts[body].bind(build->contacts,meshes.planetMeshes[body].revision+1);
+        return previewAstronautEye(*characterElapsed,std::move(contacts));
+    };
     if(residentStage) {
         const auto k=*residentStage;
         try {
@@ -95,11 +102,21 @@ void Renderer::Impl::prepareResidentFrame(const glm::dvec3& eye,std::optional<do
             }
             else if(terrainPublication->poll()) {
                 profiler.publications().phase(residentStageAttempt,PublicationProfiler::Phase::GpuReady);
-                if(terrainPublication->publish(identityFor(k.bodyIndex),meshes.planetMeshes[k.bodyIndex],meshes.waterMeshes[k.bodyIndex]))
+                const auto& planet=scene.scenario.planets[k.bodyIndex];
+                const auto actual=scene.bodies[k.bodyIndex+1].toLocalPoint(planningEye(nullptr,k.bodyIndex))/planet.radius;
+                const double scale=planet.radius*scene.scenario.metersPerWorldUnit();
+                const bool surfaceMoving=cameraInput.mode()==CameraMode::Surface && scene.surfaceCamera &&
+                    k.bodyIndex==scene.scenario.surface_camera.planet_index && glm::length(astronautFlightControl)>0;
+                if(k.bodyIndex<grassRefreshMotion.size())
+                    grassRefreshMotion[k.bodyIndex].published(glfwGetTime()-residentStageSubmittedAt,actual*scale,
+                        surfaceMoving ? scene.surfaceCamera->walkSpeed()*scene.scenario.metersPerWorldUnit() : 0);
+                const bool covered=!meshReady[k.bodyIndex] || !planet.foliage.enabled ||
+                    GrassRefresh::covers(residentStageGrassAnchor,actual,grassRebuildDistance(planet.foliage)/(planet.radius*scene.scenario.metersPerWorldUnit()));
+                if(covered && terrainPublication->publish(identityFor(k.bodyIndex),meshes.planetMeshes[k.bodyIndex],meshes.waterMeshes[k.bodyIndex]))
                 {
                     recordResidentPublication(k.bodyIndex,residentStageZones,!residentStageGrassOnly);
                     profiler.publications().prepared(residentStageAttempt,publicationGeneration(k.bodyIndex));
-                } else {++terrainRejectedBuilds;profiler.publications().finish(residentStageAttempt,PublicationProfiler::Outcome::Obsolete);}
+                } else {terrainPublication->cancel();++terrainRejectedBuilds;profiler.publications().finish(residentStageAttempt,PublicationProfiler::Outcome::Obsolete);}
                 residentStage.reset();glFlush();
             }
         } catch(const std::exception& error) {
@@ -107,11 +124,30 @@ void Renderer::Impl::prepareResidentFrame(const glm::dvec3& eye,std::optional<do
             terrainPublication->cancel();residentStage.reset();fail(k,error);
         }
     }
-    const auto planningEye=[&](const TerrainCpuBuild* build,std::size_t body) {
-        if(!characterElapsed || !residentSceneReady()) return eye;
-        auto contacts=characterTerrainContacts();
-        if(build) contacts[body].bind(build->contacts,meshes.planetMeshes[body].revision+1);
-        return previewAstronautEye(*characterElapsed,std::move(contacts));
+    const auto world=planningEye(nullptr,0);
+    const double motionTime=glfwGetTime(),meters=scene.scenario.metersPerWorldUnit();
+    grassRefreshMotion.resize(scene.scenario.planets.size());
+    for(std::size_t i=0;i<grassRefreshMotion.size();++i)
+        grassRefreshMotion[i].observe(scene.bodies[i+1].toLocalPoint(world)*meters,motionTime,
+            terrainSceneEpoch,static_cast<int>(cameraInput.mode()),grassRebuildDistance(scene.scenario.planets[i].foliage));
+    const auto refreshPath=[&](std::size_t i,const glm::dvec3& actual) {
+        auto path=grassRefreshMotion[i].predict(actual);
+        if(!cameraInput.walkingMode() || !scene.scenario.planets[i].foliage.enabled || !identityFor(i).localMask) {
+            path.fill(actual);return path;
+        }
+        if(cameraInput.mode()==CameraMode::Surface && scene.surfaceCamera &&
+           i==scene.scenario.surface_camera.planet_index) {
+            // Sparse canonical height queries on a camera copy capture steep
+            // upcoming elevation changes; no live movement/contact state changes.
+            auto preview=*scene.surfaceCamera;
+            path[0]=actual;
+            for(std::size_t j=1;j<path.size();++j) {
+                preview.walk(static_cast<int>(astronautFlightControl.x),static_cast<int>(astronautFlightControl.y),
+                    grassRefreshMotion[i].surfaceHorizon()/(path.size()-1));
+                path[j]=scene.bodies[i+1].toLocalPoint(preview.position())*meters;
+            }
+        }
+        return path;
     };
     if(const auto ready=terrainJobs.readyIdentity()) {
         if(!matches(*ready)) {
@@ -125,10 +161,15 @@ void Renderer::Impl::prepareResidentFrame(const glm::dvec3& eye,std::optional<do
             try {
                 auto built=completed->take();auto zones=built.geometry.faceZones;
                 const auto world=planningEye(&built,k.bodyIndex);
-                const auto anchor=scene.bodies[k.bodyIndex+1].toLocalPoint(world)/scene.scenario.planets[k.bodyIndex].radius;
+                const auto actual=scene.bodies[k.bodyIndex+1].toLocalPoint(world)*meters;
+                const auto& planet=scene.scenario.planets[k.bodyIndex];
+                const auto anchor=GrassRefresh::anchor(refreshPath(k.bodyIndex,actual),grassRebuildDistance(planet.foliage))/(planet.radius*meters);
                 profiler.terrainBuild(built.milliseconds);
                 profiler.publications().phase(attempt,PublicationProfiler::Phase::GpuSubmit);
                 GpuWorkProfiler::Attempt binding(attempt);
+                residentStageSubmittedAt=glfwGetTime();
+                residentStageGrassAnchor=anchor;
+                grassRefreshMotion[k.bodyIndex].submitted(actual);
                 if(!terrainPublication->submit(std::move(built),k,scene.scenario.planets[k.bodyIndex],
                     scene.scenario.metersPerWorldUnit(),anchor,meshes.planetMeshes[k.bodyIndex],meshes.waterMeshes[k.bodyIndex],*terrainCompute))
                     throw std::logic_error("Resident preparation slot became busy");
@@ -168,7 +209,6 @@ void Renderer::Impl::prepareResidentFrame(const glm::dvec3& eye,std::optional<do
         terrainJobs.submit(std::move(*candidate));
     }
     if(residentStage || !residentSceneReady()) return;
-    const auto world=planningEye(nullptr,0);
     for(std::size_t i=0;i<scene.scenario.planets.size();++i) {
         const auto& planet=scene.scenario.planets[i];
         // Grass can reuse the installed terrain while its replacement is still
@@ -178,18 +218,20 @@ void Renderer::Impl::prepareResidentFrame(const glm::dvec3& eye,std::optional<do
         const auto current=identityFor(i);
         if(current.localMask!=lastLocalMask[i]) continue;
         if(terrainFailures[i] && residentFrames<residentRetryAfter) continue;
-        const auto anchor=scene.bodies[i+1].toLocalPoint(world)/planet.radius;
+        const double scale=planet.radius*meters,margin=grassRebuildDistance(planet.foliage);
+        const auto path=refreshPath(i,scene.bodies[i+1].toLocalPoint(world)*meters);
+        const auto anchor=GrassRefresh::anchor(path,margin)/scale;
         const auto previous=grass.procedural.planningEye(i);
-        // Spend only half of the existing placement margin before refreshing;
-        // leave the other half for nonblocking GPU preparation/publication.
-        // Capture/replay keeps its original refresh schedule and margin.
-        if(!grass.procedural.policyChanged(i) && previous && glm::length(anchor-*previous)*planet.radius*scene.scenario.metersPerWorldUnit()<0.5*grassRebuildDistance(planet.foliage)) continue;
+        if(!grass.procedural.policyChanged(i) && previous && !GrassRefresh::needsRefresh(path,*previous*scale,margin)) continue;
         const auto k=terrainPublication->installed(i).identity;
         auto key=PublicationProfiler::Key::from(k);key.eye={anchor.x,anchor.y,anchor.z};
         const auto attempt=profiler.publications().begin(key,PublicationProfiler::Kind::Grass);
         try {
             profiler.publications().phase(attempt,PublicationProfiler::Phase::GpuSubmit);
             GpuWorkProfiler::Attempt binding(attempt);
+            residentStageSubmittedAt=glfwGetTime();
+            residentStageGrassAnchor=anchor;
+            grassRefreshMotion[i].submitted(path.front());
             if(terrainPublication->submitGrass(i,planet,scene.scenario.metersPerWorldUnit(),anchor,
                 meshes.planetMeshes[i],meshes.waterMeshes[i])) {
                 residentStage=k;residentStageAttempt=attempt;residentStageGrassOnly=true;glFlush();break;
