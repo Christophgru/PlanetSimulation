@@ -1,6 +1,0 @@
-PASS all 22 unchanged game-gallery PNGs match retained generation hashes
-PASS CTest RepositoryLayout: 1/1 tests (0.27 s)
-PASS game sources/shaders/configs/tests/CMake and gallery/capture records unchanged from task base
-PASS manual review: all nine complete, uncropped actual-GLB previews; clear backs; comparison PNG
-PASS Typst PDF rebuild (24 pages); PNG exports and manual layout review for pages 20–24
-PASS asset checker: manifest recorded, then every recorded artifact hash verified

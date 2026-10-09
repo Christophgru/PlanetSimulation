@@ -1,3 +1,0 @@
-PASS compile --root . docs/journal/paper.typ docs/journal/paper.pdf
-PASS compile -j 2 --root . --format png --pages 20- docs/journal/paper.typ page-{p}.png
-PASS 24-page PDF; pages 20–24 visually reviewed

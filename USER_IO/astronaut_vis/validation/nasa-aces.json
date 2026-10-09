@@ -1,0 +1,74 @@
+{
+  "key": "nasa-aces",
+  "triangles": 88872,
+  "source_triangles": 88872,
+  "display_yaw_degrees": -90,
+  "vertices": 126027,
+  "meshes": 1,
+  "skins": 0,
+  "animations": 0,
+  "normalized_height_m": 2,
+  "source_sha256": "6017772d557c30ea86e2e3a7651ad2089499f3d0c577b983467650616bfaebeb",
+  "materials": [
+    "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_aceshelme.007",
+    "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_aceshelme.008",
+    "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_aceshelme.009",
+    "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_anisotrop.002",
+    "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_blinn1SG.003",
+    "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_blinn2SG.003",
+    "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_blinn3SG.003",
+    "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_lambert3S.002",
+    "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_lambert4S.002",
+    "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_lambert5S.002",
+    "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_lambert6S.002",
+    "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_lambert8S.002",
+    "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_shoe_lamb.004",
+    "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_shoe_lamb.005"
+  ],
+  "opaque_transmission_repairs": [
+    "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_aceshelme.007",
+    "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_aceshelme.008",
+    "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_aceshelme.009",
+    "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_anisotrop.002",
+    "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_blinn1SG.003",
+    "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_blinn2SG.003",
+    "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_blinn3SG.003",
+    "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_lambert3S.002",
+    "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_lambert4S.002",
+    "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_lambert5S.002",
+    "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_lambert6S.002",
+    "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_lambert8S.002",
+    "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_shoe_lamb.004",
+    "acesjustforroomshow:ACES_INTERIOR_OBJ_ACES8_sized_shoe_lamb.005"
+  ],
+  "textures": [],
+  "blender_version": "4.5.4 LTS",
+  "views": {
+    "front": {
+      "file": "nasa-aces.png",
+      "sha256": "19bc65fcbf2a5aab00434bfc09862f1937a3d7472555e252a0e1e0cba47dd9f8",
+      "resolution": [
+        900,
+        1080
+      ]
+    },
+    "back": {
+      "file": "views/nasa-aces-back.png",
+      "sha256": "f34cabd6ea4837450e90c690f784923ea996ea15fba04d6b52f7005f58fa7cdc",
+      "resolution": [
+        900,
+        1080
+      ]
+    },
+    "detail": {
+      "file": "views/nasa-aces-detail.png",
+      "sha256": "2f948a05c62252028259d8f8483294f2520154ae5d985c19f33a5d43bb272b1c",
+      "resolution": [
+        900,
+        1080
+      ]
+    }
+  },
+  "render_engine": "CYCLES",
+  "render_device": "GPU"
+}

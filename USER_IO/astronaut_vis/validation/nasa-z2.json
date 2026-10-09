@@ -1,0 +1,68 @@
+{
+  "key": "nasa-z2",
+  "triangles": 30904,
+  "source_triangles": 30904,
+  "display_yaw_degrees": 0,
+  "vertices": 50864,
+  "meshes": 1,
+  "skins": 0,
+  "animations": 0,
+  "normalized_height_m": 2,
+  "source_sha256": "4199762c27f8e730030a7bf9f1a453c203457e84c33b36247c0237a74f9a0c2a",
+  "materials": [
+    "Baked"
+  ],
+  "opaque_transmission_repairs": [],
+  "textures": [
+    {
+      "name": "z2_Bump_s",
+      "size": [
+        4096,
+        4096
+      ]
+    },
+    {
+      "name": "z2_Color_s",
+      "size": [
+        4096,
+        4096
+      ]
+    },
+    {
+      "name": "z2_spec_color_s",
+      "size": [
+        4096,
+        4096
+      ]
+    }
+  ],
+  "blender_version": "4.5.4 LTS",
+  "views": {
+    "front": {
+      "file": "nasa-z2.png",
+      "sha256": "64a3e09f2fdbc073b962261cc7fee0c920eca46267e5f4e9a2a5d53b268c52cb",
+      "resolution": [
+        900,
+        1080
+      ]
+    },
+    "back": {
+      "file": "views/nasa-z2-back.png",
+      "sha256": "f226f49e4b747fdd9bb2dd5d98a4ef6ffc59f0b5131e9e7bb1fa5abac864e030",
+      "resolution": [
+        900,
+        1080
+      ]
+    },
+    "detail": {
+      "file": "views/nasa-z2-detail.png",
+      "sha256": "e434ee4f0998f79f17e2295a2fb194b9ccba1e9009769aa3db926df5a7ff5d76",
+      "resolution": [
+        900,
+        1080
+      ]
+    }
+  },
+  "render_engine": "CYCLES",
+  "render_device": "GPU"
+}

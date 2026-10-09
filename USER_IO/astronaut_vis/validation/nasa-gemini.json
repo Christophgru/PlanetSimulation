@@ -1,0 +1,63 @@
+{
+  "key": "nasa-gemini",
+  "triangles": 114067,
+  "source_triangles": 114463,
+  "display_yaw_degrees": 180,
+  "vertices": 61846,
+  "meshes": 1,
+  "skins": 0,
+  "animations": 0,
+  "normalized_height_m": 2,
+  "source_sha256": "972096ada3f5f4bfb54cd636e103f096f4ecf8d5bbc7dae40778c0185fa82266",
+  "materials": [
+    "GeminiSuit:Gemini9_sized_Head1",
+    "GeminiSuit:Gemini9_sized_blinn13SG1",
+    "GeminiSuit:Gemini9_sized_blinn1SG1",
+    "GeminiSuit:Gemini9_sized_blinn2SG1",
+    "GeminiSuit:Gemini9_sized_lambert12SG1",
+    "GeminiSuit:Gemini9_sized_lambert4SG1",
+    "GeminiSuit:Gemini9_sized_lambert5SG1",
+    "GeminiSuit:Gemini9_sized_lambert8SG1",
+    "GeminiSuit:Gemini9_sized_mercuryhelmetsmoothed_blinn1SG1",
+    "GeminiSuit:Gemini9_sized_neclace_lambert4SG1",
+    "GeminiSuit:Gemini9_sized_shoeleftSG1",
+    "GeminiSuit:TEMPORARY_IMPORT_NAMESPACE_GeminiSuit:Gemini9_si",
+    "GeminiSuit:TEMPORARY_IMPORT_NAMESPACE_GeminiSuit:Gemini9_si.001",
+    "GeminiSuit:TEMPORARY_IMPORT_NAMESPACE_GeminiSuit:Gemini9_si.002",
+    "GeminiSuit:TEMPORARY_IMPORT_NAMESPACE_GeminiSuit:Gemini9_siz",
+    "GeminiSuit:TEMPORARY_IMPORT_NAMESPACE_GeminiSuit:Gemini9_size",
+    "GeminiSuit:TEMPORARY_IMPORT_NAMESPACE_GeminiSuit:Gemini9_sized",
+    "GeminiSuit:TEMPORARY_IMPORT_NAMESPACE_GeminiSuit:Gemini9_sized_"
+  ],
+  "opaque_transmission_repairs": [],
+  "textures": [],
+  "blender_version": "4.5.4 LTS",
+  "views": {
+    "front": {
+      "file": "nasa-gemini.png",
+      "sha256": "0626d719895a3893d384ca09c61561f127d22ddd66669369b6e16df947b06d2b",
+      "resolution": [
+        900,
+        1080
+      ]
+    },
+    "back": {
+      "file": "views/nasa-gemini-back.png",
+      "sha256": "2231d96d24df450ed49922bd5adcc4c7ea73c4ff049a6214e75d949ac28139e0",
+      "resolution": [
+        900,
+        1080
+      ]
+    },
+    "detail": {
+      "file": "views/nasa-gemini-detail.png",
+      "sha256": "a8735a0aac0bced0c93c54b3d7765d6f1c91898cea8c7bcea45a8757661fd101",
+      "resolution": [
+        900,
+        1080
+      ]
+    }
+  },
+  "render_engine": "CYCLES",
+  "render_device": "GPU"
+}

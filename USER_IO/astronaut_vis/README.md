@@ -1,86 +1,99 @@
-# Astronaut candidates
+# Detailed astronaut comparison — 2026-10-09
 
-Three downloaded, skinned humanoid models are prepared for comparison. Open
-the PNGs below, or import each model's `astronaut.glb` into Blender or a glTF
-viewer. The matching `astronaut.blend` has packed textures and an editable rig.
-All three delivered versions have clear backs for a separately mounted jetpack.
+Five new NASA meshes are rendered locally below, replacing the three rejected
+low-poly candidates. Each has a full-body, rear and close-up image. These are
+**visual studies, not animation-ready replacements**: inspection of the actual
+files found zero skins, bones and animation clips. Gemini is a historical
+comparison, not a proposed modern design. The existing TODO remains in progress.
 
-![Three astronaut candidates](comparison.png)
+![Five locally rendered spacesuits](comparison.png)
 
-| Candidate | Prepared triangles | Rig | License | Front | Back | Walking pose |
-| --- | ---: | --- | --- | --- | --- | --- |
-| AstroDev / Fernando Ferreira | 1,442 | 25 bones; separate leg roots | CC0 1.0 | [View](astrodev.png) | [View](views/astrodev-back.png) | [View](views/astrodev-walk.png) |
-| Polygonal Mind: Astronaut #048 | 3,478 | 58 bones; humanoid hip/knee/ankle chains | CC BY 4.0 retained | [View](polygonal-astronaut.png) | [View](views/polygonal-astronaut-back.png) | [View](views/polygonal-astronaut-walk.png) |
-| Polygonal Mind: Square Cosmonaut #111 | 4,506 | 78 bones; humanoid hip/knee/ankle chains | CC BY 4.0 retained | [View](polygonal-cosmonaut.png) | [View](views/polygonal-cosmonaut-back.png) | [View](views/polygonal-cosmonaut-walk.png) |
+| Actual downloaded model | Triangles | Full body | Rear / backpack | Close-up |
+|:--|--:|:--|:--|:--|
+| [Z2](https://science.nasa.gov/3d-resources/z2-spacesuit/) | 30,904 | [Render](nasa-z2.png) | [Render](views/nasa-z2-back.png) | [Render](views/nasa-z2-detail.png) |
+| [Extravehicular Mobility Unit](https://science.nasa.gov/3d-resources/extravehicular-mobility-unit/) | 343,455 | [Render](nasa-emu.png) | [Render](views/nasa-emu-back.png) | [Render](views/nasa-emu-detail.png) |
+| [Mark III](https://science.nasa.gov/3d-resources/mark-iii-spacesuit/) | 69,202 | [Render](nasa-mark-iii.png) | [Render](views/nasa-mark-iii-back.png) | [Render](views/nasa-mark-iii-detail.png) |
+| [Advanced Crew Escape Suit](https://science.nasa.gov/3d-resources/advanced-crew-escape-suit/) | 88,872 | [Render](nasa-aces.png) | [Render](views/nasa-aces-back.png) | [Render](views/nasa-aces-detail.png) |
+| [Gemini, historical](https://science.nasa.gov/3d-resources/gemini-spacesuit/) | 114,067 | [Render](nasa-gemini.png) | [Render](views/nasa-gemini-back.png) | [Render](views/nasa-gemini-detail.png) |
 
-Square Cosmonaut offers the slimmest suit and a familiar humanoid bone map.
-AstroDev is a lightweight conventional white suit with a gold visor; its
-multiple leg roots need an explicit mapping when retargeting. Astronaut #048
-is the most cartoon-like option. These are stylized game candidates; they
-have less surface detail than the unavailable Ava Turing reference.
+[Rear contact sheet](views/back-comparison.png) ·
+[Close-up contact sheet](views/detail-comparison.png).
+Counts are measured on the imported geometry, with no artificial subdivision.
+Gemini's source has 114,463 indexed triangles, including 396 repeated-index
+degenerates discarded by Blender; these are independently counted in the GLB.
+The EMU's pack/hand attachments remain visibly rough despite its high count.
+Original base colours, textures, packs and poses are retained. Display transforms
+normalize each suit to 2 m; cameras and studio lighting are shared. Close-ups
+intentionally crop the lower body. Packs are shown so attachment/removal work
+can be assessed rather than hidden.
 
-## Files and preparation
+## Rigged alternatives to inspect next
 
-Each folder in [models/](models/) retains the downloaded source, texture,
-creator/license record, editable prepared Blender file, self-contained GLB
-and inspection report. The original AstroDev source refers to a PSD palette;
-the prepared files use its converted PNG and embed that image. Original files
-retain their original geometry, including backpacks where present.
+The pictures here are **official listing previews**, not our local renders.
+The actual downloads require sign-in; their rigs and deformation have not been
+tested locally. Source URLs, credits and advertised licenses are recorded in
+[references/sources.json](references/sources.json). No purchase was made.
 
-The **prepared** AstroDev model removes the integrated backpack, closes the
-torso and uses the original white palette on the new faces. Square Cosmonaut
-removes its disconnected backpack. Astronaut #048 had no backpack. Preparation
-keeps limb geometry, normalizes height to 2 m, gives all models a common facing
-direction, retains four normalized skin weights per vertex and uses a common
-roughness for studio comparison. Original suit colors are retained.
+![Official previews of rigged alternatives; rigs not inspected locally](references/comparison.png)
 
-`InspectionWalk` is a new one-second FK loop made for this study. It bends
-both thighs, knees and ankles and demonstrates skin deformation. It is an
-inspection animation, not a finished walking controller: terrain contacts,
-stance locking, sprint/jump clips and integration with the game's ozz IK still
-need implementation after a model is chosen. The runtime currently uses the
-procedural astronaut.
+| Model | Detail and movement evidence | Access / fit |
+|:--|:--|:--|
+| [To the Stars — dark_igorek](https://sketchfab.com/3d-models/to-the-stars-astronaut-9c55bc97e009454cb768e3c9c84dbac4) | Official API: 124,946 triangles, 68,629 vertices, zero clips; listing tagged rigged. [Official preview](references/9c55bc97e009454cb768e3c9c84dbac4.jpg). | CC BY 4.0; sign-in download. Closest futuristic female design to the requested Ava direction; skinning, retargeting, fingers and pack separation still need file inspection. |
+| [EMU — Juan Ignacio Gil-Hutton / jgilhutton](https://blendswap.com/blend/12622) | Author describes a complete rig and unapplied multires sculpt detail at level 3. [Author render](references/12622.jpg). | CC-BY; sign-in download. Strong detailed animation candidate, but author notes finger/shoulder issues; compatibility and multires artifacts need testing. License version and any embedded third-party credits must be read from the download before integration. |
+| [Astronaut — Antropik](https://sketchfab.com/3d-models/astronaut-482bf87662fd4b378bcb3a2931d59ca3) | Official API: 19,584 triangles and five animation clips. [Official preview](references/482bf87662fd4b378bcb3a2931d59ca3.jpg). | CC BY 4.0; sign-in download. Practical realistic textured fallback, with less geometry than the high-poly request. Clips do not establish good walking deformation without inspection. |
+| [Futuristic astronaut — soph](https://blendswap.com/blend/22902) | Author describes a rig and basic walking animation. [Author render](references/22902.jpg). | CC0; sign-in download. Slim futuristic silhouette, but its appearance is less realistic; retain as a style comparison rather than a preferred high-detail choice. |
 
-The actual GLBs were imported again and sampled through the loop before
-rendering nine views at 900×1080, using Blender 3.4.1 Eevee, 48 samples and Mesa
-llvmpipe with eight workers. Validation checks leg chains, normalized weights, finite deformations,
-loop closure, packed textures, source hashes and the saved PNGs. Full results
-and artifact hashes are in [manifest.json](manifest.json) and [validation/](validation/).
+For a paid comparison, [BlenderKit's Astronaut Rigged](https://www.blendkit.com/asset-gallery-detail/aac348f9-efc9-49b9-9951-b713b1ca8990/)
+advertises a detailed realistic rig and PBR materials; its download requires the
+Full Plan. No file, rig, polygon count or redistribution rights were verified.
+The supplied [Ava Turing reference](https://sketchfab.com/3d-models/ava-turing-the-turing-test-3dea4809201645a69e97214c048bd856)
+remains a visual reference, not an acquired asset.
 
-## Creator credits
+The five NASA studies do **not** close the request for five modern, detailed,
+well-animating models. The next useful step is to inspect acquired rigged files
+for joint chains, weights, knee/shoulder/finger deformation, animation export,
+pack removal and the grey/blue suit with German arm flag. Runtime integration
+follows a suitable choice; the procedural astronaut remains in use.
 
-**Low Poly/Mobile Astronaut** by AstroDev, Fernando Ferreira (`zisongbr`),
-downloaded from [OpenGameArt](https://opengameart.org/content/low-polymobile-astronaut-rigged-and-blend),
-released under [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/).
-Changes are described above and in its inspection report.
+## Sources and reproduction
 
-**Astronaut #048** and **Square Cosmonaut #111** by Polygonal Mind, downloaded
-from the creator's [100Avatars repository](https://github.com/PolygonalMind/100Avatars).
-The retained [repository license](https://github.com/PolygonalMind/100Avatars/blob/master/CCLicense.md)
-is [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Newer releases and
-VRM metadata declare CC0; these copies keep the repository's attribution,
-license and modification records. Each `source.json` pins the downloaded
-repository revision and file hashes. These asset licenses remain separate
-from the application's code license.
+NASA Z2 credit: NASA / LaRC / Advanced Concepts Lab. The other four: NASA /
+Michael D. Carbajal. The [NASA repository](https://github.com/nasa/NASA-3D-Resources)
+describes these assets as free and without copyright; its linked
+[NASA usage guidelines](https://www.nasa.gov/nasa-brand-center/images-and-media/)
+still apply, including NASA identifiers and endorsement restrictions. This
+study does not assert that the files carry a Creative Commons license.
 
-## Reproduce
+[sources.json](sources.json) pins repository revision
+`11ebb4ee043715aefbba6aeec8a61746fad67fa7`, file sizes and original SHA256 hashes.
+The original GLBs, Blender installation, rejected candidate backup and verbose
+logs stay local under ignored `build-f5/astronaut-next`; no downloaded model
+executables or Python scripts are run. Committed artifacts are previews,
+provenance, compact render receipts and reproducible scripts.
 
-The optional tools are `blender`, `python3-numpy`, `libarchive-tools` and
-ImageMagick. Run from the repository root with the retained source files:
+Use Blender **4.5.4 LTS** with NumPy and its bundled Draco importer. Blender 3.4
+produced broken specular materials and failed embedded-image checks and is not
+supported by this preview recipe. Cycles uses the RTX 3070 Ti when available,
+otherwise CPU, with 64 samples and denoising. The original GLBs are imported
+directly with their embedded images. In the preview scene only, full transmission
+with IOR=1 is reset to opaque: some NASA exports assign that combination even to
+cloth and hardware, making the suit transparent in Cycles. Each receipt lists
+the affected materials; partially transmitting visors remain untouched.
+Downloaded files and geometry are not altered.
 
 ```sh
-PYTHONPATH=/usr/lib/python3/dist-packages blender -b --disable-autoexec --python-exit-code 1 -t 2 -P scripts/character/prepare_models.py
-for candidate in astrodev polygonal-astronaut polygonal-cosmonaut; do
-  PYTHONPATH=/usr/lib/python3/dist-packages LIBGL_ALWAYS_SOFTWARE=1 LP_NUM_THREADS=8 xvfb-run -a blender -b --disable-autoexec --python-exit-code 1 -t 8 -P scripts/character/render_models.py -- --model "$candidate"
+python3 scripts/character/fetch_realistic.py
+for model in nasa-z2 nasa-emu nasa-mark-iii nasa-aces nasa-gemini; do
+  build-f5/astronaut-next/blender-4.5.4-linux-x64/blender -b --disable-autoexec --python-exit-code 1 -t 8 -P scripts/character/render_realistic.py -- --model "$model"
 done
-MAGICK_THREAD_LIMIT=1 convert USER_IO/astronaut_vis/astrodev.png USER_IO/astronaut_vis/polygonal-astronaut.png USER_IO/astronaut_vis/polygonal-cosmonaut.png +append USER_IO/astronaut_vis/comparison.png
-python3 scripts/character/check_models.py --record
-python3 scripts/character/check_models.py
+MAGICK_THREAD_LIMIT=1 python3 scripts/character/compare_realistic.py
+python3 scripts/character/check_realistic.py --record --with-models
+python3 scripts/character/check_realistic.py --with-models
+python3 scripts/check_layout.py
 ```
 
-The scripts disable downloaded Python execution. The renderer includes the
-NumPy alias compatibility required by Debian Blender 3.4's glTF importer.
-Each candidate renders in a separate process. `--views back walk` can resume
-selected views; `--audit-only` repeats imported deformation checks without rendering.
-Blender's unavailable optional Draco encoder does not affect these
-uncompressed, self-contained GLBs.
+The validator checks five imported meshes' recorded geometry counts, source
+hashes, zero rig/clip claims, 15 complete 900×1080 PNGs, three labelled contact
+sheets and published artifact hashes. It cannot establish animation suitability
+for the unavailable rigged files. The earlier rejected asset study can be
+recovered from commit `a316d1a` and the local backup.

@@ -1,0 +1,116 @@
+{
+  "key": "nasa-emu",
+  "triangles": 343455,
+  "vertices": 442172,
+  "meshes": 1,
+  "skins": 0,
+  "animations": 0,
+  "normalized_height_m": 2,
+  "source_sha256": "4dd79f1f8e02ab39bc15d87a7bbeda1f437e1103ab7661f7797340e0c114f372",
+  "materials": [
+    "EMU:emusuit21_blinn12SG",
+    "EMU:emusuit21_blinn1SG",
+    "EMU:emusuit21_blinn2SG",
+    "EMU:emusuit21_blinn3SG",
+    "EMU:emusuit21_body_lambert2SG",
+    "EMU:emusuit21_emusuit4_justbody_blinn3SG",
+    "EMU:emusuit21_emusuit4_justbody_lambert2SG",
+    "EMU:emusuit21_emusuit5_blinn1SG",
+    "EMU:emusuit21_emusuit5_blinn2SG",
+    "EMU:emusuit21_emusuit5_blinn3SG",
+    "EMU:emusuit21_emusuit5_jetpack2SG",
+    "EMU:emusuit21_emusuit5_lambert2SG",
+    "EMU:emusuit21_emusuit5_lambert3SG",
+    "EMU:emusuit21_emusuit5_lambert5SG",
+    "EMU:emusuit21_jetpack2SG",
+    "EMU:emusuit21_lambert10SG",
+    "EMU:emusuit21_lambert11SG",
+    "EMU:emusuit21_lambert2SG",
+    "EMU:emusuit21_lambert3SG",
+    "EMU:emusuit21_lambert4SG",
+    "EMU:emusuit21_lambert5SG",
+    "EMU:emusuit21_lambert7SG",
+    "EMU:emusuit21_lambert8SG",
+    "EMU:emusuit21_lambert9SG",
+    "EMU:initialShadingGroup"
+  ],
+  "opaque_transmission_repairs": [
+    "EMU:emusuit21_blinn12SG",
+    "EMU:emusuit21_blinn2SG",
+    "EMU:emusuit21_blinn3SG",
+    "EMU:emusuit21_body_lambert2SG",
+    "EMU:emusuit21_emusuit4_justbody_blinn3SG",
+    "EMU:emusuit21_emusuit4_justbody_lambert2SG",
+    "EMU:emusuit21_emusuit5_blinn2SG",
+    "EMU:emusuit21_emusuit5_blinn3SG",
+    "EMU:emusuit21_emusuit5_jetpack2SG",
+    "EMU:emusuit21_emusuit5_lambert2SG",
+    "EMU:emusuit21_emusuit5_lambert3SG",
+    "EMU:emusuit21_emusuit5_lambert5SG",
+    "EMU:emusuit21_jetpack2SG",
+    "EMU:emusuit21_lambert10SG",
+    "EMU:emusuit21_lambert11SG",
+    "EMU:emusuit21_lambert2SG",
+    "EMU:emusuit21_lambert3SG",
+    "EMU:emusuit21_lambert4SG",
+    "EMU:emusuit21_lambert5SG",
+    "EMU:emusuit21_lambert7SG",
+    "EMU:emusuit21_lambert8SG",
+    "EMU:emusuit21_lambert9SG",
+    "EMU:initialShadingGroup"
+  ],
+  "textures": [
+    {
+      "name": "emusuitbox4",
+      "size": [
+        1000,
+        1032
+      ]
+    },
+    {
+      "name": "emusuitFLAGpatch",
+      "size": [
+        582,
+        564
+      ]
+    },
+    {
+      "name": "emusuitvitruvianpatch",
+      "size": [
+        582,
+        564
+      ]
+    }
+  ],
+  "blender_version": "4.5.4 LTS",
+  "views": {
+    "front": {
+      "file": "nasa-emu.png",
+      "sha256": "4c0cc2d188e7a58672340b65ed788b26335b424707e43146524c09d65109b80e",
+      "resolution": [
+        900,
+        1080
+      ]
+    },
+    "back": {
+      "file": "views/nasa-emu-back.png",
+      "sha256": "bc34995ebad3de88d503fb75c4a820edabcda2752c655be08e729bbe6f343a5b",
+      "resolution": [
+        900,
+        1080
+      ]
+    },
+    "detail": {
+      "file": "views/nasa-emu-detail.png",
+      "sha256": "5edb5f364010134b26b3761e92409f9786ab4cc0034addd76ae34d04fb9b4902",
+      "resolution": [
+        900,
+        1080
+      ]
+    }
+  },
+  "render_engine": "CYCLES",
+  "render_device": "GPU",
+  "source_triangles": 343455,
+  "display_yaw_degrees": 180
+}

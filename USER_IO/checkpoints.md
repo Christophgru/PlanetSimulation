@@ -1,5 +1,41 @@
 # Page to document progress of AI Agents working on this Project
 
+## Detailed astronaut renders — 2026-10-09
+
+- Continued only the requested astronaut comparison. The existing row remains p;
+  no additional TODO rows. Five new NASA mesh studies have 15 local front/rear/
+  close-up renders and three labelled comparison sheets. Gallery and source notes:
+  USER_IO/astronaut_vis/README.md; journal: docs/journal/character/assets.md.
+- Rejected AstroDev/Polygonal Mind preview assets and obsolete scripts are removed
+  from the active tree. Historical revision a316d1a and ignored local backup
+  build-f5/astronaut-next/rejected-low-poly preserve them. Runtime code/config and
+  the procedural astronaut are unchanged.
+- NASA source revision 11ebb4ee043715aefbba6aeec8a61746fad67fa7 is pinned by
+  SHA256 and length. Imported triangles: Z2 30,904; EMU 343,455; Mark III 69,202;
+  ACES 88,872; Gemini 114,067. Gemini's 396 repeated-index degenerates are counted
+  independently and discarded on import. All five actual files have zero skins,
+  bones and clips: they do not close the modern animation-ready model request.
+- Blender 3.4 produced broken specular/image results. Final renders use original
+  GLBs in Blender 4.5.4 LTS / Cycles, RTX 3070 Ti CUDA, 64 samples, denoising,
+  a shared studio and 2 m display height. Preview-only full-transmission/IOR=1
+  repairs restore opaque cloth/hardware; receipts list each affected material.
+  Original geometry, colours/textures and partially transmitting visors remain.
+  EMU attachments are visibly rough; Gemini is explicitly historical.
+- Four clearly labelled official rigged-candidate previews are separate from
+  our renders. To the Stars is closest to the Ava visual direction; jgilhutton's
+  rigged multires EMU offers sculpt detail but needs control/finger/multires checks.
+  Antropik has five advertised clips; soph has a basic walk but less realism.
+  Sign-in downloads remain unavailable. A paid BlenderKit option is linked,
+  without purchase or claimed redistribution/animation verification.
+- Fetch/import/image/source/count/hash checks, Python compilation, repository
+  layout and git whitespace checks pass. Original models, Blender, rejected
+  backup and verbose logs stay ignored/local; no large source/model dumps staged.
+- Reproduce using scripts/character/{fetch,render,compare,check}_realistic.py;
+  commands are in the gallery. Resume within the same row by inspecting acquired
+  preferred rigs: license/credits, joint chains/weights, walking/sprint/jump/flight
+  and finger/shoulder/knee deformation, export and pack separation, then grey/blue
+  details and German arm flag before runtime integration.
+
 ## Bounded centimeter terrain and physical noise — 2026-10-09
 
 - Continued the existing terrain row, which remains p; no new TODO chain.

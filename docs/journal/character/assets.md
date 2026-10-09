@@ -1,69 +1,58 @@
-# Downloaded astronaut candidates — 2026-10-03
+# Detailed astronaut mesh studies — 2026-10-09
 
-Three downloaded humanoid candidates, editable rigs and local renders are in
-[USER_IO/astronaut_vis](../../../USER_IO/astronaut_vis/README.md). This is an
-asset comparison; the game continues to render its procedural character.
+The rejected AstroDev and Polygonal Mind preview assets and their preparation
+scripts were removed from the active tree. Their historical study is retained
+in commit `a316d1a`; a local backup stays in ignored
+`build-f5/astronaut-next/rejected-low-poly`. The runtime procedural astronaut
+is still used while a suitable animated replacement is selected.
 
-| Candidate | Prepared geometry | Skeleton | Preparation |
-| --- | ---: | ---: | --- |
-| AstroDev / Fernando Ferreira | 1,442 triangles | 25 bones | Remove integrated backpack, cap torso, convert original PSD palette; explicit leg-root mapping needed. |
-| Polygonal Mind: Astronaut #048 | 3,478 triangles | 58 bones | No backpack; retain humanoid limb chains and original painted appearance. |
-| Polygonal Mind: Square Cosmonaut #111 | 4,506 triangles | 78 bones | Remove disconnected backpack; retain humanoid hip, knee and ankle chains. |
+[The new comparison](../../../USER_IO/astronaut_vis/README.md) contains five
+actual NASA mesh studies, each rendered in front, rear and close-up views with
+Blender 4.5.4 LTS / Cycles, 64 samples and denoising on the RTX 3070 Ti. A shared
+studio and 2 m display height make geometry and backpack shapes comparable.
+Original downloads are pinned by repository revision, length and SHA256 and
+stay local. No model Python or executable content is run. Published artifacts
+are PNGs, compact receipts, provenance and regeneration scripts.
 
-![Locally rendered astronaut candidates](../../../USER_IO/astronaut_vis/comparison.png)
+| Mesh | Imported triangles | Rig / clips | Selection finding |
+|:--|--:|:--|:--|
+| Z2 | 30,904 | None | Most relevant NASA prototype silhouette; original texture detail is retained, but the integrated rear shell needs planning for a custom jetpack. |
+| EMU | 343,455 | None | Much denser suit geometry, but pack/hand attachments have visible roughness; count alone does not establish suitability. |
+| Mark III | 69,202 | None | Articulated-looking suit structure; animation still requires an actual skeleton and weights. |
+| Advanced Crew Escape Suit | 88,872 | None | Detailed cloth alternative; a launch/escape suit rather than a preferred planetary EVA design. |
+| Gemini | 114,067 | None | Historical style comparison only; not a modern candidate. Source includes 396 repeated-index degenerate triangles discarded on import. |
 
-The delivered versions have clear backs for the project's own jetpack. Raw
-sources are retained separately; two originals include backpacks. Each
-prepared Blender file embeds its texture. The GLBs contain their own mesh,
-skin, texture and a named `InspectionWalk` clip. The models retain their
-original colors; normalization sets a 2 m height, common facing and studio
-roughness. Limb geometry is preserved. Four skin weights per vertex are
-selected and normalized before both export and deformation checks.
+These five files do not satisfy the complete request for modern high-detail,
+well-animating astronauts. The existing TODO remains **p**, without additional
+rows. Official previews and credits for dark_igorek's To the Stars, jgilhutton's
+rigged multires EMU, Antropik's animated astronaut and soph's futuristic rig
+are provided separately and explicitly labelled as listing images. Their
+sign-in downloads are not acquired; advertised rigs and clips are not claimed
+as tested. To the Stars is visually closest to the Ava direction; jgilhutton's
+rig and sculpted multires mesh merit inspection, including its documented
+finger/shoulder and multires compatibility issues. A paid BlenderKit option is
+linked for comparison only, without purchase or a claimed license grant.
 
-Square Cosmonaut is the closest of these candidates to a slim suit, with
-standard humanoid retargeting names. AstroDev is a compact white/gold suit.
-Astronaut #048 is more cartoon-like. These accessible stylized candidates are
-less detailed than Ava Turing. Sketchfab's official download endpoints still
-require authentication, and the supplied Ava model is not downloadable.
-Public creator downloads supplied these alternatives without an account.
+The first Debian Blender 3.4 preview pass exposed invalid specular calculations
+and embedded-image loading failures. The final recipe imports original GLBs in
+Blender 4.5.4. Some NASA exports also mark opaque cloth/hardware as fully
+transmitting with IOR=1: that exact combination is reset to opaque in the
+inspection scene, with affected materials listed in each receipt. Partial visor
+transmission and original base colours/textures are retained. No geometry or
+downloaded file is changed. NASA / Michael D. Carbajal and NASA / LaRC / Advanced
+Concepts Lab credits, source pages and NASA media-use guidance are in the gallery.
 
-## Animation evidence
+Reproduction uses `scripts/character/fetch_realistic.py`,
+`render_realistic.py`, `compare_realistic.py` and `check_realistic.py`.
+The validator checks original file hashes, imported/source counts, zero skin
+and clip claims, all 15 full-resolution PNGs, three contact sheets and published
+artifact hashes; layout and whitespace checks also pass. Game source and
+configuration are unchanged, so game build/tests are not repeated for this
+asset inspection. Local rendering logs and downloaded Blender stay ignored.
 
-The source files were inspected rather than inferring rig quality from tags.
-Each delivered rig has a connected thigh–shin–foot chain on both sides, skin
-weights and an editable neutral pose. A newly authored one-second FK cycle
-tests knee bending and ankle compensation. The prepared models are sampled
-at 31 poses each, checking finite and bounded deformation and moving ankles.
-The exported GLBs are then imported again and sampled at 17 poses each,
-checking normalized weights, retained chains, deformation and loop closure.
-The front, rear and quarter-cycle render of each model comes from its actual
-GLB. These checks establish that the assets can deform for walking, not the
-naturalness of a production gait.
-
-The inspection loop is not a terrain contact solver or a 6/12 m/s locomotion
-animation. Integrating the chosen model requires skinning/material import,
-bone mapping and base animation, followed by the existing planted-foot IK.
-AstroDev's legs start in separate root branches; a common actor transform
-must move those branches together when adapting the pelvis.
-
-## Source and validation records
-
-AstroDev's [original listing](https://opengameart.org/content/low-polymobile-astronaut-rigged-and-blend)
-declares CC0 1.0. Polygonal Mind's
-[100Avatars files](https://github.com/PolygonalMind/100Avatars)
-retain the creator's [CC BY 4.0 repository license](https://github.com/PolygonalMind/100Avatars/blob/master/CCLicense.md),
-credits and modification notes, despite newer releases and VRM metadata
-declaring CC0. Source records pin the downloaded revision and SHA-256 hashes.
-Original model licenses remain separate from the application code license.
-
-[The manifest](../../../USER_IO/astronaut_vis/manifest.json) records geometry,
-skin counts, imported pose checks and artifact hashes. [Validation logs](../../../USER_IO/astronaut_vis/validation/)
-retain preparation, rendering and independent GLB/PNG checks. Reproduction
-uses `scripts/character/prepare_models.py`, `render_models.py` and
-`check_models.py`; the output README gives the complete commands and credits.
-Blender, NumPy and archive tools are optional asset-study dependencies.
-
-The game C++ sources, shaders, production scene and the 22-image game gallery
-were untouched. Validation for this task is the asset pipeline, hash checks,
-repository layout and rebuilt journal PDF; the previous game checkpoint's
-56-entry CTest result remains its own evidence.
+Still required within the same astronaut item: acquire a preferred detailed rig,
+verify licensing/embedded credits, inspect joint chains and weights, sample
+walking/sprint/jump/flight and knee/shoulder/finger deformation, check animation
+export and pack separation, and prepare grey/blue details with the German arm
+flag before runtime integration. These are selection/integration requirements,
+not separate invented TODOs.

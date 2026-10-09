@@ -1,0 +1,100 @@
+[
+  {
+    "uid": "9c55bc97e009454cb768e3c9c84dbac4",
+    "name": "\ud83d\udcabTo the Stars\ud83d\udcab || Astronaut",
+    "author": "dark_igorek",
+    "triangles": 124946,
+    "vertices": 68629,
+    "animations": 0,
+    "license": {
+      "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+      "label": "CC Attribution",
+      "fullName": "Creative Commons Attribution",
+      "requirements": "Author must be credited. Commercial use is allowed.",
+      "url": "http://creativecommons.org/licenses/by/4.0/",
+      "slug": "by"
+    },
+    "url": "https://sketchfab.com/3d-models/to-the-stars-astronaut-9c55bc97e009454cb768e3c9c84dbac4",
+    "image_url": "https://media.sketchfab.com/models/9c55bc97e009454cb768e3c9c84dbac4/thumbnails/c032e722a8ef4e90bc3a0ebf01960157/a970cc9852924559b8dd15a90608127c.jpeg",
+    "image_file": "9c55bc97e009454cb768e3c9c84dbac4.jpg",
+    "tags": [
+      "nasa",
+      "vintage",
+      "startrek",
+      "clothes",
+      "stars",
+      "astronaut",
+      "starfleet",
+      "realistic",
+      "woman",
+      "Costume",
+      "spacegirl",
+      "poster",
+      "outfit",
+      "retrofuturism",
+      "rigged-character",
+      "starfield",
+      "character",
+      "blender",
+      "art",
+      "lowpoly",
+      "free",
+      "characterdesign",
+      "space",
+      "retrovibe"
+    ],
+    "is_downloadable": true,
+    "description": "# To the Stars \ud83d\udcab\n\nIn the silent depths of space, the Space Patrol calls to those who feel the pull of the unknown. It\u2019s an invitation for explorers seeking new horizons and the mysteries hidden among the stars!\n\nCaptain Aryana H. awaits those ready to journey into the unknown. Join her crew, and let the next star mark the beginning of your story \ud83d\ude80\n\n---\n\n![](https://cdnb.artstation.com/p/assets/images/images/094/199/823/large/igor-oskolskiy-sp-1.webp?1764748381)",
+    "checked": "2026-10-09"
+  },
+  {
+    "uid": "482bf87662fd4b378bcb3a2931d59ca3",
+    "name": "astronaut",
+    "author": "Antropik",
+    "triangles": 19584,
+    "vertices": 9864,
+    "animations": 5,
+    "license": {
+      "uri": "https://api.sketchfab.com/v3/licenses/322a749bcfa841b29dff1e8a1bb74b0b",
+      "label": "CC Attribution",
+      "fullName": "Creative Commons Attribution",
+      "requirements": "Author must be credited. Commercial use is allowed.",
+      "url": "http://creativecommons.org/licenses/by/4.0/",
+      "slug": "by"
+    },
+    "url": "https://sketchfab.com/3d-models/astronaut-482bf87662fd4b378bcb3a2931d59ca3",
+    "image_url": "https://media.sketchfab.com/models/482bf87662fd4b378bcb3a2931d59ca3/thumbnails/4cd17ca1fc9e41d590d009c4ce655942/e91f5f94b084405db34b22eac389b317.jpeg",
+    "image_file": "482bf87662fd4b378bcb3a2931d59ca3.jpg",
+    "tags": [
+      "astronaut",
+      "Roblox",
+      "substancepainter",
+      "character",
+      "3d",
+      "blender",
+      "space",
+      "astronautmodel"
+    ],
+    "is_downloadable": true,
+    "description": "Hi everybody. This is my second personal job. I made this astronaut for my roblox game. I did it pretty quickly. I tried to reduce the number of polygons as much as possible. 19584 polygons, 1 UV map, texture rendering in 4k format. modeling in blender, adobe substance painter textures. I hope you enjoy it. I will be glad if you support us on artstation https://www.artstation.com/artwork/Jv4kQa",
+    "checked": "2026-10-09"
+  },
+  {
+    "uid": "12622",
+    "name": "Astronaut - EMU suit - Rigged",
+    "author": "jgilhutton",
+    "url": "https://blendswap.com/blend/12622",
+    "license": "CC-BY",
+    "image_file": "12622.jpg",
+    "image_url": "https://blendswap.com/blend_previews/12622/0/0?v=5855ce3c"
+  },
+  {
+    "uid": "22902",
+    "name": "Astronaut",
+    "author": "soph",
+    "url": "https://blendswap.com/blend/22902",
+    "license": "CC0",
+    "image_file": "22902.jpg",
+    "image_url": "https://blendswap.com/blend_previews/22902/0/0?v=79c45da6"
+  }
+]

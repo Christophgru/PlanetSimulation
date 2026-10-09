@@ -1,169 +1,40 @@
 {
-  "date_utc": "2026-10-03T10:15:59+00:00",
-  "renderer": "Blender 3.4.1 / Eevee / Mesa llvmpipe / 8 workers / 48 samples / 900x1080",
-  "scope": "Three downloaded stylized humanoid candidates, prepared without backpacks; asset study only",
-  "models": [
-    {
-      "id": "astrodev",
-      "source": {
-        "creator": "AstroDev, Fernando Ferreira (zisongbr)",
-        "name": "Low Poly/Mobile Astronaut",
-        "page": "https://opengameart.org/content/low-polymobile-astronaut-rigged-and-blend",
-        "license": "CC0-1.0",
-        "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
-        "source_url": "https://opengameart.org/sites/default/files/astronaut.zip",
-        "archive_sha256": "f7d3c93e6e2d12741a3d067a8ad11ff06fae18234f80b362ae1f47f0d23cc99b",
-        "source_sha256": {
-          "blend": "9e4fe0fb15a0a112cb647534f138b0ca8f76c6be47ea55b87df4d7995aca3ee4",
-          "palette_png": "f5420c08e5248a3b8b70e3f8f3e316c9da2c377675c0b090357195ffbb994360"
-        },
-        "archive_member": "astronaut/astro.blend",
-        "palette_member": "astronaut/astro_pallet.psd",
-        "palette_conversion": "convert astro_pallet.psd[0] palette.png"
-      },
-      "prepared_triangles": 1442,
-      "skin_joints": 25,
-      "exported_vertices": 1395,
-      "preview": "astrodev.png",
-      "back_preview": "views/astrodev-back.png",
-      "walk_preview": "views/astrodev-walk.png",
-      "model": "models/astrodev/astronaut.glb",
-      "blend": "models/astrodev/astronaut.blend",
-      "backpack_present": false
-    },
-    {
-      "id": "polygonal-astronaut",
-      "source": {
-        "creator": "Polygonal Mind",
-        "name": "Astronaut",
-        "page": "https://github.com/PolygonalMind/100Avatars/tree/ff07c2ad0017819c4e5366656ee1e5bcc4029bd4/100Avatars_048",
-        "repository_revision": "ff07c2ad0017819c4e5366656ee1e5bcc4029bd4",
-        "license": "CC-BY-4.0 (retained repository license; VRM metadata and newer releases also declare CC0)",
-        "license_url": "https://creativecommons.org/licenses/by/4.0/",
-        "source_urls": {
-          "fbx": "https://raw.githubusercontent.com/PolygonalMind/100Avatars/ff07c2ad0017819c4e5366656ee1e5bcc4029bd4/100Avatars_048/100Avatars_048_Astronaut.fbx",
-          "png": "https://raw.githubusercontent.com/PolygonalMind/100Avatars/ff07c2ad0017819c4e5366656ee1e5bcc4029bd4/100Avatars_048/100Avatars_048_Astronaut.png"
-        },
-        "source_sha256": {
-          "fbx": "3f289e81463008446ac21453ea81781dbe3f437dc8de52598844698dc5f27fcb",
-          "png": "a9a33c6553851fa4086a435c8ca497ace126c260bb644fc014f9eb42dc5178a9"
-        }
-      },
-      "prepared_triangles": 3478,
-      "skin_joints": 58,
-      "exported_vertices": 2317,
-      "preview": "polygonal-astronaut.png",
-      "back_preview": "views/polygonal-astronaut-back.png",
-      "walk_preview": "views/polygonal-astronaut-walk.png",
-      "model": "models/polygonal-astronaut/astronaut.glb",
-      "blend": "models/polygonal-astronaut/astronaut.blend",
-      "backpack_present": false
-    },
-    {
-      "id": "polygonal-cosmonaut",
-      "source": {
-        "creator": "Polygonal Mind",
-        "name": "SquareCosmonaut",
-        "page": "https://github.com/PolygonalMind/100Avatars/tree/ff07c2ad0017819c4e5366656ee1e5bcc4029bd4/100Avatars_111",
-        "repository_revision": "ff07c2ad0017819c4e5366656ee1e5bcc4029bd4",
-        "license": "CC-BY-4.0 (retained repository license; VRM metadata and newer releases also declare CC0)",
-        "license_url": "https://creativecommons.org/licenses/by/4.0/",
-        "source_urls": {
-          "fbx": "https://raw.githubusercontent.com/PolygonalMind/100Avatars/ff07c2ad0017819c4e5366656ee1e5bcc4029bd4/100Avatars_111/100Avatars_111_SquareCosmonaut.fbx",
-          "png": "https://raw.githubusercontent.com/PolygonalMind/100Avatars/ff07c2ad0017819c4e5366656ee1e5bcc4029bd4/100Avatars_111/100Avatars_111_SquareCosmonaut.png"
-        },
-        "source_sha256": {
-          "fbx": "65333c30546dea69a3a2b2eb05408f2ea951670ae253525c829ee53021afe1f5",
-          "png": "a1d480f93cbcb63ed474cb6321eb95c472ac0d7ad5e857a017dbf4b9b101add6"
-        }
-      },
-      "prepared_triangles": 4506,
-      "skin_joints": 78,
-      "exported_vertices": 4118,
-      "preview": "polygonal-cosmonaut.png",
-      "back_preview": "views/polygonal-cosmonaut-back.png",
-      "walk_preview": "views/polygonal-cosmonaut-walk.png",
-      "model": "models/polygonal-cosmonaut/astronaut.glb",
-      "blend": "models/polygonal-cosmonaut/astronaut.blend",
-      "backpack_present": false
-    }
-  ],
-  "roundtrip": [
-    {
-      "model": "astrodev",
-      "vertices": 1395,
-      "bones": 25,
-      "weighted_vertices": 1395,
-      "finite_pose_samples": 17,
-      "loop_closure_m": 0.0,
-      "ankle_travel_m": {
-        "left": 0.19090722894095669,
-        "right": 0.19500463480878863
-      },
-      "max_vertex_travel_m": 0.2066239176947684
-    },
-    {
-      "model": "polygonal-astronaut",
-      "vertices": 2317,
-      "bones": 58,
-      "weighted_vertices": 2317,
-      "finite_pose_samples": 17,
-      "loop_closure_m": 0.0,
-      "ankle_travel_m": {
-        "left": 0.15939069216636384,
-        "right": 0.15924860407324193
-      },
-      "max_vertex_travel_m": 0.165722353737825
-    },
-    {
-      "model": "polygonal-cosmonaut",
-      "vertices": 4118,
-      "bones": 78,
-      "weighted_vertices": 4118,
-      "finite_pose_samples": 17,
-      "loop_closure_m": 0.0,
-      "ankle_travel_m": {
-        "left": 0.33544665895100567,
-        "right": 0.3354166534257443
-      },
-      "max_vertex_travel_m": 0.3640438966916164
-    }
-  ],
-  "artifact_sha256": {
-    "USER_IO/astronaut_vis/README.md": "c4490bf83ae3358129f1856ea90ada6495b24b78a13f4aae4070c36853591fa0",
-    "USER_IO/astronaut_vis/astrodev.png": "bf25bdae2afccee2f3267989311c0b00ec91accbb70ba72d5e16fc1f1c9cb245",
-    "USER_IO/astronaut_vis/comparison.png": "580ce733636adb2524b009029fb0850e156ba59b614c64fbbfd0987501ece73f",
-    "USER_IO/astronaut_vis/models/astrodev/LICENSE.txt": "9d7c2e925c97450a526b5c8b0473bf32693b70ac24137b2f0df1f04427963e53",
-    "USER_IO/astronaut_vis/models/astrodev/astronaut.blend": "5a2607f6015396676b3b61b53b37743ac2c3bfe07fc2d7926a5d728f233bf63e",
-    "USER_IO/astronaut_vis/models/astrodev/astronaut.glb": "7ccbdd0c6d40fdc1aaddabd6f000d72778765d218a89e03e5da444db4a650cff",
-    "USER_IO/astronaut_vis/models/astrodev/inspection.json": "209d7ccfbbaa496ccfcc44eae09684681f0070f583c67d9b4a31c72e8337ecc1",
-    "USER_IO/astronaut_vis/models/astrodev/palette.png": "f5420c08e5248a3b8b70e3f8f3e316c9da2c377675c0b090357195ffbb994360",
-    "USER_IO/astronaut_vis/models/astrodev/source.blend": "9e4fe0fb15a0a112cb647534f138b0ca8f76c6be47ea55b87df4d7995aca3ee4",
-    "USER_IO/astronaut_vis/models/astrodev/source.json": "3577a26d932c8bcbf00a86e208129a75f030d1f8d342b3551169921734bf82cb",
-    "USER_IO/astronaut_vis/models/polygonal-astronaut/LICENSE.txt": "0a54383c20db1700d6b6d2a1b4ce0811bc6120e58f01c37655f7fa6c377ed718",
-    "USER_IO/astronaut_vis/models/polygonal-astronaut/astronaut.blend": "c705c7a136f9086872611d70485b7ed2ffa5f00e845ce1680062e91ce44f4f1b",
-    "USER_IO/astronaut_vis/models/polygonal-astronaut/astronaut.glb": "35f9e3d0a13f2dccc4d3ebc1dce0508fefe78cb5276b0b8ca9ec931500bcd205",
-    "USER_IO/astronaut_vis/models/polygonal-astronaut/inspection.json": "492818c73314bb267c0bdb3a8b8a0de07846ede37ddd9452c7f25a0b9bb4bc96",
-    "USER_IO/astronaut_vis/models/polygonal-astronaut/source.fbx": "3f289e81463008446ac21453ea81781dbe3f437dc8de52598844698dc5f27fcb",
-    "USER_IO/astronaut_vis/models/polygonal-astronaut/source.json": "d0022783dea907b09a3f87f09efc4d02f12d83d88e365b8aded1164d682a99a9",
-    "USER_IO/astronaut_vis/models/polygonal-astronaut/source.png": "a9a33c6553851fa4086a435c8ca497ace126c260bb644fc014f9eb42dc5178a9",
-    "USER_IO/astronaut_vis/models/polygonal-cosmonaut/LICENSE.txt": "0a54383c20db1700d6b6d2a1b4ce0811bc6120e58f01c37655f7fa6c377ed718",
-    "USER_IO/astronaut_vis/models/polygonal-cosmonaut/astronaut.blend": "a4a5e49d8e4dbd8a35481766c400570cd2678f0a802e495d09c100ed046808ac",
-    "USER_IO/astronaut_vis/models/polygonal-cosmonaut/astronaut.glb": "7a2104a3d7d7dc9f210c9971930849d56ee3c07454a50c5a82c94275b2053089",
-    "USER_IO/astronaut_vis/models/polygonal-cosmonaut/inspection.json": "2f4f5a1e183634678659edcfd0b5e40472465ad89ffe2b80a4d99fce0c06473d",
-    "USER_IO/astronaut_vis/models/polygonal-cosmonaut/source.fbx": "65333c30546dea69a3a2b2eb05408f2ea951670ae253525c829ee53021afe1f5",
-    "USER_IO/astronaut_vis/models/polygonal-cosmonaut/source.json": "fb85440064073d939a09fd8fadf232de196ca694ba1df7d065d92383cea3e273",
-    "USER_IO/astronaut_vis/models/polygonal-cosmonaut/source.png": "a1d480f93cbcb63ed474cb6321eb95c472ac0d7ad5e857a017dbf4b9b101add6",
-    "USER_IO/astronaut_vis/polygonal-astronaut.png": "f0de5c829bcc147b7ed3b85a8ecfacf19fd748a55a563c4be9dc42aeee2a6fa4",
-    "USER_IO/astronaut_vis/polygonal-cosmonaut.png": "e0d6f45804e430d7ce6760c63f1a5b465633762707a2de9da5b4a4ef287aae1a",
-    "USER_IO/astronaut_vis/views/astrodev-back.png": "db21f4d87a3f05c5df3dff7092daa5e0bbcff57d793b67977eb4d140923ce17a",
-    "USER_IO/astronaut_vis/views/astrodev-walk.png": "25117eb3f821b933c011aa074fedfd295a1b02f9078b3e88f72fa513be272177",
-    "USER_IO/astronaut_vis/views/polygonal-astronaut-back.png": "a1c9b151790a02e58899bc934d05f66d090de530a1ce6dfd3eca9f79420737f0",
-    "USER_IO/astronaut_vis/views/polygonal-astronaut-walk.png": "a165932a4783b19a0e9d4c5925c836b32fc71e92b5d261dce98e9f69e5233080",
-    "USER_IO/astronaut_vis/views/polygonal-cosmonaut-back.png": "af8aec7ff555b2c2cb241b906ef712816e2e249329d3bbb6c1bfbe39fdeca943",
-    "USER_IO/astronaut_vis/views/polygonal-cosmonaut-walk.png": "64e7ed4056d608c77da09d5bf53f88bcd94071bbda70ed5a75ff3f7fafd5643c",
-    "scripts/character/check_models.py": "516549a1e23856433aba20769c806d14bd19299e4b8d7ba82c2b600c5d958e10",
-    "scripts/character/prepare_models.py": "f9623dda2e8db7978e465eba37f19fba271785b7917acde470227f4938a00aa0",
-    "scripts/character/render_models.py": "752e99c752ccb513a00528e06e828fc7ec353553fdc1bf62d2b5b3b82e7ba2cf"
+  "schema": 2,
+  "artifacts": {
+    "USER_IO/astronaut_vis/README.md": "850378faacb755ebfdacbacc4d21f4b24f70751b5c4d30074c6fcd924a054e72",
+    "USER_IO/astronaut_vis/comparison.png": "952638304be6e9cb083207bf86c6b64d274f655a1ae5f30b84a9feb198f14ef0",
+    "USER_IO/astronaut_vis/nasa-aces.png": "19bc65fcbf2a5aab00434bfc09862f1937a3d7472555e252a0e1e0cba47dd9f8",
+    "USER_IO/astronaut_vis/nasa-emu.png": "4c0cc2d188e7a58672340b65ed788b26335b424707e43146524c09d65109b80e",
+    "USER_IO/astronaut_vis/nasa-gemini.png": "0626d719895a3893d384ca09c61561f127d22ddd66669369b6e16df947b06d2b",
+    "USER_IO/astronaut_vis/nasa-mark-iii.png": "ba7e9427800e6fe58fca71f0942f1e56b8587d99b44836327912ae7bae21e9d8",
+    "USER_IO/astronaut_vis/nasa-z2.png": "64a3e09f2fdbc073b962261cc7fee0c920eca46267e5f4e9a2a5d53b268c52cb",
+    "USER_IO/astronaut_vis/references/12622.jpg": "6254745c4e2a7850bb075d040e5e54ff08638b14f5855d4079595adc081eb156",
+    "USER_IO/astronaut_vis/references/22902.jpg": "99da04594d93d5f5fc931ca8c40eabd19dcada86678399d30040dd65cd2cba66",
+    "USER_IO/astronaut_vis/references/482bf87662fd4b378bcb3a2931d59ca3.jpg": "40039c60adfa59ef10efc154dd070650f9f02144c1350c3361d2a936ab84b52d",
+    "USER_IO/astronaut_vis/references/9c55bc97e009454cb768e3c9c84dbac4.jpg": "442332f52f109efb3393f2561c3780646a44b4c06d9e1512c40722963db3c67e",
+    "USER_IO/astronaut_vis/references/comparison.png": "052a0194c09a351955e6a7c5fd3925bbd5b9dbf0ba04c1106f68df367a1f65c8",
+    "USER_IO/astronaut_vis/references/sources.json": "d3a886bf1c7e3b97a919207e326596ad273055b136188682ca1b586d9e5d362b",
+    "USER_IO/astronaut_vis/sources.json": "08ccaff9f20b97b15209d0a2e714fd32d246e39597dfc7848bc22eae8d60326c",
+    "USER_IO/astronaut_vis/validation/nasa-aces.json": "bb01c8487d26d2e2e55fb388f64428ea51fc9e264f77743681f53225fa1afa86",
+    "USER_IO/astronaut_vis/validation/nasa-emu.json": "f96693ccc9026065ea7411e179cf1760cbd486c8e46175b69ab88cf00ffb2eda",
+    "USER_IO/astronaut_vis/validation/nasa-gemini.json": "87964726c61fdc027900da47ea33340f8c0e0e32536510a983c4cbfa213aaeea",
+    "USER_IO/astronaut_vis/validation/nasa-mark-iii.json": "a3b85222f1158c8b99d1a8336e0cc2ae0c01de1526e6687ab9720c64209a6691",
+    "USER_IO/astronaut_vis/validation/nasa-z2.json": "adb58e3117b380ac7f3a2689d4a0bebe8d5f310abc4698b6d5530b4afe8f44c4",
+    "USER_IO/astronaut_vis/views/back-comparison.png": "c0717c50386b77e56ff6e1d2bc21f76b17fe28ed18893c51fa6bb5f367172101",
+    "USER_IO/astronaut_vis/views/detail-comparison.png": "7c1a75a784d9d043b58fd6dc7b265826abc69fe1c8eb7753cfd78277fcfd512e",
+    "USER_IO/astronaut_vis/views/nasa-aces-back.png": "f34cabd6ea4837450e90c690f784923ea996ea15fba04d6b52f7005f58fa7cdc",
+    "USER_IO/astronaut_vis/views/nasa-aces-detail.png": "2f948a05c62252028259d8f8483294f2520154ae5d985c19f33a5d43bb272b1c",
+    "USER_IO/astronaut_vis/views/nasa-emu-back.png": "bc34995ebad3de88d503fb75c4a820edabcda2752c655be08e729bbe6f343a5b",
+    "USER_IO/astronaut_vis/views/nasa-emu-detail.png": "5edb5f364010134b26b3761e92409f9786ab4cc0034addd76ae34d04fb9b4902",
+    "USER_IO/astronaut_vis/views/nasa-gemini-back.png": "2231d96d24df450ed49922bd5adcc4c7ea73c4ff049a6214e75d949ac28139e0",
+    "USER_IO/astronaut_vis/views/nasa-gemini-detail.png": "a8735a0aac0bced0c93c54b3d7765d6f1c91898cea8c7bcea45a8757661fd101",
+    "USER_IO/astronaut_vis/views/nasa-mark-iii-back.png": "3d1dd56097806475e5064cc04e84683f10085a85a2c15d8ee67ff53eec23828c",
+    "USER_IO/astronaut_vis/views/nasa-mark-iii-detail.png": "c2e9849d2aea409ea0f9c3e8a9ede60c4988569fdfb735168efc28fec971a7b9",
+    "USER_IO/astronaut_vis/views/nasa-z2-back.png": "f226f49e4b747fdd9bb2dd5d98a4ef6ffc59f0b5131e9e7bb1fa5abac864e030",
+    "USER_IO/astronaut_vis/views/nasa-z2-detail.png": "e434ee4f0998f79f17e2295a2fb194b9ccba1e9009769aa3db926df5a7ff5d76",
+    "scripts/character/check_realistic.py": "f6d56617487ca0292504604adf3dca37210018410eb4644509cc162c7f571a9e",
+    "scripts/character/compare_realistic.py": "a9699f26e733fbe8c3fa0091e98e4e05dbde236436efe580a829b7813df8b027",
+    "scripts/character/fetch_realistic.py": "ab33f766f7039747110ffcb52734ee3258f63f42601060ebfb9a9ad231f56251",
+    "scripts/character/render_realistic.py": "b975e6e481efe1e895a7df9a2cdb2e725285c5e0d7a576b8a6e30676bec85b8c"
   }
 }

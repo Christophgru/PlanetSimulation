@@ -1,0 +1,81 @@
+{
+  "key": "nasa-mark-iii",
+  "triangles": 69202,
+  "display_yaw_degrees": -90,
+  "vertices": 101935,
+  "meshes": 1,
+  "skins": 0,
+  "animations": 0,
+  "normalized_height_m": 2,
+  "source_sha256": "885a4a83bd9d18f3886c8201845e384c0a9acb0cb487fb2897846d9f0438ab51",
+  "materials": [
+    "MKIII:MarkIII_8sizedwithoutskeleton_blinn1SG",
+    "MKIII:MarkIII_8sizedwithoutskeleton_blinn2SG",
+    "MKIII:MarkIII_8sizedwithoutskeleton_bluesteelSG",
+    "MKIII:MarkIII_8sizedwithoutskeleton_hand_lambert2SG",
+    "MKIII:MarkIII_8sizedwithoutskeleton_lambert2SG",
+    "MKIII:MarkIII_8sizedwithoutskeleton_lambert3SG",
+    "MKIII:MarkIII_8sizedwithoutskeleton_lambert4SG",
+    "MKIII:MarkIII_8sizedwithoutskeleton_lambert5SG",
+    "MKIII:MarkIII_8sizedwithoutskeleton_lambert6SG",
+    "MKIII:MarkIII_8sizedwithoutskeleton_markiiitorso_lambert2SG",
+    "MKIII:MarkIII_8sizedwithoutskeleton_steel2SG",
+    "MKIII:MarkIII_8sizedwithoutskeleton_suitcolormappedlegsSG",
+    "MKIII:bodyrings_blinn2SG",
+    "MKIII:bodyrings_steelholesSG"
+  ],
+  "opaque_transmission_repairs": [
+    "MKIII:MarkIII_8sizedwithoutskeleton_blinn2SG",
+    "MKIII:MarkIII_8sizedwithoutskeleton_bluesteelSG",
+    "MKIII:MarkIII_8sizedwithoutskeleton_hand_lambert2SG",
+    "MKIII:MarkIII_8sizedwithoutskeleton_lambert2SG",
+    "MKIII:MarkIII_8sizedwithoutskeleton_lambert3SG",
+    "MKIII:MarkIII_8sizedwithoutskeleton_lambert4SG",
+    "MKIII:MarkIII_8sizedwithoutskeleton_lambert5SG",
+    "MKIII:MarkIII_8sizedwithoutskeleton_lambert6SG",
+    "MKIII:MarkIII_8sizedwithoutskeleton_markiiitorso_lambert2SG",
+    "MKIII:MarkIII_8sizedwithoutskeleton_steel2SG",
+    "MKIII:MarkIII_8sizedwithoutskeleton_suitcolormappedlegsSG",
+    "MKIII:bodyrings_blinn2SG",
+    "MKIII:bodyrings_steelholesSG"
+  ],
+  "textures": [
+    {
+      "name": "texturelogo",
+      "size": [
+        700,
+        700
+      ]
+    }
+  ],
+  "blender_version": "4.5.4 LTS",
+  "views": {
+    "front": {
+      "file": "nasa-mark-iii.png",
+      "sha256": "ba7e9427800e6fe58fca71f0942f1e56b8587d99b44836327912ae7bae21e9d8",
+      "resolution": [
+        900,
+        1080
+      ]
+    },
+    "back": {
+      "file": "views/nasa-mark-iii-back.png",
+      "sha256": "3d1dd56097806475e5064cc04e84683f10085a85a2c15d8ee67ff53eec23828c",
+      "resolution": [
+        900,
+        1080
+      ]
+    },
+    "detail": {
+      "file": "views/nasa-mark-iii-detail.png",
+      "sha256": "c2e9849d2aea409ea0f9c3e8a9ede60c4988569fdfb735168efc28fec971a7b9",
+      "resolution": [
+        900,
+        1080
+      ]
+    }
+  },
+  "render_engine": "CYCLES",
+  "render_device": "GPU",
+  "source_triangles": 69202
+}

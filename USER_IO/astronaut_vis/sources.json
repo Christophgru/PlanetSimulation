@@ -1,0 +1,91 @@
+{
+  "checked": "2026-10-09",
+  "repository_commit": "11ebb4ee043715aefbba6aeec8a61746fad67fa7",
+  "usage_guidelines": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+  "models": [
+    {
+      "name": "Z2 Spacesuit",
+      "url": "https://raw.githubusercontent.com/nasa/NASA-3D-Resources/11ebb4ee043715aefbba6aeec8a61746fad67fa7/3D%20Models/Z2%20Spacesuit/Z2%20Spacesuit.glb",
+      "sha256": "4199762c27f8e730030a7bf9f1a453c203457e84c33b36247c0237a74f9a0c2a",
+      "bytes": 16933148,
+      "triangles": 30904,
+      "skins": 0,
+      "animations": 0,
+      "meshes": 1,
+      "extensions": [
+        "KHR_draco_mesh_compression"
+      ],
+      "key": "nasa-z2",
+      "source_page": "https://science.nasa.gov/3d-resources/z2-spacesuit/",
+      "yaw_degrees": 0,
+      "author": "NASA / LaRC / Advanced Concepts Lab"
+    },
+    {
+      "name": "Extravehicular Mobility Unit",
+      "url": "https://raw.githubusercontent.com/nasa/NASA-3D-Resources/11ebb4ee043715aefbba6aeec8a61746fad67fa7/3D%20Models/Extravehicular%20Mobility%20Unit/Extravehicular%20Mobility%20Unit.glb",
+      "sha256": "4dd79f1f8e02ab39bc15d87a7bbeda1f437e1103ab7661f7797340e0c114f372",
+      "bytes": 3448904,
+      "triangles": 343455,
+      "skins": 0,
+      "animations": 0,
+      "meshes": 1,
+      "extensions": [
+        "KHR_draco_mesh_compression"
+      ],
+      "key": "nasa-emu",
+      "source_page": "https://science.nasa.gov/3d-resources/extravehicular-mobility-unit/",
+      "yaw_degrees": 180,
+      "author": "NASA / Michael D. Carbajal"
+    },
+    {
+      "name": "Mark III Spacesuit",
+      "url": "https://raw.githubusercontent.com/nasa/NASA-3D-Resources/11ebb4ee043715aefbba6aeec8a61746fad67fa7/3D%20Models/Mark%20III%20Spacesuit/Mark%20III%20Spacesuit.glb",
+      "sha256": "885a4a83bd9d18f3886c8201845e384c0a9acb0cb487fb2897846d9f0438ab51",
+      "bytes": 894092,
+      "triangles": 69202,
+      "skins": 0,
+      "animations": 0,
+      "meshes": 1,
+      "extensions": [
+        "KHR_draco_mesh_compression"
+      ],
+      "key": "nasa-mark-iii",
+      "source_page": "https://science.nasa.gov/3d-resources/mark-iii-spacesuit/",
+      "yaw_degrees": -90,
+      "author": "NASA / Michael D. Carbajal"
+    },
+    {
+      "name": "Advanced Crew Escape Suit",
+      "url": "https://raw.githubusercontent.com/nasa/NASA-3D-Resources/11ebb4ee043715aefbba6aeec8a61746fad67fa7/3D%20Models/Advanced%20Crew%20Escape%20Suit/Advanced%20Crew%20Escape%20Suit.glb",
+      "sha256": "6017772d557c30ea86e2e3a7651ad2089499f3d0c577b983467650616bfaebeb",
+      "bytes": 858408,
+      "triangles": 88872,
+      "skins": 0,
+      "animations": 0,
+      "meshes": 1,
+      "extensions": [
+        "KHR_draco_mesh_compression"
+      ],
+      "key": "nasa-aces",
+      "source_page": "https://science.nasa.gov/3d-resources/advanced-crew-escape-suit/",
+      "yaw_degrees": -90,
+      "author": "NASA / Michael D. Carbajal"
+    },
+    {
+      "name": "Gemini Spacesuit",
+      "url": "https://raw.githubusercontent.com/nasa/NASA-3D-Resources/11ebb4ee043715aefbba6aeec8a61746fad67fa7/3D%20Models/Gemini%20Spacesuit/Gemini%20Spacesuit.glb",
+      "sha256": "972096ada3f5f4bfb54cd636e103f096f4ecf8d5bbc7dae40778c0185fa82266",
+      "bytes": 2876516,
+      "triangles": 114463,
+      "skins": 0,
+      "animations": 0,
+      "meshes": 1,
+      "extensions": [],
+      "key": "nasa-gemini",
+      "source_page": "https://science.nasa.gov/3d-resources/gemini-spacesuit/",
+      "yaw_degrees": 180,
+      "author": "NASA / Michael D. Carbajal",
+      "degenerate_triangles": 396
+    }
+  ]
+}
