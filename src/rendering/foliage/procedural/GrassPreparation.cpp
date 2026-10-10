@@ -13,6 +13,20 @@ bool ProceduralGrass::policyChanged(std::size_t i) const {
     return adaptiveBudget_ && i<patches_.size() && patches_[i] && patches_[i]->falloff.enabled &&
         !patches_[i]->falloff.locked && patches_[i]->policyRevision!=budget_.revision();
 }
+bool ProceduralGrass::reuseResidentPolicy(std::size_t i,const Mesh& mesh,
+    const config::PlanetConfig& planet,double units) {
+    if(!adaptiveBudget_ || i>=patches_.size() || !patches_[i] || replayPolicies_.contains(planet.name)) return false;
+    auto& p=*patches_[i];
+    if(!p.ready || !p.metadata || !p.falloff.enabled || p.falloff.locked ||
+        p.revision!=mesh.revision || p.generation!=mesh.terrainStats.generation || p.settings!=planet.foliage) return false;
+    const auto rock=planet.terrain_material.slopeMetricRange();
+    if(p.rockRange!=glm::vec2(rock[0],rock[1])) return false;
+    auto requested=p.falloff;
+    requested.sigmaMeters=planet.foliage.draw_distance_m*planet.foliage.gaussian_sigma_fraction;
+    requested.budget=budget_.softBudget(requested.capacity,planet.foliage);
+    if(p.metadata->inputs!=grassMetadataParameters(planet,units,p.eye,mesh.indexCount/3,requested)) return false;
+    p.policyRevision=budget_.revision();return true;
+}
 nlohmann::json ProceduralGrass::policy(std::size_t i) const {
     return i<patches_.size() && patches_[i] && patches_[i]->falloff.enabled ? patches_[i]->falloff.json() : nlohmann::json(nullptr);
 }
@@ -56,7 +70,7 @@ std::uint64_t ProceduralGrass::stageBytes(std::uint64_t n,const config::FoliageC
     if(!n || n>std::numeric_limits<std::uint32_t>::max()/9 || !blockBytes)
         throw std::invalid_argument("Invalid grass staging capacity");
     const auto groups=(n+63)/64,budget=std::min<std::uint64_t>(f.max_blades,blockBytes/128);
-    return n*64+160 + 224+groups*96+n*4+n*8+groups*68 + budget*128+32;
+    return n*128+160 + 224+groups*96+n*4+n*8+groups*68 + budget*128+32;
 }
 std::unique_ptr<ProceduralGrass::Preparation> ProceduralGrass::submitResident(GLuint vertices,GLuint indices,
     const TerrainBuildStats& terrain,const config::PlanetConfig& planet,double metersPerWorldUnit,
@@ -103,7 +117,13 @@ std::unique_ptr<ProceduralGrass::Preparation> ProceduralGrass::submitResident(GL
     if(!planet.foliage.enabled) {patch.ready=true;result->ready_=true;return result;}
     if(!metadataCompute_) metadataCompute_=std::make_unique<GrassMetadataCompute>();
     if(!allocationCompute_) allocationCompute_=std::make_unique<GrassAllocationCompute>();
-    patch.metadata=metadataCompute_->generate(vertices,indices,terrain,planet,metersPerWorldUnit,eyeBody,patch.falloff);
+    std::shared_ptr<GrassMetadataGeometry> geometry;
+    const auto parameters=grassMetadataParameters(planet,metersPerWorldUnit,eyeBody,terrain.gpuCorners/3,patch.falloff);
+    for(const auto& live:patches_) if(live && live->metadata && live->metadata->geometry &&
+        live->metadata->geometry->matches(vertices,indices,terrain,parameters)) {
+        geometry=live->metadata->geometry;break;
+    }
+    patch.metadata=metadataCompute_->generate(vertices,indices,terrain,planet,metersPerWorldUnit,eyeBody,patch.falloff,std::move(geometry));
     patch.allocation=allocationCompute_->generate(*patch.metadata,planet.foliage);
     // GPU command order/barriers carry the terrain -> metadata -> allocation
     // dependency. No CPU wait or readback is needed here.

@@ -54,7 +54,7 @@ void fixture(const std::vector<double>& weights,double requested,unsigned slots,
     glGenBuffers(1,&metadata.descriptors);glBindBuffer(GL_SHADER_STORAGE_BUFFER,metadata.descriptors);
     glBufferData(GL_SHADER_STORAGE_BUFFER,triangles.size()*64,triangles.data(),GL_STATIC_DRAW);
     glGenBuffers(1,&metadata.parameters);glBindBuffer(GL_SHADER_STORAGE_BUFFER,metadata.parameters);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,160,&p,GL_STATIC_DRAW);
+    glBufferData(GL_SHADER_STORAGE_BUFFER,160,&p,GL_STATIC_DRAW);metadata.inputs=p;
     config::FoliageConfig f;f.max_blades=budget;f.max_candidates_per_triangle=slots;
     auto limits=TerrainComputeLimits::query();ASSERT_TRUE(limits.unavailable.empty());if(chunks) limits.groups=1;
     if(restricted) limits.blockBytes=std::max<std::uint64_t>(weights.size()*64,224);
@@ -72,6 +72,8 @@ void fixture(const std::vector<double>& weights,double requested,unsigned slots,
     EXPECT_EQ(replay->readReferencesForValidation(second.totals[0]),ids);
     EXPECT_EQ(allocation->inputBytes,228+12*allocation->dispatches+4*std::bit_width(weights.size()-1));EXPECT_EQ(allocation->summaryReadBytes,224);
     EXPECT_EQ(allocation->diagnosticReadBytes,ids.size()*4);EXPECT_EQ(allocation->generation,metadata.generation);
+    if(!chunks && weights.size()<=effective)
+        EXPECT_LE(allocation->dispatches,72u+std::bit_width(weights.size()-1)); // Hash probes cannot affect this case.
     std::cout << "GRASS_ALLOCATION triangles=" << weights.size() << " patches=" << actual.totals[0]
         << " candidates=" << actual.totals[1] << " budget=" << effective << " density=" << actual.densitySearch[0]
         << " input=" << allocation->inputBytes << " working=" << allocation->workingBytes
@@ -98,7 +100,7 @@ TEST(GrassAllocation, InvalidSourcesAndQueriedLimitsPreservePreviousOutput) {
     GrassTriangleMetadata triangle;triangle.areaDistance[0]=1;triangle.identity={0,1,0,0};
     GrassMetadataParameters p;p.flags[3]=1;p.ranges[3]=1;
     glGenBuffers(1,&metadata.descriptors);glBindBuffer(GL_SHADER_STORAGE_BUFFER,metadata.descriptors);glBufferData(GL_SHADER_STORAGE_BUFFER,64,&triangle,GL_STATIC_DRAW);
-    glGenBuffers(1,&metadata.parameters);glBindBuffer(GL_SHADER_STORAGE_BUFFER,metadata.parameters);glBufferData(GL_SHADER_STORAGE_BUFFER,160,&p,GL_STATIC_DRAW);
+    glGenBuffers(1,&metadata.parameters);glBindBuffer(GL_SHADER_STORAGE_BUFFER,metadata.parameters);glBufferData(GL_SHADER_STORAGE_BUFFER,160,&p,GL_STATIC_DRAW);metadata.inputs=p;
     GrassAllocationCompute compute;config::FoliageConfig f;
     auto previous=compute.generate(metadata,f);previous->waitForCapture();const auto before=previous->readSummary();
     const auto generation=metadata.generation;metadata.generation.backend=TerrainBackend::Cpu;
@@ -150,7 +152,7 @@ AdaptiveResult adaptiveFixture(unsigned capacity,unsigned target,unsigned slotCa
     glGenBuffers(1,&metadata.descriptors);glBindBuffer(GL_SHADER_STORAGE_BUFFER,metadata.descriptors);
     glBufferData(GL_SHADER_STORAGE_BUFFER,triangles.size()*64,triangles.data(),GL_STATIC_DRAW);
     glGenBuffers(1,&metadata.parameters);glBindBuffer(GL_SHADER_STORAGE_BUFFER,metadata.parameters);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,160,&p,GL_STATIC_DRAW);
+    glBufferData(GL_SHADER_STORAGE_BUFFER,160,&p,GL_STATIC_DRAW);metadata.inputs=p;
     config::FoliageConfig f;f.max_blades=capacity;f.max_candidates_per_triangle=slotCap;
     auto limits=TerrainComputeLimits::query();limits.groups=1;
     GrassAllocationCompute compute(limits);auto allocation=compute.generate(metadata,f);allocation->waitForCapture();

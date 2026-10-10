@@ -22,6 +22,9 @@ def capture(name, frames=1, replay=None, walk=0):
     config.write_text(json.dumps(scene))
     image, trace = out / (name + '.png'), out / (name + '.csv')
     command = [str(args.binary.resolve()), '--config', str(config),
+               # Legacy CPU upload/caching contract; resident GPU planning,
+               # publication and replay are covered by test_capture.py.
+               '--terrain-backend', 'cpu', '--terrain-grass-planner', 'cpu',
                '--surface-capture', str(image), '--render-size', '640', '360',
                '--benchmark-frames', str(frames), '--benchmark-step', '0',
                '--benchmark-walk-step', str(walk),

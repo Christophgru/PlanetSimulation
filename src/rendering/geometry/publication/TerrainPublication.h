@@ -50,6 +50,8 @@ public:
         const Mesh& liveLand,const Mesh& liveWater,TerrainCompute& compute);
     bool submitGrass(std::size_t index,const config::PlanetConfig& planet,double metersPerUnit,
         const glm::dvec3& grassEye,const Mesh& liveLand,const Mesh& liveWater);
+    bool reuseGrassPolicy(std::size_t index,const config::PlanetConfig& planet,double metersPerUnit,
+        const Mesh& liveLand,const Mesh& liveWater);
     bool poll();
     void waitForCapture();
     // Returns false for stale work. All validation/fence creation precedes the

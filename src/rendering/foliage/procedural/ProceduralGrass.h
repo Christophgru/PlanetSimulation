@@ -116,6 +116,10 @@ public:
     std::uint64_t ownedBytes() const;
     std::uint64_t reservedBytes() const {return terrainBudgetBytes_+externalBudgetBytes_+ownedBytes();}
     bool policyChanged(std::size_t index) const;
+    // Acknowledge telemetry changes only when effective planner/draw inputs
+    // remain identical. Movement and generation replacement are caller checks.
+    bool reuseResidentPolicy(std::size_t index,const Mesh& mesh,
+        const config::PlanetConfig& planet,double metersPerWorldUnit);
     nlohmann::json policy(std::size_t index) const;
     void restorePolicies(const nlohmann::json& replay,const std::vector<config::PlanetConfig>& planets);
     config::PlanetConfig budgetPlanet(const config::PlanetConfig& planet,std::uint64_t triangles,std::uint64_t blockBytes,

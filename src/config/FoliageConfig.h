@@ -21,6 +21,7 @@ struct FoliageConfig {
         double flutter_frequency = 0.7;
         double speed_multiplier = 1.0;
         int seed = 0;
+        bool operator==(const WindNoise&) const = default;
     } wind_noise;
     int max_blades = 100000;
     int seed = 7321;
@@ -37,6 +38,7 @@ struct FoliageConfig {
     double lean_max = 0.4;
 
     FoliageConfig() = default;
+    bool operator==(const FoliageConfig&) const = default;
     explicit FoliageConfig(const Config& cfg);
     double quadDistanceMeters() const {
         return quad_distance_m == 0 ? std::min(15.0, draw_distance_m * .25)

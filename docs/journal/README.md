@@ -7,7 +7,14 @@ for the storage manifest, relocation and fresh-run commands. Missing archive
 checks report UNAVAILABLE (exit 2), not a pass. Normal builds/tests use source
 fixtures and fresh build output; they do not depend on these old measurements.
 
-The latest [renderer feature-cost study](benchmarks/feature-costs/study.md)
+The latest [G1 grass preparation study](benchmarks/grass-allocation/study.md)
+adds bounded terrain metadata sharing and effective-policy reuse. Paired native
+RTX walking runs reduce allocation GPU time by 20.6% and CPU submission time by
+52.9%, with exact fixed-view images and protected density retained. Steady frame
+timing changes little and roughly 109 ms maximum frames remain. Raw evidence
+stays local; the recorded EGL input-loop method does not qualify desktop FPS.
+
+The previous [renderer feature-cost study](benchmarks/feature-costs/study.md)
 restarts measurements on both NVIDIA GPUs after closing a competing instance.
 It profiles the NASA ACES renderer with the current grass configuration,
 separating atmosphere/reflections, allocation spikes and CPU terrain refinement.

@@ -33,8 +33,13 @@ void Renderer::Impl::publishResidentBuilds(std::vector<std::optional<TerrainCpuB
         const auto& planet=scene.scenario.planets[i];
         const auto planEye=i==selected && replayGrassEye ? *replayGrassEye : scene.bodies[i+1].toLocalPoint(grassEyeWorld)/planet.radius;
         const auto oldEye=grass.procedural.planningEye(i);
+        const bool moved=!oldEye || glm::length(planEye-*oldEye)*planet.radius*scene.scenario.metersPerWorldUnit()>=grassRebuildDistance(planet.foliage);
+        bool policyChanged=grass.procedural.policyChanged(i);
+        if(!builds[i] && !moved && policyChanged && !(i==selected && replayGrassEye))
+            policyChanged=!terrainPublication->reuseGrassPolicy(i,planet,scene.scenario.metersPerWorldUnit(),
+                meshes.planetMeshes[i],meshes.waterMeshes[i]);
         const bool grassChanged=!builds[i] && (bool(i==selected && replayGrassEye) ||
-            (planet.foliage.enabled && (grass.procedural.policyChanged(i) || !oldEye || glm::length(planEye-*oldEye)*planet.radius*scene.scenario.metersPerWorldUnit()>=grassRebuildDistance(planet.foliage))));
+            (planet.foliage.enabled && (policyChanged || moved)));
         if(!builds[i] && !grassChanged) continue;
         const auto attempt=builds[i] ? profiler.publications().terrain(identities[i]->epoch,i,identities[i]->serial) : [&] {
             auto key=PublicationProfiler::Key::from(terrainPublication->installed(i).identity);key.eye={planEye.x,planEye.y,planEye.z};

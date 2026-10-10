@@ -58,7 +58,7 @@ void compare(const config::PlanetConfig& p,const glm::dvec3& eye,bool forceChunk
         EXPECT_NEAR(m.areaDistance[0],weighted,std::max(1e-14,weighted*2e-10));
     }
     EXPECT_EQ(gpu->generation,mesh->stats.generation);EXPECT_EQ(gpu->planningEye,eye);
-    EXPECT_EQ(gpu->workingBytes,160+64*metadata.size());EXPECT_EQ(gpu->inputBytes,160+8*gpu->dispatches);
+    EXPECT_EQ(gpu->workingBytes,160+128*metadata.size());EXPECT_EQ(gpu->inputBytes,164+8*gpu->dispatches);
     EXPECT_EQ(gpu->diagnosticReadBytes,64*metadata.size());
     if(forceChunks) EXPECT_EQ(gpu->dispatches,(metadata.size()+63)/64);
     std::cout << "GRASS_METADATA triangles=" << metadata.size() << " eligible=" << cpu.patches.size()
@@ -94,6 +94,37 @@ TEST(GrassMetadata, DriverPackingMatchesHostDescriptorsAndParameters) {
             glGetProgramResourceiv(compute.program(),GL_BUFFER_VARIABLE,index,1,&stride,1,nullptr,&actual);EXPECT_EQ(actual,64);
         }
     }
+    EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+}
+TEST(GrassMetadata, ImmutableGeometryReuseMatchesFreshCameraWeightsAndInvalidatesChangedInputs) {
+    auto p=planet();auto s=surface(p);const auto topology=s.buildTopology(1);
+    TerrainCompute terrain;auto mesh=terrain.generate(s.field(),topology);mesh->waitForCapture();
+    GrassMetadataCompute compute;
+    auto first=compute.generate(mesh->vbo,mesh->ebo,mesh->stats,p,1000,{1.002,0,0});first->waitForCapture();
+    const auto original=first->readForValidation();const auto buffer=first->geometry->buffer;
+    const glm::dvec3 eye(1.01,.025,0);
+    auto reused=compute.generate(mesh->vbo,mesh->ebo,mesh->stats,p,1000,eye,{},first->geometry);
+    auto fresh=compute.generate(mesh->vbo,mesh->ebo,mesh->stats,p,1000,eye);
+    reused->waitForCapture();fresh->waitForCapture();
+    ASSERT_TRUE(reused->geometryReused);EXPECT_EQ(reused->geometry,first->geometry);
+    EXPECT_EQ(first->readForValidation().size(),original.size());
+    const auto compare=[](const auto& a,const auto& b) {
+        ASSERT_EQ(a.size(),b.size());
+        for(std::size_t i=0;i<a.size();++i) {
+            EXPECT_EQ(a[i].centerReach,b[i].centerReach);EXPECT_EQ(a[i].areaDistance,b[i].areaDistance);
+            EXPECT_EQ(a[i].identity,b[i].identity);
+        }
+    };
+    compare(reused->readForValidation(),fresh->readForValidation());
+    compare(first->readForValidation(),original); // Refresh never mutates live descriptors.
+    auto changed=p;changed.foliage.water_clearance_m+=.1;
+    auto invalid=compute.generate(mesh->vbo,mesh->ebo,mesh->stats,changed,1000,eye,{},first->geometry);
+    EXPECT_FALSE(invalid->geometryReused);invalid->waitForCapture();
+    auto generation=mesh->stats;++generation.generation.topology;
+    auto replaced=compute.generate(mesh->vbo,mesh->ebo,generation,p,1000,eye,{},first->geometry);
+    EXPECT_FALSE(replaced->geometryReused);replaced->waitForCapture();
+    EXPECT_FALSE(first->geometry->matches(mesh->ebo,mesh->vbo,mesh->stats,first->inputs));
+    first.reset();EXPECT_TRUE(glIsBuffer(buffer));reused.reset();EXPECT_FALSE(glIsBuffer(buffer));
     EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
 }
 TEST(GrassMetadata, LimitsTruncatedInputsAndInvalidGenerationsRejectWithoutDisturbingGlRanges) {

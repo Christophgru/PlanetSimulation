@@ -194,6 +194,19 @@ void TerrainPublication::pollRetired() {
 bool TerrainPublication::ready() const noexcept {return staged_ && staged_->ready;}
 bool TerrainPublication::retiring(std::size_t i) const {return bool(bodies_.at(i).retiring);}
 const TerrainPublishedGeneration& TerrainPublication::installed(std::size_t i) const {return bodies_.at(i).installed;}
+bool TerrainPublication::reuseGrassPolicy(std::size_t i,const config::PlanetConfig& planet,double units,
+    const Mesh& land,const Mesh& water) {
+    if(!canSubmit(i) || land.terrainStats.generation!=bodies_.at(i).installed.land ||
+        water.terrainStats.generation!=bodies_.at(i).installed.water) return false;
+    const auto reserved=reservedBytes(),occupied=land.terrainStats.gpuWorkingBytes+water.terrainStats.gpuWorkingBytes;
+    try {
+        const auto effective=grass_.budgetPlanet(planet,land.indexCount/3,TerrainComputeLimits::query().blockBytes,reserved,
+            std::min(perSetLimit_,totalLimit_-std::min(totalLimit_,reserved)),occupied);
+        return grass_.reuseResidentPolicy(i,land,effective,units);
+    } catch(const std::runtime_error&) {
+        return false; // Normal submission reports admission failure and keeps the live plan.
+    }
+}
 bool TerrainPublication::submitGrass(std::size_t i,const config::PlanetConfig& planet,double units,
     const glm::dvec3& eye,const Mesh& land,const Mesh& water) {
     if(i>=bodies_.size()) throw std::out_of_range("Grass publication body");

@@ -72,8 +72,8 @@ assert c['render']['terrain_cpu_worker']['submitted']==0
 assert g['render']['foliage_patch_bytes']==0
 metadata=g['render']['foliage_gpu_metadata']
 assert metadata['version']==1 and metadata['allocator']=='gpu-v1'
-assert metadata['resident_bytes']==160+g['render']['body_mesh_triangles'][0]*64
-assert metadata['input_bytes']==160+8*metadata['dispatches']
+assert metadata['resident_bytes']==160+g['render']['body_mesh_triangles'][0]*128
+assert metadata['input_bytes']==164+8*metadata['dispatches']
 assert metadata['diagnostic_read_bytes']==0
 assert metadata['summary_read_bytes']==224
 assert 0<metadata['effective_candidate_budget']<=4096

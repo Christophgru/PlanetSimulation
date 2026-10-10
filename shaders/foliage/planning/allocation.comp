@@ -111,6 +111,12 @@ void controller() {
             if(status.z!=0u) {densitySearch.z=min(ranges.w,double(control.x)/area);densitySearch.x=densitySearch.z*0.5lf;}
         }
     } else if(uPhase==7u && status.z!=0u) {
+        // The first adaptive probe is the complete requested tail. If it fits,
+        // all 32 legacy probes choose this same sigma exactly. Remaining work
+        // groups can return without changing density, bins or ordering.
+        if(adaptive() && statePadding.y==1u && status.w==0u && submitted<=double(control.x)) {
+            status.z=0u;status.w=32u;return;
+        }
         double probe=adaptive() && statePadding.y==1u ? densitySearch.w : densitySearch.x;
         if(submitted<=double(control.x)) densitySearch.y=probe;else densitySearch.z=probe;
         ++status.w;
@@ -150,7 +156,7 @@ void main() {
     if(selected && (!adaptive() || status.y!=0u)) selected=(!adaptive() || near) && grassHash(t)<=status.x;
     double area=selected ? metadata[t].areaDistance.x : 0.0lf;
     double density=(uPhase==0u || uPhase==2u || uPhase==4u) ? ranges.w : densitySearch.x;
-    if(adaptive() && uPhase>=4u) {
+    if(selected && adaptive() && uPhase>=4u) {
         double sigma=uPhase==4u ? 0.0lf : densitySearch.w;
         area*=profile(t<flags.w?t:0u,sigma);
         selected=selected && area*density>=1e-6lf;

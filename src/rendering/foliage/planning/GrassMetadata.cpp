@@ -46,10 +46,18 @@ GrassMetadataLimits GrassMetadataLimits::query() {
     glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS,&invocations);
     glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT,0,&groups);
     glGetInteger64v(GL_MAX_SHADER_STORAGE_BLOCK_SIZE,&bytes);
-    if(bindings<4 || blocks<4 || size<64 || invocations<64 || groups<1 || bytes<160)
+    if(bindings<5 || blocks<5 || size<64 || invocations<64 || groups<1 || bytes<160)
         l.unavailable="Insufficient grass metadata storage/work-group limits";
     else {l.blockBytes=bytes;l.groups=groups;}
     return l;
+}
+GrassMetadataGeometry::~GrassMetadataGeometry() {glDeleteBuffers(1,&buffer);}
+bool GrassMetadataGeometry::matches(GLuint v,GLuint e,const TerrainBuildStats& terrain,
+    const GrassMetadataParameters& p) const {
+    return buffer && vertices==v && indices==e && generation==terrain.generation &&
+        triangles==terrain.gpuCorners/3 && inputs.eyeScale[3]==p.eyeScale[3] &&
+        inputs.biome==p.biome && inputs.colorGreen==p.colorGreen &&
+        inputs.flags[1]==p.flags[1] && inputs.flags[2]==p.flags[2];
 }
 GrassMetadataBuffers::~GrassMetadataBuffers() {
     if(fence) glDeleteSync(fence);
@@ -81,7 +89,8 @@ std::vector<GrassTriangleMetadata> GrassMetadataBuffers::readForValidation() con
 }
 GrassMetadataCompute::~GrassMetadataCompute() {if(shader_) glDeleteProgram(shader_->id);}
 std::unique_ptr<GrassMetadataBuffers> GrassMetadataCompute::generate(GLuint vertices,GLuint indices,
-    const TerrainBuildStats& terrain,const config::PlanetConfig& planet,double metersPerWorldUnit,const glm::dvec3& eye,const GrassFalloff& policy) {
+    const TerrainBuildStats& terrain,const config::PlanetConfig& planet,double metersPerWorldUnit,const glm::dvec3& eye,const GrassFalloff& policy,
+    std::shared_ptr<GrassMetadataGeometry> geometry) {
     if(terrain.generation.backend!=TerrainBackend::Compute || !terrain.generation.field || !terrain.generation.topology ||
         terrain.generation.fieldVersion!=PlanetField::version || !supportedTerrainTopology(terrain.generation.topologyVersion) ||
         !vertices || !indices || !glIsBuffer(vertices) || !glIsBuffer(indices) ||
@@ -96,17 +105,17 @@ std::unique_ptr<GrassMetadataBuffers> GrassMetadataCompute::generate(GLuint vert
     const auto parameters=grassMetadataParameters(planet,metersPerWorldUnit,eye,count,policy);
     if(!shader_) shader_=std::make_unique<Shader>("shaders/foliage/planning/metadata.comp");
     // Preserve indexed ranges as well as buffer IDs; caller state can use ranges.
-    GLint program=0,storage=0;std::array<GLint,4> bindings{};std::array<GLint64,4> starts{},sizes{};
+    GLint program=0,storage=0;std::array<GLint,5> bindings{};std::array<GLint64,5> starts{},sizes{};
     glGetIntegerv(GL_CURRENT_PROGRAM,&program);glGetIntegerv(GL_SHADER_STORAGE_BUFFER_BINDING,&storage);
-    for(int i=0;i<4;++i) {
+    for(int i=0;i<5;++i) {
         glGetIntegeri_v(GL_SHADER_STORAGE_BUFFER_BINDING,i,&bindings[i]);
         glGetInteger64i_v(GL_SHADER_STORAGE_BUFFER_START,i,&starts[i]);
         glGetInteger64i_v(GL_SHADER_STORAGE_BUFFER_SIZE,i,&sizes[i]);
     }
     struct Restore {
-        GLint program,storage;std::array<GLint,4> bindings;std::array<GLint64,4> starts,sizes;
+        GLint program,storage;std::array<GLint,5> bindings;std::array<GLint64,5> starts,sizes;
         ~Restore() {
-            for(int i=0;i<4;++i) {
+            for(int i=0;i<5;++i) {
                 if(bindings[i] && sizes[i]>0) glBindBufferRange(GL_SHADER_STORAGE_BUFFER,i,bindings[i],starts[i],sizes[i]);
                 else glBindBufferBase(GL_SHADER_STORAGE_BUFFER,i,bindings[i]);
             }
@@ -121,15 +130,27 @@ std::unique_ptr<GrassMetadataBuffers> GrassMetadataCompute::generate(GLuint vert
     }
     auto result=std::make_unique<GrassMetadataBuffers>();
     result->adaptive=policy.enabled;result->generation=terrain.generation;result->planningEye=eye;result->triangles=count;
-    result->inputBytes=160;result->workingBytes=160+count*64;
+    result->inputs=parameters;
+    result->geometryReused=geometry && geometry->matches(vertices,indices,terrain,parameters);
+    if(!result->geometryReused) {
+        geometry=std::make_shared<GrassMetadataGeometry>();
+        geometry->vertices=vertices;geometry->indices=indices;geometry->generation=terrain.generation;
+        geometry->inputs=parameters;geometry->triangles=count;
+        glGenBuffers(1,&geometry->buffer);glBindBuffer(GL_SHADER_STORAGE_BUFFER,geometry->buffer);
+        glBufferData(GL_SHADER_STORAGE_BUFFER,count*64,nullptr,GL_STATIC_DRAW);
+        if(!geometry->buffer || glGetError()!=GL_NO_ERROR) throw std::runtime_error("Grass geometry cache allocation failed");
+    }
+    result->geometry=std::move(geometry);
+    result->inputBytes=164;result->workingBytes=160+count*128; // Conservatively charge shared geometry per plan.
     glGenBuffers(1,&result->parameters);glGenBuffers(1,&result->descriptors);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,result->parameters);glBufferData(GL_SHADER_STORAGE_BUFFER,160,&parameters,GL_STATIC_DRAW);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,result->descriptors);glBufferData(GL_SHADER_STORAGE_BUFFER,count*64,nullptr,GL_STATIC_DRAW);
     if(!result->parameters || !result->descriptors || glGetError()!=GL_NO_ERROR)
         throw std::runtime_error("Grass metadata allocation failed");
-    const std::array<GLuint,4> buffers{result->parameters,vertices,indices,result->descriptors};
-    for(int i=0;i<4;++i) glBindBufferBase(GL_SHADER_STORAGE_BUFFER,i,buffers[i]);
-    shader_->use();glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    const std::array<GLuint,5> buffers{result->parameters,vertices,indices,result->descriptors,result->geometry->buffer};
+    for(int i=0;i<5;++i) glBindBufferBase(GL_SHADER_STORAGE_BUFFER,i,buffers[i]);
+    shader_->use();glUniform1ui(glGetUniformLocation(shader_->id,"uReuseGeometry"),result->geometryReused);
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     GpuWorkProfiler::Scope timing(GpuWorkStage::GrassMetadata,GpuWorkProfiler::generation(terrain.generation));
     const auto chunk=std::min<std::uint64_t>(std::uint64_t(limits_.groups)*64,65536);
     for(std::uint64_t first=0;first<count;first+=chunk) {

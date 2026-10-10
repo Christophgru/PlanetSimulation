@@ -1,5 +1,37 @@
 # Page to document progress of AI Agents working on this Project
 
+## G1 grass preparation reuse — 2026-10-10
+
+- Implemented G1 only: bounded shared GPU terrain metadata, equivalent effective
+  policy reuse and proven inactive allocation-search skips. Camera descriptors
+  remain plan-owned; source generation/buffer/config changes invalidate reuse.
+  Protected density, candidate caps, ordering, replay and CPU/GL 3.3 paths stay
+  intact. No G2–G4 implementation or new TODO chain.
+- Three alternating RTX native-input-loop pairs reduce walking allocation GPU
+  mean 18.375→14.583 ms (20.6%) and CPU submission mean 1.318→0.621 ms (52.9%).
+  Repeated-generation metadata mean 0.381→0.163 ms; fresh metadata costs more
+  (0.337→0.393 ms). Steady p95 is essentially unchanged; ~109 ms maximum frames
+  remain. EGL pbuffer rendering and unrelated GPU load limit desktop FPS claims.
+- Extra cache storage is 64 bytes/triangle (6.4 MB at Earth cap), conservatively
+  admitted for each overlapping plan. Peak logical overlap is 593,797,736 bytes
+  versus 580,997,736 before, below the existing 1 GiB cap.
+- Verified RTX UUID, complete timing samples, native nonblocking audits,
+  configured 40.72/m² protected density and no near-region infeasibility.
+  Startup, ACES and mountain locked replay images match the baseline exactly;
+  fresh adaptive startup also matches. Allocation submissions: 239 before,
+  143 after and 47 for locked replay.
+- Eleven metadata/allocation and twelve publication GPU tests, nine CPU CTest
+  groups and six software runtime/capture groups pass. Legacy grass capture now
+  explicitly selects its intended CPU upload path and passes. Unchanged native
+  Quadro held-worker sprint/80 m/s camera and CPU sprint routes pass, including
+  actual near-root counts, stop/reverse and nonblocking audits. Software sprint
+  exceeds the unchanged 22.5 m reserve (29.98 m); retain that speed limitation.
+  Final rebuilt cache/policy checks pass. G1 is t; G2–G4 remain queued.
+  Raw evidence and frozen binaries remain ignored/local in build-f5/g1.
+- Journal: docs/journal/benchmarks/grass-allocation/study.md, compact summary and
+  frozen inputs; reusable runner/reporter in scripts/benchmarks/grass_allocation.
+  Preserve the user's unstaged production density/width/quad-distance edits.
+
 ## Current NVIDIA feature timings — 2026-10-09
 
 - Restarted after the user closed another renderer instance. Both physical

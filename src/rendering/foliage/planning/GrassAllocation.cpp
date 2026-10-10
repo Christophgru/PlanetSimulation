@@ -112,9 +112,14 @@ std::unique_ptr<GrassAllocationBuffers> GrassAllocationCompute::generate(const G
         glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     };
     dispatch(0);dispatch(1,true);
-    for(int i=0;i<32;++i) {dispatch(2);dispatch(3,true);}
+    // At most one eligible patch per terrain triangle. A sufficient budget
+    // proves hash selection inactive without inspecting any GPU output.
+    if(n>budget) for(int i=0;i<32;++i) {dispatch(2);dispatch(3,true);}
     dispatch(4);dispatch(5,true);
-    for(int i=0;i<32;++i) {dispatch(6);dispatch(7,true);}
+    // Locked replay already supplies the exact density and sigma. Phase 5
+    // installs them; running an inactive search would only add submissions.
+    if(!(metadata.inputs.padding[0]&2u))
+        for(int i=0;i<32;++i) {dispatch(6);dispatch(7,true);}
     dispatch(8);dispatch(9,true);dispatch(10);
     // Match CPU near-first patch submission once per plan, entirely on GPU.
     // Ping-pong references with the now-unused rank scratch; no new allocation

@@ -27,6 +27,7 @@ struct alignas(32) GrassMetadataParameters {
     std::array<double,4> colorGreen{};
     std::array<std::uint32_t,4> flags{}; // enabled/within ground envelope, water, landscape, triangles
     std::array<std::uint32_t,4> padding{};
+    bool operator==(const GrassMetadataParameters&) const = default;
 };
 static_assert(sizeof(GrassMetadataParameters)==160);
 static_assert(offsetof(GrassMetadataParameters,flags)==128);
@@ -38,6 +39,20 @@ struct GrassMetadataLimits {
     std::string unavailable;
     static GrassMetadataLimits query();
 };
+// Immutable, generation-owned terrain geometry. Live/staged grass plans may
+// share it; camera parameters and weighted descriptors always remain private.
+struct GrassMetadataGeometry {
+    GLuint buffer=0,vertices=0,indices=0;
+    TerrainGenerationKey generation;
+    GrassMetadataParameters inputs;
+    std::uint64_t triangles=0;
+    ~GrassMetadataGeometry();
+    GrassMetadataGeometry()=default;
+    GrassMetadataGeometry(const GrassMetadataGeometry&)=delete;
+    GrassMetadataGeometry& operator=(const GrassMetadataGeometry&)=delete;
+    bool matches(GLuint v,GLuint e,const TerrainBuildStats& terrain,
+        const GrassMetadataParameters& parameters) const;
+};
 struct GrassMetadataBuffers {
     GLuint descriptors=0,parameters=0;
     GLsync fence=nullptr;
@@ -46,6 +61,9 @@ struct GrassMetadataBuffers {
     std::uint64_t triangles=0,inputBytes=0,workingBytes=0,dispatches=0;
     mutable std::uint64_t diagnosticReadBytes=0;
     bool complete=false,adaptive=false;
+    GrassMetadataParameters inputs;
+    std::shared_ptr<GrassMetadataGeometry> geometry;
+    bool geometryReused=false;
     ~GrassMetadataBuffers();
     GrassMetadataBuffers()=default;
     GrassMetadataBuffers(const GrassMetadataBuffers&)=delete;
@@ -67,7 +85,8 @@ public:
     // No shaped geometry or triangle descriptors cross the CPU/GPU boundary.
     std::unique_ptr<GrassMetadataBuffers> generate(GLuint vertices,GLuint indices,
         const TerrainBuildStats& terrain,const config::PlanetConfig& planet,
-        double metersPerWorldUnit,const glm::dvec3& eye,const GrassFalloff& policy={});
+        double metersPerWorldUnit,const glm::dvec3& eye,const GrassFalloff& policy={},
+        std::shared_ptr<GrassMetadataGeometry> geometry={});
     GLuint program() const { return shader_ ? shader_->id : 0; }
 };
 }

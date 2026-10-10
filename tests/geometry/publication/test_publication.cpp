@@ -286,3 +286,35 @@ TEST(TerrainPublication, AdaptiveAdmissionFitsCompleteOverlapAndLocksEffectiveRe
     EXPECT_LE(land.terrainStats.gpuWorkingBytes+ProceduralGrass::stageBytes(land.indexCount/3,fallback.foliage,block),64ull*1024*1024);
     EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
 }
+TEST(TerrainPublication, EquivalentTelemetryPolicyReusesLivePlanButChangedBudgetsAndInputsDoNot) {
+    auto r=request(false);r.planet.foliage.max_blades=4096;
+    TerrainCompute compute;ProceduralGrass grass;grass.enableAdaptiveBudget();OwnedMesh land,water;
+    TerrainPublication p(grass,1);
+    GrassBudgetSignals signals;signals.nowNs=signals.memoryNs=10000000000ull;
+    signals.freeBytes=1024ull*1024*1024;grass.observeBudget(signals);
+    ASSERT_TRUE(p.submit(buildTerrainCpu(r),r.identity,r.planet,r.metersPerUnit,r.identity.eye,land,water,compute));
+    p.waitForCapture();ASSERT_TRUE(p.publish(r.identity,land,water));retire(p,0);
+    const auto old=Snapshot(p,grass,land,water);const auto submitted=p.stats().submitted;
+    signals.nowNs+=3000000000ull;signals.memoryNs=signals.nowNs;signals.sampleReserved=p.reservedBytes();
+    signals.freeBytes=2ull*1024*1024*1024;grass.observeBudget(signals);
+    ASSERT_TRUE(grass.policyChanged(0));
+    ASSERT_TRUE(p.reuseGrassPolicy(0,r.planet,r.metersPerUnit,land,water));
+    EXPECT_FALSE(grass.policyChanged(0));EXPECT_FALSE(p.pending());EXPECT_EQ(p.stats().submitted,submitted);
+    old.unchanged(p,grass,land,water);
+    auto changed=r.planet;changed.foliage.max_blades=2048;
+    EXPECT_FALSE(p.reuseGrassPolicy(0,changed,r.metersPerUnit,land,water));
+    changed=r.planet;changed.foliage.width_m+=.01;
+    EXPECT_FALSE(p.reuseGrassPolicy(0,changed,r.metersPerUnit,land,water));
+    changed=r.planet;changed.foliage.green_ratio+=.1;
+    EXPECT_FALSE(p.reuseGrassPolicy(0,changed,r.metersPerUnit,land,water));
+    for(unsigned i=0;i<3;++i) {
+        signals.nowNs+=3000000000ull;signals.memoryNs=signals.gpuNs=signals.nowNs;
+        signals.gpuMs=60;signals.utilization=100;signals.gpuSample=i+1;grass.observeBudget(signals);
+    }
+    EXPECT_TRUE(grass.policyChanged(0));
+    EXPECT_FALSE(p.reuseGrassPolicy(0,r.planet,r.metersPerUnit,land,water));
+    old.unchanged(p,grass,land,water);
+    signals.nowNs+=3000000000ull;signals.memoryNs=signals.nowNs;signals.freeBytes=0;grass.observeBudget(signals);
+    EXPECT_FALSE(p.reuseGrassPolicy(0,r.planet,r.metersPerUnit,land,water));
+    old.unchanged(p,grass,land,water);EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+}

@@ -223,7 +223,10 @@ void Renderer::Impl::prepareResidentFrame(const glm::dvec3& eye,std::optional<do
         const auto path=refreshPath(i,scene.bodies[i+1].toLocalPoint(world)*meters);
         const auto anchor=GrassRefresh::anchor(path,margin)/scale;
         const auto previous=grass.procedural.planningEye(i);
-        if(!grass.procedural.policyChanged(i) && previous && !GrassRefresh::needsRefresh(path,*previous*scale,margin)) continue;
+        if(previous && !GrassRefresh::needsRefresh(path,*previous*scale,margin)) {
+            if(!grass.procedural.policyChanged(i) || terrainPublication->reuseGrassPolicy(i,planet,meters,
+                meshes.planetMeshes[i],meshes.waterMeshes[i])) continue;
+        }
         const auto k=terrainPublication->installed(i).identity;
         auto key=PublicationProfiler::Key::from(k);key.eye={anchor.x,anchor.y,anchor.z};
         const auto attempt=profiler.publications().begin(key,PublicationProfiler::Kind::Grass);
