@@ -41,8 +41,9 @@ def main():
     parser.add_argument('--device', type=int, default=1)
     parser.add_argument('--pairs', type=int, default=3)
     parser.add_argument('--seconds', type=float, default=6)
+    parser.add_argument('--camera-mode', choices=['surface', 'astronaut'], default='surface')
     parser.add_argument('--stages', nargs='+', default=['grass_metadata', 'grass_allocation'],
-                        choices=['grass_metadata', 'grass_allocation', 'grass_roots', 'grass_placement'])
+                        choices=['grass_metadata', 'grass_allocation', 'grass_roots', 'grass_placement', 'grass_animation', 'grass_draw'])
     args = parser.parse_args()
     if args.pairs < 3 or args.seconds < 5:
         parser.error('Use at least three pairs and five seconds per measured leg')
@@ -73,7 +74,8 @@ def main():
               'config_sha256': sha(args.config),
               'input_sha256': sha(replay), 'method': {'pairs': args.pairs, 'seconds': args.seconds,
               'stages': args.stages,
-              'warmup': 'settled surface view, then >=3 seconds and >=30 frames', 'walking_mps': 6,
+              'camera_mode': args.camera_mode,
+              'warmup': 'settled selected camera, then >=3 seconds and >=30 frames', 'walking_mps': 6,
               'viewport': [1280,720], 'orbit': 'paused replay; wind live',
               'presentation': 'real GLFW/X11 input and production loop; NVIDIA EGL pbuffer; no desktop FPS claim'}, 'runs': []}
     telemetry = (out / 'telemetry.csv').open('w')
@@ -89,9 +91,10 @@ def main():
                         ['--replay', str(replay), '--terrain-backend', 'compute', '--terrain-grass-planner', 'gpu',
                          '--uncapped', '--performance-trace', str(trace)], environment=environment, control={'phase': 'startup'})
                     try:
-                        session.focus();session.key('2')
+                        session.focus();session.key('4' if args.camera_mode == 'astronaut' else '2')
                         def ready(f):
-                            return f['mode'] == 1 and not f['publication'].get('loading', True)
+                            return f['mode'] == (3 if args.camera_mode == 'astronaut' else 1) and not f['publication'].get('loading', True) and (
+                                args.camera_mode != 'astronaut' or (f.get('pose') and not f['pose']['airborne']))
                         session.wait(lambda f: ready(f) and not f['publication']['pending'] and
                                      not any(f['worker'].values()), timeout=180)
                         warm = session.control({'phase': 'warmup'})
@@ -127,9 +130,17 @@ def main():
                                  'wall_ms': stats([float(r['wall_ms']) for r in loops]),
                                  'mesh_ms': stats([float(r['cpu_mesh_ms']) for r in rows]),
                                  'gpu_render_ms': stats([float(r['gpu_ms']) for r in rows]), 'events': events,
+                                 'opaque_gpu_ms': stats([float(r['gpu_opaque_ms']) for r in rows]),
+                                 'reflection_gpu_ms': stats([float(r['gpu_reflection_ms']) for r in rows]),
+                                 'trail_segments': [frames[0].get('pose', {}).get('trail_segments', 0),
+                                                    frames[-1].get('pose', {}).get('trail_segments', 0)],
                                  'first_workload': frames[0]['benchmark'], 'last_workload': frames[-1]['benchmark'],
                                  'maximum_reserved_bytes': max(f['publication']['peak_reserved_bytes'] for f in frames),
                                  'raw_folder': str(folder.relative_to(out))}
+                        if args.camera_mode == 'astronaut' and case == 'walk':
+                            entry['walking_speed_mps'] = (end['pose']['walked_m']-start['pose']['walked_m'])/((end['observed_ns']-start['observed_ns'])*1e-9)
+                            assert abs(entry['walking_speed_mps']-6) < .12, entry['walking_speed_mps']
+                            assert entry['trail_segments'][1] > entry['trail_segments'][0]
                         report['runs'].append(entry);write_json(out/'results.json', report)
                         stage = 'grass_placement' if 'grass_placement' in events else args.stages[0]
                         print(f"pair {pair} {case} {variant}: wall p95 {entry['wall_ms']['p95']:.3f} ms, {stage} {events[stage]}", flush=True)

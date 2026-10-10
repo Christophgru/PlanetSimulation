@@ -9,6 +9,7 @@
 #include <memory>
 #include <map>
 #include <optional>
+#include <limits>
 #include "rendering/foliage/trails/GrassTrail.h"
 #include "rendering/geometry/terrain/TerrainTopology.h"
 class Mesh;
@@ -25,7 +26,10 @@ struct GrassMetadataBuffers;
 // std430 static candidate record; generated on GPU before resident publication.
 struct GrassRootRecord { glm::vec4 rootExpected,upRank,normalSlot,variation; };
 static_assert(sizeof(GrassRootRecord)==64);
-inline constexpr std::uint64_t grassComputedCandidateBytes=128+sizeof(GrassRootRecord);
+struct GrassAnimationRecord { glm::vec3 wind;std::uint32_t frame;glm::vec4 trail; };
+static_assert(sizeof(GrassAnimationRecord)==32);
+inline constexpr std::uint64_t grassComputedCandidateBytes=128+sizeof(GrassRootRecord)+sizeof(GrassAnimationRecord);
+inline constexpr std::uint64_t grassComputedCommandBytes=48;
 struct GrassPass {
     glm::mat4 model{1}, view{1}, projection{1};
     glm::dvec3 mainEyeBody{0};
@@ -44,6 +48,8 @@ struct ProceduralGrassStats {
     bool drawResourcesPrepared=false;
     std::uint64_t rootBytes=0,rootDispatches=0;
     bool rootsPrepared=false;
+    std::uint64_t animationBytes=0,animationDispatches=0;
+    std::uint32_t animationFrame=0;
 };
 class ProceduralGrass {
 public:
@@ -67,6 +73,11 @@ private:
         mutable std::size_t rootCapacity=0,boundsCapacity=0;
         mutable bool rootsReady=false;
         mutable std::uint64_t rootDispatches=0;
+        mutable GLuint gpuAnimation=0,animationTexture=0;
+        mutable std::size_t animationCapacity=0;
+        mutable std::uint32_t animationFrame=0;
+        mutable float animationTime=std::numeric_limits<float>::quiet_NaN();
+        mutable std::uint64_t animationTrailRevision=0,animationDispatches=0;
         mutable std::array<GLuint,2> gpuVaos{};
         mutable std::size_t gpuCapacity=0;
         mutable bool computeUsed=false;
@@ -105,12 +116,14 @@ private:
     std::map<std::string,GrassFalloff> replayPolicies_;
     void bindTrail(std::size_t index,double scale) const;
     mutable std::unique_ptr<Shader> compute_;
+    mutable std::unique_ptr<Shader> animation_;
     std::unique_ptr<GrassMetadataCompute> metadataCompute_;
     std::unique_ptr<GrassAllocationCompute> allocationCompute_;
     void upload(Patch& patch,const GrassPlan& plan);
     void updateDraws(Patch& patch,double scale,double nearDistance,const glm::dvec3& eyeBody);
     void attributes(std::size_t first,int level) const;
-    void drawComputed(const Patch& patch,const GrassPass& pass) const;
+    void drawComputed(std::size_t index,const Patch& patch,const GrassPass& pass) const;
+    void animateComputed(std::size_t index,const Patch& patch,const GrassPass& pass,int maxGroups) const;
     void allocateComputed(const Patch& patch,std::size_t count) const;
     void bindComputedInputs(const Patch& patch) const;
     std::uint64_t dispatchCandidates(const Patch& patch,int maxGroups) const;
@@ -191,5 +204,8 @@ public:
     std::array<std::size_t,2> computedCounts(std::size_t index) const;
     // Explicit validation only; never read by the interactive render path.
     std::vector<GrassRootRecord> cachedRootsForValidation(std::size_t index) const;
+    std::vector<GrassAnimationRecord> cachedAnimationForValidation(std::size_t index) const;
+    // Cache-miss counter is enabled only during transform-feedback validation.
+    std::uint32_t animationUpdatesForValidation(std::size_t index) const;
 };
 }

@@ -1,0 +1,3082 @@
+{
+  "device": {
+    "index": "1",
+    "name": "NVIDIA GeForce RTX 3070 Ti",
+    "uuid": "GPU-1795f01b-f1fd-61a0-3b79-199560dd0793",
+    "driver_version": "580.178.04",
+    "memory.total [MiB]": "8192 MiB"
+  },
+  "probe_sha256": {
+    "before": "0681a26a312b2c3566b9198410ecdd2fe873d4f932e0f7279667019c74f15c77",
+    "after": "5fa3989aad16460b6f1d197177004d17b4a7e0dedfadf13e9c6d6f7fd16d4c6f"
+  },
+  "shader_sha256": {
+    "before": {
+      "shaders/atmosphere/atmosphere.frag": "6b5d41c49914cc5752c83e5dee4a6d1c920ca1140b0eeecd5e8481e66a8da460",
+      "shaders/atmosphere/atmosphere.glsl": "3b20e982c96e01dd817cea8f35f1e63282683c0139d8439b3f115500b51b8cd2",
+      "shaders/atmosphere/atmosphere.vert": "ae6438579e5989831a745a8434d7fb431c6443c0b090092dc5dbc8b1e125982a",
+      "shaders/atmosphere/atmosphere_columns.frag": "22107becf3b7b9eee3256cec7637d776bc281752c46f16cc0509192a1d858901",
+      "shaders/atmosphere/highlight.comp": "1644e9b692d4c45240d5560d1c6f6886a971cb89ef18eb56bf4beb714dd4b1b1",
+      "shaders/character/astronaut.frag": "721569205afc0359f9fbb2e1336637650404dbbf70dad087dc8edbaa81a44706",
+      "shaders/character/astronaut.vert": "080d2952ca68c2cda2f670f5e037fbc358b334869ea09f5b43449c552cb0c283",
+      "shaders/character/exhaust.frag": "ad3f5b26f15bb52472d0ec84034886d0209768d220dd208a885133cf4d8e2d4e",
+      "shaders/character/exhaust.vert": "f2d0163974aa7ef862a0fdde638678a809a7e27d4604ad1e4ac02213248d1401",
+      "shaders/diagnostics/orbit_lines.frag": "57a3867a33493a7683bb125a2b0558092ff7de7f9a2bbc696ec25745b6c19c36",
+      "shaders/diagnostics/orbit_lines.vert": "e2a6bdb824e4f46e4cfc67c6b6fdfc0be18506a1dc9c9a8f2d29264ed908e672",
+      "shaders/diagnostics/performance_overlay.frag": "f093c0ca407e0cabfd88a97eca464e4f3705632a12200ac9796d6b1802292049",
+      "shaders/diagnostics/performance_overlay.vert": "354d726f8aa3738b01a1a8286eab9d2541239e506382d635893c58532835dafd",
+      "shaders/diagnostics/quality_present.frag": "d5cf5247ad92540ed5c5fab07860ccfbc6ae3a99be17518c9d39086354bda26f",
+      "shaders/diagnostics/quality_present.vert": "1563c35efd6ca5c3dfdd40d8e54eae94df4b0a21dff3f0509bf8a1e407940b58",
+      "shaders/foliage/grass.frag": "0739ecfcdcea63698416a99b64ca62106eece026ef60050ce55413e555165b72",
+      "shaders/foliage/grass.vert": "e518116a2238743da57ba9dce7035b57e7caac28938c77f471bb5a0fb97439d5",
+      "shaders/foliage/palette.glsl": "c5445feffee9a3a879c2ecd18c8452c49700708bc024d11222d0dc9f1e661f3a",
+      "shaders/foliage/placement.comp": "45b1d57868c35bdc53d65f20bfe9405206b1e88ab74c29f398f6c288845f1220",
+      "shaders/foliage/planning/allocation.comp": "4e49aa861eec23c92bd8b4e1bcb9750b193d2e11da9e3091e7460a10bb5c683d",
+      "shaders/foliage/planning/metadata.comp": "a04c927c567a250dd0b08ba8c6c8954485a8e90e8542f83972a6cdbd65a37054",
+      "shaders/postprocessing/flare.frag": "117ac1b50489ac6155c5f20c2348ac3600592460c2a0a405c4860c86c78ace0d",
+      "shaders/postprocessing/flare.vert": "09ecf183db7086558d443e0a3cce51b5c9ffcd69a7d5f3081084ee6993b11086",
+      "shaders/skybox/skybox.frag": "6face0b46be6c9347e580bcf7b6418ef32bef6602dfac9ec2036d5decc8f034b",
+      "shaders/skybox/skybox.vert": "01fb3e2ded0b637cb62b1a4746e212b2acdf67f1861d873792a7408a10c05703",
+      "shaders/terrain/basic.frag": "6e221f6972274a81a08fd62f2aff15581ec6cdc4ce54d04205c29a6101468bd3",
+      "shaders/terrain/basic.vert": "fadab7cfd95aa530e781ec8b005cd7dc1929e5ec331c514f247918e006264308",
+      "shaders/terrain/compute/field.comp": "e674a5bef47555b0b754d791b4be4ef6fe0dcca898b91db681cc1f8ce6bc8d7e",
+      "shaders/terrain/terrain_shadow.frag": "f2c30846de1b8049ed2561adb3f69c5af5149567c104433e1da780bae65f4709",
+      "shaders/terrain/terrain_shadow.glsl": "67187e810c0e8447246fa377ee35a0a5df6b8548109f536f9ea1910514ce008e",
+      "shaders/terrain/terrain_shadow.vert": "ef69d6bab61a281bf2d1db875ed1d5378639c6e4ae85c5754a378095bf90c7a7",
+      "shaders/water/water.frag": "ace24ebc368f59b188bed69a2a2f126a6e58a1807cde93d2977de3a968c5285f",
+      "shaders/water/water.vert": "22ef0fdd388a1a502ba66be83b74ff1142f35dab590f2a23cfd153dddb9d5718"
+    },
+    "after": {
+      "shaders/atmosphere/atmosphere.frag": "6b5d41c49914cc5752c83e5dee4a6d1c920ca1140b0eeecd5e8481e66a8da460",
+      "shaders/atmosphere/atmosphere.glsl": "3b20e982c96e01dd817cea8f35f1e63282683c0139d8439b3f115500b51b8cd2",
+      "shaders/atmosphere/atmosphere.vert": "ae6438579e5989831a745a8434d7fb431c6443c0b090092dc5dbc8b1e125982a",
+      "shaders/atmosphere/atmosphere_columns.frag": "22107becf3b7b9eee3256cec7637d776bc281752c46f16cc0509192a1d858901",
+      "shaders/atmosphere/highlight.comp": "1644e9b692d4c45240d5560d1c6f6886a971cb89ef18eb56bf4beb714dd4b1b1",
+      "shaders/character/astronaut.frag": "721569205afc0359f9fbb2e1336637650404dbbf70dad087dc8edbaa81a44706",
+      "shaders/character/astronaut.vert": "080d2952ca68c2cda2f670f5e037fbc358b334869ea09f5b43449c552cb0c283",
+      "shaders/character/exhaust.frag": "ad3f5b26f15bb52472d0ec84034886d0209768d220dd208a885133cf4d8e2d4e",
+      "shaders/character/exhaust.vert": "f2d0163974aa7ef862a0fdde638678a809a7e27d4604ad1e4ac02213248d1401",
+      "shaders/diagnostics/orbit_lines.frag": "57a3867a33493a7683bb125a2b0558092ff7de7f9a2bbc696ec25745b6c19c36",
+      "shaders/diagnostics/orbit_lines.vert": "e2a6bdb824e4f46e4cfc67c6b6fdfc0be18506a1dc9c9a8f2d29264ed908e672",
+      "shaders/diagnostics/performance_overlay.frag": "f093c0ca407e0cabfd88a97eca464e4f3705632a12200ac9796d6b1802292049",
+      "shaders/diagnostics/performance_overlay.vert": "354d726f8aa3738b01a1a8286eab9d2541239e506382d635893c58532835dafd",
+      "shaders/diagnostics/quality_present.frag": "d5cf5247ad92540ed5c5fab07860ccfbc6ae3a99be17518c9d39086354bda26f",
+      "shaders/diagnostics/quality_present.vert": "1563c35efd6ca5c3dfdd40d8e54eae94df4b0a21dff3f0509bf8a1e407940b58",
+      "shaders/foliage/animation.comp": "dee0c6f86ba4ccca892ae40c97c2a4241d03d126de4cfe90dfd9cb8a61b24e68",
+      "shaders/foliage/grass.frag": "0739ecfcdcea63698416a99b64ca62106eece026ef60050ce55413e555165b72",
+      "shaders/foliage/grass.vert": "fe5d07858a478e8b028eb04ef1feaacdd787b54c1489b107e150df5e7253420e",
+      "shaders/foliage/palette.glsl": "c5445feffee9a3a879c2ecd18c8452c49700708bc024d11222d0dc9f1e661f3a",
+      "shaders/foliage/placement.comp": "4974bca964a66195b14e370c728a165654933eea02eb3186ae4d09ecf404a309",
+      "shaders/foliage/planning/allocation.comp": "4e49aa861eec23c92bd8b4e1bcb9750b193d2e11da9e3091e7460a10bb5c683d",
+      "shaders/foliage/planning/metadata.comp": "a04c927c567a250dd0b08ba8c6c8954485a8e90e8542f83972a6cdbd65a37054",
+      "shaders/postprocessing/flare.frag": "117ac1b50489ac6155c5f20c2348ac3600592460c2a0a405c4860c86c78ace0d",
+      "shaders/postprocessing/flare.vert": "09ecf183db7086558d443e0a3cce51b5c9ffcd69a7d5f3081084ee6993b11086",
+      "shaders/skybox/skybox.frag": "6face0b46be6c9347e580bcf7b6418ef32bef6602dfac9ec2036d5decc8f034b",
+      "shaders/skybox/skybox.vert": "01fb3e2ded0b637cb62b1a4746e212b2acdf67f1861d873792a7408a10c05703",
+      "shaders/terrain/basic.frag": "6e221f6972274a81a08fd62f2aff15581ec6cdc4ce54d04205c29a6101468bd3",
+      "shaders/terrain/basic.vert": "fadab7cfd95aa530e781ec8b005cd7dc1929e5ec331c514f247918e006264308",
+      "shaders/terrain/compute/field.comp": "e674a5bef47555b0b754d791b4be4ef6fe0dcca898b91db681cc1f8ce6bc8d7e",
+      "shaders/terrain/terrain_shadow.frag": "f2c30846de1b8049ed2561adb3f69c5af5149567c104433e1da780bae65f4709",
+      "shaders/terrain/terrain_shadow.glsl": "67187e810c0e8447246fa377ee35a0a5df6b8548109f536f9ea1910514ce008e",
+      "shaders/terrain/terrain_shadow.vert": "ef69d6bab61a281bf2d1db875ed1d5378639c6e4ae85c5754a378095bf90c7a7",
+      "shaders/water/water.frag": "ace24ebc368f59b188bed69a2a2f126a6e58a1807cde93d2977de3a968c5285f",
+      "shaders/water/water.vert": "22ef0fdd388a1a502ba66be83b74ff1142f35dab590f2a23cfd153dddb9d5718"
+    }
+  },
+  "adapter_sha256": "6e5c6e4bdeeb15c724840e02bc61ae4bef127eb15c8b4ccd9434f9b321911935",
+  "adapter_source_sha256": "6cbba8fae6de4692366119fbcfc4d1d446fc9693064f5791a79b1c6e570a44f2",
+  "base_commit": "6e570723bcafab06a6f238c0b40caed7e1cdf024",
+  "config_sha256": "7080737efc650bfd2db488f786200534e7e1f1aa9f382dcdc8a0a1e37dbfc768",
+  "input_sha256": "c5216097f0e8f97b2450cf749cf475fd7f4cdd09fca1b40f5494a735b1edaa33",
+  "method": {
+    "pairs": 3,
+    "seconds": 6,
+    "stages": [
+      "grass_metadata",
+      "grass_allocation",
+      "grass_roots",
+      "grass_placement",
+      "grass_animation",
+      "grass_draw"
+    ],
+    "camera_mode": "astronaut",
+    "warmup": "settled surface view, then >=3 seconds and >=30 frames",
+    "walking_mps": 6,
+    "viewport": [
+      1280,
+      720
+    ],
+    "orbit": "paused replay; wind live",
+    "presentation": "real GLFW/X11 input and production loop; NVIDIA EGL pbuffer; no desktop FPS claim"
+  },
+  "validation": "All UUIDs, frame joins, samples, density and native audits passed; no measured outliers removed.",
+  "groups": {
+    "idle-before": {
+      "wall_ms": {
+        "n": 2576,
+        "mean": 6.991081062888199,
+        "median": 6.645448,
+        "p95": 8.62371,
+        "p99": 9.341827,
+        "max": 11.804562
+      },
+      "mesh_ms": {
+        "n": 2576,
+        "mean": 0.13691260597826088,
+        "median": 0.12767450000000002,
+        "p95": 0.186331,
+        "p99": 0.231858,
+        "max": 0.452932
+      },
+      "gpu_render_ms": {
+        "n": 2576,
+        "mean": 6.268564273291926,
+        "median": 5.931520000000001,
+        "p95": 7.709696,
+        "p99": 8.476672,
+        "max": 10.37312
+      },
+      "allocation_gpu_ms": {
+        "n": 0
+      },
+      "allocation_cpu_ms": {
+        "n": 0
+      },
+      "metadata_fresh_gpu_ms": {
+        "n": 0
+      },
+      "metadata_repeated_generation_gpu_ms": {
+        "n": 0
+      },
+      "roots_gpu_ms": {
+        "n": 0
+      },
+      "roots_cpu_ms": {
+        "n": 0
+      },
+      "placement_main_gpu_ms": {
+        "n": 2576,
+        "mean": 0.6233715279503106,
+        "median": 0.41472,
+        "p95": 0.968704,
+        "p99": 1.911808,
+        "max": 4.402176
+      },
+      "placement_reflection_gpu_ms": {
+        "n": 2576,
+        "mean": 0.6227569689440994,
+        "median": 0.418816,
+        "p95": 0.96256,
+        "p99": 2.158592,
+        "max": 2.546688
+      },
+      "placement_main_cpu_ms": {
+        "n": 2576,
+        "mean": 0.1489720826863354,
+        "median": 0.1325135,
+        "p95": 0.219765,
+        "p99": 0.316598,
+        "max": 3.253233
+      },
+      "placement_reflection_cpu_ms": {
+        "n": 2576,
+        "mean": 0.13855572321428572,
+        "median": 0.12124499999999999,
+        "p95": 0.205958,
+        "p99": 0.283328,
+        "max": 3.297234
+      },
+      "animation_main_gpu_ms": {
+        "n": 0
+      },
+      "animation_main_cpu_ms": {
+        "n": 0
+      },
+      "draw_main_gpu_ms": {
+        "n": 0
+      },
+      "draw_main_cpu_ms": {
+        "n": 0
+      },
+      "animation_reflection_gpu_ms": {
+        "n": 0
+      },
+      "animation_reflection_cpu_ms": {
+        "n": 0
+      },
+      "draw_reflection_gpu_ms": {
+        "n": 0
+      },
+      "draw_reflection_cpu_ms": {
+        "n": 0
+      },
+      "opaque_gpu_ms": {
+        "n": 2576,
+        "mean": 1.6184447204968944,
+        "median": 1.410048,
+        "p95": 2.035712,
+        "p99": 3.226624,
+        "max": 5.43232
+      },
+      "reflection_gpu_ms": {
+        "n": 2576,
+        "mean": 1.2719022111801241,
+        "median": 1.028096,
+        "p95": 1.650688,
+        "p99": 2.838528,
+        "max": 3.202048
+      }
+    },
+    "idle-after": {
+      "wall_ms": {
+        "n": 2559,
+        "mean": 7.035306643220008,
+        "median": 6.597154,
+        "p95": 8.989625,
+        "p99": 9.796422,
+        "max": 11.365614
+      },
+      "mesh_ms": {
+        "n": 2559,
+        "mean": 0.13905490582258695,
+        "median": 0.128933,
+        "p95": 0.192206,
+        "p99": 0.242561,
+        "max": 0.736389
+      },
+      "gpu_render_ms": {
+        "n": 2559,
+        "mean": 6.310158905822587,
+        "median": 5.891072,
+        "p95": 7.97184,
+        "p99": 8.706048,
+        "max": 10.528768
+      },
+      "allocation_gpu_ms": {
+        "n": 0
+      },
+      "allocation_cpu_ms": {
+        "n": 0
+      },
+      "metadata_fresh_gpu_ms": {
+        "n": 0
+      },
+      "metadata_repeated_generation_gpu_ms": {
+        "n": 0
+      },
+      "roots_gpu_ms": {
+        "n": 0
+      },
+      "roots_cpu_ms": {
+        "n": 0
+      },
+      "placement_main_gpu_ms": {
+        "n": 2559,
+        "mean": 0.5216837827276279,
+        "median": 0.297984,
+        "p95": 0.894976,
+        "p99": 1.990656,
+        "max": 3.144704
+      },
+      "placement_reflection_gpu_ms": {
+        "n": 2559,
+        "mean": 0.508955210629152,
+        "median": 0.304128,
+        "p95": 0.893952,
+        "p99": 1.366016,
+        "max": 3.11808
+      },
+      "placement_main_cpu_ms": {
+        "n": 2559,
+        "mean": 0.14933171199687378,
+        "median": 0.132408,
+        "p95": 0.2246,
+        "p99": 0.297422,
+        "max": 2.961235
+      },
+      "placement_reflection_cpu_ms": {
+        "n": 2559,
+        "mean": 0.13798397733489645,
+        "median": 0.121928,
+        "p95": 0.201186,
+        "p99": 0.292041,
+        "max": 3.611196
+      },
+      "animation_main_gpu_ms": {
+        "n": 2559,
+        "mean": 0.10769566862055491,
+        "median": 0.083968,
+        "p95": 0.151552,
+        "p99": 0.157696,
+        "max": 1.3312
+      },
+      "animation_main_cpu_ms": {
+        "n": 2559,
+        "mean": 0.00787327393513091,
+        "median": 0.007109,
+        "p95": 0.011879,
+        "p99": 0.022651,
+        "max": 0.042291
+      },
+      "draw_main_gpu_ms": {
+        "n": 2559,
+        "mean": 0.5330798343102775,
+        "median": 0.536576,
+        "p95": 0.607232,
+        "p99": 0.622592,
+        "max": 1.9456
+      },
+      "draw_main_cpu_ms": {
+        "n": 2559,
+        "mean": 0.022486758499413832,
+        "median": 0.020354,
+        "p95": 0.034888,
+        "p99": 0.049727,
+        "max": 0.127649
+      },
+      "animation_reflection_gpu_ms": {
+        "n": 2559,
+        "mean": 0.0681462196170379,
+        "median": 0.04608,
+        "p95": 0.114688,
+        "p99": 0.136192,
+        "max": 0.985088
+      },
+      "animation_reflection_cpu_ms": {
+        "n": 2559,
+        "mean": 0.00646546150840172,
+        "median": 0.005879,
+        "p95": 0.009615,
+        "p99": 0.014078,
+        "max": 0.26246
+      },
+      "draw_reflection_gpu_ms": {
+        "n": 2559,
+        "mean": 0.3985676905041032,
+        "median": 0.377856,
+        "p95": 0.41984,
+        "p99": 0.454656,
+        "max": 1.876992
+      },
+      "draw_reflection_cpu_ms": {
+        "n": 2559,
+        "mean": 0.018840046893317704,
+        "median": 0.016988,
+        "p95": 0.029516,
+        "p99": 0.042789,
+        "max": 0.320562
+      },
+      "opaque_gpu_ms": {
+        "n": 2559,
+        "mean": 1.643377944509574,
+        "median": 1.379328,
+        "p95": 2.266112,
+        "p99": 3.371008,
+        "max": 4.707328
+      },
+      "reflection_gpu_ms": {
+        "n": 2559,
+        "mean": 1.2358147401328643,
+        "median": 0.961536,
+        "p95": 1.727488,
+        "p99": 2.817024,
+        "max": 3.933184
+      }
+    },
+    "walk-before": {
+      "wall_ms": {
+        "n": 2020,
+        "mean": 8.911310680198019,
+        "median": 8.502843,
+        "p95": 10.70223,
+        "p99": 12.153799,
+        "max": 107.893491
+      },
+      "mesh_ms": {
+        "n": 2020,
+        "mean": 0.42007994405940596,
+        "median": 0.2434725,
+        "p95": 0.503303,
+        "p99": 1.021266,
+        "max": 84.647846
+      },
+      "gpu_render_ms": {
+        "n": 2020,
+        "mean": 7.709424792079208,
+        "median": 7.49568,
+        "p95": 9.411584,
+        "p99": 10.213376,
+        "max": 15.681536
+      },
+      "allocation_gpu_ms": {
+        "n": 9,
+        "mean": 14.958250666666666,
+        "median": 14.422016,
+        "p95": 16.876544,
+        "p99": 16.876544,
+        "max": 16.876544
+      },
+      "allocation_cpu_ms": {
+        "n": 9,
+        "mean": 0.641868,
+        "median": 0.512333,
+        "p95": 0.972269,
+        "p99": 0.972269,
+        "max": 0.972269
+      },
+      "metadata_fresh_gpu_ms": {
+        "n": 3,
+        "mean": 0.39082666666666666,
+        "median": 0.380928,
+        "p95": 0.41472,
+        "p99": 0.41472,
+        "max": 0.41472
+      },
+      "metadata_repeated_generation_gpu_ms": {
+        "n": 6,
+        "mean": 0.083968,
+        "median": 0.075776,
+        "p95": 0.113664,
+        "p99": 0.113664,
+        "max": 0.113664
+      },
+      "roots_gpu_ms": {
+        "n": 9,
+        "mean": 0.7885937777777778,
+        "median": 0.618496,
+        "p95": 1.071104,
+        "p99": 1.071104,
+        "max": 1.071104
+      },
+      "roots_cpu_ms": {
+        "n": 9,
+        "mean": 3.604791,
+        "median": 0.245463,
+        "p95": 29.157733,
+        "p99": 29.157733,
+        "max": 29.157733
+      },
+      "placement_main_gpu_ms": {
+        "n": 2020,
+        "mean": 0.640051706930693,
+        "median": 0.41984,
+        "p95": 0.97792,
+        "p99": 2.233344,
+        "max": 3.629056
+      },
+      "placement_reflection_gpu_ms": {
+        "n": 2020,
+        "mean": 0.6186759603960396,
+        "median": 0.418816,
+        "p95": 0.96768,
+        "p99": 1.85344,
+        "max": 2.958336
+      },
+      "placement_main_cpu_ms": {
+        "n": 2020,
+        "mean": 0.17965072772277227,
+        "median": 0.15693000000000001,
+        "p95": 0.274706,
+        "p99": 0.353233,
+        "max": 3.677215
+      },
+      "placement_reflection_cpu_ms": {
+        "n": 2020,
+        "mean": 0.15782232524752476,
+        "median": 0.142768,
+        "p95": 0.249002,
+        "p99": 0.32439,
+        "max": 3.606893
+      },
+      "animation_main_gpu_ms": {
+        "n": 0
+      },
+      "animation_main_cpu_ms": {
+        "n": 0
+      },
+      "draw_main_gpu_ms": {
+        "n": 0
+      },
+      "draw_main_cpu_ms": {
+        "n": 0
+      },
+      "animation_reflection_gpu_ms": {
+        "n": 0
+      },
+      "animation_reflection_cpu_ms": {
+        "n": 0
+      },
+      "draw_reflection_gpu_ms": {
+        "n": 0
+      },
+      "draw_reflection_cpu_ms": {
+        "n": 0
+      },
+      "opaque_gpu_ms": {
+        "n": 2020,
+        "mean": 1.923153615841584,
+        "median": 1.680384,
+        "p95": 2.525184,
+        "p99": 3.597312,
+        "max": 4.854784
+      },
+      "reflection_gpu_ms": {
+        "n": 2020,
+        "mean": 1.3039271287128713,
+        "median": 1.072128,
+        "p95": 1.69984,
+        "p99": 2.89792,
+        "max": 3.603456
+      }
+    },
+    "walk-after": {
+      "wall_ms": {
+        "n": 1999,
+        "mean": 9.005845541270636,
+        "median": 8.426261,
+        "p95": 10.992724,
+        "p99": 18.084211,
+        "max": 109.206466
+      },
+      "mesh_ms": {
+        "n": 1999,
+        "mean": 0.5221010660330165,
+        "median": 0.256655,
+        "p95": 0.485012,
+        "p99": 5.251817,
+        "max": 86.132306
+      },
+      "gpu_render_ms": {
+        "n": 1999,
+        "mean": 7.696427541770886,
+        "median": 7.41376,
+        "p95": 9.500672,
+        "p99": 10.313728,
+        "max": 12.942336
+      },
+      "allocation_gpu_ms": {
+        "n": 9,
+        "mean": 15.311758222222222,
+        "median": 15.430656,
+        "p95": 16.982016,
+        "p99": 16.982016,
+        "max": 16.982016
+      },
+      "allocation_cpu_ms": {
+        "n": 9,
+        "mean": 0.6422405555555556,
+        "median": 0.536408,
+        "p95": 0.962386,
+        "p99": 0.962386,
+        "max": 0.962386
+      },
+      "metadata_fresh_gpu_ms": {
+        "n": 3,
+        "mean": 0.365568,
+        "median": 0.357376,
+        "p95": 0.385024,
+        "p99": 0.385024,
+        "max": 0.385024
+      },
+      "metadata_repeated_generation_gpu_ms": {
+        "n": 6,
+        "mean": 0.12817066666666665,
+        "median": 0.066048,
+        "p95": 0.26624,
+        "p99": 0.26624,
+        "max": 0.26624
+      },
+      "roots_gpu_ms": {
+        "n": 9,
+        "mean": 0.6599111111111111,
+        "median": 0.608256,
+        "p95": 1.07008,
+        "p99": 1.07008,
+        "max": 1.07008
+      },
+      "roots_cpu_ms": {
+        "n": 9,
+        "mean": 15.823612555555556,
+        "median": 9.841398,
+        "p95": 29.154544,
+        "p99": 29.154544,
+        "max": 29.154544
+      },
+      "placement_main_gpu_ms": {
+        "n": 1999,
+        "mean": 0.522615483741871,
+        "median": 0.29696,
+        "p95": 0.886784,
+        "p99": 2.125824,
+        "max": 3.509248
+      },
+      "placement_reflection_gpu_ms": {
+        "n": 1999,
+        "mean": 0.5028700590295148,
+        "median": 0.294912,
+        "p95": 0.889856,
+        "p99": 0.907264,
+        "max": 2.802688
+      },
+      "placement_main_cpu_ms": {
+        "n": 1999,
+        "mean": 0.17905769434717358,
+        "median": 0.157681,
+        "p95": 0.275813,
+        "p99": 0.338385,
+        "max": 3.515629
+      },
+      "placement_reflection_cpu_ms": {
+        "n": 1999,
+        "mean": 0.16121522311155578,
+        "median": 0.143268,
+        "p95": 0.25373,
+        "p99": 0.314626,
+        "max": 3.630364
+      },
+      "animation_main_gpu_ms": {
+        "n": 1999,
+        "mean": 0.11367834317158579,
+        "median": 0.08192,
+        "p95": 0.231424,
+        "p99": 0.244736,
+        "max": 1.434624
+      },
+      "animation_main_cpu_ms": {
+        "n": 1999,
+        "mean": 0.01173411255627814,
+        "median": 0.007956,
+        "p95": 0.024375,
+        "p99": 0.039981,
+        "max": 0.069465
+      },
+      "draw_main_gpu_ms": {
+        "n": 1999,
+        "mean": 0.8103543611805903,
+        "median": 0.807936,
+        "p95": 0.86528,
+        "p99": 2.105344,
+        "max": 2.274304
+      },
+      "draw_main_cpu_ms": {
+        "n": 1999,
+        "mean": 0.029172948974487245,
+        "median": 0.026716,
+        "p95": 0.045793,
+        "p99": 0.067678,
+        "max": 0.106286
+      },
+      "animation_reflection_gpu_ms": {
+        "n": 1999,
+        "mean": 0.06577676038019009,
+        "median": 0.044032,
+        "p95": 0.110592,
+        "p99": 0.131072,
+        "max": 1.312768
+      },
+      "animation_reflection_cpu_ms": {
+        "n": 1999,
+        "mean": 0.0071968059029514754,
+        "median": 0.006329,
+        "p95": 0.012204,
+        "p99": 0.026611,
+        "max": 0.064576
+      },
+      "draw_reflection_gpu_ms": {
+        "n": 1999,
+        "mean": 0.3988615747873937,
+        "median": 0.38912,
+        "p95": 0.4352,
+        "p99": 0.443392,
+        "max": 1.829888
+      },
+      "draw_reflection_cpu_ms": {
+        "n": 1999,
+        "mean": 0.023351332666333168,
+        "median": 0.021507,
+        "p95": 0.038093,
+        "p99": 0.051156,
+        "max": 0.079718
+      },
+      "opaque_gpu_ms": {
+        "n": 1999,
+        "mean": 1.9232712676338168,
+        "median": 1.637376,
+        "p95": 2.6624,
+        "p99": 3.67104,
+        "max": 4.77184
+      },
+      "reflection_gpu_ms": {
+        "n": 1999,
+        "mean": 1.2117808024012007,
+        "median": 0.953344,
+        "p95": 1.717248,
+        "p99": 2.6624,
+        "max": 3.457024
+      }
+    }
+  },
+  "pairs": [
+    {
+      "pair": 1,
+      "case": "idle",
+      "variant": "before",
+      "frames": 865,
+      "first_frame": 3317,
+      "last_frame": 4181,
+      "audit": {
+        "frames": 4260,
+        "rendered": 1350,
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "memory_queries": 0,
+          "polls": 23,
+          "server_waits": 0
+        },
+        "peak_logical_bytes": 852997736
+      },
+      "wall_ms": {
+        "n": 865,
+        "mean": 6.9410286705202315,
+        "median": 6.604917,
+        "p95": 8.475909,
+        "p99": 9.302431,
+        "max": 11.804562
+      },
+      "mesh_ms": {
+        "n": 865,
+        "mean": 0.13674734797687862,
+        "median": 0.127862,
+        "p95": 0.180085,
+        "p99": 0.226025,
+        "max": 0.270984
+      },
+      "gpu_render_ms": {
+        "n": 865,
+        "mean": 6.225820559537572,
+        "median": 5.909504,
+        "p95": 7.673856,
+        "p99": 8.348672,
+        "max": 8.845312
+      },
+      "events": {
+        "grass_metadata": {
+          "n": 0
+        },
+        "grass_allocation": {
+          "n": 0
+        },
+        "grass_roots": {
+          "n": 0
+        },
+        "grass_placement": {
+          "n": 1730,
+          "mean": 0.6250241479768787,
+          "median": 0.418816,
+          "p95": 0.966656,
+          "p99": 2.128896,
+          "max": 2.622464
+        },
+        "grass_animation": {
+          "n": 0
+        },
+        "grass_draw": {
+          "n": 0
+        }
+      },
+      "opaque_gpu_ms": {
+        "n": 865,
+        "mean": 1.6099647630057803,
+        "median": 1.417216,
+        "p95": 2.036736,
+        "p99": 3.308544,
+        "max": 3.63008
+      },
+      "reflection_gpu_ms": {
+        "n": 865,
+        "mean": 1.2812595791907515,
+        "median": 1.032192,
+        "p95": 1.65376,
+        "p99": 2.839552,
+        "max": 3.03104
+      },
+      "trail_segments": [
+        0,
+        0
+      ],
+      "maximum_reserved_bytes": 852997736,
+      "raw_folder": "pair-1/idle/before"
+    },
+    {
+      "pair": 1,
+      "case": "idle",
+      "variant": "after",
+      "frames": 859,
+      "first_frame": 3379,
+      "last_frame": 4237,
+      "audit": {
+        "frames": 4322,
+        "rendered": 1364,
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "memory_queries": 0,
+          "polls": 23,
+          "server_waits": 0
+        },
+        "peak_logical_bytes": 980997768
+      },
+      "wall_ms": {
+        "n": 859,
+        "mean": 6.987458541327125,
+        "median": 6.485805,
+        "p95": 9.009411,
+        "p99": 9.752691,
+        "max": 10.469344
+      },
+      "mesh_ms": {
+        "n": 859,
+        "mean": 0.13902230500582072,
+        "median": 0.128018,
+        "p95": 0.19332,
+        "p99": 0.240908,
+        "max": 0.375225
+      },
+      "gpu_render_ms": {
+        "n": 859,
+        "mean": 6.258479385331781,
+        "median": 5.799936,
+        "p95": 7.97184,
+        "p99": 8.695808,
+        "max": 9.769984
+      },
+      "events": {
+        "grass_metadata": {
+          "n": 0
+        },
+        "grass_allocation": {
+          "n": 0
+        },
+        "grass_roots": {
+          "n": 0
+        },
+        "grass_placement": {
+          "n": 1718,
+          "mean": 0.5151190873108266,
+          "median": 0.303104,
+          "p95": 0.894976,
+          "p99": 1.138688,
+          "max": 2.77504
+        },
+        "grass_animation": {
+          "n": 1718,
+          "mean": 0.08860103376018627,
+          "median": 0.083968,
+          "p95": 0.147456,
+          "p99": 0.156672,
+          "max": 1.3312
+        },
+        "grass_draw": {
+          "n": 1718,
+          "mean": 0.45538972759022117,
+          "median": 0.417792,
+          "p95": 0.582656,
+          "p99": 0.612352,
+          "max": 1.880064
+        }
+      },
+      "opaque_gpu_ms": {
+        "n": 859,
+        "mean": 1.6313631292200232,
+        "median": 1.378304,
+        "p95": 2.269184,
+        "p99": 3.31776,
+        "max": 4.000768
+      },
+      "reflection_gpu_ms": {
+        "n": 859,
+        "mean": 1.230865881257276,
+        "median": 0.965632,
+        "p95": 1.727488,
+        "p99": 2.440192,
+        "max": 3.016704
+      },
+      "trail_segments": [
+        0,
+        0
+      ],
+      "maximum_reserved_bytes": 980997768,
+      "raw_folder": "pair-1/idle/after"
+    },
+    {
+      "pair": 1,
+      "case": "walk",
+      "variant": "before",
+      "frames": 672,
+      "first_frame": 3315,
+      "last_frame": 3986,
+      "audit": {
+        "frames": 4045,
+        "rendered": 1138,
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "memory_queries": 0,
+          "polls": 41,
+          "server_waits": 0
+        },
+        "peak_logical_bytes": 852997736
+      },
+      "wall_ms": {
+        "n": 672,
+        "mean": 8.924397702380952,
+        "median": 8.568972500000001,
+        "p95": 10.826066,
+        "p99": 12.623129,
+        "max": 103.852045
+      },
+      "mesh_ms": {
+        "n": 672,
+        "mean": 0.3956118125,
+        "median": 0.24227100000000001,
+        "p95": 0.515868,
+        "p99": 1.025378,
+        "max": 79.928928
+      },
+      "gpu_render_ms": {
+        "n": 672,
+        "mean": 7.738259809523809,
+        "median": 7.549952,
+        "p95": 9.418752,
+        "p99": 10.251264,
+        "max": 11.887616
+      },
+      "events": {
+        "grass_metadata": {
+          "n": 3,
+          "mean": 0.18875733333333333,
+          "median": 0.11264,
+          "p95": 0.380928,
+          "p99": 0.380928,
+          "max": 0.380928
+        },
+        "grass_allocation": {
+          "n": 3,
+          "mean": 14.613162666666666,
+          "median": 14.441472,
+          "p95": 15.14496,
+          "p99": 15.14496,
+          "max": 15.14496
+        },
+        "grass_roots": {
+          "n": 3,
+          "mean": 0.6109866666666667,
+          "median": 0.608256,
+          "p95": 0.618496,
+          "p99": 0.618496,
+          "max": 0.618496
+        },
+        "grass_placement": {
+          "n": 1344,
+          "mean": 0.6290712380952381,
+          "median": 0.41984,
+          "p95": 0.971776,
+          "p99": 2.08384,
+          "max": 3.41504
+        },
+        "grass_animation": {
+          "n": 0
+        },
+        "grass_draw": {
+          "n": 0
+        }
+      },
+      "opaque_gpu_ms": {
+        "n": 672,
+        "mean": 1.9230872380952382,
+        "median": 1.68704,
+        "p95": 2.511872,
+        "p99": 3.504128,
+        "max": 4.676608
+      },
+      "reflection_gpu_ms": {
+        "n": 672,
+        "mean": 1.3116327619047619,
+        "median": 1.0752,
+        "p95": 1.705984,
+        "p99": 2.89792,
+        "max": 3.273728
+      },
+      "trail_segments": [
+        0,
+        157
+      ],
+      "maximum_reserved_bytes": 852997736,
+      "raw_folder": "pair-1/walk/before",
+      "walking_speed_mps": 5.946299238100434
+    },
+    {
+      "pair": 1,
+      "case": "walk",
+      "variant": "after",
+      "frames": 658,
+      "first_frame": 3377,
+      "last_frame": 4034,
+      "audit": {
+        "frames": 4093,
+        "rendered": 1124,
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "memory_queries": 0,
+          "polls": 40,
+          "server_waits": 0
+        },
+        "peak_logical_bytes": 980997768
+      },
+      "wall_ms": {
+        "n": 658,
+        "mean": 9.116948325227964,
+        "median": 8.4781045,
+        "p95": 11.122492,
+        "p99": 18.306524,
+        "max": 107.887369
+      },
+      "mesh_ms": {
+        "n": 658,
+        "mean": 0.5335794468085107,
+        "median": 0.26135949999999997,
+        "p95": 0.486628,
+        "p99": 5.128689,
+        "max": 86.132306
+      },
+      "gpu_render_ms": {
+        "n": 658,
+        "mean": 7.770286297872341,
+        "median": 7.514112,
+        "p95": 9.638912,
+        "p99": 10.338304,
+        "max": 12.942336
+      },
+      "events": {
+        "grass_metadata": {
+          "n": 3,
+          "mean": 0.22391466666666665,
+          "median": 0.262144,
+          "p95": 0.354304,
+          "p99": 0.354304,
+          "max": 0.354304
+        },
+        "grass_allocation": {
+          "n": 3,
+          "mean": 15.335424,
+          "median": 15.522816,
+          "p95": 16.429056,
+          "p99": 16.429056,
+          "max": 16.429056
+        },
+        "grass_roots": {
+          "n": 3,
+          "mean": 0.6085973333333333,
+          "median": 0.608256,
+          "p95": 0.611328,
+          "p99": 0.611328,
+          "max": 0.611328
+        },
+        "grass_placement": {
+          "n": 1316,
+          "mean": 0.519383537993921,
+          "median": 0.295936,
+          "p95": 0.888832,
+          "p99": 1.917952,
+          "max": 3.509248
+        },
+        "grass_animation": {
+          "n": 1316,
+          "mean": 0.09016024316109422,
+          "median": 0.079872,
+          "p95": 0.227328,
+          "p99": 0.238592,
+          "max": 1.434624
+        },
+        "grass_draw": {
+          "n": 1316,
+          "mean": 0.603724255319149,
+          "median": 0.44697600000000004,
+          "p95": 0.857088,
+          "p99": 0.9984,
+          "max": 2.274304
+        }
+      },
+      "opaque_gpu_ms": {
+        "n": 658,
+        "mean": 1.9278994285714286,
+        "median": 1.6384,
+        "p95": 2.64192,
+        "p99": 3.648512,
+        "max": 4.77184
+      },
+      "reflection_gpu_ms": {
+        "n": 658,
+        "mean": 1.2156700790273556,
+        "median": 0.95488,
+        "p95": 1.711104,
+        "p99": 2.410496,
+        "max": 3.457024
+      },
+      "trail_segments": [
+        0,
+        156
+      ],
+      "maximum_reserved_bytes": 980997768,
+      "raw_folder": "pair-1/walk/after",
+      "walking_speed_mps": 5.951720683192276
+    },
+    {
+      "pair": 2,
+      "case": "idle",
+      "variant": "after",
+      "frames": 847,
+      "first_frame": 3351,
+      "last_frame": 4197,
+      "audit": {
+        "frames": 4275,
+        "rendered": 1333,
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "memory_queries": 0,
+          "polls": 26,
+          "server_waits": 0
+        },
+        "peak_logical_bytes": 980997768
+      },
+      "wall_ms": {
+        "n": 847,
+        "mean": 7.08247406729634,
+        "median": 6.679302,
+        "p95": 9.023129,
+        "p99": 9.873624,
+        "max": 10.676639
+      },
+      "mesh_ms": {
+        "n": 847,
+        "mean": 0.1407980106257379,
+        "median": 0.132011,
+        "p95": 0.197196,
+        "p99": 0.255028,
+        "max": 0.371281
+      },
+      "gpu_render_ms": {
+        "n": 847,
+        "mean": 6.3566160094451005,
+        "median": 5.978112,
+        "p95": 8.049664,
+        "p99": 8.675328,
+        "max": 10.001408
+      },
+      "events": {
+        "grass_metadata": {
+          "n": 0
+        },
+        "grass_allocation": {
+          "n": 0
+        },
+        "grass_roots": {
+          "n": 0
+        },
+        "grass_placement": {
+          "n": 1694,
+          "mean": 0.5135535301062574,
+          "median": 0.30208,
+          "p95": 0.892928,
+          "p99": 1.907712,
+          "max": 3.11808
+        },
+        "grass_animation": {
+          "n": 1694,
+          "mean": 0.08816555371900826,
+          "median": 0.082944,
+          "p95": 0.146432,
+          "p99": 0.154624,
+          "max": 1.324032
+        },
+        "grass_draw": {
+          "n": 1694,
+          "mean": 0.47344706493506494,
+          "median": 0.416768,
+          "p95": 0.600064,
+          "p99": 0.846848,
+          "max": 1.941504
+        }
+      },
+      "opaque_gpu_ms": {
+        "n": 847,
+        "mean": 1.6447120472255017,
+        "median": 1.384448,
+        "p95": 2.173952,
+        "p99": 3.120128,
+        "max": 4.707328
+      },
+      "reflection_gpu_ms": {
+        "n": 847,
+        "mean": 1.2406975017709563,
+        "median": 0.959488,
+        "p95": 1.726464,
+        "p99": 2.888704,
+        "max": 3.933184
+      },
+      "trail_segments": [
+        0,
+        0
+      ],
+      "maximum_reserved_bytes": 980997768,
+      "raw_folder": "pair-2/idle/after"
+    },
+    {
+      "pair": 2,
+      "case": "idle",
+      "variant": "before",
+      "frames": 862,
+      "first_frame": 3302,
+      "last_frame": 4163,
+      "audit": {
+        "frames": 4241,
+        "rendered": 1355,
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "memory_queries": 0,
+          "polls": 26,
+          "server_waits": 0
+        },
+        "peak_logical_bytes": 852997736
+      },
+      "wall_ms": {
+        "n": 862,
+        "mean": 6.965231022041763,
+        "median": 6.61015,
+        "p95": 8.589559,
+        "p99": 9.314978,
+        "max": 10.997952
+      },
+      "mesh_ms": {
+        "n": 862,
+        "mean": 0.13445523085846867,
+        "median": 0.125805,
+        "p95": 0.179248,
+        "p99": 0.20864,
+        "max": 0.452932
+      },
+      "gpu_render_ms": {
+        "n": 862,
+        "mean": 6.258189067285383,
+        "median": 5.930496,
+        "p95": 7.742464,
+        "p99": 8.495104,
+        "max": 10.37312
+      },
+      "events": {
+        "grass_metadata": {
+          "n": 0
+        },
+        "grass_allocation": {
+          "n": 0
+        },
+        "grass_roots": {
+          "n": 0
+        },
+        "grass_placement": {
+          "n": 1724,
+          "mean": 0.623487109048724,
+          "median": 0.416768,
+          "p95": 0.966656,
+          "p99": 2.158592,
+          "max": 4.402176
+        },
+        "grass_animation": {
+          "n": 0
+        },
+        "grass_draw": {
+          "n": 0
+        }
+      },
+      "opaque_gpu_ms": {
+        "n": 862,
+        "mean": 1.6245700603248259,
+        "median": 1.409024,
+        "p95": 2.03776,
+        "p99": 3.219456,
+        "max": 5.43232
+      },
+      "reflection_gpu_ms": {
+        "n": 862,
+        "mean": 1.272055090487239,
+        "median": 1.027072,
+        "p95": 1.650688,
+        "p99": 2.934784,
+        "max": 3.202048
+      },
+      "trail_segments": [
+        0,
+        0
+      ],
+      "maximum_reserved_bytes": 852997736,
+      "raw_folder": "pair-2/idle/before"
+    },
+    {
+      "pair": 2,
+      "case": "walk",
+      "variant": "after",
+      "frames": 679,
+      "first_frame": 3351,
+      "last_frame": 4029,
+      "audit": {
+        "frames": 4091,
+        "rendered": 1151,
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "memory_queries": 0,
+          "polls": 42,
+          "server_waits": 0
+        },
+        "peak_logical_bytes": 980997768
+      },
+      "wall_ms": {
+        "n": 679,
+        "mean": 8.835290353460971,
+        "median": 8.301756,
+        "p95": 10.901931,
+        "p99": 18.059412,
+        "max": 104.058486
+      },
+      "mesh_ms": {
+        "n": 679,
+        "mean": 0.5049144786450662,
+        "median": 0.245833,
+        "p95": 0.484583,
+        "p99": 6.672233,
+        "max": 80.394609
+      },
+      "gpu_render_ms": {
+        "n": 679,
+        "mean": 7.58384353460972,
+        "median": 7.329792,
+        "p95": 9.40032,
+        "p99": 10.288128,
+        "max": 11.92448
+      },
+      "events": {
+        "grass_metadata": {
+          "n": 3,
+          "mean": 0.16281600000000002,
+          "median": 0.0768,
+          "p95": 0.357376,
+          "p99": 0.357376,
+          "max": 0.357376
+        },
+        "grass_allocation": {
+          "n": 3,
+          "mean": 14.245888,
+          "median": 14.271488,
+          "p95": 14.408704,
+          "p99": 14.408704,
+          "max": 14.408704
+        },
+        "grass_roots": {
+          "n": 3,
+          "mean": 0.7601493333333333,
+          "median": 0.608256,
+          "p95": 1.07008,
+          "p99": 1.07008,
+          "max": 1.07008
+        },
+        "grass_placement": {
+          "n": 1358,
+          "mean": 0.5058846539027982,
+          "median": 0.294912,
+          "p95": 0.888832,
+          "p99": 1.308672,
+          "max": 2.691072
+        },
+        "grass_animation": {
+          "n": 1358,
+          "mean": 0.08978775846833578,
+          "median": 0.079872,
+          "p95": 0.154624,
+          "p99": 0.24064,
+          "max": 1.312768
+        },
+        "grass_draw": {
+          "n": 1358,
+          "mean": 0.605523322533137,
+          "median": 0.445952,
+          "p95": 0.85504,
+          "p99": 1.98656,
+          "max": 2.223104
+        }
+      },
+      "opaque_gpu_ms": {
+        "n": 679,
+        "mean": 1.9205293431516937,
+        "median": 1.636352,
+        "p95": 2.670592,
+        "p99": 3.716096,
+        "max": 4.132864
+      },
+      "reflection_gpu_ms": {
+        "n": 679,
+        "mean": 1.200904671575847,
+        "median": 0.95232,
+        "p95": 1.722368,
+        "p99": 2.002944,
+        "max": 3.00032
+      },
+      "trail_segments": [
+        0,
+        157
+      ],
+      "maximum_reserved_bytes": 980997768,
+      "raw_folder": "pair-2/walk/after",
+      "walking_speed_mps": 5.954221726487039
+    },
+    {
+      "pair": 2,
+      "case": "walk",
+      "variant": "before",
+      "frames": 663,
+      "first_frame": 3412,
+      "last_frame": 4074,
+      "audit": {
+        "frames": 4134,
+        "rendered": 1131,
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "memory_queries": 0,
+          "polls": 39,
+          "server_waits": 0
+        },
+        "peak_logical_bytes": 852997736
+      },
+      "wall_ms": {
+        "n": 663,
+        "mean": 9.053253622926093,
+        "median": 8.58494,
+        "p95": 10.699906,
+        "p99": 13.727518,
+        "max": 107.893491
+      },
+      "mesh_ms": {
+        "n": 663,
+        "mean": 0.4899091176470588,
+        "median": 0.259129,
+        "p95": 0.506695,
+        "p99": 1.019682,
+        "max": 84.647846
+      },
+      "gpu_render_ms": {
+        "n": 663,
+        "mean": 7.762577954751131,
+        "median": 7.584768,
+        "p95": 9.3952,
+        "p99": 10.279936,
+        "max": 12.633088
+      },
+      "events": {
+        "grass_metadata": {
+          "n": 3,
+          "mean": 0.18090666666666666,
+          "median": 0.074752,
+          "p95": 0.41472,
+          "p99": 0.41472,
+          "max": 0.41472
+        },
+        "grass_allocation": {
+          "n": 3,
+          "mean": 14.340437333333334,
+          "median": 14.372864,
+          "p95": 14.422016,
+          "p99": 14.422016,
+          "max": 14.422016
+        },
+        "grass_roots": {
+          "n": 3,
+          "mean": 0.7304533333333334,
+          "median": 0.60928,
+          "p95": 0.97792,
+          "p99": 0.97792,
+          "max": 0.97792
+        },
+        "grass_placement": {
+          "n": 1326,
+          "mean": 0.6314017978883861,
+          "median": 0.418816,
+          "p95": 0.9728,
+          "p99": 2.234368,
+          "max": 3.629056
+        },
+        "grass_animation": {
+          "n": 0
+        },
+        "grass_draw": {
+          "n": 0
+        }
+      },
+      "opaque_gpu_ms": {
+        "n": 663,
+        "mean": 1.913678383107089,
+        "median": 1.678336,
+        "p95": 2.489344,
+        "p99": 3.634176,
+        "max": 4.854784
+      },
+      "reflection_gpu_ms": {
+        "n": 663,
+        "mean": 1.3015302564102564,
+        "median": 1.071104,
+        "p95": 1.69984,
+        "p99": 2.948096,
+        "max": 3.275776
+      },
+      "trail_segments": [
+        0,
+        157
+      ],
+      "maximum_reserved_bytes": 852997736,
+      "raw_folder": "pair-2/walk/before",
+      "walking_speed_mps": 5.9462206046696435
+    },
+    {
+      "pair": 3,
+      "case": "idle",
+      "variant": "before",
+      "frames": 849,
+      "first_frame": 3305,
+      "last_frame": 4153,
+      "audit": {
+        "frames": 4232,
+        "rendered": 1335,
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "memory_queries": 0,
+          "polls": 24,
+          "server_waits": 0
+        },
+        "peak_logical_bytes": 852997736
+      },
+      "wall_ms": {
+        "n": 849,
+        "mean": 7.068322587750295,
+        "median": 6.695999,
+        "p95": 8.803658,
+        "p99": 9.425285,
+        "max": 10.947298
+      },
+      "mesh_ms": {
+        "n": 849,
+        "mean": 0.13957598115429917,
+        "median": 0.130059,
+        "p95": 0.199855,
+        "p99": 0.243418,
+        "max": 0.283602
+      },
+      "gpu_render_ms": {
+        "n": 849,
+        "mean": 6.3226475948174325,
+        "median": 5.962752,
+        "p95": 7.691264,
+        "p99": 8.617984,
+        "max": 10.200064
+      },
+      "events": {
+        "grass_metadata": {
+          "n": 0
+        },
+        "grass_allocation": {
+          "n": 0
+        },
+        "grass_roots": {
+          "n": 0
+        },
+        "grass_placement": {
+          "n": 1698,
+          "mean": 0.6206380777385159,
+          "median": 0.416768,
+          "p95": 0.968704,
+          "p99": 2.10944,
+          "max": 3.216384
+        },
+        "grass_animation": {
+          "n": 0
+        },
+        "grass_draw": {
+          "n": 0
+        }
+      },
+      "opaque_gpu_ms": {
+        "n": 849,
+        "mean": 1.6208653568904594,
+        "median": 1.406976,
+        "p95": 2.034688,
+        "p99": 3.236864,
+        "max": 3.98336
+      },
+      "reflection_gpu_ms": {
+        "n": 849,
+        "mean": 1.2622132767962309,
+        "median": 1.024,
+        "p95": 1.64864,
+        "p99": 2.78528,
+        "max": 3.075072
+      },
+      "trail_segments": [
+        0,
+        0
+      ],
+      "maximum_reserved_bytes": 852997736,
+      "raw_folder": "pair-3/idle/before"
+    },
+    {
+      "pair": 3,
+      "case": "idle",
+      "variant": "after",
+      "frames": 853,
+      "first_frame": 3302,
+      "last_frame": 4154,
+      "audit": {
+        "frames": 4230,
+        "rendered": 1354,
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "memory_queries": 0,
+          "polls": 25,
+          "server_waits": 0
+        },
+        "peak_logical_bytes": 980997768
+      },
+      "wall_ms": {
+        "n": 853,
+        "mean": 7.036655660023446,
+        "median": 6.663554,
+        "p95": 8.892095,
+        "p99": 9.656666,
+        "max": 11.365614
+      },
+      "mesh_ms": {
+        "n": 853,
+        "mean": 0.13735689214536928,
+        "median": 0.12763,
+        "p95": 0.183243,
+        "p99": 0.228817,
+        "max": 0.736389
+      },
+      "gpu_render_ms": {
+        "n": 853,
+        "mean": 6.316071615474795,
+        "median": 5.897216,
+        "p95": 7.931904,
+        "p99": 8.891392,
+        "max": 10.528768
+      },
+      "events": {
+        "grass_metadata": {
+          "n": 0
+        },
+        "grass_allocation": {
+          "n": 0
+        },
+        "grass_roots": {
+          "n": 0
+        },
+        "grass_placement": {
+          "n": 1706,
+          "mean": 0.5172748604923798,
+          "median": 0.30208,
+          "p95": 0.893952,
+          "p99": 1.990656,
+          "max": 3.144704
+        },
+        "grass_animation": {
+          "n": 1706,
+          "mean": 0.0869931817116061,
+          "median": 0.082944,
+          "p95": 0.146432,
+          "p99": 0.154624,
+          "max": 0.569344
+        },
+        "grass_draw": {
+          "n": 1706,
+          "mean": 0.46876150996483,
+          "median": 0.415744,
+          "p95": 0.5888,
+          "p99": 0.612352,
+          "max": 1.9456
+        }
+      },
+      "opaque_gpu_ms": {
+        "n": 853,
+        "mean": 1.654152553341149,
+        "median": 1.37728,
+        "p95": 2.338816,
+        "p99": 3.42016,
+        "max": 4.355072
+      },
+      "reflection_gpu_ms": {
+        "n": 853,
+        "mean": 1.2359499929660023,
+        "median": 0.959488,
+        "p95": 1.728512,
+        "p99": 2.906112,
+        "max": 3.265536
+      },
+      "trail_segments": [
+        0,
+        0
+      ],
+      "maximum_reserved_bytes": 980997768,
+      "raw_folder": "pair-3/idle/after"
+    },
+    {
+      "pair": 3,
+      "case": "walk",
+      "variant": "before",
+      "frames": 685,
+      "first_frame": 3356,
+      "last_frame": 4040,
+      "audit": {
+        "frames": 4099,
+        "rendered": 1152,
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "memory_queries": 0,
+          "polls": 41,
+          "server_waits": 0
+        },
+        "peak_logical_bytes": 852997736
+      },
+      "wall_ms": {
+        "n": 685,
+        "mean": 8.761087833576642,
+        "median": 8.310146,
+        "p95": 10.629391,
+        "p99": 11.545684,
+        "max": 107.637653
+      },
+      "mesh_ms": {
+        "n": 685,
+        "mean": 0.3764972321167883,
+        "median": 0.227799,
+        "p95": 0.48605,
+        "p99": 1.026213,
+        "max": 77.875301
+      },
+      "gpu_render_ms": {
+        "n": 685,
+        "mean": 7.629690954744525,
+        "median": 7.33696,
+        "p95": 9.381888,
+        "p99": 10.13248,
+        "max": 15.681536
+      },
+      "events": {
+        "grass_metadata": {
+          "n": 3,
+          "mean": 0.18909866666666666,
+          "median": 0.113664,
+          "p95": 0.376832,
+          "p99": 0.376832,
+          "max": 0.376832
+        },
+        "grass_allocation": {
+          "n": 3,
+          "mean": 15.921152,
+          "median": 16.674816,
+          "p95": 16.876544,
+          "p99": 16.876544,
+          "max": 16.876544
+        },
+        "grass_roots": {
+          "n": 3,
+          "mean": 1.0243413333333333,
+          "median": 1.00864,
+          "p95": 1.071104,
+          "p99": 1.071104,
+          "max": 1.071104
+        },
+        "grass_placement": {
+          "n": 1370,
+          "mean": 0.6276783649635036,
+          "median": 0.417792,
+          "p95": 0.968704,
+          "p99": 1.741824,
+          "max": 3.446784
+        },
+        "grass_animation": {
+          "n": 0
+        },
+        "grass_draw": {
+          "n": 0
+        }
+      },
+      "opaque_gpu_ms": {
+        "n": 685,
+        "mean": 1.9323896525547446,
+        "median": 1.675264,
+        "p95": 2.628608,
+        "p99": 3.755008,
+        "max": 4.753408
+      },
+      "reflection_gpu_ms": {
+        "n": 685,
+        "mean": 1.2986876262773723,
+        "median": 1.067008,
+        "p95": 1.692672,
+        "p99": 2.449408,
+        "max": 3.603456
+      },
+      "trail_segments": [
+        0,
+        159
+      ],
+      "maximum_reserved_bytes": 852997736,
+      "raw_folder": "pair-3/walk/before",
+      "walking_speed_mps": 5.956856133152955
+    },
+    {
+      "pair": 3,
+      "case": "walk",
+      "variant": "after",
+      "frames": 662,
+      "first_frame": 3357,
+      "last_frame": 4018,
+      "audit": {
+        "frames": 4079,
+        "rendered": 1130,
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "memory_queries": 0,
+          "polls": 40,
+          "server_waits": 0
+        },
+        "peak_logical_bytes": 980997768
+      },
+      "wall_ms": {
+        "n": 662,
+        "mean": 9.070349077039275,
+        "median": 8.5075375,
+        "p95": 10.920892,
+        "p99": 18.084211,
+        "max": 109.206466
+      },
+      "mesh_ms": {
+        "n": 662,
+        "mean": 0.5283199758308157,
+        "median": 0.261328,
+        "p95": 0.483608,
+        "p99": 5.251817,
+        "max": 82.83829
+      },
+      "gpu_render_ms": {
+        "n": 662,
+        "mean": 7.738490199395771,
+        "median": 7.407616,
+        "p95": 9.495552,
+        "p99": 10.066944,
+        "max": 11.019264
+      },
+      "events": {
+        "grass_metadata": {
+          "n": 3,
+          "mean": 0.23517866666666665,
+          "median": 0.26624,
+          "p95": 0.385024,
+          "p99": 0.385024,
+          "max": 0.385024
+        },
+        "grass_allocation": {
+          "n": 3,
+          "mean": 16.353962666666668,
+          "median": 16.649216,
+          "p95": 16.982016,
+          "p99": 16.982016,
+          "max": 16.982016
+        },
+        "grass_roots": {
+          "n": 3,
+          "mean": 0.6109866666666667,
+          "median": 0.611328,
+          "p95": 0.613376,
+          "p99": 0.613376,
+          "max": 0.613376
+        },
+        "grass_placement": {
+          "n": 1324,
+          "mean": 0.5131763625377643,
+          "median": 0.29696,
+          "p95": 0.886784,
+          "p99": 1.763328,
+          "max": 3.243008
+        },
+        "grass_animation": {
+          "n": 1324,
+          "mean": 0.08923572205438067,
+          "median": 0.079872,
+          "p95": 0.214016,
+          "p99": 0.241664,
+          "max": 1.212416
+        },
+        "grass_draw": {
+          "n": 1324,
+          "mean": 0.6045474803625378,
+          "median": 0.443392,
+          "p95": 0.851968,
+          "p99": 1.204224,
+          "max": 2.254848
+        }
+      },
+      "opaque_gpu_ms": {
+        "n": 662,
+        "mean": 1.921483407854985,
+        "median": 1.637376,
+        "p95": 2.691072,
+        "p99": 3.646464,
+        "max": 4.544512
+      },
+      "reflection_gpu_ms": {
+        "n": 662,
+        "mean": 1.2190704531722054,
+        "median": 0.951296,
+        "p95": 1.719296,
+        "p99": 2.965504,
+        "max": 3.44064
+      },
+      "trail_segments": [
+        0,
+        157
+      ],
+      "maximum_reserved_bytes": 980997768,
+      "raw_folder": "pair-3/walk/after",
+      "walking_speed_mps": 5.947150697835453
+    }
+  ],
+  "workloads": [
+    {
+      "pair": 1,
+      "case": "idle",
+      "variant": "before",
+      "triangles": [
+        100000,
+        100000
+      ],
+      "candidates": [
+        1599989,
+        1599989
+      ],
+      "patches": [
+        39761,
+        39761
+      ],
+      "gpu_bytes": [
+        322090812,
+        322090812
+      ],
+      "density": [
+        40.72,
+        40.72
+      ],
+      "budget": [
+        1600000,
+        1600000
+      ],
+      "capacity": [
+        2000000,
+        2000000
+      ],
+      "protected_m": [
+        15.0,
+        15.0
+      ],
+      "sigma_m": [
+        39.25053521525115,
+        39.25053521525115
+      ],
+      "near_infeasible": [
+        false,
+        false
+      ]
+    },
+    {
+      "pair": 1,
+      "case": "idle",
+      "variant": "after",
+      "triangles": [
+        100000,
+        100000
+      ],
+      "candidates": [
+        1599989,
+        1599989
+      ],
+      "patches": [
+        39761,
+        39761
+      ],
+      "gpu_bytes": [
+        373290476,
+        373290476
+      ],
+      "density": [
+        40.72,
+        40.72
+      ],
+      "budget": [
+        1600000,
+        1600000
+      ],
+      "capacity": [
+        2000000,
+        2000000
+      ],
+      "protected_m": [
+        15.0,
+        15.0
+      ],
+      "sigma_m": [
+        39.25053521525115,
+        39.25053521525115
+      ],
+      "near_infeasible": [
+        false,
+        false
+      ]
+    },
+    {
+      "pair": 1,
+      "case": "walk",
+      "variant": "before",
+      "triangles": [
+        100000,
+        100000
+      ],
+      "candidates": [
+        1599989,
+        1599902
+      ],
+      "patches": [
+        39761,
+        37531
+      ],
+      "gpu_bytes": [
+        322090812,
+        322038428
+      ],
+      "density": [
+        40.72,
+        40.72
+      ],
+      "budget": [
+        1600000,
+        1600000
+      ],
+      "capacity": [
+        2000000,
+        2000000
+      ],
+      "protected_m": [
+        15.0,
+        15.0
+      ],
+      "sigma_m": [
+        39.25053521525115,
+        39.158147131092846
+      ],
+      "near_infeasible": [
+        false,
+        false
+      ]
+    },
+    {
+      "pair": 1,
+      "case": "walk",
+      "variant": "after",
+      "triangles": [
+        100000,
+        100000
+      ],
+      "candidates": [
+        1599989,
+        1599953
+      ],
+      "patches": [
+        39761,
+        37519
+      ],
+      "gpu_bytes": [
+        373290476,
+        373246540
+      ],
+      "density": [
+        40.72,
+        40.72
+      ],
+      "budget": [
+        1600000,
+        1600000
+      ],
+      "capacity": [
+        2000000,
+        2000000
+      ],
+      "protected_m": [
+        15.0,
+        15.0
+      ],
+      "sigma_m": [
+        39.25053521525115,
+        39.09639436751604
+      ],
+      "near_infeasible": [
+        false,
+        false
+      ]
+    },
+    {
+      "pair": 2,
+      "case": "idle",
+      "variant": "after",
+      "triangles": [
+        100000,
+        100000
+      ],
+      "candidates": [
+        1599989,
+        1599989
+      ],
+      "patches": [
+        39761,
+        39761
+      ],
+      "gpu_bytes": [
+        373290476,
+        373290476
+      ],
+      "density": [
+        40.72,
+        40.72
+      ],
+      "budget": [
+        1600000,
+        1600000
+      ],
+      "capacity": [
+        2000000,
+        2000000
+      ],
+      "protected_m": [
+        15.0,
+        15.0
+      ],
+      "sigma_m": [
+        39.25053521525115,
+        39.25053521525115
+      ],
+      "near_infeasible": [
+        false,
+        false
+      ]
+    },
+    {
+      "pair": 2,
+      "case": "idle",
+      "variant": "before",
+      "triangles": [
+        100000,
+        100000
+      ],
+      "candidates": [
+        1599989,
+        1599989
+      ],
+      "patches": [
+        39761,
+        39761
+      ],
+      "gpu_bytes": [
+        322090812,
+        322090812
+      ],
+      "density": [
+        40.72,
+        40.72
+      ],
+      "budget": [
+        1600000,
+        1600000
+      ],
+      "capacity": [
+        2000000,
+        2000000
+      ],
+      "protected_m": [
+        15.0,
+        15.0
+      ],
+      "sigma_m": [
+        39.25053521525115,
+        39.25053521525115
+      ],
+      "near_infeasible": [
+        false,
+        false
+      ]
+    },
+    {
+      "pair": 2,
+      "case": "walk",
+      "variant": "after",
+      "triangles": [
+        100000,
+        100000
+      ],
+      "candidates": [
+        1599989,
+        1599011
+      ],
+      "patches": [
+        39761,
+        37521
+      ],
+      "gpu_bytes": [
+        373290476,
+        373035564
+      ],
+      "density": [
+        40.72,
+        40.72
+      ],
+      "budget": [
+        1600000,
+        1600000
+      ],
+      "capacity": [
+        2000000,
+        2000000
+      ],
+      "protected_m": [
+        15.0,
+        15.0
+      ],
+      "sigma_m": [
+        39.25053521525115,
+        39.12447781767696
+      ],
+      "near_infeasible": [
+        false,
+        false
+      ]
+    },
+    {
+      "pair": 2,
+      "case": "walk",
+      "variant": "before",
+      "triangles": [
+        100000,
+        100000
+      ],
+      "candidates": [
+        1599989,
+        1599985
+      ],
+      "patches": [
+        39761,
+        37528
+      ],
+      "gpu_bytes": [
+        322090812,
+        322054316
+      ],
+      "density": [
+        40.72,
+        40.72
+      ],
+      "budget": [
+        1600000,
+        1600000
+      ],
+      "capacity": [
+        2000000,
+        2000000
+      ],
+      "protected_m": [
+        15.0,
+        15.0
+      ],
+      "sigma_m": [
+        39.25053521525115,
+        39.15224482771009
+      ],
+      "near_infeasible": [
+        false,
+        false
+      ]
+    },
+    {
+      "pair": 3,
+      "case": "idle",
+      "variant": "before",
+      "triangles": [
+        100000,
+        100000
+      ],
+      "candidates": [
+        1599989,
+        1599989
+      ],
+      "patches": [
+        39761,
+        39761
+      ],
+      "gpu_bytes": [
+        322090812,
+        322090812
+      ],
+      "density": [
+        40.72,
+        40.72
+      ],
+      "budget": [
+        1600000,
+        1600000
+      ],
+      "capacity": [
+        2000000,
+        2000000
+      ],
+      "protected_m": [
+        15.0,
+        15.0
+      ],
+      "sigma_m": [
+        39.25053521525115,
+        39.25053521525115
+      ],
+      "near_infeasible": [
+        false,
+        false
+      ]
+    },
+    {
+      "pair": 3,
+      "case": "idle",
+      "variant": "after",
+      "triangles": [
+        100000,
+        100000
+      ],
+      "candidates": [
+        1599989,
+        1599989
+      ],
+      "patches": [
+        39761,
+        39761
+      ],
+      "gpu_bytes": [
+        373290476,
+        373290476
+      ],
+      "density": [
+        40.72,
+        40.72
+      ],
+      "budget": [
+        1600000,
+        1600000
+      ],
+      "capacity": [
+        2000000,
+        2000000
+      ],
+      "protected_m": [
+        15.0,
+        15.0
+      ],
+      "sigma_m": [
+        39.25053521525115,
+        39.25053521525115
+      ],
+      "near_infeasible": [
+        false,
+        false
+      ]
+    },
+    {
+      "pair": 3,
+      "case": "walk",
+      "variant": "before",
+      "triangles": [
+        100000,
+        100000
+      ],
+      "candidates": [
+        1599989,
+        1599768
+      ],
+      "patches": [
+        39761,
+        37529
+      ],
+      "gpu_bytes": [
+        322090812,
+        322012668
+      ],
+      "density": [
+        40.72,
+        40.72
+      ],
+      "budget": [
+        1600000,
+        1600000
+      ],
+      "capacity": [
+        2000000,
+        2000000
+      ],
+      "protected_m": [
+        15.0,
+        15.0
+      ],
+      "sigma_m": [
+        39.25053521525115,
+        39.159409096464515
+      ],
+      "near_infeasible": [
+        false,
+        false
+      ]
+    },
+    {
+      "pair": 3,
+      "case": "walk",
+      "variant": "after",
+      "triangles": [
+        100000,
+        100000
+      ],
+      "candidates": [
+        1599989,
+        1599919
+      ],
+      "patches": [
+        39761,
+        37515
+      ],
+      "gpu_bytes": [
+        373290476,
+        373238860
+      ],
+      "density": [
+        40.72,
+        40.72
+      ],
+      "budget": [
+        1600000,
+        1600000
+      ],
+      "capacity": [
+        2000000,
+        2000000
+      ],
+      "protected_m": [
+        15.0,
+        15.0
+      ],
+      "sigma_m": [
+        39.25053521525115,
+        39.09680140204728
+      ],
+      "near_infeasible": [
+        false,
+        false
+      ]
+    }
+  ],
+  "raw_sha256": {
+    "pair-1/idle/before/control.json": "e6ee24cffe49d1e27e69d9ea2866b893934e67cdafdf47f61d2f09d772e0c04b",
+    "pair-1/idle/before/frames.csv": "7d7df8a0dc6da4095e75aec6cd017f6cd1acfd6614fb609f3975170b424d5fec",
+    "pair-1/idle/before/frames.csv.gpu-work.csv": "a3a10d9c8c28ad13565498bc3f70e9dda396af9ec03bfc422fe7d773be3aa2f1",
+    "pair-1/idle/before/frames.csv.memory.csv": "263cd828cc04216e8cf914434a2b0e63b506bfaf01848f049783f6c7e5afc7d6",
+    "pair-1/idle/before/frames.csv.native-loop.csv": "903605264ee4330824b623919ef6ef6295c6f5c693c848af785702298692d4aa",
+    "pair-1/idle/before/frames.csv.publications.csv": "74ecc42b12bc9ebff5ea8c22aa2520a0d54bcccc9a36357b280ba32864ef848b",
+    "pair-1/idle/before/frames.jsonl": "509c27a4bb41f3a63298589be90b8925706d12fd7a0947b66ee702fae505e708",
+    "pair-1/idle/before/frames.jsonl.observer.csv": "5e6f47153f9a399a2b24f8da7ce064777d1366b256c8d417c593fcce3a6626f9",
+    "pair-1/idle/before/run.log": "68292a4c92d28f07d6ba75749f2b385823073efd7b517a105c6d51bd8e705856",
+    "pair-1/idle/after/control.json": "e6ee24cffe49d1e27e69d9ea2866b893934e67cdafdf47f61d2f09d772e0c04b",
+    "pair-1/idle/after/frames.csv": "e87bb562974634c18d3c13fb9a590c45e5d5b58fdea0bd293143603a01a215f9",
+    "pair-1/idle/after/frames.csv.gpu-work.csv": "bd370af2e09c40cda95f453ac7bb0de4e446d67e98cbf960ea5cfa6e3a9bf45c",
+    "pair-1/idle/after/frames.csv.memory.csv": "4584807e658cc4542816948a64a516eaa42854ff712f08e63f3f1ba146309a6f",
+    "pair-1/idle/after/frames.csv.native-loop.csv": "81bc7d17eeefd5820b5f020595407cfa7b1ecf863ba12aaef2645bbda5685579",
+    "pair-1/idle/after/frames.csv.publications.csv": "b4120171be1d7e8506defa73f0a96d7e06ded3e1d08d5a30dc59416a5db795f4",
+    "pair-1/idle/after/frames.jsonl": "4d9ba83df986414f2362a9acb09fed5ffe343cbf9b95948696adca848a596bfb",
+    "pair-1/idle/after/frames.jsonl.observer.csv": "bffe013d37bec0ba0ecb5fb22887d84da5c715b3960193edf70d71c85aa713b6",
+    "pair-1/idle/after/run.log": "68292a4c92d28f07d6ba75749f2b385823073efd7b517a105c6d51bd8e705856",
+    "pair-1/walk/before/control.json": "e6ee24cffe49d1e27e69d9ea2866b893934e67cdafdf47f61d2f09d772e0c04b",
+    "pair-1/walk/before/frames.csv": "c81042d0e6f654a3ec2ce07d0eea63e6cd5502d8674ed7b016c11e6cba2e8731",
+    "pair-1/walk/before/frames.csv.gpu-work.csv": "c9d59a8149d35b65733197ebc276a360c96c7b27bedc5ac145994f9a526a3fce",
+    "pair-1/walk/before/frames.csv.memory.csv": "9e0b4d6aae509ab2345519cdadbf530be57b154008b5e549a7912ebd5d98baa9",
+    "pair-1/walk/before/frames.csv.native-loop.csv": "1835d6314b661cd5d2e383034fc01b95858bb6c188d8f1b69952443eaf3e04e7",
+    "pair-1/walk/before/frames.csv.publications.csv": "e0fd96ff2ff258802083e5b77b52e317f83582ea76bc66568926d88907ab74ef",
+    "pair-1/walk/before/frames.jsonl": "babbbb8b027040fba54e47237de769fa25a840774cfc1ee18b83649c7021a7d3",
+    "pair-1/walk/before/frames.jsonl.observer.csv": "1c42463ddba4a6321230ea0339813086759aa40e296e47097271f332ec66172b",
+    "pair-1/walk/before/run.log": "27a6dcee83450501aea4bbe4cb5d22d0d8b93c834da4bfeed5b44c3d111107a2",
+    "pair-1/walk/after/control.json": "e6ee24cffe49d1e27e69d9ea2866b893934e67cdafdf47f61d2f09d772e0c04b",
+    "pair-1/walk/after/frames.csv": "2a7b5ffc231b566529a98b12112c0768d66e1e3e42dc1a194ec9f7ffd2ec677a",
+    "pair-1/walk/after/frames.csv.gpu-work.csv": "fe882a579e0dd94bd2c0d418c643023f0883b8395c4bd0c717585373cf78ceec",
+    "pair-1/walk/after/frames.csv.memory.csv": "9ed45dfd0ecf2af284adaff348675c06d02b71e490d2a1a700d3065c0fbd3df5",
+    "pair-1/walk/after/frames.csv.native-loop.csv": "dd663315524c4b58d348594be101fc9d3407e27d23b1b38e6e1f95423035da33",
+    "pair-1/walk/after/frames.csv.publications.csv": "f156f1119014517eed98415d0198ebd46a41f7def53f2de500bf3aee48ce9738",
+    "pair-1/walk/after/frames.jsonl": "a1d3d8821b9dee453463d2e06de2c082a41c5fe4da7cb67feb0dea5fe385bdd9",
+    "pair-1/walk/after/frames.jsonl.observer.csv": "e9a16394844a5bf7b29271eec3eef2ced89d790d6dc15fcb45ca4a870434b6b8",
+    "pair-1/walk/after/run.log": "e52f38dca34b2b99658b8ec484571799a3dc3e5a2daf1ae179fd03fcf2f3b138",
+    "pair-2/idle/after/control.json": "e6ee24cffe49d1e27e69d9ea2866b893934e67cdafdf47f61d2f09d772e0c04b",
+    "pair-2/idle/after/frames.csv": "6a45e61b2c331cd5925f0e11cb773cc0fb98b9527ecbe2c623572ab2704aaf3b",
+    "pair-2/idle/after/frames.csv.gpu-work.csv": "a9946348026489c90368a043dc8e05ee7fdf03909586ed1b85c80f5e07163543",
+    "pair-2/idle/after/frames.csv.memory.csv": "5b357742b2b51822f0da47efec93bc3172ea4d925e908f5527e3a017df20df00",
+    "pair-2/idle/after/frames.csv.native-loop.csv": "d669bc495ad1450d380c42460df6d4271f9850bd7331149d3bdcedbeb2322eca",
+    "pair-2/idle/after/frames.csv.publications.csv": "534c740acf2ed9ecc3f9523eec5e51e28826ff1f8494797fcfbba13cdc33fa9e",
+    "pair-2/idle/after/frames.jsonl": "7af0dfa90e3ae56a59f5e1a5fcd9272d3ebeb2bb36480fe874b5663d69bfd116",
+    "pair-2/idle/after/frames.jsonl.observer.csv": "a192b91115380e0aa1d68c3c2f0056f4a86804f9ce355a42a033a0dc9c29b176",
+    "pair-2/idle/after/run.log": "c2df6912ad60d66ccc9ea1fad55d0f19a7ba4c8235419a77d1b5f8ee9dc58e57",
+    "pair-2/idle/before/control.json": "e6ee24cffe49d1e27e69d9ea2866b893934e67cdafdf47f61d2f09d772e0c04b",
+    "pair-2/idle/before/frames.csv": "6119924153a1d4884bcff4c3dc814d0a965411399a0a5bb8b853c8337deaa7ad",
+    "pair-2/idle/before/frames.csv.gpu-work.csv": "a28747243ce411788c2da221d8ff4c519bd04d97dca071c1b459cb4b5d63644c",
+    "pair-2/idle/before/frames.csv.memory.csv": "9ad2170f19b58c6c383739b75e9008a4a6cd9f93d2484255482fc309c46f088e",
+    "pair-2/idle/before/frames.csv.native-loop.csv": "b506e6d77dbc3fa8a8c1098af09dfb14c78ef1068cbc0e90fa87896dfe3664bb",
+    "pair-2/idle/before/frames.csv.publications.csv": "1b65c1f41ef4b733eb73372f402ed933cd5044c26b7bf2e1889e3a70e8c1e356",
+    "pair-2/idle/before/frames.jsonl": "8b4bad81e88d9afd1126db4d5d0151c7ed71fc9c24b920fa3f9dd991105b8f53",
+    "pair-2/idle/before/frames.jsonl.observer.csv": "3b82a3aaced8b81f444834c35f91c504854056545cfcbeecea4c1e1bdcdddad7",
+    "pair-2/idle/before/run.log": "c2df6912ad60d66ccc9ea1fad55d0f19a7ba4c8235419a77d1b5f8ee9dc58e57",
+    "pair-2/walk/after/control.json": "e6ee24cffe49d1e27e69d9ea2866b893934e67cdafdf47f61d2f09d772e0c04b",
+    "pair-2/walk/after/frames.csv": "2b557a40117a82cd7f5796ae5c70ca4c97e69c2632863ec4577aea0219d7c79a",
+    "pair-2/walk/after/frames.csv.gpu-work.csv": "b7a2d248da53ba042261cae63bde2824ab4b5842b1a5ba3aa03acd64a58dd0ae",
+    "pair-2/walk/after/frames.csv.memory.csv": "f7aa53e95de2a202a76cc510013e2bc28bf19b000d705524c1f9e5fe55b16091",
+    "pair-2/walk/after/frames.csv.native-loop.csv": "587980d656dbe80419c47a2ff82850b8aa024a746dc0a9a6e004b97c773973a6",
+    "pair-2/walk/after/frames.csv.publications.csv": "a3a7884fa3f31d459622ab00a2d40994ef3076232d4f18035dea1b1561af59a6",
+    "pair-2/walk/after/frames.jsonl": "ceb633914adfbc3cf9f4c11b65392553760222cb30aa6927952eeffb858462d7",
+    "pair-2/walk/after/frames.jsonl.observer.csv": "5f87235c9b5acaf246f98f56dbf641456281551800b8c95d80a78fac19e4b2f5",
+    "pair-2/walk/after/run.log": "e57d0913265d5b581545cc1c14260bb6b2d0af306c2162c0045c0b77c779f046",
+    "pair-2/walk/before/control.json": "e6ee24cffe49d1e27e69d9ea2866b893934e67cdafdf47f61d2f09d772e0c04b",
+    "pair-2/walk/before/frames.csv": "0af30453c58ed3f356ede2222e276b4d7ffe7f94b0da202f9d885798af234b44",
+    "pair-2/walk/before/frames.csv.gpu-work.csv": "529bf32c82c4530654f28746d917f81387f89228cab4eb8cf2be82590f961d4a",
+    "pair-2/walk/before/frames.csv.memory.csv": "8d5bb90594a22ff6fe04f24cc4494b8134dfb752859840c31ab470745195de9f",
+    "pair-2/walk/before/frames.csv.native-loop.csv": "35c722985fe0b51f805608a0b3c0219afb330db20f31a98249838907f8289ec1",
+    "pair-2/walk/before/frames.csv.publications.csv": "4e164dc27bec926aec9552e2068330fbe452628474e6c06f1c3fc7acddaf2031",
+    "pair-2/walk/before/frames.jsonl": "9d8ac3b08eb3e22397c1f99003b2b37fd259ca02e15c21eaa53c5befbf196b69",
+    "pair-2/walk/before/frames.jsonl.observer.csv": "0bdc184e361bd58d5ee9242d08694bac46e318b7ef6ba3513153f5e5a3b1d0f0",
+    "pair-2/walk/before/run.log": "06c5504311bca22cdb1fef95bd7dc542256d3c52b911b366ad0bfa7c5e305e90",
+    "pair-3/idle/before/control.json": "e6ee24cffe49d1e27e69d9ea2866b893934e67cdafdf47f61d2f09d772e0c04b",
+    "pair-3/idle/before/frames.csv": "0160ec1571bf3a2ef8510a14a73fb17ccd84c479c05d3966300b72c360b1070d",
+    "pair-3/idle/before/frames.csv.gpu-work.csv": "a22b3618a582dd358c3f531ae14142fd4ba1fc0601133446b2f05f33bd527ea5",
+    "pair-3/idle/before/frames.csv.memory.csv": "c7cb5d8887b931855bc77bb66943c69c9f53758b9b6e26615ccbb4ceaafae88d",
+    "pair-3/idle/before/frames.csv.native-loop.csv": "da77d2e57ec33bd1356bf22a5bd077d37406462c25589131d5188ed0e0614c8d",
+    "pair-3/idle/before/frames.csv.publications.csv": "9441fbbe2157df1279c6f17646f3504d2adbe06b19739d537fce1d715e5f32b7",
+    "pair-3/idle/before/frames.jsonl": "2e3e4dbf550ee9f77663a0a10f0a0ab373c6d9919532cb28a283e8c8c38ac8e3",
+    "pair-3/idle/before/frames.jsonl.observer.csv": "3d2d6261d73dcbcbb1d12375d9984c279dce9583ba16662e44d63a1a2343df31",
+    "pair-3/idle/before/run.log": "175feb0f10a2e73542125a2515deb240662b9ae861bcb835ce02d1e8dfe12107",
+    "pair-3/idle/after/control.json": "e6ee24cffe49d1e27e69d9ea2866b893934e67cdafdf47f61d2f09d772e0c04b",
+    "pair-3/idle/after/frames.csv": "1af8e64d3eb6a41ac8ce04d7f5685f10cf2e91dfd62949b25bd99890afe02369",
+    "pair-3/idle/after/frames.csv.gpu-work.csv": "ced3893d5beda55a36c6c4a385db13320ffc4e16e3215617a0d770e093a538f0",
+    "pair-3/idle/after/frames.csv.memory.csv": "f4fabedaf5c25ce3c7c4a5780e6b2d01a5b523e8954d989e9091163ed603a660",
+    "pair-3/idle/after/frames.csv.native-loop.csv": "2e6812da550ca07b9ab415021c6c5613cccfebb9ed918b972ba1c9c504ca19a5",
+    "pair-3/idle/after/frames.csv.publications.csv": "0f9d03c9c18e523519505001dfd8d7035a379ebdda7516737155acbbe4068152",
+    "pair-3/idle/after/frames.jsonl": "ad6117f74b006abdd1f34fc32ddc61171f4484eb8d11a2c591cae441d9a9543d",
+    "pair-3/idle/after/frames.jsonl.observer.csv": "2801dca504a85d44f653d6eab00133630e265dbcc33bfd941f76c7886f1d11ae",
+    "pair-3/idle/after/run.log": "881348b96a3d4bb48e5fa8589597ef45d3a57f201ec30338f7e4a4e3ab1ee137",
+    "pair-3/walk/before/control.json": "e6ee24cffe49d1e27e69d9ea2866b893934e67cdafdf47f61d2f09d772e0c04b",
+    "pair-3/walk/before/frames.csv": "f6c0c10c329b5f143e490ee8706cb2af240198d7d710a1d9b4b25637f692965b",
+    "pair-3/walk/before/frames.csv.gpu-work.csv": "0a8a09b72caa4be1069f727db2163676f100de889dc55645c33f23280175229a",
+    "pair-3/walk/before/frames.csv.memory.csv": "b2491d27b3625635a6233255a528ec249279d60e5e13d8e16fefda1853352594",
+    "pair-3/walk/before/frames.csv.native-loop.csv": "f908d18e79b051b4a806782bacd2f126405944c7bbb12d50818802ea9368a96f",
+    "pair-3/walk/before/frames.csv.publications.csv": "fd95782044718d0343b98aebe55e28405938212df6560e9d5d606142f64d059b",
+    "pair-3/walk/before/frames.jsonl": "3c859edb95280aaf7cf07783e335642a22da8928e5302602d7a854ad66b623ca",
+    "pair-3/walk/before/frames.jsonl.observer.csv": "c6acbfe0a7100131146ae17da98cf35c4d82784ed77d70a7b08413f827d9953e",
+    "pair-3/walk/before/run.log": "1b2c8953dc4a6293236111a47d41890e30364a4442f29c290e0addeed79786c4",
+    "pair-3/walk/after/control.json": "e6ee24cffe49d1e27e69d9ea2866b893934e67cdafdf47f61d2f09d772e0c04b",
+    "pair-3/walk/after/frames.csv": "0a4075e8da56c456b0dce6db76d71379496af4ed3847ccb7b2308b5c083a0842",
+    "pair-3/walk/after/frames.csv.gpu-work.csv": "ec20fb2df6298e364db594888c8ddd0060dd725ed51862be496dada981974ebf",
+    "pair-3/walk/after/frames.csv.memory.csv": "d58ec5ee6497bcf07b46651587cc6e2f2f71a58b2560c0f9e74b0e181713eb35",
+    "pair-3/walk/after/frames.csv.native-loop.csv": "4d777774543ef138e7b819e4b85c090d4240afd27b5c163eac54e58a4e1b84fc",
+    "pair-3/walk/after/frames.csv.publications.csv": "fce0c3b3af07f7dc4ca2c2d93a6ac5bc4fe77f38a57f9962a8c7f4e7f0ccfd6a",
+    "pair-3/walk/after/frames.jsonl": "15c7a472f55b6e0e9d4ee9667f9937290bd55890855ba13f36dd62d35ac16638",
+    "pair-3/walk/after/frames.jsonl.observer.csv": "376c43f8d908273f315d71afc97e2d2ee25c9548605238910d303243cf2383b1",
+    "pair-3/walk/after/run.log": "202813a4dd58997500c61652d03dc03e220d992a5599adbadb4caf43ba10a90b",
+    "results.json": "aca920a40800507001a623d2b2ebc1d73253be605acb7460a7312e5657b0bd74",
+    "input.json": "c5216097f0e8f97b2450cf749cf475fd7f4cdd09fca1b40f5494a735b1edaa33",
+    "telemetry.csv": "b7548298b5692cd784a6d8871758f6ec30b41e5f7fb01f00637bb7a0d4338a06"
+  },
+  "asset_sha256": "68f6565d2594dbfd065ee0d9c3ed92c2c5eb18fc92db1735281f542fca72b41c",
+  "visual": {
+    "views": [
+      {
+        "view": "surface",
+        "exact_png": true,
+        "maximum_channel_error": 0,
+        "mean_channel_error": 0.0,
+        "candidates": 1599989,
+        "policies": [
+          {
+            "body": "earth",
+            "budget": 1600000,
+            "capacity": 2000000,
+            "density": 40.72,
+            "near_infeasible": false,
+            "protected_m": 15.0,
+            "sigma_m": 39.25053521525115,
+            "version": 1
+          },
+          null
+        ],
+        "allocation_dispatches": [
+          143,
+          47
+        ],
+        "metadata_bytes": [
+          12800160,
+          12800160
+        ],
+        "image_sha256": [
+          "ae807d255ce0fada30bd00844092b6e906d13fe232e839f44a27a06e421d748d",
+          "ae807d255ce0fada30bd00844092b6e906d13fe232e839f44a27a06e421d748d"
+        ]
+      },
+      {
+        "view": "aces",
+        "exact_png": true,
+        "maximum_channel_error": 0,
+        "mean_channel_error": 0.0,
+        "candidates": 1599976,
+        "policies": [
+          {
+            "body": "earth",
+            "budget": 1600000,
+            "capacity": 2000000,
+            "density": 40.72,
+            "near_infeasible": false,
+            "protected_m": 15.0,
+            "sigma_m": 39.17998485267162,
+            "version": 1
+          },
+          null
+        ],
+        "allocation_dispatches": [
+          143,
+          47
+        ],
+        "metadata_bytes": [
+          12800160,
+          12800160
+        ],
+        "image_sha256": [
+          "051221ea2839b3f0eefe7def206c150664895c1a133464d765060923621f6f3c",
+          "051221ea2839b3f0eefe7def206c150664895c1a133464d765060923621f6f3c"
+        ]
+      },
+      {
+        "view": "mountain",
+        "exact_png": true,
+        "maximum_channel_error": 0,
+        "mean_channel_error": 0.0,
+        "candidates": 576801,
+        "policies": [
+          {
+            "body": "earth",
+            "budget": 1600000,
+            "capacity": 2000000,
+            "density": 40.72,
+            "near_infeasible": false,
+            "protected_m": 15.0,
+            "sigma_m": 50.0,
+            "version": 1
+          },
+          null
+        ],
+        "allocation_dispatches": [
+          143,
+          47
+        ],
+        "metadata_bytes": [
+          12800160,
+          12800160
+        ],
+        "image_sha256": [
+          "adae44a0e078648a5f3d39bcae4984d817d4adb5c4bee5f6e205c395659c21eb",
+          "adae44a0e078648a5f3d39bcae4984d817d4adb5c4bee5f6e205c395659c21eb"
+        ]
+      },
+      {
+        "view": "trails",
+        "exact_png": true,
+        "maximum_channel_error": 0,
+        "mean_channel_error": 0.0,
+        "candidates": 1599976,
+        "policies": [
+          {
+            "body": "earth",
+            "budget": 1600000,
+            "capacity": 2000000,
+            "density": 40.72,
+            "near_infeasible": false,
+            "protected_m": 15.0,
+            "sigma_m": 39.17998485267162,
+            "version": 1
+          },
+          null
+        ],
+        "allocation_dispatches": [
+          143,
+          47
+        ],
+        "metadata_bytes": [
+          12800160,
+          12800160
+        ],
+        "image_sha256": [
+          "02eb3795dc7543ce33608fd687b64ee499f4a66859b32901fc8177f1bad6c217",
+          "02eb3795dc7543ce33608fd687b64ee499f4a66859b32901fc8177f1bad6c217"
+        ]
+      }
+    ],
+    "fresh_startup": {
+      "exact_png": true,
+      "candidates": 1599989,
+      "policy": [
+        {
+          "body": "earth",
+          "budget": 1600000,
+          "capacity": 2000000,
+          "density": 40.72,
+          "near_infeasible": false,
+          "protected_m": 15.0,
+          "sigma_m": 39.25053521525115,
+          "version": 1
+        },
+        null
+      ],
+      "image_sha256": "ae807d255ce0fada30bd00844092b6e906d13fe232e839f44a27a06e421d748d",
+      "animation_cache_bytes": 51199648
+    }
+  },
+  "native_refresh": [
+    {
+      "backend": "compute",
+      "mode": 3,
+      "renderer": "Quadro M1000M/PCIe/SSE2",
+      "distance_m": 90.00839627033021,
+      "configured_speed_mps": 12,
+      "wall_speed_mps": 11.944898943759897,
+      "held_frames": 797,
+      "grass_refreshes_while_held": 5,
+      "maximum_plan_offset_m": 11.452744316516263,
+      "placement_margin_m": 22.5,
+      "stop_reverse_maximum_offset_m": 11.373069995182894,
+      "coverage": {
+        "generated_instances": [
+          6565,
+          402
+        ],
+        "queues": [
+          {
+            "queue": "detailed",
+            "instances": 6565,
+            "root_bands": [
+              72,
+              633,
+              2040
+            ]
+          },
+          {
+            "queue": "quads",
+            "instances": 402,
+            "root_bands": [
+              0,
+              0,
+              14
+            ]
+          }
+        ],
+        "root_bands_m": [
+          [
+            0,
+            5
+          ],
+          [
+            5,
+            15
+          ],
+          [
+            15,
+            30
+          ]
+        ],
+        "root_band_counts": [
+          72,
+          633,
+          2054
+        ],
+        "root_band_fade_sum": [
+          72.0,
+          631.674566090107,
+          1925.6873727851998
+        ],
+        "opaque_grass_pixels": 3093,
+        "scope": "main opaque ground before grass and immediately after both queues; later astronaut/water/atmosphere occlusion excluded",
+        "coverage_acceptance": false
+      },
+      "audit": {
+        "frames": 2371,
+        "rendered": 2015,
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "memory_queries": 0,
+          "polls": 57,
+          "server_waits": 0
+        },
+        "peak_logical_bytes": 53893544
+      }
+    },
+    {
+      "backend": "compute",
+      "mode": 1,
+      "renderer": "Quadro M1000M/PCIe/SSE2",
+      "distance_m": 90.05739188429601,
+      "configured_speed_mps": 80,
+      "wall_speed_mps": 79.79850565314666,
+      "held_frames": 154,
+      "grass_refreshes_while_held": 5,
+      "maximum_plan_offset_m": 12.407980477922068,
+      "placement_margin_m": 22.5,
+      "stop_reverse_maximum_offset_m": 12.239317880838884,
+      "coverage": null,
+      "audit": {
+        "frames": 1279,
+        "rendered": 973,
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "memory_queries": 0,
+          "polls": 53,
+          "server_waits": 0
+        },
+        "peak_logical_bytes": 53893544
+      }
+    },
+    {
+      "backend": "cpu",
+      "mode": 3,
+      "renderer": "Quadro M1000M/PCIe/SSE2",
+      "distance_m": 90.06310473189306,
+      "configured_speed_mps": 12,
+      "wall_speed_mps": 11.940248249181991,
+      "held_frames": 895,
+      "grass_refreshes_while_held": 3,
+      "maximum_plan_offset_m": 22.462604920241088,
+      "placement_margin_m": 22.5,
+      "stop_reverse_maximum_offset_m": 19.656609477198092,
+      "coverage": {
+        "generated_instances": [
+          6542,
+          398
+        ],
+        "queues": [
+          {
+            "queue": "detailed",
+            "instances": 6542,
+            "root_bands": [
+              72,
+              631,
+              2041
+            ]
+          },
+          {
+            "queue": "quads",
+            "instances": 398,
+            "root_bands": [
+              0,
+              0,
+              14
+            ]
+          }
+        ],
+        "root_bands_m": [
+          [
+            0,
+            5
+          ],
+          [
+            5,
+            15
+          ],
+          [
+            15,
+            30
+          ]
+        ],
+        "root_band_counts": [
+          72,
+          631,
+          2055
+        ],
+        "root_band_fade_sum": [
+          72.0,
+          629.6854944229126,
+          1926.645471520831
+        ],
+        "opaque_grass_pixels": 3169,
+        "scope": "main opaque ground before grass and immediately after both queues; later astronaut/water/atmosphere occlusion excluded",
+        "coverage_acceptance": false
+      },
+      "audit": {
+        "frames": 2300,
+        "rendered": 0,
+        "gl": {
+          "blocking_polls": 0,
+          "bulk_reads": 0,
+          "finishes": 0,
+          "injected_fence_failures": 0,
+          "injected_poll_failures": 0,
+          "memory_queries": 0,
+          "polls": 0,
+          "server_waits": 0
+        },
+        "peak_logical_bytes": 0
+      }
+    }
+  ],
+  "animation_memory": {
+    "bytes_per_candidate": 32,
+    "startup_candidates": 1599989,
+    "startup_actual_bytes": 51199648,
+    "command_footer_extra_bytes_per_plan": 16,
+    "conservative_extra_bytes_per_plan": 64000016,
+    "conservative_overlap_extra_bytes": 128000032,
+    "maximum_admitted_overlap_bytes": 980997768,
+    "admission_limit_bytes": 1073741824
+  },
+  "telemetry_ranges": {
+    "utilization.gpu [%]": {
+      "min": 22.0,
+      "max": 91.0
+    },
+    "memory.used [MiB]": {
+      "min": 211.0,
+      "max": 1040.0
+    },
+    "temperature.gpu": {
+      "min": 55.0,
+      "max": 66.0
+    }
+  },
+  "checks": {
+    "cpu_ctest_groups": 11,
+    "software_grass_passed": 19,
+    "rtx_grass_passed": 18,
+    "rtx_grass_total": 19,
+    "rtx_staging_publication_passed": 19,
+    "rtx_animation_stride": 32,
+    "rtx_animation_offsets": [
+      0,
+      12,
+      16
+    ],
+    "known_baseline_failure": "ProceduralGrassRender.PersistentTrailsFlattenTipsKeepRootsAndSuppressWindOnBothPaths also fails with frozen G2; software passes unchanged.",
+    "runtime_ctest_groups": 6,
+    "runtime_ctest_passed": 6,
+    "runtime_ctest_summary": "100% tests passed, 0 tests failed out of 6\n\nTotal Test time (real) = 503.63 sec",
+    "final_repository_ctest_passed": 2
+  },
+  "validation_log_sha256": {
+    "cpu-tests.log": "a9ce5bf6fc8ff56882e77339c5038ae2a7a870057ce55b4c7d5253dd85e45cd0",
+    "grass-software.log": "a45ae51201436bd00b2b7622ebb9bbef281ed86bffc11af7bc874ccce945ce6d",
+    "grass-rtx-final.log": "edfeec6f972b05bfc18cb94f1b2642e2a0a86fc3c05cc2b063b1994634d7f397",
+    "baseline-trail-tests.log": "16b11444654cc1ef03e03b80f5602adc890f3ee0d98b905fc4622e6e6e20c204",
+    "preparation-tests.log": "266c42531ff3340e646340a51fd808f31ed711ef97419202a0a2d7cc49757db8",
+    "runtime-tests.log": "c95c0dc5d2f8d138f4fb297650c914bede1623eb0abd9621003e8e3ed02bc0ab",
+    "visual.log": "92ccd1851d6c3b9486acd1f298099dad63c0c16c02780bc04fc488fb9d37dfef",
+    "fresh-startup.log": "307c5d5f544f73a8509444aa878491b6ffd59be66600827673a6e47a50272608",
+    "native-refresh.log": "3254b38550e9563fb04435f2a1df51b1472bef5de31a86f1cd6fe4e303aa40bb",
+    "shader-pilot.log": "076f91e3dd36e3a6a4f563a19ccc64f72c188fb379cb50886abe798cc839f3e3",
+    "verified-build.log": "780944ba124ad2db563d7c06179c934cca8a982322b32c5aee83e451c4c34b0f",
+    "final-repository-tests.log": "d94097184530a6a13fd389ad68a665ad49e707f1ca89868055f2c0012f14fd64"
+  },
+  "source_sha256": {
+    "scripts/benchmarks/feature_costs/report.py": "bbd4bb0dd26e6e0ad0d205a7c3cfd31299a664c2afbbbebd2d80b69fe657f124",
+    "scripts/benchmarks/grass_allocation/README.md": "2d3ae7213fcd939a17f09e0d359b55d2935be4fe28245136526e66548f60a38f",
+    "scripts/benchmarks/grass_allocation/report.py": "fec992c84b93533aa908de1641993b0f4e061c0a75dbbc28f4c6f10bbda0b766",
+    "scripts/benchmarks/grass_allocation/run.py": "4b27991abec417227e04bfa6789ce1b8a3d256d7565105a3a3b24f6a80e5a5a6",
+    "shaders/foliage/animation.comp": "dee0c6f86ba4ccca892ae40c97c2a4241d03d126de4cfe90dfd9cb8a61b24e68",
+    "shaders/foliage/grass.vert": "fe5d07858a478e8b028eb04ef1feaacdd787b54c1489b107e150df5e7253420e",
+    "shaders/foliage/placement.comp": "4974bca964a66195b14e370c728a165654933eea02eb3186ae4d09ecf404a309",
+    "src/rendering/diagnostics/timing/GpuWorkProfiler.h": "6c86bb202046570f1c41519923d2bd93c7bc2671fbe6a45a9117d10d3b13b4f6",
+    "src/rendering/foliage/procedural/GrassCompute.cpp": "d8651b53e046e24f6eb5f74e0c13da13ad5b977e962b6ccfb33b1093d7840acd",
+    "src/rendering/foliage/procedural/GrassCpuPolicy.cpp": "925b3faf42d29fd61f0b073ee21e1a9728918426b562e2caa6d2eaae548ce7f8",
+    "src/rendering/foliage/procedural/GrassPreparation.cpp": "84df9b36c6d0885d29b5e48fc84ac2f150ea806277ba87fbd1c1b5ca9f7c861b",
+    "src/rendering/foliage/procedural/GrassRoots.cpp": "d67b1a45b01e20239c32af1674750e6c0218c751e7b34f669d0825e5df845314",
+    "src/rendering/foliage/procedural/ProceduralGrass.cpp": "19791e4331152ea508cb8393a3838d9bee56aa110656cca0298de3b9c5cbff3a",
+    "src/rendering/foliage/procedural/ProceduralGrass.h": "116670aa6665c354f423bdcf52679e3b8fc2e2ec84fa07245152057f6e35e96f",
+    "src/rendering/runtime/Capture.cpp": "205f45dc4ed0c7907e68d1ff54ac9443696afac9279e0e3c1738143f12f0a29a",
+    "tests/foliage/test_grass_render.cpp": "a6f2bfd1ddb804d0c1ac7962323c286172b133457dbf7b631510eb47fd20ac90",
+    "tests/geometry/compute/test_capture.py": "4aca2888e73cd97d2f64101bbce7f8ad80680814c16c1d34bcf73113de056022",
+    "tests/geometry/compute/test_staging.cpp": "4c35da080dcbfa01c1898980baab625911749bfd3ee2af555fef9aae9557f2da"
+  },
+  "local_evidence": "build-f5/g3; raw data and frozen binaries are ignored and optional"
+}

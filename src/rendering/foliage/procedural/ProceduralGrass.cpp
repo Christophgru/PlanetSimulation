@@ -76,13 +76,14 @@ void ProceduralGrass::updateDraws(Patch& patch,double scale,double nearDistance,
         first+=count;
     }
 }
-ProceduralGrass::~ProceduralGrass() { clear(); if (compute_) glDeleteProgram(compute_->id); glDeleteProgram(shader.id); }
+ProceduralGrass::~ProceduralGrass() { clear(); if (compute_) glDeleteProgram(compute_->id); if(animation_) glDeleteProgram(animation_->id); glDeleteProgram(shader.id); }
 ProceduralGrass::Patch::~Patch() {
     for (auto& batch:batches) glDeleteVertexArrays(1,&batch.vao);
     glDeleteBuffers(1,&buffer);
     glDeleteTextures(1,&vertexTexture);glDeleteTextures(1,&indexTexture);
     glDeleteBuffers(1,&gpuBlades);glDeleteBuffers(1,&commands);
     glDeleteBuffers(1,&gpuRoots);glDeleteBuffers(1,&gpuBounds);
+    glDeleteBuffers(1,&gpuAnimation);glDeleteTextures(1,&animationTexture);
     glDeleteVertexArrays(gpuVaos.size(),gpuVaos.data());
 }
 void ProceduralGrass::clear() {
@@ -94,7 +95,7 @@ void ProceduralGrass::clear() {
 }
 void ProceduralGrass::swapState(ProceduralGrass& other) noexcept {
     patches_.swap(other.patches_);trails_.swap(other.trails_);replayPlanEyes_.swap(other.replayPlanEyes_);
-    compute_.swap(other.compute_);metadataCompute_.swap(other.metadataCompute_);
+    compute_.swap(other.compute_);animation_.swap(other.animation_);metadataCompute_.swap(other.metadataCompute_);
     allocationCompute_.swap(other.allocationCompute_);
     std::swap(adaptiveBudget_,other.adaptiveBudget_);std::swap(budget_,other.budget_);replayPolicies_.swap(other.replayPolicies_);
     std::swap(terrainBudgetBytes_,other.terrainBudgetBytes_);std::swap(externalBudgetBytes_,other.externalBudgetBytes_);
@@ -149,9 +150,11 @@ GrassPreparationStats ProceduralGrass::prepare(std::size_t index,const Mesh& mes
     if(!GLEW_VERSION_4_3 || !planet.foliage.compute_placement || !planet.foliage.enabled) {
         glDeleteBuffers(1,&patch.gpuRoots);glDeleteBuffers(1,&patch.gpuBounds);
         patch.gpuRoots=patch.gpuBounds=0;patch.rootCapacity=patch.boundsCapacity=0;patch.rootsReady=false;
+        glDeleteBuffers(1,&patch.gpuAnimation);glDeleteTextures(1,&patch.animationTexture);
+        patch.gpuAnimation=patch.animationTexture=0;patch.animationCapacity=0;patch.animationFrame=0;
     }
     if (!planet.foliage.enabled || !mesh.hasVertexColors) {
-        patch.falloff={};patch.stageAdmittedBytes=patch.gpuCapacity*128+patch.rootCapacity*64+patch.boundsCapacity*16+(patch.commands?32:0);
+        patch.falloff={};patch.stageAdmittedBytes=patch.gpuCapacity*128+patch.rootCapacity*64+patch.boundsCapacity*16+patch.animationCapacity*sizeof(GrassAnimationRecord)+(patch.commands?grassComputedCommandBytes:0);
         for (auto& batch:patch.batches) batch.count=0;
         patch.patches=0; patch.distanceMeters=0; patch.density=0;patch.allocationBudget=0; patch.ready=false; patch.computeUsed=false; patch.draws.clear(); patch.metadata.reset(); patch.allocation.reset(); glDeleteBuffers(1,&patch.buffer);patch.buffer=0; return {};
     }
@@ -204,12 +207,14 @@ GrassPreparationStats ProceduralGrass::prepare(std::size_t index,const Mesh& mes
     if(policy.enabled && patch.gpuCapacity>policy.capacity) {
         glDeleteBuffers(1,&patch.gpuBlades);patch.gpuBlades=0;patch.gpuCapacity=0;
         glDeleteBuffers(1,&patch.gpuRoots);patch.gpuRoots=0;patch.rootCapacity=0;patch.rootsReady=false;
+        glDeleteBuffers(1,&patch.gpuAnimation);glDeleteTextures(1,&patch.animationTexture);
+        patch.gpuAnimation=patch.animationTexture=0;patch.animationCapacity=0;patch.animationFrame=0;
     }
     upload(patch,plan);
     patch.policyRevision=budget_.revision();
     const bool cached=GLEW_VERSION_4_3 && planet.foliage.compute_placement;
     patch.stageAdmittedBytes=policy.enabled?(cached?grassComputedCandidateBytes:128)*policy.capacity+
-        mesh.indices.size()/3*(cached?20:4)+32:0;
+        mesh.indices.size()/3*(cached?20:4)+grassComputedCommandBytes:0;
     const auto uploaded=std::chrono::steady_clock::now();
     patch.metadata=std::move(metadata);
     patch.eye=planningEye; patch.revision=mesh.revision; patch.ready=true;
@@ -234,7 +239,9 @@ ProceduralGrassStats ProceduralGrass::patchStats(const Patch& patch) {
     result.distanceMeters=patch.distanceMeters;result.density=patch.density;result.allocationBudget=patch.allocationBudget;
     result.rootBytes=patch.rootCapacity*64+patch.boundsCapacity*16;
     result.rootDispatches=patch.rootDispatches;result.rootsPrepared=patch.rootsReady;
-    result.gpuBytes=patch.gpuCapacity*128+result.rootBytes+(patch.commands ? 32 : 0);
+    result.animationBytes=patch.animationCapacity*sizeof(GrassAnimationRecord);
+    result.animationFrame=patch.animationFrame;result.animationDispatches=patch.animationDispatches;
+    result.gpuBytes=patch.gpuCapacity*128+result.rootBytes+result.animationBytes+(patch.commands ? grassComputedCommandBytes : 0);
     result.drawResourceBytes=result.gpuBytes;result.stageAdmittedBytes=patch.stageAdmittedBytes;
     if (patch.metadata) {
         result.metadataBytes=patch.metadata->workingBytes;
@@ -257,7 +264,7 @@ ProceduralGrassStats ProceduralGrass::patchStats(const Patch& patch) {
         result.triangles+=count*2*draw.segments;
     }
     result.drawResourcesPrepared=patch.ready && (!result.candidates ||
-        (patch.gpuCapacity>=result.candidates && patch.commands && patch.gpuBlades && patch.gpuVaos[0] && patch.gpuVaos[1] && patch.rootsReady));
+        (patch.gpuCapacity>=result.candidates && patch.commands && patch.gpuBlades && patch.gpuVaos[0] && patch.gpuVaos[1] && patch.rootsReady && patch.animationCapacity>=result.candidates));
     return result;
 }
 std::optional<glm::dvec3> ProceduralGrass::planningEye(std::size_t index) const {
@@ -280,9 +287,10 @@ void ProceduralGrass::draw(std::size_t index,const GrassPass* pass) const {
     const auto& patch=*patches_[index];
     bindTrail(index,patch.scale);
     shader.setFloat("uQuadDistance",patch.settings.quadDistanceMeters());
+    shader.setInt("uBladeAnimation",11);
     patch.computeUsed=pass && patch.settings.compute_placement && GLEW_VERSION_4_3;
     if (patch.computeUsed) {
-        drawComputed(patch,*pass);
+        drawComputed(index,patch,*pass);
         if (culled) glEnable(GL_CULL_FACE);
         return;
     }

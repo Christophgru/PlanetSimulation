@@ -86,9 +86,11 @@ assert policy['near_infeasible'] or policy['density']==scene['planets'][0]['foli
 assert 0<=policy['sigma_m']<=scene['planets'][0]['foliage']['draw_distance_m']/3*(1+1e-6)
 assert metadata['placement_density_per_m2']>0
 assert metadata['draw_resources_prepared']
+assert metadata['animation_cache_bytes']==32*g['render']['foliage_candidates']
+assert metadata['animation_dispatches']>0 and metadata['animation_frame']>0
 assert metadata['root_cache_prepared'] and metadata['root_cache_dispatches']>0
 assert metadata['root_cache_bytes']==64*g['render']['foliage_candidates']+16*g['render']['foliage_patches']
-assert metadata['draw_resource_bytes']==192*g['render']['foliage_candidates']+16*g['render']['foliage_patches']+32
+assert metadata['draw_resource_bytes']==224*g['render']['foliage_candidates']+16*g['render']['foliage_patches']+48
 assert 0<metadata['stage_admitted_bytes']<=512*1024*1024
 assert 0<g['render']['terrain_compute']['stage_admitted_bytes']<=512*1024*1024
 assert metadata['allocation_input_bytes']==228+12*metadata['allocation_dispatches']+4*(g['render']['body_mesh_triangles'][0]-1).bit_length()

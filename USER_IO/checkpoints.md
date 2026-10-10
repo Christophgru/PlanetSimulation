@@ -1,5 +1,39 @@
 # Page to document progress of AI Agents working on this Project
 
+## G3 shared grass animation — 2026-10-10
+
+- Implemented G3 only: a 32-byte plan-owned GPU record caches wind samples and
+  trail direction/strength with an input stamp. First-visible blades are
+  evaluated once; main/reflection views reuse them, including reflection-only
+  blades. Compaction and LOD remain per view; GL 3.3 retains vertex animation.
+  Time/history/root changes invalidate stamps; disable/reload/retirement release
+  storage. G4 and trail-fade behavior remain queued. No new TODO chain.
+- Bounded direct dispatch passes cache-miss checks; the indirect pilot did not.
+  GPU counts reject unused threads before cache access, with no CPU readback.
+  Native rendering skips diagnostic counter increments. Separate profiler stages
+  measure compaction, animation and the two indirect geometry draws.
+- Three alternating RTX astronaut-camera pairs include live 6 m/s walking and
+  growing trails (156–159 segments). Both-view compaction/animation GPU means
+  fall 3.2% idle and 4.3% walking. Overall FPS does not improve: wall p95 rises
+  4.2% / 2.7%, with walking maxima around 109 ms. Root CPU submission mean rises
+  3.60→15.82 ms; driver/observer/contention effects are not isolated. Offscreen
+  EGL, extra profiler queries and external RTX load limit conclusions.
+- Actual startup animation cache adds 51,199,648 bytes; conservative overlap
+  admission peaks at 980,997,768 bytes, below 1 GiB. Protected density remains
+  40.72/m². Startup, ACES, mountain, walking-trail replay and fresh adaptive
+  startup PNGs match G2 exactly, with unchanged candidates and policy.
+- Nineteen software grass and nineteen RTX staging/publication checks pass;
+  eighteen of nineteen RTX grass checks pass. The strict trail equality failure
+  also reproduces with frozen G2; software passes the assertion unchanged.
+  Eleven CPU groups pass. Native Quadro held-worker compute sprint, 80 m/s camera
+  and CPU sprint pass the unchanged 22.5 m reserve and nonblocking audits.
+  All six runtime/lifecycle/recovery/shadow/reload/capture CTest groups pass
+  (503.63 s), including standing/walking replay and CPU/GL 3.3 fallback.
+  G3 is t; G4 and trail-fade work remain queued.
+- Report: docs/journal/benchmarks/grass-animation/study.md. Raw captures,
+  timings, telemetry and failed pilot evidence stay ignored/local in build-f5/g3.
+  Preserve the user's unstaged production density/width/quad-distance edits.
+
 ## G2 persistent GPU grass roots — 2026-10-10
 
 - Implemented G2 only: plan-owned 64-byte root/normal/variation records and

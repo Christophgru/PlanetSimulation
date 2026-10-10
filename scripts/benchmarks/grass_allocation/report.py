@@ -43,11 +43,22 @@ def main():
         group = grouped.setdefault(key, {'wall_ms': [], 'mesh_ms': [], 'gpu_render_ms': [],
             'allocation_gpu_ms': [], 'allocation_cpu_ms': [], 'metadata_fresh_gpu_ms': [],
             'metadata_repeated_generation_gpu_ms': []})
-        if any(stage in raw['method'].get('stages', []) for stage in ('grass_roots', 'grass_placement')):
+        if any(stage in raw['method'].get('stages', []) for stage in
+               ('grass_roots', 'grass_placement', 'grass_animation', 'grass_draw')):
             for name in ('roots_gpu_ms', 'roots_cpu_ms', 'placement_main_gpu_ms',
                          'placement_reflection_gpu_ms', 'placement_main_cpu_ms',
                          'placement_reflection_cpu_ms'):
                 group.setdefault(name, [])
+        if any(stage in raw['method'].get('stages', []) for stage in ('grass_animation', 'grass_draw')):
+            for view in ('main', 'reflection'):
+                for stage in ('animation', 'draw'):
+                    for clock in ('gpu', 'cpu'):
+                        group.setdefault(f'{stage}_{view}_{clock}_ms', [])
+        for name, column in (('opaque_gpu_ms', 'gpu_opaque_ms'), ('reflection_gpu_ms', 'gpu_reflection_ms')):
+            if name in run:
+                values = [float(r[column]) for r in rows]
+                assert stats(values) == run[name]
+                group.setdefault(name, []).extend(values)
         for name, values in [('wall_ms', [float(r['wall_ms']) for r in loops]),
                              ('mesh_ms', [float(r['cpu_mesh_ms']) for r in rows]),
                              ('gpu_render_ms', [float(r['gpu_ms']) for r in rows])]:
@@ -55,10 +66,10 @@ def main():
             group[name].extend(values)
         previous = None
         for row in csv.DictReader((folder / 'frames.csv.gpu-work.csv').open()):
-            if row['stage'] in ('grass_roots', 'grass_placement') and 'roots_gpu_ms' in group:
+            if row['stage'] in ('grass_roots', 'grass_placement', 'grass_animation', 'grass_draw') and 'roots_gpu_ms' in group:
                 if row['frame'] and run['first_frame'] <= int(row['frame']) <= run['last_frame']:
                     assert row['status'] == 'ready'
-                    name = 'roots' if row['stage'] == 'grass_roots' else 'placement_' + row['view']
+                    name = 'roots' if row['stage'] == 'grass_roots' else row['stage'].removeprefix('grass_') + '_' + row['view']
                     group[name + '_gpu_ms'].append(float(row['gpu_ms']))
                     group[name + '_cpu_ms'].append(float(row['cpu_submit_ms']))
                 continue

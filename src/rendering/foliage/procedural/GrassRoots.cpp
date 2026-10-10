@@ -26,9 +26,7 @@ void ProceduralGrass::bindComputedInputs(const Patch& patch) const {
     c.setFloat("uWaterClearance",f.water_clearance_m);
     c.setFloat2("uHeightMultiplierRange",f.height_multiplier_min,f.height_multiplier_max);
     c.setFloat2("uLeanRange",f.lean_min,f.lean_max);
-    c.setInt("uGrassSeed",f.seed); c.setInt("uWindSeed",f.wind_noise.seed);
-    c.setFloat3("uWindFrequencies",f.wind_noise.gust_frequency,f.wind_noise.direction_frequency,f.wind_noise.flutter_frequency);
-    c.setFloat("uWindStrength",f.wind_strength);
+    c.setInt("uGrassSeed",f.seed);
     c.setInt("uFrustumCull",f.frustum_culling);
     const double reach=f.height_m*f.height_multiplier_max+f.width_m+f.root_offset_m;
     c.setFloat("uCullExtent",reach/patch.scale);
@@ -65,7 +63,7 @@ void ProceduralGrass::generateRoots(const Patch& patch) const {
     patch.rootDispatches+=dispatchCandidates(patch,groups);
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     if(glGetError()!=GL_NO_ERROR) throw std::runtime_error("Grass root generation failed");
-    patch.rootsReady=true;
+    patch.rootsReady=true;patch.animationTime=std::numeric_limits<float>::quiet_NaN();
 }
 std::vector<GrassRootRecord> ProceduralGrass::cachedRootsForValidation(std::size_t index) const {
     if(index>=patches_.size() || !patches_[index] || !patches_[index]->rootsReady) return {};
@@ -77,4 +75,22 @@ std::vector<GrassRootRecord> ProceduralGrass::cachedRootsForValidation(std::size
     glGetBufferSubData(GL_COPY_READ_BUFFER,0,records.size()*sizeof(GrassRootRecord),records.data());
     glBindBuffer(GL_COPY_READ_BUFFER,previous);return records;
 }
+std::vector<GrassAnimationRecord> ProceduralGrass::cachedAnimationForValidation(std::size_t index) const {
+    if(index>=patches_.size() || !patches_[index] || !patches_[index]->animationCapacity) return {};
+    const auto& patch=*patches_[index];std::size_t count=0;
+    for(const auto& batch:patch.batches) count+=batch.count;
+    std::vector<GrassAnimationRecord> records(count);GLint previous=0;
+    glGetIntegerv(GL_COPY_READ_BUFFER_BINDING,&previous);glBindBuffer(GL_COPY_READ_BUFFER,patch.gpuAnimation);
+    glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
+    glGetBufferSubData(GL_COPY_READ_BUFFER,0,records.size()*sizeof(GrassAnimationRecord),records.data());
+    glBindBuffer(GL_COPY_READ_BUFFER,previous);return records;
+}
+std::uint32_t ProceduralGrass::animationUpdatesForValidation(std::size_t index) const {
+    if(index>=patches_.size() || !patches_[index] || !patches_[index]->commands) return 0;
+    std::uint32_t updates=0;GLint previous=0;glGetIntegerv(GL_COPY_READ_BUFFER_BINDING,&previous);
+    glBindBuffer(GL_COPY_READ_BUFFER,patches_[index]->commands);glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
+    glGetBufferSubData(GL_COPY_READ_BUFFER,44,sizeof(updates),&updates);
+    glBindBuffer(GL_COPY_READ_BUFFER,previous);return updates;
+}
+
 }

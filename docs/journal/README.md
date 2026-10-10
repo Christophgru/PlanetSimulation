@@ -7,12 +7,20 @@ for the storage manifest, relocation and fresh-run commands. Missing archive
 checks report UNAVAILABLE (exit 2), not a pass. Normal builds/tests use source
 fixtures and fresh build output; they do not depend on these old measurements.
 
-The latest [G2 persistent-root study](benchmarks/grass-roots/study.md) generates
+The latest [G3 shared-animation study](benchmarks/grass-animation/study.md)
+shares wind and trail samples across main/reflection views. Combined GPU
+compaction/animation means fall 3–4%, while wall p95 rises 3–4%; no overall FPS
+gain is demonstrated. Five exact production image comparisons and cache reuse
+checks pass. Startup animation storage adds 51 MB, with complete overlap
+admission still below 1 GiB. Delta streaming remains queued; raw evidence stays
+local.
+
+The previous [G2 persistent-root study](benchmarks/grass-roots/study.md) generates
 immutable GPU roots once per plan and preserves exact production images. It
 adds approximately 103 MB of actual cache storage at startup; conservative
 overlap admission remains within the existing cap. Paired RTX measurements show
 similar frame p95 and slightly higher per-view GPU costs, so this pass does not
-demonstrate an FPS gain. Shared animation and delta streaming remain queued.
+demonstrate an FPS gain. G3 implements the subsequent shared animation work.
 
 The previous [G1 grass preparation study](benchmarks/grass-allocation/study.md)
 adds bounded terrain metadata sharing and effective-policy reuse. Paired native

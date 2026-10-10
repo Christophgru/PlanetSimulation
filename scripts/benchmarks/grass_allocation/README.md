@@ -37,6 +37,15 @@ placement/animation CPU and GPU costs. Root events are expected during plan
 preparation, rather than every idle frame. Keep G1 and G2 raw output in separate
 ignored directories.
 
+For G3, preserve the G2 baseline and use `--camera-mode astronaut --stages
+grass_metadata grass_allocation grass_roots grass_placement grass_animation
+grass_draw`. The astronaut walks through real growing trails; the runner checks
+grounded readiness, wall-time walking speed and trail growth. The reporter
+separates per-view compaction, shared animation and geometry draws. G2 lacks
+the exclusive draw timer, so compare the common enclosing opaque/reflection
+passes as well. Additional G3 timer queries are observer overhead. See the
+[shared animation study](../../../docs/journal/benchmarks/grass-animation/study.md).
+
 This benchmark requires NVIDIA EGL, GLFW/X11, Xvfb, xdotool, a C++ compiler and
 nvidia-smi. GPU utilization telemetry includes other processes; retain and
 report contention. Raw output is optional local evidence and is never needed

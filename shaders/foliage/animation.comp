@@ -1,0 +1,94 @@
+#version 430 core
+// Animate only compacted visible blades. Sequential view dispatches reuse stamps;
+// a reflection-only root is evaluated on its first visible view this frame.
+layout(local_size_x=128) in;
+struct Command { uint vertices,instances,first,base; };
+layout(std430,binding=1) buffer DrawCommands { Command commands[2];uvec4 animationDiagnostics; };
+struct Blade { vec4 rootFade,upLow,variation;vec3 wind;uint animationIndex; };
+layout(std430,binding=2) buffer GeneratedBlades { Blade blades[]; };
+struct Animation { vec3 wind;uint frame;vec4 trail; };
+layout(std430,binding=5) buffer SharedAnimation { Animation samples[]; };
+uniform bool uTrackUpdates=false;
+uniform int uCapacity,uWindSeed;
+uniform uint uFrame;
+uniform float uMetersPerRadius,uTime;
+uniform vec3 uWindFrequencies;
+// Improved Perlin gradient noise: corner dot products and a quintic fade.
+// Algorithm: https://cs.nyu.edu/~perlin/noise/ . Integer hashing replaces
+// the reference permutation table; no textures or extra instance data.
+float grassGradient(ivec3 cell, vec3 offset) {
+    uvec3 c=uvec3(cell & ivec3(255));
+    uint h=c.x*1597334677u ^ c.y*3812015801u ^ c.z*2798796415u ^ uint(uWindSeed);
+    h^=h>>16; h*=0x7feb352du; h^=h>>15;
+    const vec3 gradients[12]=vec3[12](
+        vec3(1,1,0),vec3(-1,1,0),vec3(1,-1,0),vec3(-1,-1,0),
+        vec3(1,0,1),vec3(-1,0,1),vec3(1,0,-1),vec3(-1,0,-1),
+        vec3(0,1,1),vec3(0,-1,1),vec3(0,1,-1),vec3(0,-1,-1));
+    return dot(gradients[h%12u],offset);
+}
+float grassPerlin(vec3 p) {
+    // Bound integer conversion as well as the gradient lookup. The field
+    // repeats every 256 cells, including at negative coordinates.
+    p=mod(p,256.0);
+    ivec3 cell=ivec3(floor(p));
+    vec3 f=fract(p);
+    vec3 blend=f*f*f*(f*(f*6.0-15.0)+10.0);
+    return mix(
+        mix(mix(grassGradient(cell,f),grassGradient(cell+ivec3(1,0,0),f-vec3(1,0,0)),blend.x),
+            mix(grassGradient(cell+ivec3(0,1,0),f-vec3(0,1,0)),grassGradient(cell+ivec3(1,1,0),f-vec3(1,1,0)),blend.x),blend.y),
+        mix(mix(grassGradient(cell+ivec3(0,0,1),f-vec3(0,0,1)),grassGradient(cell+ivec3(1,0,1),f-vec3(1,0,1)),blend.x),
+            mix(grassGradient(cell+ivec3(0,1,1),f-vec3(0,1,1)),grassGradient(cell+ivec3(1,1,1),f-vec3(1,1,1)),blend.x),blend.y),blend.z);
+}
+
+// Stackless, radius-expanded segment hierarchy shared by both placement paths.
+// No trail data changes candidate generation, roots, density or LOD retention.
+uniform samplerBuffer uTrailTree;
+uniform int uTrailNodes=0;
+uniform vec3 uTrailOrigin;
+vec4 trailInfluence(vec3 root,vec3 up) {
+    vec3 p=(root-uTrailOrigin)*uMetersPerRadius;
+    float closest=.6; vec3 direction=vec3(0);
+    int node=0;
+    while (node<uTrailNodes) {
+        vec4 lo=texelFetch(uTrailTree,node*4),hi=texelFetch(uTrailTree,node*4+1);
+        if (any(lessThan(p,lo.xyz)) || any(greaterThan(p,hi.xyz))) {
+            node=int(lo.w); continue;
+        }
+        if (hi.w>0.0) {
+            vec3 a=texelFetch(uTrailTree,node*4+2).xyz;
+            vec3 b=texelFetch(uTrailTree,node*4+3).xyz;
+            vec3 step=b-a;
+            float t=clamp(dot(p-a,step)/max(dot(step,step),1e-8),0.0,1.0);
+            float distance=length(p-a-step*t);
+            if (distance<closest) {
+                closest=distance;
+                // Contact segments already follow the terrain slope. Removing
+                // their radial component would push flattened tips below hills.
+                direction=step;
+            }
+        }
+        ++node;
+    }
+    float strength=1.0-smoothstep(.25,.6,closest);
+    return vec4(length(direction)>1e-6 ? normalize(direction) : vec3(0),strength);
+}
+void main() {
+    uint id=gl_GlobalInvocationID.x+gl_GlobalInvocationID.y*gl_NumWorkGroups.x*128u;
+    uint nearCount=commands[0].instances,total=nearCount+commands[1].instances;
+    if(id>=total) return;
+    uint slot=id<nearCount?id:uint(uCapacity)+id-nearCount;
+    uint rootIndex=blades[slot].animationIndex;
+    Animation cached=samples[rootIndex];
+    if(cached.frame!=uFrame) {
+        vec3 root=blades[slot].rootFade.xyz,p=root*uMetersPerRadius;
+        float gust=clamp(.5+.5*grassPerlin(p*uWindFrequencies.x+uTime*vec3(.25,.125,0)),0.0,1.0);
+        float direction=grassPerlin(p*uWindFrequencies.y+vec3(19.3,7.1,43.7)+uTime*vec3(.03125,0,0));
+        float flutter=grassPerlin(p*uWindFrequencies.z+vec3(5.2,31.8,11.4)+uTime*vec3(0,.5,0));
+        vec4 trail=uTrailNodes>0?trailInfluence(root,normalize(blades[slot].upLow.xyz)):vec4(0);
+        cached=Animation(vec3(gust,direction,flutter),uFrame,trail);
+        samples[rootIndex]=cached;
+        // Diagnostics only: ordinary native draws never increment this counter.
+        if(uTrackUpdates) atomicAdd(animationDiagnostics.w,1u);
+    }
+    blades[slot].wind=cached.wind;
+}

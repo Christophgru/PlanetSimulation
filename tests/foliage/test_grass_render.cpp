@@ -73,15 +73,16 @@ public:
         glGenBuffers(1,&buffer_);
     }
     ~GrassProbe() { mesh.destroy(); glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER,0,0); glDeleteBuffers(1,&buffer_); }
-    std::vector<float> capture(double seconds=0,bool compute=false) {
+    std::vector<float> capture(double seconds=0,bool compute=false,const rendering::GrassPass* view=nullptr) {
         grass.shader.use(); grass.shader.setFloat("uTime",rendering::grassWindTime(seconds));
         glBindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER,buffer_);
         std::vector<float> result(grass.stats(0).triangles*3*10);
         glBufferData(GL_TRANSFORM_FEEDBACK_BUFFER,result.size()*sizeof(float),nullptr,GL_STREAM_READ);
         glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER,0,buffer_);
         glEnable(GL_RASTERIZER_DISCARD); glBeginTransformFeedback(GL_TRIANGLES);
-        rendering::GrassPass pass;
-        pass.mainEyeBody={0,0,pole_*1.02}; pass.windTime=rendering::grassWindTime(seconds); pass.feedback=true;
+        rendering::GrassPass pass=view?*view:rendering::GrassPass{};
+        if(!view) pass.mainEyeBody={0,0,pole_*1.02};
+        pass.windTime=rendering::grassWindTime(seconds); pass.feedback=true;
         grass.draw(0,compute ? &pass : nullptr);
         glEndTransformFeedback(); glDisable(GL_RASTERIZER_DISCARD);
         glGetBufferSubData(GL_TRANSFORM_FEEDBACK_BUFFER,0,result.size()*sizeof(float),result.data());
@@ -297,6 +298,68 @@ TEST(ProceduralGrassCompute, CachedRootsStayImmutableAcrossWindViewsAndCameraMot
     EXPECT_NE(probe.grass.cachedRootsForValidation(0)[0].rootExpected,seeded[0].rootExpected);
     probe.grass.clear();EXPECT_TRUE(probe.grass.cachedRootsForValidation(0).empty());
     EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+}
+
+TEST(ProceduralGrassCompute, WindAndTrailsAreEvaluatedOnceAcrossViewsAndInvalidateWithTheirInputs) {
+    if(!GLEW_VERSION_4_3) GTEST_SKIP() << "Shared animation needs GL 4.3";
+    GrassProbe probe;
+    probe.capture(1,true);
+    const auto counts=probe.grass.computedCounts(0);
+    EXPECT_EQ(probe.grass.animationUpdatesForValidation(0),counts[0]+counts[1]);
+    auto samples=probe.grass.cachedAnimationForValidation(0);
+    const auto token=probe.grass.stats(0).animationFrame;
+    EXPECT_EQ(probe.grass.stats(0).animationBytes,samples.size()*32);
+    rendering::GrassPass reflection;reflection.view=glm::scale(glm::mat4(1),glm::vec3(1,-1,1));
+    reflection.mainEyeBody={0,0,1.02};
+    probe.capture(1,true,&reflection);
+    EXPECT_EQ(probe.grass.animationUpdatesForValidation(0),0u);
+    EXPECT_EQ(probe.grass.stats(0).animationFrame,token);
+    const auto reused=probe.grass.cachedAnimationForValidation(0);
+    ASSERT_EQ(samples.size(),reused.size());
+    for(std::size_t i=0;i<samples.size();++i) {
+        EXPECT_EQ(samples[i].wind,reused[i].wind);EXPECT_EQ(samples[i].trail,reused[i].trail);
+        EXPECT_EQ(samples[i].frame,reused[i].frame);
+    }
+    probe.capture(2,true);EXPECT_GT(probe.grass.animationUpdatesForValidation(0),0u);
+    EXPECT_NE(probe.grass.stats(0).animationFrame,token);
+    samples=probe.grass.cachedAnimationForValidation(0);
+    const auto roots=probe.grass.cachedRootsForValidation(0);
+    const auto chosen=std::find_if(samples.begin(),samples.end(),[&](const auto& s) {
+        return s.frame==probe.grass.stats(0).animationFrame;
+    });
+    ASSERT_NE(chosen,samples.end());const auto index=chosen-samples.begin();
+    const glm::dvec3 root(roots[index].rootExpected);const auto up=glm::normalize(root);
+    const auto along=glm::normalize(glm::cross(up,glm::dvec3(0,1,0)));
+    probe.grass.trail(0).observe(root*100.0-along*.3,true);
+    probe.grass.trail(0).observe(root*100.0+along*.3,true);
+    probe.capture(2,true);EXPECT_GT(probe.grass.animationUpdatesForValidation(0),0u);
+    const auto pressed=probe.grass.cachedAnimationForValidation(0);
+    EXPECT_EQ(pressed[index].wind,samples[index].wind);EXPECT_NEAR(pressed[index].trail.w,1.f,1e-6);
+    probe.capture(2,true);EXPECT_EQ(probe.grass.animationUpdatesForValidation(0),0u);
+    // A root replacement at unchanged wind/history must also invalidate samples.
+    ++probe.planet.foliage.seed;
+    probe.grass.prepare(0,probe.mesh,probe.planet,100,{0,0,1.02});probe.capture(2,true);
+    EXPECT_GT(probe.grass.animationUpdatesForValidation(0),0u);
+    probe.planet.foliage.compute_placement=false;
+    probe.grass.prepare(0,probe.mesh,probe.planet,100,{0,0,1.02});
+    EXPECT_EQ(probe.grass.stats(0).animationBytes,0u);
+}
+
+TEST(ProceduralGrassCompute, ReflectionOnlyBladesReceiveAnimationAfterAnEmptyMainView) {
+    if(!GLEW_VERSION_4_3) GTEST_SKIP() << "Shared animation needs GL 4.3";
+    GrassProbe probe;probe.planet.foliage.frustum_culling=true;
+    probe.grass.prepare(0,probe.mesh,probe.planet,100,{0,0,1.02});
+    rendering::GrassPass invisible;invisible.mainEyeBody={0,0,1.02};
+    invisible.view=glm::translate(glm::mat4(1),glm::vec3(10,0,0));
+    EXPECT_TRUE(probe.capture(3,true,&invisible).empty());
+    EXPECT_EQ(probe.grass.animationUpdatesForValidation(0),0u);
+    const auto token=probe.grass.stats(0).animationFrame;
+    EXPECT_FALSE(probe.capture(3,true).empty());
+    EXPECT_EQ(probe.grass.stats(0).animationFrame,token);
+    const auto counts=probe.grass.computedCounts(0);
+    EXPECT_GT(counts[0]+counts[1],0u);
+    EXPECT_EQ(probe.grass.animationUpdatesForValidation(0),counts[0]+counts[1]);
+    probe.capture(3,true);EXPECT_EQ(probe.grass.animationUpdatesForValidation(0),0u);
 }
 
 TEST(ProceduralGrassRender, GrowingCandidateBatchesRetainsExistingBlades) {
@@ -561,7 +624,7 @@ TEST(ProceduralGrassRender, CpuAdmissionChargesLiveTerrainAndReplacementBeforeLo
     probe.grass.prepare(0,probe.mesh,probe.planet,100,{0,0,1.02});
     EXPECT_EQ(probe.grass.reservedBytes(),3072+probe.grass.ownedBytes());
     const bool cached=GLEW_VERSION_4_3 && probe.planet.foliage.compute_placement;
-    EXPECT_EQ(probe.grass.ownedBytes(),4096*(cached?192:128)+2*(cached?20:4)+32);
+    EXPECT_EQ(probe.grass.ownedBytes(),4096*(cached?224:128)+2*(cached?20:4)+rendering::grassComputedCommandBytes);
     const auto before=probe.grass.policy(0);
     auto saved=before;saved["body"]=probe.planet.name;
     probe.grass.restorePolicies({{"render",{{"foliage_policy",nlohmann::json::array({saved})}}}}, {probe.planet});

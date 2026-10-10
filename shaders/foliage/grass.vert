@@ -15,6 +15,8 @@ uniform bool uProcedural=false,uGpuInstances=false;
 layout(location=4) in vec3 aWindSamples;
 layout(location=5) in float aCoverage;
 layout(location=6) in float aLow;
+layout(location=7) in uint aAnimationIndex;
+uniform samplerBuffer uBladeAnimation;
 uniform int uSlotsPerPatch,uWindSeed=0;
 uniform vec3 uPlanetColor,uLandscapeLevels;
 uniform vec2 uTerrainRockRange,uHeightMultiplierRange=vec2(.75,1.5),uLeanRange=vec2(.1,.4);
@@ -253,7 +255,7 @@ void main() {
     // Fade coverage in the fragment shader; roots and height never sink.
     vec3 offset=bend*local;
     if (uTrailNodes>0) {
-        vec4 trail=trailInfluence(root,up);
+        vec4 trail=uGpuInstances ? texelFetch(uBladeAnimation,int(aAnimationIndex)*2+1) : trailInfluence(root,up);
         // Lay blades along the walking direction, retaining their root and
         // width. At the centre wind cannot lift them again; edges blend softly.
         vec3 flattened=trail.xyz*(t*height*.95)+up*(t*height*.08)+
