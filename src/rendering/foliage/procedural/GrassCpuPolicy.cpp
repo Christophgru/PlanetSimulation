@@ -19,7 +19,7 @@ std::uint64_t ProceduralGrass::ownedBytes() const {
         // direct instancing does not allocate them. This also bounds a later
         // compute-placement draw without another admission decision.
         bytes+=patch->stageAdmittedBytes ? patch->stageAdmittedBytes :
-            patch->gpuCapacity*128+patch->patches*4+(patch->commands?32:0);
+            patch->gpuCapacity*128+patch->rootCapacity*64+patch->boundsCapacity*16+patch->patches*4+(patch->commands?32:0);
     }
     return bytes;
 }
@@ -29,15 +29,17 @@ GrassFalloff ProceduralGrass::cpuPolicy(const config::PlanetConfig& planet,std::
     const auto reserved=reservedBytes();
     const auto available=budget_.available(reserved,
         std::min(defaultStageBytes,totalLimit-std::min(totalLimit,reserved)));
-    const auto fixed=triangles*4+32;
-    if(available<fixed+128) throw std::runtime_error("Insufficient CPU foliage staging budget");
+    const bool cached=GLEW_VERSION_4_3 && planet.foliage.compute_placement;
+    const auto candidateBytes=cached?grassComputedCandidateBytes:128;
+    const auto fixed=triangles*(cached?20:4)+32;
+    if(available<fixed+candidateBytes) throw std::runtime_error("Insufficient CPU foliage staging budget");
     std::uint64_t blockBytes=defaultStageBytes;
     if(GLEW_VERSION_4_3 && planet.foliage.compute_placement) {
         GLint64 block=0;glGetInteger64v(GL_MAX_SHADER_STORAGE_BLOCK_SIZE,&block);
         if(block<=0) throw std::runtime_error("Invalid foliage storage limit");
         blockBytes=block;
     }
-    const auto capacity=std::min<std::uint64_t>({std::uint64_t(planet.foliage.max_blades),blockBytes/128,(available-fixed)/128});
+    const auto capacity=std::min<std::uint64_t>({std::uint64_t(planet.foliage.max_blades),blockBytes/128,(available-fixed)/candidateBytes});
     if(const auto saved=replayPolicies_.find(planet.name);saved!=replayPolicies_.end()) {
         if(saved->second.capacity>capacity) throw std::runtime_error("Locked foliage replay exceeds available staging memory");
         return saved->second;

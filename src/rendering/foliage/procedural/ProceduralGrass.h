@@ -22,6 +22,10 @@ struct CpuGrassTrace {
 };
 struct GrassAllocationBuffers;
 struct GrassMetadataBuffers;
+// std430 static candidate record; generated on GPU before resident publication.
+struct GrassRootRecord { glm::vec4 rootExpected,upRank,normalSlot,variation; };
+static_assert(sizeof(GrassRootRecord)==64);
+inline constexpr std::uint64_t grassComputedCandidateBytes=128+sizeof(GrassRootRecord);
 struct GrassPass {
     glm::mat4 model{1}, view{1}, projection{1};
     glm::dvec3 mainEyeBody{0};
@@ -38,6 +42,8 @@ struct ProceduralGrassStats {
     std::uint64_t allocationBytes=0,allocationInputBytes=0,allocationDispatches=0,summaryReadBytes=0;
     std::uint64_t drawResourceBytes=0,stageAdmittedBytes=0;
     bool drawResourcesPrepared=false;
+    std::uint64_t rootBytes=0,rootDispatches=0;
+    bool rootsPrepared=false;
 };
 class ProceduralGrass {
 public:
@@ -57,6 +63,10 @@ private:
         std::unique_ptr<GrassMetadataBuffers> metadata;
         std::unique_ptr<GrassAllocationBuffers> allocation;
         mutable GLuint gpuBlades=0, commands=0;
+        mutable GLuint gpuRoots=0,gpuBounds=0;
+        mutable std::size_t rootCapacity=0,boundsCapacity=0;
+        mutable bool rootsReady=false;
+        mutable std::uint64_t rootDispatches=0;
         mutable std::array<GLuint,2> gpuVaos{};
         mutable std::size_t gpuCapacity=0;
         mutable bool computeUsed=false;
@@ -102,6 +112,9 @@ private:
     void attributes(std::size_t first,int level) const;
     void drawComputed(const Patch& patch,const GrassPass& pass) const;
     void allocateComputed(const Patch& patch,std::size_t count) const;
+    void bindComputedInputs(const Patch& patch) const;
+    std::uint64_t dispatchCandidates(const Patch& patch,int maxGroups) const;
+    void generateRoots(const Patch& patch) const;
     static ProceduralGrassStats patchStats(const Patch& patch);
     GrassFalloff cpuPolicy(const config::PlanetConfig& planet,std::size_t triangles) const;
 public:
@@ -176,5 +189,7 @@ public:
     bool usesCompute(std::size_t index) const;
     // Diagnostic readback; never used by the interactive render path.
     std::array<std::size_t,2> computedCounts(std::size_t index) const;
+    // Explicit validation only; never read by the interactive render path.
+    std::vector<GrassRootRecord> cachedRootsForValidation(std::size_t index) const;
 };
 }

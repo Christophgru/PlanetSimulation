@@ -7,7 +7,14 @@ for the storage manifest, relocation and fresh-run commands. Missing archive
 checks report UNAVAILABLE (exit 2), not a pass. Normal builds/tests use source
 fixtures and fresh build output; they do not depend on these old measurements.
 
-The latest [G1 grass preparation study](benchmarks/grass-allocation/study.md)
+The latest [G2 persistent-root study](benchmarks/grass-roots/study.md) generates
+immutable GPU roots once per plan and preserves exact production images. It
+adds approximately 103 MB of actual cache storage at startup; conservative
+overlap admission remains within the existing cap. Paired RTX measurements show
+similar frame p95 and slightly higher per-view GPU costs, so this pass does not
+demonstrate an FPS gain. Shared animation and delta streaming remain queued.
+
+The previous [G1 grass preparation study](benchmarks/grass-allocation/study.md)
 adds bounded terrain metadata sharing and effective-policy reuse. Paired native
 RTX walking runs reduce allocation GPU time by 20.6% and CPU submission time by
 52.9%, with exact fixed-view images and protected density retained. Steady frame

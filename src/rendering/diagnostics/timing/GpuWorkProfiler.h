@@ -13,11 +13,11 @@
 #include <string>
 
 namespace rendering {
-enum class GpuWorkStage { TerrainField, TerrainExpansion, GrassMetadata, GrassAllocation, GrassPlacement };
+enum class GpuWorkStage { TerrainField, TerrainExpansion, GrassMetadata, GrassAllocation, GrassPlacement, GrassRoots };
 enum class GpuWorkView { None, Main, Reflection, Unspecified };
 inline constexpr std::array<const char*,4> gpuWorkViewNames{"", "main", "reflection", "unspecified"};
-inline constexpr std::array<const char*,5> gpuWorkStageNames{
-    "terrain_field", "terrain_expansion", "grass_metadata", "grass_allocation", "grass_placement"};
+inline constexpr std::array<const char*,6> gpuWorkStageNames{
+    "terrain_field", "terrain_expansion", "grass_metadata", "grass_allocation", "grass_placement", "grass_roots"};
 struct GpuWorkIdentity {
     std::uint64_t epoch=0,serial=0,body=std::numeric_limits<std::uint64_t>::max(),field=0,topology=0;
     std::uint32_t fieldVersion=0,topologyVersion=0,backend=0;

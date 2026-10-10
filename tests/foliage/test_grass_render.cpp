@@ -261,6 +261,44 @@ TEST(ProceduralGrassCompute, CompactedRootsAndWindMatchTheVertexFallbackAtBothPo
     }
 }
 
+TEST(ProceduralGrassCompute, CachedRootsStayImmutableAcrossWindViewsAndCameraMotionAndInvalidateWithInputs) {
+    if(!GLEW_VERSION_4_3) GTEST_SKIP() << "GPU root cache needs GL 4.3";
+    GrassProbe probe;
+    probe.capture(0,true);
+    const auto original=probe.grass.cachedRootsForValidation(0);
+    const auto initial=probe.grass.stats(0);
+    ASSERT_EQ(original.size(),initial.candidates);ASSERT_TRUE(initial.rootsPrepared);
+    EXPECT_EQ(initial.rootBytes,initial.candidates*64+initial.patches*16);
+    const auto equal=[](const auto& a,const auto& b) {
+        ASSERT_EQ(a.size(),b.size());
+        for(std::size_t i=0;i<a.size();++i) {
+            EXPECT_EQ(a[i].rootExpected,b[i].rootExpected);EXPECT_EQ(a[i].upRank,b[i].upRank);
+            EXPECT_EQ(a[i].normalSlot,b[i].normalSlot);EXPECT_EQ(a[i].variation,b[i].variation);
+        }
+    };
+    probe.capture(3,true); // Wind evolves without rewriting root records.
+    EXPECT_EQ(probe.grass.prepare(0,probe.mesh,probe.planet,100,{.05,0,1.02}).rebuilds,0);
+    rendering::GrassPass pass;pass.mainEyeBody={.05,0,1.02};pass.windTime=7;
+    pass.view=glm::scale(glm::mat4(1),glm::vec3(1,-1,1)); // A separate reflection view.
+    probe.grass.shader.use();probe.grass.draw(0,&pass);
+    equal(probe.grass.cachedRootsForValidation(0),original);
+    EXPECT_EQ(probe.grass.stats(0).rootDispatches,initial.rootDispatches);
+    ++probe.planet.foliage.seed;
+    EXPECT_EQ(probe.grass.prepare(0,probe.mesh,probe.planet,100,{0,0,1.02}).rebuilds,1);
+    EXPECT_FALSE(probe.grass.stats(0).rootsPrepared);probe.capture(0,true);
+    const auto seeded=probe.grass.cachedRootsForValidation(0);
+    ASSERT_EQ(seeded.size(),original.size());
+    EXPECT_NE(seeded[0].rootExpected,original[0].rootExpected);
+    const auto dispatches=probe.grass.stats(0).rootDispatches;
+    for(std::size_t i=0;i<probe.mesh.vertices.size();i+=9) probe.mesh.vertices[i]+=.01f;
+    probe.mesh.upload();++probe.mesh.revision;
+    EXPECT_EQ(probe.grass.prepare(0,probe.mesh,probe.planet,100,{0,0,1.02}).rebuilds,1);
+    probe.capture(0,true);EXPECT_GT(probe.grass.stats(0).rootDispatches,dispatches);
+    EXPECT_NE(probe.grass.cachedRootsForValidation(0)[0].rootExpected,seeded[0].rootExpected);
+    probe.grass.clear();EXPECT_TRUE(probe.grass.cachedRootsForValidation(0).empty());
+    EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+}
+
 TEST(ProceduralGrassRender, GrowingCandidateBatchesRetainsExistingBlades) {
     GrassProbe probe;
     probe.planet.foliage.max_blades=100000;
@@ -522,7 +560,8 @@ TEST(ProceduralGrassRender, CpuAdmissionChargesLiveTerrainAndReplacementBeforeLo
     ++probe.mesh.revision;
     probe.grass.prepare(0,probe.mesh,probe.planet,100,{0,0,1.02});
     EXPECT_EQ(probe.grass.reservedBytes(),3072+probe.grass.ownedBytes());
-    EXPECT_EQ(probe.grass.ownedBytes(),4096*128+2*4+32);
+    const bool cached=GLEW_VERSION_4_3 && probe.planet.foliage.compute_placement;
+    EXPECT_EQ(probe.grass.ownedBytes(),4096*(cached?192:128)+2*(cached?20:4)+32);
     const auto before=probe.grass.policy(0);
     auto saved=before;saved["body"]=probe.planet.name;
     probe.grass.restorePolicies({{"render",{{"foliage_policy",nlohmann::json::array({saved})}}}}, {probe.planet});

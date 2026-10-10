@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Summarize and independently check the local paired G1 evidence."""
+"""Summarize and independently check local paired grass preparation evidence."""
 import argparse
 import csv
 import hashlib
@@ -43,6 +43,11 @@ def main():
         group = grouped.setdefault(key, {'wall_ms': [], 'mesh_ms': [], 'gpu_render_ms': [],
             'allocation_gpu_ms': [], 'allocation_cpu_ms': [], 'metadata_fresh_gpu_ms': [],
             'metadata_repeated_generation_gpu_ms': []})
+        if any(stage in raw['method'].get('stages', []) for stage in ('grass_roots', 'grass_placement')):
+            for name in ('roots_gpu_ms', 'roots_cpu_ms', 'placement_main_gpu_ms',
+                         'placement_reflection_gpu_ms', 'placement_main_cpu_ms',
+                         'placement_reflection_cpu_ms'):
+                group.setdefault(name, [])
         for name, values in [('wall_ms', [float(r['wall_ms']) for r in loops]),
                              ('mesh_ms', [float(r['cpu_mesh_ms']) for r in rows]),
                              ('gpu_render_ms', [float(r['gpu_ms']) for r in rows])]:
@@ -50,6 +55,13 @@ def main():
             group[name].extend(values)
         previous = None
         for row in csv.DictReader((folder / 'frames.csv.gpu-work.csv').open()):
+            if row['stage'] in ('grass_roots', 'grass_placement') and 'roots_gpu_ms' in group:
+                if row['frame'] and run['first_frame'] <= int(row['frame']) <= run['last_frame']:
+                    assert row['status'] == 'ready'
+                    name = 'roots' if row['stage'] == 'grass_roots' else 'placement_' + row['view']
+                    group[name + '_gpu_ms'].append(float(row['gpu_ms']))
+                    group[name + '_cpu_ms'].append(float(row['cpu_submit_ms']))
+                continue
             if row['stage'] not in ('grass_metadata', 'grass_allocation'):
                 continue
             identity = tuple(row[k] for k in ('body', 'field', 'topology', 'backend'))
@@ -78,6 +90,8 @@ def main():
         entry = {k: run[k] for k in ('pair', 'case', 'variant')}
         entry['triangles'] = [first['triangles'], last['triangles']]
         entry['candidates'] = [first['foliage']['candidates'], last['foliage']['candidates']]
+        entry['patches'] = [first['foliage']['patches'], last['foliage']['patches']]
+        entry['gpu_bytes'] = [first['foliage']['gpu_bytes'], last['foliage']['gpu_bytes']]
         for key in ('density', 'budget', 'capacity', 'protected_m', 'sigma_m', 'near_infeasible'):
             entry[key] = [body['foliage']['policy'][key] for body in (first, last)]
         summary['workloads'].append(entry)

@@ -78,7 +78,7 @@ def main():
             summary['workloads'].append(entry)
             s = entry['stats']
             table.append(f"| {case} | {entry['gpu']['name'].replace('NVIDIA GeForce ','')} | {s['frame_ms']['median']:.2f} | {s['frame_ms']['p95']:.2f} | {s['frame_ms']['p99']:.2f} | {s['frame_ms']['max']:.2f} | {entry['rebuild_frames']} |")
-            for stage in ('grass_placement:main', 'grass_placement:reflection', 'grass_metadata', 'grass_allocation', 'terrain_field', 'terrain_expansion'):
+            for stage in ('grass_placement:main', 'grass_placement:reflection', 'grass_metadata', 'grass_allocation', 'grass_roots', 'terrain_field', 'terrain_expansion'):
                 n = entry['nested_work'].get(stage)
                 if n and case in ('surface-walk', 'aces-walk'):
                     nested_table.append(f"| {case} | {entry['gpu']['name'].replace('NVIDIA GeForce ','')} | {stage} | {n['events']} | {n['gpu_ms']['mean']:.3f} | {n['gpu_ms']['p95']:.3f} |")

@@ -41,6 +41,20 @@ void ProceduralGrass::allocateComputed(const Patch& patch,std::size_t count) con
         }
         glBindVertexArray(0);
     }
+    if(!patch.gpuRoots) glGenBuffers(1,&patch.gpuRoots);
+    if(!patch.gpuBounds) glGenBuffers(1,&patch.gpuBounds);
+    if(patch.rootCapacity<count) {
+        glBindBuffer(GL_ARRAY_BUFFER,patch.gpuRoots);
+        glBufferData(GL_ARRAY_BUFFER,count*sizeof(GrassRootRecord),nullptr,GL_STATIC_DRAW);
+        patch.rootCapacity=count;patch.rootsReady=false;
+    }
+    if(patch.boundsCapacity!=patch.patches) {
+        glBindBuffer(GL_ARRAY_BUFFER,patch.gpuBounds);
+        glBufferData(GL_ARRAY_BUFFER,patch.patches*sizeof(glm::vec4),nullptr,GL_STATIC_DRAW);
+        patch.boundsCapacity=patch.patches;patch.rootsReady=false;
+    }
+    if(!patch.gpuRoots || !patch.gpuBounds || glGetError()!=GL_NO_ERROR)
+        throw std::runtime_error("Grass root cache allocation failed");
 }
 void ProceduralGrass::drawComputed(const Patch& patch,const GrassPass& pass) const {
     if (pass.feedback) glPauseTransformFeedback();
@@ -57,65 +71,22 @@ void ProceduralGrass::drawComputed(const Patch& patch,const GrassPass& pass) con
     if(maxGroups<1 || (patch.allocation && count>std::uint64_t(blockBytes)/128) || count>std::numeric_limits<GLsizei>::max())
         throw std::runtime_error("Grass placement exceeds queried storage/dispatch capacity");
     if(patch.allocation) {
-        if(patch.gpuCapacity<count || !patch.gpuBlades || !patch.commands || !patch.gpuVaos[0] || !patch.gpuVaos[1])
+        if(patch.gpuCapacity<count || !patch.gpuBlades || !patch.commands || !patch.gpuVaos[0] || !patch.gpuVaos[1] || !patch.rootsReady)
             throw std::logic_error("Resident grass draw resources were not prepared");
     } else allocateComputed(patch,count);
-    auto& c=*compute_;
-    c.use();
-    c.setInt("uCapacity",patch.gpuCapacity);
-    c.setInt("uTerrainVertices",8); c.setInt("uTerrainIndices",9);
-    glActiveTexture(GL_TEXTURE8); glBindTexture(GL_TEXTURE_BUFFER,patch.vertexTexture);
-    glActiveTexture(GL_TEXTURE9); glBindTexture(GL_TEXTURE_BUFFER,patch.indexTexture);
-    glActiveTexture(GL_TEXTURE0);
+    bindComputedInputs(patch);
+    if(!patch.rootsReady) generateRoots(patch);
+    auto& c=*compute_;c.use();c.setInt("uBuildRoots",0);
     c.setMat4("model",glm::value_ptr(pass.model));
     c.setMat4("view",glm::value_ptr(pass.view));
     c.setMat4("projection",glm::value_ptr(pass.projection));
     c.setFloat3("uGrassEyeBody",pass.mainEyeBody.x,pass.mainEyeBody.y,pass.mainEyeBody.z);
-    c.setFloat3("uPlanetColor",patch.color.x,patch.color.y,patch.color.z);
-    c.setFloat3("uLandscapeLevels",patch.landscapeLevels.x,patch.landscapeLevels.y,patch.landscapeLevels.z);
-    c.setFloat2("uTerrainRockRange",patch.rockRange.x,patch.rockRange.y);
-    c.setInt("uLandscapeEnabled",patch.landscape); c.setInt("uWaterEnabled",patch.water);
-    const auto& f=patch.settings;
-    c.setFloat("uMetersPerRadius",patch.scale); c.setFloat("uDrawDistance",f.draw_distance_m);
-    c.setFloat("uQuadDistance",f.quadDistanceMeters());
-    c.setFloat("uPlacementDensity",patch.density);
-    c.setInt("uAdaptiveFalloff",patch.falloff.enabled);
-    c.setFloat("uGaussianSigma",patch.falloff.enabled?patch.falloff.sigmaMeters:f.draw_distance_m*f.gaussian_sigma_fraction);
-    c.setFloat("uGrassHeight",f.height_m); c.setFloat("uGrassWidth",f.width_m);
-    c.setFloat("uRootOffset",f.root_offset_m); c.setFloat("uGreenRatio",f.green_ratio);
-    c.setFloat("uWaterClearance",f.water_clearance_m);
-    c.setFloat2("uHeightMultiplierRange",f.height_multiplier_min,f.height_multiplier_max);
-    c.setFloat2("uLeanRange",f.lean_min,f.lean_max);
-    c.setInt("uGrassSeed",f.seed); c.setInt("uWindSeed",f.wind_noise.seed);
-    c.setFloat3("uWindFrequencies",f.wind_noise.gust_frequency,f.wind_noise.direction_frequency,f.wind_noise.flutter_frequency);
-    c.setFloat("uWindStrength",f.wind_strength);
     c.setFloat("uTime",pass.windTime);
-    c.setInt("uFrustumCull",f.frustum_culling);
-    const double reach=f.height_m*f.height_multiplier_max+f.width_m+f.root_offset_m;
-    c.setFloat("uCullExtent",reach/patch.scale);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,0,patch.buffer);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,1,patch.commands);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER,2,patch.gpuBlades);
     GpuWorkProfiler::Scope timing(GpuWorkStage::GrassPlacement,patch.workIdentity,pass.timingView);
     c.setInt("uReset",1); glDispatchCompute(1,1,1);
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     c.setInt("uReset",0);
-    std::size_t first=0;
-    for (std::size_t level=0;level<grassCandidateSlots.size();++level) {
-        const auto candidates=patch.batches[level].count;
-        if (candidates) {
-            c.setInt("uFirstPatch",first); c.setInt("uCandidateCount",candidates);
-            c.setInt("uSlotsPerPatch",grassCandidateSlots[level]);
-            const std::size_t capacity=std::size_t(maxGroups)*128;
-            const std::size_t chunk=patch.allocation ? std::min<std::size_t>(capacity,65536) : capacity;
-            for(std::size_t offset=0;offset<std::size_t(candidates);offset+=chunk) {
-                c.setInt("uCandidateOffset",offset);
-                glDispatchCompute((std::min(chunk,std::size_t(candidates)-offset)+127)/128,1,1);
-                glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-            }
-        }
-        first+=candidates/grassCandidateSlots[level];
-    }
+    dispatchCandidates(patch,maxGroups);
     glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT|GL_COMMAND_BARRIER_BIT|GL_SHADER_STORAGE_BARRIER_BIT);
     timing.stop();
     shader.use(); shader.setInt("uGpuInstances",1);

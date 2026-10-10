@@ -1,5 +1,35 @@
 # Page to document progress of AI Agents working on this Project
 
+## G2 persistent GPU grass roots — 2026-10-10
+
+- Implemented G2 only: plan-owned 64-byte root/normal/variation records and
+  16-byte selected-patch bounds, generated before resident publication.
+  Visibility, density, LOD and wind remain per view. CPU-planned compute grass
+  also caches roots; GL 3.3 retains vertex placement. No G3/G4 work or new tasks.
+- Terrain/config/seed/selection changes invalidate roots; wind time, small
+  camera movement and separate main/reflection views retain them. Nonadaptive
+  quad distance keeps its existing geometry-only behavior. Admission includes
+  all cache storage across live/staged/retiring plans.
+- Three alternating RTX pairs show no FPS gain: idle placement GPU mean rises
+  about 10–11%, walking about 1–2%; wall p95 changes less than 1%. Root generation
+  averages 0.892 ms GPU, with retained CPU submission outliers up to 30.56 ms.
+  Walking maximum frames remain about 116 ms. External RTX load and offscreen
+  EGL presentation limit conclusions.
+- Actual startup cache: 103,035,472 bytes. Conservative idle logical residency
+  is 426,579,036 bytes; walking overlap peaks at 852,997,736, below 1 GiB.
+  Protected 40.72/m² density and policy remain unchanged. Startup, ACES,
+  mountain and fresh adaptive startup PNGs match G1 exactly.
+- RTX packing, 16 grass and 19 staging/publication checks pass; 11 CPU groups
+  pass. The strict trail test passes on software GL; NVIDIA tiny wind-dependent
+  differences also reproduce with G1's original placement shader. Native Quadro
+  sprint/camera/CPU held-worker routes pass the unchanged reserve and audits.
+  All six software runtime/lifecycle/recovery/reload/capture CTest groups pass
+  (384.05 s), including the unchanged strict trail assertion. G2 is t; G3/G4
+  remain queued.
+- Report: docs/journal/benchmarks/grass-roots/study.md. Compact receipts are
+  versioned; raw evidence stays ignored/local in build-f5/g2. Preserve the
+  user's unstaged production density/width/quad-distance configuration edits.
+
 ## G1 grass preparation reuse — 2026-10-10
 
 - Implemented G1 only: bounded shared GPU terrain metadata, equivalent effective

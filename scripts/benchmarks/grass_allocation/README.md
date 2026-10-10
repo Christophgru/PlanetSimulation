@@ -1,4 +1,4 @@
-# G1 grass preparation benchmark
+# Grass preparation benchmark
 
 Use a Release or RelWithDebInfo build with the native probe enabled. Before
 changing the renderer, preserve its probe binary and a root containing its
@@ -29,6 +29,13 @@ The runner checks frame joins, density, GPU sample completeness and native
 nonblocking audits. The reporter independently reconstructs pooled statistics
 and hashes raw evidence. Repeated metadata generations identify opportunities
 for geometry reuse; their label is not a standalone buffer-identity audit.
+
+For G2, preserve the G1 baseline and add
+`--stages grass_metadata grass_allocation grass_roots grass_placement` to the
+runner. The reporter then includes one-time root generation and per-view
+placement/animation CPU and GPU costs. Root events are expected during plan
+preparation, rather than every idle frame. Keep G1 and G2 raw output in separate
+ignored directories.
 
 This benchmark requires NVIDIA EGL, GLFW/X11, Xvfb, xdotool, a C++ compiler and
 nvidia-smi. GPU utilization telemetry includes other processes; retain and

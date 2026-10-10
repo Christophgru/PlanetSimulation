@@ -259,8 +259,8 @@ TEST(TerrainPublication, AdaptiveAdmissionFitsCompleteOverlapAndLocksEffectiveRe
     const auto block=compute.limits().blockBytes;
     auto minimal=r.planet.foliage;minimal.max_blades=1;
     const auto fixed=TerrainGpuPreparation::requiredBytes(build,r.identity,disabled,compute.limits())+
-        ProceduralGrass::stageBytes(build.topology->triangleCount(),minimal,block)-128;
-    const auto allowance=fixed+128*128+17;constexpr std::uint64_t external=1024*1024;
+        ProceduralGrass::stageBytes(build.topology->triangleCount(),minimal,block)-grassComputedCandidateBytes;
+    const auto allowance=fixed+128*grassComputedCandidateBytes+17;constexpr std::uint64_t external=1024*1024;
     TerrainPublication p(grass,1,external+2*allowance,allowance);p.reserveExternal(external);
     GrassBudgetSignals signals;signals.nowNs=signals.memoryNs=10000000000ull;signals.freeBytes=1024ull*1024*1024;
     signals.sampleReserved=external;signals.capBytes=external+allowance;grass.observeBudget(signals);

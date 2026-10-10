@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Paired G1 timings: real GLFW input loop with UUID-selected NVIDIA EGL rendering.
+"""Paired grass timings: real GLFW input loop with UUID-selected NVIDIA EGL rendering.
 
 Run under xvfb-run. Raw evidence must stay in an ignored build directory.
 The private adapter uses a pbuffer, so results do not certify desktop FPS.
@@ -41,6 +41,8 @@ def main():
     parser.add_argument('--device', type=int, default=1)
     parser.add_argument('--pairs', type=int, default=3)
     parser.add_argument('--seconds', type=float, default=6)
+    parser.add_argument('--stages', nargs='+', default=['grass_metadata', 'grass_allocation'],
+                        choices=['grass_metadata', 'grass_allocation', 'grass_roots', 'grass_placement'])
     args = parser.parse_args()
     if args.pairs < 3 or args.seconds < 5:
         parser.error('Use at least three pairs and five seconds per measured leg')
@@ -70,6 +72,7 @@ def main():
               'base_commit': subprocess.check_output(['git', '-c', f'safe.directory={ROOT}', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
               'config_sha256': sha(args.config),
               'input_sha256': sha(replay), 'method': {'pairs': args.pairs, 'seconds': args.seconds,
+              'stages': args.stages,
               'warmup': 'settled surface view, then >=3 seconds and >=30 frames', 'walking_mps': 6,
               'viewport': [1280,720], 'orbit': 'paused replay; wind live',
               'presentation': 'real GLFW/X11 input and production loop; NVIDIA EGL pbuffer; no desktop FPS claim'}, 'runs': []}
@@ -118,7 +121,7 @@ def main():
                         policies = [f['benchmark']['bodies'][0]['foliage']['policy'] for f in frames]
                         assert all(p['density'] == scene['planets'][0]['foliage']['density_per_m2'] and not p['near_infeasible'] for p in policies)
                         events = {stage: stats([float(r['gpu_ms']) for r in work if r['stage'] == stage])
-                                  for stage in ('grass_metadata', 'grass_allocation')}
+                                  for stage in args.stages}
                         entry = {'pair': pair, 'case': case, 'variant': variant, 'frames': len(rows),
                                  'first_frame': start['profile_frame'], 'last_frame': end['profile_frame'], 'audit': audit,
                                  'wall_ms': stats([float(r['wall_ms']) for r in loops]),
@@ -128,7 +131,8 @@ def main():
                                  'maximum_reserved_bytes': max(f['publication']['peak_reserved_bytes'] for f in frames),
                                  'raw_folder': str(folder.relative_to(out))}
                         report['runs'].append(entry);write_json(out/'results.json', report)
-                        print(f"pair {pair} {case} {variant}: wall p95 {entry['wall_ms']['p95']:.3f} ms, allocation {events['grass_allocation']}", flush=True)
+                        stage = 'grass_placement' if 'grass_placement' in events else args.stages[0]
+                        print(f"pair {pair} {case} {variant}: wall p95 {entry['wall_ms']['p95']:.3f} ms, {stage} {events[stage]}", flush=True)
                     finally:
                         session.abort()
                     assert {k: sha(v) for k,v in probes.items()} == frozen

@@ -27,6 +27,7 @@ void ProceduralGrass::attributes(std::size_t first,int level) const {
 }
 void ProceduralGrass::upload(Patch& patch,const GrassPlan& plan) {
     CpuTrace::Scope scope("ProceduralGrass::upload");
+    patch.rootsReady=false;
     if (!patch.buffer) glGenBuffers(1,&patch.buffer);
     glBindBuffer(GL_ARRAY_BUFFER,patch.buffer);
     // Terrain is already resident. Upload only triangle IDs; density, seed
@@ -81,6 +82,7 @@ ProceduralGrass::Patch::~Patch() {
     glDeleteBuffers(1,&buffer);
     glDeleteTextures(1,&vertexTexture);glDeleteTextures(1,&indexTexture);
     glDeleteBuffers(1,&gpuBlades);glDeleteBuffers(1,&commands);
+    glDeleteBuffers(1,&gpuRoots);glDeleteBuffers(1,&gpuBounds);
     glDeleteVertexArrays(gpuVaos.size(),gpuVaos.data());
 }
 void ProceduralGrass::clear() {
@@ -108,7 +110,11 @@ GrassPreparationStats ProceduralGrass::prepare(std::size_t index,const Mesh& mes
     auto& patch=*patches_[index];
     if(mesh.residentTerrain) {
         const auto saved=replayPlanEyes_.find(index);
-        if(planet.foliage.enabled && patch.ready && patch.settings.enabled && patch.revision==mesh.revision &&
+        const auto rock=planet.terrain_material.slopeMetricRange();
+        if(planet.foliage.enabled && patch.ready && patch.settings==planet.foliage && patch.revision==mesh.revision &&
+           patch.rockRange==glm::vec2(rock[0],rock[1]) &&
+           patch.metadata && patch.metadata->geometry->matches(mesh.vbo,mesh.ebo,mesh.terrainStats,
+               grassMetadataParameters(planet,metersPerWorldUnit,patch.eye,mesh.indexCount/3,patch.falloff)) &&
            saved==replayPlanEyes_.end() && glm::length(eyeBody-patch.eye)*planet.radius*metersPerWorldUnit<grassRebuildDistance(planet.foliage))
             return {};
         const auto planningEye=saved==replayPlanEyes_.end()?eyeBody:saved->second;
@@ -122,6 +128,9 @@ GrassPreparationStats ProceduralGrass::prepare(std::size_t index,const Mesh& mes
         return {std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count(),0,0,1,input};
     }
     patch.computeUsed=false;patch.generation={};
+    const auto oldSettings=patch.settings;const auto oldColor=patch.color,oldLevels=patch.landscapeLevels;
+    const auto oldRock=patch.rockRange;const auto oldScale=patch.scale;
+    const auto oldWater=patch.water,oldLandscape=patch.landscape;
     patch.settings=planet.foliage; patch.color={planet.color[0],planet.color[1],planet.color[2]};
     const auto rockRange=planet.terrain_material.slopeMetricRange();
     patch.rockRange={rockRange[0],rockRange[1]};
@@ -130,14 +139,25 @@ GrassPreparationStats ProceduralGrass::prepare(std::size_t index,const Mesh& mes
     patch.landscapeLevels={planet.water.enabled ? planet.water.level_m : 0,.1,relief};
     patch.water=planet.water.enabled; patch.landscape=planet.terrain_landscape.enabled;
     patch.scale=planet.radius*metersPerWorldUnit;
+    auto placementSettings=patch.settings;
+    // Without adaptive density, quad distance only selects the output queue.
+    // It does not change candidate selection or any cached root property.
+    if(!patch.falloff.enabled) placementSettings.quad_distance_m=oldSettings.quad_distance_m;
+    const bool changed=oldSettings!=placementSettings || oldColor!=patch.color || oldLevels!=patch.landscapeLevels ||
+        oldRock!=patch.rockRange || oldScale!=patch.scale || oldWater!=patch.water || oldLandscape!=patch.landscape;
+    if(changed) patch.rootsReady=false;
+    if(!GLEW_VERSION_4_3 || !planet.foliage.compute_placement || !planet.foliage.enabled) {
+        glDeleteBuffers(1,&patch.gpuRoots);glDeleteBuffers(1,&patch.gpuBounds);
+        patch.gpuRoots=patch.gpuBounds=0;patch.rootCapacity=patch.boundsCapacity=0;patch.rootsReady=false;
+    }
     if (!planet.foliage.enabled || !mesh.hasVertexColors) {
-        patch.falloff={};patch.stageAdmittedBytes=patch.gpuCapacity*128+(patch.commands?32:0);
+        patch.falloff={};patch.stageAdmittedBytes=patch.gpuCapacity*128+patch.rootCapacity*64+patch.boundsCapacity*16+(patch.commands?32:0);
         for (auto& batch:patch.batches) batch.count=0;
         patch.patches=0; patch.distanceMeters=0; patch.density=0;patch.allocationBudget=0; patch.ready=false; patch.computeUsed=false; patch.draws.clear(); patch.metadata.reset(); patch.allocation.reset(); glDeleteBuffers(1,&patch.buffer);patch.buffer=0; return {};
     }
     const double scale=planet.radius*metersPerWorldUnit;
     const double margin=grassRebuildDistance(planet.foliage);
-    if (patch.ready && patch.revision==mesh.revision && !policyChanged(index) && glm::length(eyeBody-patch.eye)*scale<margin) {
+    if (patch.ready && !changed && patch.revision==mesh.revision && !policyChanged(index) && glm::length(eyeBody-patch.eye)*scale<margin) {
         updateDraws(patch,scale,planet.foliage.quadDistanceMeters(),eyeBody);
         return {};
     }
@@ -183,10 +203,13 @@ GrassPreparationStats ProceduralGrass::prepare(std::size_t index,const Mesh& mes
             plan.falloff.capacity,plan.falloff.density,plan.falloff.protectedMeters);
     if(policy.enabled && patch.gpuCapacity>policy.capacity) {
         glDeleteBuffers(1,&patch.gpuBlades);patch.gpuBlades=0;patch.gpuCapacity=0;
+        glDeleteBuffers(1,&patch.gpuRoots);patch.gpuRoots=0;patch.rootCapacity=0;patch.rootsReady=false;
     }
     upload(patch,plan);
     patch.policyRevision=budget_.revision();
-    patch.stageAdmittedBytes=policy.enabled?128ull*policy.capacity+mesh.indices.size()/3*4+32:0;
+    const bool cached=GLEW_VERSION_4_3 && planet.foliage.compute_placement;
+    patch.stageAdmittedBytes=policy.enabled?(cached?grassComputedCandidateBytes:128)*policy.capacity+
+        mesh.indices.size()/3*(cached?20:4)+32:0;
     const auto uploaded=std::chrono::steady_clock::now();
     patch.metadata=std::move(metadata);
     patch.eye=planningEye; patch.revision=mesh.revision; patch.ready=true;
@@ -209,7 +232,9 @@ ProceduralGrassStats ProceduralGrass::patchStats(const Patch& patch) {
     ProceduralGrassStats result;
     result.patches=patch.patches; result.patchBytes=patch.patches*sizeof(std::uint32_t);
     result.distanceMeters=patch.distanceMeters;result.density=patch.density;result.allocationBudget=patch.allocationBudget;
-    result.gpuBytes=patch.gpuCapacity*128+(patch.commands ? 32 : 0);
+    result.rootBytes=patch.rootCapacity*64+patch.boundsCapacity*16;
+    result.rootDispatches=patch.rootDispatches;result.rootsPrepared=patch.rootsReady;
+    result.gpuBytes=patch.gpuCapacity*128+result.rootBytes+(patch.commands ? 32 : 0);
     result.drawResourceBytes=result.gpuBytes;result.stageAdmittedBytes=patch.stageAdmittedBytes;
     if (patch.metadata) {
         result.metadataBytes=patch.metadata->workingBytes;
@@ -232,7 +257,7 @@ ProceduralGrassStats ProceduralGrass::patchStats(const Patch& patch) {
         result.triangles+=count*2*draw.segments;
     }
     result.drawResourcesPrepared=patch.ready && (!result.candidates ||
-        (patch.gpuCapacity>=result.candidates && patch.commands && patch.gpuBlades && patch.gpuVaos[0] && patch.gpuVaos[1]));
+        (patch.gpuCapacity>=result.candidates && patch.commands && patch.gpuBlades && patch.gpuVaos[0] && patch.gpuVaos[1] && patch.rootsReady));
     return result;
 }
 std::optional<glm::dvec3> ProceduralGrass::planningEye(std::size_t index) const {
