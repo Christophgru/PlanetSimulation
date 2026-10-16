@@ -1,13 +1,16 @@
 #include "config/Config.h"
 #include "rendering/geometry/Terrain.h"
+#include "rendering/diagnostics/tracing/CpuTrace.h"
 #include <chrono>
 #include <iostream>
 #include <cmath>
 #include <ctime>
 int main(int argc,char** argv) {
-    if(argc>2) {std::cerr << "Usage: terrain_detail_benchmark [scene.json]\n";return 2;}
-    std::cout << "latitude_deg,streaming,step,wall_ms,thread_cpu_ms,triangles,height_evaluations,max_core_edge_m,core_limited,parent_reused,input_bytes\n";
-    const config::ScenarioConfig scene(config::Config::load(argc==2?argv[1]:"configs/scenarios/solar_system.json"));
+    if(argc>3) {std::cerr << "Usage: terrain_detail_benchmark [scene.json] [cpu-trace.json]\n";return 2;}
+    rendering::CpuTrace trace(argc==3?argv[2]:"");
+    rendering::CpuTrace::Thread thread(&trace,"detail benchmark");
+    std::cout << "latitude_deg,streaming,step,wall_ms,thread_cpu_ms,triangles,height_evaluations,max_core_edge_m,core_limited,parent_reused,input_bytes,topology_fingerprint,parent_edges,mutable_edges\n";
+    const config::ScenarioConfig scene(config::Config::load(argc>=2?argv[1]:"configs/scenarios/solar_system.json"));
     const auto& p=scene.planets[0];const double meters=scene.metersPerWorldUnit();
     for(const auto pose:{glm::dvec2(-17.23072754436555,79.39197457588234),glm::dvec2(-18.726025155509635,113.23762488691663)}) {
         const double lat=pose.x*std::acos(-1.)/180,lon=pose.y*std::acos(-1.)/180;
@@ -27,7 +30,8 @@ int main(int argc,char** argv) {
                 const double cpu=(cpuEnd.tv_sec-cpuStart.tv_sec)*1000.+(cpuEnd.tv_nsec-cpuStart.tv_nsec)*1e-6;
                 std::cout << pose.x << ',' << streaming << ',' << step << ',' << wall << ',' << cpu << ','
                     << t.triangleCount() << ',' << t.planningQueries.evaluations << ',' << t.localMaxEdgeMeters << ','
-                    << t.localDetailLimited << ',' << t.parentReused << ',' << t.topologyInputBytes << '\n';
+                    << t.localDetailLimited << ',' << t.parentReused << ',' << t.topologyInputBytes << ',' << t.generation.topology << ','
+                    << t.refinementParentEdges << ',' << t.refinementMutableEdges << '\n';
             }
         }
     }

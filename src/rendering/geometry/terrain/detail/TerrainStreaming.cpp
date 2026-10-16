@@ -1,4 +1,5 @@
 #include "rendering/geometry/Terrain.h"
+#include "rendering/diagnostics/tracing/CpuTrace.h"
 #include <cmath>
 #include <stdexcept>
 #include <mutex>
@@ -7,6 +8,7 @@ namespace rendering {
 struct TerrainSurface::DetailCache {
     std::mutex mutex;
     std::optional<TerrainTopology> parent;
+    std::shared_ptr<const RefinementParent> adjacency;
     glm::dvec3 eye{0};
     // The query cache owns its referenced immutable field through this optional;
     // worker snapshots can disappear without leaving a dangling field reference.
@@ -17,6 +19,7 @@ std::shared_ptr<TerrainSurface::DetailCache> TerrainSurface::newDetailCache() {
     return std::make_shared<DetailCache>();
 }
 TerrainTopology TerrainSurface::streamDetail(const glm::dvec3& eye) const {
+    CpuTrace::Scope scope("terrain.stream_detail");
     if(!std::isfinite(glm::length(eye)) || glm::length(eye)<=0)
         throw std::invalid_argument("Invalid streaming terrain eye");
     // One parent shell shared by worker snapshots. Replacement drops the previous
@@ -32,8 +35,13 @@ TerrainTopology TerrainSurface::streamDetail(const glm::dvec3& eye) const {
         coarse.max_triangle_budget=std::max({10000,minimum,lod_.max_triangle_budget/2});
         // Preserve the complete field (landscape/material included).
         auto source=*this;source.lod_=coarse;source.detailCache_.reset();
-        detailCache_->parent=source.buildTopologyForEye(eye*radius_,{});
+        auto parent=source.buildTopologyForEye(eye*radius_,{});
+        auto adjacency=local?prepareRefinementParent(parent,radius_*metersPerUnit_):nullptr;
+        // Publish the pair only after both allocations/builds succeed. A failed
+        // rebase must not associate an older graph with a replacement shell.
+        detailCache_->parent=std::move(parent);detailCache_->adjacency=std::move(adjacency);
         detailCache_->eye=eye;
+        detailCache_->queries.reset();detailCache_->queryField.reset();
     }
     auto result=*detailCache_->parent;result.parentReused=reuse;
     for(int j=0;j<3;++j) result.parentEye[j]=detailCache_->eye[j]*radius_;
@@ -50,13 +58,13 @@ TerrainTopology TerrainSurface::streamDetail(const glm::dvec3& eye) const {
             detailCache_->queries=std::make_unique<TerrainQueryCache>(*detailCache_->queryField,
                 2*lod_.max_triangle_budget,result.surfacePolicy);
         }
-        refineSurfaceError(result,eye,true,detailCache_->queries.get());
+        refineSurfaceError(result,eye,true,detailCache_->queries.get(),detailCache_->adjacency.get());
     } else {
         detailCache_->queries.reset();detailCache_->queryField.reset();
         result.morph.resize(result.samples.size());
         for(std::size_t i=0;i<result.samples.size();++i) result.morph[i].parent.fill(result.samples[i]);
     }
-    result.canonicalize(field_.fingerprint());
+    {CpuTrace::Scope canonical("terrain.detail_canonicalize");result.canonicalize(field_.fingerprint());}
     return result;
 }
 }

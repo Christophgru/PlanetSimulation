@@ -19,7 +19,10 @@ are warm moving plans, rather than repeated stationary requests.
 
 The CSV reports wall and thread CPU time, actual triangle count, counted field
 height evaluations, core edge/limit status, parent reuse and topology transfer
-bytes. Times are diagnostics, never machine-dependent test assertions. Run
+bytes. It also retains the exact topology fingerprint and immutable-parent /
+mutable-edge counts. Compare fingerprints, triangles, queries, edge/error limits
+and transfer bytes when changing planner internals; a faster run alone does not
+establish equivalent geometry. Times are diagnostics, never machine-dependent test assertions. Run
 without other compilation/rendering work when collecting wall timings; thread
 CPU time is also retained to distinguish scheduling delays. Record compiler,
 configuration and source revision with retained evidence.
@@ -30,6 +33,17 @@ the automated detail/parity/replay tests and native input loop separately.
 The [terrain report](../../../docs/journal/architecture/terrain-gpu/sinking.md)
 records the implementation and its remaining limits. Keep raw CSVs and binaries
 in ignored build directories.
+
+An optional second positional argument records CPU scopes for the planner:
+
+```sh
+./build-f5/terrain_detail_benchmark configs/scenarios/solar_system.json \
+  build-f5/terrain-detail/cpu.json > build-f5/terrain-detail/profiled.csv
+```
+
+The trace separates parent preparation, mutable refinement initialization,
+initial assessment, splitting, export, canonicalization and fingerprint checks.
+Use a separate run without tracing for timing comparisons.
 
 
 Collect native walking/sprint coverage independently on NVIDIA EGL:
@@ -49,8 +63,19 @@ at the beginning is included in reported wall speed. This is a terrain coverage
 check, not a production performance/FPS cohort or a test of temporal morphing.
 
 The helper writes all receipts and returns **2** if any measured camera sample
-lies outside its requested core. That failure must remain visible while the
+lies outside its requested core, or a published core fails its configured
+edge/error targets (`unmet_detail_frames`). The private native probe records
+those geometry diagnostics from owned CPU scalars without a GPU readback.
+That failure must remain visible while the
 terrain TODO is in progress; gathering receipts successfully is not coverage
 acceptance. Existing normal tests do not require NVIDIA hardware or these raw
 receipts. Current coverage failures and the cold/warm planning distinction are
 recorded in the linked report.
+
+Add `--trace` to a separate native run to record `cpu.json`, `frames.csv` and
+publication/GPU phase sidecars for each route. Receipts identify profiled runs.
+If NVIDIA is unavailable, `--software` explicitly selects llvmpipe and records
+that renderer without attempting an EGL adapter or NVML device lookup. It runs
+the same coverage and ownership/nonblocking/memory assertions and still exits
+2 for any uncovered frame. Software coverage is functional evidence only and
+cannot establish NVIDIA performance or replace the hardware acceptance run.

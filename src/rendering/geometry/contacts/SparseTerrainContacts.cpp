@@ -1,5 +1,6 @@
 #include "rendering/geometry/contacts/SparseTerrainContacts.h"
 #include "rendering/geometry/terrain/detail/TerrainMorph.h"
+#include "rendering/diagnostics/tracing/CpuTrace.h"
 #include <algorithm>
 #include <cmath>
 #include <chrono>
@@ -17,6 +18,7 @@ constexpr double directionPadding=1e-6;
 }
 SparseTerrainContacts::SparseTerrainContacts(PlanetField field,TerrainTopology topology)
     :field_(std::move(field)),topology_(std::move(topology)),generation_(topology_.generation) {
+    CpuTrace::Scope scope("terrain.contact_index");
     const auto start=std::chrono::steady_clock::now();
     topology_.validate();
     if(generation_.field!=field_.fingerprint()) throw std::invalid_argument("Stale contact planet field");

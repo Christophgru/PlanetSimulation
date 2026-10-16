@@ -1,5 +1,68 @@
 # Relief-aware terrain sinking
 
+## Cached parent adjacency — 2026-10-16
+
+The optional v4 planner now retains immutable coarse-edge adjacency and radial
+face bounds alongside its one cached parent shell. Each moving plan materializes
+mutable edge records only for refinement/probes and any neighboring faces reached
+by longest-edge propagation. Untouched parent connectivity stays shared. A closed
+parent with F faces retains 3F/2 edges and F bounds; mutable live edges remain
+bounded by 3/2 of the existing triangle cap. Transient child faces carry one
+parent-face ID instead of copying three radial/sink descriptors. The final
+128-byte morph records, vertex order, field probes, split priorities and GPU
+contract are unchanged. Parent and adjacency are replaced together after both
+builds succeed; rebase/mode changes replace the pair and reload owns a new cache.
+
+Canonicalization reserves the expected closed-shell vertex count and validates
+structure after calculating its fingerprint, avoiding an immediate redundant
+recalculation. Public consumers still verify structure and the complete checksum;
+the regression also mutates a valid-range blend weight to check stale-data
+rejection. No fingerprint algorithm, validation tolerance or detail target changed.
+
+CPU traces now distinguish adjacency preparation, initialization, parent
+assessment, splitting, export, canonicalization/checksums and sparse-contact
+index construction. The planning helper records exact fingerprints and parent /
+mutable edge counts. The native helper optionally records CPU/publication traces
+and explicitly supports llvmpipe functional runs. Its gate now also rejects
+published cores that miss their configured edge/error targets, separately from
+camera coverage; no GPU readback is added to native observation.
+
+The software run exposed a pre-existing G4 test assumption: its counter excluded
+the completing poll and therefore required an extra asynchronous fence poll.
+Counting every poll and additionally requiring more than four root dispatches
+checks actual slicing, including drivers that signal immediately. The per-poll
+four-dispatch limit, live-generation checks and source-lease/cancellation checks
+remain enforced.
+
+An isolated GCC 12 RelWithDebInfo run with the same production inputs measures
+warm plans at 99.5–100.9 ms at startup (previously 154.6–173.0 ms), and
+98.1–102.7 ms at the mountain reference (previously 195.6–202.2 ms). Cold plans
+remain expensive at 1,716 / 1,288 ms. All twelve v3/v4 cold/moving benchmark rows
+retain their exact fingerprints, triangle/evaluation counts, edge/limit results
+and transfer bytes. Each parent has 75,000 edges; moving plans materialize only
+6,679–6,754 mutable edges at startup and 9,695–10,255 at the mountain pose.
+These are CPU planning results, with no concurrent build/render/test work.
+They are not a moving-coverage or GPU/FPS claim.
+
+Validation passes all 35 core groups, eight detail CPU cases and all 44 software
+compute/staging/cell/publication/allocation cases. The moving capture, parent
+replay, CPU and GL 3.3 images agree exactly and match the prior committed final
+captures (`stream-reuse`). The headless overview is inspected and nonblank:
+14,779 non-background pixels, bounds (1,1)–(794,598), 3,471 planet pixels.
+
+NVIDIA hardware validation could not run: NVML initialization fails with
+`Unknown Error`. Explicit llvmpipe native routes still fail the unchanged
+coverage gate: the 0.5 m walking/sprint cases have maximum offsets of 22.39 /
+45.38 m (5/7 and 7/9 measured frames outside), and the 1.5 m sprint case has
+28.74 m maximum offset (3/5 outside). Speeds are 5.40 / 10.12 / 6.98 m/s;
+these software routes are functional diagnostics, not a hardware comparison.
+The 1.5 m core also misses its geometry target in all five sampled frames.
+Ownership/nonblocking audits pass with zero blocking polls, bulk reads or
+finishes; logical overlap stays below 75 MB. The helper returns exit 2.
+Uninterrupted movement and temporal publication remain incomplete; terrain stays
+**p**. Raw evidence is local in `build-f5/resume/detail-adjacency-*` and
+`detail-before-fingerprints.csv`.
+
 ## Experimental reusable parent mesh — 2026-10-16
 
 `terrain_lod.local_detail_streaming: true` opts into topology version 4. It

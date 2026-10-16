@@ -24,6 +24,7 @@ struct TerrainBuildStats {
     bool errorBudgetLimited=false;
     int localDetailTriangles=0;
     bool parentReused=false;
+    std::size_t refinementParentEdges=0,refinementMutableEdges=0;
     std::array<double,3> parentEye{};
     double localMaxEdgeMeters=0,localRemainingErrorRatio=0;
     bool localDetailLimited=false;
@@ -62,6 +63,8 @@ struct TerrainTopology : TerrainBuildStats {
     void validate() const;
     std::uint64_t contentFingerprint() const;
     int triangleCount() const { return static_cast<int>(indices.size()/3); }
+private:
+    void validateStructure() const;
 };
 std::uint64_t terrainHashWord(std::uint64_t hash,std::uint64_t word,int bytes=8);
 }

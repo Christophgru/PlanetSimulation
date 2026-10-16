@@ -1,4 +1,5 @@
 #include "rendering/geometry/terrain/TerrainTopology.h"
+#include "rendering/diagnostics/tracing/CpuTrace.h"
 #include <bit>
 #include <cmath>
 #include <map>
@@ -9,6 +10,12 @@ std::uint64_t terrainHashWord(std::uint64_t hash,std::uint64_t word,int bytes) {
     return hash;
 }
 void TerrainTopology::validate() const {
+    CpuTrace::Scope scope("terrain.topology_validate");
+    validateStructure();
+    if (generation.topology!=contentFingerprint())
+        throw std::invalid_argument("Stale terrain topology generation key");
+}
+void TerrainTopology::validateStructure() const {
     if(indices.size()%3 || generation.fieldVersion!=PlanetField::version || generation.topologyVersion!=version() ||
        generation.backend!=TerrainBackend::Cpu) throw std::invalid_argument("Invalid terrain topology contract");
     for(const auto* p:{&surfacePolicy,&parentPolicy}) {
@@ -47,10 +54,9 @@ void TerrainTopology::validate() const {
             throw std::invalid_argument("Invalid terrain sample direction or sink");
     }
     for(auto i:indices) if(i>=samples.size()) throw std::invalid_argument("Invalid terrain topology index");
-    if (generation.topology!=contentFingerprint())
-        throw std::invalid_argument("Stale terrain topology generation key");
 }
 std::uint64_t TerrainTopology::contentFingerprint() const {
+    CpuTrace::Scope scope("terrain.topology_fingerprint");
     auto hash=14695981039346656037ull;
     hash=terrainHashWord(hash,samples.size());
     hash=terrainHashWord(hash,indices.size());
@@ -89,6 +95,10 @@ void TerrainTopology::canonicalize(std::uint64_t fieldFingerprint) {
         // unique already. Compact unused probes by ID instead of rebuilding a
         // whole-shell ordered map for each sub-metre camera movement.
         std::vector<std::uint32_t> compact(samples.size(),~std::uint32_t(0));
+        // A closed triangular shell has F/2+2 vertices. This is only a reserve
+        // hint; open test inputs still grow normally and receive full checks.
+        const auto count=std::min(samples.size(),indices.size()/6+2);
+        unique.reserve(count);uniqueMorph.reserve(count);
         for(auto& i:indices) {
             auto& next=compact.at(i);
             if(next==~std::uint32_t(0)) {
@@ -116,6 +126,8 @@ void TerrainTopology::canonicalize(std::uint64_t fieldFingerprint) {
     generation.field=fieldFingerprint;
     generation.topology=contentFingerprint();
     uniqueSamples=samples.size();topologyInputBytes=morph.size()*sizeof(TerrainMorphSample)+(morph.empty()?0:sizeof(parentPolicy))+samples.size()*sizeof(TerrainInputSample)+indices.size()*sizeof(std::uint32_t)+ (surfacePolicy.enabled()?sizeof(surfacePolicy):0);
-    validate();
+    // The fingerprint was just derived from these arrays. Check structure here;
+    // every public consumer still recomputes and verifies the full fingerprint.
+    validateStructure();
 }
 }

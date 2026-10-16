@@ -7,13 +7,58 @@
 #include <stdexcept>
 
 namespace rendering {
-void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dvec3& eyeBody, bool localOnly, TerrainQueryCache* sharedQueries) const {
+namespace {
+using RefinementKey=std::pair<std::uint32_t,std::uint32_t>;
+RefinementKey refinementKey(std::uint32_t a,std::uint32_t b) {return {std::min(a,b),std::max(a,b)};}
+struct RefinementEdgeHash {
+    std::size_t operator()(const RefinementKey& k) const {
+        return std::hash<std::uint64_t>{}((std::uint64_t(k.first)<<32)|k.second);
+    }
+};
+}
+// Immutable adjacency/bounds are shared with the coarse shell. Per-move mutable
+// edges are materialized only when refinement visits them, including neighbors
+// pulled in by longest-edge propagation. No retained fine mesh or history is
+// needed to reproduce a plan from its parent and current eye.
+struct TerrainSurface::RefinementParent {
+    struct Bounds {glm::dvec3 center;double reach;};
+    std::unordered_map<RefinementKey,std::array<int,2>,RefinementEdgeHash> edges;
+    std::vector<Bounds> bounds;
+};
+std::shared_ptr<const TerrainSurface::RefinementParent> TerrainSurface::prepareRefinementParent(
+    const TerrainTopology& topology,double scale) {
+    CpuTrace::Scope scope("terrain.refinement_prepare_parent");
+    auto result=std::make_shared<RefinementParent>();
+    result->edges.reserve(topology.indices.size()/2);
+    result->bounds.reserve(topology.triangleCount());
+    for(int face=0;face<topology.triangleCount();++face) {
+        std::array<glm::dvec3,3> radial;
+        for(int side=0;side<3;++side) {
+            const auto a=topology.indices[3*face+side],b=topology.indices[3*face+(side+1)%3];
+            auto [it,inserted]=result->edges.try_emplace(refinementKey(a,b),std::array<int,2>{face,-1});
+            if(!inserted) {
+                if(it->second[1]>=0) throw std::logic_error("Non-manifold terrain parent edge");
+                it->second[1]=face;
+            }
+            const auto& s=topology.samples[a];radial[side]={s.radial[0],s.radial[1],s.radial[2]};
+        }
+        const auto center=glm::normalize(radial[0]+radial[1]+radial[2]);
+        double reach=0;for(const auto& r:radial) reach=std::max(reach,glm::length(r-center)*scale);
+        result->bounds.push_back({center,reach});
+    }
+    for(const auto& [key,faces]:result->edges) if(faces[1]<0) throw std::logic_error("Open terrain parent edge");
+    return result;
+}
+void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dvec3& eyeBody, bool localOnly,
+    TerrainQueryCache* sharedQueries,const RefinementParent* parent) const {
     CpuTrace::Scope scope("TerrainSurface::refineSurfaceError");
     // Canonical radial IDs, not rounded render positions, join both sides of
     // every edge. All error probes use the same filtered/sunk field as drawing.
     if(!localOnly) geometry.canonicalize(field_.fingerprint());
+    CpuTrace::Scope initialize("terrain.refinement_initialize");
     const int originalCount=geometry.triangleCount();
     const double scale=radius_*metersPerUnit_;
+    const auto eyeRadial=glm::normalize(eyeBody);
     TerrainQueryCache localQueries(field_,8192,geometry.surfacePolicy);
     auto& queries=sharedQueries?*sharedQueries:localQueries;
     const auto initialQueries=queries.stats();
@@ -37,8 +82,8 @@ void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dv
     std::vector<TerrainMorphSample> morph(localOnly?vertices.size():0);
     if(localOnly) for(std::size_t i=0;i<morph.size();++i) morph[i].parent.fill(geometry.samples[i]);
 
-    using Key=std::pair<std::uint32_t,std::uint32_t>;
-    const auto key=[](std::uint32_t a,std::uint32_t b) {return Key{std::min(a,b),std::max(a,b)};};
+    using Key=RefinementKey;
+    const auto key=refinementKey;
     constexpr auto absent=std::numeric_limits<std::uint32_t>::max();
     struct Edge {std::array<int,2> faces{-1,-1};std::uint32_t middle=absent;};
     struct Triangle {
@@ -48,38 +93,42 @@ void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dv
         int priority=0;
         bool alive=true;
     };
-    struct EdgeHash {
-        std::size_t operator()(const Key& k) const {
-            return std::hash<std::uint64_t>{}((std::uint64_t(k.first)<<32)|k.second);
-        }
-    };
     // Only keyed lookup is needed: face/queue order determines every split.
     // A closed triangular shell has 3/2 as many edges as faces. Reserve that
     // bounded capacity to avoid tree walks and growth during refinement.
-    std::unordered_map<Key,Edge,EdgeHash> edges;
-    edges.reserve(std::size_t(lod_.max_triangle_budget)*3/2);
+    std::unordered_map<Key,Edge,RefinementEdgeHash> edges;
+    edges.reserve(parent?8192:std::size_t(lod_.max_triangle_budget)*3/2);
+    const auto edgeAt=[&](const Key& k) -> Edge& {
+        auto [it,inserted]=edges.try_emplace(k);
+        if(inserted && parent) {
+            if(const auto base=parent->edges.find(k);base!=parent->edges.end()) it->second.faces=base->second;
+        }
+        return it->second;
+    };
     std::vector<Triangle> triangles;
     triangles.reserve(2*lod_.max_triangle_budget);
-    std::vector<std::array<TerrainInputSample,3>> triangleParents;
+    std::vector<int> triangleParents;
     if(localOnly) triangleParents.reserve(2*lod_.max_triangle_budget);
-    const auto attach=[&](const std::array<std::uint32_t,3>& v, const std::array<TerrainInputSample,3>* parent=nullptr) {
+    const auto attach=[&](const std::array<std::uint32_t,3>& v, int root=-1) {
         const int id=static_cast<int>(triangles.size());
         triangles.push_back({v});
         if(localOnly) {
-            triangleParents.emplace_back();
-            if(parent) triangleParents.back()=*parent;
-            else for(int j=0;j<3;++j) triangleParents.back()[j]=geometry.samples.at(v[j]);
+            triangleParents.push_back(root<0?id:root);
         }
         for(int side=0;side<3;++side) {
-            auto& e=edges[key(v[side],v[(side+1)%3])];
+            auto& e=edgeAt(key(v[side],v[(side+1)%3]));
             if(e.faces[0]<0) e.faces[0]=id;
             else if(e.faces[1]<0) e.faces[1]=id;
             else throw std::logic_error("Non-manifold terrain refinement edge");
         }
         return id;
     };
-    for(std::size_t t=0;t<geometry.indices.size();t+=3)
-        attach({geometry.indices[t],geometry.indices[t+1],geometry.indices[t+2]});
+    for(std::size_t t=0;t<geometry.indices.size();t+=3) {
+        const std::array<std::uint32_t,3> v{geometry.indices[t],geometry.indices[t+1],geometry.indices[t+2]};
+        if(parent) {triangleParents.push_back(triangles.size());triangles.push_back({v});}
+        else attach(v);
+    }
+    initialize.stop();
 
     struct Candidate {double score;int face,priority;};
     const auto lowerPriority=[](const Candidate& a,const Candidate& b) {
@@ -88,14 +137,15 @@ void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dv
     };
     std::priority_queue<Candidate,std::vector<Candidate>,decltype(lowerPriority)> pending(lowerPriority);
     const auto midpoint=[&](const Key& k) {
-        auto& e=edges.at(k);
+        auto& e=edgeAt(k);
         if(e.middle==absent) {
             const auto radial=glm::normalize(vertices[k.first].radial+vertices[k.second].radial);
             e.middle=static_cast<std::uint32_t>(vertices.size());
             vertices.push_back(sampleAt(radial));evaluated.push_back(true);
             if(localOnly) {
                 TerrainMorphSample m;
-                m.parent=triangleParents.at(e.faces[0]>=0?e.faces[0]:e.faces[1]);
+                const int root=triangleParents.at(e.faces[0]>=0?e.faces[0]:e.faces[1]);
+                for(int j=0;j<3;++j) m.parent[j]=geometry.samples.at(geometry.indices[3*root+j]);
                 morph.push_back(m);
             }
         }
@@ -105,10 +155,12 @@ void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dv
         auto& triangle=triangles[id];
         const auto v=triangle.v;
         if(localOnly) {
-            const auto center=glm::normalize(vertices[v[0]].radial+vertices[v[1]].radial+vertices[v[2]].radial);
-            double reach=0;
-            for(auto corner:v) reach=std::max(reach,glm::length(vertices[corner].radial-center)*scale);
-            const double distance=std::max(0.0,glm::length(center-glm::normalize(eyeBody))*scale-reach);
+            const bool base=parent && id<originalCount;
+            const auto center=base?parent->bounds[id].center:
+                glm::normalize(vertices[v[0]].radial+vertices[v[1]].radial+vertices[v[2]].radial);
+            double reach=base?parent->bounds[id].reach:0;
+            if(!base) for(auto corner:v) reach=std::max(reach,glm::length(vertices[corner].radial-center)*scale);
+            const double distance=std::max(0.0,glm::length(center-eyeRadial)*scale-reach);
             if(distance>lod_.local_detail_radius_m+lod_.local_transition_m) return;
             for(auto corner:v) if(!evaluated[corner]) {
                 vertices[corner]=sampleAt(vertices[corner].radial);evaluated[corner]=true;
@@ -152,12 +204,14 @@ void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dv
         if(triangle.score>1 && longest>=(triangle.priority ? .0001 : .04))
             pending.push({triangle.score,id,triangle.priority});
     };
-    for(int id=0;id<originalCount;++id) assess(id);
+    {CpuTrace::Scope assessInitial("terrain.refinement_assess_parent");
+    for(int id=0;id<originalCount;++id) assess(id);}
     const auto edgeLength2=[&](const Key& k) {
         const auto delta=vertices[k.first].radial-vertices[k.second].radial;
         return glm::dot(delta,delta);
     };
     int liveCount=originalCount;
+    CpuTrace::Scope splitting("terrain.refinement_split");
     while(!pending.empty()) {
         const int id=pending.top().face;pending.pop();
         if(!triangles[id].alive) continue;
@@ -179,7 +233,7 @@ void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dv
         // along this walk, so it terminates without recursion or a depth cap.
         for(;;) {
             auto next=split;
-            for(int face:edges.at(split).faces) {
+            for(int face:edgeAt(split).faces) {
                 if(face<0) throw std::logic_error("Open terrain refinement edge");
                 const auto adjacent=triangles[face].v;
                 for(int side=0;side<3;++side) {
@@ -191,7 +245,7 @@ void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dv
             if(next==split) break;
             split=next;
         }
-        const auto neighbors=edges.at(split).faces;
+        const auto neighbors=edgeAt(split).faces;
         if(neighbors[0]<0 || neighbors[1]<0) throw std::logic_error("Open terrain refinement edge");
         // Splitting both incident triangles costs exactly two new triangles.
         if(liveCount+2>lod_.max_triangle_budget) {geometry.errorBudgetLimited=true;break;}
@@ -200,7 +254,7 @@ void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dv
             triangles[face].alive=false;
             const auto old=triangles[face].v;
             for(int side=0;side<3;++side) {
-                auto& e=edges.at(key(old[side],old[(side+1)%3]));
+                auto& e=edgeAt(key(old[side],old[(side+1)%3]));
                 for(auto& f:e.faces) if(f==face) f=-1;
             }
         }
@@ -208,8 +262,8 @@ void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dv
         for(int face:neighbors) {
             const auto old=triangles[face].v;
             for(int side=0;side<3;++side) if(key(old[side],old[(side+1)%3])==split) {
-                children[child++]=attach({old[side],middle,old[(side+2)%3]},localOnly?&triangleParents[face]:nullptr);
-                children[child++]=attach({middle,old[(side+1)%3],old[(side+2)%3]},localOnly?&triangleParents[face]:nullptr);
+                children[child++]=attach({old[side],middle,old[(side+2)%3]},localOnly?triangleParents[face]:-1);
+                children[child++]=attach({middle,old[(side+1)%3],old[(side+2)%3]},localOnly?triangleParents[face]:-1);
                 break;
             }
         }
@@ -218,6 +272,8 @@ void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dv
         for(int face:children) assess(face);
         if(split!=requested && triangles[id].alive) pending.push({triangles[id].score,id,triangles[id].priority});
     }
+    splitting.stop();
+    CpuTrace::Scope exporting("terrain.refinement_export");
     geometry.indices.clear();geometry.indices.reserve(3*liveCount);
     geometry.remainingErrorRatio=0;
     for(const auto& t:triangles) if(t.alive) {
@@ -247,6 +303,8 @@ void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dv
         }
     }
     geometry.errorRefinedTriangles=liveCount-originalCount;
+    geometry.refinementParentEdges=parent?parent->edges.size():0;
+    geometry.refinementMutableEdges=edges.size();
     geometry.planningQueries.requests+=queries.stats().requests-initialQueries.requests;
     geometry.planningQueries.evaluations+=queries.stats().evaluations-initialQueries.evaluations;
     geometry.planningQueries.hits+=queries.stats().hits-initialQueries.hits;

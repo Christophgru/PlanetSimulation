@@ -181,3 +181,33 @@ TEST(TerrainDetail, ProbeReuseSurvivesWorkerSnapshotDestructionAndPreservesDeter
     EXPECT_TRUE(moved.parentReused);EXPECT_FALSE(moved.localDetailLimited);
     EXPECT_GT(moved.planningQueries.hits,0u);
 }
+
+TEST(TerrainDetail, CachedAdjacencyRemainsClosedAcrossTurnsAndMatchesFreshParentReplay) {
+    auto lod=detailLod();lod.local_detail_streaming=true;
+    const auto anchor=glm::normalize(glm::dvec3(.7,-.2,1))*1.002;
+    const auto east=glm::normalize(glm::cross(anchor,glm::dvec3(0,0,1)));
+    const auto north=glm::normalize(glm::cross(anchor,east));
+    TerrainSurface moving({microNoise()},lod,1,1000);
+    const auto initial=moving.buildTopologyForEye(anchor,{});
+    EXPECT_EQ(initial.refinementParentEdges*2,3*(initial.triangleCount()-initial.errorRefinedTriangles));
+    for(const auto offset:{glm::dvec2(.15,0),glm::dvec2(.3,.15),glm::dvec2(.15,.3),
+                          glm::dvec2(-.15,.15),glm::dvec2(0,0)}) {
+        const auto eye=anchor+(east*offset.x+north*offset.y)/1000.;
+        const auto t=moving.buildTopologyForEye(eye,{});
+        ASSERT_TRUE(t.parentReused);ASSERT_FALSE(t.localDetailLimited);
+        ASSERT_GT(t.refinementParentEdges,0u);
+        ASSERT_LE(t.refinementMutableEdges,std::size_t(lod.max_triangle_budget)*3/2);
+        std::map<std::pair<unsigned,unsigned>,int> edges;
+        for(std::size_t i=0;i<t.indices.size();i+=3) for(int j=0;j<3;++j)
+            ++edges[std::minmax(t.indices[i+j],t.indices[i+(j+1)%3])];
+        for(const auto& [edge,count]:edges) ASSERT_EQ(count,2);
+        ASSERT_EQ(static_cast<long long>(t.samples.size())-edges.size()+t.triangleCount(),2);
+        TerrainSurface replay({microNoise()},lod,1,1000);
+        (void)replay.buildTopologyForEye(anchor,{});
+        const auto restored=replay.buildTopologyForEye(eye,{});
+        EXPECT_EQ(t.generation,restored.generation);
+        EXPECT_EQ(t.samples,restored.samples);EXPECT_EQ(t.indices,restored.indices);
+        auto corrupt=t;corrupt.morph.front().blend[0]=.371;
+        EXPECT_THROW(corrupt.validate(),std::invalid_argument);
+    }
+}

@@ -1,5 +1,42 @@
 # Page to document progress of AI Agents working on this Project
 
+## Terrain adjacency continuation — 2026-10-16
+
+- Continued the priority p terrain row. Cache one immutable coarse adjacency map
+  and face bounds with the parent; materialize only visited/refined mutable edges.
+  Child faces retain compact parent IDs. Replacement publishes shell/adjacency
+  together after successful builds. Canonicalization avoids an immediate duplicate
+  checksum; public consumers retain full checksum/structure verification.
+- Isolated production benchmark: warm startup 154.6–173.0→99.5–100.9 ms;
+  mountain 195.6–202.2→98.1–102.7 ms. Cold planning remains 1,716 / 1,288 ms.
+  All twelve before/after topology fingerprints and geometry/work counts agree.
+  Mutable edges are 6.7–10.3k versus 75k cached parent edges. This is CPU planning
+  evidence, not sustained FPS or moving coverage acceptance.
+- Full build, all 35 core groups, eight CPU detail cases, all 44 llvmpipe compute
+  cases and the moving replay/CPU/GL 3.3 capture matrix pass. Four images also match
+  the prior committed final stream-reuse captures exactly. Overview inspected:
+  14,779 non-background pixels, bounds (1,1)–(794,598), 3,471 planet pixels.
+- Corrected the pre-existing G4 slicing test's poll counter: include the completing
+  poll and require >4 actual root dispatches, retaining the <=4/poll check and
+  source-lease/cancellation assertions. The original failed on synchronous Mesa
+  completion; all 44 software cases pass after the correction (77.3 s).
+- Native helper now checks geometry targets as well as anchor coverage, records
+  actual detail/edge counts in the private probe, supports explicit --software and
+  optional --trace, and clears stale result summaries before each run. NVIDIA is
+  currently unavailable (`nvidia-smi`: NVML Unknown Error). Software coverage still
+  exits 2: max offsets 22.39/45.38/28.74 m on .5 walk/.5 sprint/1.5 sprint, with
+  5/7, 7/9 and 3/5 outside frames. The 1.5 m core also misses geometry targets.
+  No blocking polls/bulk reads/finishes; logical overlap <75 MB. Do not mark t.
+- Evidence: build-f5/resume/detail-adjacency-{final.csv,core.log,compute-final.log,
+  test-final.log,streaming.log,render.log,captures,movement}; original benchmark
+  fingerprints in detail-before-fingerprints.csv. Report: sinking.md; helper
+  commands in scripts/benchmarks/terrain_detail/README.md. Preserve the user's
+  uncommitted production foliage settings. All later TODO rows remain queued.
+- Next work stays in this same terrain row. A short configured near band can
+  outlive the fixed fine-policy footprint because the current cache rebase has a
+  10 m minimum; add a regression and bound reuse before the moving core is filtered
+  or sunk. Sustained fine-patch coverage and temporal publication still need work.
+
 ## TODO continuation — 2026-10-16 (in progress)
 
 - User requested the p rows first, each tested/documented/committed, followed by

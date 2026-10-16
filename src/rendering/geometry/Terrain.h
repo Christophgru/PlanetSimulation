@@ -72,7 +72,10 @@ public:
 private:
     static double smoothstep(double low, double high, double value);
     void refineShoreline(TerrainTopology& geometry, const glm::dvec3& eyeBody, TerrainQueryCache& queries, int budget) const;
-    void refineSurfaceError(TerrainTopology& geometry, const glm::dvec3& eyeBody, bool localOnly=false, TerrainQueryCache* sharedQueries=nullptr) const;
+    struct RefinementParent;
+    static std::shared_ptr<const RefinementParent> prepareRefinementParent(const TerrainTopology& topology,double scale);
+    void refineSurfaceError(TerrainTopology& geometry, const glm::dvec3& eyeBody, bool localOnly=false,
+        TerrainQueryCache* sharedQueries=nullptr,const RefinementParent* parent=nullptr) const;
     TerrainTopology streamDetail(const glm::dvec3& eyeBody) const;
     struct DetailCache;
     static std::shared_ptr<DetailCache> newDetailCache();

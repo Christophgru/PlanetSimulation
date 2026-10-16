@@ -105,12 +105,15 @@ TEST(GrassCells, PreparationSlicesRootWorkAndSourceLeaseSurvivesClearAndCancella
     auto stage=grass.submitResident(source.vbo,source.ebo,source.terrainStats,p,1000,{.01,0,1.02},source.revision);
     const auto old=grass.stats(0).candidates;std::size_t calls=0,previous=0;
     for(;;) {
+        // Count the completing poll too. Software drivers may signal its fence
+        // immediately; slicing must not depend on an extra asynchronous poll.
+        ASSERT_LT(++calls,1000000u);
         const bool ready=grass.poll(*stage);
         const auto dispatched=stage->stats().rootDispatches;EXPECT_LE(dispatched-previous,4u);previous=dispatched;
         if(ready) break;
-        EXPECT_EQ(grass.stats(0).candidates,old);glFlush();std::this_thread::yield();ASSERT_LT(++calls,1000000u);
+        EXPECT_EQ(grass.stats(0).candidates,old);glFlush();std::this_thread::yield();
     }
-    EXPECT_GT(calls,1u);EXPECT_GT(stage->stats().cellUpdates[4],0u);
+    EXPECT_GT(calls,1u);EXPECT_GT(previous,4u);EXPECT_GT(stage->stats().cellUpdates[4],0u);
     stage.reset();EXPECT_EQ(grass.stats(0).candidates,old); // Cancel without changing live cells.
     stage=grass.submitResident(source.vbo,source.ebo,source.terrainStats,p,1000,{.01,0,1.02},source.revision);
     source.residentTerrain=false;

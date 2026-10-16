@@ -1,4 +1,4 @@
-"""Native detail coverage receipt; exit 2 when the camera leaves a requested core."""
+"""Native detail receipt; exit 2 for an uncovered core or unmet geometry target."""
 import argparse, csv, json, math, os, subprocess, sys
 from pathlib import Path
 root=Path(__file__).resolve().parents[3]
@@ -8,21 +8,30 @@ parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--probe',type=Path,required=True)
 parser.add_argument('--output-dir',type=local_output,required=True)
 parser.add_argument('--device',type=int,default=1)
+parser.add_argument('--software',action='store_true',help='Use llvmpipe for functional coverage only; do not report hardware performance')
+parser.add_argument('--trace',action='store_true',help='Record CPU scopes and publication/GPU phases (profiling run only)')
 args=parser.parse_args()
 sys.path.insert(0,str(root/'tests/app/terrain/native'))
 from NativeSession import Session,validate,write_json
 out=args.output_dir.resolve();out.mkdir(parents=True,exist_ok=True)
-adapter=out/'libnative_egl.so'
-subprocess.run(['c++','-std=c++17','-O2','-shared','-fPIC',str(root/'scripts/benchmarks/grass_allocation/NativeEgl.cpp'),
- '-o',str(adapter),'-lEGL','-lGL','-lGLEW','-ldl'],check=True)
-vendor=out/'nvidia.json'
-write_json(vendor,{'file_format_version':'1.0.0','ICD':{'library_path':'libEGL_nvidia.so.0'}})
-identities=list(csv.DictReader(subprocess.check_output(['nvidia-smi','--query-gpu=index,name,uuid','--format=csv'],text=True).splitlines()))
-device=next({k.strip():v.strip() for k,v in d.items()} for d in identities if int(d['index'])==args.device)
-environment={**os.environ,'LD_PRELOAD':str(adapter),'PLANET_EGL_DEVICE':str(args.device),
- '__EGL_VENDOR_LIBRARY_FILENAMES':str(vendor),'PLANET_NATIVE_BENCHMARK':'1'}
-for name in ('LIBGL_ALWAYS_SOFTWARE','MESA_GL_VERSION_OVERRIDE','MESA_GLSL_VERSION_OVERRIDE'):
- environment.pop(name,None)
+(out/'results.json').unlink(missing_ok=True)
+if args.software:
+ device={'name':'llvmpipe','uuid':None}
+ environment={**os.environ,'LIBGL_ALWAYS_SOFTWARE':'1','PLANET_NATIVE_BENCHMARK':'1'}
+ for name in ('LD_PRELOAD','__EGL_VENDOR_LIBRARY_FILENAMES','MESA_GL_VERSION_OVERRIDE','MESA_GLSL_VERSION_OVERRIDE'):
+  environment.pop(name,None)
+else:
+ adapter=out/'libnative_egl.so'
+ subprocess.run(['c++','-std=c++17','-O2','-shared','-fPIC',str(root/'scripts/benchmarks/grass_allocation/NativeEgl.cpp'),
+  '-o',str(adapter),'-lEGL','-lGL','-lGLEW','-ldl'],check=True)
+ vendor=out/'nvidia.json'
+ write_json(vendor,{'file_format_version':'1.0.0','ICD':{'library_path':'libEGL_nvidia.so.0'}})
+ identities=list(csv.DictReader(subprocess.check_output(['nvidia-smi','--query-gpu=index,name,uuid','--format=csv'],text=True).splitlines()))
+ device=next({k.strip():v.strip() for k,v in d.items()} for d in identities if int(d['index'])==args.device)
+ environment={**os.environ,'LD_PRELOAD':str(adapter),'PLANET_EGL_DEVICE':str(args.device),
+  '__EGL_VENDOR_LIBRARY_FILENAMES':str(vendor),'PLANET_NATIVE_BENCHMARK':'1'}
+ for name in ('LIBGL_ALWAYS_SOFTWARE','MESA_GL_VERSION_OVERRIDE','MESA_GLSL_VERSION_OVERRIDE'):
+  environment.pop(name,None)
 scene=json.loads((root/'tests/scenarios/foliage/surface.json').read_text())
 for p in scene['planets']:
  p['rotation']={'period_seconds':0,'axial_tilt_deg':0}
@@ -44,8 +53,9 @@ for radius,sprint in [(.5,False),(.5,True),(1.5,True)]:
  p['terrain_lod']['local_detail_radius_m']=radius
  folder=out/f'{radius}-{sprint}';folder.mkdir(exist_ok=True)
  replay=folder/'input.json';write_json(replay,{'scenario':scene,'surface_camera':scene['surface_camera']})
- session=Session(args.probe.resolve(),root,folder,
-  ['--replay',str(replay),'--terrain-backend','compute','--terrain-grass-planner','gpu','--uncapped'],
+ flags=['--replay',str(replay),'--terrain-backend','compute','--terrain-grass-planner','gpu','--uncapped']
+ if args.trace:flags+=['--cpu-trace',str(folder/'cpu.json'),'--performance-trace',str(folder/'frames.csv')]
+ session=Session(args.probe.resolve(),root,folder,flags,
   environment=environment)
  try:
   session.focus();subprocess.run(['xdotool','windowsize','--sync',session.window,'320','180'],check=True)
@@ -57,21 +67,25 @@ for radius,sprint in [(.5,False),(.5,True),(1.5,True)]:
   session.up('w')
   if sprint:session.up('Shift_L')
   session.close();audit=validate(session.frames)
-  assert f"EGL device UUID: {device['uuid']}" in session.text()
+  if not args.software:assert f"EGL device UUID: {device['uuid']}" in session.text()
   assert all(f['renderer'].startswith(device['name']) for f in session.frames)
   frames=[f for f in session.frames if ready(f) and start['observed_ns']<=f['observed_ns']<=end['observed_ns']]
-  offsets=[]
+  offsets=[];detail_failures=0
   for f in frames:
    a=f['camera_local'];b=f['benchmark']['bodies'][0]['terrain_plan_eye']
    dot=sum(x*y for x,y in zip(a,b))/math.sqrt(sum(x*x for x in a)*sum(x*x for x in b))
    offsets.append(1000*math.acos(max(-1,min(1,dot))))
-  result={'radius_m':radius,'sprint':sprint,'frames':len(frames),'maximum_anchor_offset_m':max(offsets),
+   d=f['benchmark']['bodies'][0]['detail']
+   detail_failures+=not (d['triangles']>0 and not d['limited'] and
+    0<d['max_edge_m']<=p['terrain_lod']['local_edge_m'] and 0<=d['error_ratio']<=1)
+  result={'renderer':device,'profiled':args.trace,'radius_m':radius,'sprint':sprint,'frames':len(frames),'maximum_anchor_offset_m':max(offsets),
    'outside_core_frames':sum(x>radius for x in offsets),'speed_mps':(end['pose']['walked_m']-start['pose']['walked_m'])/((end['observed_ns']-start['observed_ns'])*1e-9),
+   'unmet_detail_frames':detail_failures,
    'publications':[start['publication']['published'],end['publication']['published']],'audit':audit}
   results.append(result);write_json(out/'results.json',results);print(result,flush=True)
  finally:session.abort()
 
-if any(r['outside_core_frames'] for r in results):
- print('Detail coverage gate failed; see outside_core_frames and maximum_anchor_offset_m.',flush=True)
+if any(r['outside_core_frames'] or r['unmet_detail_frames'] for r in results):
+ print('Detail coverage gate failed; see outside_core_frames, maximum_anchor_offset_m and unmet_detail_frames.',flush=True)
  raise SystemExit(2)
 print('Detail coverage gate passed.',flush=True)
