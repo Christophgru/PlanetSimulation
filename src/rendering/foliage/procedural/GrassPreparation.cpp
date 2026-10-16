@@ -32,6 +32,12 @@ nlohmann::json ProceduralGrass::policy(std::size_t i) const {
 }
 void ProceduralGrass::restorePolicies(const nlohmann::json& replay,const std::vector<config::PlanetConfig>& planets) {
     replayPolicies_.clear();
+    cellIdentity_=true;
+    if(replay.contains("render") && replay.at("render").contains("foliage_policy")) {
+        const auto version=replay.at("render").value("foliage_cell_identity_version",0);
+        if(version<0 || version>1) throw std::invalid_argument("Unsupported grass cell identity replay version");
+        cellIdentity_=version==1;
+    }
     if(!adaptiveBudget_) return; // Historical captures retain their recorded legacy profile.
     if(!replay.contains("render") || !replay.at("render").contains("foliage_policy")) return;
     const auto& policies=replay.at("render").at("foliage_policy");
@@ -70,7 +76,7 @@ std::uint64_t ProceduralGrass::stageBytes(std::uint64_t n,const config::FoliageC
     if(!n || n>std::numeric_limits<std::uint32_t>::max()/9 || !blockBytes)
         throw std::invalid_argument("Invalid grass staging capacity");
     const auto groups=(n+63)/64,budget=std::min<std::uint64_t>(f.max_blades,blockBytes/128);
-    return n*128+160 + 224+groups*96+n*4+n*8+groups*68 + budget*grassComputedCandidateBytes+n*16+grassComputedCommandBytes;
+    return n*128+160 + 224+groups*96+n*4+n*8+groups*68 + budget*grassComputedCandidateBytes+n*16+grassCellBytes(n)+grassComputedCommandBytes;
 }
 std::unique_ptr<ProceduralGrass::Preparation> ProceduralGrass::submitResident(GLuint vertices,GLuint indices,
     const TerrainBuildStats& terrain,const config::PlanetConfig& planet,double metersPerWorldUnit,
@@ -93,6 +99,7 @@ std::unique_ptr<ProceduralGrass::Preparation> ProceduralGrass::submitResident(GL
     result->admittedBytes=otherBytes+bytes;
     patch.stageAdmittedBytes=result->admittedBytes;
     patch.settings=planet.foliage;patch.color={planet.color[0],planet.color[1],planet.color[2]};
+    patch.bodyName=planet.name;patch.cellKeyOffset=cellIdentity_ && terrain.gpuCellKeys?terrain.gpuCorners:0;
     const auto rock=planet.terrain_material.slopeMetricRange();patch.rockRange={rock[0],rock[1]};
     double relief=planet.terrain_landscape.maximumAbsoluteHeightMeters();
     for(const auto& noise:planet.surface_noise) relief+=noise.amplitude_m;
@@ -113,6 +120,7 @@ std::unique_ptr<ProceduralGrass::Preparation> ProceduralGrass::submitResident(GL
         }
     }
     patch.generation=terrain.generation;
+    auto previous=previousCells(patch);result->previousCells_=std::move(previous.first);result->reuseCells_=previous.second;
     patch.workIdentity=GpuWorkProfiler::generation(terrain.generation);
     if(!planet.foliage.enabled) {patch.ready=true;result->ready_=true;return result;}
     if(!metadataCompute_) metadataCompute_=std::make_unique<GrassMetadataCompute>();
@@ -157,12 +165,12 @@ bool ProceduralGrass::poll(Preparation& p) {
             patch.buffer=std::exchange(patch.allocation->references,0);p.summaryConsumed_=true;
             // All fallible resource creation happens before ready/commit.
             GLint vao=0,array=0,active=0,storage=0,program=0;std::array<GLint,3> textures{};
-            std::array<GLint,5> bindings{};std::array<GLint64,5> starts{},sizes{};
+            std::array<GLint,8> bindings{};std::array<GLint64,8> starts{},sizes{};
             glGetIntegerv(GL_VERTEX_ARRAY_BINDING,&vao);glGetIntegerv(GL_ARRAY_BUFFER_BINDING,&array);
             glGetIntegerv(GL_SHADER_STORAGE_BUFFER_BINDING,&storage);
             glGetIntegerv(GL_ACTIVE_TEXTURE,&active);
             glGetIntegerv(GL_CURRENT_PROGRAM,&program);
-            for(int i=0;i<5;++i) {
+            for(int i=0;i<8;++i) {
                 glGetIntegeri_v(GL_SHADER_STORAGE_BUFFER_BINDING,i,&bindings[i]);
                 glGetInteger64i_v(GL_SHADER_STORAGE_BUFFER_START,i,&starts[i]);
                 glGetInteger64i_v(GL_SHADER_STORAGE_BUFFER_SIZE,i,&sizes[i]);
@@ -170,10 +178,10 @@ bool ProceduralGrass::poll(Preparation& p) {
             for(int i=0;i<3;++i) {glActiveTexture(i==2?GL_TEXTURE11:GL_TEXTURE8+i);glGetIntegerv(GL_TEXTURE_BINDING_BUFFER,&textures[i]);}
             struct Restore {
                 GLint vao,array,active,storage,program;std::array<GLint,3> textures;
-                std::array<GLint,5> bindings;std::array<GLint64,5> starts,sizes;
+                std::array<GLint,8> bindings;std::array<GLint64,8> starts,sizes;
                 ~Restore() {
                     for(int i=0;i<3;++i) {glActiveTexture(i==2?GL_TEXTURE11:GL_TEXTURE8+i);glBindTexture(GL_TEXTURE_BUFFER,textures[i]);}
-                    for(int i=0;i<5;++i) {
+                    for(int i=0;i<8;++i) {
                         if(bindings[i] && sizes[i]>0) glBindBufferRange(GL_SHADER_STORAGE_BUFFER,i,bindings[i],starts[i],sizes[i]);
                         else glBindBufferBase(GL_SHADER_STORAGE_BUFFER,i,bindings[i]);
                     }
@@ -188,9 +196,32 @@ bool ProceduralGrass::poll(Preparation& p) {
             if(summary.totals[1] && !compute_) compute_=std::make_unique<Shader>("shaders/foliage/placement.comp");
             if(summary.totals[1] && !animation_) animation_=std::make_unique<Shader>("shaders/foliage/animation.comp");
             allocateComputed(patch,summary.totals[1]);
-            generateRoots(patch);
+            prepareCells(patch,p.previousCells_.get(),p.reuseCells_);
             if(!patch.vertexTexture || !patch.indexTexture || glGetError()!=GL_NO_ERROR)
                 throw std::runtime_error("Grass draw resource allocation failed");
+        }
+        if(!p.resourcesFence_) {
+            // The source remains leased while bounded root-copy/generation
+            // batches run. Published grass continues drawing unchanged.
+            GLint program=0,storage=0,active=0;std::array<GLint,2> textures{};std::array<GLint,8> bindings{};
+            std::array<GLint64,8> starts{},sizes{};
+            glGetIntegerv(GL_CURRENT_PROGRAM,&program);glGetIntegerv(GL_SHADER_STORAGE_BUFFER_BINDING,&storage);
+            glGetIntegerv(GL_ACTIVE_TEXTURE,&active);
+            for(int i=0;i<2;++i) {glActiveTexture(GL_TEXTURE8+i);glGetIntegerv(GL_TEXTURE_BINDING_BUFFER,&textures[i]);}
+            for(int i=0;i<8;++i) {glGetIntegeri_v(GL_SHADER_STORAGE_BUFFER_BINDING,i,&bindings[i]);
+                glGetInteger64i_v(GL_SHADER_STORAGE_BUFFER_START,i,&starts[i]);glGetInteger64i_v(GL_SHADER_STORAGE_BUFFER_SIZE,i,&sizes[i]);}
+            struct Restore {
+                GLint program,storage,active;std::array<GLint,2> textures;std::array<GLint,8> bindings;std::array<GLint64,8> starts,sizes;
+                ~Restore() {for(int i=0;i<8;++i) {
+                    if(bindings[i] && sizes[i]>0) glBindBufferRange(GL_SHADER_STORAGE_BUFFER,i,bindings[i],starts[i],sizes[i]);
+                    else glBindBufferBase(GL_SHADER_STORAGE_BUFFER,i,bindings[i]);}
+                    for(int i=0;i<2;++i) {glActiveTexture(GL_TEXTURE8+i);glBindTexture(GL_TEXTURE_BUFFER,textures[i]);}
+                    glActiveTexture(active);glBindBuffer(GL_SHADER_STORAGE_BUFFER,storage);glUseProgram(program);}
+            } restore{program,storage,active,textures,bindings,starts,sizes};
+            auto& patch=*p.patch_;
+            if(!generateRootsStep(patch,p.previousCells_.get(),p.rootLevel_,p.rootOffset_,4)) return false;
+            if(glGetError()!=GL_NO_ERROR) throw std::runtime_error("Grass root update failed");
+            patch.rootsReady=bool(patch.gpuRoots);patch.animationTime=std::numeric_limits<float>::quiet_NaN();
             p.resourcesFence_=glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE,0);
             if(!p.resourcesFence_) throw std::runtime_error("Grass resource completion fence failed");
         }
@@ -198,6 +229,7 @@ bool ProceduralGrass::poll(Preparation& p) {
         if(status==GL_WAIT_FAILED) throw std::runtime_error("Grass resource completion failed");
         if(status==GL_TIMEOUT_EXPIRED) return false;
         glDeleteSync(p.resourcesFence_);p.resourcesFence_=nullptr;
+        finishCells(patch,p.previousCells_.get());p.previousCells_.reset();
         patch.ready=true;p.ready_=true;return true;
     } catch(...) {p.failed_=true;throw;}
 }

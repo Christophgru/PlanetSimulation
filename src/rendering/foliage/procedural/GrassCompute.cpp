@@ -44,8 +44,9 @@ void ProceduralGrass::allocateComputed(const Patch& patch,std::size_t count) con
         }
         glBindVertexArray(0);
     }
-    if(!patch.gpuRoots) glGenBuffers(1,&patch.gpuRoots);
-    if(!patch.gpuBounds) glGenBuffers(1,&patch.gpuBounds);
+    if(!patch.cells) patch.cells=std::make_shared<GrassCellCache>();
+    if(!patch.gpuRoots) {glGenBuffers(1,&patch.gpuRoots);patch.cells->roots=patch.gpuRoots;}
+    if(!patch.gpuBounds) {glGenBuffers(1,&patch.gpuBounds);patch.cells->bounds=patch.gpuBounds;}
     if(patch.rootCapacity<count) {
         glBindBuffer(GL_ARRAY_BUFFER,patch.gpuRoots);
         glBufferData(GL_ARRAY_BUFFER,count*sizeof(GrassRootRecord),nullptr,GL_STATIC_DRAW);

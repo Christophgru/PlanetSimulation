@@ -90,7 +90,13 @@ assert metadata['animation_cache_bytes']==32*g['render']['foliage_candidates']
 assert metadata['animation_dispatches']>0 and metadata['animation_frame']>0
 assert metadata['root_cache_prepared'] and metadata['root_cache_dispatches']>0
 assert metadata['root_cache_bytes']==64*g['render']['foliage_candidates']+16*g['render']['foliage_patches']
-assert metadata['draw_resource_bytes']==224*g['render']['foliage_candidates']+16*g['render']['foliage_patches']+48
+patches=g['render']['foliage_patches']
+cell_bytes=64*patches+4*(1 << max(0,(2*patches-1).bit_length()))+32 if patches else 0
+assert metadata['cell_cache_bytes']==cell_bytes
+assert metadata['cell_summary_read_bytes']==32
+assert sum(metadata['cell_updates'][4:6])==g['render']['foliage_candidates']
+assert g['render']['foliage_cell_identity_version']==1
+assert metadata['draw_resource_bytes']==224*g['render']['foliage_candidates']+16*patches+cell_bytes+48
 assert 0<metadata['stage_admitted_bytes']<=512*1024*1024
 assert 0<g['render']['terrain_compute']['stage_admitted_bytes']<=512*1024*1024
 assert metadata['allocation_input_bytes']==228+12*metadata['allocation_dispatches']+4*(g['render']['body_mesh_triangles'][0]-1).bit_length()

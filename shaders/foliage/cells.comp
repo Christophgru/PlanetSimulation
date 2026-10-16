@@ -1,0 +1,69 @@
+#version 430 core
+layout(local_size_x=64) in;
+struct Cell {uvec4 key,geometry,span;vec4 metric;};
+layout(std430,binding=0) readonly buffer References {uint triangles[];};
+layout(std430,binding=1) writeonly buffer Cells {Cell cells[];};
+layout(std430,binding=2) buffer Table {uint table[];};
+layout(std430,binding=3) readonly buffer PreviousCells {Cell previous[];};
+layout(std430,binding=4) readonly buffer PreviousTable {uint previousTable[];};
+layout(std430,binding=5) buffer Summary {uint totals[8];};
+layout(std430,binding=6) writeonly buffer Bounds {vec4 bounds[];};
+uniform samplerBuffer uTerrainVertices;
+uniform usamplerBuffer uTerrainIndices;
+uniform int uCellFirst,uFirstPatch,uFirstRoot,uSlots,uOffset,uEnd,uTableSlots,uPreviousSlots;
+uniform bool uCanReuse;
+uniform float uScale,uDensity;
+uint cellHash(uvec3 key) {
+    uint h=key.x^(key.y<<11u)^(key.z>>7u);
+    h^=h>>16u;h*=0x7feb352du;h^=h>>15u;h*=0x846ca68bu;return h^(h>>16u);
+}
+vec3 vectorAt(uint v,int offset) {
+    int i=int(v)*9+offset;
+    return vec3(texelFetch(uTerrainVertices,i).r,texelFetch(uTerrainVertices,i+1).r,texelFetch(uTerrainVertices,i+2).r);
+}
+void main() {
+    uint id=uint(uOffset)+gl_GlobalInvocationID.x;if(id>=uint(uEnd)) return;
+    uint index=uint(uFirstPatch)+id,t=triangles[index];
+    uvec4 key=uvec4(t,0,0,36); // Legacy corner order: 0,1,2.
+    if(uCellFirst>0) for(int j=0;j<4;++j) key[j]=texelFetch(uTerrainIndices,uCellFirst+int(t)*4+j).r;
+    uint vertices[3];vec3 p[3];uvec3 fingerprint=uvec3(2166136261u,0x9e3779b9u,0x85ebca6bu);
+    for(int c=0;c<3;++c) {
+        uint corner=(key.w>>uint(c*2))&3u;
+        vertices[c]=texelFetch(uTerrainIndices,int(t)*3+int(corner)).r;p[c]=vectorAt(vertices[c],0);
+        for(int offset=0;offset<9;offset+=3) {
+            uvec3 bits=floatBitsToUint(vectorAt(vertices[c],offset));
+            for(int component=0;component<3;++component) fingerprint=(fingerprint^bits[component])*16777619u;
+        }
+    }
+    vec3 center=(p[0]+p[1]+p[2])/3.0;
+    float reach=max(max(length(p[0]-center),length(p[1]-center)),length(p[2]-center));
+    float expected=.5*length(cross(p[1]-p[0],p[2]-p[0]))*uScale*uScale*uDensity;
+    Cell cell=Cell(key,uvec4(fingerprint,0),uvec4(uint(uFirstRoot)+id*uint(uSlots),uint(uSlots),0xffffffffu,0),vec4(expected,0,0,0));
+    bool found=false,retained=false;
+    if(uPreviousSlots>0) {
+        uint slot=cellHash(key.xyz)&uint(uPreviousSlots-1);
+        for(int probe=0;probe<uPreviousSlots;++probe) {
+            uint entry=previousTable[slot];if(entry==0u) break;
+            Cell old=previous[entry-1u];
+            if(all(equal(old.key.xyz,key.xyz))) {
+                found=true;retained=uCanReuse && all(equal(old.geometry.xyz,fingerprint));
+                if(retained) cell.span.zw=old.span.xy;
+                break;
+            }
+            slot=(slot+1u)&uint(uPreviousSlots-1);
+        }
+    }
+    cells[index]=cell;bounds[index]=vec4(center,reach);
+    uint copied=retained?min(cell.span.y,cell.span.w):0u;
+    if(retained) atomicAdd(totals[0],1u);
+    else if(found) atomicAdd(totals[2],1u);
+    else atomicAdd(totals[1],1u);
+    atomicAdd(totals[4],copied);atomicAdd(totals[5],cell.span.y-copied);
+    if(found) atomicAdd(totals[7],1u);
+    uint slot=cellHash(key.xyz)&uint(uTableSlots-1);
+    for(int probe=0;probe<uTableSlots;++probe) {
+        if(atomicCompSwap(table[slot],0u,index+1u)==0u) return;
+        slot=(slot+1u)&uint(uTableSlots-1);
+    }
+    atomicAdd(totals[6],1u);
+}

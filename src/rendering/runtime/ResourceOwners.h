@@ -6,7 +6,7 @@ namespace rendering {
 inline std::uint64_t terrainStorageBytes(const std::vector<Mesh>& meshes) {
     std::uint64_t bytes=0;
     for(const auto& mesh:meshes) bytes+=mesh.terrainStats.gpuWorkingBytes ? mesh.terrainStats.gpuWorkingBytes :
-        mesh.vertices.size()*sizeof(float)+mesh.indices.size()*sizeof(unsigned);
+        mesh.vertices.size()*sizeof(float)+mesh.indices.size()*sizeof(unsigned)+mesh.grassCellKeys.size()*sizeof(mesh.grassCellKeys.front());
     return bytes;
 }
 class OwnedShader : public Shader {

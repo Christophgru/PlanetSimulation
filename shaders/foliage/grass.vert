@@ -33,6 +33,7 @@ out vec3 vBlade; // height fraction, normalized lateral offset, detailed shading
 
 uniform samplerBuffer uTerrainVertices;
 uniform usamplerBuffer uTerrainIndices;
+uniform int uCellFirst=0;
 uniform int uGrassSeed=7321;
 uniform float uPlacementDensity;
 vec3 aPatchA,aPatchB,aPatchC,aPatchNormal,aPatchColor;
@@ -65,6 +66,13 @@ bool loadTerrainPatch() {
     ivec3 indices=ivec3(texelFetch(uTerrainIndices,int(aTriangle)*3).r,
         texelFetch(uTerrainIndices,int(aTriangle)*3+1).r,
         texelFetch(uTerrainIndices,int(aTriangle)*3+2).r)*9;
+    uint identity=aTriangle;
+    if(uCellFirst>0) {
+        uvec4 key;
+        for(int i=0;i<4;++i) key[i]=texelFetch(uTerrainIndices,uCellFirst+int(aTriangle)*4+i).r;
+        indices=ivec3(indices[int(key.w&3u)],indices[int((key.w>>2u)&3u)],indices[int((key.w>>4u)&3u)]);
+        identity=key.x^(key.y*0x9e3779b9u)^(key.z*0x85ebca6bu);
+    }
     aPatchA=terrainVector(indices.x);
     aPatchB=terrainVector(indices.y);
     aPatchC=terrainVector(indices.z);
@@ -79,7 +87,7 @@ bool loadTerrainPatch() {
     aPatchColor=(patchColorA+patchColorB+patchColorC)/3.0;
     aExpectedCandidates=.5*length(cross(aPatchB-aPatchA,aPatchC-aPatchA))*
         uMetersPerRadius*uMetersPerRadius*uPlacementDensity;
-    aPatchSeed=aTriangle ^ uint(uGrassSeed);
+    aPatchSeed=identity ^ uint(uGrassSeed);
     return true;
 }
 

@@ -108,6 +108,7 @@ target_sources(planet_rendering PRIVATE src/rendering/foliage/procedural/GrassPr
 target_sources(planet_rendering PRIVATE src/rendering/foliage/procedural/GrassCpuPolicy.cpp)
 target_sources(planet_rendering PRIVATE src/rendering/foliage/procedural/GrassCompute.cpp
     src/rendering/foliage/procedural/GrassRoots.cpp
+    src/rendering/foliage/cells/GrassCells.cpp
     src/rendering/foliage/trails/TrailUpload.cpp)
 target_sources(planet_rendering PRIVATE src/rendering/character/AstronautRenderer.cpp
     src/rendering/character/assets/SkinnedSuit.cpp

@@ -76,13 +76,12 @@ void ProceduralGrass::updateDraws(Patch& patch,double scale,double nearDistance,
         first+=count;
     }
 }
-ProceduralGrass::~ProceduralGrass() { clear(); if (compute_) glDeleteProgram(compute_->id); if(animation_) glDeleteProgram(animation_->id); glDeleteProgram(shader.id); }
+ProceduralGrass::~ProceduralGrass() { clear(); if (compute_) glDeleteProgram(compute_->id); if(animation_) glDeleteProgram(animation_->id); if(cells_) glDeleteProgram(cells_->id); glDeleteProgram(shader.id); }
 ProceduralGrass::Patch::~Patch() {
     for (auto& batch:batches) glDeleteVertexArrays(1,&batch.vao);
     glDeleteBuffers(1,&buffer);
     glDeleteTextures(1,&vertexTexture);glDeleteTextures(1,&indexTexture);
     glDeleteBuffers(1,&gpuBlades);glDeleteBuffers(1,&commands);
-    glDeleteBuffers(1,&gpuRoots);glDeleteBuffers(1,&gpuBounds);
     glDeleteBuffers(1,&gpuAnimation);glDeleteTextures(1,&animationTexture);
     glDeleteVertexArrays(gpuVaos.size(),gpuVaos.data());
 }
@@ -96,6 +95,7 @@ void ProceduralGrass::clear() {
 void ProceduralGrass::swapState(ProceduralGrass& other) noexcept {
     patches_.swap(other.patches_);trails_.swap(other.trails_);replayPlanEyes_.swap(other.replayPlanEyes_);
     compute_.swap(other.compute_);animation_.swap(other.animation_);metadataCompute_.swap(other.metadataCompute_);
+    cells_.swap(other.cells_);std::swap(cellIdentity_,other.cellIdentity_);
     allocationCompute_.swap(other.allocationCompute_);
     std::swap(adaptiveBudget_,other.adaptiveBudget_);std::swap(budget_,other.budget_);replayPolicies_.swap(other.replayPolicies_);
     std::swap(terrainBudgetBytes_,other.terrainBudgetBytes_);std::swap(externalBudgetBytes_,other.externalBudgetBytes_);
@@ -113,6 +113,7 @@ GrassPreparationStats ProceduralGrass::prepare(std::size_t index,const Mesh& mes
         const auto saved=replayPlanEyes_.find(index);
         const auto rock=planet.terrain_material.slopeMetricRange();
         if(planet.foliage.enabled && patch.ready && patch.settings==planet.foliage && patch.revision==mesh.revision &&
+           patch.cellKeyOffset==(cellIdentity_?mesh.cellKeyOffset:0) &&
            patch.rockRange==glm::vec2(rock[0],rock[1]) &&
            patch.metadata && patch.metadata->geometry->matches(mesh.vbo,mesh.ebo,mesh.terrainStats,
                grassMetadataParameters(planet,metersPerWorldUnit,patch.eye,mesh.indexCount/3,patch.falloff)) &&
@@ -128,11 +129,15 @@ GrassPreparationStats ProceduralGrass::prepare(std::size_t index,const Mesh& mes
         if(saved!=replayPlanEyes_.end()) replayPlanEyes_.erase(saved);
         return {std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count(),0,0,1,input};
     }
+    if(patch.cells && patch.cells.use_count()>1)
+        throw std::logic_error("CPU grass source is leased by a pending delta preparation");
     patch.computeUsed=false;patch.generation={};
     const auto oldSettings=patch.settings;const auto oldColor=patch.color,oldLevels=patch.landscapeLevels;
+    const auto oldCellOffset=patch.cellKeyOffset;
     const auto oldRock=patch.rockRange;const auto oldScale=patch.scale;
     const auto oldWater=patch.water,oldLandscape=patch.landscape;
     patch.settings=planet.foliage; patch.color={planet.color[0],planet.color[1],planet.color[2]};
+    patch.bodyName=planet.name;patch.cellKeyOffset=cellIdentity_?mesh.cellKeyOffset:0;
     const auto rockRange=planet.terrain_material.slopeMetricRange();
     patch.rockRange={rockRange[0],rockRange[1]};
     double relief=planet.terrain_landscape.maximumAbsoluteHeightMeters();
@@ -144,17 +149,17 @@ GrassPreparationStats ProceduralGrass::prepare(std::size_t index,const Mesh& mes
     // Without adaptive density, quad distance only selects the output queue.
     // It does not change candidate selection or any cached root property.
     if(!patch.falloff.enabled) placementSettings.quad_distance_m=oldSettings.quad_distance_m;
-    const bool changed=oldSettings!=placementSettings || oldColor!=patch.color || oldLevels!=patch.landscapeLevels ||
+    const bool changed=oldSettings!=placementSettings || oldCellOffset!=patch.cellKeyOffset || oldColor!=patch.color || oldLevels!=patch.landscapeLevels ||
         oldRock!=patch.rockRange || oldScale!=patch.scale || oldWater!=patch.water || oldLandscape!=patch.landscape;
     if(changed) patch.rootsReady=false;
     if(!GLEW_VERSION_4_3 || !planet.foliage.compute_placement || !planet.foliage.enabled) {
-        glDeleteBuffers(1,&patch.gpuRoots);glDeleteBuffers(1,&patch.gpuBounds);
+        patch.cells.reset();
         patch.gpuRoots=patch.gpuBounds=0;patch.rootCapacity=patch.boundsCapacity=0;patch.rootsReady=false;
         glDeleteBuffers(1,&patch.gpuAnimation);glDeleteTextures(1,&patch.animationTexture);
         patch.gpuAnimation=patch.animationTexture=0;patch.animationCapacity=0;patch.animationFrame=0;
     }
     if (!planet.foliage.enabled || !mesh.hasVertexColors) {
-        patch.falloff={};patch.stageAdmittedBytes=patch.gpuCapacity*128+patch.rootCapacity*64+patch.boundsCapacity*16+patch.animationCapacity*sizeof(GrassAnimationRecord)+(patch.commands?grassComputedCommandBytes:0);
+        patch.falloff={};patch.stageAdmittedBytes=patch.gpuCapacity*128+patch.rootCapacity*64+patch.boundsCapacity*16+grassCellBytes(patch.cells?patch.cells->count:0)+patch.animationCapacity*sizeof(GrassAnimationRecord)+(patch.commands?grassComputedCommandBytes:0);
         for (auto& batch:patch.batches) batch.count=0;
         patch.patches=0; patch.distanceMeters=0; patch.density=0;patch.allocationBudget=0; patch.ready=false; patch.computeUsed=false; patch.draws.clear(); patch.metadata.reset(); patch.allocation.reset(); glDeleteBuffers(1,&patch.buffer);patch.buffer=0; return {};
     }
@@ -206,7 +211,7 @@ GrassPreparationStats ProceduralGrass::prepare(std::size_t index,const Mesh& mes
             plan.falloff.capacity,plan.falloff.density,plan.falloff.protectedMeters);
     if(policy.enabled && patch.gpuCapacity>policy.capacity) {
         glDeleteBuffers(1,&patch.gpuBlades);patch.gpuBlades=0;patch.gpuCapacity=0;
-        glDeleteBuffers(1,&patch.gpuRoots);patch.gpuRoots=0;patch.rootCapacity=0;patch.rootsReady=false;
+        patch.cells.reset();patch.gpuRoots=patch.gpuBounds=0;patch.rootCapacity=patch.boundsCapacity=0;patch.rootsReady=false;
         glDeleteBuffers(1,&patch.gpuAnimation);glDeleteTextures(1,&patch.animationTexture);
         patch.gpuAnimation=patch.animationTexture=0;patch.animationCapacity=0;patch.animationFrame=0;
     }
@@ -214,7 +219,7 @@ GrassPreparationStats ProceduralGrass::prepare(std::size_t index,const Mesh& mes
     patch.policyRevision=budget_.revision();
     const bool cached=GLEW_VERSION_4_3 && planet.foliage.compute_placement;
     patch.stageAdmittedBytes=policy.enabled?(cached?grassComputedCandidateBytes:128)*policy.capacity+
-        mesh.indices.size()/3*(cached?20:4)+grassComputedCommandBytes:0;
+        mesh.indices.size()/3*(cached?20:4)+(cached?grassCellBytes(mesh.indices.size()/3):0)+grassComputedCommandBytes:0;
     const auto uploaded=std::chrono::steady_clock::now();
     patch.metadata=std::move(metadata);
     patch.eye=planningEye; patch.revision=mesh.revision; patch.ready=true;
@@ -241,7 +246,9 @@ ProceduralGrassStats ProceduralGrass::patchStats(const Patch& patch) {
     result.rootDispatches=patch.rootDispatches;result.rootsPrepared=patch.rootsReady;
     result.animationBytes=patch.animationCapacity*sizeof(GrassAnimationRecord);
     result.animationFrame=patch.animationFrame;result.animationDispatches=patch.animationDispatches;
-    result.gpuBytes=patch.gpuCapacity*128+result.rootBytes+result.animationBytes+(patch.commands ? grassComputedCommandBytes : 0);
+    result.cellBytes=grassCellBytes(patch.cells?patch.cells->count:0);result.cellSummaryReadBytes=patch.cellSummaryReadBytes;
+    if(patch.cells) result.cellUpdates=patch.cells->totals;
+    result.gpuBytes=patch.gpuCapacity*128+result.rootBytes+result.animationBytes+result.cellBytes+(patch.commands ? grassComputedCommandBytes : 0);
     result.drawResourceBytes=result.gpuBytes;result.stageAdmittedBytes=patch.stageAdmittedBytes;
     if (patch.metadata) {
         result.metadataBytes=patch.metadata->workingBytes;
@@ -288,6 +295,7 @@ void ProceduralGrass::draw(std::size_t index,const GrassPass* pass) const {
     bindTrail(index,patch.scale);
     shader.setFloat("uQuadDistance",patch.settings.quadDistanceMeters());
     shader.setInt("uBladeAnimation",11);
+    shader.setInt("uCellFirst",patch.cellKeyOffset);
     patch.computeUsed=pass && patch.settings.compute_placement && GLEW_VERSION_4_3;
     if (patch.computeUsed) {
         drawComputed(index,patch,*pass);

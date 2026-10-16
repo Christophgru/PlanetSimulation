@@ -51,7 +51,7 @@ TEST(GpuPreparation, ChainsGrassBeforeTerrainPollingAndPreallocatesDrawResources
     EXPECT_THROW(grass.commit(0,*foliage,mesh),std::invalid_argument);EXPECT_EQ(grass.stats(0).candidates,0u);
     ASSERT_TRUE(finishByPolling(terrain,grass,*foliage));const auto prepared=foliage->stats();
     EXPECT_GT(prepared.candidates,0u);EXPECT_LE(prepared.candidates,512u);
-    EXPECT_TRUE(prepared.drawResourcesPrepared);EXPECT_EQ(prepared.drawResourceBytes,prepared.candidates*grassComputedCandidateBytes+prepared.patches*16+grassComputedCommandBytes);
+    EXPECT_TRUE(prepared.drawResourcesPrepared);EXPECT_EQ(prepared.drawResourceBytes,prepared.candidates*grassComputedCandidateBytes+prepared.patches*16+grassCellBytes(prepared.patches)+grassComputedCommandBytes);
     EXPECT_TRUE(prepared.rootsPrepared);EXPECT_GT(prepared.rootDispatches,0u);
     EXPECT_EQ(prepared.rootBytes,prepared.candidates*64+prepared.patches*16);
     EXPECT_EQ(prepared.animationBytes,prepared.candidates*32);

@@ -19,7 +19,7 @@ std::uint64_t ProceduralGrass::ownedBytes() const {
         // direct instancing does not allocate them. This also bounds a later
         // compute-placement draw without another admission decision.
         bytes+=patch->stageAdmittedBytes ? patch->stageAdmittedBytes :
-            patch->gpuCapacity*128+patch->rootCapacity*64+patch->boundsCapacity*16+patch->animationCapacity*sizeof(GrassAnimationRecord)+patch->patches*4+(patch->commands?grassComputedCommandBytes:0);
+            patch->gpuCapacity*128+patch->rootCapacity*64+patch->boundsCapacity*16+grassCellBytes(patch->cells?patch->cells->count:0)+patch->animationCapacity*sizeof(GrassAnimationRecord)+patch->patches*4+(patch->commands?grassComputedCommandBytes:0);
     }
     return bytes;
 }
@@ -31,7 +31,7 @@ GrassFalloff ProceduralGrass::cpuPolicy(const config::PlanetConfig& planet,std::
         std::min(defaultStageBytes,totalLimit-std::min(totalLimit,reserved)));
     const bool cached=GLEW_VERSION_4_3 && planet.foliage.compute_placement;
     const auto candidateBytes=cached?grassComputedCandidateBytes:128;
-    const auto fixed=triangles*(cached?20:4)+grassComputedCommandBytes;
+    const auto fixed=triangles*(cached?20:4)+(cached?grassCellBytes(triangles):0)+grassComputedCommandBytes;
     if(available<fixed+candidateBytes) throw std::runtime_error("Insufficient CPU foliage staging budget");
     std::uint64_t blockBytes=defaultStageBytes;
     if(GLEW_VERSION_4_3 && planet.foliage.compute_placement) {

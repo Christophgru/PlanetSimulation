@@ -134,7 +134,7 @@ void Renderer::Impl::reloadScene() {
                     observeMemory(MemoryPhase::ReloadPreparing,false,nullptr,legacy.get(),attempt,epoch);
                     legacy->grass.procedural.observeBudget(grass.procedural.budgetSignals());
                     legacy->grass.procedural.terrainBudgetBytes(legacy->meshes.terrainBytes());
-                    const auto bytes=[](const TerrainGeometry& g) {return g.vertices.size()*sizeof(float)+g.indices.size()*sizeof(unsigned);};
+                    const auto bytes=[](const TerrainGeometry& g) {return g.vertices.size()*sizeof(float)+g.indices.size()*sizeof(unsigned)+g.grassCellKeys.size()*sizeof(g.grassCellKeys.front());};
                     legacy->grass.procedural.admitCpuTerrain(bytes(built.geometry)+(built.water?bytes(*built.water):0));
                     legacy->meshes.planetMeshes[i].loadTerrain(std::move(built.geometry));
                     if(built.water) legacy->meshes.waterMeshes[i].loadTerrain(std::move(*built.water));

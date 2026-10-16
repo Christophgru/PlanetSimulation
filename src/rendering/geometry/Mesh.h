@@ -16,6 +16,8 @@ public:
     GLuint ebo = 0;
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
+    std::vector<std::array<std::uint32_t,4>> grassCellKeys;
+    std::size_t cellKeyOffset=0;
     bool hasVertexColors = false;
     bool residentTerrain = false;
     std::size_t indexCount = 0;

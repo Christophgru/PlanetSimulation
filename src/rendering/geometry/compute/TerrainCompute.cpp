@@ -88,7 +88,7 @@ std::unique_ptr<TerrainComputeBuffers> TerrainCompute::generate(const PlanetFiel
     const std::uint64_t samples=topology.samples.size(),corners=topology.indices.size();
     if(!samples || !corners || corners>std::numeric_limits<GLsizei>::max()/9)
         throw std::runtime_error("Terrain generation exceeds addressable output");
-    const std::array<std::uint64_t,8> bytes{704,samples*32,samples*36,corners*4,corners*36,corners*4,
+    const std::array<std::uint64_t,8> bytes{704,samples*32,samples*36,corners*4,corners*36,corners*4+(corners/3)*16,
         diagnostics?samples*8:8,sizeof(TerrainSurfacePolicy)};
     for(auto size:bytes) if(size>limits_.blockBytes || size>std::numeric_limits<GLsizeiptr>::max())
         throw std::runtime_error("Terrain generation exceeds SSBO block limit; use CPU backend");
@@ -118,8 +118,8 @@ std::unique_ptr<TerrainComputeBuffers> TerrainCompute::generate(const PlanetFiel
     auto result=std::make_unique<TerrainComputeBuffers>();
     result->stats=static_cast<const TerrainBuildStats&>(topology);
     result->stats.generation.backend=TerrainBackend::Compute;
-    result->stats.evaluationQueries={};result->stats.gpuCorners=corners;result->diagnostics=diagnostics;
-    result->stats.gpuInputBytes=samples*32+corners*4+16+sizeof(TerrainSurfacePolicy); // source descriptors + double rock range
+    result->stats.evaluationQueries={};result->stats.gpuCorners=corners;result->stats.gpuCellKeys=corners/3;result->diagnostics=diagnostics;
+    result->stats.gpuInputBytes=samples*32+corners*4+20+sizeof(TerrainSurfacePolicy); // source descriptors + rock range/corner count
     result->stats.gpuWorkingBytes=0;for(auto b:bytes) result->stats.gpuWorkingBytes+=b;
     if(!fields_.contains(field.fingerprint())) {
         // Tiny immutable packs, bounded even when repeatedly reloading fields.
@@ -143,6 +143,7 @@ std::unique_ptr<TerrainComputeBuffers> TerrainCompute::generate(const PlanetFiel
     if(glGetError()!=GL_NO_ERROR) throw std::runtime_error("Terrain GPU buffer allocation failed");
     for(int i=0;i<8;++i) glBindBufferBase(GL_SHADER_STORAGE_BUFFER,i,buffers[i]);
     shader_->use();
+    shader_->setInt("uCorners",corners);
     const auto& m=field.parameters().material;
     const double radians=std::acos(-1.0)/180.0;
     glUniform2d(glGetUniformLocation(shader_->id,"uRockRange"),1-std::cos(m[0]*radians),1-std::cos(m[1]*radians));

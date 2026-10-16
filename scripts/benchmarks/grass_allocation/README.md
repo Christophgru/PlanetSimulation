@@ -50,3 +50,14 @@ This benchmark requires NVIDIA EGL, GLFW/X11, Xvfb, xdotool, a C++ compiler and
 nvidia-smi. GPU utilization telemetry includes other processes; retain and
 report contention. Raw output is optional local evidence and is never needed
 for normal builds/tests. See the [measured study](../../../docs/journal/benchmarks/grass-allocation/study.md).
+
+For G4, preserve G3 and add `grass_cells` to the G3 stage list. The reporter
+checks published update counters and records retained/entering/dirty/departing
+cells and copied/generated roots. It sums all root events belonging to a complete
+plan, and separately sums active-frame submission costs. Use these totals when
+comparing G3's one-event preparations with G4's sliced work; per-event means alone
+do not compare equivalent work. Plans crossing the measured window boundary are
+excluded from complete-plan totals, while all measured frame costs remain.
+The new default canonical blade layout differs from G3; historical full-policy
+replay explicitly retains legacy identity. See the
+[delta-cell study](../../../docs/journal/benchmarks/grass-cells/study.md).

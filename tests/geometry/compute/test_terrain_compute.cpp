@@ -37,6 +37,12 @@ void parity(const TerrainSurface& surface,const TerrainTopology& t,TerrainComput
     gpu->waitForCapture();ASSERT_TRUE(gpu->poll());
     const auto finished=std::chrono::steady_clock::now();
     const auto values=gpu->readVertices();const auto heights=gpu->readHeights();
+    // GPU-generated planet-fixed cell identities match the independent CPU
+    // topology oracle, including negative directions and cyclic corner order.
+    std::vector<std::array<std::uint32_t,4>> keys(t.triangleCount());
+    glBindBuffer(GL_COPY_READ_BUFFER,gpu->ebo);
+    glGetBufferSubData(GL_COPY_READ_BUFFER,t.indices.size()*4,keys.size()*16,keys.data());
+    glBindBuffer(GL_COPY_READ_BUFFER,0);EXPECT_EQ(keys,cpu.grassCellKeys);
     const auto read=std::chrono::steady_clock::now();
     ASSERT_EQ(values.size(),cpu.vertices.size());ASSERT_EQ(heights.size(),t.samples.size());
     for(float value:values) ASSERT_TRUE(std::isfinite(value));
@@ -173,7 +179,7 @@ TEST(TerrainCompute, ProductionFieldMatchesCpuAndReducesTheCountedInputPayload) 
     EXPECT_EQ(topology.triangleCount(),100000);TerrainCompute compute;parity(s,topology,compute,true);
     auto gpu=compute.generate(s.field(),topology);gpu->waitForCapture();
     EXPECT_LT(gpu->stats.gpuInputBytes,topology.triangleCount()*120*.25);
-    EXPECT_EQ(gpu->stats.gpuInputBytes,topology.topologyInputBytes+16+16*gpu->stats.gpuDispatches+(topology.surfacePolicy.enabled()?0:sizeof(TerrainSurfacePolicy)));
+    EXPECT_EQ(gpu->stats.gpuInputBytes,topology.topologyInputBytes+20+16*gpu->stats.gpuDispatches+(topology.surfacePolicy.enabled()?0:sizeof(TerrainSurfacePolicy)));
 }
 // F5 canonical receipt: topology is built once outside both timed intervals.
 // Numerical/geometry parity is independently checked by the production test

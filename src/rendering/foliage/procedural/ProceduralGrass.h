@@ -6,6 +6,7 @@
 #include "rendering/foliage/procedural/GrassPlan.h"
 #include "config/FoliageConfig.h"
 #include "rendering/foliage/planning/GrassBudget.h"
+#include "rendering/foliage/cells/GrassCellCache.h"
 #include <memory>
 #include <map>
 #include <optional>
@@ -50,6 +51,8 @@ struct ProceduralGrassStats {
     bool rootsPrepared=false;
     std::uint64_t animationBytes=0,animationDispatches=0;
     std::uint32_t animationFrame=0;
+    std::uint64_t cellBytes=0,cellSummaryReadBytes=0;
+    std::array<std::uint32_t,8> cellUpdates{};
 };
 class ProceduralGrass {
 public:
@@ -70,6 +73,10 @@ private:
         std::unique_ptr<GrassAllocationBuffers> allocation;
         mutable GLuint gpuBlades=0, commands=0;
         mutable GLuint gpuRoots=0,gpuBounds=0;
+        mutable std::shared_ptr<GrassCellCache> cells;
+        std::string bodyName;
+        std::size_t cellKeyOffset=0;
+        mutable std::uint64_t cellSummaryReadBytes=0;
         mutable std::size_t rootCapacity=0,boundsCapacity=0;
         mutable bool rootsReady=false;
         mutable std::uint64_t rootDispatches=0;
@@ -117,6 +124,8 @@ private:
     void bindTrail(std::size_t index,double scale) const;
     mutable std::unique_ptr<Shader> compute_;
     mutable std::unique_ptr<Shader> animation_;
+    mutable std::unique_ptr<Shader> cells_;
+    bool cellIdentity_=true;
     std::unique_ptr<GrassMetadataCompute> metadataCompute_;
     std::unique_ptr<GrassAllocationCompute> allocationCompute_;
     void upload(Patch& patch,const GrassPlan& plan);
@@ -128,9 +137,15 @@ private:
     void bindComputedInputs(const Patch& patch) const;
     std::uint64_t dispatchCandidates(const Patch& patch,int maxGroups) const;
     void generateRoots(const Patch& patch) const;
+    void prepareCells(const Patch& patch,const GrassCellCache* previous,bool reuse) const;
+    bool generateRootsStep(const Patch& patch,const GrassCellCache* previous,
+        std::size_t& level,std::size_t& offset,unsigned dispatchLimit) const;
+    void finishCells(const Patch& patch,const GrassCellCache* previous) const;
+    std::pair<std::shared_ptr<GrassCellCache>,bool> previousCells(const Patch& patch) const;
     static ProceduralGrassStats patchStats(const Patch& patch);
     GrassFalloff cpuPolicy(const config::PlanetConfig& planet,std::size_t triangles) const;
 public:
+    bool cellIdentity() const {return cellIdentity_;}
     void enableAdaptiveBudget(bool enabled=true) {adaptiveBudget_=enabled;}
     bool adaptiveBudget() const {return adaptiveBudget_;}
     const GrassBudgetSignals& budgetSignals() const {return budget_.signals();}
@@ -158,6 +173,9 @@ public:
         GLuint vertices_=0,indices_=0;
         GLsync resourcesFence_=nullptr;
         bool summaryConsumed_=false,ready_=false,failed_=false;
+        std::shared_ptr<GrassCellCache> previousCells_;
+        bool reuseCells_=false;
+        std::size_t rootLevel_=0,rootOffset_=0;
     public:
         ~Preparation();
         Preparation();
@@ -204,6 +222,7 @@ public:
     std::array<std::size_t,2> computedCounts(std::size_t index) const;
     // Explicit validation only; never read by the interactive render path.
     std::vector<GrassRootRecord> cachedRootsForValidation(std::size_t index) const;
+    std::vector<GrassCellRecord> cachedCellsForValidation(std::size_t index) const;
     std::vector<GrassAnimationRecord> cachedAnimationForValidation(std::size_t index) const;
     // Cache-miss counter is enabled only during transform-feedback validation.
     std::uint32_t animationUpdatesForValidation(std::size_t index) const;

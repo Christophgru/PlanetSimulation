@@ -350,6 +350,7 @@ int Renderer::Impl::capture() {
                 {"foliage_gpu_vertices", drawnGrass[0]*14+drawnGrass[1]*4},
                 {"foliage_gpu_triangles", drawnGrass[0]*12+drawnGrass[1]*2},
                 {"foliage_gpu_working_bytes", grass.procedural.stats(scene.orbitPlanetIndex).gpuBytes},
+                {"foliage_cell_identity_version", grass.procedural.cellIdentity()?1:0},
                 {"foliage_gpu_metadata", {
                     {"version", 1}, {"allocator", options.terrainGrassPlanner},
                     {"resident_bytes", grass.procedural.stats(scene.orbitPlanetIndex).metadataBytes},
@@ -368,6 +369,9 @@ int Renderer::Impl::capture() {
                     {"animation_cache_bytes", grass.procedural.stats(scene.orbitPlanetIndex).animationBytes},
                     {"animation_dispatches", grass.procedural.stats(scene.orbitPlanetIndex).animationDispatches},
                     {"animation_frame", grass.procedural.stats(scene.orbitPlanetIndex).animationFrame},
+                    {"cell_cache_bytes", grass.procedural.stats(scene.orbitPlanetIndex).cellBytes},
+                    {"cell_summary_read_bytes", grass.procedural.stats(scene.orbitPlanetIndex).cellSummaryReadBytes},
+                    {"cell_updates", grass.procedural.stats(scene.orbitPlanetIndex).cellUpdates},
                     {"stage_admitted_bytes", grass.procedural.stats(scene.orbitPlanetIndex).stageAdmittedBytes},
                     {"effective_candidate_budget", grass.procedural.stats(scene.orbitPlanetIndex).allocationBudget},
                     {"placement_density_per_m2", grass.procedural.stats(scene.orbitPlanetIndex).density}}},

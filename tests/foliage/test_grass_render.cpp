@@ -624,7 +624,7 @@ TEST(ProceduralGrassRender, CpuAdmissionChargesLiveTerrainAndReplacementBeforeLo
     probe.grass.prepare(0,probe.mesh,probe.planet,100,{0,0,1.02});
     EXPECT_EQ(probe.grass.reservedBytes(),3072+probe.grass.ownedBytes());
     const bool cached=GLEW_VERSION_4_3 && probe.planet.foliage.compute_placement;
-    EXPECT_EQ(probe.grass.ownedBytes(),4096*(cached?224:128)+2*(cached?20:4)+rendering::grassComputedCommandBytes);
+    EXPECT_EQ(probe.grass.ownedBytes(),4096*(cached?224:128)+2*(cached?20:4)+(cached?rendering::grassCellBytes(2):0)+rendering::grassComputedCommandBytes);
     const auto before=probe.grass.policy(0);
     auto saved=before;saved["body"]=probe.planet.name;
     probe.grass.restorePolicies({{"render",{{"foliage_policy",nlohmann::json::array({saved})}}}}, {probe.planet});

@@ -15,8 +15,49 @@ layout(std430,binding=6) writeonly buffer Heights { double heights[]; };
 layout(std430,binding=7) readonly buffer SurfacePolicy {
     dvec4 policyEyeEdge,policyDistances; double policySpacing[8];
 };
-uniform int uFirst,uCount,uPhase,uDiagnostics;
+uniform int uFirst,uCount,uPhase,uDiagnostics,uCorners;
 uniform dvec2 uRockRange;
+
+// CellIdentity.h oracle: quantized angular footprint and canonical permutation.
+bool cellLess(dvec3 a,dvec3 b) {
+    return a.x!=b.x?a.x<b.x:a.y!=b.y?a.y<b.y:a.z<b.z;
+}
+double cellRound(double x) {
+    // Explicit nearest-even quantization in double precision; positive uint
+    // conversion truncates, with a separate carry for the low word.
+    bool negative=x<0.0lf;double a=negative?-x:x;
+    uint high=uint(a/4294967296.0lf);
+    precise double remainder=a-double(high)*4294967296.0lf;
+    uint low=uint(remainder);precise double fraction=remainder-double(low);
+    if(fraction>0.5lf || (fraction==0.5lf && (low&1u)!=0u)) {
+        ++low;if(low==0u) ++high;
+    }
+    double rounded=double(high)*4294967296.0lf+double(low);
+    return negative?-rounded:rounded;
+}
+dvec3 cellQuantize(dvec3 p) {
+    p*=1099511627776.0lf;
+    return dvec3(cellRound(p.x),cellRound(p.y),cellRound(p.z));
+}
+uvec3 cellHashDouble(uvec3 key,double x) {
+    uvec2 bits=x==0.0lf?uvec2(0):unpackDouble2x32(x);
+    key=(key^bits.x)*16777619u;return (key^bits.y)*16777619u;
+}
+uvec3 cellHashVector(uvec3 key,dvec3 p) {
+    key=cellHashDouble(key,p.x);key=cellHashDouble(key,p.y);return cellHashDouble(key,p.z);
+}
+uvec4 cellIdentity(dvec3 a,dvec3 b,dvec3 c) {
+    // Keep this unrolled: dynamically indexing local double arrays lost low
+    // angular bits on the tested NVIDIA driver. The CPU oracle checks all bits.
+    dvec3 p0=cellQuantize(a),p1=cellQuantize(b),p2=cellQuantize(c);
+    uvec3 order=uvec3(0,1,2);
+    if(cellLess(p1,p0)) {dvec3 t=p0;p0=p1;p1=t;uint i=order.x;order.x=order.y;order.y=i;}
+    if(cellLess(p2,p1)) {dvec3 t=p1;p1=p2;p2=t;uint i=order.y;order.y=order.z;order.z=i;}
+    if(cellLess(p1,p0)) {dvec3 t=p0;p0=p1;p1=t;uint i=order.x;order.x=order.y;order.y=i;}
+    uvec3 key=uvec3(2166136261u,0x9e3779b9u,0x85ebca6bu);
+    key=cellHashVector(key,p0);key=cellHashVector(key,p1);key=cellHashVector(key,p2);
+    return uvec4(key,order.x|(order.y<<2u)|(order.z<<4u));
+}
 
 dvec3 normalized(dvec3 p) { precise dvec3 r=p/sqrt(dot(p,p));return r; }
 double fieldSmooth(double lo,double hi,double x) {
@@ -137,7 +178,13 @@ void main() {
     if(uPhase==1) {
         uint source=9u*corners[i];
         for(uint j=0u;j<9u;++j) vertices[9u*i+j]=uniqueValues[source+j];
-        indices[i]=i;return;
+        indices[i]=i;
+        if(i%3u==0u) {
+            uvec4 key=cellIdentity(inputs[corners[i]].xyz,inputs[corners[i+1u]].xyz,inputs[corners[i+2u]].xyz);
+            uint offset=uint(uCorners)+(i/3u)*4u;
+            for(uint j=0u;j<4u;++j) indices[offset+j]=key[j];
+        }
+        return;
     }
     dvec3 radial=inputs[i].xyz;
     dvec2 sampled=heightAt(radial);double h=sampled.x,hm=h*scale.y;

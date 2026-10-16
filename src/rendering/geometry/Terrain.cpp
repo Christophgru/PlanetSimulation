@@ -1,4 +1,5 @@
 #include "rendering/geometry/Terrain.h"
+#include "rendering/foliage/cells/CellIdentity.h"
 #include "rendering/diagnostics/tracing/CpuTrace.h"
 #include <algorithm>
 #include <cmath>
@@ -240,6 +241,12 @@ TerrainGeometry TerrainSurface::evaluateTopology(const TerrainTopology& topology
         const auto& v=values[index];geometry.vertices.insert(geometry.vertices.end(),v.begin(),v.end());
         geometry.indices.push_back(static_cast<unsigned>(geometry.indices.size()));
         geometry.lodSinkMeters.push_back(static_cast<float>(topology.samples[index].sinkMeters));
+    }
+    geometry.grassCellKeys.reserve(topology.triangleCount());
+    for(std::size_t i=0;i<topology.indices.size();i+=3) {
+        std::array<std::array<double,3>,3> corners;
+        for(int c=0;c<3;++c) corners[c]=topology.samples[topology.indices[i+c]].radial;
+        geometry.grassCellKeys.push_back(grassCellIdentity(corners));
     }
     return geometry;
 }

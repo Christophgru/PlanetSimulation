@@ -9,6 +9,11 @@ layout(std430,binding=2) buffer GeneratedBlades { Blade blades[]; };
 struct Root { vec4 rootExpected,upRank,normalSlot,variation; };
 layout(std430,binding=3) buffer CachedRoots { Root roots[]; };
 layout(std430,binding=4) buffer PatchBounds { vec4 bounds[]; };
+struct Cell {uvec4 key,geometry,span;vec4 metric;};
+layout(std430,binding=6) readonly buffer Cells {Cell cells[];};
+layout(std430,binding=7) readonly buffer PreviousRoots {Root previousRoots[];};
+uniform bool uCellMode=false;
+uniform int uCellFirst=0;
 uniform bool uBuildRoots=false;
 uniform int uFirstRoot=0;
 uniform bool uReset;
@@ -56,6 +61,13 @@ bool loadTerrainPatch() {
     ivec3 indices=ivec3(texelFetch(uTerrainIndices,int(aTriangle)*3).r,
         texelFetch(uTerrainIndices,int(aTriangle)*3+1).r,
         texelFetch(uTerrainIndices,int(aTriangle)*3+2).r)*9;
+    uint identity=aTriangle;
+    if(uCellFirst>0) {
+        uvec4 key;
+        for(int i=0;i<4;++i) key[i]=texelFetch(uTerrainIndices,uCellFirst+int(aTriangle)*4+i).r;
+        indices=ivec3(indices[int(key.w&3u)],indices[int((key.w>>2u)&3u)],indices[int((key.w>>4u)&3u)]);
+        identity=key.x^(key.y*0x9e3779b9u)^(key.z*0x85ebca6bu);
+    }
     aPatchA=terrainVector(indices.x);
     aPatchB=terrainVector(indices.y);
     aPatchC=terrainVector(indices.z);
@@ -69,7 +81,7 @@ bool loadTerrainPatch() {
     aPatchColor=(patchColorA+patchColorB+patchColorC)/3.0;
     aExpectedCandidates=.5*length(cross(aPatchB-aPatchA,aPatchC-aPatchA))*
         uMetersPerRadius*uMetersPerRadius*uPlacementDensity;
-    aPatchSeed=aTriangle ^ uint(uGrassSeed);
+    aPatchSeed=identity ^ uint(uGrassSeed);
     return true;
 }
 
@@ -119,12 +131,19 @@ void main() {
     uint patchIndex=uint(uFirstPatch)+id/uint(uSlotsPerPatch);
     uint index=uint(uFirstRoot)+id;
     if(uBuildRoots) {
+        if(uCellMode) {
+            Cell cell=cells[patchIndex];uint slot=id%uint(uSlotsPerPatch);
+            if(cell.span.z!=0xffffffffu && slot<cell.span.w) {
+                Root cached=previousRoots[cell.span.z+slot];
+                cached.rootExpected.w=cell.metric.x;roots[index]=cached;return;
+            }
+        }
         roots[index]=Root(vec4(0),vec4(0),vec4(0),vec4(0));
         aTriangle=triangleIDs[patchIndex];
         if (!loadTerrainPatch()) return;
         vec3 center=(aPatchA+aPatchB+aPatchC)/3.0;
         float reach=max(max(length(aPatchA-center),length(aPatchB-center)),length(aPatchC-center));
-        if(id%uint(uSlotsPerPatch)==0u) bounds[patchIndex]=vec4(center,reach);
+        if(!uCellMode && id%uint(uSlotsPerPatch)==0u) bounds[patchIndex]=vec4(center,reach);
         uint seed=grassHash(aPatchSeed ^ ((id%uint(uSlotsPerPatch))*0x9e3779b9u));
         float a=sqrt(grassRandom(seed+1u)), b=grassRandom(seed+2u);
         vec3 root=aPatchA*(1.0-a)+aPatchB*(a*(1.0-b))+aPatchC*(a*b);

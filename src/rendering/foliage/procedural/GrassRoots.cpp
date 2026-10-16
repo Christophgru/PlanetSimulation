@@ -7,6 +7,7 @@ void ProceduralGrass::bindComputedInputs(const Patch& patch) const {
     auto& c=*compute_;
     c.use();
     c.setInt("uCapacity",patch.gpuCapacity);
+    c.setInt("uCellFirst",patch.cellKeyOffset);
     c.setInt("uTerrainVertices",8); c.setInt("uTerrainIndices",9);
     glActiveTexture(GL_TEXTURE8); glBindTexture(GL_TEXTURE_BUFFER,patch.vertexTexture);
     glActiveTexture(GL_TEXTURE9); glBindTexture(GL_TEXTURE_BUFFER,patch.indexTexture);
@@ -56,12 +57,12 @@ std::uint64_t ProceduralGrass::dispatchCandidates(const Patch& patch,int maxGrou
 }
 void ProceduralGrass::generateRoots(const Patch& patch) const {
     if(!patch.gpuRoots) return;
-    GLint groups=0;glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT,0,&groups);
-    if(groups<1) throw std::runtime_error("Grass root dispatch unavailable");
-    bindComputedInputs(patch);compute_->setInt("uReset",0);compute_->setInt("uBuildRoots",1);
-    GpuWorkProfiler::Scope timing(GpuWorkStage::GrassRoots,patch.workIdentity);
-    patch.rootDispatches+=dispatchCandidates(patch,groups);
-    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    prepareCells(patch,nullptr,false);
+    std::size_t level=0,offset=0;
+    while(!generateRootsStep(patch,nullptr,level,offset,4)) {}
+    // Cold CPU-planned path needs no GPU summary read in the interactive draw.
+    std::size_t count=0;for(const auto& batch:patch.batches) count+=batch.count;
+    patch.cells->totals={0,std::uint32_t(patch.patches),0,0,0,std::uint32_t(count),0,0};
     if(glGetError()!=GL_NO_ERROR) throw std::runtime_error("Grass root generation failed");
     patch.rootsReady=true;patch.animationTime=std::numeric_limits<float>::quiet_NaN();
 }

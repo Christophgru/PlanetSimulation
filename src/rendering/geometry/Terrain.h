@@ -19,6 +19,7 @@ struct TerrainGeometry : TerrainBuildStats {
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
     std::vector<float> lodSinkMeters;
+    std::vector<std::array<std::uint32_t,4>> grassCellKeys;
     int triangleCount() const { return static_cast<int>(indices.size()/3); }
 };
 

@@ -181,6 +181,7 @@ add_test(NAME TerrainJobTests COMMAND terrain_job_tests)
 set_tests_properties(TerrainJobTests PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 30)
 add_executable(terrain_compute_tests geometry/compute/test_terrain_compute.cpp
     geometry/compute/test_staging.cpp
+    geometry/compute/test_cells.cpp
     geometry/publication/test_publication.cpp
     foliage/planning/test_metadata.cpp foliage/planning/test_allocation.cpp)
 target_link_libraries(terrain_compute_tests PRIVATE planet_rendering GTest::gtest glfw)

@@ -28,6 +28,7 @@ void Mesh::buildSphereGeometry(int segments) {
     terrainStats={};
     vertices.clear();
     indices.clear();
+    grassCellKeys.clear();cellKeyOffset=0;
     hasVertexColors = false;
 
     // Generate sphere with proper triangle indices
@@ -75,6 +76,7 @@ void Mesh::buildCubeGeometry() {
     terrainStats={};
     vertices.clear();
     indices.clear();
+    grassCellKeys.clear();cellKeyOffset=0;
     hasVertexColors = false;
     constexpr float corners[8][3] = {
         {-1.0f, -1.0f, -1.0f}, { 1.0f, -1.0f, -1.0f},
@@ -101,6 +103,7 @@ void Mesh::loadTerrain(rendering::TerrainGeometry geometry) {
     terrainStats=static_cast<const rendering::TerrainBuildStats&>(geometry);
     vertices = std::move(geometry.vertices);
     indices = std::move(geometry.indices);
+    grassCellKeys=std::move(geometry.grassCellKeys);
     hasVertexColors = true;
     upload();
 }
@@ -122,8 +125,13 @@ void Mesh::upload() {
                  vertices.data(), GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int),
-                 indices.data(), GL_STATIC_DRAW);
+    if(!grassCellKeys.empty() && grassCellKeys.size()*3!=indices.size())
+        throw std::invalid_argument("Terrain cell keys require matching triangle indices");
+    cellKeyOffset=grassCellKeys.empty()?0:indices.size();
+    const auto indexBytes=indices.size()*sizeof(unsigned int),cellBytes=grassCellKeys.size()*16;
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER,indexBytes+cellBytes,nullptr,GL_STATIC_DRAW);
+    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,0,indexBytes,indices.data());
+    if(cellBytes) glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,indexBytes,cellBytes,grassCellKeys.data());
 
     // Position attribute (location 0)
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)0);
@@ -161,6 +169,8 @@ void Mesh::loadComputedTerrain(rendering::TerrainGeometry geometry,
     terrainStats.evaluationQueries=geometry.evaluationQueries;
     vertices=std::move(geometry.vertices);indices=std::move(geometry.indices);
     residentTerrain=!keepCpuMirror;indexCount=terrainStats.gpuCorners;
+    grassCellKeys=std::move(geometry.grassCellKeys);
+    cellKeyOffset=terrainStats.gpuCellKeys?indexCount:0;
     hasVertexColors=true;++revision;
 }
 
@@ -183,7 +193,7 @@ void Mesh::destroy() {
     if (vao != 0) glDeleteVertexArrays(1, &vao);
     if (vbo != 0) glDeleteBuffers(1, &vbo);
     if (ebo != 0) glDeleteBuffers(1, &ebo);
-    vao = vbo = ebo = 0;indexCount=0;residentTerrain=false;
+    vao = vbo = ebo = 0;indexCount=cellKeyOffset=0;residentTerrain=false;
 }
 
 void Mesh::swap(Mesh& other) noexcept {
@@ -191,6 +201,7 @@ void Mesh::swap(Mesh& other) noexcept {
     using std::swap;
     swap(vao,other.vao);swap(vbo,other.vbo);swap(ebo,other.ebo);
     vertices.swap(other.vertices);indices.swap(other.indices);
+    grassCellKeys.swap(other.grassCellKeys);swap(cellKeyOffset,other.cellKeyOffset);
     swap(hasVertexColors,other.hasVertexColors);swap(residentTerrain,other.residentTerrain);
     swap(indexCount,other.indexCount);swap(revision,other.revision);
     swap(terrainStats,other.terrainStats);contacts.swap(other.contacts);

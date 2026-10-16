@@ -43,7 +43,7 @@ def main():
     parser.add_argument('--seconds', type=float, default=6)
     parser.add_argument('--camera-mode', choices=['surface', 'astronaut'], default='surface')
     parser.add_argument('--stages', nargs='+', default=['grass_metadata', 'grass_allocation'],
-                        choices=['grass_metadata', 'grass_allocation', 'grass_roots', 'grass_placement', 'grass_animation', 'grass_draw'])
+                        choices=['grass_metadata', 'grass_allocation', 'grass_roots', 'grass_placement', 'grass_animation', 'grass_draw', 'grass_cells'])
     args = parser.parse_args()
     if args.pairs < 3 or args.seconds < 5:
         parser.error('Use at least three pairs and five seconds per measured leg')
