@@ -1,5 +1,49 @@
 # Page to document progress of AI Agents working on this Project
 
+## Parent contact-index reuse — 2026-10-16
+
+- 8f809fa commits the tested triangle-metadata optimization below. Continued the
+  same terrain p row with an immutable coarse contact index plus a local tree
+  containing only descendants of split parent triangles. Original-face IDs are
+  exported during refinement; untouched parent faces map to current face IDs.
+  Queries sort current IDs to retain rendered-plane tie rules. Shared tree
+  traversal is const and charges visits to each querying generation's counters.
+- Acceleration is private CPU metadata, excluded from field/topology hashes and
+  GPU descriptors. Canonicalization clears it; contacts also require its sealed
+  topology hash and matching parent field/policy. Parent and local trees own their
+  inputs across worker snapshots, parent rebases and scene destruction.
+- Added a regression comparing accelerated contacts to the independently rebuilt
+  full index across movements/rebase, exact vertices/poles and local rings; checks
+  invalidation, sorted/unique candidates and surviving an old source's lifetime.
+  Also cover a uniform 11,520-face base consuming the whole budget: the empty
+  local tree retains exact whole-planet contacts. Full 121-step ABI rebuild and
+  final helper build pass. Frozen 8f809fa helper/probe:
+  terrain_detail_benchmark-before-parent-index / terrain_native_probe-before-parent-index.
+- Isolated RTX parent shader pilot (no tracked shader edits) shares repeated
+  parent positions in phase 2. Three warm pairs remain image-exact but show no
+  useful gain: micro fixture median 1.1295→1.1336 ms; production startup
+  5.1466→5.1057 ms (~0.8%). Cold warmups excluded. Keep current shaders. Raw
+  detail-parent-rtx-{pilot,production} directories remain ignored/local.
+- All 35 core groups, seven contact cases (final AstronautMotionTests 4.48 s),
+  all 45 RTX compute/consumer cases (62.3 s), and moving/rebased/recorded-parent
+  replay + CPU/GL3.3 captures (79.9 s) pass. Seven earlier images remain exact;
+  overview inspected and byte-identical: 14,779 non-background pixels,
+  bounds (1,1)–(794,598), 3,471 planet pixels.
+- Two production before/after cohorts retain all 12 geometry fingerprints and
+  work fields. Warm contact prep 80–93→44–48 ms; combined plan + contact cost
+  startup 187–194→142–147 ms, mountain 179–186→165–171 ms. Cold mountain cost
+  rises 1399–1413→1440–1474 ms and pure warm mountain planning rises ~19 ms;
+  report retains both limitations. Shared parent backing is 2,648,704 bytes plus
+  a 200k-byte map per plan; only 4,447–7,173 faces enter local trees.
+- Native walking medians: contact index 19.82→10.84 ms, full CPU build
+  63.05→54.17 ms, publication 138.39→118.01 ms. Gate still exits 2:
+  max offsets 1.210/2.389/8.665 m; outside 423/446, 408/429, 725/765;
+  1.5 m fixture also misses geometry in 554 frames. Zero blocking polls,
+  bulk reads or finishes; logical overlap <75 MB. No coverage/FPS claim.
+- Logs/CSVs/traces: build-f5/resume/detail-contact-parent-*; before/after CSVs
+  have a second -2 cohort, native trace in detail-contact-parent-rtx-trace.
+  Terrain remains p, later TODOs queued, user's production edits preserved.
+
 ## Contact-index preparation optimization — 2026-10-16
 
 - Continued the sole terrain p row after e75c6ae. NVIDIA is available again;

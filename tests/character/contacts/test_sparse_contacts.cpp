@@ -161,3 +161,86 @@ TEST(SparseTerrainContacts, RebindingAndClearingReleasePreviousGenerationAndInva
     std::weak_ptr<SparseTerrainContacts> installed=replacement;replacement.reset();ground.clear();EXPECT_TRUE(installed.expired());
     EXPECT_EQ(ground.sample({0,0,1},[](const auto& r){return GroundContact{r*900.0,r};}).position,glm::dvec3(0,0,900));
 }
+TEST(SparseTerrainContacts, StreamingParentIndexMatchesFreshIndexAndSurvivesRebaseAndSnapshotDestruction) {
+    auto settings=lod();settings.shoreline_edge_m=0;settings.max_triangle_budget=30000;
+    settings.relief_sinking=true;settings.geometric_error_m=.05;settings.local_detail_streaming=true;
+    settings.local_detail_radius_m=.5;settings.local_edge_m=.05;settings.local_error_m=.01;settings.local_transition_m=.5;
+    config::PlanetConfig::SurfaceNoiseFunction noise;noise.amplitude_m=.01;noise.wavelength_m=.25;
+    noise.octaves=1;noise.seed=-71;
+    std::shared_ptr<SparseTerrainContacts> survivor;
+    glm::dvec3 savedDirection;
+    GroundContact savedContact;
+    {
+        TerrainSurface surface({noise},settings,1,1000);
+        const auto anchor=glm::normalize(glm::dvec3(.7,-.2,1));
+        const auto east=glm::normalize(glm::cross(anchor,glm::dvec3(0,0,1)));
+        const auto north=glm::normalize(glm::cross(anchor,east));
+        for(const auto step:{glm::dvec2(0,0),glm::dvec2(.15,.15),glm::dvec2(-.3,.15),glm::dvec2(40,0)}) {
+            const auto eye=anchor*1.002+(east*step.x+north*step.y)/1000.;
+            const auto topology=surface.buildTopologyForEye(eye,{});
+            auto source=std::make_shared<SparseTerrainContacts>(surface.field(),topology);
+            ASSERT_GT(source->stats().parentTriangles,0u);
+            ASSERT_GT(source->stats().sharedParentBytes,0u);
+            ASSERT_LT(source->stats().localTriangles,std::size_t(topology.triangleCount()));
+            ASSERT_EQ(source->stats().heightEvaluations,0u);
+            auto uncached=topology;
+            // Public re-canonicalization invalidates derived acceleration, even
+            // when all render data stays identical. This is the independent
+            // whole-topology index path, with exactly the same render contract.
+            uncached.canonicalize(surface.field().fingerprint());
+            ASSERT_EQ(uncached.generation,topology.generation);
+            auto fresh=std::make_shared<SparseTerrainContacts>(surface.field(),uncached);
+            ASSERT_EQ(fresh->stats().parentTriangles,0u);
+            SurfaceContact reused,reference;
+            reused.bind(source,1);reference.bind(fresh,1);
+            auto points=directions(48);
+            const auto radial=glm::normalize(eye);
+            for(int ring=0;ring<5;++ring) for(int i=0;i<17;++i) {
+                const double angle=(i+.317)*2*std::acos(-1.)/17;
+                points.push_back(glm::normalize(radial+(east*std::cos(angle)+north*std::sin(angle))*(ring*.317/1000)));
+            }
+            for(std::size_t i=0;i<topology.samples.size();i+=127) {
+                const auto& r=topology.samples[i].radial;points.push_back({r[0],r[1],r[2]});
+            }
+            for(const auto direction:points) {
+                const auto expected=reference.sample(direction,missing),actual=reused.sample(direction,missing);
+                EXPECT_EQ(actual.position,expected.position);EXPECT_EQ(actual.normal,expected.normal);
+                const auto candidates=source->candidates(direction);
+                EXPECT_TRUE(std::is_sorted(candidates.begin(),candidates.end()));
+                EXPECT_EQ(std::adjacent_find(candidates.begin(),candidates.end()),candidates.end());
+            }
+            if(!survivor) {
+                survivor=source;savedDirection=radial;savedContact=reused.sample(radial,missing);
+            }
+            // A manually resealed changed contract must also bypass stale
+            // acceleration without relying on canonicalization to clear it.
+            auto changed=topology;
+            std::rotate(changed.indices.begin(),changed.indices.begin()+3,changed.indices.end());
+            changed.generation.topology=changed.contentFingerprint();
+            const SparseTerrainContacts resealed(surface.field(),changed);
+            EXPECT_EQ(resealed.stats().parentTriangles,0u);
+        }
+    }
+    SurfaceContact retained;retained.bind(survivor,7);
+    const auto after=retained.sample(savedDirection,missing);
+    EXPECT_EQ(after.position,savedContact.position);EXPECT_EQ(after.normal,savedContact.normal);
+}
+TEST(SparseTerrainContacts, ParentIndexAloneKeepsCoverageWhenTheBaseConsumesTheWholeBudget) {
+    auto settings=lod();
+    settings.base_edge_segments=settings.medium_edge_segments=settings.max_edge_segments=settings.steep_edge_segments=4;
+    settings.max_triangle_budget=11520;settings.shoreline_edge_m=0;
+    settings.relief_sinking=true;settings.geometric_error_m=.05;settings.local_detail_streaming=true;
+    settings.local_detail_radius_m=.5;settings.local_edge_m=.05;settings.local_error_m=.01;settings.local_transition_m=.5;
+    const TerrainSurface surface({},settings,1,1000);
+    const auto topology=surface.buildTopologyForEye({1.002,0,0},{});
+    ASSERT_EQ(topology.triangleCount(),settings.max_triangle_budget);
+    const auto mesh=surface.evaluateTopology(topology);
+    auto source=std::make_shared<SparseTerrainContacts>(surface.field(),topology);
+    EXPECT_EQ(source->stats().parentTriangles,11520u);EXPECT_EQ(source->stats().localTriangles,0u);
+    SurfaceContact exhaustive,indexed;
+    exhaustive.bind(mesh.vertices,mesh.indices,1,1000);indexed.bind(source,1);
+    for(const auto direction:directions(96)) {
+        const auto expected=exhaustive.sample(direction,missing),actual=indexed.sample(direction,missing);
+        EXPECT_EQ(actual.position,expected.position);EXPECT_EQ(actual.normal,expected.normal);
+    }
+}

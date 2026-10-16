@@ -87,6 +87,7 @@ std::uint64_t TerrainTopology::contentFingerprint() const {
     return hash;
 }
 void TerrainTopology::canonicalize(std::uint64_t fieldFingerprint) {
+    contactParent_.reset();contactParentFaces_.clear();contactTopology_=0;
     std::map<std::array<std::uint64_t,4>,std::uint32_t> ids;
     std::vector<TerrainInputSample> unique;
     std::vector<TerrainMorphSample> uniqueMorph;

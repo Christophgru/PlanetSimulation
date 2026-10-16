@@ -7,6 +7,7 @@ namespace rendering {
 struct SparseContactStats {
     std::uint64_t queries=0, nodesVisited=0, candidateTriangles=0, heightEvaluations=0;
     std::size_t residentPositions=0, topologyBytes=0, indexBytes=0;
+    std::size_t sharedParentBytes=0,parentTriangles=0,localTriangles=0;
     double buildMilliseconds=0;
 };
 
@@ -30,6 +31,8 @@ private:
         unsigned first=0,count=0,left=0,right=0;
     };
     unsigned build(unsigned first,unsigned count);
+    void collectCandidates(const glm::dvec3& direction,std::vector<unsigned>& result,
+        SparseContactStats& stats) const;
     bool intersects(const Node& node,const glm::dvec3& radial) const;
     glm::vec3 position(unsigned id);
     PlanetField field_;
@@ -37,6 +40,8 @@ private:
     TerrainGenerationKey generation_;
     std::vector<unsigned> order_;
     std::vector<Node> nodes_;
+    std::shared_ptr<const SparseTerrainContacts> parent_;
+    std::vector<unsigned> parentToCurrent_;
     std::unordered_map<unsigned,glm::vec3> positions_;
     SparseContactStats stats_;
 };

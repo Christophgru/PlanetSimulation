@@ -50,7 +50,7 @@ std::shared_ptr<const TerrainSurface::RefinementParent> TerrainSurface::prepareR
     return result;
 }
 void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dvec3& eyeBody, bool localOnly,
-    TerrainQueryCache* sharedQueries,const RefinementParent* parent) const {
+    TerrainQueryCache* sharedQueries,const RefinementParent* parent,std::vector<unsigned>* contactParents) const {
     CpuTrace::Scope scope("TerrainSurface::refineSurfaceError");
     // Canonical radial IDs, not rounded render positions, join both sides of
     // every edge. All error probes use the same filtered/sunk field as drawing.
@@ -275,9 +275,11 @@ void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dv
     splitting.stop();
     CpuTrace::Scope exporting("terrain.refinement_export");
     geometry.indices.clear();geometry.indices.reserve(3*liveCount);
+    if(contactParents) {contactParents->clear();contactParents->reserve(liveCount);}
     geometry.remainingErrorRatio=0;
-    for(const auto& t:triangles) if(t.alive) {
+    for(std::size_t id=0;id<triangles.size();++id) if(const auto& t=triangles[id];t.alive) {
         geometry.indices.insert(geometry.indices.end(),t.v.begin(),t.v.end());
+        if(contactParents) contactParents->push_back(triangleParents.at(id));
         geometry.remainingErrorRatio=std::max(geometry.remainingErrorRatio,t.errorScore);
         if(lod_.local_detail_radius_m>0 && t.localDistance<=lod_.local_detail_radius_m) {
             ++geometry.localDetailTriangles;

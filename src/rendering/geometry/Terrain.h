@@ -78,7 +78,8 @@ private:
     struct RefinementParent;
     static std::shared_ptr<const RefinementParent> prepareRefinementParent(const TerrainTopology& topology,double scale);
     void refineSurfaceError(TerrainTopology& geometry, const glm::dvec3& eyeBody, bool localOnly=false,
-        TerrainQueryCache* sharedQueries=nullptr,const RefinementParent* parent=nullptr) const;
+        TerrainQueryCache* sharedQueries=nullptr,const RefinementParent* parent=nullptr,
+        std::vector<unsigned>* contactParents=nullptr) const;
     TerrainTopology streamDetail(const glm::dvec3& eyeBody,bool restoreParent=false) const;
     struct DetailCache;
     static std::shared_ptr<DetailCache> newDetailCache();

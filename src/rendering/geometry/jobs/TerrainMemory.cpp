@@ -18,8 +18,8 @@ std::optional<TerrainMemorySnapshot> TerrainBuildScheduler::memorySnapshot() con
         if(b.topology) result.readyVectorBytes+=topologyBytes(*b.topology);
         if(b.waterTopology) result.readyVectorBytes+=topologyBytes(*b.waterTopology);
     }
-    // Fields, sparse contacts, queued config and running worker scratch are
-    // excluded; process RSS independently includes allocator and worker pages.
+    // Derived contact acceleration, fields, sparse contacts, queued config and
+    // running worker scratch are excluded; RSS includes allocator/worker pages.
     return result;
 }
 }

@@ -30,11 +30,22 @@ configuration and source revision with retained evidence.
 The `contact_*` columns separately measure construction of the sparse contact
 oracle, including its owned topology copy, validation and spatial index. Its
 wall/thread CPU times are excluded from planner times. `contact_index_bytes`
-counts the retained nodes/order array, while `contact_candidate_fingerprint`
+counts retained nodes, order arrays and current-face mappings (including shared
+parent indices when used), while `contact_candidate_fingerprint`
 hashes the complete ordered broad-phase results for axis/pole directions, 256
 distributed directions and sampled exact mesh vertices. Compare both fingerprints
 and index size when optimizing index construction. These queries do not evaluate
 the displaced field; contact/mesh equality remains covered by automated tests.
+
+For streaming contact reuse, `contact_parent_triangles` counts the shared coarse
+shell and `contact_local_triangles` counts only descendants of split parent faces
+in the generation's local tree. `contact_shared_parent_bytes` includes shared
+parent topology/index backing. Index/topology byte counters charge shared backing
+to each owner conservatively; do not add those counters to claim unique process
+memory. The acceleration can change broad-phase false positives and therefore
+candidate fingerprints; it must retain exact rendered-plane contact results and
+the ascending current-triangle tie rule. Re-canonicalizing a topology invalidates
+the acceleration and exercises the independent complete-index path.
 
 `reference_parent_positions` counts the current unconditional three parent
 positions per morph sample. `needed_parent_positions` counts only positive parent

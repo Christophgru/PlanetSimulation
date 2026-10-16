@@ -2,9 +2,11 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <vector>
 #include "rendering/geometry/terrain/TerrainQueryCache.h"
 namespace rendering {
+class SparseTerrainContacts;
 inline bool supportedTerrainTopology(std::uint32_t version) { return version>=1 && version<=4; }
 enum class TerrainBackend : std::uint32_t { Cpu=1, Compute=2 };
 struct TerrainGenerationKey {
@@ -64,6 +66,13 @@ struct TerrainTopology : TerrainBuildStats {
     std::uint64_t contentFingerprint() const;
     int triangleCount() const { return static_cast<int>(indices.size()/3); }
 private:
+    // Derived CPU acceleration only; excluded from the render/replay contract.
+    // Canonicalization invalidates it, and consumers check the sealed hash.
+    friend class TerrainSurface;
+    friend class SparseTerrainContacts;
+    std::shared_ptr<const SparseTerrainContacts> contactParent_;
+    std::vector<unsigned> contactParentFaces_;
+    std::uint64_t contactTopology_=0;
     void validateStructure() const;
 };
 std::uint64_t terrainHashWord(std::uint64_t hash,std::uint64_t word,int bytes=8);

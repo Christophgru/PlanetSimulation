@@ -29,11 +29,39 @@ SparseTerrainContacts::SparseTerrainContacts(PlanetField field,TerrainTopology t
     if(!std::isfinite(minimumRadius) || minimumRadius<=radiusMeters()*1e-6)
         throw std::invalid_argument("Contact topology needs a positive radial surface");
     generation_.backend=TerrainBackend::Compute;
-    order_.resize(topology_.indices.size()/3);std::iota(order_.begin(),order_.end(),0);
-    build(0,order_.size());
+    constexpr unsigned absent=std::numeric_limits<unsigned>::max();
+    const auto& parent=topology_.contactParent_;
+    if(parent && topology_.contactTopology_==topology_.generation.topology &&
+       topology_.contactParentFaces_.size()==std::size_t(topology_.triangleCount()) &&
+       parent->generation_.field==generation_.field && parent->topology_.surfacePolicy==topology_.parentPolicy) {
+        // Longest-edge children remain inside their original triangle's cone.
+        // Query the immutable coarse tree for untouched faces; index only the
+        // split faces locally. All IDs map back to this plan's triangle order.
+        parent_=parent;
+        parentToCurrent_.assign(parent_->topology_.triangleCount(),absent);
+        std::vector<unsigned> counts(parentToCurrent_.size(),0);
+        for(auto root:topology_.contactParentFaces_) ++counts.at(root);
+        for(unsigned face=0;face<topology_.triangleCount();++face) {
+            const auto root=topology_.contactParentFaces_[face];
+            if(counts[root]==1) parentToCurrent_[root]=face;
+            else order_.push_back(face);
+        }
+        stats_.parentTriangles=parentToCurrent_.size();
+        const auto shared=parent_->stats();
+        stats_.sharedParentBytes=shared.topologyBytes+shared.indexBytes;
+    } else {
+        order_.resize(topology_.triangleCount());std::iota(order_.begin(),order_.end(),0);
+    }
+    // The derived face map is needed only while constructing the local index.
+    // Public canonicalization or a changed sealed hash forces the full path.
+    topology_.contactParentFaces_.clear();topology_.contactParentFaces_.shrink_to_fit();
+    topology_.contactParent_.reset();topology_.contactTopology_=0;
+    stats_.localTriangles=order_.size();
+    if(!order_.empty()) build(0,order_.size());
     positions_.reserve(positionCapacity);
-    stats_.topologyBytes=topology_.topologyInputBytes;
-    stats_.indexBytes=nodes_.size()*sizeof(Node)+order_.size()*sizeof(unsigned);
+    stats_.topologyBytes=topology_.topologyInputBytes+(parent_?parent_->stats().topologyBytes:0);
+    stats_.indexBytes=nodes_.size()*sizeof(Node)+order_.size()*sizeof(unsigned)+
+        parentToCurrent_.size()*sizeof(unsigned)+(parent_?parent_->stats().indexBytes:0);
     stats_.buildMilliseconds=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();
 }
 unsigned SparseTerrainContacts::build(unsigned first,unsigned count) {
@@ -95,15 +123,29 @@ std::vector<unsigned> SparseTerrainContacts::candidates(const glm::dvec3& direct
     if(!std::isfinite(length2) || std::abs(length2-1)>1e-12)
         throw std::invalid_argument("Contact index requires a unit radial");
     ++stats_.queries;
-    std::vector<unsigned> result,stack{0};
+    std::vector<unsigned> result;
+    collectCandidates(direction,result,stats_);
+    // Preserve the full mesh's first-triangle tie rule at shared edges/poles.
+    std::sort(result.begin(),result.end());stats_.candidateTriangles+=result.size();return result;
+}
+void SparseTerrainContacts::collectCandidates(const glm::dvec3& direction,std::vector<unsigned>& result,
+    SparseContactStats& stats) const {
+    if(parent_) {
+        std::vector<unsigned> coarse;
+        // This traversal never mutates shared parent counters/position caches;
+        // worker snapshots and installed contact generations can query safely.
+        parent_->collectCandidates(direction,coarse,stats);
+        for(auto root:coarse) if(const auto face=parentToCurrent_[root];face!=std::numeric_limits<unsigned>::max())
+            result.push_back(face);
+    }
+    if(nodes_.empty()) return;
+    std::vector<unsigned> stack{0};
     while(!stack.empty()) {
-        const auto id=stack.back();stack.pop_back();++stats_.nodesVisited;
+        const auto id=stack.back();stack.pop_back();++stats.nodesVisited;
         const auto& node=nodes_[id];if(!intersects(node,direction)) continue;
         if(node.count) for(unsigned i=node.first;i<node.first+node.count;++i) result.push_back(order_[i]);
         else {stack.push_back(node.right);stack.push_back(node.left);}
     }
-    // Preserve the full mesh's first-triangle tie rule at shared edges/poles.
-    std::sort(result.begin(),result.end());stats_.candidateTriangles+=result.size();return result;
 }
 glm::vec3 SparseTerrainContacts::position(unsigned id) {
     if(const auto it=positions_.find(id);it!=positions_.end()) return it->second;

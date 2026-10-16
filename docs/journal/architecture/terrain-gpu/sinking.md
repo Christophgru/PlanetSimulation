@@ -1,5 +1,76 @@
 # Relief-aware terrain sinking
 
+## Share coarse contact indices between detail plans — 2026-10-16
+
+V4 now retains an immutable coarse contact index with its parent shell. Local
+refinement exports each live triangle's original parent face. Untouched faces
+map parent IDs to current IDs; only descendants of split faces enter the new
+generation's local index. Query both trees and sort current triangle IDs before
+testing rendered planes, preserving shared-edge/pole tie rules. Longest-edge
+children lie in their original parent's radial cone, and displacement/morphing
+remains radial; existing direction padding still covers float conversion.
+Broad-phase false positives can change, so candidate-list fingerprints change;
+exact contacts are compared against an independently rebuilt full index.
+
+The acceleration is private CPU metadata, outside the GPU/replay contract and
+generation hash. Public canonicalization clears it; a separately resealed changed
+contract also bypasses it through the stored topology hash. Parent field/policy
+must match. Shared traversal is const and updates only the querying generation's
+counters. Parent replacement prepares the new shell/indices before installation;
+old contacts retain their own immutable backing across rebases and scene/snapshot
+destruction. No new worker, GPU input or interactive readback is introduced.
+
+In the production cohort, a 50,000-face parent is shared while local trees contain
+4,447–7,173 faces instead of rebuilding all 54,426–57,142. Shared coarse topology/
+index backing costs 2,648,704 bytes plus a 200,000-byte current-face map per plan.
+Per-owner index counters conservatively include shared nodes: 1.266–1.277 MB
+before versus 1.577–1.608 MB after. Topology counters also charge shared parent
+topology; summing owners does not measure unique RSS. Running scratch and derived
+CPU acceleration remain outside the worker's ready-vector diagnostic; process RSS
+includes them. GPU admission and descriptor bytes are unchanged.
+
+Two before/after production CPU cohorts (GCC 12, RelWithDebInfo) retain all twelve
+topology fingerprints and geometry/work fields exactly. Warm contact preparation
+falls from 80–93 to 44–48 ms. Include planning and contact copies/validation when
+assessing the complete CPU cost:
+
+| Pose/phase | Before plan + contacts (ms) | After (ms) |
+|:--|--:|--:|
+| Startup, warm moving | 187–194 | 142–147 |
+| Mountain, warm moving | 179–186 | 165–171 |
+| Startup, cold | 1,807–1,808 | 1,797–1,822 |
+| Mountain, cold | 1,399–1,413 | 1,440–1,474 |
+
+The parent index is built during cold planning, so it is not a cold-start win.
+Pure warm mountain planning also rises from about 100–104 to 118–123 ms in these
+cohorts; the contact saving still improves the combined warm cost. No FPS gain or
+continuous-coverage acceptance is inferred from these CPU timings.
+
+In the native RTX walking diagnostic, median contact-index construction falls
+19.82→10.84 ms, full CPU build 63.05→54.17 ms, and request-to-publication
+138.39→118.01 ms. Sprint publication is 127.66→113.15 ms; the 1.5 m fixture
+is 417.31→387.49 ms. These traced single-route comparisons retain profiling
+overhead. The unchanged gate still exits 2: maximum anchor offsets are
+1.210/2.389/8.665 m, with 423/446, 408/429 and 725/765 frames outside their
+cores. The 1.5 m case also misses geometry in 554 frames. Ownership/nonblocking
+audits pass with zero blocking polls, bulk reads or finishes and logical overlap
+below 75 MB. Moving coverage and temporal publication remain outstanding.
+
+All 35 core groups and all 45 RTX compute/consumer cases pass. Seven contact
+cases cover full-mesh equality, shared/fresh-index equality across movement and
+rebasing, manual/canonical invalidation, surviving old snapshots, and a
+base-budget fixture with an empty local tree. Moving/short-band/recorded-parent
+replay and CPU/GL 3.3 captures pass; all seven earlier capture images remain exact.
+The inspected overview is byte-identical (14,779 non-background pixels,
+bounds (1,1)–(794,598), 3,471 planet pixels).
+
+An isolated phase-2 shader pilot additionally shared repeated parent evaluations.
+Three warm RTX image pairs are exact, but median generation changes only
+1.1295→1.1336 ms in the micro fixture and 5.1466→5.1057 ms in a production
+startup fixture (~0.8%). Cold warmups are excluded. That shader change is not
+retained; current shaders are unchanged. Raw evidence stays local under
+`build-f5/resume/detail-contact-parent-*` and `detail-parent-rtx-{pilot,production}`.
+
 ## Cache triangle metadata during contact-index construction — 2026-10-16
 
 NVIDIA is available again (RTX 3070 Ti, UUID

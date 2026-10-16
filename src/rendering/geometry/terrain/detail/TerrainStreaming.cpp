@@ -1,5 +1,6 @@
 #include "rendering/geometry/Terrain.h"
 #include "rendering/diagnostics/tracing/CpuTrace.h"
+#include "rendering/geometry/contacts/SparseTerrainContacts.h"
 #include <cmath>
 #include <stdexcept>
 #include <mutex>
@@ -9,6 +10,7 @@ struct TerrainSurface::DetailCache {
     std::mutex mutex;
     std::optional<TerrainTopology> parent;
     std::shared_ptr<const RefinementParent> adjacency;
+    std::shared_ptr<const SparseTerrainContacts> contacts;
     glm::dvec3 eye{0};
     bool recordedParentNext=false;
     // The query cache owns its referenced immutable field through this optional;
@@ -48,9 +50,11 @@ TerrainTopology TerrainSurface::streamDetail(const glm::dvec3& eye,bool restoreP
         auto source=*this;source.lod_=coarse;source.detailCache_.reset();
         auto parent=source.buildTopologyForEye(eye*radius_,{});
         auto adjacency=local?prepareRefinementParent(parent,radius_*metersPerUnit_):nullptr;
+        auto contacts=local?std::make_shared<SparseTerrainContacts>(field_,parent):nullptr;
         // Publish the pair only after both allocations/builds succeed. A failed
         // rebase must not associate an older graph with a replacement shell.
         detailCache_->parent=std::move(parent);detailCache_->adjacency=std::move(adjacency);
+        detailCache_->contacts=std::move(contacts);
         detailCache_->eye=eye;
         detailCache_->queries.reset();detailCache_->queryField.reset();
     }
@@ -58,6 +62,7 @@ TerrainTopology TerrainSurface::streamDetail(const glm::dvec3& eye,bool restoreP
     for(int j=0;j<3;++j) result.parentEye[j]=detailCache_->eye[j]*radius_;
     result.parentPolicy=result.surfacePolicy;
     if(reuse) result.planningQueries={};
+    std::vector<unsigned> contactParents;
     if(local) {
         // Fine field weights stay planet-fixed for the parent's lifetime.
         // The geometric core/transition still follows the actual eye. At the
@@ -69,13 +74,18 @@ TerrainTopology TerrainSurface::streamDetail(const glm::dvec3& eye,bool restoreP
             detailCache_->queries=std::make_unique<TerrainQueryCache>(*detailCache_->queryField,
                 2*lod_.max_triangle_budget,result.surfacePolicy);
         }
-        refineSurfaceError(result,eye,true,detailCache_->queries.get(),detailCache_->adjacency.get());
+        refineSurfaceError(result,eye,true,detailCache_->queries.get(),detailCache_->adjacency.get(),&contactParents);
     } else {
         detailCache_->queries.reset();detailCache_->queryField.reset();
         result.morph.resize(result.samples.size());
         for(std::size_t i=0;i<result.samples.size();++i) result.morph[i].parent.fill(result.samples[i]);
     }
     {CpuTrace::Scope canonical("terrain.detail_canonicalize");result.canonicalize(field_.fingerprint());}
+    if(local) {
+        result.contactParent_=detailCache_->contacts;
+        result.contactParentFaces_=std::move(contactParents);
+        result.contactTopology_=result.generation.topology;
+    }
     // Recorded anchors predate cache-distance refinements. Honor them for one
     // capture plan; ordinary subsequent planning regains the safe reuse bound.
     if(restoreParent) detailCache_->recordedParentNext=true;
