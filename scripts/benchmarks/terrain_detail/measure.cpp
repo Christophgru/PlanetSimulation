@@ -6,10 +6,40 @@
 #include <iostream>
 #include <cmath>
 #include <ctime>
+namespace {
+int workingSet() {
+    config::PlanetConfig::TerrainLod lod;
+    lod.medium_edge_segments=4;lod.max_edge_segments=lod.steep_edge_segments=8;
+    lod.max_triangle_budget=30000;lod.shoreline_edge_m=0;lod.relief_sinking=true;lod.geometric_error_m=.05;
+    lod.near_surface_distance_m=300;lod.mid_surface_distance_m=1000;
+    lod.local_detail_streaming=true;lod.local_detail_radius_m=1.5;lod.local_edge_m=.05;
+    lod.local_error_m=.01;lod.local_transition_m=.5;
+    config::PlanetConfig::SurfaceNoiseFunction noise;
+    noise.amplitude_m=.01;noise.wavelength_m=.25;noise.octaves=1;noise.seed=-71;
+    const rendering::TerrainSurface surface({noise},lod,1,1000);
+    const glm::dvec3 eye(-.21005697617230545,.909856724515421,-.36613409503800903);
+    const auto east=glm::normalize(glm::cross(eye,glm::dvec3(0,0,1)));
+    std::cout << "step,offset_m,wall_ms,thread_cpu_ms,height_requests,height_evaluations,height_hits,triangles,core_limited,topology_fingerprint\n";
+    int step=0;
+    for(const double offset:{0.,0.,.15,.3,.3,0.}) {
+        timespec before{},after{};clock_gettime(CLOCK_THREAD_CPUTIME_ID,&before);
+        const auto begin=std::chrono::steady_clock::now();
+        const auto t=surface.buildTopologyForEye(eye+east*(offset/1000),{});
+        const double wall=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-begin).count();
+        clock_gettime(CLOCK_THREAD_CPUTIME_ID,&after);
+        const double cpu=(after.tv_sec-before.tv_sec)*1000.+(after.tv_nsec-before.tv_nsec)*1e-6;
+        std::cout << step++ << ',' << offset << ',' << wall << ',' << cpu << ',' << t.planningQueries.requests << ','
+            << t.planningQueries.evaluations << ',' << t.planningQueries.hits << ',' << t.triangleCount() << ','
+            << t.localDetailLimited << ',' << t.generation.topology << '\n';
+    }
+    return 0;
+}
+}
 int main(int argc,char** argv) {
-    if(argc>3) {std::cerr << "Usage: terrain_detail_benchmark [scene.json] [cpu-trace.json]\n";return 2;}
+    if(argc>3) {std::cerr << "Usage: terrain_detail_benchmark [scene.json | --working-set] [cpu-trace.json]\n";return 2;}
     rendering::CpuTrace trace(argc==3?argv[2]:"");
     rendering::CpuTrace::Thread thread(&trace,"detail benchmark");
+    if(argc>=2 && std::string(argv[1])=="--working-set") return workingSet();
     std::cout << "latitude_deg,streaming,step,wall_ms,thread_cpu_ms,triangles,height_evaluations,max_core_edge_m,core_limited,parent_reused,input_bytes,topology_fingerprint,parent_edges,mutable_edges,reference_parent_positions,needed_parent_positions,contact_wall_ms,contact_thread_cpu_ms,contact_index_bytes,contact_candidate_fingerprint,contact_parent_triangles,contact_local_triangles,contact_shared_parent_bytes\n";
     const config::ScenarioConfig scene(config::Config::load(argc>=2?argv[1]:"configs/scenarios/solar_system.json"));
     const auto& p=scene.planets[0];const double meters=scene.metersPerWorldUnit();

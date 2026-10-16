@@ -4,6 +4,7 @@
 #include "rendering/character/SurfaceContact.h"
 #include <gtest/gtest.h>
 #include <map>
+#include <iostream>
 #include <limits>
 #include <numbers>
 using namespace rendering;
@@ -180,6 +181,32 @@ TEST(TerrainDetail, ProbeReuseSurvivesWorkerSnapshotDestructionAndPreservesDeter
     const auto moved=survivor->buildTopologyForEye({1.002,.00015,0},{});
     EXPECT_TRUE(moved.parentReused);EXPECT_FALSE(moved.localDetailLimited);
     EXPECT_GT(moved.planningQueries.hits,0u);
+}
+
+TEST(TerrainDetail, StreamingProbeCacheRetainsAWidePlanWorkingSetWithoutChangingGeometry) {
+    auto lod=detailLod();lod.local_detail_streaming=true;lod.local_detail_radius_m=1.5;
+    // The native movement fixture's wider bands put enough triangles in the
+    // fine working set to exceed the old two-times-budget cache capacity.
+    lod.near_surface_distance_m=300;lod.mid_surface_distance_m=1000;
+    const glm::dvec3 eye(-.21005697617230545,.909856724515421,-.36613409503800903);
+    TerrainSurface surface({microNoise()},lod,1,1000);
+    const auto initial=surface.buildTopologyForEye(eye,{});
+    const auto repeated=surface.buildTopologyForEye(eye,{});
+    ASSERT_TRUE(repeated.parentReused);
+    EXPECT_EQ(repeated.generation,initial.generation);
+    EXPECT_EQ(repeated.samples,initial.samples);EXPECT_EQ(repeated.indices,initial.indices);
+    EXPECT_EQ(repeated.planningQueries.evaluations,0u);
+    EXPECT_GT(repeated.planningQueries.hits,0u);
+    const auto east=glm::normalize(glm::cross(eye,glm::dvec3(0,0,1)));
+    const auto moved=surface.buildTopologyForEye(eye+east*.00015,{});
+    EXPECT_TRUE(moved.parentReused);EXPECT_GT(moved.planningQueries.hits,0u);
+    TerrainSurface fresh({microNoise()},lod,1,1000);
+    (void)fresh.buildTopologyForEye(eye,{});
+    EXPECT_EQ(fresh.buildTopologyForEye(eye+east*.00015,{}).generation,moved.generation);
+    std::cout << "DETAIL_PROBE_WORKING_SET first_evaluations=" << initial.planningQueries.evaluations
+        << " repeat_evaluations=" << repeated.planningQueries.evaluations
+        << " moved_evaluations=" << moved.planningQueries.evaluations
+        << " moved_hits=" << moved.planningQueries.hits << '\n';
 }
 
 TEST(TerrainDetail, CachedAdjacencyRemainsClosedAcrossTurnsAndMatchesFreshParentReplay) {

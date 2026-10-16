@@ -73,6 +73,21 @@ The trace separates parent preparation, mutable refinement initialization,
 initial assessment, splitting, export, canonicalization and fingerprint checks.
 Use a separate run without tracing for timing comparisons.
 
+Measure the wider probe working set separately:
+
+```sh
+./build-f5/terrain_detail_benchmark --working-set > build-f5/terrain-detail/working-set.csv
+```
+
+This runs a 1.5 m micro-relief core with the native fixture's 30k triangle cap and
+300/1,000 m near/mid bands, at offsets 0, 0, 0.15, 0.30, 0.30 and 0 m. The first
+row includes cold parent/index preparation; repeated and returning anchors expose
+cache eviction independently of movement speed or GPU staging. It reports wall/
+thread CPU times, field requests/evaluations/hits, geometry limits and exact
+fingerprints. An optional second argument records a CPU trace. This fixture can
+exceed its geometry budget; the printed limit flag is retained. It measures probe
+reuse, with native moving coverage still checked by the separate gate below.
+
 
 Collect native walking/sprint coverage independently on NVIDIA EGL:
 
@@ -85,7 +100,8 @@ xvfb-run -a python3 -B scripts/benchmarks/terrain_detail/movement.py \
 The helper reuses the existing native-session and EGL adapter implementations,
 verifies the physical GPU UUID, and preserves real GLFW/X11 input. Three flat
 micro-relief fixtures measure a 0.5 m walking core, 0.5 m sprint core and 1.5 m
-sprint core for four seconds at 320×180. It retains published anchor offsets,
+sprint core for four seconds at 320×180, with explicit 300/1,000 m near/mid
+bands and a 30,000-triangle cap. It retains published anchor offsets,
 wall-time speed, publication counts and nonblocking/memory audits. Input delivery
 at the beginning is included in reported wall speed. This is a terrain coverage
 check, not a production performance/FPS cohort or a test of temporal morphing.

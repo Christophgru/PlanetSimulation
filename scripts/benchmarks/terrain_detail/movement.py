@@ -42,7 +42,8 @@ p=scene['planets'][0];p['color']=[.2,.8,.1]
 p['surface_noise']=[{'amplitude_m':.01,'wavelength_m':.25,'octaves':1,'seed':-71}]
 p['foliage'].update(density_per_m2=1,max_blades=100000,draw_distance_m=30,quad_distance_m=8,height_m=.6)
 p['terrain_lod'].update(base_edge_segments=1,medium_edge_segments=4,max_edge_segments=8,steep_edge_segments=8,
- max_triangle_budget=30000,shoreline_edge_m=0,relief_sinking=True,geometric_error_m=.05,
+ max_triangle_budget=30000,near_surface_distance_m=300,mid_surface_distance_m=1000,
+ shoreline_edge_m=0,relief_sinking=True,geometric_error_m=.05,
  local_detail_streaming=True,local_detail_radius_m=.5,local_edge_m=.05,local_error_m=.01,local_transition_m=.5)
 scene['lighting']['shadows']['resolution']=256
 scene['surface_camera'].update(simulation_time_seconds=0,direction_ned=[1,0,0])

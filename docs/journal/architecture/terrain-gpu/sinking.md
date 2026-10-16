@@ -1,5 +1,62 @@
 # Relief-aware terrain sinking
 
+## Fit a complete streaming probe working set — 2026-10-16
+
+The 1.5 m native fixture exposes a cache sizing error: its 30,000-triangle budget
+allowed more than 75,000 fine-field probes, while the cache held only 60,000.
+An identical stationary repeat therefore evaluates 75,353 heights with zero hits;
+a 0.15 m move evaluates 75,168 with only 191 hits. The cache flushes before it can
+retain one full plan, even though topology/field policy are unchanged.
+
+The streaming-only limit is now `4*triangle_budget+2` entries. For a closed parent
+with F faces, at most (N−F)/2 shared-edge splits fit the N-face cap. Original
+vertices plus all edge probes fit `2*N+2`; at most `2*N` triangle-centroid probes
+are assessed. The old capacity omitted the centroids. New limits are 120,002 at
+30k and 400,002 at the maximum 100k cap. Allocation remains lazy, batch eviction
+bounded, and parent replacement drops the cache/owned field together. This is
+additional CPU memory; GPU buffers, quality targets, default settings and field/
+topology/shader contracts are unchanged. Long movement can still evict probes.
+
+The regression now repeats with zero field evaluations. The 0.15 m move evaluates
+4,551 heights with 70,808 hits; generation, samples and indices match fresh-parent
+planning exactly. The optional benchmark's `--working-set` mode reproduces this
+independently with offsets 0, 0, 0.15, 0.30, 0.30 and 0 m. Three alternating
+before/after pairs, identical helper/RelWithDebInfo flags with the frozen 181c5dc
+planner object as baseline, give these median CPU planning wall times:
+
+| Request | Before (ms) | After (ms) |
+|:--|--:|--:|
+| Cold | 523.01 | 510.89 |
+| Same anchor | 242.09 | 203.07 |
+| Move 0.15 m | 248.56 | 207.56 |
+| Move 0.30 m | 263.08 | 216.27 |
+| Repeat 0.30 m | 236.53 | 211.81 |
+| Return to start | 241.38 | 212.96 |
+
+Warm improvement is 10–18% in this bounded stationary/short-move cohort. All six
+fingerprints and geometry/limit/request fields match in every pair. The fixture's
+geometry limit remains visible. All twelve short production rows also retain
+their topology/candidate fingerprints, work, input and index-size fields; those
+0.5 m plans do not exhaust the previous cap and serve as parity controls.
+
+This does **not** fix sustained native movement. The single traced RTX route
+pair is mixed: walking publication 118.01→114.98 ms, sprint 113.15→118.76 ms,
+1.5 m sprint 387.49→415.90 ms. Maximum offsets are now 1.219/2.593/9.142 m;
+385/407, 391/411 and 734/771 frames lie outside their cores, and 515 wide-core
+frames also miss geometry targets. The gate still exits 2. Periodic process RSS
+peaks are 150.1–162.4 MB versus 147.9–157.3 MB in the earlier run (allocator,
+driver and worker pages included; samples can miss peaks). Logical GPU overlap
+remains below 75 MB, with zero blocking polls, bulk reads or finishes. No native
+FPS or continuous-coverage gain is claimed. The helper now explicitly freezes
+the existing 300/1,000 m bands; all three generated inputs match prior inputs.
+
+All eleven detail cases, all 35 core groups, and all 45 RTX compute/consumer cases
+pass. Moving/short-band/recorded-parent replay and CPU/GL 3.3 captures pass; seven
+earlier images remain byte-exact. Overview inspected and unchanged (14,779
+non-background pixels, bounds (1,1)–(794,598), 3,471 planet pixels). Raw evidence:
+`build-f5/resume/detail-probe-capacity-*`, `detail-probe-working-*`. Continuous
+moving detail and temporal publication remain outstanding in the terrain **p** row.
+
 ## Share coarse contact indices between detail plans — 2026-10-16
 
 V4 now retains an immutable coarse contact index with its parent shell. Local

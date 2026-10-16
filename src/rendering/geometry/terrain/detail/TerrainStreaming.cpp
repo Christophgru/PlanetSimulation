@@ -51,8 +51,8 @@ TerrainTopology TerrainSurface::streamDetail(const glm::dvec3& eye,bool restoreP
         auto parent=source.buildTopologyForEye(eye*radius_,{});
         auto adjacency=local?prepareRefinementParent(parent,radius_*metersPerUnit_):nullptr;
         auto contacts=local?std::make_shared<SparseTerrainContacts>(field_,parent):nullptr;
-        // Publish the pair only after both allocations/builds succeed. A failed
-        // rebase must not associate an older graph with a replacement shell.
+        // Publish the shell and both indices only after preparation succeeds.
+        // A failed rebase must not pair older indices with a replacement shell.
         detailCache_->parent=std::move(parent);detailCache_->adjacency=std::move(adjacency);
         detailCache_->contacts=std::move(contacts);
         detailCache_->eye=eye;
@@ -71,8 +71,12 @@ TerrainTopology TerrainSurface::streamDetail(const glm::dvec3& eye,bool restoreP
         for(int i=6;i>=0;--i) result.surfacePolicy.spacing[i]=std::max(result.surfacePolicy.spacing[i],result.surfacePolicy.spacing[i+1]);
         if(!reuse || !detailCache_->queries) {
             detailCache_->queryField=field_;
+            // Refinement creates at most 2*budget+2 vertex/edge probes and
+            // 2*budget centroid probes. The old 2*budget cache could not retain
+            // one wide plan, flushing even on stationary identical requests.
+            // Still bounded by the configured cap; rebasing drops the cache.
             detailCache_->queries=std::make_unique<TerrainQueryCache>(*detailCache_->queryField,
-                2*lod_.max_triangle_budget,result.surfacePolicy);
+                4*std::size_t(lod_.max_triangle_budget)+2,result.surfacePolicy);
         }
         refineSurfaceError(result,eye,true,detailCache_->queries.get(),detailCache_->adjacency.get(),&contactParents);
     } else {

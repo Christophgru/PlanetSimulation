@@ -1,5 +1,43 @@
 # Page to document progress of AI Agents working on this Project
 
+## Streaming probe working set — 2026-10-16
+
+- 181c5dc commits the parent-contact-index reuse below. Native wide-core plans
+  still repeatedly evaluate ~75k field heights while the shared height cache is
+  capped at 60k entries (twice the 30k triangle cap). Added a regression with the
+  native fixture's 300/1000 m near/mid bands and 1.5 m core. Before fix, a
+  stationary repeat evaluates 75,353 heights with zero hits; 0.15 m movement
+  evaluates 75,168 with only 191 hits. Geometry remains deterministic.
+- Increase only the streaming cache capacity to 4*triangle_budget+2. Refinement
+  creates <=2*budget+2 vertex/edge probes and <=2*budget centroid probes; the old
+  capacity cannot retain even one wide plan. The new bound is 120,002 at 30k,
+  400,002 at the maximum 100k cap, with lazy allocation and existing bounded
+  batch eviction. Parent replacement still drops the cache/owned field together.
+  No new GPU memory, quality target, field/shader contract or default setting.
+- Full 32-step build passes. Regression now repeats with 0 evaluations; 0.15 m
+  movement evaluates 4,551 with 70,808 hits. Fresh replay generations match.
+  All eleven detail cases, 35 core groups (32.67 s), 45 RTX compute cases
+  (65.04 s), replay/CPU/GL3.3 matrix (48.77 s) pass. Seven earlier images exact;
+  overview inspected and byte-identical (14,779 pixels, bounds (1,1)–(794,598),
+  3,471 planet pixels). Twelve short production fingerprints/work/index fields
+  remain exact; those 0.5 m plans are parity controls, not cache-stress timings.
+- Add terrain_detail_benchmark --working-set (optional trace path) for six cold,
+  repeat/move/return anchors. Three alternating pairs against the frozen 181c5dc
+  planner object improve warm planning 10–18% (236–263→203–216 ms); all geometry/
+  limit/request fields and fingerprints match. Native helper's existing 300/1000
+  m bands are explicit now; its three generated input documents are identical.
+- Native traced route pair remains mixed: publication walking 118.01→114.98 ms,
+  sprint 113.15→118.76 ms, wide sprint 387.49→415.90 ms. Gate exits 2: max
+  offsets 1.219/2.593/9.142 m; outside 385/407, 391/411, 734/771; wide-core
+  geometry misses in 515 frames. CPU RSS peak samples 150.1–162.4 MB vs prior
+  147.9–157.3 MB (partial periodic observations, not hard bounds). GPU overlap
+  <75 MB; ownership checks pass with zero blocking polls, bulk reads or finishes.
+- Evidence: build-f5/resume/detail-probe-capacity-* and detail-probe-working-*.
+  Frozen before helper/probe use -before-probe-capacity; the matched working-set
+  baseline links the current helper object with TerrainStreamingBeforeProbeCapacity.o
+  from 181c5dc, same compiler flags. Report includes the native non-improvement.
+  Terrain remains p; later TODOs queued and user's production config preserved.
+
 ## Parent contact-index reuse — 2026-10-16
 
 - 8f809fa commits the tested triangle-metadata optimization below. Continued the
