@@ -1,5 +1,31 @@
 # Page to document progress of AI Agents working on this Project
 
+## Retained refinement-value pilot rejected — 2026-10-16
+
+- 892824f is the latest implementation commit. A bounded derived-cache pilot
+  retained fine samples/intrinsic triangle metrics under the parent mutex, with
+  2*budget+2 sample / 2*budget metric caps and saturation/reset fallback. It kept
+  geometry history-free and all 12 production/six wide quality fingerprints exact.
+- Thirteen detail cases (including new saturation/fresh-parent comparisons), 35
+  core groups (59.00 s), 46 RTX cases (77.54 s), frame integration (93.88 s),
+  15-render matrix (73.85 s), and visually inspected exact overview all passed.
+  All 15 old capture images exact. Pilot source/tests are now reverted, not shipped.
+- Three alternating pairs: warm production −14.7/−14.3/+0.2/−11.0%; wide warm
+  −2.0 to −16.3%, but cold wide +17.0%. Wide RSS 34,716–34,772→46,128–46,524 KiB.
+  Repeat requests fall 75,353→0; moved requests 75,359→4,551. Height evaluations
+  unchanged. Field-request/hit columns retained in optional production benchmark.
+- Native gate still exits 2 and coverage worsens: offsets 1.668/3.339/11.050 m;
+  outside 378/402, 458/479, 716/750 frames; 530 wide frames miss geometry targets.
+  Rejected: mixed warm benefit does not justify cold/memory/end-to-end cost.
+- Raw pilot source patch, CSVs, logs and native receipts: ignored
+  build-f5/resume/detail-refinement-values-*. Frozen before helpers remain valid
+  892824f baselines. No new task row; terrain remains p, user config untouched.
+- Next meaningful bottleneck found: one topology is validated/hashed separately
+  by contact construction, admission, GPU-stage construction and compute submission.
+  Plan an immutable owned snapshot shared from validated contact topology; retain
+  full validation for mutable DTO entry points. It can remove main-thread scans
+  and a staging copy without the rejected cache. No snapshot code implemented yet.
+
 ## Refinement allocation/footprint reuse — 2026-10-16
 
 - 88ff0e9 commits vertical refresh below. Continue terrain p; no later TODO started.

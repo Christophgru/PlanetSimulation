@@ -55,6 +55,13 @@ timing counter. It excludes fine-field/normal work and reuse across vertices.
 The current shader retains its unconditional parent phase: simply branching
 around redundant evaluations showed no timing gain in the software pilot.
 
+`height_requests` and `height_hits` at the end of the production CSV distinguish
+field-cache lookups from actual evaluations. Compare geometry/contact fingerprints
+and quality limits independently of these work counts when testing caching
+changes. Lower request counts alone do not establish an end-to-end benefit: the
+retained-value pilot eliminated repeat lookups but was rejected after cold,
+memory and native coverage measurements. The terrain report retains its results.
+
 This measures CPU topology planning only. It does not measure GPU preparation,
 publication delay, desktop FPS, collision error or moving patch coverage. Use
 the automated detail/parity/replay tests and native input loop separately.

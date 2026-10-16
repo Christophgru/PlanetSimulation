@@ -40,7 +40,7 @@ int main(int argc,char** argv) {
     rendering::CpuTrace trace(argc==3?argv[2]:"");
     rendering::CpuTrace::Thread thread(&trace,"detail benchmark");
     if(argc>=2 && std::string(argv[1])=="--working-set") return workingSet();
-    std::cout << "latitude_deg,streaming,step,wall_ms,thread_cpu_ms,triangles,height_evaluations,max_core_edge_m,core_limited,parent_reused,input_bytes,topology_fingerprint,parent_edges,mutable_edges,reference_parent_positions,needed_parent_positions,contact_wall_ms,contact_thread_cpu_ms,contact_index_bytes,contact_candidate_fingerprint,contact_parent_triangles,contact_local_triangles,contact_shared_parent_bytes\n";
+    std::cout << "latitude_deg,streaming,step,wall_ms,thread_cpu_ms,triangles,height_evaluations,max_core_edge_m,core_limited,parent_reused,input_bytes,topology_fingerprint,parent_edges,mutable_edges,reference_parent_positions,needed_parent_positions,contact_wall_ms,contact_thread_cpu_ms,contact_index_bytes,contact_candidate_fingerprint,contact_parent_triangles,contact_local_triangles,contact_shared_parent_bytes,height_requests,height_hits\n";
     const config::ScenarioConfig scene(config::Config::load(argc>=2?argv[1]:"configs/scenarios/solar_system.json"));
     const auto& p=scene.planets[0];const double meters=scene.metersPerWorldUnit();
     for(const auto pose:{glm::dvec2(-17.23072754436555,79.39197457588234),glm::dvec2(-18.726025155509635,113.23762488691663)}) {
@@ -91,7 +91,7 @@ int main(int argc,char** argv) {
                     << t.localDetailLimited << ',' << t.parentReused << ',' << t.topologyInputBytes << ',' << t.generation.topology << ','
                     << t.refinementParentEdges << ',' << t.refinementMutableEdges << ',' << 3*t.morph.size() << ',' << neededParents << ','
                     << contactWall << ',' << contactCpu << ',' << contacts.stats().indexBytes << ',' << candidateHash << ','
-                    << contacts.stats().parentTriangles << ',' << contacts.stats().localTriangles << ',' << contacts.stats().sharedParentBytes << '\n';
+                    << contacts.stats().parentTriangles << ',' << contacts.stats().localTriangles << ',' << contacts.stats().sharedParentBytes << ',' << t.planningQueries.requests << ',' << t.planningQueries.hits << '\n';
             }
         }
     }

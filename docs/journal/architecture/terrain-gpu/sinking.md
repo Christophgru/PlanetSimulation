@@ -1,5 +1,37 @@
 # Relief-aware terrain sinking
 
+## Rejected retained-value cache pilot — 2026-10-16
+
+A bounded pilot reused fixed fine samples and intrinsic triangle error/edge
+metrics across plans. Internal stable midpoint IDs identified cached values;
+selection and current-plan IDs were still reconstructed, preserving deterministic
+replay. It capped samples at `2*budget+2` and metrics at `2*budget`, bypassing
+insertions on saturation and resetting before the next plan or parent/policy
+change. All twelve production and six wide quality/contact fingerprints stayed
+exact. Repeat height-cache requests fell 75,353→0 and a 0.15 m move's requests
+75,359→4,551, with actual field evaluations unchanged.
+
+Three alternating pairs give warm production changes −14.7%, −14.3%, +0.2% and
+−11.0%; warm wide cases improve 2.0–16.3%. Cold wide planning is 17.0% slower.
+Wide process RSS rises 34,716–34,772→46,128–46,524 KiB; full production-matrix RSS
+is lower (63,552–63,908→60,572–60,716 KiB), but that high-water measurement includes
+legacy plans and cannot establish a reduction in retained-cache memory.
+
+Native coverage worsens in this single traced cohort: max offsets are
+1.668/3.339/11.050 m, outside counts 378/402, 458/479 and 716/750 frames, with 530
+wide geometry misses. The unchanged gate exits 2; nonblocking/ownership checks
+still pass. The pilot is **rejected**: these mixed warm results do not justify
+its cold, memory and end-to-end costs. Its cache and associated test changes are
+reverted. The optional production benchmark retains appended height request/hit
+columns to distinguish lookup work from actual evaluations in future studies.
+
+Before rejection, all thirteen detail cases, 35 core groups (59.00 s), 46 RTX
+cases (77.54 s), frame integration (93.88 s), 15-render replay/fallback matrix
+(73.85 s), all fifteen historical image comparisons and the visually inspected
+overview passed. Raw pilot patch and receipts remain ignored/local under
+`build-f5/resume/detail-refinement-values-*`. This adds no task chain or completion
+claim; retained refinement and temporal publication remain outstanding.
+
 ## Recycle refinement nodes and footprint calculations — 2026-10-16
 
 The instruction profile identified repeated edge-node allocation/free during
