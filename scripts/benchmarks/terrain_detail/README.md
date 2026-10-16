@@ -27,6 +27,15 @@ without other compilation/rendering work when collecting wall timings; thread
 CPU time is also retained to distinguish scheduling delays. Record compiler,
 configuration and source revision with retained evidence.
 
+The `contact_*` columns separately measure construction of the sparse contact
+oracle, including its owned topology copy, validation and spatial index. Its
+wall/thread CPU times are excluded from planner times. `contact_index_bytes`
+counts the retained nodes/order array, while `contact_candidate_fingerprint`
+hashes the complete ordered broad-phase results for axis/pole directions, 256
+distributed directions and sampled exact mesh vertices. Compare both fingerprints
+and index size when optimizing index construction. These queries do not evaluate
+the displaced field; contact/mesh equality remains covered by automated tests.
+
 `reference_parent_positions` counts the current unconditional three parent
 positions per morph sample. `needed_parent_positions` counts only positive parent
 weights and collapses identical descriptors within each vertex to one position.

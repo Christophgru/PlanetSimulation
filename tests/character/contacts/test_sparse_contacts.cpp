@@ -3,6 +3,7 @@
 #include "rendering/geometry/Terrain.h"
 #include "config/Config.h"
 #include <gtest/gtest.h>
+#include <algorithm>
 #include <iostream>
 #include <limits>
 
@@ -88,6 +89,37 @@ TEST(SparseTerrainContacts, ProductionQueriesAreIndexedLazyBoundedAndExtendAcros
         << " candidates=" << distributed.candidateTriangles << " nodes=" << distributed.nodesVisited
         << " topology_bytes=" << distributed.topologyBytes << " index_bytes=" << distributed.indexBytes
         << " build_ms=" << distributed.buildMilliseconds << '\n';
+}
+TEST(SparseTerrainContacts, PartialMeshesMatchExhaustiveContactsAcrossMedianAndLeafBoundaries) {
+    const TerrainSurface surface({},lod(),1,1000);
+    const auto shell=surface.buildTopology(1);
+    for(const unsigned count:{1,7,8,9,15,16,17,31,32,33}) {
+        SCOPED_TRACE(count);
+        auto topology=shell;topology.indices.clear();
+        // Distribute disconnected triangles across axes and hemispheres. Odd
+        // sizes exercise nonzero partition offsets and unequal child ranges.
+        for(unsigned i=0;i<count;++i) {
+            const auto triangle=(37*i)%shell.triangleCount();
+            for(int j=0;j<3;++j) topology.indices.push_back(shell.indices[3*triangle+j]);
+        }
+        topology.canonicalize(surface.field().fingerprint());
+        const auto mesh=surface.evaluateTopology(topology);
+        auto source=std::make_shared<SparseTerrainContacts>(surface.field(),topology);
+        SurfaceContact exhaustive,indexed;
+        exhaustive.bind(mesh.vertices,mesh.indices,1,1000);indexed.bind(source,1);
+        for(unsigned triangle=0;triangle<count;++triangle) {
+            glm::dvec3 center(0);
+            for(int j=0;j<3;++j) {
+                const auto& r=topology.samples[topology.indices[3*triangle+j]].radial;
+                center+=glm::dvec3(r[0],r[1],r[2]);
+            }
+            const auto direction=glm::normalize(center);
+            const auto candidates=source->candidates(direction);
+            EXPECT_TRUE(std::binary_search(candidates.begin(),candidates.end(),triangle));
+            const auto expected=exhaustive.sample(direction,missing),actual=indexed.sample(direction,missing);
+            EXPECT_EQ(actual.position,expected.position);EXPECT_EQ(actual.normal,expected.normal);
+        }
+    }
 }
 TEST(SparseTerrainContacts, RejectsStaleMalformedAndCollapsedContractsBeforeBinding) {
     const TerrainSurface surface({},lod(),1,1000),other({},lod(),1,2000);

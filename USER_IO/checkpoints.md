@@ -1,5 +1,38 @@
 # Page to document progress of AI Agents working on this Project
 
+## Contact-index preparation optimization — 2026-10-16
+
+- Continued the sole terrain p row after e75c6ae. NVIDIA is available again;
+  the RTX 3070 Ti traced native receipt still fails coverage (baseline max
+  offsets 1.553/3.164/9.451 m). CPU contact-index construction takes a median
+  28.40 ms of the first walking route's 70.40 ms full CPU build.
+- Cache exact per-triangle radial bounds/centroid sums during BVH construction.
+  Temporary 72 bytes/triangle, released before publication; same padding, axes,
+  leaf size, ID ties and candidate order, unchanged retained index/GPU memory.
+  No header/ABI, field contract, shader or generation-hash changes.
+- Extend terrain_detail_benchmark with independent contact wall/thread CPU time,
+  retained index size and ordered candidate-list fingerprints. Twelve before/
+  after v3/v4 fingerprints, geometry/work fields, index sizes and candidate
+  fingerprints are exact. V4 production contact prep improves 124–133→80–89 ms
+  (30–39%) in one isolated cohort. Native walking medians: contact index
+  28.40→19.82 ms, CPU build 70.40→63.05 ms, publication 146.45→138.39 ms.
+  These are diagnostics, not an FPS/coverage acceptance claim.
+- New contact regression compares disconnected partial meshes against exhaustive
+  rendered-plane contacts at ten uneven/leaf-boundary sizes. All five contact
+  cases, all 35 core groups, all 45 RTX compute/consumer cases, moving/rebased/
+  recorded-parent replay and CPU/GL 3.3 captures pass. Overview inspected and
+  byte-identical (14,779 pixels, bounds (1,1)–(794,598), 3,471 planet pixels).
+- Native after receipt still exits 2: max offsets 1.476/2.805/9.309 m; outside
+  frames 315/332, 518/539, 763/797. The 1.5 m core also misses geometry in
+  537 frames at the unchanged 30k cap. Nonblocking/ownership audits pass; logical
+  overlap <75 MB. Do not loosen targets or mark terrain t. Continuous moving
+  detail/temporal publication remain; later TODOs stay queued in original order.
+- Local logs/receipts: build-f5/resume/detail-contact-{build,core,oracles,
+  rtx-compute,streaming,render}.log, detail-contact-rtx-after-trace,
+  detail-rtx-return-trace, detail-contacts-{before,after}.csv. Frozen baseline
+  benchmark/native binaries are in the same ignored directory. Preserve the
+  user's uncommitted configs/scenarios/solar_system.json edits.
+
 ## Recorded parent replay correction — 2026-10-16
 
 - be1078b commits the dispatch/workload verification below. Continued the same

@@ -1,5 +1,62 @@
 # Relief-aware terrain sinking
 
+## Cache triangle metadata during contact-index construction — 2026-10-16
+
+NVIDIA is available again (RTX 3070 Ti, UUID
+`GPU-1795f01b-f1fd-61a0-3b79-199560dd0793`). The native traced movement check
+still fails, so this continuation stays within the terrain **p** row. Its first
+walking trace spends a median 28.40 ms building the sparse contact index out of
+70.40 ms for the full CPU build. Median request-to-publication time is 146.45 ms;
+parent reuse alone does not deliver continuous moving detail.
+
+The contact-index builder now computes each triangle's exact radial bounds and
+unscaled centroid sum once. Median partition comparisons read that temporary
+metadata instead of repeatedly fetching three indirect vertices. Split axes,
+padding, triangle-ID tie rules, leaf size, candidate ordering and lazy displaced
+positions are unchanged. Scratch costs 72 bytes per triangle (7.2 MB at the
+100,000-triangle cap), exists only during the worker build, and is released before
+publication. Retained index sizes and GPU admission are unchanged. No bulk field
+evaluation, extra retained generation or new worker is added.
+
+One isolated before/after production planning cohort, RelWithDebInfo/GCC 12,
+includes owned contact-topology copies, contract validation and index building:
+
+| V4 pose | Step | Contact preparation before (ms) | After (ms) |
+|:--|--:|--:|--:|
+| Startup | cold | 124.30 | 86.99 |
+| Startup | 0.15 m | 126.41 | 88.71 |
+| Startup | 0.30 m | 126.61 | 87.67 |
+| Mountain | cold | 133.20 | 81.57 |
+| Mountain | 0.15 m | 133.08 | 81.20 |
+| Mountain | 0.30 m | 128.82 | 79.92 |
+
+This is a 30–39% reduction in contact preparation in this cohort, not an FPS
+claim. All twelve v3/v4 topology fingerprints, geometry/work fields and retained
+index sizes match. The benchmark additionally hashes complete ordered candidate
+lists at poles/axes, 256 distributed directions and sampled exact vertices;
+all twelve candidate fingerprints match. The native walking trace's median
+contact index falls 28.40→19.82 ms, full CPU build 70.40→63.05 ms and
+request-to-publication 146.45→138.39 ms. Profiling overhead is retained; these are
+one paired diagnostic run rather than a performance acceptance cohort.
+
+The unchanged native gate still exits 2. Maximum published-anchor offsets after
+the change are 1.476 m (0.5 m walking core), 2.805 m (0.5 m sprint core) and
+9.309 m (1.5 m sprint core), with 315/332, 518/539 and 763/797 frames outside
+their respective cores. The 1.5 m fixture also misses geometry targets in 537
+frames; its 30,000-triangle budget remains unchanged. All ownership/nonblocking
+audits pass, with zero blocking polls, bulk reads or finishes and peak logical
+overlap below 75 MB. These failing receipts must not be presented as acceptance.
+
+All 35 core groups pass; all five contact cases pass, including the new
+independent full-mesh comparison for disconnected partial meshes with 1, 7, 8,
+9, 15, 16, 17, 31, 32 and 33 triangles. All 45 RTX compute/staging/cell/
+publication/allocation cases pass. Moving/short-band/recorded-parent replay and
+CPU/GL 3.3 captures pass; overview bytes are unchanged and visually inspected
+(14,779 non-background pixels, bounds (1,1)–(794,598), 3,471 planet pixels).
+Raw evidence stays local under `build-f5/resume/detail-contact-*`,
+`detail-contacts-{before,after}.csv` and `detail-rtx-return-trace`. Continuous
+moving detail and temporal publication remain outstanding.
+
 ## Preserve recorded parent anchors — 2026-10-16
 
 The safer reuse bound also needs a capture adapter: an older v4 document can

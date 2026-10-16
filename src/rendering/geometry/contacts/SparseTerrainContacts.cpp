@@ -37,27 +37,44 @@ SparseTerrainContacts::SparseTerrainContacts(PlanetField field,TerrainTopology t
     stats_.buildMilliseconds=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();
 }
 unsigned SparseTerrainContacts::build(unsigned first,unsigned count) {
-    const unsigned id=nodes_.size();nodes_.emplace_back();
-    Node node;node.first=first;node.count=count;
-    node.low=glm::dvec3(std::numeric_limits<double>::infinity());node.high=-node.low;
-    for(unsigned i=first;i<first+count;++i) for(int corner=0;corner<3;++corner) {
-        const auto p=radial(topology_.samples[topology_.indices[3*order_[i]+corner]]);
-        node.low=glm::min(node.low,p);node.high=glm::max(node.high,p);
+    // Only build-local scratch: repeated median comparisons used to fetch all
+    // three indirect vertices again. Cache exact bounds and unscaled centroid
+    // sums once, preserving the original split axis and triangle-ID tie rule.
+    // The 72 bytes/triangle are released before the contact index is published;
+    // no field evaluation or additional resident generation is introduced.
+    struct Bounds {glm::dvec3 low,high,center;};
+    std::vector<Bounds> bounds(topology_.triangleCount());
+    for(unsigned i=first;i<first+count;++i) {
+        auto& b=bounds[order_[i]];
+        b.low=glm::dvec3(std::numeric_limits<double>::infinity());b.high=-b.low;b.center=glm::dvec3(0);
+        for(int corner=0;corner<3;++corner) {
+            const auto p=radial(topology_.samples[topology_.indices[3*order_[i]+corner]]);
+            b.low=glm::min(b.low,p);b.high=glm::max(b.high,p);b.center+=p;
+        }
     }
-    node.low-=directionPadding;node.high+=directionPadding;
-    if(count>8) {
-        const auto extent=node.high-node.low;
-        int axis=extent.y>extent.x ? 1 : 0;if(extent.z>extent[axis]) axis=2;
-        const auto center=[&](unsigned triangle) {
-            double sum=0;for(int j=0;j<3;++j) sum+=topology_.samples[topology_.indices[3*triangle+j]].radial[axis];
-            return sum;
-        };
-        const unsigned middle=first+count/2;
-        std::nth_element(order_.begin()+first,order_.begin()+middle,order_.begin()+first+count,
-            [&](unsigned a,unsigned b) {const auto x=center(a),y=center(b);return x==y ? a<b : x<y;});
-        node.count=0;node.left=build(first,count/2);node.right=build(middle,count-count/2);
-    }
-    nodes_[id]=node;return id;
+    const auto partition=[&](const auto& self,unsigned begin,unsigned size) -> unsigned {
+        const unsigned id=nodes_.size();nodes_.emplace_back();
+        Node node;node.first=begin;node.count=size;
+        node.low=glm::dvec3(std::numeric_limits<double>::infinity());node.high=-node.low;
+        for(unsigned i=begin;i<begin+size;++i) {
+            const auto& b=bounds[order_[i]];
+            node.low=glm::min(node.low,b.low);node.high=glm::max(node.high,b.high);
+        }
+        node.low-=directionPadding;node.high+=directionPadding;
+        if(size>8) {
+            const auto extent=node.high-node.low;
+            int axis=extent.y>extent.x ? 1 : 0;if(extent.z>extent[axis]) axis=2;
+            const unsigned middle=begin+size/2;
+            std::nth_element(order_.begin()+begin,order_.begin()+middle,order_.begin()+begin+size,
+                [&](unsigned a,unsigned b) {
+                    const auto x=bounds[a].center[axis],y=bounds[b].center[axis];
+                    return x==y ? a<b : x<y;
+                });
+            node.count=0;node.left=self(self,begin,size/2);node.right=self(self,middle,size-size/2);
+        }
+        nodes_[id]=node;return id;
+    };
+    return partition(partition,first,count);
 }
 bool SparseTerrainContacts::intersects(const Node& node,const glm::dvec3& direction) const {
     double near=0,far=std::numeric_limits<double>::infinity();
