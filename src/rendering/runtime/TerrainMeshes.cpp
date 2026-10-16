@@ -1,5 +1,6 @@
 #include "rendering/runtime/RendererState.h"
 #include "rendering/geometry/compute/TerrainGpuPreparation.h"
+#include "rendering/geometry/TerrainLod.h"
 #include <iostream>
 
 namespace rendering {
@@ -133,16 +134,16 @@ void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalkin
             throw std::invalid_argument("Camera cannot be at a planet center");
         const glm::dvec3 radial = offset / distance;
         const int localMask = distance < 3.0 * planet.radius ? 1 : 0;
-        const double movedMeters = meshReady[i] ? planet.radius *
-            scene.scenario.metersPerWorldUnit() * std::acos(std::clamp(
-                glm::dot(radial, glm::normalize(lastTerrainEyes[i])), -1.0, 1.0)) : 0.0;
+        const auto movedFrom=[&](const glm::dvec3& anchor) {
+            const double ground=planet.radius*scene.scenario.metersPerWorldUnit()*std::acos(std::clamp(
+                glm::dot(radial,glm::normalize(anchor)),-1.0,1.0));
+            return terrainPlanningMovementMeters(ground,localEye,anchor,scene.scenario.metersPerWorldUnit(),
+                planet.terrain_lod.geometric_error_m>0);
+        };
+        const double movedMeters=meshReady[i]?movedFrom(lastTerrainEyes[i]):0;
         const double rebuildDistance=planet.terrain_lod.rebuildDistanceMeters();
         if (meshReady[i] && localMask == lastLocalMask[i] &&
             (localMask == 0 || movedMeters < rebuildDistance)) continue;
-        const auto movedFrom=[&](const glm::dvec3& anchor) {
-            return planet.radius*scene.scenario.metersPerWorldUnit()*std::acos(std::clamp(
-                glm::dot(radial,glm::normalize(anchor)),-1.0,1.0));
-        };
         if(auto pending=terrainJobs.pendingFor(terrainSceneEpoch,i)) {
             if(pending->localMask==localMask && movedFrom(pending->eye)<rebuildDistance) continue;
         }

@@ -261,6 +261,41 @@ TEST(TerrainDetail, StreamingRebasesBeforeAShortNearBandFiltersOrSinksTheMovingC
     }
 }
 
+TEST(TerrainDetail, VerticalMovementRebasesTheParentAndPreservesRecordedSnapshots) {
+    auto lod=detailLod();lod.local_detail_streaming=true;
+    for(const auto units:{glm::dvec2(1,1000),glm::dvec2(1000,1)}) {
+        const auto radius=units.x,meters=units.y;
+        SCOPED_TRACE(meters);
+        const glm::dvec3 high(1.5*radius,0,0),low(1.002*radius,0,0);
+        TerrainSurface surface({microNoise()},lod,radius,meters);
+        const auto airborne=surface.buildTopologyForEye(high,{});
+        // Ground footprint alone does not qualify a high-altitude face for
+        // the nearby error domain.
+        ASSERT_EQ(airborne.localDetailTriangles,0);
+        const auto landed=surface.buildTopologyForEye(low,{});
+        EXPECT_FALSE(landed.parentReused);
+        EXPECT_NE(landed.parentEye,airborne.parentEye);
+        TerrainSurface fresh({microNoise()},lod,radius,meters);
+        const auto expected=fresh.buildTopologyForEye(low,{});
+        EXPECT_EQ(landed.generation,expected.generation);
+        EXPECT_EQ(landed.samples,expected.samples);EXPECT_EQ(landed.indices,expected.indices);
+        EXPECT_GT(landed.localDetailTriangles,0);EXPECT_FALSE(landed.localDetailLimited);
+        const auto ascending=surface.buildTopologyForEye(high,{});
+        EXPECT_FALSE(ascending.parentReused);EXPECT_EQ(ascending.parentEye,airborne.parentEye);
+        EXPECT_EQ(ascending.generation,airborne.generation);
+        // A saved historical parent still wins for one explicit replay build;
+        // subsequent ordinary planning must regain the descent safety rule.
+        surface.prepareReplayParent(high);
+        const auto recorded=surface.buildTopologyForEye(low,{});
+        EXPECT_TRUE(recorded.parentReused);EXPECT_EQ(recorded.parentEye,airborne.parentEye);
+        const auto resumed=surface.buildTopologyForEye(low,{});
+        EXPECT_FALSE(resumed.parentReused);EXPECT_EQ(resumed.generation,expected.generation);
+        std::cout << "DETAIL_DESCENT meters_per_unit=" << meters
+            << " high_parent_faces=" << 2*airborne.refinementParentEdges/3
+            << " low_parent_faces=" << 2*landed.refinementParentEdges/3 << '\n';
+    }
+}
+
 TEST(TerrainDetail, RecordedParentsOverrideDistanceOnceAndRebuildTheExactRequestedAnchor) {
     auto lod=detailLod();lod.local_detail_streaming=true;
     lod.near_surface_distance_m=2;lod.mid_surface_distance_m=20;

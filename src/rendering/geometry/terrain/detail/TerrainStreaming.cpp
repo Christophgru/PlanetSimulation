@@ -36,12 +36,16 @@ TerrainTopology TerrainSurface::streamDetail(const glm::dvec3& eye,bool restoreP
     detailCache_->recordedParentNext=false;
     const bool local=glm::length(eye)<3;
     const double movement=!detailCache_->parent?0:glm::length(glm::normalize(eye)-glm::normalize(detailCache_->eye))*radius_*metersPerUnit_;
+    // Error selection depends on radial height too: either vertical direction
+    // can bring ridge faces closer without changing the ground footprint.
+    const double verticalMovement=!detailCache_->parent?0:
+        std::abs(glm::length(detailCache_->eye)-glm::length(eye))*radius_*metersPerUnit_;
     // The fixed fine-field policy must still cover the whole moving core.
     // A ten-metre minimum alone can carry a short near band past its finest
     // footprint, silently filtering/sinking vertices inside that core.
     const double reuseDistance=.5*(lod_.near_surface_distance_m-lod_.local_detail_radius_m);
     const bool reuse=!restoreParent && detailCache_->parent && local==(glm::length(detailCache_->eye)<3) &&
-        (recorded || !local || movement<reuseDistance);
+        (recorded || !local || (movement<reuseDistance && verticalMovement<reuseDistance));
     if(!reuse) {
         auto coarse=lod_;coarse.local_detail_radius_m=0;coarse.local_detail_streaming=false;
         const int minimum=320*3*coarse.base_edge_segments*(2*std::max(1,(coarse.base_edge_segments+1)/2)-1);

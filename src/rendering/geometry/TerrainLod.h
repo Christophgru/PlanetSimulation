@@ -2,10 +2,20 @@
 #include <array>
 #include <algorithm>
 #include <cmath>
+#include <glm/glm.hpp>
 #include "config/ScenarioConfig.h"
 
 namespace rendering {
 inline constexpr int terrainLodCount = 8;
+
+// Error-aware refinement depends on eye height as well as ground direction.
+// Keep each caller's existing angular metric; height-independent LOD retains
+// its original refresh behavior. Eye positions are body-local world units.
+inline double terrainPlanningMovementMeters(double groundMeters,const glm::dvec3& eye,
+    const glm::dvec3& previousEye,double metersPerWorldUnit,bool heightAware) {
+    if(!heightAware) return groundMeters;
+    return std::max(groundMeters,std::abs(glm::length(eye)-glm::length(previousEye))*metersPerWorldUnit);
+}
 
 // Level 0 is distant, level 7 is finest. Keep the old three config anchors;
 // intermediate levels are derived rather than adding seven tunable distances.

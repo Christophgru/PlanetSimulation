@@ -113,11 +113,37 @@ dw, dh, dc, dp = read_png(recorded_cpu)
 assert (cw, ch, cc) == (dw, dh, dc)
 recorded_mean = sum(abs(a-b) for a, b in zip(cp, dp)) / len(cp)
 assert recorded_mean < .1, recorded_mean
+
+# Recorded high-altitude parents must survive the newer live descent rule for
+# one replay plan. Ordinary descent/fresh-parent equality has CPU/GPU oracles;
+# this exercises the renderer's explicit historical-capture adapter.
+high_parent = json.loads(json.dumps(historical))
+factor = 1.5 * planet['radius'] / math.sqrt(sum(x*x for x in old_parent))
+high_anchor = [x * factor for x in old_parent]
+high_parent['render']['terrain_parent_eyes_world_units'][0] = high_anchor
+high_path = out / 'historical-high-parent.json'
+high_path.write_text(json.dumps(high_parent))
+high, high_state = run('recorded-high-parent', replay=high_path)
+assert high_state['render']['terrain_parent_eyes_world_units'][0] == high_anchor
+high_replay, _ = run('recorded-high-parent-replay', replay=Path(str(high) + '.json'))
+assert high.read_bytes() == high_replay.read_bytes()
+high_cpu, _ = run('recorded-high-parent-cpu', ('--terrain-backend', 'cpu'), Path(str(high) + '.json'))
+high_gl33, _ = run('recorded-high-parent-gl33', ('--terrain-backend', 'cpu'), Path(str(high) + '.json'),
+    {'LIBGL_ALWAYS_SOFTWARE': '1', 'MESA_GL_VERSION_OVERRIDE': '3.3', 'MESA_GLSL_VERSION_OVERRIDE': '330'})
+assert high_cpu.read_bytes() == high_gl33.read_bytes()
+ew, eh, ec, ep = read_png(high)
+fw, fh, fc, fp = read_png(high_cpu)
+assert (ew, eh, ec) == (fw, fh, fc)
+high_mean = sum(abs(a-b) for a, b in zip(ep, fp)) / len(ep)
+assert high_mean < .1, high_mean
 (out / 'results.json').write_text(json.dumps({'moving_replay_exact': True,
     'short_near_rebase_replay_exact': True,
     'recorded_parent_replay_exact': True,
     'recorded_parent_cpu_gl33_exact': True,
     'recorded_parent_cpu_gpu_mean_channel_error': recorded_mean,
+    'recorded_high_parent_replay_exact': True,
+    'recorded_high_parent_cpu_gl33_exact': True,
+    'recorded_high_parent_cpu_gpu_mean_channel_error': high_mean,
     'cpu_gl33_exact': True, 'cpu_gpu_mean_channel_error': mean,
     'contract': state['render']['terrain_contract']}, indent=2) + '\n')
-print('PASS moving terrain v4, exact parent/rebase replay, CPU/GL 3.3, corrupt anchor rejection')
+print('PASS moving terrain v4, exact parent/rebase/high-parent replay, CPU/GL 3.3, corrupt anchor rejection')

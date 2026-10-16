@@ -1,5 +1,62 @@
 #include "FrameTestSupport.h"
 
+TEST(TerrainFrame, VerticalOnlyAdaptiveMovementRequestsAndPublishesCompleteGenerations) {
+    for(const std::string mode:{"resident","cpu_async","cpu_capture"}) {
+        SCOPED_TRACE(mode);
+        const bool managed=mode=="resident",capture=mode=="cpu_capture";
+        auto o=options("vertical-"+mode);o.thirdPersonRenderMode=false;
+        if(!managed) {o.terrainBackend="cpu";o.terrainGrassPlanner="cpu";}
+        json scene;std::ifstream(o.configPath)>>scene;
+        for(auto& p:scene["planets"]) {
+            p["rotation"]={{"period_seconds",0},{"axial_tilt_deg",0}};
+            p["atmosphere"]["enabled"]=false;p["water"]["enabled"]=false;
+            p["terrain_landscape"]={{"enabled",false}};p["surface_noise"]=json::array();
+        }
+        auto& p=scene["planets"][0];
+        p["surface_noise"]=json::array({{{"amplitude_m",.01},{"wavelength_m",.25},{"octaves",1},{"seed",-71}}});
+        p["terrain_lod"].update({{"base_edge_segments",1},{"medium_edge_segments",4},{"max_edge_segments",8},
+            {"steep_edge_segments",8},{"max_triangle_budget",30000},{"shoreline_edge_m",0},
+            {"near_surface_distance_m",35},{"mid_surface_distance_m",110},{"relief_sinking",true},
+            {"geometric_error_m",.05},{"local_detail_streaming",true},{"local_detail_radius_m",.5},
+            {"local_edge_m",.05},{"local_error_m",.01},{"local_transition_m",.5}});
+        p["foliage"].update({{"density_per_m2",1},{"draw_distance_m",5},{"quad_distance_m",2}});
+        std::ofstream(o.configPath)<<scene.dump(2);
+        rendering::Renderer renderer(o);auto& r=Probe::state(renderer);r.options.renderTestMode=capture;
+        std::unique_ptr<GlAudit> audit;if(managed) audit=std::make_unique<GlAudit>();
+        const auto& body=r.scene.bodies[1];const auto radius=r.scene.scenario.planets[0].radius;
+        const auto radial=glm::normalize(body.toLocalPoint(eye(r)));
+        const auto up=body.orientation*radial;
+        const auto pose=[&](double scale) {
+            r.scene.surfaceCamera->followFlight(body.position+body.orientation*(radial*(scale*radius)),up,false);
+        };
+        const auto step=[&]{r.preparePlanetMeshes(eye(r),!capture);};
+        const auto settled=[&] {
+            return std::all_of(r.meshReady.begin(),r.meshReady.end(),[](bool ready){return ready;}) &&
+                !r.terrainJobs.pending(r.terrainSceneEpoch) && (!managed || !r.terrainPublication->pending());
+        };
+        json trace=json::array();pose(1.5);
+        ASSERT_TRUE(until(step,settled));draw(r,false);trace.push_back(r.terrainPublicationState());
+        EXPECT_EQ(r.meshes.planetMeshes[0].terrainStats.localDetailTriangles,0);
+        for(const double scale:{1.002,1.5}) {
+            const auto revision=r.meshes.planetMeshes[0].revision;
+            const auto submitted=r.terrainJobs.stats().submitted;
+            pose(scale);step();
+            // Pure radial movement must reach the real scheduling branch,
+            // including pending-request coalescing, rather than grass only.
+            if(capture) ASSERT_GT(r.meshes.planetMeshes[0].revision,revision);
+            else ASSERT_GT(r.terrainJobs.stats().submitted,submitted);
+            ASSERT_TRUE(until(step,[&]{return settled() && r.meshes.planetMeshes[0].revision>revision;}));
+            EXPECT_FALSE(r.meshes.planetMeshes[0].terrainStats.parentReused);
+            EXPECT_NEAR(glm::length(r.lastTerrainEyes[0]),scale*radius,1e-10*radius);
+            const auto& stats=r.meshes.planetMeshes[0].terrainStats;
+            if(scale<1.1) {EXPECT_GT(stats.localDetailTriangles,0);EXPECT_FALSE(stats.localDetailLimited);}
+            else EXPECT_EQ(stats.localDetailTriangles,0);
+            draw(r,false);trace.push_back(r.terrainPublicationState());
+        }
+        if(managed) save(o,trace,*audit,r);
+    }
+}
+
 TEST(TerrainFrame, StartupGrassOnlyRecoveryAndProgrammaticWalkingPublishWithoutWaits) {
     auto o=options("movement");rendering::Renderer renderer(o);auto& r=Probe::state(renderer);
     // Exercise the real frame preparation branch without opening the public CLI gate.

@@ -1,5 +1,6 @@
 #include "rendering/runtime/RendererState.h"
 #include "rendering/foliage/GrassPlacement.h"
+#include "rendering/geometry/TerrainLod.h"
 #include <GLFW/glfw3.h>
 #include <algorithm>
 #include <iostream>
@@ -183,8 +184,11 @@ void Renderer::Impl::prepareResidentFrame(const glm::dvec3& eye,std::optional<do
         // slot, so it cannot begin another queued build or accumulate outputs.
     }
     const auto movedFrom=[&](std::size_t i,const glm::dvec3& current,const glm::dvec3& previous) {
-        return scene.scenario.planets[i].radius*scene.scenario.metersPerWorldUnit()*std::acos(std::clamp(
+        const auto& planet=scene.scenario.planets[i];
+        const double ground=planet.radius*scene.scenario.metersPerWorldUnit()*std::acos(std::clamp(
             glm::dot(glm::normalize(current),glm::normalize(previous)),-1.0,1.0));
+        return terrainPlanningMovementMeters(ground,current,previous,scene.scenario.metersPerWorldUnit(),
+            planet.terrain_lod.geometric_error_m>0);
     };
     std::optional<TerrainBuildRequest> candidate;double priority=std::numeric_limits<double>::infinity();
     for(std::size_t i=0;i<scene.scenario.planets.size();++i) {

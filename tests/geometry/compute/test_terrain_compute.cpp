@@ -318,6 +318,33 @@ TEST(TerrainCompute, ShortNearBandRebaseKeepsTheCoreUnsunkAndMatchesGpu) {
     }
     parity(surface,t,compute,true);
 }
+TEST(TerrainCompute, VerticalRebasesAndRecordedHighParentsMatchCpuAndContacts) {
+    auto l=lod();l.max_triangle_budget=30000;l.shoreline_edge_m=0;
+    l.relief_sinking=true;l.geometric_error_m=.05;l.local_detail_radius_m=.5;
+    l.local_edge_m=.05;l.local_transition_m=.5;l.local_detail_streaming=true;
+    config::PlanetConfig::SurfaceNoiseFunction n;n.amplitude_m=.01;n.wavelength_m=.25;n.octaves=1;
+    const TerrainSurface surface({n},l,1,1000);TerrainCompute compute;
+    const glm::dvec3 high(1.5,0,0),low(1.002,0,0);
+    (void)surface.buildTopologyForEye(high,{});
+    for(const bool recorded:{false,true}) {
+        if(recorded) surface.prepareReplayParent(high);
+        const auto t=surface.buildTopologyForEye(low,{});
+        ASSERT_EQ(t.parentReused,recorded);ASSERT_FALSE(t.localDetailLimited);
+        parity(surface,t,compute,true);
+        auto gpu=compute.generate(surface.field(),t);gpu->waitForCapture();
+        const auto vertices=gpu->readVertices();const auto indices=gpu->readIndices();
+        auto contacts=std::make_shared<SparseTerrainContacts>(surface.field(),t);
+        SurfaceContact rendered,sparse;rendered.bind(vertices,indices,1,1000);sparse.bind(contacts,1);
+        for(double y:{-.002,-.0003,0.,.0003,.002}) {
+            const auto r=glm::normalize(glm::dvec3(1,y,.00013));
+            EXPECT_LE(glm::length(rendered.sample(r,{}).position-sparse.sample(r,{}).position),.002);
+        }
+        if(!recorded) {
+            const auto ascending=surface.buildTopologyForEye(high,{});
+            ASSERT_FALSE(ascending.parentReused);parity(surface,ascending,compute,true);
+        }
+    }
+}
 int main(int argc,char** argv) {
     ::testing::InitGoogleTest(&argc,argv);if(!glfwInit()) return 1;
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,4);glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);

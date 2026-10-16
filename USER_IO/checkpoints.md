@@ -1,5 +1,34 @@
 # Page to document progress of AI Agents working on this Project
 
+## Vertical terrain refresh correction — 2026-10-16
+
+- 09e308d commits sink reuse below. Corrected two height-sensitive terrain bugs:
+  streaming parent reuse ignored radial movement, and both runtime schedulers
+  skipped purely vertical changes. A 498 m drop previously submitted no new job
+  (2→2); the stale high shell has 1,992 faces versus a fresh low shell's 3,048.
+- Parent reuse now bounds absolute radial movement as well as horizontal travel.
+  Runtime combines its existing angular metric with radial movement for
+  geometric-error-aware terrain; other refresh behavior is unchanged. Recorded
+  parents retain their one-shot replay override. No new GPU buffers or formats.
+- CPU tests cover descent/ascent, fresh-plan equality, both world-unit conventions
+  and ordinary planning after recorded-parent replay. GPU tests compare complete
+  geometry/contacts; worst new position difference is 0.0596 mm. Runtime tests
+  verify complete published generations after descent/ascent on resident GPU,
+  async CPU and synchronous capture CPU, with no bulk reads or blocking waits.
+  The high-altitude error-domain guard is also preserved.
+- Full build, 35 core groups (36.11 s), all 46 RTX compute cases (72.69 s), full
+  frame integration (134.13 s) and expanded 15-render capture matrix (65.25 s)
+  pass. Historical high-parent replay and CPU/GL 3.3 images are exact; GPU/CPU
+  image mean difference is 0.00003665, below the unchanged 0.1 limit. All eleven
+  earlier captures and twelve production topology/work/index fingerprints match.
+- Overview visually inspected and byte-identical: 14,779 non-background pixels,
+  bounds (1,1)–(794,598), 3,471 planet pixels. Historical high-parent image is
+  compatibility evidence, not a live-detail acceptance image. No FPS claim.
+  Logs: build-f5/resume/detail-vertical-*, detail-descent-before.log. Before-fix
+  CPU/ascent/runtime witnesses fail as expected; the separate linker-race launch
+  is not regression evidence. Report: docs/journal/architecture/terrain-gpu/sinking.md.
+  Moving/temporal acceptance remains open; terrain stays p. User config untouched.
+
 ## Reuse evaluated sink descriptors — 2026-10-16
 
 - 3c1b8be commits the complete-plan cache bound below. Continue the same terrain

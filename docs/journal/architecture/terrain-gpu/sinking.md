@@ -1,5 +1,46 @@
 # Relief-aware terrain sinking
 
+## Refresh after vertical movement — 2026-10-16
+
+Adaptive planning uses distance to the eye, but both runtime refresh paths only
+measured angular travel. Pure descent from 500 m to 2 m submitted no new job
+(the before-fix counter remained 2→2). Even an explicit planner call retained
+its high shell because parent reuse also ignored height: 1,992 parent faces
+instead of the fresh low shell's 3,048. Ascent can bring ridge surfaces closer
+as well, so the correction applies in either radial direction.
+
+Both schedulers now combine their existing angular distance with absolute radial
+movement when geometric-error refinement is enabled. Streaming parent reuse
+bounds radial movement by the existing half-near-band reserve. Parent topology,
+adjacency, contact index, query cache and sink memo rebase together. Other runtime
+refresh behavior is unchanged. Historical recorded parents still apply to the
+next plan exactly once; later ordinary calls resume normal height-aware planning.
+No GPU buffer, descriptor, quality target or capture version changes are needed.
+
+New CPU tests verify descent/ascent against fresh plans in metre and kilometre
+world units, recorded-parent compatibility, and the high-altitude distance guard
+that prevents unassessed faces from counting as completed detail. GPU tests cover
+whole-mesh and rendered-plane contact parity, with maximum new position difference
+0.0596 mm. Frame tests publish complete high/low/high generations through resident
+GPU, asynchronous CPU and synchronous capture CPU paths. The GPU path records
+zero bulk readbacks, blocking polls and server waits, with one queued/running job
+at a time and peak reserved overlap 7,086,400 bytes in this fixture.
+
+Full build, all 35 core groups (36.11 s), 46 RTX compute cases (72.69 s), full
+frame integration (134.13 s), and an expanded 15-render capture matrix (65.25 s)
+pass. The matrix adds historical high-parent rendering/replay, CPU and GL 3.3;
+replay/fallback images are exact and GPU/CPU mean difference is 0.00003665 against
+the unchanged 0.1 limit. All eleven earlier capture images and all twelve
+production topology/work/index fields remain exact. The inspected overview stays
+byte-identical: 14,779 non-background pixels, bounds (1,1)–(794,598), 3,471 planet
+pixels. The historical high-parent view establishes compatibility, not live quality.
+
+Height changes can now schedule additional adaptive work; these checks establish
+correct refresh/publication, not an FPS gain. They do not resolve the moving-core
+coverage failures or add temporal publication. The terrain row remains **p**.
+Raw witnesses and results stay local under `build-f5/resume/detail-vertical-*`
+and `detail-descent-before.log`; capture outputs remain in the integration folders.
+
 ## Reuse fixed-policy sink descriptors — 2026-10-16
 
 Local-detail export used to repeat sink calculations for every vertex/probe,
