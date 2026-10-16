@@ -8,7 +8,7 @@ namespace rendering {
 namespace {
 std::uint64_t terrainBytes(const TerrainTopology& t) {
     t.validate();
-    return 704+t.samples.size()*68ull+t.indices.size()*44ull+(t.indices.size()/3)*16+8+sizeof(TerrainSurfacePolicy);
+    return t.morph.size()*(sizeof(TerrainMorphSample)+36)+(t.morph.empty()?0:sizeof(TerrainSurfacePolicy))+704+t.samples.size()*68ull+t.indices.size()*44ull+(t.indices.size()/3)*16+8+sizeof(TerrainSurfacePolicy);
 }
 }
 std::uint64_t TerrainGpuPreparation::requiredBytes(const TerrainCpuBuild& cpu,const TerrainBuildIdentity& identity,

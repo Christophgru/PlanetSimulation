@@ -219,6 +219,10 @@ add_test(NAME MoonlightRenderIntegration COMMAND PlanetSimulation
 set_tests_properties(MoonlightRenderIntegration PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
+add_test(NAME TerrainStreamingCaptureIntegration COMMAND ${Python3_EXECUTABLE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/geometry/compute/test_streaming.py --binary $<TARGET_FILE:PlanetSimulation>
+    --output-dir ${CMAKE_BINARY_DIR}/terrain-streaming-captures)
+set_tests_properties(TerrainStreamingCaptureIntegration PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} TIMEOUT 240)
 add_test(NAME TerrainComputeCaptureIntegration COMMAND ${Python3_EXECUTABLE}
     ${CMAKE_CURRENT_SOURCE_DIR}/geometry/compute/test_capture.py --binary $<TARGET_FILE:PlanetSimulation>
     --output-dir ${CMAKE_BINARY_DIR}/terrain-compute-captures)

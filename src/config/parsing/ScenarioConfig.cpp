@@ -91,6 +91,7 @@ PlanetConfig::TerrainLod::TerrainLod(const config::Config& cfg) {
     sink_depth_m = cfg.getDouble("sink_depth_m", sink_depth_m);
     relief_sinking = cfg.getBool("relief_sinking", relief_sinking);
     geometric_error_m = cfg.getDouble("geometric_error_m", geometric_error_m);
+    local_detail_streaming = cfg.getBool("local_detail_streaming", local_detail_streaming);
     local_detail_radius_m = cfg.getDouble("local_detail_radius_m", local_detail_radius_m);
     local_edge_m = cfg.getDouble("local_edge_m", local_edge_m);
     local_error_m = cfg.getDouble("local_error_m", local_error_m);

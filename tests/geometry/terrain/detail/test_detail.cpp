@@ -1,5 +1,6 @@
 #include "config/Config.h"
 #include "rendering/geometry/Terrain.h"
+#include "rendering/geometry/terrain/detail/TerrainMorph.h"
 #include "rendering/character/SurfaceContact.h"
 #include <gtest/gtest.h>
 #include <map>
@@ -115,7 +116,68 @@ TEST(TerrainDetail, InfeasibleDetailStaysBoundedAndReportsItsRemainingError) {
     EXPECT_GT(t.localMaxEdgeMeters,l.local_edge_m);
     EXPECT_EQ(s.buildTopologyForEye({1.002,0,0},{}).generation,t.generation);
     EXPECT_TRUE(supportedTerrainTopology(1));EXPECT_TRUE(supportedTerrainTopology(2));
-    EXPECT_TRUE(supportedTerrainTopology(3));EXPECT_FALSE(supportedTerrainTopology(4));
+    EXPECT_TRUE(supportedTerrainTopology(3));EXPECT_TRUE(supportedTerrainTopology(4));EXPECT_FALSE(supportedTerrainTopology(5));
     auto bad=t;bad.surfacePolicy.spacing[7]=0;
     EXPECT_THROW(s.evaluateTopology(bad),std::invalid_argument);
+}
+
+TEST(TerrainDetail, StreamingReusesBoundedParentAndProjectsTransitionToItsTriangles) {
+    auto lod=detailLod();lod.local_detail_streaming=true;lod.local_transition_m=.5;
+    TerrainSurface surface({microNoise()},lod,1,1000);
+    auto previous=surface.buildTopologyForEye({1.002,0,0},{});
+    EXPECT_EQ(previous.generation.topologyVersion,4u);EXPECT_FALSE(previous.parentReused);
+    for(int step=1;step<=3;++step) {
+        const auto t=surface.buildTopologyForEye({1.002,step*.00015,0},{});
+        EXPECT_TRUE(t.parentReused);EXPECT_LE(t.triangleCount(),lod.max_triangle_budget);
+        EXPECT_EQ(t.morph.size(),t.samples.size());EXPECT_FALSE(t.localDetailLimited);
+        EXPECT_EQ(t.parentPolicy,previous.parentPolicy);
+        std::map<std::pair<unsigned,unsigned>,int> edges;
+        for(std::size_t i=0;i<t.indices.size();i+=3) for(int j=0;j<3;++j)
+            ++edges[std::minmax(t.indices[i+j],t.indices[i+(j+1)%3])];
+        for(auto [edge,count]:edges) ASSERT_EQ(count,2);
+        const auto mesh=surface.evaluateTopology(t);
+        SurfaceContact contact;contact.bind(mesh.vertices,mesh.indices,1,1000);
+        const auto r=glm::normalize(glm::dvec3(1.002,step*.00015,0));
+        EXPECT_LE(std::abs(glm::length(contact.sample(r,{}).position)-1000-surface.field().heightAt(r)*1000),lod.local_error_m);
+        for(std::size_t i=0;i<t.samples.size();++i) if(t.morph[i].blend[0]==1) {
+            const auto& m=t.morph[i];
+            if(m.parent[0]==m.parent[1]) continue;
+            const auto a=terrainPosition(surface.field(),m.parent[0],t.parentPolicy);
+            const auto b=terrainPosition(surface.field(),m.parent[1],t.parentPolicy);
+            const auto c=terrainPosition(surface.field(),m.parent[2],t.parentPolicy);
+            const auto p=terrainMorphPosition(surface.field(),t.samples[i],t.surfacePolicy,m,t.parentPolicy);
+            const auto n=glm::normalize(glm::cross(b-a,c-a));
+            EXPECT_LE(std::abs(glm::dot(glm::dvec3(p)-a,n))*1000,.0002);
+        }
+        previous=t;
+    }
+    const auto rebased=surface.buildTopologyForEye({1.002,.04,0},{});
+    EXPECT_FALSE(rebased.parentReused);EXPECT_NE(rebased.parentPolicy,previous.parentPolicy);
+    EXPECT_TRUE(surface.buildTopologyForEye({1.002,.04,0},{}).parentReused);
+    const auto orbit=surface.buildTopologyForEye({5,0,0},{});
+    EXPECT_EQ(orbit.generation.topologyVersion,4u);EXPECT_FALSE(orbit.parentReused);
+    EXPECT_TRUE(surface.buildTopologyForEye({5,0,0},{}).parentReused);
+    auto invalid=rebased;invalid.morph.front().blend[0]=2;
+    EXPECT_THROW(invalid.canonicalize(surface.field().fingerprint()),std::invalid_argument);
+    invalid=rebased;invalid.parentPolicy.distances[1]=0;
+    EXPECT_THROW(invalid.canonicalize(surface.field().fingerprint()),std::invalid_argument);
+}
+
+TEST(TerrainDetail, ProbeReuseSurvivesWorkerSnapshotDestructionAndPreservesDeterminism) {
+    auto lod=detailLod();lod.local_detail_streaming=true;
+    std::optional<TerrainSurface> survivor;
+    TerrainTopology first;
+    {
+        TerrainSurface snapshot({microNoise()},lod,1,1000);
+        first=snapshot.buildTopologyForEye({1.002,0,0},{});
+        survivor=snapshot;
+    }
+    const auto repeat=survivor->buildTopologyForEye({1.002,0,0},{});
+    EXPECT_EQ(repeat.generation,first.generation);
+    EXPECT_EQ(repeat.samples,first.samples);
+    EXPECT_EQ(repeat.planningQueries.evaluations,0u);
+    EXPECT_GT(repeat.planningQueries.hits,0u);
+    const auto moved=survivor->buildTopologyForEye({1.002,.00015,0},{});
+    EXPECT_TRUE(moved.parentReused);EXPECT_FALSE(moved.localDetailLimited);
+    EXPECT_GT(moved.planningQueries.hits,0u);
 }

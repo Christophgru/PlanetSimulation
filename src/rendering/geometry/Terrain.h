@@ -3,6 +3,7 @@
 #include <array>
 #include <cstdint>
 #include <optional>
+#include <memory>
 #include <vector>
 #include <utility>
 
@@ -61,7 +62,7 @@ public:
         return field_.functions();
     }
     const config::PlanetConfig::TerrainLod& lodSettings() const { return lod_; }
-    std::uint32_t topologyVersion() const { return lod_.local_detail_radius_m>0 ? 3 : lod_.relief_sinking ? 2 : 1; }
+    std::uint32_t topologyVersion() const { return lod_.local_detail_streaming ? 4 : lod_.local_detail_radius_m>0 ? 3 : lod_.relief_sinking ? 2 : 1; }
     const PlanetField& field() const { return field_; }
     TerrainTopology buildTopology(int edgeSegments) const;
     TerrainTopology buildTopologyForEye(const glm::dvec3& eyeWorld,const glm::dvec3& center,
@@ -71,7 +72,11 @@ public:
 private:
     static double smoothstep(double low, double high, double value);
     void refineShoreline(TerrainTopology& geometry, const glm::dvec3& eyeBody, TerrainQueryCache& queries, int budget) const;
-    void refineSurfaceError(TerrainTopology& geometry, const glm::dvec3& eyeBody) const;
+    void refineSurfaceError(TerrainTopology& geometry, const glm::dvec3& eyeBody, bool localOnly=false, TerrainQueryCache* sharedQueries=nullptr) const;
+    TerrainTopology streamDetail(const glm::dvec3& eyeBody) const;
+    struct DetailCache;
+    static std::shared_ptr<DetailCache> newDetailCache();
+    std::shared_ptr<DetailCache> detailCache_;
     struct GridSample {
         glm::dvec3 radial;
         glm::dvec3 position;

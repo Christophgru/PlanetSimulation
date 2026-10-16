@@ -78,7 +78,7 @@ std::vector<std::uint32_t> TerrainComputeBuffers::readIndices() const {
 }
 TerrainCompute::~TerrainCompute() {
     for(auto [key,buffer]:fields_) glDeleteBuffers(1,&buffer);
-    if(shader_) glDeleteProgram(shader_->id);
+    for(const auto& shader:variants_) if(shader) glDeleteProgram(shader->id);
 }
 std::unique_ptr<TerrainComputeBuffers> TerrainCompute::generate(const PlanetField& field,
     const TerrainTopology& topology,bool diagnostics) {
@@ -88,12 +88,15 @@ std::unique_ptr<TerrainComputeBuffers> TerrainCompute::generate(const PlanetFiel
     const std::uint64_t samples=topology.samples.size(),corners=topology.indices.size();
     if(!samples || !corners || corners>std::numeric_limits<GLsizei>::max()/9)
         throw std::runtime_error("Terrain generation exceeds addressable output");
-    const std::array<std::uint64_t,8> bytes{704,samples*32,samples*36,corners*4,corners*36,corners*4+(corners/3)*16,
-        diagnostics?samples*8:8,sizeof(TerrainSurfacePolicy)};
+    const std::array<std::uint64_t,8> bytes{704,samples*32+topology.morph.size()*128,samples*36+topology.morph.size()*36,corners*4,corners*36,corners*4+(corners/3)*16,
+        diagnostics?samples*8:8,sizeof(TerrainSurfacePolicy)*(topology.morph.empty()?1:2)};
     for(auto size:bytes) if(size>limits_.blockBytes || size>std::numeric_limits<GLsizeiptr>::max())
         throw std::runtime_error("Terrain generation exceeds SSBO block limit; use CPU backend");
     if(!limits_.groups) throw std::runtime_error("Zero terrain dispatch capacity");
-    if(!shader_) shader_=std::make_unique<Shader>("shaders/terrain/compute/field.comp");
+    const bool detail=!topology.morph.empty();
+    auto& variant=variants_[detail?1:0];
+    if(!variant) variant=std::make_unique<Shader>(detail?"shaders/terrain/compute/detail.comp":"shaders/terrain/compute/field.comp");
+    shader_=variant.get();
     GLint previousProgram=0,previousVao=0,previousArray=0,previousStorage=0;
     std::array<GLint,8> previousBindings{};
     std::array<GLint64,8> previousStarts{},previousSizes{};
@@ -119,7 +122,7 @@ std::unique_ptr<TerrainComputeBuffers> TerrainCompute::generate(const PlanetFiel
     result->stats=static_cast<const TerrainBuildStats&>(topology);
     result->stats.generation.backend=TerrainBackend::Compute;
     result->stats.evaluationQueries={};result->stats.gpuCorners=corners;result->stats.gpuCellKeys=corners/3;result->diagnostics=diagnostics;
-    result->stats.gpuInputBytes=samples*32+corners*4+20+sizeof(TerrainSurfacePolicy); // source descriptors + rock range/corner count
+    result->stats.gpuInputBytes=bytes[1]+corners*4+20+bytes[7]; // source descriptors + rock range/corner count
     result->stats.gpuWorkingBytes=0;for(auto b:bytes) result->stats.gpuWorkingBytes+=b;
     if(!fields_.contains(field.fingerprint())) {
         // Tiny immutable packs, bounded even when repeatedly reloading fields.
@@ -138,12 +141,22 @@ std::unique_ptr<TerrainComputeBuffers> TerrainCompute::generate(const PlanetFiel
     for(int i=1;i<8;++i) {
         glBindBuffer(GL_SHADER_STORAGE_BUFFER,buffers[i]);
         const void* data=i==1?static_cast<const void*>(topology.samples.data()):i==3?static_cast<const void*>(topology.indices.data()):i==7?static_cast<const void*>(&topology.surfacePolicy):nullptr;
-        glBufferData(GL_SHADER_STORAGE_BUFFER,bytes[i],data,GL_STATIC_DRAW);
+        if((i==1 || i==7) && !topology.morph.empty()) {
+            glBufferData(GL_SHADER_STORAGE_BUFFER,bytes[i],nullptr,GL_STATIC_DRAW);
+            if(i==1) {
+                glBufferSubData(GL_SHADER_STORAGE_BUFFER,0,samples*32,topology.samples.data());
+                glBufferSubData(GL_SHADER_STORAGE_BUFFER,samples*32,topology.morph.size()*128,topology.morph.data());
+            } else {
+                glBufferSubData(GL_SHADER_STORAGE_BUFFER,0,128,&topology.surfacePolicy);
+                glBufferSubData(GL_SHADER_STORAGE_BUFFER,128,128,&topology.parentPolicy);
+            }
+        } else glBufferData(GL_SHADER_STORAGE_BUFFER,bytes[i],data,GL_STATIC_DRAW);
     }
     if(glGetError()!=GL_NO_ERROR) throw std::runtime_error("Terrain GPU buffer allocation failed");
     for(int i=0;i<8;++i) glBindBufferBase(GL_SHADER_STORAGE_BUFFER,i,buffers[i]);
     shader_->use();
     shader_->setInt("uCorners",corners);
+    shader_->setInt("uMorph",!topology.morph.empty());shader_->setInt("uSamples",samples);
     const auto& m=field.parameters().material;
     const double radians=std::acos(-1.0)/180.0;
     glUniform2d(glGetUniformLocation(shader_->id,"uRockRange"),1-std::cos(m[0]*radians),1-std::cos(m[1]*radians));
@@ -157,6 +170,10 @@ std::unique_ptr<TerrainComputeBuffers> TerrainCompute::generate(const PlanetFiel
             ++result->stats.gpuDispatches;result->stats.gpuInputBytes+=16;
         }
     };
+    if(!topology.morph.empty()) {
+        GpuWorkProfiler::Scope timing(GpuWorkStage::TerrainField,GpuWorkProfiler::generation(result->stats.generation));
+        dispatch(2,3*samples);glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    }
     { GpuWorkProfiler::Scope timing(GpuWorkStage::TerrainField,GpuWorkProfiler::generation(result->stats.generation));
       dispatch(0,samples);glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT); }
     GpuWorkProfiler::Scope expansionTiming(GpuWorkStage::TerrainExpansion,GpuWorkProfiler::generation(result->stats.generation));

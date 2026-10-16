@@ -14,6 +14,7 @@ TerrainGeometry TerrainSurface::buildGeometryForEye(const glm::dvec3& eyeWorld,
 }
 TerrainTopology TerrainSurface::buildTopologyForEye(const glm::dvec3& eyeWorld,
     const glm::dvec3& planetCenter,const std::vector<int>* previousFaceZones,double zoneHysteresisMeters) const {
+    if(lod_.local_detail_streaming) return streamDetail((eyeWorld-planetCenter)/radius_);
     TerrainQueryCache queries(field_);
     CpuTrace::Scope scope("TerrainSurface::buildTopologyForEye");
     const glm::dvec3 offset = eyeWorld - planetCenter;

@@ -7,14 +7,16 @@
 #include <stdexcept>
 
 namespace rendering {
-void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dvec3& eyeBody) const {
+void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dvec3& eyeBody, bool localOnly, TerrainQueryCache* sharedQueries) const {
     CpuTrace::Scope scope("TerrainSurface::refineSurfaceError");
     // Canonical radial IDs, not rounded render positions, join both sides of
     // every edge. All error probes use the same filtered/sunk field as drawing.
-    geometry.canonicalize(field_.fingerprint());
+    if(!localOnly) geometry.canonicalize(field_.fingerprint());
     const int originalCount=geometry.triangleCount();
     const double scale=radius_*metersPerUnit_;
-    TerrainQueryCache queries(field_,8192,geometry.surfacePolicy);
+    TerrainQueryCache localQueries(field_,8192,geometry.surfacePolicy);
+    auto& queries=sharedQueries?*sharedQueries:localQueries;
+    const auto initialQueries=queries.stats();
     std::vector<GridSample> vertices;
     vertices.reserve(2*lod_.max_triangle_budget+2);
     const auto sampleAt=[&](const glm::dvec3& radial) {
@@ -26,7 +28,14 @@ void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dv
         sample.position-=radial*(sample.sinkMeters/scale);
         return sample;
     };
-    for(const auto& s:geometry.samples) vertices.push_back(sampleAt({s.radial[0],s.radial[1],s.radial[2]}));
+    std::vector<bool> evaluated;
+    for(const auto& s:geometry.samples) {
+        const glm::dvec3 radial(s.radial[0],s.radial[1],s.radial[2]);
+        vertices.push_back(localOnly?GridSample{radial,radial,0,s.sinkMeters}:sampleAt(radial));
+        evaluated.push_back(!localOnly);
+    }
+    std::vector<TerrainMorphSample> morph(localOnly?vertices.size():0);
+    if(localOnly) for(std::size_t i=0;i<morph.size();++i) morph[i].parent.fill(geometry.samples[i]);
 
     using Key=std::pair<std::uint32_t,std::uint32_t>;
     const auto key=[](std::uint32_t a,std::uint32_t b) {return Key{std::min(a,b),std::max(a,b)};};
@@ -51,9 +60,16 @@ void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dv
     edges.reserve(std::size_t(lod_.max_triangle_budget)*3/2);
     std::vector<Triangle> triangles;
     triangles.reserve(2*lod_.max_triangle_budget);
-    const auto attach=[&](const std::array<std::uint32_t,3>& v) {
+    std::vector<std::array<TerrainInputSample,3>> triangleParents;
+    if(localOnly) triangleParents.reserve(2*lod_.max_triangle_budget);
+    const auto attach=[&](const std::array<std::uint32_t,3>& v, const std::array<TerrainInputSample,3>* parent=nullptr) {
         const int id=static_cast<int>(triangles.size());
         triangles.push_back({v});
+        if(localOnly) {
+            triangleParents.emplace_back();
+            if(parent) triangleParents.back()=*parent;
+            else for(int j=0;j<3;++j) triangleParents.back()[j]=geometry.samples.at(v[j]);
+        }
         for(int side=0;side<3;++side) {
             auto& e=edges[key(v[side],v[(side+1)%3])];
             if(e.faces[0]<0) e.faces[0]=id;
@@ -76,13 +92,28 @@ void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dv
         if(e.middle==absent) {
             const auto radial=glm::normalize(vertices[k.first].radial+vertices[k.second].radial);
             e.middle=static_cast<std::uint32_t>(vertices.size());
-            vertices.push_back(sampleAt(radial));
+            vertices.push_back(sampleAt(radial));evaluated.push_back(true);
+            if(localOnly) {
+                TerrainMorphSample m;
+                m.parent=triangleParents.at(e.faces[0]>=0?e.faces[0]:e.faces[1]);
+                morph.push_back(m);
+            }
         }
         return e.middle;
     };
     const auto assess=[&](int id) {
         auto& triangle=triangles[id];
         const auto v=triangle.v;
+        if(localOnly) {
+            const auto center=glm::normalize(vertices[v[0]].radial+vertices[v[1]].radial+vertices[v[2]].radial);
+            double reach=0;
+            for(auto corner:v) reach=std::max(reach,glm::length(vertices[corner].radial-center)*scale);
+            const double distance=std::max(0.0,glm::length(center-glm::normalize(eyeBody))*scale-reach);
+            if(distance>lod_.local_detail_radius_m+lod_.local_transition_m) return;
+            for(auto corner:v) if(!evaluated[corner]) {
+                vertices[corner]=sampleAt(vertices[corner].radial);evaluated[corner]=true;
+            }
+        }
         const glm::dvec3 a=vertices[v[0]].position,b=vertices[v[1]].position,c=vertices[v[2]].position;
         const auto center=(a+b+c)/3.0;
         const double reach=std::max({glm::length(a-center),glm::length(b-center),glm::length(c-center)});
@@ -177,8 +208,8 @@ void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dv
         for(int face:neighbors) {
             const auto old=triangles[face].v;
             for(int side=0;side<3;++side) if(key(old[side],old[(side+1)%3])==split) {
-                children[child++]=attach({old[side],middle,old[(side+2)%3]});
-                children[child++]=attach({middle,old[(side+1)%3],old[(side+2)%3]});
+                children[child++]=attach({old[side],middle,old[(side+2)%3]},localOnly?&triangleParents[face]:nullptr);
+                children[child++]=attach({middle,old[(side+1)%3],old[(side+2)%3]},localOnly?&triangleParents[face]:nullptr);
                 break;
             }
         }
@@ -202,10 +233,23 @@ void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dv
         (geometry.localMaxEdgeMeters>lod_.local_edge_m || geometry.localRemainingErrorRatio>1);
     geometry.samples.clear();geometry.samples.reserve(vertices.size());
     for(const auto& v:vertices) geometry.samples.push_back({{v.radial.x,v.radial.y,v.radial.z},v.sinkMeters});
+    if(localOnly) {
+        geometry.morph=std::move(morph);
+        for(std::size_t i=0;i<geometry.samples.size();++i) {
+            auto& s=geometry.samples[i];
+            const glm::dvec3 r(s.radial[0],s.radial[1],s.radial[2]);
+            const auto profile=geometry.surfacePolicy.profile(r);
+            s.sinkMeters=profile.x==geometry.surfacePolicy.spacing[7] && profile.y==geometry.surfacePolicy.spacing[7] ? 0 :
+                static_cast<float>(std::min(geometry.surfacePolicy.distances[3],field_.omittedReliefMeters(profile)+geometry.surfacePolicy.curvatureMeters(profile)));
+            const double distance=glm::length(r-glm::normalize(eyeBody))*scale;
+            double blend=std::clamp((distance-lod_.local_detail_radius_m)/lod_.local_transition_m,0.0,1.0);
+            geometry.morph[i].blend[0]=blend*blend*(3-2*blend);
+        }
+    }
     geometry.errorRefinedTriangles=liveCount-originalCount;
-    geometry.planningQueries.requests+=queries.stats().requests;
-    geometry.planningQueries.evaluations+=queries.stats().evaluations;
-    geometry.planningQueries.hits+=queries.stats().hits;
+    geometry.planningQueries.requests+=queries.stats().requests-initialQueries.requests;
+    geometry.planningQueries.evaluations+=queries.stats().evaluations-initialQueries.evaluations;
+    geometry.planningQueries.hits+=queries.stats().hits-initialQueries.hits;
     // At most 2*budget triangle records and 2*budget+2 vertex/probe records
     // are created. The caller's final canonicalization removes unused probes.
 }

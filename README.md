@@ -1117,7 +1117,18 @@ extra-steep samples unsunk. Shared corners use the smallest incident offset;
 shared edges use the finer neighbor. Both models cap sinking at 0.1% of the radius
 remaining after maximum terrain relief. Water retains its physical level with
 sinking and filtering disabled. The [sinking implementation](docs/journal/architecture/terrain-gpu/sinking.md)
-records scope and verification; centimeter subdivision remains queued.
+records scope and verification, including opt-in centimeter subdivision.
+
+Set `local_detail_radius_m` (for example `0.5`), `local_edge_m=0.05`,
+`local_error_m=0.01` and `local_transition_m` to request a small centimeter patch.
+An optional `surface_noise` layer can specify `wavelength_m` instead of frequency
+for meter-based relief. `local_detail_streaming=true` additionally reuses one
+coarse parent shell and projects the patch boundary onto its actual triangles
+(topology v4). Defaults preserve the existing terrain. Triangle/memory budgets
+remain authoritative; `local_detail_limited` reports an unmet local target.
+Planning and publication can lag a moving camera, so this experimental option
+does not promise uninterrupted centimeter coverage while walking or sprinting.
+The linked report contains configuration, costs, replay and fallback checks.
 
 Each base face contributes only its selected tessellation to **one closed
 terrain mesh**. No overlapping or buried LOD shells are submitted. Main,
@@ -1127,8 +1138,8 @@ Legacy sampling and sinking remain fixed within unchanged levels; relief-aware
 filtering and sinking follow the generation's camera position. Faces retain their
 level for another 20 m while moving away from a boundary; the mesh rebuilds after
 about 10 m of surface movement. The new blend is spatial: generation replacement
-and topology changes can still produce steps. Exact morphing onto parent triangles,
-temporal interpolation and a centimeter interpolation-error guarantee remain queued.
+and topology changes can still produce steps. Opt-in v4 supplies spatial parent-triangle projection. Temporal interpolation
+and a guaranteed centimeter error between arbitrary probes remain outstanding.
 
 The older `lod_near_diameters` and `lod_far_diameters` remain for compatibility
 with uniform-distance tests; the renderer uses the eight surface bands.

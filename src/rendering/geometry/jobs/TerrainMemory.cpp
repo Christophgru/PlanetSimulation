@@ -6,7 +6,7 @@ std::uint64_t geometryBytes(const TerrainGeometry& g) {
     return bytes(g.vertices)+bytes(g.indices)+bytes(g.grassCellKeys)+bytes(g.lodSinkMeters)+bytes(g.faceZones);
 }
 std::uint64_t topologyBytes(const TerrainTopology& t) {
-    return bytes(t.samples)+bytes(t.indices)+bytes(t.planningPositions)+bytes(t.faceZones);
+    return bytes(t.morph)+bytes(t.samples)+bytes(t.indices)+bytes(t.planningPositions)+bytes(t.faceZones);
 }
 }
 std::optional<TerrainMemorySnapshot> TerrainBuildScheduler::memorySnapshot() const {

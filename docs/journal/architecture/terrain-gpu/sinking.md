@@ -1,5 +1,99 @@
 # Relief-aware terrain sinking
 
+## Experimental reusable parent mesh — 2026-10-16
+
+`terrain_lod.local_detail_streaming: true` opts into topology version 4. It
+requires the existing local-detail settings; omission preserves versions 1–3
+and the production configuration. One coarse parent shell is shared by immutable
+worker snapshots. Half the triangle budget is reserved for that parent (subject
+to the existing minimum mesh size); the remainder can refine the moving disk.
+The cache holds one parent, replacing it after half the near distance or a
+local/orbit mode change. Field/config reload creates a new surface/cache.
+
+Local refinement skips distant field probes and starts from this reusable
+parent. Each inserted sample retains the three original parent radial/sink
+descriptors. Both sides of an edge still split together. Outside the core, a
+smoothstep over `local_transition_m` blends the fine position toward the radial
+intersection with the actual parent triangle, including its float rounding and
+sinking. Original parent vertices use their original positions. This closes the
+spatial transition onto the parent surface rather than merely blending analytic
+noise fields. GPU compute evaluates the descriptors; CPU fallback and sparse
+contacts use the same projection. Grass, shadows and reflections consume the
+resulting published positions.
+
+The additional descriptor pack is 128 bytes per unique sample plus a 128-byte
+parent policy, included in topology transfer, worker memory and GPU admission.
+A temporary 36-byte position tail per unique sample lets a separate parent
+phase evaluate each descriptor without duplicating the noise evaluator three
+times in one invocation. This scratch tail is also admitted. The implementation
+uses the existing eight compute bindings. Parent planning eyes are recorded
+and validated in replay so a moving capture can reconstruct its original parent
+before rebuilding its final local disk. Unknown versions and invalid anchors
+are rejected before opening a window.
+
+Final focused validation: all 35 core groups and all 44 RTX compute cases pass;
+seven terrain-detail CPU cases pass, including cache lifetime/determinism.
+The GPU moving-detail test checks both closed topology and sparse contacts.
+The initial kernel differed by at most 0.119209 mm on RTX 3070 Ti; the final
+parent-position phase gives identical CPU/GPU positions in this moving fixture. A production
+startup capture has 2,929 core triangles, a 4.439 cm maximum core edge and no
+local-detail limit; it retains zero bulk CPU evaluation requests. Its 800×600
+image was inspected: 479,998 non-background pixels, bounds (0,0)–(799,599).
+Raw evidence stays ignored in `build-f5/resume`.
+
+A bounded in-memory height-probe cache also survives worker snapshots. Its
+referenced field is owned by the shared cache. Fine-field policy stays fixed for
+the parent's lifetime, while geometric selection and blend weights follow the
+current eye; cached values therefore retain their exact meaning. At most twice
+the triangle budget in probes are retained; reaching that capacity clears the
+query cache. Rebasing/reload replaces its policy/field and orbit mode releases it.
+Canonical parent IDs and edge-owned midpoints allow direct ID compaction instead
+of repeated whole-shell ordered maps. Normal and optional morph compute variants
+share GLSL source; preprocessing the normal variant reproduces G4 exactly.
+
+The reproducible CPU-only benchmark is documented in
+`scripts/benchmarks/terrain_detail/README.md`. An isolated production run (same
+100k cap, 0.5 m core/transition, two 0.15 m eastward moves) measures:
+
+| Position | Whole-shell warm CPU | Reusable-parent warm CPU | Warm field evaluations |
+|:--|--:|--:|--:|
+| Production start | 2,881–2,891 ms | 153–174 ms | 2,504–2,524 versus 373,296–373,376 |
+| Mountain reference | 1,858–1,866 ms | 198–200 ms | 2,697–2,877 versus 359,230–359,231 |
+
+Cold parent/patch planning is 1,759 / 1,351 ms. Core edges remain below 5 cm
+without a local-limit flag. The earlier reusable-parent pilot without probe
+reuse/ID compaction took 386–485 ms warm. These are CPU topology timings, not
+GPU publication time or a frame-rate/continuous-coverage guarantee. The optional
+mode transfers about 5.0–5.3 MB of topology descriptors in these cases, versus
+2.8 MB for the 100k v3 baseline; the refined v4 mesh has 54–57k triangles, so this
+is a bounded architectural comparison rather than matched-work FPS evidence.
+
+Software moving captures reproduce exactly from saved parent anchors. CPU and
+compute images match exactly in the focused fixture; explicit Mesa GL 3.3 matches
+CPU output. Invalid parent anchors fail before renderer initialization. Seven
+CPU detail cases and all 44 RTX field/staging/cell/publication/allocation cases
+pass after the final cache/shader changes. A prior broad run also passes all six
+lifecycle/recovery/frame/reload/shadow/historical-capture groups (678.13 s).
+The final compact-scene `--render-test` is nonblank: 14,779 non-background
+pixels, bounds (1,1)–(794,598), with 3,471 planet pixels. The overview and moving
+480×270 detail capture were visually inspected.
+
+A separate real-input RTX pilot on flat micro-relief records the remaining
+coverage failure: over four-second routes, the 0.5 m walking core has a maximum
+anchor lag of 1.71 m (783/823 sampled frames outside it); the 0.5 m sprint core
+lags 3.40 m (783/811 outside), and the 1.5 m sprint core lags 9.37 m (962/1002
+outside). Speeds are 5.92 / 11.82 / 11.87 m/s, including input delivery. Terrain
+continues publishing and all bulk-read/blocking-poll/GL-finish audits are zero;
+logical overlap is 60–75 MB. These small fixtures already fail the core-coverage
+condition. They cannot justify a production moving-detail claim. The reproducible
+native helper deliberately returns exit 2 for an unmet coverage gate.
+
+This path reuses coarse
+planning, but rebuilds the bounded local refinement and uploads a replacement
+generation. Existing fences publish its consumers together; publication is not
+yet a continuous temporal geomorph. Parent replacement and sustained walking/
+sprint coverage need further work before enabling this setting by default.
+
 ## Bounded local detail design — 2026-10-09
 
 The next implementation uses the existing longest-edge planner, with an opt-in

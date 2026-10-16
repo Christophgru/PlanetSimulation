@@ -1,5 +1,53 @@
 # Page to document progress of AI Agents working on this Project
 
+## TODO continuation — 2026-10-16 (in progress)
+
+- User requested the p rows first, each tested/documented/committed, followed by
+  the remaining TODOs in table order. Preserve the user's production foliage
+  density/width/quad-distance edits; they are still unstaged.
+- G4 is t and committed as 26dbff8. Report and compact receipt:
+  docs/journal/benchmarks/grass-cells. Three alternating RTX pairs retain 9,973
+  frames; nine updates copy 87.06% of roots. GPU root time rises; walking p95
+  changes 8.909→8.698 ms, maxima remain 107.6 ms. No sustained FPS gain is claimed.
+  Logical overlap peaks at 1,001,030,344 bytes, below 1 GiB. Four legacy PNG pairs
+  and fresh canonical replay are exact. Dedicated Quadro held-worker compute
+  sprint, camera and CPU sprint routes pass the unchanged 22.5 m reserve.
+- All 35 core groups passed. All six lifecycle/recovery/frame/reload/shadow/
+  legacy-capture groups passed (678.13 s); 43/44 GPU cases passed, then the
+  terrain-v4 unknown-version fixture was corrected to 99 and its focused check
+  plus moving-detail GPU parity passed. Full historical capture now passes its
+  unchanged timeout. Evidence stays ignored in build-f5/resume.
+- Terrain remains p. This continuation commits the bounded experimental
+  local_detail_streaming increment: topology v4, parent-triangle spatial
+  projection, one reusable coarse shell and bounded owned-field probe cache,
+  direct ID compaction, parent-anchor replay and separate shader variants.
+  Defaults and the user's production config edits remain unchanged.
+- Final optimized build passes all 35 core CTest groups, all 44 RTX compute
+  cases and seven detail CPU cases. The cache lifetime/determinism test passes.
+  The final moving fixture has identical GPU/CPU positions and exact compute/
+  CPU/GL 3.3 images and saved-parent replay. Invalid anchors fail before window
+  creation. Default terrain GLSL matches G4 after preprocessing. Prior broader
+  lifecycle/recovery/frame/reload/shadow/historical captures passed all six groups.
+- Production CPU planning benchmark is reproducible through optional target
+  terrain_detail_benchmark. At the start/mountain poses, cold v4 planning costs
+  1,759/1,351 ms; warm moving plans cost 153–200 ms versus 1,858–2,891 ms for v3.
+  Actual 0.5 m core edges stay below 5 cm. Transfer rises to about 5.0–5.3 MB;
+  no sustained FPS or continuously covered fine patch is claimed.
+- Native coverage is NOT accepted. The reproducible helper
+  scripts/benchmarks/terrain_detail/movement.py exits 2: 0.5 m walking/sprint
+  and 1.5 m sprint cores lag by up to 1.71/3.40/9.37 m. Most sampled frames lie
+  outside the requested core. Terrain publications continue and all native
+  blocking/bulk-read/finish audits are zero. Receipts: build-f5/resume/stream-
+  movement; the earlier pilot is in stream-native. Do not change thresholds or
+  mark the terrain row t. See sinking.md for the complete receipt and limits.
+- Next priority is still this terrain row: avoid rebuilding/publishing a whole
+  replacement for each local movement, retain/update moving detail and smooth
+  temporal publication while preserving shared contacts/grass/shadow/reflection
+  ownership and bounded memory. Height-probe reuse alone does not solve it.
+  Trail fading and all subsequent TODOs remain untouched, in their existing order.
+- Initial tracked diff saved locally in build-f5/resume/inherited.patch. The
+  temporary sandbox namespace failure was resolved when permissions returned.
+
 ## G3 shared grass animation — 2026-10-10
 
 - Implemented G3 only: a 32-byte plan-owned GPU record caches wind samples and

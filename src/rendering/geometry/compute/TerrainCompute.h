@@ -46,7 +46,8 @@ public:
     GLuint program() const { return shader_ ? shader_->id : 0; }
 private:
     TerrainComputeLimits limits_;
-    std::unique_ptr<Shader> shader_;
+    Shader* shader_=nullptr;
+    std::array<std::unique_ptr<Shader>,2> variants_;
     std::map<std::uint64_t,GLuint> fields_;
 };
 }

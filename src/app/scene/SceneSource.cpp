@@ -18,8 +18,9 @@ SceneSource::SceneSource(CommandLineOptions& options)
         (void)config::ScenarioConfig(config::Config(nlohmann::json(document)));
         if (!replayPath.empty()) {
             const auto& replay = replayDocument;
-            if(replay.contains("render") && replay["render"].contains("terrain_plan_eyes_world_units")) {
-                const auto& anchors=replay["render"]["terrain_plan_eyes_world_units"];
+            for(const auto name:{"terrain_plan_eyes_world_units","terrain_parent_eyes_world_units"})
+            if(replay.contains("render") && replay["render"].contains(name)) {
+                const auto& anchors=replay["render"][name];
                 if(!anchors.is_array() || anchors.size()!=document.at("planets").size())
                     throw std::invalid_argument("Terrain planning anchors require one eye per planet");
                 for(const auto& eye:anchors) {
@@ -48,7 +49,7 @@ SceneSource::SceneSource(CommandLineOptions& options)
                     const auto& field=contract.at("field_version");
                     const auto& topology=contract.at("topology_version");
                     if(!field.is_number_integer() || field!=rendering::PlanetField::version ||
-                       !topology.is_number_integer() || topology<1 || topology>3 ||
+                       !topology.is_number_integer() || topology<1 || topology>4 ||
                        !rendering::supportedTerrainTopology(topology.get<std::uint32_t>()))
                         throw std::invalid_argument("Unsupported terrain compute replay versions");
                 }

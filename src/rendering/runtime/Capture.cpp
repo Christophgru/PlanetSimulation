@@ -337,6 +337,7 @@ int Renderer::Impl::capture() {
                     {"local_max_edge_m", meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats.localMaxEdgeMeters},
                     {"local_remaining_error_ratio", meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats.localRemainingErrorRatio},
                     {"local_detail_limited", meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats.localDetailLimited},
+                    {"parent_reused", meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats.parentReused},
                     {"evaluation_requests", meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats.evaluationQueries.requests},
                     {"evaluation_evaluations", meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats.evaluationQueries.evaluations}}},
                 {"foliage_blades", grass.count(scene.orbitPlanetIndex)},
@@ -431,10 +432,16 @@ int Renderer::Impl::capture() {
         metadata["render"]["effective_foliage_budget"]=scene.scenario.planets[scene.orbitPlanetIndex].foliage.max_blades;
         metadata["render"]["sun_mesh_triangles"]=meshes.sunMesh.indices.size()/3;
         metadata["render"]["body_mesh_triangles"]=meshTriangles;
-        if(!options.thirdPersonRenderMode && std::any_of(meshes.planetMeshes.begin(),meshes.planetMeshes.end(),
-            [](const auto& mesh){return mesh.terrainStats.generation.topologyVersion==3;})) {
+        if(std::any_of(meshes.planetMeshes.begin(),meshes.planetMeshes.end(),
+            [&](const auto& mesh){const auto v=mesh.terrainStats.generation.topologyVersion;return v==4 || (!options.thirdPersonRenderMode && v==3);})) {
             // Bulk geometry may precede the final camera/time in a benchmark.
             // Preserve its planet-local anchor instead of regenerating a new policy.
+            auto& parents=metadata["render"]["terrain_parent_eyes_world_units"];
+            parents=nlohmann::json::array();
+            for(std::size_t i=0;i<scene.scenario.planets.size();++i) {
+                const auto& p=meshes.planetMeshes[i].terrainStats.parentEye;
+                parents.push_back(p==std::array<double,3>{} ? std::array<double,3>{lastTerrainEyes[i].x,lastTerrainEyes[i].y,lastTerrainEyes[i].z} : p);
+            }
             auto& anchors=metadata["render"]["terrain_plan_eyes_world_units"];
             anchors=nlohmann::json::array();
             for(const auto& eye:lastTerrainEyes) anchors.push_back({eye.x,eye.y,eye.z});

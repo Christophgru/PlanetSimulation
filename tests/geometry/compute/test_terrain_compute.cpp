@@ -271,6 +271,25 @@ TEST(TerrainCompute, SparseContactGenerationMatchesGpuPlanesWithoutReadingTheCpu
     mesh.loadTerrain(surface.evaluateTopology(topology));EXPECT_FALSE(mesh.contacts);
     mesh.destroy();EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
 }
+TEST(TerrainCompute, StreamingParentProjectionMatchesCpuAndSparseContactsWhileMoving) {
+    auto l=lod();l.max_triangle_budget=30000;l.shoreline_edge_m=0;
+    l.relief_sinking=true;l.geometric_error_m=.05;l.local_detail_radius_m=.5;
+    l.local_edge_m=.05;l.local_transition_m=.5;l.local_detail_streaming=true;
+    config::PlanetConfig::SurfaceNoiseFunction n;n.amplitude_m=.01;n.wavelength_m=.25;n.octaves=1;
+    const TerrainSurface surface({n},l,1,1000);TerrainCompute compute;
+    for(int step=0;step<2;++step) {
+        const auto t=surface.buildTopologyForEye({1.002,step*.00015,0},{});
+        EXPECT_EQ(t.parentReused,step>0);parity(surface,t,compute,true);
+        auto gpu=compute.generate(surface.field(),t);gpu->waitForCapture();
+        const auto vertices=gpu->readVertices();const auto indices=gpu->readIndices();
+        auto contacts=std::make_shared<SparseTerrainContacts>(surface.field(),t);
+        SurfaceContact rendered,sparse;rendered.bind(vertices,indices,1,1000);sparse.bind(contacts,1);
+        for(double y:{-.002,-.0003,0.,.0003,.002}) {
+            const auto r=glm::normalize(glm::dvec3(1,y,.00013));
+            EXPECT_LE(glm::length(rendered.sample(r,{}).position-sparse.sample(r,{}).position),.002);
+        }
+    }
+}
 int main(int argc,char** argv) {
     ::testing::InitGoogleTest(&argc,argv);if(!glfwInit()) return 1;
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,4);glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);

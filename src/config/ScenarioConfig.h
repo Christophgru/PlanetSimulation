@@ -110,6 +110,7 @@ struct PlanetConfig {
         double geometric_error_m = 0.0; // Zero retains the legacy face-only planner.
         double local_detail_radius_m = 0.0; // Opt-in ground-centered centimeter patch.
         double local_edge_m = .05, local_error_m = .01, local_transition_m = 3.0;
+        bool local_detail_streaming = false; // Reuse one coarse parent shell; topology v4.
         double rebuildDistanceMeters() const {
             return local_detail_radius_m > 0 ? std::min(10.0,.3*local_detail_radius_m) : 10.0;
         }
@@ -137,6 +138,7 @@ struct PlanetConfig {
                 !std::isfinite(geometric_error_m) || geometric_error_m < 0.0 || geometric_error_m > 100.0 ||
                 (geometric_error_m > 0.0 && !relief_sinking) ||
                 !std::isfinite(local_detail_radius_m) || local_detail_radius_m < 0 || local_detail_radius_m > 10 ||
+                (local_detail_streaming && local_detail_radius_m <= 0) ||
                 (local_detail_radius_m > 0 && (!relief_sinking || geometric_error_m <= 0 || local_detail_radius_m >= near_surface_distance_m)) ||
                 !std::isfinite(local_edge_m) || local_edge_m < .005 || local_edge_m > .5 ||
                 !std::isfinite(local_error_m) || local_error_m < .001 || local_error_m > 1 ||

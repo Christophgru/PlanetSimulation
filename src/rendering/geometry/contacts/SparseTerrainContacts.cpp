@@ -1,4 +1,5 @@
 #include "rendering/geometry/contacts/SparseTerrainContacts.h"
+#include "rendering/geometry/terrain/detail/TerrainMorph.h"
 #include <algorithm>
 #include <cmath>
 #include <chrono>
@@ -100,7 +101,13 @@ glm::vec3 SparseTerrainContacts::position(unsigned id) {
         const auto sunk=converted-glm::normalize(converted)*(s.sinkMeters/radiusMeters());
         for(int j=0;j<3;++j) packed[j]=static_cast<float>(sunk[j]);
     }
-    const glm::vec3 p(packed[0],packed[1],packed[2]);
+    const glm::vec3 p=topology_.morph.empty()?glm::vec3(packed[0],packed[1],packed[2]):
+        terrainMorphPosition(field_,s,topology_.surfacePolicy,topology_.morph[id],topology_.parentPolicy);
+    if(!topology_.morph.empty()) {
+        const auto& m=topology_.morph[id];
+        stats_.heightEvaluations+=m.blend[0]==0?1:
+            (m.parent[0]==m.parent[1] && m.parent[0]==m.parent[2]?2:4);
+    }
     if(positions_.size()==positionCapacity) positions_.clear();
     positions_.emplace(id,p);return p;
 }

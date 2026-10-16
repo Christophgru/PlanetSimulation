@@ -55,7 +55,8 @@ queued.
 ### Paired native-loop receipt — 2026-10-16
 
 Three alternating pairs use the G3 baseline preserved in `build-f5/g4` and the
-current build, identical production inputs, 1280×720, 6 m/s astronaut walking,
+current build, identical [saved working-scene inputs](config.json), 1280×720,
+6 m/s astronaut walking,
 live wind/trails and paused orbital motion. NVIDIA EGL UUID selection identifies
 RTX 3070 Ti. Each measured leg retains six seconds after startup and warmup;
 there are 9,973 retained frames across stationary and walking cases. These are
@@ -111,8 +112,8 @@ Four 1280×720 historical full-policy views (surface, ACES, mountain and walking
 trails) match G3 PNGs exactly. Fresh canonical placement and its replay match
 exactly, with unchanged candidate counts and policy. The renderer lifecycle
 group passes. Moving v4 terrain captures also match CPU, compute, replay and
-GL 3.3 output in their focused fixture. Additional recovery/frame/reload/capture
-regression groups are being run as a follow-up to the focused acceptance checks.
+GL 3.3 output in their focused fixture. All six lifecycle/recovery/frame/reload/shadow/capture CTest groups pass
+(678.13 s), including the previously timed-out legacy capture matrix.
 
 On native Quadro, held-worker compute sprint, 80 m/s surface camera and CPU
 sprint remain inside the unchanged 22.5 m grass reserve: maximum plan offsets

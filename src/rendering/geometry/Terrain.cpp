@@ -1,4 +1,5 @@
 #include "rendering/geometry/Terrain.h"
+#include "rendering/geometry/terrain/detail/TerrainMorph.h"
 #include "rendering/foliage/cells/CellIdentity.h"
 #include "rendering/diagnostics/tracing/CpuTrace.h"
 #include <algorithm>
@@ -230,11 +231,20 @@ TerrainGeometry TerrainSurface::evaluateTopology(const TerrainTopology& topology
             const auto sunk=p-glm::normalize(p)*(s.sinkMeters/(radius_*metersPerUnit_));
             for(int j=0;j<3;++j) packed[j]=static_cast<float>(sunk[j]);
         }
+        if(!topology.morph.empty()) {
+            const auto p=terrainMorphPosition(field_,s,topology.surfacePolicy,topology.morph[values.size()],topology.parentPolicy);
+            for(int j=0;j<3;++j) packed[j]=p[j];
+
+        }
         values.push_back(packed);
     }
     TerrainGeometry geometry;
     static_cast<TerrainBuildStats&>(geometry)=static_cast<const TerrainBuildStats&>(topology);
     geometry.evaluationQueries=queries.stats();
+    for(const auto& m:topology.morph) {
+        const unsigned count=m.blend[0]==0?1:(m.parent[0]==m.parent[1] && m.parent[0]==m.parent[2]?2:4);
+        geometry.evaluationQueries.requests+=count;geometry.evaluationQueries.evaluations+=count;
+    }
     geometry.vertices.reserve(topology.indices.size()*9);
     geometry.indices.reserve(topology.indices.size());geometry.lodSinkMeters.reserve(topology.indices.size());
     for(auto index:topology.indices) {
@@ -257,5 +267,5 @@ TerrainSurface::TerrainSurface(const std::vector<config::PlanetConfig::SurfaceNo
     const config::PlanetConfig::TerrainMaterial& material)
     : field_(functions,radiusWorld,metersPerWorldUnit,landscape,water,material),
       lod_(lod),radius_(radiusWorld),metersPerUnit_(metersPerWorldUnit),
-      totalAmplitudeMeters_(field_.maximumReliefMeters()),waterLevelMeters_(water) { lod_.validate(); }
+      totalAmplitudeMeters_(field_.maximumReliefMeters()),waterLevelMeters_(water) { lod_.validate();if(lod_.local_detail_streaming) detailCache_=newDetailCache(); }
 } // namespace rendering

@@ -172,7 +172,7 @@ assert 'Invalid terrain replay backend' in error and 'initialized' not in error
 bad=json.loads(gpu.with_suffix('.png.json').read_text());bad['render']['terrain_contract']['field_version']=2
 invalid.write_text(json.dumps(bad));error=run('version-rejected',replay=invalid,fail=True)
 assert 'Unsupported terrain compute replay versions' in error and 'initialized' not in error
-bad=json.loads(gpu.with_suffix('.png.json').read_text());bad['render']['terrain_contract']['topology_version']=4
+bad=json.loads(gpu.with_suffix('.png.json').read_text());bad['render']['terrain_contract']['topology_version']=99
 invalid.write_text(json.dumps(bad));error=run('topology-version-rejected',replay=invalid,fail=True)
 assert 'Unsupported terrain compute replay versions' in error and 'initialized' not in error
 bad=json.loads(gpu.with_suffix('.png.json').read_text());bad['render']['terrain_grass_planner']='gpu-v2'

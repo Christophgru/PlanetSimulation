@@ -89,6 +89,11 @@ void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalkin
     for (std::size_t i = 0; i < scene.scenario.planets.size(); ++i) {
         const auto& planet = scene.scenario.planets[i];
         glm::dvec3 localEye = scene.bodies[i + 1].toLocalPoint(eye);
+        if(options.renderTestMode && !meshReady[i] && planet.terrain_lod.local_detail_streaming &&
+           source.replayDocument.contains("render") && source.replayDocument["render"].contains("terrain_parent_eyes_world_units")) {
+            const auto& p=source.replayDocument["render"]["terrain_parent_eyes_world_units"].at(i);
+            (void)scene.terrainSurfaces[i].buildTopologyForEye(glm::dvec3(p.at(0).get<double>(),p.at(1).get<double>(),p.at(2).get<double>()),{});
+        }
         if(options.renderTestMode && !options.thirdPersonRenderMode && !meshReady[i] &&
            !options.replayPath.empty() && source.replayDocument.contains("render") &&
            source.replayDocument["render"].contains("terrain_plan_eyes_world_units")) {

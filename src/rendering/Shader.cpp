@@ -3,12 +3,26 @@
 #include <sstream>
 #include <iostream>
 #include <stdexcept>
+#include <filesystem>
 
+namespace {
+// Compute kernels share source without duplicating the noise evaluator. Expand
+// quoted includes relative to their owning file before GLSL preprocessing.
+std::string computeSource(const std::filesystem::path& path,unsigned depth=0) {
+    if(depth>16) throw std::runtime_error("Compute shader include depth exceeded: "+path.string());
+    std::ifstream file(path);
+    if(!file) throw std::runtime_error("Failed to open compute shader: "+path.string());
+    std::ostringstream source;std::string line;
+    while(std::getline(file,line)) {
+        if(line.starts_with("#include \"") && line.ends_with('"'))
+            source << computeSource(path.parent_path()/line.substr(10,line.size()-11),depth+1);
+        else source << line << '\n';
+    }
+    return source.str();
+}
+}
 Shader::Shader(const char* computePath) {
-    std::ifstream file(computePath);
-    if (!file) throw std::runtime_error("Failed to open compute shader: " + std::string(computePath));
-    std::ostringstream source; source << file.rdbuf();
-    const auto code=source.str(); const char* pointer=code.c_str();
+    const auto code=computeSource(computePath);const char* pointer=code.c_str();
     const GLuint compute=glCreateShader(GL_COMPUTE_SHADER);
     try {
         glShaderSource(compute,1,&pointer,nullptr); glCompileShader(compute);

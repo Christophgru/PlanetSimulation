@@ -74,6 +74,7 @@ add_library(planet_geometry STATIC
     src/rendering/geometry/terrain/TerrainQueryCache.cpp
     src/rendering/geometry/terrain/TerrainTopology.cpp
     src/rendering/geometry/terrain/TerrainRefinement.cpp
+    src/rendering/geometry/terrain/detail/TerrainStreaming.cpp
     src/rendering/geometry/contacts/SparseTerrainContacts.cpp
     src/rendering/geometry/jobs/TerrainBuild.cpp
     src/rendering/geometry/jobs/TerrainBuildScheduler.cpp
@@ -158,6 +159,9 @@ target_link_libraries(planet_app PUBLIC
 
 add_executable(PlanetSimulation src/main.cpp)
 target_link_libraries(PlanetSimulation PRIVATE planet_app)
+
+add_executable(terrain_detail_benchmark EXCLUDE_FROM_ALL scripts/benchmarks/terrain_detail/measure.cpp)
+target_link_libraries(terrain_detail_benchmark PRIVATE planet_geometry)
 
 # Include directories for all source files
 target_include_directories(PlanetSimulation PRIVATE 

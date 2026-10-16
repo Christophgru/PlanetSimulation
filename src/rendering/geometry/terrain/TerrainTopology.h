@@ -5,7 +5,7 @@
 #include <vector>
 #include "rendering/geometry/terrain/TerrainQueryCache.h"
 namespace rendering {
-inline bool supportedTerrainTopology(std::uint32_t version) { return version>=1 && version<=3; }
+inline bool supportedTerrainTopology(std::uint32_t version) { return version>=1 && version<=4; }
 enum class TerrainBackend : std::uint32_t { Cpu=1, Compute=2 };
 struct TerrainGenerationKey {
     std::uint64_t field=0,topology=0;
@@ -23,6 +23,8 @@ struct TerrainBuildStats {
     double remainingErrorRatio=0;
     bool errorBudgetLimited=false;
     int localDetailTriangles=0;
+    bool parentReused=false;
+    std::array<double,3> parentEye{};
     double localMaxEdgeMeters=0,localRemainingErrorRatio=0;
     bool localDetailLimited=false;
     TerrainQueryStats planningQueries{},evaluationQueries{};
@@ -40,10 +42,17 @@ struct alignas(32) TerrainInputSample {
 };
 static_assert(sizeof(TerrainInputSample)==32);
 static_assert(offsetof(TerrainInputSample,sinkMeters)==24);
+struct alignas(32) TerrainMorphSample {
+    std::array<TerrainInputSample,3> parent;
+    std::array<double,4> blend{}; // parent weight; remaining words reserved
+};
+static_assert(sizeof(TerrainMorphSample)==128);
 // Stable first-use canonical IDs and triangle order. CPU evaluation expands
 // corners for the old mesh/grass/replay layout; future GPU output can stay indexed.
 struct TerrainTopology : TerrainBuildStats {
-    TerrainSurfacePolicy surfacePolicy;
+    TerrainSurfacePolicy surfacePolicy, parentPolicy;
+    std::vector<TerrainMorphSample> morph; // Empty for historical v1-v3.
+    std::uint32_t version() const { return morph.empty()?surfacePolicy.version():4; }
     std::vector<TerrainInputSample> samples;
     std::vector<std::uint32_t> indices;
     // CPU planning scratch for legacy float-rounded shoreline decisions;
