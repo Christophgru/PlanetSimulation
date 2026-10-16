@@ -233,3 +233,35 @@ TEST(TerrainDetail, StreamingRebasesBeforeAShortNearBandFiltersOrSinksTheMovingC
         ASSERT_GT(checked,0u);
     }
 }
+
+TEST(TerrainDetail, RecordedParentsOverrideDistanceOnceAndRebuildTheExactRequestedAnchor) {
+    auto lod=detailLod();lod.local_detail_streaming=true;
+    lod.near_surface_distance_m=2;lod.mid_surface_distance_m=20;
+    TerrainSurface surface({microNoise()},lod,1,1000);
+    const glm::dvec3 parent(1.002,0,0),eye(1.002,.003,0);
+    surface.prepareReplayParent(parent);
+    auto snapshot=surface; // The worker consumes the same recorded parent.
+    const auto restored=snapshot.buildTopologyForEye(eye,{});
+    EXPECT_TRUE(restored.parentReused);
+    EXPECT_EQ(restored.parentEye,(std::array<double,3>{parent.x,parent.y,parent.z}));
+    // Historical snapshots retain their original filtered/sunk surface too.
+    bool sunk=false;
+    for(const auto& s:restored.samples) {
+        const glm::dvec3 r(s.radial[0],s.radial[1],s.radial[2]);
+        if(glm::length(r-glm::normalize(eye))*1000<lod.local_detail_radius_m) sunk|=s.sinkMeters>0;
+    }
+    EXPECT_TRUE(sunk);
+    const auto normal=surface.buildTopologyForEye(eye,{});
+    EXPECT_FALSE(normal.parentReused);EXPECT_NE(normal.generation,restored.generation);
+    // Preparing a nearby recorded parent must rebuild exactly, rather than
+    // silently retaining a parent already present in the cache.
+    const auto nearby=parent+glm::dvec3(0,.00015,0);
+    surface.prepareReplayParent(parent);surface.prepareReplayParent(nearby);
+    const auto replay=surface.buildTopologyForEye(eye,{});
+    EXPECT_EQ(replay.parentEye,(std::array<double,3>{nearby.x,nearby.y,nearby.z}));
+    TerrainSurface fresh({microNoise()},lod,1,1000);fresh.prepareReplayParent(nearby);
+    EXPECT_EQ(fresh.buildTopologyForEye(eye,{}).generation,replay.generation);
+    EXPECT_THROW(surface.prepareReplayParent({0,0,0}),std::invalid_argument);
+    auto plain=detailLod();plain.local_detail_streaming=false;
+    EXPECT_THROW(TerrainSurface({microNoise()},plain,1,1000).prepareReplayParent(parent),std::invalid_argument);
+}

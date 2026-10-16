@@ -67,6 +67,9 @@ public:
     TerrainTopology buildTopology(int edgeSegments) const;
     TerrainTopology buildTopologyForEye(const glm::dvec3& eyeWorld,const glm::dvec3& center,
         const std::vector<int>* previousFaceZones=nullptr,double hysteresisMeters=0.0) const;
+    // Capture adapter: rebuild this recorded body-local parent (world units)
+    // exactly and retain it for the next plan. Caller must own an idle planner.
+    void prepareReplayParent(const glm::dvec3& parentEyeWorldUnits) const;
     TerrainGeometry evaluateTopology(const TerrainTopology& topology) const;
 
 private:
@@ -76,7 +79,7 @@ private:
     static std::shared_ptr<const RefinementParent> prepareRefinementParent(const TerrainTopology& topology,double scale);
     void refineSurfaceError(TerrainTopology& geometry, const glm::dvec3& eyeBody, bool localOnly=false,
         TerrainQueryCache* sharedQueries=nullptr,const RefinementParent* parent=nullptr) const;
-    TerrainTopology streamDetail(const glm::dvec3& eyeBody) const;
+    TerrainTopology streamDetail(const glm::dvec3& eyeBody,bool restoreParent=false) const;
     struct DetailCache;
     static std::shared_ptr<DetailCache> newDetailCache();
     std::shared_ptr<DetailCache> detailCache_;

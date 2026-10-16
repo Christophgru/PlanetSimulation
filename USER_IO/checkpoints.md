@@ -1,5 +1,34 @@
 # Page to document progress of AI Agents working on this Project
 
+## Recorded parent replay correction — 2026-10-16
+
+- be1078b commits the dispatch/workload verification below. Continued the same
+  terrain p row: the safer near-band reuse limit can replace a recorded v4 parent
+  during replay. A geometry-only fixture reproduces an unexpected 2.102 m anchor
+  replacement with the old path. Its edited geometry disables grass and uses null
+  quotas; retaining quotas for a different mesh produced an invalid fixture in the
+  first pilot (not a renderer regression).
+- Added TerrainSurface::prepareReplayParent, called only by the existing capture
+  adapter with an idle planner. It rebuilds the recorded parent exactly and marks
+  it for the next plan, including worker snapshots; normal planning then resumes
+  the safe distance bound. Explicit repeated preparation rebuilds even nearby
+  anchors. No new shader, topology format, GPU memory or live-mode override.
+- Full 102-step build passed. Ten detail CPU cases pass, including one-shot
+  restoration, normal rebasing afterward, exact nearby-anchor replacement and
+  unsupported/invalid-input rejection. The first expanded capture matrix passes
+  (64.3 s), honoring the old parent and replaying it exactly.
+- Final expanded matrix passes (41.4 s), including recorded-parent CPU/GL 3.3
+  routes: both backend image means are 0.0, saved replay is exact, and all seven
+  earlier images remain byte-identical. Historical-anchor capture inspected.
+  All 35 core groups pass (29.55 s); all 45 software compute/consumer cases pass
+  (77.6 s). Overview is byte-identical to the inspected prior image: 14,779
+  non-background pixels, bounds (1,1)–(794,598), 3,471 planet pixels.
+- Logs: build-f5/resume/detail-recorded-parent-{core.log,streaming-final.log,
+  cpu.log,compute-all.log,render.log,build.log,before-capture.log}; captures in
+  build-f5/terrain-streaming-captures. Preserve the user's production config.
+- Terrain remains p. Moving coverage and temporal publication remain incomplete;
+  NVIDIA NVML is unavailable. Later TODO rows stay queued in their original order.
+
 ## Parent dispatch verification — 2026-10-16
 
 - Short near-band correction is committed as 1932457; parent adjacency work is

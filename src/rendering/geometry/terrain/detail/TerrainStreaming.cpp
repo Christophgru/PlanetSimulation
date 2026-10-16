@@ -10,6 +10,7 @@ struct TerrainSurface::DetailCache {
     std::optional<TerrainTopology> parent;
     std::shared_ptr<const RefinementParent> adjacency;
     glm::dvec3 eye{0};
+    bool recordedParentNext=false;
     // The query cache owns its referenced immutable field through this optional;
     // worker snapshots can disappear without leaving a dangling field reference.
     std::optional<PlanetField> queryField;
@@ -18,21 +19,27 @@ struct TerrainSurface::DetailCache {
 std::shared_ptr<TerrainSurface::DetailCache> TerrainSurface::newDetailCache() {
     return std::make_shared<DetailCache>();
 }
-TerrainTopology TerrainSurface::streamDetail(const glm::dvec3& eye) const {
+void TerrainSurface::prepareReplayParent(const glm::dvec3& parentEyeWorldUnits) const {
+    if(!detailCache_) throw std::invalid_argument("Recorded parent requires streaming terrain");
+    (void)streamDetail(parentEyeWorldUnits/radius_,true);
+}
+TerrainTopology TerrainSurface::streamDetail(const glm::dvec3& eye,bool restoreParent) const {
     CpuTrace::Scope scope("terrain.stream_detail");
     if(!std::isfinite(glm::length(eye)) || glm::length(eye)<=0)
         throw std::invalid_argument("Invalid streaming terrain eye");
     // One parent shell shared by worker snapshots. Replacement drops the previous
     // cache rather than accumulating a trail of detailed mesh generations.
     std::lock_guard lock(detailCache_->mutex);
+    const bool recorded=detailCache_->recordedParentNext;
+    detailCache_->recordedParentNext=false;
     const bool local=glm::length(eye)<3;
     const double movement=!detailCache_->parent?0:glm::length(glm::normalize(eye)-glm::normalize(detailCache_->eye))*radius_*metersPerUnit_;
     // The fixed fine-field policy must still cover the whole moving core.
     // A ten-metre minimum alone can carry a short near band past its finest
     // footprint, silently filtering/sinking vertices inside that core.
     const double reuseDistance=.5*(lod_.near_surface_distance_m-lod_.local_detail_radius_m);
-    const bool reuse=detailCache_->parent && local==(glm::length(detailCache_->eye)<3) &&
-        (!local || movement<reuseDistance);
+    const bool reuse=!restoreParent && detailCache_->parent && local==(glm::length(detailCache_->eye)<3) &&
+        (recorded || !local || movement<reuseDistance);
     if(!reuse) {
         auto coarse=lod_;coarse.local_detail_radius_m=0;coarse.local_detail_streaming=false;
         const int minimum=320*3*coarse.base_edge_segments*(2*std::max(1,(coarse.base_edge_segments+1)/2)-1);
@@ -69,6 +76,9 @@ TerrainTopology TerrainSurface::streamDetail(const glm::dvec3& eye) const {
         for(std::size_t i=0;i<result.samples.size();++i) result.morph[i].parent.fill(result.samples[i]);
     }
     {CpuTrace::Scope canonical("terrain.detail_canonicalize");result.canonicalize(field_.fingerprint());}
+    // Recorded anchors predate cache-distance refinements. Honor them for one
+    // capture plan; ordinary subsequent planning regains the safe reuse bound.
+    if(restoreParent) detailCache_->recordedParentNext=true;
     return result;
 }
 }

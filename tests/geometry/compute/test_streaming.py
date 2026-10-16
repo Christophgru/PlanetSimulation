@@ -86,8 +86,38 @@ short_replay, _ = run('short-near-replay', replay=Path(str(short_moving) + '.jso
 assert short_moving.read_bytes() == short_replay.read_bytes()
 assert math.dist(short_initial['render']['terrain_parent_eyes_world_units'][0],
     short_state['render']['terrain_parent_eyes_world_units'][0]) * 1000 > .375
+
+# Historical v4 captures can retain a parent beyond today's safer reuse limit.
+# Explicit recorded anchors are the surface contract, rather than cache hints.
+historical = json.loads(json.dumps(short_state))
+old_parent = short_initial['render']['terrain_parent_eyes_world_units'][0]
+historical['render']['terrain_parent_eyes_world_units'][0] = old_parent
+# Changing geometry invalidates recorded grass quotas; isolate this anchor
+# contract with explicit disabled consumers, leaving the grass matrix above.
+for body in historical['scenario']['planets']:
+    body['foliage']['enabled'] = False
+historical['render']['foliage_policy'] = [None] * len(scene['planets'])
+historical_path = out / 'historical-parent.json'
+historical_path.write_text(json.dumps(historical))
+recorded, recorded_state = run('recorded-parent', replay=historical_path)
+assert recorded_state['render']['terrain_parent_eyes_world_units'][0] == old_parent
+assert recorded_state['render']['terrain_contract']['topology_fingerprint'] != short_state['render']['terrain_contract']['topology_fingerprint']
+recorded_replay, _ = run('recorded-parent-replay', replay=Path(str(recorded) + '.json'))
+assert recorded.read_bytes() == recorded_replay.read_bytes()
+recorded_cpu, _ = run('recorded-parent-cpu', ('--terrain-backend', 'cpu'), Path(str(recorded) + '.json'))
+recorded_gl33, _ = run('recorded-parent-gl33', ('--terrain-backend', 'cpu'), Path(str(recorded) + '.json'),
+    {'LIBGL_ALWAYS_SOFTWARE': '1', 'MESA_GL_VERSION_OVERRIDE': '3.3', 'MESA_GLSL_VERSION_OVERRIDE': '330'})
+assert recorded_cpu.read_bytes() == recorded_gl33.read_bytes()
+cw, ch, cc, cp = read_png(recorded)
+dw, dh, dc, dp = read_png(recorded_cpu)
+assert (cw, ch, cc) == (dw, dh, dc)
+recorded_mean = sum(abs(a-b) for a, b in zip(cp, dp)) / len(cp)
+assert recorded_mean < .1, recorded_mean
 (out / 'results.json').write_text(json.dumps({'moving_replay_exact': True,
     'short_near_rebase_replay_exact': True,
+    'recorded_parent_replay_exact': True,
+    'recorded_parent_cpu_gl33_exact': True,
+    'recorded_parent_cpu_gpu_mean_channel_error': recorded_mean,
     'cpu_gl33_exact': True, 'cpu_gpu_mean_channel_error': mean,
     'contract': state['render']['terrain_contract']}, indent=2) + '\n')
 print('PASS moving terrain v4, exact parent/rebase replay, CPU/GL 3.3, corrupt anchor rejection')

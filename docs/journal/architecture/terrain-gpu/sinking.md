@@ -1,5 +1,35 @@
 # Relief-aware terrain sinking
 
+## Preserve recorded parent anchors — 2026-10-16
+
+The safer reuse bound also needs a capture adapter: an older v4 document can
+record a parent beyond today's reuse distance. Priming that parent through the
+ordinary planner silently replaces it again when building the final eye. A
+geometry-only fixture demonstrates a 2.102 m unexpected replacement.
+
+`prepareReplayParent` now rebuilds the exact recorded parent and retains it for
+the next capture plan. The marker is consumed through the same shared cache used
+by worker snapshots. Historical filtered/sunk positions are retained in that
+snapshot; subsequent ordinary planning resumes the current safe reuse bound.
+Preparing another recorded parent always rebuilds it, including nearby anchors.
+The existing capture path owns an idle planner; live operation does not call this
+adapter. Invalid anchors and non-streaming use are rejected. The GPU contract,
+shader packs, field version and generation hashing are unchanged.
+
+The historical-anchor fixture uses explicitly disabled foliage and null quotas
+after editing geometry; quotas from another mesh are not a valid replay input.
+The original grass-enabled moving/replay matrix remains in the same test.
+
+Ten detail CPU cases and all 35 core groups pass. The expanded capture matrix
+passes in 41.4 s: recorded-parent replay is exact, CPU and GL 3.3 images are exact,
+and the GPU/CPU mean channel error is zero for both normal and recorded-parent
+fixtures. All seven prior images remain unchanged. All 45 software compute/
+staging/cell/publication/allocation cases pass (77.6 s). The historical-anchor
+image is inspected; the overview remains byte-identical with 14,779
+non-background pixels, bounds (1,1)–(794,598), and 3,471 planet pixels. Evidence
+stays local in `build-f5/resume/detail-recorded-parent-*` and the CTest capture
+directory. Moving coverage and temporal publication remain unfinished.
+
 ## Parent workload and dispatch verification — 2026-10-16
 
 The planning helper now distinguishes the unconditional parent-position count
