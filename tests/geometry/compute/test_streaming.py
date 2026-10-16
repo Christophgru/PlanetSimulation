@@ -1,6 +1,7 @@
 """Moving centimeter detail: shared consumers, parent replay and supported fallbacks."""
 import argparse
 import json
+import math
 import os
 from pathlib import Path
 import subprocess
@@ -72,7 +73,21 @@ bad['render']['terrain_parent_eyes_world_units'][0] = [0, 0, 0]
 invalid = out / 'invalid.json'
 invalid.write_text(json.dumps(bad))
 assert 'Terrain planning anchors' in run('invalid', replay=invalid, fail=True)
+
+# Cross the fixed fine-field footprint and force parent replacement, then replay
+# its final saved anchor rather than silently rebuilding from the initial eye.
+planet['terrain_lod'].update(near_surface_distance_m=1, mid_surface_distance_m=20)
+config = out / 'short-near-scene.json'
+config.write_text(json.dumps(scene))
+_, short_initial = run('short-near-initial')
+short_moving, short_state = run('short-near-moving', ('--benchmark-frames', '8',
+    '--benchmark-step', '.016666666667', '--benchmark-walk-step', '.3'))
+short_replay, _ = run('short-near-replay', replay=Path(str(short_moving) + '.json'))
+assert short_moving.read_bytes() == short_replay.read_bytes()
+assert math.dist(short_initial['render']['terrain_parent_eyes_world_units'][0],
+    short_state['render']['terrain_parent_eyes_world_units'][0]) * 1000 > .375
 (out / 'results.json').write_text(json.dumps({'moving_replay_exact': True,
+    'short_near_rebase_replay_exact': True,
     'cpu_gl33_exact': True, 'cpu_gpu_mean_channel_error': mean,
     'contract': state['render']['terrain_contract']}, indent=2) + '\n')
-print('PASS moving terrain v4, exact parent replay, CPU/GL 3.3, corrupt anchor rejection')
+print('PASS moving terrain v4, exact parent/rebase replay, CPU/GL 3.3, corrupt anchor rejection')

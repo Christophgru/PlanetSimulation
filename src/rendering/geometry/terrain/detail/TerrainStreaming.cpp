@@ -27,8 +27,12 @@ TerrainTopology TerrainSurface::streamDetail(const glm::dvec3& eye) const {
     std::lock_guard lock(detailCache_->mutex);
     const bool local=glm::length(eye)<3;
     const double movement=!detailCache_->parent?0:glm::length(glm::normalize(eye)-glm::normalize(detailCache_->eye))*radius_*metersPerUnit_;
+    // The fixed fine-field policy must still cover the whole moving core.
+    // A ten-metre minimum alone can carry a short near band past its finest
+    // footprint, silently filtering/sinking vertices inside that core.
+    const double reuseDistance=.5*(lod_.near_surface_distance_m-lod_.local_detail_radius_m);
     const bool reuse=detailCache_->parent && local==(glm::length(detailCache_->eye)<3) &&
-        (!local || movement<std::max(10.0,lod_.near_surface_distance_m*.5));
+        (!local || movement<reuseDistance);
     if(!reuse) {
         auto coarse=lod_;coarse.local_detail_radius_m=0;coarse.local_detail_streaming=false;
         const int minimum=320*3*coarse.base_edge_segments*(2*std::max(1,(coarse.base_edge_segments+1)/2)-1);

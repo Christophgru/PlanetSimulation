@@ -1,5 +1,37 @@
 # Relief-aware terrain sinking
 
+## Keep short near-band cores fully resolved — 2026-10-16
+
+A focused regression exposed a v4 correctness bug: the 10 m minimum parent
+reuse distance could outlive a short finest-field band. With a valid 2 m near
+band, a 0.5 m core and 3 m of movement, the old path sinks an interior core
+sample by 60.988 mm and filters its detail. The fine field is intentionally fixed
+to the parent's anchor while cached probes refer to it, so geometry selection
+alone cannot fix that mismatch.
+
+Parent reuse is now limited to half the clearance between the configured near
+distance and core radius. Rebase replaces the shell, adjacency and field-probe
+cache together before that band is exhausted. Orbit reuse is unchanged. Short
+bands consequently rebuild more frequently; this fixes fine-core correctness
+and does not resolve the existing moving-coverage/temporal-publication limits.
+
+The new CPU case traverses, reuses and rebases a 2 m near band, checking every
+retained core sample for zero sinking, zero parent blend and the fully resolved
+field height. It fails before the fix and passes afterward. All nine detail cases
+and all 35 core groups pass. Eleven terrain compute cases pass, including a new
+short-band rebase with CPU/GPU position error below 0.06 mm, closed edges and
+unchanged numerical tolerances.
+
+The capture matrix also forces rebases using a 1 m near band: the parent moves
+1.802 m, the final core's maximum edge is 4.431 cm without a limit flag, and
+saved-parent replay is byte-exact. The four original moving/replay/CPU/GL 3.3
+images remain unchanged. The expanded matrix passes in 34.8 s. The overview
+render remains nonblank with 14,779 non-background pixels, bounds
+(1,1)–(794,598), and 3,471 planet pixels; the short-band image is inspected.
+Evidence stays local in `build-f5/resume/detail-short-near-*` and the CTest
+`terrain-streaming-captures` directory. NVIDIA remains unavailable; no hardware
+movement acceptance or completed terrain TODO is claimed.
+
 ## Cached parent adjacency — 2026-10-16
 
 The optional v4 planner now retains immutable coarse-edge adjacency and radial

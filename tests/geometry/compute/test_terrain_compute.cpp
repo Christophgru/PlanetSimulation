@@ -290,6 +290,24 @@ TEST(TerrainCompute, StreamingParentProjectionMatchesCpuAndSparseContactsWhileMo
         }
     }
 }
+TEST(TerrainCompute, ShortNearBandRebaseKeepsTheCoreUnsunkAndMatchesGpu) {
+    auto l=lod();l.max_triangle_budget=30000;l.shoreline_edge_m=0;
+    l.relief_sinking=true;l.geometric_error_m=.05;l.local_detail_radius_m=.5;
+    l.local_edge_m=.05;l.local_transition_m=.5;l.local_detail_streaming=true;
+    l.near_surface_distance_m=2;l.mid_surface_distance_m=20;
+    config::PlanetConfig::SurfaceNoiseFunction n;n.amplitude_m=.01;n.wavelength_m=.25;n.octaves=1;
+    const TerrainSurface surface({n},l,1,1000);TerrainCompute compute;
+    (void)surface.buildTopologyForEye({1.002,0,0},{});
+    const glm::dvec3 eye(1.002,.003,0);
+    const auto t=surface.buildTopologyForEye(eye,{});
+    ASSERT_FALSE(t.parentReused);ASSERT_FALSE(t.localDetailLimited);
+    for(const auto& s:t.samples) {
+        const glm::dvec3 r(s.radial[0],s.radial[1],s.radial[2]);
+        if(glm::length(r-glm::normalize(eye))*1000<l.local_detail_radius_m)
+            ASSERT_DOUBLE_EQ(s.sinkMeters,0);
+    }
+    parity(surface,t,compute,true);
+}
 int main(int argc,char** argv) {
     ::testing::InitGoogleTest(&argc,argv);if(!glfwInit()) return 1;
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,4);glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);

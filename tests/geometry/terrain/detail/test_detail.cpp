@@ -211,3 +211,25 @@ TEST(TerrainDetail, CachedAdjacencyRemainsClosedAcrossTurnsAndMatchesFreshParent
         EXPECT_THROW(corrupt.validate(),std::invalid_argument);
     }
 }
+
+TEST(TerrainDetail, StreamingRebasesBeforeAShortNearBandFiltersOrSinksTheMovingCore) {
+    auto lod=detailLod();lod.local_detail_streaming=true;
+    lod.near_surface_distance_m=2;lod.mid_surface_distance_m=20;
+    TerrainSurface surface({microNoise()},lod,1,1000);
+    (void)surface.buildTopologyForEye({1.002,0,0},{});
+    for(double offset:{.15,.3,3.,3.15,6.}) {
+        const glm::dvec3 eye(1.002,offset/1000,0);
+        const auto t=surface.buildTopologyForEye(eye,{});
+        ASSERT_FALSE(t.localDetailLimited);
+        std::size_t checked=0;
+        for(std::size_t i=0;i<t.samples.size();++i) {
+            const auto& s=t.samples[i];const glm::dvec3 radial(s.radial[0],s.radial[1],s.radial[2]);
+            if(glm::length(radial-glm::normalize(eye))*1000>=lod.local_detail_radius_m) continue;
+            ++checked;
+            ASSERT_DOUBLE_EQ(t.morph[i].blend[0],0);
+            ASSERT_DOUBLE_EQ(s.sinkMeters,0) << "core moved " << offset << " m";
+            ASSERT_DOUBLE_EQ(surface.field().heightAt(radial,t.surfacePolicy),surface.field().heightAt(radial));
+        }
+        ASSERT_GT(checked,0u);
+    }
+}

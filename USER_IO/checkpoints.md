@@ -1,5 +1,27 @@
 # Page to document progress of AI Agents working on this Project
 
+## Short near-band core correction — 2026-10-16
+
+- Parent adjacency optimization is committed as 6978326. Continued the same p
+  terrain row with a correctness fix: the old 10 m minimum parent lifetime lets
+  a 2 m near band filter/sink its moving core. New regression fails at 3 m travel
+  with a core sample sunk 0.0609883703 m. Limit reuse to half the difference between near
+  distance and core radius; existing atomic replacement resets shell/adjacency/probes.
+- Nine CPU detail cases and all 35 core CTest groups pass (25.95 s). Eleven
+  terrain compute cases pass, including the new short-band rebase; max CPU/GPU
+  position difference in that case is 0.059605 mm. No tolerance changes.
+- Expanded moving-capture matrix passes (34.8 s): a 1 m near band forces a
+  1.802 m parent rebase, final core edge is 4.431 cm without a limit, and replay
+  from the saved final parent is exact. Original four images remain byte-exact
+  against 6978326. New short-near capture visually inspected; overview remains
+  nonblank (14,779 pixels, bounds (1,1)–(794,598), 3,471 planet pixels).
+- Evidence: build-f5/resume/detail-short-near-{before.log,core.log,compute.log,
+  streaming.log,render.log,build-final.log}; CTest captures in
+  build-f5/terrain-streaming-captures. NVIDIA NVML remains unavailable. Prior
+  software movement receipts remain failures; terrain stays p and later TODOs
+  remain queued. Next work is still continuous moving detail / temporal
+  publication, with shared terrain/grass/contacts and bounded ownership.
+
 ## Terrain adjacency continuation — 2026-10-16
 
 - Continued the priority p terrain row. Cache one immutable coarse adjacency map
@@ -32,10 +54,8 @@
   fingerprints in detail-before-fingerprints.csv. Report: sinking.md; helper
   commands in scripts/benchmarks/terrain_detail/README.md. Preserve the user's
   uncommitted production foliage settings. All later TODO rows remain queued.
-- Next work stays in this same terrain row. A short configured near band can
-  outlive the fixed fine-policy footprint because the current cache rebase has a
-  10 m minimum; add a regression and bound reuse before the moving core is filtered
-  or sunk. Sustained fine-patch coverage and temporal publication still need work.
+- Follow-up above fixes the short configured near-band lifetime. Sustained
+  fine-patch coverage and temporal publication still need work in this same row.
 
 ## TODO continuation — 2026-10-16 (in progress)
 
