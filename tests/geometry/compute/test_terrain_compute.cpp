@@ -276,9 +276,19 @@ TEST(TerrainCompute, StreamingParentProjectionMatchesCpuAndSparseContactsWhileMo
     l.relief_sinking=true;l.geometric_error_m=.05;l.local_detail_radius_m=.5;
     l.local_edge_m=.05;l.local_transition_m=.5;l.local_detail_streaming=true;
     config::PlanetConfig::SurfaceNoiseFunction n;n.amplitude_m=.01;n.wavelength_m=.25;n.octaves=1;
-    const TerrainSurface surface({n},l,1,1000);TerrainCompute compute;
+    const TerrainSurface surface({n},l,1,1000);
+    auto limits=TerrainComputeLimits::query();limits.groups=1;TerrainCompute compute(limits);
     for(int step=0;step<2;++step) {
         const auto t=surface.buildTopologyForEye({1.002,step*.00015,0},{});
+        // Ensure the independent whole-mesh oracle exercises zero-weight,
+        // repeated-parent and actual parent-plane samples, including triplets
+        // split across 64-invocation dispatch boundaries.
+        std::array<std::size_t,3> kinds{};
+        for(const auto& m:t.morph) {
+            const bool single=m.parent[0]==m.parent[1] && m.parent[0]==m.parent[2];
+            ++kinds[m.blend[0]==0?0:single?1:2];
+        }
+        for(auto count:kinds) EXPECT_GT(count,0u);
         EXPECT_EQ(t.parentReused,step>0);parity(surface,t,compute,true);
         auto gpu=compute.generate(surface.field(),t);gpu->waitForCapture();
         const auto vertices=gpu->readVertices();const auto indices=gpu->readIndices();

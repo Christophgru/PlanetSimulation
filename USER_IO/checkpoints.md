@@ -1,5 +1,29 @@
 # Page to document progress of AI Agents working on this Project
 
+## Parent dispatch verification — 2026-10-16
+
+- Short near-band correction is committed as 1932457; parent adjacency work is
+  6978326. Renderer production sources/shaders remain at that corrected behavior.
+- Investigated redundant parent evaluation within the same p row. Work counters
+  show 27.6–28.6k needed parent positions versus 81.6–85.7k unconditional calls
+  in production fixtures. Counts describe requirements within each vertex, not
+  GPU invocations/timing. All twelve benchmark fingerprints remain unchanged.
+- A branch-only shader prototype preserved all three paired images exactly but
+  showed no software timing gain: median generation 38.318→39.703 ms over three
+  alternating pairs. Reverted it; no shader change is shipped. Do not infer a
+  GPU/FPS gain from the 66% scalar redundancy. NVIDIA still fails NVML setup.
+- Retained diagnostics and a stronger moving-parent oracle: force 64-thread
+  chunks across descriptor triplets and ensure zero-weight, repeated-parent and
+  real parent-plane cases are covered. Final restored shader passes all 45
+  software compute/staging/cell/publication/allocation cases (77.7 s). Latest
+  renderer also has passing 35 core groups, nine CPU detail cases, short-band
+  rebase replay and original CPU/GL 3.3 images, as recorded below.
+- Raw evidence remains ignored/local: build-f5/resume/detail-parent-work.csv,
+  detail-parent-pairs/results.json, detail-parent-final-compute.log and
+  detail-final-compute-all.log. Report/README updated. Preserve the user's
+  uncommitted production foliage edits. Terrain stays p: continuous moving
+  coverage and temporal publication remain unfinished; later TODOs stay queued.
+
 ## Short near-band core correction — 2026-10-16
 
 - Parent adjacency optimization is committed as 6978326. Continued the same p

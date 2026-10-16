@@ -9,7 +9,7 @@ int main(int argc,char** argv) {
     if(argc>3) {std::cerr << "Usage: terrain_detail_benchmark [scene.json] [cpu-trace.json]\n";return 2;}
     rendering::CpuTrace trace(argc==3?argv[2]:"");
     rendering::CpuTrace::Thread thread(&trace,"detail benchmark");
-    std::cout << "latitude_deg,streaming,step,wall_ms,thread_cpu_ms,triangles,height_evaluations,max_core_edge_m,core_limited,parent_reused,input_bytes,topology_fingerprint,parent_edges,mutable_edges\n";
+    std::cout << "latitude_deg,streaming,step,wall_ms,thread_cpu_ms,triangles,height_evaluations,max_core_edge_m,core_limited,parent_reused,input_bytes,topology_fingerprint,parent_edges,mutable_edges,reference_parent_positions,needed_parent_positions\n";
     const config::ScenarioConfig scene(config::Config::load(argc>=2?argv[1]:"configs/scenarios/solar_system.json"));
     const auto& p=scene.planets[0];const double meters=scene.metersPerWorldUnit();
     for(const auto pose:{glm::dvec2(-17.23072754436555,79.39197457588234),glm::dvec2(-18.726025155509635,113.23762488691663)}) {
@@ -28,10 +28,14 @@ int main(int argc,char** argv) {
                 const double wall=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-begin).count();
                 clock_gettime(CLOCK_THREAD_CPUTIME_ID,&cpuEnd);
                 const double cpu=(cpuEnd.tv_sec-cpuStart.tv_sec)*1000.+(cpuEnd.tv_nsec-cpuStart.tv_nsec)*1e-6;
+                // Per-vertex requirement, not an issued-invocation counter.
+                std::size_t neededParents=0;
+                for(const auto& m:t.morph) if(m.blend[0]>0)
+                    neededParents+=m.parent[0]==m.parent[1] && m.parent[0]==m.parent[2]?1:3;
                 std::cout << pose.x << ',' << streaming << ',' << step << ',' << wall << ',' << cpu << ','
                     << t.triangleCount() << ',' << t.planningQueries.evaluations << ',' << t.localMaxEdgeMeters << ','
                     << t.localDetailLimited << ',' << t.parentReused << ',' << t.topologyInputBytes << ',' << t.generation.topology << ','
-                    << t.refinementParentEdges << ',' << t.refinementMutableEdges << '\n';
+                    << t.refinementParentEdges << ',' << t.refinementMutableEdges << ',' << 3*t.morph.size() << ',' << neededParents << '\n';
             }
         }
     }

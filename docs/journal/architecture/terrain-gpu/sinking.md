@@ -1,5 +1,42 @@
 # Relief-aware terrain sinking
 
+## Parent workload and dispatch verification — 2026-10-16
+
+The planning helper now distinguishes the unconditional parent-position count
+from the positions needed within each vertex. Positive blend weights need three
+positions for an actual triangle, one for three identical descriptors, and none
+at zero weight. Production v4 cases require 27,579–28,590 such positions versus
+81,645–85,719 unconditional evaluations, about 66% redundant work by this scalar
+count. This excludes fine-field/normal work and sharing between vertices; it is
+not a count of issued invocations or a GPU timing prediction. All twelve topology
+fingerprints remain unchanged.
+
+A temporary shader branch skipped unused/duplicate evaluations while retaining
+the existing dispatch layout. Three alternating 480×270 llvmpipe replay pairs
+give these complete terrain-generation timings:
+
+| Pair | Existing phase (ms) | Branch experiment (ms) | Images |
+|:--|--:|--:|:--|
+| 1 | 41.116 | 39.365 | exact |
+| 2 | 36.986 | 39.703 | exact |
+| 3 | 38.318 | 44.378 | exact |
+| Median | 38.318 | 39.703 | |
+
+There is no observed gain in this small software cohort. The shader experiment
+was reverted; both compute variants remain identical to 1932457. No hardware or
+FPS improvement is claimed. NVIDIA NVML still reports `Unknown Error`.
+The useful retained changes are workload diagnostics and stronger oracle
+coverage: the moving-parent test now forces 64-invocation chunks, crossing
+three-descriptor boundaries, and checks that zero-weight, repeated-descriptor
+and actual parent-plane inputs all occur. It still compares the whole GPU mesh
+and sparse contacts against independent CPU results without relaxing tolerances.
+
+After restoring the shader, all 45 software field/staging/cell/publication/
+allocation cases pass (77.7 s). The final production renderer is unchanged from
+the tested near-band correction; its 35 core groups and moving/short-band replay
+matrix remain passing. Local evidence: `build-f5/resume/detail-parent-work.csv`,
+`detail-parent-pairs/results.json` and `detail-final-compute-all.log`.
+
 ## Keep short near-band cores fully resolved — 2026-10-16
 
 A focused regression exposed a v4 correctness bug: the 10 m minimum parent

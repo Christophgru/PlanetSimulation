@@ -27,6 +27,14 @@ without other compilation/rendering work when collecting wall timings; thread
 CPU time is also retained to distinguish scheduling delays. Record compiler,
 configuration and source revision with retained evidence.
 
+`reference_parent_positions` counts the current unconditional three parent
+positions per morph sample. `needed_parent_positions` counts only positive parent
+weights and collapses identical descriptors within each vertex to one position.
+This is an input-derived per-vertex requirement, not a dispatch/invocation or
+timing counter. It excludes fine-field/normal work and reuse across vertices.
+The current shader retains its unconditional parent phase: simply branching
+around redundant evaluations showed no timing gain in the software pilot.
+
 This measures CPU topology planning only. It does not measure GPU preparation,
 publication delay, desktop FPS, collision error or moving patch coverage. Use
 the automated detail/parity/replay tests and native input loop separately.
