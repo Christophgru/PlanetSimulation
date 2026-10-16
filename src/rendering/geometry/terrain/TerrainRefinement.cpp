@@ -2,6 +2,7 @@
 #include "rendering/diagnostics/tracing/CpuTrace.h"
 #include <algorithm>
 #include <limits>
+#include <memory_resource>
 #include <unordered_map>
 #include <queue>
 #include <stdexcept>
@@ -105,7 +106,11 @@ void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dv
     // Only keyed lookup is needed: face/queue order determines every split.
     // A closed triangular shell has 3/2 as many edges as faces. Reserve that
     // bounded capacity to avoid tree walks and growth during refinement.
-    std::unordered_map<Key,Edge,RefinementEdgeHash> edges;
+    // Splitting repeatedly erases one edge and inserts its children. Recycle
+    // those small nodes for this plan, then release all chunks at scope exit.
+    // Keep large bucket arrays upstream rather than pooling their size classes.
+    std::pmr::unsynchronized_pool_resource edgeNodes({1024,128});
+    std::pmr::unordered_map<Key,Edge,RefinementEdgeHash> edges(&edgeNodes);
     edges.reserve(parent?8192:std::size_t(lod_.max_triangle_budget)*3/2);
     const auto edgeAt=[&](const Key& k) -> Edge& {
         auto [it,inserted]=edges.try_emplace(k);
@@ -163,14 +168,15 @@ void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dv
     const auto assess=[&](int id) {
         auto& triangle=triangles[id];
         const auto v=triangle.v;
+        double groundDistance=std::numeric_limits<double>::infinity();
         if(localOnly) {
             const bool base=parent && id<originalCount;
             const auto center=base?parent->bounds[id].center:
                 glm::normalize(vertices[v[0]].radial+vertices[v[1]].radial+vertices[v[2]].radial);
             double reach=base?parent->bounds[id].reach:0;
             if(!base) for(auto corner:v) reach=std::max(reach,glm::length(vertices[corner].radial-center)*scale);
-            const double distance=std::max(0.0,glm::length(center-eyeRadial)*scale-reach);
-            if(distance>lod_.local_detail_radius_m+lod_.local_transition_m) return;
+            groundDistance=std::max(0.0,glm::length(center-eyeRadial)*scale-reach);
+            if(groundDistance>lod_.local_detail_radius_m+lod_.local_transition_m) return;
             for(auto corner:v) if(!evaluated[corner]) {
                 vertices[corner]=sampleAt(vertices[corner].radial);evaluated[corner]=true;
             }
@@ -184,11 +190,14 @@ void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dv
         // distance. A steep planar slope has little error; a crest has much more.
         double tolerance=std::max(lod_.geometric_error_m,0.001*distance),edgeTarget=0;
         if(lod_.local_detail_radius_m>0) {
-            const auto radialCenter=glm::normalize(vertices[v[0]].radial+vertices[v[1]].radial+vertices[v[2]].radial);
-            double radialReach=0;
-            for(auto corner:v) radialReach=std::max(radialReach,glm::length(vertices[corner].radial-radialCenter)*scale);
             // Ground-centered footprint, independent of clearance or slope.
-            triangle.localDistance=std::max(0.0,glm::length(radialCenter-eyeRadial)*scale-radialReach);
+            if(localOnly) triangle.localDistance=groundDistance;
+            else {
+                const auto radialCenter=glm::normalize(vertices[v[0]].radial+vertices[v[1]].radial+vertices[v[2]].radial);
+                double radialReach=0;
+                for(auto corner:v) radialReach=std::max(radialReach,glm::length(vertices[corner].radial-radialCenter)*scale);
+                triangle.localDistance=std::max(0.0,glm::length(radialCenter-eyeRadial)*scale-radialReach);
+            }
             const double beyond=std::max(0.0,triangle.localDistance-lod_.local_detail_radius_m);
             if(beyond<=lod_.local_transition_m) {
                 triangle.priority=beyond==0 ? 2 : 1;

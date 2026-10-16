@@ -1,5 +1,58 @@
 # Relief-aware terrain sinking
 
+## Recycle refinement nodes and footprint calculations — 2026-10-16
+
+The instruction profile identified repeated edge-node allocation/free during
+longest-edge splitting. The existing keyed adjacency map now uses a standard
+per-plan `std::pmr::unsynchronized_pool_resource`: at most 1,024 blocks per chunk,
+small blocks up to 128 bytes, large bucket arrays allocated upstream. Erased
+nodes can serve later child edges; map destruction precedes resource destruction,
+and all chunks are released when the plan returns. No mutable allocator is shared
+between workers or retained by published geometry. Live graph size still obeys
+the existing 3/2-edge-per-face bound. No new dependency is required.
+
+Local refinement also reuses its early ground-footprint distance when assigning
+core/transition priority. It assigns that distance only after the original
+world-distance guard; high-altitude faces outside the error domain continue to
+report no completed local detail. Nonlocal calculations retain their previous
+order. Both changes preserve split ordering and all rendered descriptors.
+
+Three alternating CPU pairs preserve every non-timing column in all twelve
+production rows and six wider working-set rows, including topology/candidate
+fingerprints, query counts, edge/error limits, shared-index sizes and transfer
+bytes. Median warm thread CPU planning times are:
+
+| Pose | Offset | Before (ms) | After (ms) | Change |
+|:--|--:|--:|--:|--:|
+| Startup | 0.15 m | 85.47 | 79.62 | −6.8% |
+| Startup | 0.30 m | 95.63 | 72.51 | −24.2% |
+| Mountain | 0.15 m | 107.27 | 92.90 | −13.4% |
+| Mountain | 0.30 m | 110.32 | 88.30 | −20.0% |
+
+Warm wide-core medians improve 1.2–22.1%. Cold results are mixed: startup streaming
+improves 4.5%, mountain streaming worsens 6.8%, and historical full-rebuild rows
+range from 1.7% faster to 7.2% slower. The six-plan wide process peak RSS increases
+30,716→34,540 KiB in a separate before/after sample. Pooling trades CPU memory for
+less allocation work; this is not a reduction in all planning costs.
+
+A single traced native RTX cohort reduces warm main-body publication medians
+149.99→119.05 ms walking, 121.01→117.87 ms sprint and 467.52→417.29 ms wide sprint
+(excluding the initial generation). Splitting medians fall 36.86→25.68,
+34.08→32.66 and 288.78→234.61 ms. The unchanged coverage gate still exits 2:
+maximum offsets are 1.183/2.745/9.079 m, with 352/375, 389/412 and 686/721 frames
+outside the requested cores; 483 wide frames miss geometry targets. Ownership
+and nonblocking checks pass: no blocking polls, bulk reads or finishes, with peak
+logical GPU overlap below 75 MB. This does not establish sustained FPS or completed
+moving coverage. Retained refinement and temporal publication remain open.
+
+Full build, 35 core groups (39.04 s), all 46 RTX compute cases (78.78 s), frame
+integration (96.05 s) and the expanded 15-render replay/fallback matrix (70.97 s)
+pass. The inspected overview is byte-identical: 14,779 non-background pixels,
+bounds (1,1)–(794,598), 3,471 planet pixels. No new tests mirror allocator details;
+the existing independent geometry, contact, altitude, publication and replay
+oracles exercise the changed paths. Raw CSVs, memory sample, logs and native
+receipts stay local under `build-f5/resume/detail-refinement-overhead-*`.
+
 ## Refresh after vertical movement — 2026-10-16
 
 Adaptive planning uses distance to the eye, but both runtime refresh paths only

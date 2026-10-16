@@ -1,5 +1,28 @@
 # Page to document progress of AI Agents working on this Project
 
+## Refinement allocation/footprint reuse — 2026-10-16
+
+- 88ff0e9 commits vertical refresh below. Continue terrain p; no later TODO started.
+  Standard per-plan PMR pool recycles small edge-map nodes (1,024 blocks/chunk,
+  ≤128-byte blocks; bucket arrays upstream). Destruction releases all chunks;
+  no allocator shared across workers or published plans. Local footprint distance
+  reused after the world-distance guard, preserving high-altitude diagnostics.
+- Three alternating CPU pairs preserve every non-timing production/wide column.
+  Warm production medians improve 6.8–24.2%; wide warm medians 1.2–22.1%.
+  Cold/legacy results mixed (up to 7.2% slower). Wide six-plan peak RSS rises
+  30,716→34,540 KiB. Report describes the memory/cold tradeoff; no general FPS claim.
+- Full build; 35 core groups (39.04 s), 46 RTX cases (78.78 s), frame integration
+  (96.05 s), 15-render replay matrix (70.97 s) pass. Inspected overview exact:
+  14,779 pixels, bounds (1,1)–(794,598), 3,471 planet pixels. Existing independent
+  oracles used; no implementation-mirroring allocator test added.
+- Native warm main-body publication medians (initial excluded) 149.99→119.05,
+  121.01→117.87, 467.52→417.29 ms. Coverage gate still exits 2: maximum offsets
+  1.183/2.745/9.079 m; outside 352/375, 389/412, 686/721 frames; wide geometry
+  misses 483. Nonblocking/ownership checks pass; logical overlap <75 MB.
+- Evidence: build-f5/resume/detail-refinement-overhead-*; frozen helper/native
+  probe use -before-refinement-overhead. Terrain remains p. Retained refinement
+  and temporal publication still required; user config edits untouched.
+
 ## Vertical terrain refresh correction — 2026-10-16
 
 - 09e308d commits sink reuse below. Corrected two height-sensitive terrain bugs:
