@@ -1,5 +1,41 @@
 # Page to document progress of AI Agents working on this Project
 
+## Reuse evaluated sink descriptors — 2026-10-16
+
+- 3c1b8be commits the complete-plan cache bound below. Continue the same terrain
+  p row: local-detail export recalculates profile/omitted-relief/curvature sinks
+  for vertices/probes whose sampleAt already computed those exact fixed-policy
+  values. Reuse their stored sinks; continue converting untouched coarse parent
+  samples. Reuse the existing normalized eye for footprint/transition distance.
+- First prototype retains all twelve production and six wide fingerprints/work
+  fields, saving only a few ms. Also memoize the original parent samples' fine
+  sinks: field/policy checked, initialized under existing streamDetail mutex,
+  reset with the parent, no borrowed field references. Eight bytes per original
+  vertex (~200 KB for production's 50k-face shell). No descriptor/quality/GPU
+  memory change; extra CPU backing is bounded by the existing parent cap.
+- Both builds pass. Payload is 200,016 bytes for the production 50k-face shell
+  (upper bound 400,016 bytes at 100k, plus container/policy overhead). No headers
+  or GPU/replay contract changes. All twelve production fingerprint/work/index
+  fields remain exact. Warm CPU planning saves 7–11 ms in one isolated cohort:
+  startup 101.60/100.63→90.78/93.29 ms, mountain 127.14/120.43→116.00/109.45.
+  Cold roughly unchanged. Wide short-move timings are mixed despite exact fields.
+- Eleven detail/seven contact cases, all 35 core groups (34.29 s), all 45 RTX
+  compute/consumer cases (85.44 s), moving/rebased/recorded-parent replay + CPU/
+  GL3.3 matrix (64.95 s) pass. Seven earlier images exact; overview inspected,
+  byte-identical: 14,779 pixels, bounds (1,1)–(794,598), 3,471 planet pixels.
+- Native export medians improve 2.90→1.68 / 2.95→1.24 / 8.41→4.77 ms, but
+  total publication worsens 114.98→149.99 / 118.76→121.01 / 415.90→467.52 ms
+  in this traced cohort. Gate still exits 2: max offsets 2.105/2.605/13.441 m;
+  outside 298/314, 384/403, 592/626; wide geometry misses in 427 frames.
+  Nonblocking/ownership checks pass; GPU overlap <75 MB. No native FPS claim.
+- Callgrind instruction profile finishes six exact working-set requests, 1.426B
+  instruction refs (fingerprinting 11.8% self plus substantial reassessment/
+  allocation). Instrumented timings are not native performance measurements.
+  Existing valgrind install used; no environment dependency changes. Evidence:
+  build-f5/resume/detail-sink-*, detail-refinement-callgrind*; frozen before helper/
+  native probe use -before-sink-export. Terrain remains p; keep later TODOs queued
+  and preserve the user's production config edits.
+
 ## Streaming probe working set — 2026-10-16
 
 - 181c5dc commits the parent-contact-index reuse below. Native wide-core plans

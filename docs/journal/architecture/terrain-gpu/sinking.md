@@ -1,5 +1,59 @@
 # Relief-aware terrain sinking
 
+## Reuse fixed-policy sink descriptors — 2026-10-16
+
+Local-detail export used to repeat sink calculations for every vertex/probe,
+including those already evaluated by `sampleAt`. New samples now retain their
+exact computed sink. Original parent samples memoize their fine-policy sinks with
+the existing refinement parent, checked against the complete policy and field
+fingerprint. Initialization/use is serialized by `streamDetail`'s existing mutex;
+rebasing drops the memo. It holds values rather than borrowed field references.
+The same normalized eye also supplies footprint and transition distances.
+
+The payload costs eight bytes per original parent vertex: 200,016 bytes for the
+production 50,000-face shell, at most 400,016 bytes under the 100,000-triangle cap,
+plus small policy/container overhead. Only the current refinement parent retains
+this memo; published topologies contain ordinary sink descriptors. GPU buffers,
+admission, noise sampling, triangle selection, quality targets and replay formats
+are unchanged. The cold fill uses the same float sink conversion as ordinary
+samples, including historical recorded-parent captures.
+
+All twelve production topology/candidate fingerprints and geometry/work/index
+fields remain exact. One isolated CPU cohort gives these warm planning times:
+
+| Pose | Offset | Before (ms) | After (ms) |
+|:--|--:|--:|--:|
+| Startup | 0.15 m | 101.60 | 90.78 |
+| Startup | 0.30 m | 100.63 | 93.29 |
+| Mountain | 0.15 m | 127.14 | 116.00 |
+| Mountain | 0.30 m | 120.43 | 109.45 |
+
+This saves about 7–11 ms of warm planning in this cohort. Cold times remain
+roughly unchanged (1,767→1,769 ms startup, 1,404→1,393 ms mountain). Three
+alternating wide-working-set pairs also retain every fingerprint/query/limit
+field, but total CPU times are mixed; no wider performance gain is claimed.
+
+Native RTX export scopes fall from 2.90→1.68 ms walking, 2.95→1.24 ms sprint,
+and 8.41→4.77 ms wide sprint. Total publication is worse in this single traced
+cohort: 114.98→149.99, 118.76→121.01 and 415.90→467.52 ms, respectively.
+The unchanged gate exits 2, with maximum offsets 2.105/2.605/13.441 m and
+298/314, 384/403, 592/626 frames outside their cores; 427 wide-core frames also
+miss geometry targets. These results do not establish a native FPS or moving
+coverage gain. Nonblocking/ownership checks pass, with zero blocking polls,
+bulk reads or finishes and logical GPU overlap below 75 MB.
+
+All eleven detail cases, seven contact cases, all 35 core groups and all 45 RTX
+compute/consumer cases pass. Moving/rebased/recorded-parent replay and CPU/GL 3.3
+captures pass, seven earlier images remain exact, and the inspected overview is
+unchanged (14,779 non-background pixels, bounds (1,1)–(794,598), 3,471 planet
+pixels). A separate Callgrind instruction profile completes all six working-set
+requests with matching geometry/work fields; it records 1.426 billion instruction
+references, including 11.8% self references in topology fingerprinting and
+substantial reassessment/allocation work. Instrumented times are not performance
+evidence. Raw outputs remain local under `build-f5/resume/detail-sink-*` and
+`detail-refinement-callgrind*`. Retained moving refinement and temporal publication
+are still required; terrain remains **p**.
+
 ## Fit a complete streaming probe working set — 2026-10-16
 
 The 1.5 m native fixture exposes a cache sizing error: its 30,000-triangle budget

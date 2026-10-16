@@ -24,6 +24,11 @@ struct TerrainSurface::RefinementParent {
     struct Bounds {glm::dvec3 center;double reach;};
     std::unordered_map<RefinementKey,std::array<int,2>,RefinementEdgeHash> edges;
     std::vector<Bounds> bounds;
+    // streamDetail holds its cache mutex while initializing/using these derived
+    // values. Adjacency/bounds remain immutable; no field references are stored.
+    mutable TerrainSurfacePolicy fineSinkPolicy;
+    mutable std::uint64_t fineSinkField=0;
+    mutable std::vector<double> fineSinks;
 };
 std::shared_ptr<const TerrainSurface::RefinementParent> TerrainSurface::prepareRefinementParent(
     const TerrainTopology& topology,double scale) {
@@ -57,6 +62,7 @@ void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dv
     if(!localOnly) geometry.canonicalize(field_.fingerprint());
     CpuTrace::Scope initialize("terrain.refinement_initialize");
     const int originalCount=geometry.triangleCount();
+    const auto originalVertices=geometry.samples.size();
     const double scale=radius_*metersPerUnit_;
     const auto eyeRadial=glm::normalize(eyeBody);
     TerrainQueryCache localQueries(field_,8192,geometry.surfacePolicy);
@@ -64,12 +70,15 @@ void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dv
     const auto initialQueries=queries.stats();
     std::vector<GridSample> vertices;
     vertices.reserve(2*lod_.max_triangle_budget+2);
-    const auto sampleAt=[&](const glm::dvec3& radial) {
-        auto sample=makeGridSample(radial,queries.heightAt(radial));
+    const auto sinkAt=[&](const glm::dvec3& radial) {
         const auto profile=geometry.surfacePolicy.profile(radial);
         const double curvature=geometry.surfacePolicy.curvatureMeters(profile);
-        sample.sinkMeters=profile.x==geometry.surfacePolicy.spacing[7] && profile.y==geometry.surfacePolicy.spacing[7] ? 0 :
+        return profile.x==geometry.surfacePolicy.spacing[7] && profile.y==geometry.surfacePolicy.spacing[7] ? 0 :
             static_cast<float>(std::min(geometry.surfacePolicy.distances[3],field_.omittedReliefMeters(profile)+curvature));
+    };
+    const auto sampleAt=[&](const glm::dvec3& radial) {
+        auto sample=makeGridSample(radial,queries.heightAt(radial));
+        sample.sinkMeters=sinkAt(radial);
         sample.position-=radial*(sample.sinkMeters/scale);
         return sample;
     };
@@ -179,7 +188,7 @@ void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dv
             double radialReach=0;
             for(auto corner:v) radialReach=std::max(radialReach,glm::length(vertices[corner].radial-radialCenter)*scale);
             // Ground-centered footprint, independent of clearance or slope.
-            triangle.localDistance=std::max(0.0,glm::length(radialCenter-glm::normalize(eyeBody))*scale-radialReach);
+            triangle.localDistance=std::max(0.0,glm::length(radialCenter-eyeRadial)*scale-radialReach);
             const double beyond=std::max(0.0,triangle.localDistance-lod_.local_detail_radius_m);
             if(beyond<=lod_.local_transition_m) {
                 triangle.priority=beyond==0 ? 2 : 1;
@@ -293,13 +302,24 @@ void TerrainSurface::refineSurfaceError(TerrainTopology& geometry, const glm::dv
     for(const auto& v:vertices) geometry.samples.push_back({{v.radial.x,v.radial.y,v.radial.z},v.sinkMeters});
     if(localOnly) {
         geometry.morph=std::move(morph);
+        if(parent && (parent->fineSinks.size()!=originalVertices || parent->fineSinkPolicy!=geometry.surfacePolicy ||
+                      parent->fineSinkField!=field_.fingerprint())) {
+            std::vector<double> sinks(originalVertices);
+            for(std::size_t i=0;i<originalVertices;++i) {
+                const auto& s=geometry.samples[i];
+                sinks[i]=evaluated[i]?s.sinkMeters:sinkAt({s.radial[0],s.radial[1],s.radial[2]});
+            }
+            parent->fineSinks=std::move(sinks);parent->fineSinkPolicy=geometry.surfacePolicy;
+            parent->fineSinkField=field_.fingerprint();
+        }
         for(std::size_t i=0;i<geometry.samples.size();++i) {
             auto& s=geometry.samples[i];
             const glm::dvec3 r(s.radial[0],s.radial[1],s.radial[2]);
-            const auto profile=geometry.surfacePolicy.profile(r);
-            s.sinkMeters=profile.x==geometry.surfacePolicy.spacing[7] && profile.y==geometry.surfacePolicy.spacing[7] ? 0 :
-                static_cast<float>(std::min(geometry.surfacePolicy.distances[3],field_.omittedReliefMeters(profile)+geometry.surfacePolicy.curvatureMeters(profile)));
-            const double distance=glm::length(r-glm::normalize(eyeBody))*scale;
+            // Parent radials and the fine field stay fixed until rebasing.
+            // New vertices/probes already carry their exact sampleAt sink.
+            if(parent && i<originalVertices) s.sinkMeters=parent->fineSinks[i];
+            else if(!evaluated[i]) s.sinkMeters=sinkAt(r);
+            const double distance=glm::length(r-eyeRadial)*scale;
             double blend=std::clamp((distance-lod_.local_detail_radius_m)/lod_.local_transition_m,0.0,1.0);
             geometry.morph[i].blend[0]=blend*blend*(3-2*blend);
         }
