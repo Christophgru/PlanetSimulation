@@ -9,7 +9,8 @@ glm::dvec3 Renderer::Impl::previewReloadEye(app::PreparedScene& prepared,std::ve
         Impl& r;app::PreparedScene& scene;std::vector<Mesh>& land;std::vector<glm::dvec3>& anchors;
         nlohmann::json& replay;app::CommandLineOptions& options;
         AstronautMotion motion;SurfaceContact ground;
-        std::uint64_t groundRevision,previews;unsigned presses;
+        SurfaceContact::Version groundRevision;
+        std::uint64_t previews;unsigned presses;
         bool replayRestored,boost;double wind;glm::dvec2 controls;
         Restore(Impl& state,app::PreparedScene& s,std::vector<Mesh>& l,std::vector<glm::dvec3>& a,
             nlohmann::json& j,app::CommandLineOptions& o):r(state),scene(s),land(l),anchors(a),replay(j),options(o),
@@ -30,7 +31,7 @@ glm::dvec3 Renderer::Impl::previewReloadEye(app::PreparedScene& prepared,std::ve
             r.characterWindTime=wind;r.astronautFlightControl=controls;
         }
     } restore(*this,prepared,land,anchors,replay,preparedOptions);
-    astronaut.motion=AstronautMotion{};astronautGround.clear();astronautGroundRevision=0;astronautReplayRestored=false;
+    astronaut.motion=AstronautMotion{};astronautGround.clear();astronautGroundRevision={};astronautReplayRestored=false;
     inputContext.spacePresses=options.benchmarkJumpFrame==0 || options.benchmarkBoostFrame==0 ? 1 : 0;
     astronautBenchmarkBoost=options.benchmarkBoostFrame==0;
     astronautFlightControl={options.benchmarkWalkStep>0 ? 1.0 : 0.0,0};characterWindTime=time;

@@ -1,4 +1,5 @@
 #include "rendering/character/SurfaceContact.h"
+#include "rendering/character/AstronautMotion.h"
 #include "rendering/geometry/contacts/SparseTerrainContacts.h"
 #include "rendering/geometry/Terrain.h"
 #include "rendering/geometry/terrain/detail/TerrainMorph.h"
@@ -264,6 +265,7 @@ TEST(SparseTerrainContacts, SharedDeformationMatchesRenderedPlanesWithoutChangin
     const auto staticTriangle=source->triangle(0);
     auto phase=std::make_shared<TerrainMorphState>();
     SurfaceContact shared;shared.bind(source,1,phase);
+    EXPECT_EQ(shared.version(),(SurfaceContact::Version{1,0}));
     EXPECT_EQ(source->triangle(0,*phase),staticTriangle);
     std::vector<glm::dvec3> rays;
     for(double radius:{.35,.55,.75,.95,1.1}) for(int i=0;i<9;++i) {
@@ -313,6 +315,28 @@ TEST(SparseTerrainContacts, SharedDeformationMatchesRenderedPlanesWithoutChangin
     shared.bind(source,1,phase);shared.sample(anchor,missing);EXPECT_EQ(source->stats().queries,cached);
     phase->set({anchor,1000,0,.2});
     shared.bind(source,1,phase);shared.sample(anchor,missing);EXPECT_EQ(source->stats().queries,cached+1);
+    // A planted astronaut must observe a live phase change even when another
+    // consumer has already rebound/copied the contact wrapper at the same mesh
+    // revision. Refresh moves contact height while preserving surface direction.
+    const GroundQuery ground=[&](const auto& r) {return shared.sample(r,missing);};
+    AstronautMotion motion;
+    motion.update(ground(glm::normalize(anchor+east*.0007)),east,0,ground);
+    const auto feet=motion.pose().feet;
+    const auto previousVersion=shared.version();
+    phase->set({anchor,1000,1,.5});
+    shared.bind(source,1,phase);auto preview=shared;
+    EXPECT_EQ(shared.revision(),previousVersion.mesh);
+    EXPECT_NE(preview.version(),previousVersion);EXPECT_EQ(preview.version(),shared.version());
+    motion.refreshContacts(ground);
+    double feetChanged=0;
+    for(int leg=0;leg<2;++leg) {
+        const auto& contact=motion.pose().feet[leg].contact;
+        EXPECT_TRUE(motion.pose().feet[leg].planted());
+        EXPECT_EQ(contact.position,ground(feet[leg].contact.position).position);
+        EXPECT_LT(glm::length(glm::normalize(contact.position)-glm::normalize(feet[leg].contact.position)),1e-12);
+        feetChanged=std::max(feetChanged,glm::length(contact.position-feet[leg].contact.position));
+    }
+    EXPECT_GT(feetChanged,.0001);
     for(unsigned face=0;face<topology.triangleCount();face+=13) {
         source->triangle(face);source->triangle(face,*phase);
         ASSERT_LE(source->stats().residentPositions,SparseTerrainContacts::positionCapacity);
@@ -322,7 +346,10 @@ TEST(SparseTerrainContacts, SharedDeformationMatchesRenderedPlanesWithoutChangin
     snapshot.reset();source.reset();phase.reset();
     EXPECT_FALSE(heldPhase.expired());EXPECT_FALSE(heldSource.expired());
     shared.sample(anchor,missing);shared.clear();
-    EXPECT_TRUE(heldPhase.expired());EXPECT_TRUE(heldSource.expired());
+    EXPECT_EQ(shared.version(),(SurfaceContact::Version{}));
+    // The prospective wrapper deliberately retains the same source/phase.
+    EXPECT_FALSE(heldPhase.expired());EXPECT_FALSE(heldSource.expired());
+    preview.clear();EXPECT_TRUE(heldPhase.expired());EXPECT_TRUE(heldSource.expired());
 }
 TEST(SparseTerrainContacts, RejectsIncompatibleDeformationWithoutChangingTheActivePhase) {
     TerrainMorphState phase;

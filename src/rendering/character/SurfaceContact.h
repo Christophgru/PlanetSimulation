@@ -19,6 +19,10 @@ using GroundQuery = std::function<GroundContact(const glm::dvec3&)>;
 // A small triangle cache makes resting feet and short camera probes inexpensive.
 class SurfaceContact {
 public:
+    struct Version {
+        std::uint64_t mesh=0,deformation=0;
+        bool operator==(const Version&) const = default;
+    };
     void bind(const std::vector<float>& vertices, const std::vector<unsigned>& indices,
               std::uint64_t revision, double radiusMeters, int stride = 9);
     void bind(std::shared_ptr<SparseTerrainContacts> source,std::uint64_t revision,
@@ -26,6 +30,9 @@ public:
     GroundContact sample(const glm::dvec3& direction, const GroundQuery& fallback);
     void clear();
     std::uint64_t revision() const noexcept {return sparse_ || vertices_ ? revision_ : 0;}
+    // Live phase version remains observable even after a wrapper is rebound or
+    // copied for a prospective character pose. Mesh generation stays separate.
+    Version version() const noexcept;
 private:
     bool hit(unsigned triangle, const glm::dvec3& radial, GroundContact& result) const;
     const std::vector<float>* vertices_ = nullptr;

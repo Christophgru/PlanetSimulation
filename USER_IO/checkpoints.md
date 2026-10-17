@@ -1,5 +1,58 @@
 # Page to document progress of AI Agents working on this Project
 
+## Runtime character deformation versions — 2026-10-17
+
+- Continued the same terrain p after 84cbf7c. SurfaceContact::Version exposes
+  {mesh, deformation} and reads live shared state; revision() keeps its mesh-only
+  publication identity. Copying/rebinding for a preview cannot hide a changed
+  phase from the actual astronaut's last observed version.
+- Runtime mesh-backed character bindings now carry mesh.morphState. Planted-foot
+  refresh compares both versions. Character/reload previews save/restore the
+  complete version; reload reset and planet switch update it consistently.
+  Prospective worker contacts stay static until a matching GPU phase exists.
+  Runtime preparation still uses Transient; no moving deformation enabled yet.
+- Extended the pure CPU case with planted feet, live versions/copies and final
+  ownership release. Added a real prepareAstronaut / prospective preview/restore
+  integration case using a synthetic CPU phase; it checks changed foot heights
+  with unchanged surface directions. It does not draw the synthetic phase;
+  actual GPU-plane parity remains covered by the retained-target case.
+- Full 66-step build + final no-op build pass. Nine focused contacts (6.79 s) and
+  focused runtime case (1.62 s) pass. Full 35 core groups (46.58 s), 48 RTX cases
+  (86.11 s), frame (69.71 s isolated), recovery+reload (147.12 s combined), and
+  15-render replay/fallback matrix (83.69 s) pass. Initial parallel frame CTest
+  passed (112.51 s) but display wrapper returned 143 after completion; isolated
+  rerun exits 0 without source changes. All fifteen historical PNGs and inspected
+  overview exact: 14,779 pixels, bbox (1,1)–(794,598), 3,471 planet pixels.
+- Logs detail-character-phase-*; report sinking.md; diff checks pass. Next grass
+  consumer notes below, then all views/capture, prepared streaming and parent
+  rebases. Same native failure remains open as last collected; no fresh coverage
+  or FPS claim. Terrain remains p; later todos untouched. Dirty user config
+  remains untouched and must never be staged with these changes.
+
+Continuation notes for the remaining grass consumer (proposal, not implemented):
+- Keep each root's fixed radial (`upRank.xyz`) and variation; project that ray
+  onto its current triangle plane, rather than rerunning randomized placement.
+  Update triangle planes, actual area/density metric and bounds once per phase;
+  then compact all views from the same data. Invalidate animation on phase even
+  when time/history are unchanged. Default paths must remain byte exact.
+- Candidate slots need a conservative area envelope: the norm of the triangle
+  cross product is convex in each independent vertex blend, so its maximum is
+  among the eight fine/parent endpoint combinations (also cover float rounding).
+  Reserve slots from that bound, evaluate visible density from current area;
+  preserve explicit infeasible-budget diagnostics. Do not silently undersample.
+- Grass-only sliced staging must read an immutable source while live positions
+  move, and G4 source leases/fingerprints must remain valid. A possible zero-copy
+  source: retained targets already hold fine/parent endpoints and have three
+  reserved uint words/sample in the parent region; store initial blend double
+  there. Reconstruct initial static positions for metadata/cells/root generation
+  via target+corner-map buffer views; normals/colors stay in the unchanged VBO.
+  This would avoid an extra immutable 12 MB VBO per 100k-face mesh. Verify exact
+  reconstruction before adopting it. No implementation or cost claim yet.
+- Whole-generation grass commit can attach Mesh's shared phase in the existing
+  no-throw commitPrepared transfer (pass live Mesh there). Keep mesh generation
+  and per-frame phase distinct. Admission/capture/views/prepared streaming/rebase
+  continuity still need actual implementation and native validation.
+
 ## Shared contact deformation phase — 2026-10-17
 
 - Continued the same terrain p after a48cc4d. Retained Mesh now owns pure-CPU

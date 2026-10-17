@@ -75,7 +75,7 @@ void Renderer::Impl::publishResidentBuilds(std::vector<std::optional<TerrainCpuB
             lastLocalMask[i]=receipt.identity.localMask;meshReady[i]=true;
             installedTerrainSerial[i]=receipt.identity.serial;terrainFailures[i].reset();
             terrainShadows.invalidate(i);profiler.meshUpload();
-            if(i==selected) astronautGround.bind(meshes.planetMeshes[i].contacts,receipt.landRevision);
+            if(i==selected) astronautGround.bind(meshes.planetMeshes[i].contacts,receipt.landRevision,meshes.planetMeshes[i].morphState);
         }
         preparation.ready(publicationGeneration(i));
         frameReuse.invalidate();

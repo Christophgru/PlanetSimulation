@@ -27,12 +27,12 @@ void Renderer::Impl::finishSceneReload(ReloadTracking& tracking,app::CommandLine
             else if(options.planetRenderMode) cameraInput.selectPlanetOrbit();else cameraInput.selectOrbit();
         }
         astronaut.motion=AstronautMotion{};astronaut.exhaust.clear();astronaut.lastEmitter.reset();astronaut.exhaustTime.reset();
-        astronautGround.clear();astronautGroundRevision=0;astronautReplayRestored=false;astronautBenchmarkBoost=false;
+        astronautGround.clear();astronautGroundRevision={};astronautReplayRestored=false;astronautBenchmarkBoost=false;
         astronautFlightControl={0,0};inputContext.spacePresses=0;plannedCharacterEye.reset();
         reloadCharacterEye=commit.characterEye;reloadCharacterPending=bool(commit.characterEye) && options.renderTestMode;
         if(scene.surfaceCamera) {
             const auto i=scene.scenario.surface_camera.planet_index;captureTerrainEye=lastTerrainEyes[i];astronaut.planetIndex=i;
-            if(meshes.planetMeshes[i].contacts) astronautGround.bind(meshes.planetMeshes[i].contacts,meshes.planetMeshes[i].revision);
+            if(meshes.planetMeshes[i].contacts) astronautGround.bind(meshes.planetMeshes[i].contacts,meshes.planetMeshes[i].revision,meshes.planetMeshes[i].morphState);
             else astronautGround.bind(meshes.planetMeshes[i].vertices,meshes.planetMeshes[i].indices,meshes.planetMeshes[i].revision,
                 scene.scenario.planets[i].radius*scene.scenario.metersPerWorldUnit());
         }

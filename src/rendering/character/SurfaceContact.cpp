@@ -6,6 +6,9 @@
 #include <stdexcept>
 
 namespace rendering {
+SurfaceContact::Version SurfaceContact::version() const noexcept {
+    return {revision(),morph_?morph_->revision():0};
+}
 void SurfaceContact::clear() { vertices_=nullptr; indices_=nullptr; sparse_.reset();morph_.reset();morphRevision_=0;cached_=next_=0; }
 void SurfaceContact::bind(const std::vector<float>& vertices,const std::vector<unsigned>& indices,
                          std::uint64_t revision,double radiusMeters,int stride) {

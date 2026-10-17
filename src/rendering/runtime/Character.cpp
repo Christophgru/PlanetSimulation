@@ -97,11 +97,11 @@ void Renderer::Impl::prepareAstronaut(double elapsed,std::vector<SurfaceContact>
     const bool prospective=!plannedContacts.empty();
     auto contacts=prospective ? std::move(plannedContacts) : characterTerrainContacts();
     if(contacts.size()!=scene.scenario.planets.size()) throw std::logic_error("Character needs contacts for every body");
-    const auto contactRevision=contacts[index].revision();
+    const auto contactRevision=contacts[index].version();
     if(prospective) astronautGround=contacts[index];
     else {
         const auto& mesh=meshes.planetMeshes[index];
-        if(mesh.contacts) astronautGround.bind(mesh.contacts,mesh.revision);
+        if(mesh.contacts) astronautGround.bind(mesh.contacts,mesh.revision,mesh.morphState);
         else astronautGround.bind(mesh.vertices,mesh.indices,mesh.revision,radius);
     }
     const GroundQuery fallback=[&](const glm::dvec3& radial) {
@@ -269,7 +269,7 @@ void Renderer::Impl::prepareAstronaut(double elapsed,std::vector<SurfaceContact>
         // Destination contacts are part of the same prospective/committed set.
         // Bind them now, including on the first handoff frame, before chase or
         // subsequent collision queries can consume the new body's terrain.
-        astronaut.planetIndex=next;astronautGround=contacts[next];astronautGroundRevision=astronautGround.revision();
+        astronaut.planetIndex=next;astronautGround=contacts[next];astronautGroundRevision=astronautGround.version();
         astronaut.motion.setFlightEnvironment(environment(nextPlanet),JetpackPhysics::maximumThrust(environment(scene.scenario.planets.front())));
         if(!preview) handoff.bound(index,publicationGeneration(next));
         if(!preview) std::cout << "Astronaut destination: " << nextPlanet.name << "\n" << std::flush;

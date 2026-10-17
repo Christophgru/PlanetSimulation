@@ -49,7 +49,7 @@ void Renderer::Impl::recordResidentPublication(std::size_t i,std::vector<int>& z
         installedTerrainSerial[i]=receipt.identity.serial;
         terrainShadows.invalidate(i);profiler.meshUpload();
         if(i==scene.scenario.surface_camera.planet_index)
-            astronautGround.bind(meshes.planetMeshes[i].contacts,receipt.landRevision);
+            astronautGround.bind(meshes.planetMeshes[i].contacts,receipt.landRevision,meshes.planetMeshes[i].morphState);
     }
     frameReuse.invalidate();
     profiler.foliagePreparation(1,0,0,0,grass.procedural.stats(i).metadataInputBytes+

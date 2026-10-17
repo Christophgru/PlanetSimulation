@@ -1,5 +1,44 @@
 # Relief-aware terrain sinking
 
+## Character contact versions — 2026-10-17
+
+Runtime character bindings now carry the mesh's optional shared deformation
+state. `SurfaceContact::Version` exposes mesh and deformation revisions
+separately; the existing mesh-only `revision()` identity stays unchanged for
+publication consumers. The version reads live state even when a wrapper was
+already rebound or copied to preview a prospective character pose.
+
+The astronaut tracks the complete version before refreshing planted contacts.
+Both character and reload previews save and restore it, and reload resets and
+planet switches update it with the selected source. Thus a height change within
+the same terrain generation can reproject planted feet along their existing
+surface directions. Prospective worker contacts remain static until a matching
+GPU phase exists; normal runtime generation still uses transient storage.
+
+The CPU phase test now covers live versions, copies, planted-foot reprojection
+and final ownership release. A runtime integration case injects a synthetic CPU
+phase into a prepared microrelief contact source, exercises same-source rebinding,
+preview/restore and the actual character preparation branch, and verifies boots
+against changed terrain planes without directional sliding. It deliberately does
+not draw that synthetic phase; actual deformed GPU-plane parity is covered by
+the separate retained-target case.
+
+The full 66-step rebuild and final no-op build pass. Focused CPU contact cases
+pass in 6.79 s and the runtime phase/preview case in 1.62 s. All 35 core groups
+(46.58 s), 48 RTX cases (86.11 s), frame integration (69.71 s isolated), recovery
+and reload (147.12 s combined), and the 15-render replay/fallback matrix (83.69 s)
+pass. The first parallel frame run reported CTest success in 112.51 s but its
+display wrapper exited with status 143 afterward; the isolated rerun exits zero.
+No application change was needed for that wrapper result.
+
+All fifteen historical PNGs and the inspected overview remain byte-identical.
+The overview retains 14,779 non-background pixels, bounds (1,1)–(794,598), and
+3,471 planet pixels. Evidence remains local under
+`build-f5/resume/detail-character-phase-*`.
+
+Persistent grass/root animation, view and capture phase, prepared streaming and
+parent rebases still gate runtime activation. Terrain remains **p**.
+
 ## Shared CPU contact deformation state — 2026-10-17
 
 Retained terrain now owns a small `TerrainMorphState` independent of the immutable
@@ -38,9 +77,9 @@ The separately inspected 800×600 overview is also byte-identical: 14,779
 non-background pixels, bounds (1,1)–(794,598), 3,471 planet pixels. Local evidence:
 `build-f5/resume/detail-contact-phase-*`.
 
-Every runtime GPU preparation still uses transient storage. Runtime character
-phase refresh, persistent grass roots and animation, all views/capture, prepared
-streaming and parent-rebase continuity remain to be connected before enabling
+Every runtime GPU preparation still uses transient storage. Persistent grass
+roots and animation, all views/capture, prepared streaming and parent-rebase
+continuity remain to be connected before enabling
 moving deformation. The existing native coverage failure remains open; terrain
 stays **p** and no frame-time improvement is claimed.
 

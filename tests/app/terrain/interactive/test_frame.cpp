@@ -1,4 +1,57 @@
 #include "FrameTestSupport.h"
+#include "rendering/geometry/terrain/detail/TerrainMorph.h"
+
+TEST(TerrainFrame, CharacterRefreshesPlantedFeetForLivePhaseAfterRebindAndPreview) {
+    auto o=options("character-phase");
+    json scene;std::ifstream(o.configPath)>>scene;
+    for(auto& p:scene["planets"]) {
+        p["rotation"]={{"period_seconds",0},{"axial_tilt_deg",0}};
+        p["atmosphere"]["enabled"]=false;p["water"]["enabled"]=false;
+        p["foliage"]["enabled"]=false;
+        p["terrain_landscape"]={{"enabled",false}};p["surface_noise"]=json::array();
+    }
+    auto& p=scene["planets"][0];
+    p["surface_noise"]=json::array({{{"amplitude_m",.01},{"wavelength_m",.25},{"octaves",1},{"seed",-71}}});
+    p["terrain_lod"].update({{"base_edge_segments",1},{"medium_edge_segments",4},{"max_edge_segments",8},
+        {"steep_edge_segments",8},{"max_triangle_budget",100000},{"shoreline_edge_m",0},
+        {"near_surface_distance_m",300},{"mid_surface_distance_m",1000},{"relief_sinking",true},
+        {"geometric_error_m",.05},{"local_detail_streaming",true},{"local_detail_radius_m",1.5},
+        {"local_edge_m",.05},{"local_error_m",.01},{"local_transition_m",.5}});
+    std::ofstream(o.configPath)<<scene.dump(2);
+    rendering::Renderer renderer(o);auto& r=Probe::state(renderer);
+    r.preparePlanetMeshes(eye(r),false);
+    ASSERT_TRUE(r.residentSceneReady());
+    const auto selected=r.scene.scenario.surface_camera.planet_index;
+    auto& mesh=r.meshes.planetMeshes[selected];ASSERT_TRUE(mesh.contacts);
+    const auto radial=glm::normalize(r.scene.bodies[selected+1].toLocalPoint(eye(r)));
+    const double scale=mesh.contacts->radiusMeters();
+    // Synthetic CPU phase exercises the real character consumer without enabling
+    // terrain deformation/grass at runtime. Actual GPU-plane parity is tested
+    // by TerrainCompute's retained-target case; this test does not draw this mesh.
+    auto phase=std::make_shared<rendering::TerrainMorphState>();mesh.morphState=phase;
+    phase->set({radial,scale,0,.15});r.prepareAstronaut(0);
+    const auto before=r.astronaut.motion.pose().feet;
+    const auto previous=r.astronautGroundRevision;
+    phase->set({radial,scale,1,.5});
+    r.astronautGround.bind(mesh.contacts,mesh.revision,phase);
+    const auto preview=r.previewAstronautEye(0,r.characterTerrainContacts());EXPECT_TRUE(std::isfinite(glm::length(preview)));
+    EXPECT_EQ(r.astronautGroundRevision,previous);
+    for(int leg=0;leg<2;++leg) EXPECT_EQ(r.astronaut.motion.pose().feet[leg].contact.position,before[leg].contact.position);
+    r.prepareAstronaut(0);
+    EXPECT_EQ(r.astronautGroundRevision,(rendering::SurfaceContact::Version{mesh.revision,phase->revision()}));
+    EXPECT_EQ(r.astronautGroundRevision.mesh,previous.mesh);
+    double changed=0;
+    for(int leg=0;leg<2;++leg) {
+        const auto expected=r.astronautGround.sample(before[leg].contact.position,[](const auto&) -> rendering::GroundContact {
+            throw std::logic_error("Missing phase contact");
+        });
+        const auto& actual=r.astronaut.motion.pose().feet[leg];
+        EXPECT_TRUE(actual.planted());EXPECT_EQ(actual.contact.position,expected.position);
+        EXPECT_LT(glm::length(glm::normalize(actual.contact.position)-glm::normalize(before[leg].contact.position)),1e-12);
+        changed=std::max(changed,glm::length(actual.contact.position-before[leg].contact.position));
+    }
+    EXPECT_GT(changed,.0001);
+}
 
 TEST(TerrainFrame, VerticalOnlyAdaptiveMovementRequestsAndPublishesCompleteGenerations) {
     for(const std::string mode:{"resident","cpu_async","cpu_capture"}) {

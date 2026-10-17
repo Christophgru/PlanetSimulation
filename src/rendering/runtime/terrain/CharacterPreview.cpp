@@ -6,7 +6,7 @@ std::vector<SurfaceContact> Renderer::Impl::characterTerrainContacts() const {
     std::vector<SurfaceContact> contacts(meshes.planetMeshes.size());
     for(std::size_t i=0;i<contacts.size();++i) {
         const auto& mesh=meshes.planetMeshes[i];
-        if(mesh.contacts) contacts[i].bind(mesh.contacts,mesh.revision);
+        if(mesh.contacts) contacts[i].bind(mesh.contacts,mesh.revision,mesh.morphState);
         else contacts[i].bind(mesh.vertices,mesh.indices,mesh.revision,
             scene.scenario.planets[i].radius*scene.scenario.metersPerWorldUnit());
     }
@@ -26,7 +26,7 @@ glm::dvec3 Renderer::Impl::previewAstronautEye(double elapsed,
         glm::dvec3 terrainEye,orbitCenter;
         double orbitRadius;
         std::size_t characterPlanet,surfacePlanet,orbitPlanet;
-        std::uint64_t groundRevision;
+        SurfaceContact::Version groundRevision;
         unsigned spacePresses;
         bool replayRestored;
         explicit Restore(Impl& state):r(state),motion(r.astronaut.motion),camera(*r.scene.surfaceCamera),
