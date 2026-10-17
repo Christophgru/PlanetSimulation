@@ -1,5 +1,68 @@
 # Relief-aware terrain sinking
 
+## Retained GPU position targets — 2026-10-17
+
+A standalone, opt-in compute primitive can now move a detail blend footprint
+without evaluating the procedural field again. `TerrainMorphStorage::Transient`
+remains the default; no runtime caller enables retained storage. Retention requires
+a detail topology. Its optional shader variant evaluates the existing generation,
+stores fine positions and exact projected parent targets, then repacks scratch
+after ordinary corner expansion. The existing 72 bytes per canonical sample hold:
+
+| Region | Data |
+|:--|:--|
+| First 36 bytes/sample | Radial double3 and fine float3 |
+| Second 36 bytes/sample | Projected parent double3 and reserved words |
+
+The storage uses uint words for double packing. This preserves low words that
+would be NaNs if treated as numeric floats. The test verifies every radial bit,
+including 218 such low words in the fixture. Fine positions retain the existing
+float displacement contract; this does not introduce a new large-planet precision
+claim. Parent/radial data acquire no additional packing quantization.
+
+`Mesh` optionally takes the unique-target and canonical-corner-map buffers from
+preparation. Upload/fallback, destruction and swap release or transfer both.
+No extra GPU buffer storage is allocated during generation, and admitted working
+bytes match transient generation. **More storage remains live** afterward:
+`72*unique_samples + 4*corners`, or 1,877,712 bytes (1.79 MiB) in the 39,116-face
+fixture. A closed 100,000-face sphere retains 4,800,144 bytes (4.58 MiB).
+The existing conservative ledger already charges these buffers through generation
+ownership; optional shader programs are separately cached like the existing
+compute variants. Retention is not a general memory reduction.
+
+A small deformation shader reads these targets and updates only VBO positions.
+It has no field/noise inputs, allocates no buffers, performs no readback or wait,
+and preserves normals, colors, indices and cell identities. It restores program,
+SSBO ranges and generic binding, with barriers for vertex, storage and texture
+consumers. The shader is warmed during retained generation on the same compute
+instance. Invalid footprints, legacy/nonretained meshes and CPU mirrors are
+rejected. Meshes with bound contacts are also rejected until a shared deformation
+phase is implemented; the application therefore cannot accidentally enable this
+partial path for its live terrain consumers.
+
+The focused RTX test moves the center through 0/0.05/0.15/0.30/0.15/0 m, comparing
+every output position with independently reweighted CPU topology. This fixture
+reports zero position difference while retaining the established 2 mm tolerance.
+Shared vertex positions remain bit-identical, attributes/indices are unchanged,
+and static retained/transient output matches exactly. The test releases original
+preparation, checks target survival, SSBO range/program restoration, invalid-input
+and contact guards, swaps, destruction and CPU fallback. Final bit-preservation
+check passes in 1.94 s; the earlier focused test passes in 2.20 s.
+
+The full rebuild, all 35 core groups (41.67 s), all 48 RTX cases (79.08 s), frame
+integration (93.05 s), expanded 15-render replay/fallback matrix (105.65 s) and
+render inspection pass. All fifteen historical PNGs and the overview are
+byte-identical: 14,779 non-background pixels, bounds (1,1)–(794,598), 3,471 planet
+pixels. The final added bit assertions were checked with the focused case; no
+production code changed after the full suite. The first GPU attempt caught a
+reserved GLSL identifier, corrected before these passing checks.
+
+This is a position-deformation primitive, **not runtime temporal publication**.
+Shared contacts/grass/view/capture phase, prepared-patch streaming, and parent
+rebase continuity remain required. No new live-coverage or FPS result is claimed;
+the previous moving gate failure remains open and terrain stays **p**. Raw logs
+and counters remain local under `build-f5/resume/detail-targets-*`.
+
 ## Check prepared fine overlap before temporal deformation — 2026-10-17
 
 An isolated CPU probe compares exact radial triangle sets across five short moves,

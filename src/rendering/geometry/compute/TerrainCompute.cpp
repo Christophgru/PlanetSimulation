@@ -1,4 +1,5 @@
 #include "rendering/geometry/compute/TerrainCompute.h"
+#include "rendering/geometry/Mesh.h"
 #include "rendering/diagnostics/timing/GpuWorkProfiler.h"
 #include <algorithm>
 #include <cmath>
@@ -79,21 +80,26 @@ std::vector<std::uint32_t> TerrainComputeBuffers::readIndices() const {
 TerrainCompute::~TerrainCompute() {
     for(auto [key,buffer]:fields_) glDeleteBuffers(1,&buffer);
     for(const auto& shader:variants_) if(shader) glDeleteProgram(shader->id);
+    if(morphShader_) glDeleteProgram(morphShader_->id);
 }
 std::unique_ptr<TerrainComputeBuffers> TerrainCompute::generate(const PlanetField& field,
-    const TerrainTopology& topology,bool diagnostics) {
+    const TerrainTopology& topology,bool diagnostics,TerrainMorphStorage morph) {
     topology.validate();
-    return generateValidated(field,topology,diagnostics);
+    return generateValidated(field,topology,diagnostics,morph);
 }
 std::unique_ptr<TerrainComputeBuffers> TerrainCompute::generate(const PlanetField& field,
-    const TerrainTopologySnapshot& topology,bool diagnostics) {
+    const TerrainTopologySnapshot& topology,bool diagnostics,TerrainMorphStorage morph) {
     if(!topology) throw std::invalid_argument("Missing compute terrain snapshot");
-    return generateValidated(field,*topology,diagnostics);
+    return generateValidated(field,*topology,diagnostics,morph);
 }
 std::unique_ptr<TerrainComputeBuffers> TerrainCompute::generateValidated(const PlanetField& field,
-    const TerrainTopology& topology,bool diagnostics) {
+    const TerrainTopology& topology,bool diagnostics,TerrainMorphStorage morph) {
     if(topology.generation.field!=field.fingerprint()) throw std::invalid_argument("Stale compute planet field");
     if(!limits_.unavailable.empty()) throw std::runtime_error(limits_.unavailable);
+    if(morph!=TerrainMorphStorage::Transient && morph!=TerrainMorphStorage::Retained)
+        throw std::invalid_argument("Invalid terrain morph storage mode");
+    const bool retained=morph==TerrainMorphStorage::Retained;
+    if(retained && topology.morph.empty()) throw std::invalid_argument("Retained targets require detail terrain");
     const std::uint64_t samples=topology.samples.size(),corners=topology.indices.size();
     if(!samples || !corners || corners>std::numeric_limits<GLsizei>::max()/9)
         throw std::runtime_error("Terrain generation exceeds addressable output");
@@ -103,8 +109,10 @@ std::unique_ptr<TerrainComputeBuffers> TerrainCompute::generateValidated(const P
         throw std::runtime_error("Terrain generation exceeds SSBO block limit; use CPU backend");
     if(!limits_.groups) throw std::runtime_error("Zero terrain dispatch capacity");
     const bool detail=!topology.morph.empty();
-    auto& variant=variants_[detail?1:0];
-    if(!variant) variant=std::make_unique<Shader>(detail?"shaders/terrain/compute/detail.comp":"shaders/terrain/compute/field.comp");
+    auto& variant=variants_[retained?2:detail?1:0];
+    if(!variant) variant=std::make_unique<Shader>(retained?"shaders/terrain/compute/detail_targets.comp":
+        detail?"shaders/terrain/compute/detail.comp":"shaders/terrain/compute/field.comp");
+    if(retained && !morphShader_) morphShader_=std::make_unique<Shader>("shaders/terrain/compute/morph.comp");
     shader_=variant.get();
     GLint previousProgram=0,previousVao=0,previousArray=0,previousStorage=0;
     std::array<GLint,8> previousBindings{};
@@ -131,6 +139,7 @@ std::unique_ptr<TerrainComputeBuffers> TerrainCompute::generateValidated(const P
     result->stats=static_cast<const TerrainBuildStats&>(topology);
     result->stats.generation.backend=TerrainBackend::Compute;
     result->stats.evaluationQueries={};result->stats.gpuCorners=corners;result->stats.gpuCellKeys=corners/3;result->diagnostics=diagnostics;
+    result->retainedMorph=retained;
     result->stats.gpuInputBytes=bytes[1]+corners*4+20+bytes[7]; // source descriptors + rock range/corner count
     result->stats.gpuWorkingBytes=0;for(auto b:bytes) result->stats.gpuWorkingBytes+=b;
     if(!fields_.contains(field.fingerprint())) {
@@ -189,6 +198,11 @@ std::unique_ptr<TerrainComputeBuffers> TerrainCompute::generateValidated(const P
     dispatch(1,corners);
     glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT|GL_ELEMENT_ARRAY_BARRIER_BIT|GL_TEXTURE_FETCH_BARRIER_BIT|
         GL_SHADER_STORAGE_BARRIER_BIT|GL_BUFFER_UPDATE_BARRIER_BIT);
+    if(retained) {
+        // Repack only after expansion consumed the ordinary unique attributes.
+        // Reuse the existing 72 bytes/sample; no new storage or input upload.
+        dispatch(3,samples);glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    }
     expansionTiming.stop();
     glQueryCounter(result->timers[1],GL_TIMESTAMP);
     result->fence=glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE,0);
@@ -201,5 +215,55 @@ std::unique_ptr<TerrainComputeBuffers> TerrainCompute::generateValidated(const P
     }
     if(!result->vao || glGetError()!=GL_NO_ERROR) throw std::runtime_error("Terrain vertex layout allocation failed");
     return result;
+}
+void TerrainCompute::deform(Mesh& mesh,const TerrainMorphFootprint& footprint) {
+    if(!mesh.residentTerrain || !mesh.vbo || !mesh.morphTargets || !mesh.morphCorners ||
+       !mesh.indexCount || !mesh.morphSamples || mesh.morphSamples!=mesh.terrainStats.uniqueSamples ||
+       mesh.indexCount>std::numeric_limits<GLsizei>::max()/9 ||
+       mesh.morphSamples>std::numeric_limits<std::uint32_t>::max()/18)
+        throw std::invalid_argument("Terrain mesh has no complete retained morph targets");
+    if(mesh.contacts) throw std::logic_error("Bound terrain contacts need a shared deformation phase");
+    const auto& eye=footprint.eyeRadial;
+    if(!std::isfinite(eye.x) || !std::isfinite(eye.y) || !std::isfinite(eye.z) ||
+       std::abs(glm::dot(eye,eye)-1)>1e-12 ||
+       !std::isfinite(footprint.metersPerRadius) || footprint.metersPerRadius<=0 ||
+       !std::isfinite(footprint.radiusMeters) || footprint.radiusMeters<0 ||
+       !std::isfinite(footprint.transitionMeters) || footprint.transitionMeters<=0)
+        throw std::invalid_argument("Invalid terrain morph footprint");
+    if(!limits_.unavailable.empty() || !limits_.groups) throw std::runtime_error("Terrain deformation compute unavailable");
+    if(!morphShader_) morphShader_=std::make_unique<Shader>("shaders/terrain/compute/morph.comp");
+    GLint previousProgram=0,previousStorage=0;
+    std::array<GLint,3> previousBindings{};
+    std::array<GLint64,3> previousStarts{},previousSizes{};
+    glGetIntegerv(GL_CURRENT_PROGRAM,&previousProgram);glGetIntegerv(GL_SHADER_STORAGE_BUFFER_BINDING,&previousStorage);
+    for(int i=0;i<3;++i) {
+        glGetIntegeri_v(GL_SHADER_STORAGE_BUFFER_BINDING,i,&previousBindings[i]);
+        glGetInteger64i_v(GL_SHADER_STORAGE_BUFFER_START,i,&previousStarts[i]);
+        glGetInteger64i_v(GL_SHADER_STORAGE_BUFFER_SIZE,i,&previousSizes[i]);
+    }
+    struct Restore {
+        GLint program,storage;std::array<GLint,3> bindings;std::array<GLint64,3> starts,sizes;
+        ~Restore() {
+            for(int i=0;i<3;++i) {
+                if(bindings[i] && sizes[i]>0) glBindBufferRange(GL_SHADER_STORAGE_BUFFER,i,bindings[i],starts[i],sizes[i]);
+                else glBindBufferBase(GL_SHADER_STORAGE_BUFFER,i,bindings[i]);
+            }
+            glBindBuffer(GL_SHADER_STORAGE_BUFFER,storage);glUseProgram(program);
+        }
+    } restore{previousProgram,previousStorage,previousBindings,previousStarts,previousSizes};
+    const GLuint buffers[]{mesh.morphTargets,mesh.morphCorners,mesh.vbo};
+    for(int i=0;i<3;++i) glBindBufferBase(GL_SHADER_STORAGE_BUFFER,i,buffers[i]);
+    morphShader_->use();morphShader_->setInt("uSamples",mesh.morphSamples);
+    glUniform3dv(glGetUniformLocation(morphShader_->id,"uEye"),1,&eye.x);
+    glUniform3d(glGetUniformLocation(morphShader_->id,"uFootprint"),
+        footprint.metersPerRadius,footprint.radiusMeters,footprint.transitionMeters);
+    GpuWorkProfiler::Scope timing(GpuWorkStage::TerrainExpansion,GpuWorkProfiler::generation(mesh.terrainStats.generation));
+    const auto chunk=std::min<std::uint64_t>(std::uint64_t(limits_.groups)*64,65536);
+    for(std::uint64_t first=0;first<mesh.indexCount;first+=chunk) {
+        morphShader_->setInt("uFirst",first);morphShader_->setInt("uCount",std::min(mesh.indexCount,first+chunk));
+        glDispatchCompute((std::min<std::uint64_t>(chunk,mesh.indexCount-first)+63)/64,1,1);
+    }
+    glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT|GL_SHADER_STORAGE_BARRIER_BIT|GL_TEXTURE_FETCH_BARRIER_BIT);
+    if(glGetError()!=GL_NO_ERROR) throw std::runtime_error("Terrain deformation submission failed");
 }
 }

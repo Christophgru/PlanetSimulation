@@ -1,5 +1,39 @@
 # Page to document progress of AI Agents working on this Project
 
+## Retained GPU morph targets — 2026-10-17
+
+- 65a4187 commits prepared-overlap proof below. Added standalone optional retained
+  GPU targets; default Transient and every runtime caller remain unchanged.
+  Requires v4; Mesh with bound contacts rejects deformation until shared phase.
+- detail_targets.comp stores fine float3 / parent double3; phase 3 packs exact
+  radial double3 after expansion in existing 72-byte/sample unique scratch.
+  uint words preserve double bits (218 NaN-like low words checked exactly).
+  morph.comp has no field/noise inputs, writes only positions and restores GL
+  program/SSBO ranges. Warmed in retained generation; packing counted in timing.
+- Mesh transfers unique scratch and corner map, releasing them on destruction,
+  upload/fallback or swap. Working/admitted bytes match transient generation but
+  live retention increases by 72*N+4*C: 1,877,712 bytes in the 39,116-face fixture;
+  closed 100k-face sphere adds 4,800,144 live bytes. No extra GPU buffer storage;
+  optional shader programs cached. No memory reduction or FPS claim.
+- Focused RTX case checks six moving/return centers against CPU reweighted topo,
+  shared-corner bits, unchanged attrs/indices, buffer lifetime after prep release,
+  GL state, invalid/contact guard and swap/destroy/CPU fallback. Reports zero
+  CPU/GPU position difference, preserving existing 2 mm tolerance; final exact-bit
+  check passes (1.94 s). First compile caught reserved GLSL sample; corrected.
+- Full 62-step rebuild; 35 core groups (41.67 s), 48 RTX cases (79.08 s), frame
+  (93.05 s), 15-render replay/fallback matrix (105.65 s) pass. Final test-only bit
+  assertions rechecked focused; no production changes afterward. All fifteen old
+  PNGs and inspected overview exact: 14,779 pixels, bbox (1,1)–(794,598), 3,471 planet.
+- Evidence: build-f5/resume/detail-targets-*; MORPH_TARGETS line in -bits.log.
+  Report sinking.md; final diff/whitespace checks pass. Runtime temporal behavior is
+  NOT enabled. Moving gate still fails as last measured in 9e2fbb4 snapshot pair.
+- Next: shared deformation state through the existing SurfaceContact wrapper,
+  preserving the contact oracle's immutable topology/static generation contract.
+  Do not mutate aliased topology or silently change static oracle geometry.
+  Then grass/root animation invalidation, all views/capture, prepared-patch
+  streaming and parent-rebase continuity. Keep the same terrain p row and all
+  historical v4/default paths. User config remains untouched and unstaged.
+
 ## Prepared fine-overlap prerequisite — 2026-10-17
 
 - 9e2fbb4 commits immutable staging below. Continued same terrain p; later TODOs
@@ -13,7 +47,7 @@
   Focused case passes (4.05 s); full 13-detail suite passes (8.33 s), log
   build-f5/resume/detail-overlap-detail-suite.log. No production source changed.
   Prototype source/CSVs in ignored build-f5/resume/detail-overlap*.
-- Documented in sinking.md. Still need suite result, diff check and commit.
+- Documented in sinking.md; suite/diff checks passed and committed as 65a4187.
   Runtime still uses the configured radius for BOTH tessellation and morphing.
   This is only a prerequisite regression, not an implemented runtime halo.
 - Next design: retain fine/parent targets and exact radial coordinates on GPU

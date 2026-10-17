@@ -110,6 +110,7 @@ void Mesh::loadTerrain(rendering::TerrainGeometry geometry) {
 
 void Mesh::upload() {
     contacts.reset();
+    releaseMorphTargets();
     residentTerrain=false;indexCount=indices.size();
     ++revision;
     if (vao == 0) glGenVertexArrays(1, &vao);
@@ -159,11 +160,16 @@ void Mesh::loadComputedTerrain(rendering::TerrainGeometry geometry,
     if(!buffers.complete || !buffers.vao || !buffers.vbo || !buffers.ebo || key!=buffers.stats.generation ||
        (keepCpuMirror && (geometry.indices.size()!=buffers.stats.gpuCorners || geometry.vertices.size()!=9*buffers.stats.gpuCorners)) ||
        (!keepCpuMirror && (!geometry.indices.empty() || !geometry.vertices.empty())) ||
+       (buffers.retainedMorph && (!buffers.scratch[1] || !buffers.scratch[2] || !buffers.stats.uniqueSamples)) ||
        (buffers.contacts && buffers.contacts->generation()!=buffers.stats.generation))
         throw std::invalid_argument("Incomplete or incompatible computed terrain generation");
     // Caller publishes only after the whole land/water pair has completed.
     destroy();
     vao=std::exchange(buffers.vao,0);vbo=std::exchange(buffers.vbo,0);ebo=std::exchange(buffers.ebo,0);
+    if(buffers.retainedMorph) {
+        morphTargets=std::exchange(buffers.scratch[1],0);morphCorners=std::exchange(buffers.scratch[2],0);
+        morphSamples=buffers.stats.uniqueSamples;
+    }
     terrainStats=std::move(buffers.stats);
     contacts=std::move(buffers.contacts);
     terrainStats.evaluationQueries=geometry.evaluationQueries;
@@ -188,8 +194,15 @@ void Mesh::draw() const {
     glBindVertexArray(0);
 }
 
+void Mesh::releaseMorphTargets() {
+    if(morphTargets || morphCorners) {
+        const GLuint buffers[]{morphTargets,morphCorners};glDeleteBuffers(2,buffers);
+    }
+    morphTargets=morphCorners=0;morphSamples=0;
+}
 void Mesh::destroy() {
     contacts.reset();
+    releaseMorphTargets();
     if (vao != 0) glDeleteVertexArrays(1, &vao);
     if (vbo != 0) glDeleteBuffers(1, &vbo);
     if (ebo != 0) glDeleteBuffers(1, &ebo);
@@ -200,6 +213,7 @@ void Mesh::swap(Mesh& other) noexcept {
     static_assert(std::is_nothrow_swappable_v<rendering::TerrainBuildStats>);
     using std::swap;
     swap(vao,other.vao);swap(vbo,other.vbo);swap(ebo,other.ebo);
+    swap(morphTargets,other.morphTargets);swap(morphCorners,other.morphCorners);swap(morphSamples,other.morphSamples);
     vertices.swap(other.vertices);indices.swap(other.indices);
     grassCellKeys.swap(other.grassCellKeys);swap(cellKeyOffset,other.cellKeyOffset);
     swap(hasVertexColors,other.hasVertexColors);swap(residentTerrain,other.residentTerrain);

@@ -1,0 +1,4 @@
+#version 430 core
+#define TERRAIN_DETAIL_MORPH 1
+#define TERRAIN_RETAIN_TARGETS 1
+#include "field.glsl"

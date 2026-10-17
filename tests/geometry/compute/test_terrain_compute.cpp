@@ -11,6 +11,7 @@
 #include <cstring>
 #include <iostream>
 #include <chrono>
+#include <bit>
 using namespace rendering;
 namespace {
 config::PlanetConfig::TerrainLod lod() {
@@ -259,6 +260,136 @@ TEST(TerrainCompute, ImmutableSnapshotAndMutableInputsProduceIdenticalBuffersAnd
     const TerrainSurface changed({},lod(),1,2000);
     EXPECT_THROW(compute.generate(changed.field(),snapshot),std::invalid_argument);
     EXPECT_THROW(compute.generate(surface.field(),TerrainTopologySnapshot{}),std::invalid_argument);
+    EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+}
+TEST(TerrainCompute, RetainedTargetsDeformWithCpuParityAndPreserveAttributesAndOwnership) {
+    auto l=lod();l.local_detail_streaming=true;l.local_detail_radius_m=1.5;
+    l.local_edge_m=.05;l.local_error_m=.01;l.local_transition_m=.5;
+    l.relief_sinking=true;l.geometric_error_m=.05;l.max_triangle_budget=100000;
+    l.near_surface_distance_m=300;l.mid_surface_distance_m=1000;l.shoreline_edge_m=0;
+    config::PlanetConfig::SurfaceNoiseFunction noise;
+    noise.amplitude_m=.01;noise.wavelength_m=.25;noise.octaves=1;noise.seed=-71;
+    const TerrainSurface surface({noise},l,1,1000);
+    const glm::dvec3 eye(-.21005697617230545,.909856724515421,-.36613409503800903);
+    const auto topology=surface.buildTopologyForEye(eye,{});
+    ASSERT_FALSE(topology.localDetailLimited);
+    TerrainCompute compute;auto ordinary=compute.generate(surface.field(),topology);
+    auto retained=compute.generate(surface.field(),TerrainTopologySnapshot(topology),false,TerrainMorphStorage::Retained);
+    ordinary->waitForCapture();retained->waitForCapture();
+    EXPECT_EQ(retained->stats.gpuWorkingBytes,ordinary->stats.gpuWorkingBytes);
+    EXPECT_GT(retained->stats.gpuDispatches,ordinary->stats.gpuDispatches);
+    const auto initial=retained->readVertices();const auto outputIndices=retained->readIndices();
+    const auto ordinaryVertices=ordinary->readVertices();
+    ASSERT_EQ(initial.size(),ordinaryVertices.size());
+    double initialDifference=0;
+    for(std::size_t i=0;i<initial.size();++i) {
+        ASSERT_TRUE(std::isfinite(initial[i]));
+        initialDifference=std::max(initialDifference,std::abs(double(initial[i])-ordinaryVertices[i]));
+    }
+    EXPECT_LE(initialDifference,.000002);
+    EXPECT_EQ(outputIndices,ordinary->readIndices());
+    struct Owner {Mesh mesh;~Owner(){mesh.destroy();}} owner;
+    auto& mesh=owner.mesh;
+    TerrainGeometry metadata;static_cast<TerrainBuildStats&>(metadata)=topology;
+    const auto targets=retained->scratch[1],corners=retained->scratch[2];
+    mesh.loadComputedTerrain(std::move(metadata),*retained,false);
+    EXPECT_EQ(retained->scratch[1],0u);EXPECT_EQ(retained->scratch[2],0u);
+    retained.reset();ordinary.reset(); // Preparation scratch is gone; retained views still own their buffers.
+    EXPECT_TRUE(glIsBuffer(targets));EXPECT_TRUE(glIsBuffer(corners));
+    // Test-only readback: exact radial bits must survive even when a low word
+    // would be a NaN if transported through a numeric float buffer.
+    std::vector<std::uint32_t> packed(18*topology.samples.size());
+    glBindBuffer(GL_COPY_READ_BUFFER,targets);
+    glGetBufferSubData(GL_COPY_READ_BUFFER,0,packed.size()*4,packed.data());glBindBuffer(GL_COPY_READ_BUFFER,0);
+    std::size_t nanWords=0;
+    for(std::size_t i=0;i<topology.samples.size();++i) for(int j=0;j<3;++j) {
+        const auto lo=packed[9*i+2*j],hi=packed[9*i+2*j+1];
+        const auto bits=std::uint64_t(lo)|(std::uint64_t(hi)<<32);
+        ASSERT_EQ(bits,std::bit_cast<std::uint64_t>(topology.samples[i].radial[j]));
+        nanWords+=(lo&0x7f800000u)==0x7f800000u && (lo&0x007fffffu)!=0;
+    }
+    EXPECT_GT(nanWords,0u);
+    struct Bindings {
+        GLuint buffer=0;
+        ~Bindings() {
+            for(int i=0;i<3;++i) glBindBufferBase(GL_SHADER_STORAGE_BUFFER,i,0);
+            glBindBuffer(GL_SHADER_STORAGE_BUFFER,0);glUseProgram(0);
+            if(buffer) glDeleteBuffers(1,&buffer);
+        }
+    } bindings;
+    GLint alignment=0;glGetIntegerv(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT,&alignment);
+    glGenBuffers(1,&bindings.buffer);glBindBuffer(GL_SHADER_STORAGE_BUFFER,bindings.buffer);
+    glBufferData(GL_SHADER_STORAGE_BUFFER,alignment+64,nullptr,GL_STATIC_DRAW);
+    for(int i=0;i<3;++i) glBindBufferRange(GL_SHADER_STORAGE_BUFFER,i,bindings.buffer,alignment,64);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,0);glUseProgram(compute.program());
+    const auto readMesh=[&] {
+        GLint previous=0;glGetIntegerv(GL_COPY_READ_BUFFER_BINDING,&previous);
+        std::vector<float> result(initial.size());glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
+        glBindBuffer(GL_COPY_READ_BUFFER,mesh.vbo);glGetBufferSubData(GL_COPY_READ_BUFFER,0,result.size()*4,result.data());
+        glBindBuffer(GL_COPY_READ_BUFFER,previous);return result;
+    };
+    const auto east=glm::normalize(glm::cross(eye,glm::dvec3(0,0,1)));
+    double maximumPositionError=0;
+    for(double offset:{0.,.05,.15,.30,.15,0.}) {
+        const TerrainMorphFootprint footprint{glm::normalize(eye+east*(offset/1000)),1000,.5,.5};
+        compute.deform(mesh,footprint);
+        GLint program=0,storage=0;glGetIntegerv(GL_CURRENT_PROGRAM,&program);
+        glGetIntegerv(GL_SHADER_STORAGE_BUFFER_BINDING,&storage);
+        EXPECT_EQ(program,compute.program());EXPECT_EQ(storage,0);
+        for(int i=0;i<3;++i) {
+            GLint buffer=0;GLint64 start=0,size=0;
+            glGetIntegeri_v(GL_SHADER_STORAGE_BUFFER_BINDING,i,&buffer);
+            glGetInteger64i_v(GL_SHADER_STORAGE_BUFFER_START,i,&start);
+            glGetInteger64i_v(GL_SHADER_STORAGE_BUFFER_SIZE,i,&size);
+            EXPECT_EQ(buffer,bindings.buffer);EXPECT_EQ(start,alignment);EXPECT_EQ(size,64);
+        }
+        auto reference=topology;
+        for(std::size_t i=0;i<reference.samples.size();++i) {
+            const auto& r=reference.samples[i].radial;
+            const double distance=glm::length(glm::dvec3(r[0],r[1],r[2])-footprint.eyeRadial)*1000;
+            const double blend=std::clamp((distance-footprint.radiusMeters)/footprint.transitionMeters,0.,1.);
+            reference.morph[i].blend[0]=blend*blend*(3-2*blend);
+        }
+        reference.canonicalize(surface.field().fingerprint());
+        const auto cpu=surface.evaluateTopology(reference);const auto actual=readMesh();
+        ASSERT_EQ(actual.size(),cpu.vertices.size());
+        std::vector<std::size_t> first(topology.samples.size(),std::numeric_limits<std::size_t>::max());
+        double maximum=0;
+        for(std::size_t corner=0;corner<topology.indices.size();++corner) {
+            const auto p=9*corner;
+            const double error=glm::length(glm::dvec3(actual[p]-cpu.vertices[p],actual[p+1]-cpu.vertices[p+1],
+                actual[p+2]-cpu.vertices[p+2]))*1000;
+            ASSERT_TRUE(std::isfinite(error));maximum=std::max(maximum,error);
+            for(int j=3;j<9;++j) ASSERT_EQ(actual[p+j],initial[p+j]);
+            auto& original=first[topology.indices[corner]];
+            if(original==std::numeric_limits<std::size_t>::max()) original=p;
+            EXPECT_EQ(std::memcmp(actual.data()+p,actual.data()+original,12),0);
+        }
+        EXPECT_LE(maximum,.002); // Preserve the established CPU/GPU position tolerance.
+        maximumPositionError=std::max(maximumPositionError,maximum);
+    }
+    const TerrainMorphFootprint valid{glm::normalize(eye),1000,.5,.5};
+    auto invalid=valid;invalid.eyeRadial={0,0,0};EXPECT_THROW(compute.deform(mesh,invalid),std::invalid_argument);
+    invalid=valid;invalid.transitionMeters=0;EXPECT_THROW(compute.deform(mesh,invalid),std::invalid_argument);
+    mesh.contacts=std::make_shared<SparseTerrainContacts>(surface.field(),topology);
+    EXPECT_THROW(compute.deform(mesh,valid),std::logic_error);mesh.contacts.reset();
+    Mesh exchanged;mesh.swap(exchanged);EXPECT_EQ(exchanged.morphTargets,targets);EXPECT_EQ(mesh.morphTargets,0u);
+    exchanged.swap(mesh);mesh.destroy();EXPECT_FALSE(glIsBuffer(targets));EXPECT_FALSE(glIsBuffer(corners));
+    EXPECT_THROW(compute.deform(mesh,valid),std::invalid_argument);
+    auto replacement=compute.generate(surface.field(),topology,false,TerrainMorphStorage::Retained);
+    replacement->waitForCapture();metadata={};static_cast<TerrainBuildStats&>(metadata)=topology;
+    mesh.loadComputedTerrain(std::move(metadata),*replacement,false);
+    const auto fallbackTargets=mesh.morphTargets,fallbackCorners=mesh.morphCorners;
+    mesh.loadTerrain(surface.evaluateTopology(topology));
+    EXPECT_FALSE(glIsBuffer(fallbackTargets));EXPECT_FALSE(glIsBuffer(fallbackCorners));
+    EXPECT_FALSE(mesh.residentTerrain);EXPECT_EQ(mesh.morphSamples,0u);
+    EXPECT_THROW(compute.deform(mesh,valid),std::invalid_argument);
+    const TerrainSurface legacy({},lod(),1,1000);
+    EXPECT_THROW(compute.generate(legacy.field(),legacy.buildTopology(1),false,TerrainMorphStorage::Retained),std::invalid_argument);
+    std::cout << "MORPH_TARGETS samples=" << topology.samples.size() << " corners=" << topology.indices.size()
+        << " retained_bytes=" << 72*topology.samples.size()+4*topology.indices.size()
+        << " nan_low_words=" << nanWords << " initial_difference=" << initialDifference
+        << " maximum_position_error_m=" << maximumPositionError << '\n';
     EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
 }
 TEST(TerrainCompute, SparseContactGenerationMatchesGpuPlanesWithoutReadingTheCpuMirror) {

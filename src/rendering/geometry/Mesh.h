@@ -14,6 +14,8 @@ public:
     GLuint vao = 0;
     GLuint vbo = 0;
     GLuint ebo = 0;
+    GLuint morphTargets=0,morphCorners=0;
+    std::size_t morphSamples=0;
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
     std::vector<std::array<std::uint32_t,4>> grassCellKeys;
@@ -50,4 +52,6 @@ public:
     void destroy();
     // Transfer a complete prevalidated generation without allocating or GL work.
     void swap(Mesh& other) noexcept;
+private:
+    void releaseMorphTargets();
 };

@@ -1,0 +1,19 @@
+#version 430 core
+layout(local_size_x=64) in;
+layout(std430,binding=0) readonly buffer Targets {uint words[];};
+layout(std430,binding=1) readonly buffer Corners {uint corners[];};
+layout(std430,binding=2) buffer Vertices {float vertices[];};
+uniform int uSamples,uFirst,uCount;
+uniform dvec3 uEye,uFootprint; // physical scale, unsunk radius, transition width
+double targetDouble(uint offset) {return packDouble2x32(uvec2(words[offset],words[offset+1u]));}
+void main() {
+    uint corner=uint(uFirst)+gl_GlobalInvocationID.x;if(corner>=uint(uCount)) return;
+    uint sampleIndex=corners[corner],base=9u*sampleIndex,parentBase=9u*uint(uSamples)+base;
+    dvec3 radial=dvec3(targetDouble(base),targetDouble(base+2u),targetDouble(base+4u));
+    dvec3 fine=dvec3(uintBitsToFloat(words[base+6u]),uintBitsToFloat(words[base+7u]),uintBitsToFloat(words[base+8u]));
+    dvec3 parent=dvec3(targetDouble(parentBase),targetDouble(parentBase+2u),targetDouble(parentBase+4u));
+    double blend=clamp((length(radial-uEye)*uFootprint.x-uFootprint.y)/uFootprint.z,0.0lf,1.0lf);
+    blend=blend*blend*(3.0lf-2.0lf*blend);
+    vec3 position=vec3(fine+(parent-fine)*blend);
+    for(uint j=0u;j<3u;++j) vertices[9u*corner+j]=position[j];
+}

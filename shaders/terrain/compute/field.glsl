@@ -6,7 +6,17 @@ layout(std430,binding=0) readonly buffer Field {
     uvec4 flags,seeds; Noise noises[8];
 };
 layout(std430,binding=1) readonly buffer Radials { dvec4 inputs[]; };
+#ifdef TERRAIN_RETAIN_TARGETS
+// Integer storage preserves every double bit, including low words whose float
+// interpretation is a NaN. Numeric float loads/stores never carry packed bits.
+layout(std430,binding=2) buffer Unique { uint uniqueWords[]; };
+float readUnique(uint i) {return uintBitsToFloat(uniqueWords[i]);}
+void writeUnique(uint i,float value) {uniqueWords[i]=floatBitsToUint(value);}
+#else
 layout(std430,binding=2) buffer Unique { float uniqueValues[]; };
+float readUnique(uint i) {return uniqueValues[i];}
+void writeUnique(uint i,float value) {uniqueValues[i]=value;}
+#endif
 layout(std430,binding=3) readonly buffer Topology { uint corners[]; };
 layout(std430,binding=4) writeonly buffer Vertices { float vertices[]; };
 layout(std430,binding=5) writeonly buffer Indices { uint indices[]; };
@@ -200,16 +210,27 @@ dvec3 parentPosition(dvec4 descriptor) {
 void main() {
     uint i=uint(uFirst)+gl_GlobalInvocationID.x;if(i>=uint(uCount)) return;
 #ifdef TERRAIN_DETAIL_MORPH
+#ifdef TERRAIN_RETAIN_TARGETS
+    if(uPhase==3) {
+        uint base=9u*i,tail=9u*uint(uSamples)+base;
+        for(uint j=0u;j<3u;++j) {
+            uvec2 bits=unpackDouble2x32(inputs[i][j]);
+            uniqueWords[base+2u*j]=bits.x;uniqueWords[base+2u*j+1u]=bits.y;
+            uniqueWords[base+6u+j]=uniqueWords[tail+6u+j];
+        }
+        return;
+    }
+#endif
     if(uPhase==2) {
         uint base=uint(uSamples)+4u*(i/3u)+i%3u;
         dvec3 parent=parentPosition(inputs[base]);
-        for(uint j=0u;j<3u;++j) uniqueValues[9u*uint(uSamples)+3u*i+j]=float(parent[j]);
+        for(uint j=0u;j<3u;++j) writeUnique(9u*uint(uSamples)+3u*i+j,float(parent[j]));
         return;
     }
 #endif
     if(uPhase==1) {
         uint source=9u*corners[i];
-        for(uint j=0u;j<9u;++j) vertices[9u*i+j]=uniqueValues[source+j];
+        for(uint j=0u;j<9u;++j) vertices[9u*i+j]=readUnique(source+j);
         indices[i]=i;
         if(i%3u==0u) {
             uvec4 key=cellIdentity(inputs[corners[i]].xyz,inputs[corners[i+1u]].xyz,inputs[corners[i+2u]].xyz);
@@ -241,20 +262,32 @@ void main() {
     if(uMorph!=0) {
         uint base=uint(uSamples)+4u*i;
         double blend=inputs[base+3u].x;
-        if(blend>0.0lf) {
+#ifdef TERRAIN_RETAIN_TARGETS
+        bool needParent=true;
+#else
+        bool needParent=blend>0.0lf;
+#endif
+        if(needParent) {
             uint offset=9u*uint(uSamples)+9u*i;
-            dvec3 pa=dvec3(uniqueValues[offset],uniqueValues[offset+1u],uniqueValues[offset+2u]);
-            dvec3 pb=dvec3(uniqueValues[offset+3u],uniqueValues[offset+4u],uniqueValues[offset+5u]);
-            dvec3 pc=dvec3(uniqueValues[offset+6u],uniqueValues[offset+7u],uniqueValues[offset+8u]);
+            dvec3 pa=dvec3(readUnique(offset),readUnique(offset+1u),readUnique(offset+2u));
+            dvec3 pb=dvec3(readUnique(offset+3u),readUnique(offset+4u),readUnique(offset+5u));
+            dvec3 pc=dvec3(readUnique(offset+6u),readUnique(offset+7u),readUnique(offset+8u));
             dvec3 n=cross(pb-pa,pc-pa);
             dvec3 parent=dot(n,n)==0.0lf?pa:radial*(dot(n,pa)/dot(n,radial));
-            rounded=vec3(dvec3(rounded)+(parent-dvec3(rounded))*blend);
+#ifdef TERRAIN_RETAIN_TARGETS
+            for(uint j=0u;j<3u;++j) {
+                uvec2 bits=unpackDouble2x32(parent[j]);
+                uniqueWords[offset+2u*j]=bits.x;uniqueWords[offset+2u*j+1u]=bits.y;
+                uniqueWords[offset+6u+j]=floatBitsToUint(rounded[j]);
+            }
+#endif
+            if(blend>0.0lf) rounded=vec3(dvec3(rounded)+(parent-dvec3(rounded))*blend);
         }
     }
 #endif
     for(uint j=0u;j<3u;++j) {
-        uniqueValues[9u*i+j]=rounded[j];uniqueValues[9u*i+j+3u]=float(normal[j]);
-        uniqueValues[9u*i+j+6u]=float(color[j]);
+        writeUnique(9u*i+j,rounded[j]);writeUnique(9u*i+j+3u,float(normal[j]));
+        writeUnique(9u*i+j+6u,float(color[j]));
     }
     if(uDiagnostics!=0) heights[i]=hm;
 }

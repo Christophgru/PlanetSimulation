@@ -2,6 +2,10 @@
 #include "rendering/geometry/terrain/TerrainTopology.h"
 
 namespace rendering {
+struct TerrainMorphFootprint {
+    glm::dvec3 eyeRadial{0};
+    double metersPerRadius=0,radiusMeters=0,transitionMeters=0;
+};
 // Match the render contract's two float conversions before radial projection.
 inline glm::dvec3 terrainPosition(const PlanetField& field,const TerrainInputSample& s,
                                   const TerrainSurfacePolicy& policy) {
