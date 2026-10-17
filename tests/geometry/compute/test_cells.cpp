@@ -8,6 +8,8 @@
 #include <map>
 #include <optional>
 #include <thread>
+#include <bit>
+#include <numeric>
 
 using namespace rendering;
 namespace {
@@ -135,4 +137,108 @@ TEST(GrassCells, SavedPolicyDefaultsToLegacyIdentityAndRejectsUnknownVersions) {
         EXPECT_THROW(grass.restorePolicies(replay,{p}),std::invalid_argument);
     }
     grass.restorePolicies(nlohmann::json::object(),{p});EXPECT_TRUE(grass.cellIdentity());
+}
+
+TEST(GrassCells, ImmutableSourceKeepsSlicedRootAndCellPreparationStableWhileLivePositionsChange) {
+    auto p=planet();p.foliage.density_per_m2=1024;p.foliage.max_blades=500000;
+    Source source;
+    source.terrainStats.generation.topologyVersion=4;
+    source.terrainStats.uniqueSamples=source.vertices.size()/9;
+    source.morphSamples=source.terrainStats.uniqueSamples;
+    std::vector<std::uint32_t> words(18*source.morphSamples,0),corners(source.indexCount);
+    std::iota(corners.rbegin(),corners.rend(),0); // Deliberately nonidentity indirection.
+    for(std::size_t i=0;i<source.morphSamples;++i) for(int j=0;j<3;++j)
+        words[9*source.morphSamples+9*corners[i]+6+j]=std::bit_cast<std::uint32_t>(source.vertices[9*i+j]);
+    glGenBuffers(1,&source.morphTargets);glBindBuffer(GL_ARRAY_BUFFER,source.morphTargets);
+    glBufferData(GL_ARRAY_BUFFER,words.size()*4,words.data(),GL_STATIC_DRAW);
+    glGenBuffers(1,&source.morphCorners);glBindBuffer(GL_ARRAY_BUFFER,source.morphCorners);
+    glBufferData(GL_ARRAY_BUFFER,corners.size()*4,corners.data(),GL_STATIC_DRAW);
+    struct TextureSentinels {
+        GLuint ids[2]{};
+        ~TextureSentinels(){glDeleteTextures(2,ids);glActiveTexture(GL_TEXTURE0);}
+    } sentinels;
+    glGenTextures(2,sentinels.ids);
+    for(int i=0;i<2;++i) {
+        glActiveTexture(GL_TEXTURE12+i);glBindTexture(GL_TEXTURE_BUFFER,sentinels.ids[i]);
+        glTexBuffer(GL_TEXTURE_BUFFER,GL_R32UI,i==0?source.morphTargets:source.morphCorners);
+    }
+    glActiveTexture(GL_TEXTURE7);
+    const auto assertTextures=[&] {
+        GLint active=0;glGetIntegerv(GL_ACTIVE_TEXTURE,&active);EXPECT_EQ(active,GL_TEXTURE7);
+        for(int i=0;i<2;++i) {
+            glActiveTexture(GL_TEXTURE12+i);GLint texture=0;glGetIntegerv(GL_TEXTURE_BINDING_BUFFER,&texture);
+            EXPECT_EQ(texture,sentinels.ids[i]);
+        }
+        glActiveTexture(GL_TEXTURE7);
+    };
+    ProceduralGrass grass;grass.enableAdaptiveBudget();
+    auto first=grass.submitResident(source.vbo,source.ebo,source.terrainStats,p,1000,{0,0,1.02},source.revision,
+        0,ProceduralGrass::defaultStageBytes,source.morphSource());
+    grass.waitForCapture(*first);grass.reserve(0);grass.commit(0,*first,source);first.reset();
+    ASSERT_GT(grass.stats(0).candidates,4*65536u);
+    // A seed change prevents prefix copies from hiding incorrect position fetches.
+    // Compare a frozen-source baseline with a second, fully fresh sliced build.
+    ++p.foliage.seed;
+    auto baseline=grass.submitResident(source.vbo,source.ebo,source.terrainStats,p,1000,{0,0,1.02},source.revision,
+        0,ProceduralGrass::defaultStageBytes,source.morphSource());
+    grass.waitForCapture(*baseline);grass.commit(0,*baseline,source);baseline.reset();
+    const auto expectedCells=grass.cachedCellsForValidation(0);const auto expectedRoots=grass.cachedRootsForValidation(0);
+    ++p.foliage.seed;
+    auto intervening=grass.submitResident(source.vbo,source.ebo,source.terrainStats,p,1000,{0,0,1.02},source.revision,
+        0,ProceduralGrass::defaultStageBytes,source.morphSource());
+    grass.waitForCapture(*intervening);grass.commit(0,*intervening,source);intervening.reset();
+    --p.foliage.seed;
+    auto stage=grass.submitResident(source.vbo,source.ebo,source.terrainStats,p,1000,{0,0,1.02},source.revision,
+        0,ProceduralGrass::defaultStageBytes,source.morphSource());
+    std::size_t calls=0,previous=0;auto live=source.vertices;
+    for(;;) {
+        ASSERT_LT(++calls,1000000u);
+        for(std::size_t i=2;i<live.size();i+=9) live[i]=1.f+float((calls%7)+1)*.001f;
+        glBindBuffer(GL_ARRAY_BUFFER,source.vbo);glBufferSubData(GL_ARRAY_BUFFER,0,live.size()*4,live.data());
+        const bool ready=grass.poll(*stage);assertTextures();
+        const auto dispatched=stage->stats().rootDispatches;EXPECT_LE(dispatched-previous,4u);previous=dispatched;
+        if(ready) break;
+        glFlush();std::this_thread::yield();
+    }
+    EXPECT_GT(calls,1u);EXPECT_EQ(stage->stats().cellUpdates[4],0u);
+    grass.commit(0,*stage,source);stage.reset();
+    const auto cells=grass.cachedCellsForValidation(0);const auto roots=grass.cachedRootsForValidation(0);
+    ASSERT_EQ(cells.size(),expectedCells.size());ASSERT_EQ(roots.size(),expectedRoots.size());
+    for(std::size_t i=0;i<cells.size();++i) {
+        EXPECT_EQ(cells[i].key,expectedCells[i].key);EXPECT_EQ(cells[i].geometry,expectedCells[i].geometry);
+        EXPECT_EQ(cells[i].metric,expectedCells[i].metric);
+    }
+    for(std::size_t i=0;i<roots.size();++i) {
+        EXPECT_EQ(roots[i].rootExpected,expectedRoots[i].rootExpected);EXPECT_EQ(roots[i].upRank,expectedRoots[i].upRank);
+        EXPECT_EQ(roots[i].normalSlot,expectedRoots[i].normalSlot);EXPECT_EQ(roots[i].variation,expectedRoots[i].variation);
+        if(roots[i].normalSlot.w!=0) EXPECT_FLOAT_EQ(roots[i].rootExpected.z,1.f);
+    }
+    std::map<Key,unsigned> originalFaces;
+    for(unsigned face=0;face<source.grassCellKeys.size();++face) {
+        const auto& id=source.grassCellKeys[face];originalFaces.emplace(Key{id[0],id[1],id[2]},face);
+    }
+    for(const auto& cell:cells) {
+        const auto found=originalFaces.find(key(cell.key));ASSERT_NE(found,originalFaces.end());
+        glm::dvec3 triangle[3];
+        for(int j=0;j<3;++j) {
+            const auto offset=9*source.indices[3*found->second+j];
+            triangle[j]={source.vertices[offset],source.vertices[offset+1],source.vertices[offset+2]};
+        }
+        for(unsigned slot=0;slot<cell.span.y;++slot) {
+            const auto& root=roots[cell.span.x+slot];if(root.normalSlot.w==0) continue;
+            for(int j=0;j<3;++j) EXPECT_GE(glm::cross(triangle[(j+1)%3]-triangle[j],
+                glm::dvec3(root.rootExpected)-triangle[j]).z,-1e-8);
+        }
+    }
+    // Re-enabling delta reuse must retain exact original cell geometry despite
+    // the live VBO still containing different positions.
+    auto delta=grass.submitResident(source.vbo,source.ebo,source.terrainStats,p,1000,{0,0,1.02},source.revision,
+        0,ProceduralGrass::defaultStageBytes,source.morphSource());
+    grass.clear();grass.waitForCapture(*delta);EXPECT_GT(delta->stats().cellUpdates[4],0u);
+    delta.reset(); // Source leases survive clear/cancellation.
+    source.upload();EXPECT_FALSE(source.morphSource());
+    grass.prepare(0,source,p,1000,{0,0,1.02});
+    EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+    std::cout << "IMMUTABLE_GRASS_ROOTS roots=" << roots.size() << " cells=" << cells.size()
+        << " sliced_polls=" << calls << " live_height_updates=" << calls << '\n';
 }

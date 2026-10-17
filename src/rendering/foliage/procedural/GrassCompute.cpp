@@ -118,10 +118,7 @@ void ProceduralGrass::drawComputed(std::size_t index,const Patch& patch,const Gr
     std::size_t count=0;
     for (const auto& batch:patch.batches) count+=batch.count;
     if (!count) { if (pass.feedback) glResumeTransformFeedback(); return; }
-    if(!compute_) {
-        if(patch.allocation) throw std::logic_error("Resident grass placement program was not prepared");
-        compute_=std::make_unique<Shader>("shaders/foliage/placement.comp");
-    }
+    placementProgram(patch);
     GLint64 blockBytes=0;GLint maxGroups=0;
     glGetInteger64v(GL_MAX_SHADER_STORAGE_BLOCK_SIZE,&blockBytes);
     glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT,0,&maxGroups);

@@ -9,6 +9,9 @@
 #include "config/ScenarioConfig.h"
 
 namespace rendering {
+namespace {
+constexpr std::array<GLenum,5> preparationTextureUnits{GL_TEXTURE8,GL_TEXTURE9,GL_TEXTURE11,GL_TEXTURE12,GL_TEXTURE13};
+}
 bool ProceduralGrass::policyChanged(std::size_t i) const {
     return adaptiveBudget_ && i<patches_.size() && patches_[i] && patches_[i]->falloff.enabled &&
         !patches_[i]->falloff.locked && patches_[i]->policyRevision!=budget_.revision();
@@ -18,7 +21,8 @@ bool ProceduralGrass::reuseResidentPolicy(std::size_t i,const Mesh& mesh,
     if(!adaptiveBudget_ || i>=patches_.size() || !patches_[i] || replayPolicies_.contains(planet.name)) return false;
     auto& p=*patches_[i];
     if(!p.ready || !p.metadata || !p.falloff.enabled || p.falloff.locked ||
-        p.revision!=mesh.revision || p.generation!=mesh.terrainStats.generation || p.settings!=planet.foliage) return false;
+        p.revision!=mesh.revision || p.generation!=mesh.terrainStats.generation || p.settings!=planet.foliage ||
+        p.morphSource!=mesh.morphSource()) return false;
     const auto rock=planet.terrain_material.slopeMetricRange();
     if(p.rockRange!=glm::vec2(rock[0],rock[1])) return false;
     auto requested=p.falloff;
@@ -80,7 +84,8 @@ std::uint64_t ProceduralGrass::stageBytes(std::uint64_t n,const config::FoliageC
 }
 std::unique_ptr<ProceduralGrass::Preparation> ProceduralGrass::submitResident(GLuint vertices,GLuint indices,
     const TerrainBuildStats& terrain,const config::PlanetConfig& planet,double metersPerWorldUnit,
-    const glm::dvec3& eyeBody,std::uint64_t revision,std::uint64_t otherBytes,std::uint64_t byteLimit) {
+    const glm::dvec3& eyeBody,std::uint64_t revision,std::uint64_t otherBytes,std::uint64_t byteLimit,
+    const TerrainMorphSource& source) {
     if(terrain.generation.backend!=TerrainBackend::Compute || !terrain.generation.field || !terrain.generation.topology ||
        terrain.generation.fieldVersion!=PlanetField::version || !supportedTerrainTopology(terrain.generation.topologyVersion) ||
        !terrain.gpuCorners || terrain.gpuCorners%3 || !vertices || !indices || !glIsBuffer(vertices) || !glIsBuffer(indices))
@@ -98,6 +103,7 @@ std::unique_ptr<ProceduralGrass::Preparation> ProceduralGrass::submitResident(GL
     result->generation_=terrain.generation;result->vertices_=vertices;result->indices_=indices;
     result->admittedBytes=otherBytes+bytes;
     patch.stageAdmittedBytes=result->admittedBytes;
+    patch.morphSource=source;
     patch.settings=planet.foliage;patch.color={planet.color[0],planet.color[1],planet.color[2]};
     patch.bodyName=planet.name;patch.cellKeyOffset=cellIdentity_ && terrain.gpuCellKeys?terrain.gpuCorners:0;
     const auto rock=planet.terrain_material.slopeMetricRange();patch.rockRange={rock[0],rock[1]};
@@ -123,15 +129,20 @@ std::unique_ptr<ProceduralGrass::Preparation> ProceduralGrass::submitResident(GL
     auto previous=previousCells(patch);result->previousCells_=std::move(previous.first);result->reuseCells_=previous.second;
     patch.workIdentity=GpuWorkProfiler::generation(terrain.generation);
     if(!planet.foliage.enabled) {patch.ready=true;result->ready_=true;return result;}
+    if(source) {
+        GLint texels=0;glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE,&texels);
+        if(texels<=0 || source.samples>std::uint64_t(texels)/18 || terrain.gpuCorners>std::uint64_t(texels)/9)
+            throw std::runtime_error("Immutable grass source exceeds texture buffer capacity");
+    }
     if(!metadataCompute_) metadataCompute_=std::make_unique<GrassMetadataCompute>();
     if(!allocationCompute_) allocationCompute_=std::make_unique<GrassAllocationCompute>();
     std::shared_ptr<GrassMetadataGeometry> geometry;
     const auto parameters=grassMetadataParameters(planet,metersPerWorldUnit,eyeBody,terrain.gpuCorners/3,patch.falloff);
     for(const auto& live:patches_) if(live && live->metadata && live->metadata->geometry &&
-        live->metadata->geometry->matches(vertices,indices,terrain,parameters)) {
+        live->metadata->geometry->matches(vertices,indices,terrain,parameters,source)) {
         geometry=live->metadata->geometry;break;
     }
-    patch.metadata=metadataCompute_->generate(vertices,indices,terrain,planet,metersPerWorldUnit,eyeBody,patch.falloff,std::move(geometry));
+    patch.metadata=metadataCompute_->generate(vertices,indices,terrain,planet,metersPerWorldUnit,eyeBody,patch.falloff,std::move(geometry),source);
     patch.allocation=allocationCompute_->generate(*patch.metadata,planet.foliage);
     // GPU command order/barriers carry the terrain -> metadata -> allocation
     // dependency. No CPU wait or readback is needed here.
@@ -164,7 +175,8 @@ bool ProceduralGrass::poll(Preparation& p) {
             patch.patches=summary.totals[0];patch.distanceMeters=patch.settings.draw_distance_m;
             patch.buffer=std::exchange(patch.allocation->references,0);p.summaryConsumed_=true;
             // All fallible resource creation happens before ready/commit.
-            GLint vao=0,array=0,active=0,storage=0,program=0;std::array<GLint,3> textures{};
+            const int textureCount=patch.morphSource?5:3;
+            GLint vao=0,array=0,active=0,storage=0,program=0;std::array<GLint,5> textures{};
             std::array<GLint,8> bindings{};std::array<GLint64,8> starts{},sizes{};
             glGetIntegerv(GL_VERTEX_ARRAY_BINDING,&vao);glGetIntegerv(GL_ARRAY_BUFFER_BINDING,&array);
             glGetIntegerv(GL_SHADER_STORAGE_BUFFER_BINDING,&storage);
@@ -175,12 +187,12 @@ bool ProceduralGrass::poll(Preparation& p) {
                 glGetInteger64i_v(GL_SHADER_STORAGE_BUFFER_START,i,&starts[i]);
                 glGetInteger64i_v(GL_SHADER_STORAGE_BUFFER_SIZE,i,&sizes[i]);
             }
-            for(int i=0;i<3;++i) {glActiveTexture(i==2?GL_TEXTURE11:GL_TEXTURE8+i);glGetIntegerv(GL_TEXTURE_BINDING_BUFFER,&textures[i]);}
+            for(int i=0;i<textureCount;++i) {glActiveTexture(preparationTextureUnits[i]);glGetIntegerv(GL_TEXTURE_BINDING_BUFFER,&textures[i]);}
             struct Restore {
-                GLint vao,array,active,storage,program;std::array<GLint,3> textures;
+                GLint vao,array,active,storage,program;int textureCount;std::array<GLint,5> textures;
                 std::array<GLint,8> bindings;std::array<GLint64,8> starts,sizes;
                 ~Restore() {
-                    for(int i=0;i<3;++i) {glActiveTexture(i==2?GL_TEXTURE11:GL_TEXTURE8+i);glBindTexture(GL_TEXTURE_BUFFER,textures[i]);}
+                    for(int i=0;i<textureCount;++i) {glActiveTexture(preparationTextureUnits[i]);glBindTexture(GL_TEXTURE_BUFFER,textures[i]);}
                     for(int i=0;i<8;++i) {
                         if(bindings[i] && sizes[i]>0) glBindBufferRange(GL_SHADER_STORAGE_BUFFER,i,bindings[i],starts[i],sizes[i]);
                         else glBindBufferBase(GL_SHADER_STORAGE_BUFFER,i,bindings[i]);
@@ -189,11 +201,18 @@ bool ProceduralGrass::poll(Preparation& p) {
                     glActiveTexture(active);glBindVertexArray(vao);glBindBuffer(GL_ARRAY_BUFFER,array);
                     glBindBuffer(GL_SHADER_STORAGE_BUFFER,storage);
                 }
-            } restore{vao,array,active,storage,program,textures,bindings,starts,sizes};
+            } restore{vao,array,active,storage,program,textureCount,textures,bindings,starts,sizes};
             glGenTextures(1,&patch.vertexTexture);glGenTextures(1,&patch.indexTexture);
             glActiveTexture(GL_TEXTURE8);glBindTexture(GL_TEXTURE_BUFFER,patch.vertexTexture);glTexBuffer(GL_TEXTURE_BUFFER,GL_R32F,p.vertices_);
             glActiveTexture(GL_TEXTURE9);glBindTexture(GL_TEXTURE_BUFFER,patch.indexTexture);glTexBuffer(GL_TEXTURE_BUFFER,GL_R32UI,p.indices_);
-            if(summary.totals[1] && !compute_) compute_=std::make_unique<Shader>("shaders/foliage/placement.comp");
+            if(patch.morphSource) {
+                glGenTextures(patch.morphTextures.size(),patch.morphTextures.data());
+                glActiveTexture(GL_TEXTURE12);glBindTexture(GL_TEXTURE_BUFFER,patch.morphTextures[0]);
+                glTexBuffer(GL_TEXTURE_BUFFER,GL_R32UI,patch.morphSource.targets);
+                glActiveTexture(GL_TEXTURE13);glBindTexture(GL_TEXTURE_BUFFER,patch.morphTextures[1]);
+                glTexBuffer(GL_TEXTURE_BUFFER,GL_R32UI,patch.morphSource.corners);
+            }
+            if(summary.totals[1]) placementProgram(patch,true);
             if(summary.totals[1] && !animation_) animation_=std::make_unique<Shader>("shaders/foliage/animation.comp");
             allocateComputed(patch,summary.totals[1]);
             prepareCells(patch,p.previousCells_.get(),p.reuseCells_);
@@ -203,21 +222,22 @@ bool ProceduralGrass::poll(Preparation& p) {
         if(!p.resourcesFence_) {
             // The source remains leased while bounded root-copy/generation
             // batches run. Published grass continues drawing unchanged.
-            GLint program=0,storage=0,active=0;std::array<GLint,2> textures{};std::array<GLint,8> bindings{};
+            const int textureCount=p.patch_->morphSource?5:2;
+            GLint program=0,storage=0,active=0;std::array<GLint,5> textures{};std::array<GLint,8> bindings{};
             std::array<GLint64,8> starts{},sizes{};
             glGetIntegerv(GL_CURRENT_PROGRAM,&program);glGetIntegerv(GL_SHADER_STORAGE_BUFFER_BINDING,&storage);
             glGetIntegerv(GL_ACTIVE_TEXTURE,&active);
-            for(int i=0;i<2;++i) {glActiveTexture(GL_TEXTURE8+i);glGetIntegerv(GL_TEXTURE_BINDING_BUFFER,&textures[i]);}
+            for(int i=0;i<textureCount;++i) {glActiveTexture(preparationTextureUnits[i]);glGetIntegerv(GL_TEXTURE_BINDING_BUFFER,&textures[i]);}
             for(int i=0;i<8;++i) {glGetIntegeri_v(GL_SHADER_STORAGE_BUFFER_BINDING,i,&bindings[i]);
                 glGetInteger64i_v(GL_SHADER_STORAGE_BUFFER_START,i,&starts[i]);glGetInteger64i_v(GL_SHADER_STORAGE_BUFFER_SIZE,i,&sizes[i]);}
             struct Restore {
-                GLint program,storage,active;std::array<GLint,2> textures;std::array<GLint,8> bindings;std::array<GLint64,8> starts,sizes;
+                GLint program,storage,active;int textureCount;std::array<GLint,5> textures;std::array<GLint,8> bindings;std::array<GLint64,8> starts,sizes;
                 ~Restore() {for(int i=0;i<8;++i) {
                     if(bindings[i] && sizes[i]>0) glBindBufferRange(GL_SHADER_STORAGE_BUFFER,i,bindings[i],starts[i],sizes[i]);
                     else glBindBufferBase(GL_SHADER_STORAGE_BUFFER,i,bindings[i]);}
-                    for(int i=0;i<2;++i) {glActiveTexture(GL_TEXTURE8+i);glBindTexture(GL_TEXTURE_BUFFER,textures[i]);}
+                    for(int i=0;i<textureCount;++i) {glActiveTexture(preparationTextureUnits[i]);glBindTexture(GL_TEXTURE_BUFFER,textures[i]);}
                     glActiveTexture(active);glBindBuffer(GL_SHADER_STORAGE_BUFFER,storage);glUseProgram(program);}
-            } restore{program,storage,active,textures,bindings,starts,sizes};
+            } restore{program,storage,active,textureCount,textures,bindings,starts,sizes};
             auto& patch=*p.patch_;
             if(!generateRootsStep(patch,p.previousCells_.get(),p.rootLevel_,p.rootOffset_,4)) return false;
             if(glGetError()!=GL_NO_ERROR) throw std::runtime_error("Grass root update failed");
@@ -244,7 +264,8 @@ void ProceduralGrass::waitForCapture(Preparation& p) {
 }
 void ProceduralGrass::validateCommit(std::size_t index,const Preparation& p,const Mesh& mesh) const {
     if(!p.ready_ || p.failed_ || index>=patches_.size() || !patches_[index] ||
-       mesh.terrainStats.generation!=p.generation_ || mesh.vbo!=p.vertices_ || mesh.ebo!=p.indices_ || mesh.revision!=p.patch_->revision)
+       mesh.terrainStats.generation!=p.generation_ || mesh.vbo!=p.vertices_ || mesh.ebo!=p.indices_ || mesh.revision!=p.patch_->revision ||
+       mesh.morphSource()!=p.patch_->morphSource)
         throw std::invalid_argument("Grass commit requires reserved matching ready consumers");
 }
 void ProceduralGrass::commitPrepared(std::size_t index,Preparation& p) noexcept {

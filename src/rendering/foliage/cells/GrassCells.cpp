@@ -31,7 +31,9 @@ void ProceduralGrass::prepareCells(const Patch& patch,const GrassCellCache* prev
     GLint64 block=0;glGetInteger64v(GL_MAX_SHADER_STORAGE_BLOCK_SIZE,&block);
     if(cache.count*sizeof(GrassCellRecord)>std::uint64_t(block) || cache.tableSlots*4>std::uint64_t(block))
         throw std::runtime_error("Grass cells exceed storage capacity");
-    if(!cells_) cells_=std::make_unique<Shader>("shaders/foliage/cells.comp");
+    auto& program=cellVariants_[patch.morphSource?1:0];
+    if(!program) program=std::make_unique<Shader>(patch.morphSource?
+        "shaders/foliage/deformation/cells.comp":"shaders/foliage/cells.comp");
     const auto create=[&](GLuint& buffer,std::size_t bytes,bool clear) {
         if(!buffer) glGenBuffers(1,&buffer);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER,buffer);glBufferData(GL_SHADER_STORAGE_BUFFER,bytes,nullptr,GL_STATIC_DRAW);
@@ -44,7 +46,10 @@ void ProceduralGrass::prepareCells(const Patch& patch,const GrassCellCache* prev
     const std::array<GLuint,7> buffers{patch.buffer,cache.cells,cache.table,previous?previous->cells:0,
         previous?previous->table:0,cache.summary,patch.gpuBounds};
     for(int i=0;i<7;++i) glBindBufferBase(GL_SHADER_STORAGE_BUFFER,i,buffers[i]);
-    auto& c=*cells_;c.use();c.setInt("uTerrainVertices",8);c.setInt("uTerrainIndices",9);
+    auto& c=*program;c.use();c.setInt("uTerrainVertices",8);c.setInt("uTerrainIndices",9);
+    if(patch.morphSource) {
+        c.setInt("uMorphTargets",12);c.setInt("uMorphCorners",13);c.setInt("uMorphSamples",patch.morphSource.samples);
+    }
     c.setInt("uCellFirst",patch.cellKeyOffset);c.setFloat("uScale",patch.scale);c.setFloat("uDensity",patch.density);
     c.setInt("uTableSlots",cache.tableSlots);c.setInt("uPreviousSlots",previous?previous->tableSlots:0);
     c.setInt("uCanReuse",reuse);

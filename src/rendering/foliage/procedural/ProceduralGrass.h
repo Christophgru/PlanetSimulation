@@ -13,6 +13,7 @@
 #include <limits>
 #include "rendering/foliage/trails/GrassTrail.h"
 #include "rendering/geometry/terrain/TerrainTopology.h"
+#include "rendering/geometry/compute/TerrainCompute.h"
 class Mesh;
 namespace rendering {
 class GrassMetadataCompute;
@@ -69,6 +70,8 @@ private:
         std::vector<Bound> bounds;
         std::vector<Draw> draws;
         GLuint buffer=0, vertexTexture=0, indexTexture=0;
+        TerrainMorphSource morphSource;
+        std::array<GLuint,2> morphTextures{};
         std::unique_ptr<GrassMetadataBuffers> metadata;
         std::unique_ptr<GrassAllocationBuffers> allocation;
         mutable GLuint gpuBlades=0, commands=0;
@@ -122,9 +125,10 @@ private:
     std::uint64_t terrainBudgetBytes_=0,externalBudgetBytes_=0;
     std::map<std::string,GrassFalloff> replayPolicies_;
     void bindTrail(std::size_t index,double scale) const;
-    mutable std::unique_ptr<Shader> compute_;
+    mutable Shader* compute_=nullptr;
+    mutable std::array<std::unique_ptr<Shader>,2> computeVariants_;
     mutable std::unique_ptr<Shader> animation_;
-    mutable std::unique_ptr<Shader> cells_;
+    mutable std::array<std::unique_ptr<Shader>,2> cellVariants_;
     bool cellIdentity_=true;
     std::unique_ptr<GrassMetadataCompute> metadataCompute_;
     std::unique_ptr<GrassAllocationCompute> allocationCompute_;
@@ -135,6 +139,7 @@ private:
     void animateComputed(std::size_t index,const Patch& patch,const GrassPass& pass,int maxGroups) const;
     void allocateComputed(const Patch& patch,std::size_t count) const;
     void bindComputedInputs(const Patch& patch) const;
+    Shader& placementProgram(const Patch& patch,bool preparing=false) const;
     std::uint64_t dispatchCandidates(const Patch& patch,int maxGroups) const;
     void generateRoots(const Patch& patch) const;
     void prepareCells(const Patch& patch,const GrassCellCache* previous,bool reuse) const;
@@ -189,7 +194,8 @@ public:
     static std::uint64_t stageBytes(std::uint64_t triangles,const config::FoliageConfig& settings,std::uint64_t blockBytes);
     std::unique_ptr<Preparation> submitResident(GLuint vertices,GLuint indices,const TerrainBuildStats& terrain,
         const config::PlanetConfig& planet,double metersPerWorldUnit,const glm::dvec3& eyeBody,
-        std::uint64_t revision,std::uint64_t otherBytes=0,std::uint64_t byteLimit=defaultStageBytes);
+        std::uint64_t revision,std::uint64_t otherBytes=0,std::uint64_t byteLimit=defaultStageBytes,
+        const TerrainMorphSource& source={});
     bool poll(Preparation& preparation);
     void waitForCapture(Preparation& preparation);
     void reserve(std::size_t index);

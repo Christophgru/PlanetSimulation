@@ -293,7 +293,9 @@ TEST(TerrainCompute, RetainedTargetsDeformWithCpuParityAndPreserveAttributesAndO
     TerrainGeometry metadata;static_cast<TerrainBuildStats&>(metadata)=topology;
     retained->contacts=std::make_shared<SparseTerrainContacts>(surface.field(),topology);
     const auto targets=retained->scratch[1],corners=retained->scratch[2];
+    const auto sourceView=retained->morphSource();EXPECT_TRUE(bool(sourceView));
     mesh.loadComputedTerrain(std::move(metadata),*retained,false);
+    EXPECT_EQ(mesh.morphSource(),sourceView);EXPECT_FALSE(retained->morphSource());
     ASSERT_TRUE(mesh.morphState);EXPECT_EQ(mesh.morphState->revision(),0u);
     SurfaceContact sharedContact;sharedContact.bind(mesh.contacts,mesh.revision,mesh.morphState);
     std::weak_ptr<TerrainMorphState> phaseLifetime=mesh.morphState;

@@ -203,6 +203,10 @@ void Mesh::releaseMorphTargets() {
     morphTargets=morphCorners=0;morphSamples=0;
     morphState.reset();
 }
+rendering::TerrainMorphSource Mesh::morphSource() const {
+    return morphTargets || morphCorners || morphSamples?
+        rendering::TerrainMorphSource{morphTargets,morphCorners,morphSamples,terrainStats.generation}:rendering::TerrainMorphSource{};
+}
 void Mesh::destroy() {
     contacts.reset();
     releaseMorphTargets();

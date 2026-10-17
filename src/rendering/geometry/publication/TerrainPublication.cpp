@@ -116,7 +116,8 @@ bool TerrainPublication::submit(TerrainCpuBuild build,const TerrainBuildIdentity
         next->terrain=std::make_unique<TerrainGpuPreparation>(std::move(build),k,effective,compute,perSetLimit_);
         auto& t=*next->terrain;
         next->grass=grass_.submitResident(t.land->vbo,t.land->ebo,t.land->stats,effective,metersPerUnit,grassEye,
-            next->receipt.landRevision,t.land->stats.gpuWorkingBytes+(t.water ? t.water->stats.gpuWorkingBytes : 0),perSetLimit_);
+            next->receipt.landRevision,t.land->stats.gpuWorkingBytes+(t.water ? t.water->stats.gpuWorkingBytes : 0),perSetLimit_,
+            t.land->morphSource());
         if(next->grass->admittedBytes>bytes) throw std::logic_error("Grass reservation exceeds complete generation admission");
         staged_=std::move(next);++stats_.submitted;
         stats_.peakReservedBytes=std::max(stats_.peakReservedBytes,reservedBytes());
@@ -233,7 +234,7 @@ bool TerrainPublication::submitGrass(std::size_t i,const config::PlanetConfig& p
         next->receipt.grassEye=eye;next->receipt.foliage=effective.foliage;next->receipt.admittedBytes=bytes;
         next->previousGrass=grass_.residentGeneration(i);next->previousGrassRevision=grass_.residentRevision(i);
         next->previousGrassEye=grass_.planningEye(i);
-        next->grass=grass_.submitResident(land.vbo,land.ebo,land.terrainStats,effective,units,eye,land.revision,occupied,perSetLimit_);
+        next->grass=grass_.submitResident(land.vbo,land.ebo,land.terrainStats,effective,units,eye,land.revision,occupied,perSetLimit_,land.morphSource());
         staged_=std::move(next);++stats_.submitted;
         stats_.peakReservedBytes=std::max(stats_.peakReservedBytes,reservedBytes());return true;
     } catch(...) {++stats_.failed;throw;}

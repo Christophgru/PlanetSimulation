@@ -9,6 +9,7 @@ namespace rendering { struct TerrainGeometry; }
 namespace rendering { struct TerrainComputeBuffers; }
 namespace rendering { class SparseTerrainContacts; }
 namespace rendering { class TerrainMorphState; }
+namespace rendering { struct TerrainMorphSource; }
 
 class Mesh {
 public:
@@ -52,6 +53,7 @@ public:
     void draw() const;
 
     void destroy();
+    rendering::TerrainMorphSource morphSource() const;
     // Transfer a complete prevalidated generation without allocating or GL work.
     void swap(Mesh& other) noexcept;
 private:

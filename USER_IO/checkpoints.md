@@ -1,5 +1,34 @@
 # Page to document progress of AI Agents working on this Project
 
+## Immutable cell/root staging — 2026-10-17
+
+- Continued terrain p after 08cd634. Optional TerrainMorphSource flows through
+  submitResident/publication/resident prepare, metadata reuse and commit checks.
+  Mesh and preparation buffers expose borrowed source getters. Runtime generation
+  remains Transient, so defaults stay off. CPU fallback clears source/views.
+- Patch owns two integer texture views (units 12/13) into existing retained
+  targets/corner map, with capacity checks and preparation-state restoration.
+  Separate cached cell/placement variants share the exact original-position
+  decoder; shader includes live under shaders/foliage/deformation. Swap/destruct
+  transfer all programs. No extra GPU buffer storage or CPU field evaluation.
+- Regression uses a shuffled corner map and fresh seeded preparation while live
+  VBO heights change every poll. All 303,104 roots and 74 cells stay exact;
+  valid roots also lie in their original triangles. Four 65,536-slot dispatches
+  per poll remain the bound. RTX needs 18 polls/updates, Quadro 97; these are test
+  diagnostics, not production timings. Checks source getter ownership, units
+  12/13 + active unit restoration, delta prefix reuse, clear/cancel and fallback.
+- Full 74-step build and final 3-step test rebuild pass. Focused RTX six cases
+  pass (3.554 s); Quadro source+retained cases pass (6.161 s). Full 35 core groups
+  (42.12 s), 50 RTX cases (81.50 s), frame+streaming (154.84 s) and recovery+reload
+  (143.57 s) pass. All fifteen historical PNGs and inspected overview exact:
+  14,779 non-background pixels, bbox (1,1)–(794,598), 3,471 planet pixels.
+  Logs detail-immutable-roots-* stay ignored/local; diff checks pass.
+- Next: conservative area/slot envelopes, current root projection/bounds and
+  animation phase invalidation. Then views/capture, prepared streaming and parent
+  rebases. Keep terrain p and the last failing native coverage results; this
+  increment proves stable staging input, not moving coverage or an FPS gain.
+  User config remains unstaged.
+
 ## Immutable grass metadata from retained targets — 2026-10-17
 
 - Continued terrain p after 69750f7. Retained packing stores exact original

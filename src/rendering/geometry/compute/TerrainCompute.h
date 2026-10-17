@@ -37,6 +37,10 @@ struct TerrainComputeBuffers {
     std::shared_ptr<SparseTerrainContacts> contacts;
     bool complete=false,diagnostics=false;
     bool retainedMorph=false;
+    TerrainMorphSource morphSource() const {
+        return retainedMorph && (scratch[1] || scratch[2])?
+            TerrainMorphSource{scratch[1],scratch[2],stats.uniqueSamples,stats.generation}:TerrainMorphSource{};
+    }
     ~TerrainComputeBuffers();
     TerrainComputeBuffers()=default;
     TerrainComputeBuffers(const TerrainComputeBuffers&)=delete;

@@ -3,14 +3,28 @@
 #include <stdexcept>
 
 namespace rendering {
+Shader& ProceduralGrass::placementProgram(const Patch& patch,bool preparing) const {
+    auto& program=computeVariants_[patch.morphSource?1:0];
+    if(!program) {
+        if(patch.allocation && !preparing) throw std::logic_error("Resident grass placement program was not prepared");
+        program=std::make_unique<Shader>(patch.morphSource?
+            "shaders/foliage/deformation/placement.comp":"shaders/foliage/placement.comp");
+    }
+    compute_=program.get();return *compute_;
+}
 void ProceduralGrass::bindComputedInputs(const Patch& patch) const {
-    auto& c=*compute_;
+    auto& c=placementProgram(patch);
     c.use();
     c.setInt("uCapacity",patch.gpuCapacity);
     c.setInt("uCellFirst",patch.cellKeyOffset);
     c.setInt("uTerrainVertices",8); c.setInt("uTerrainIndices",9);
     glActiveTexture(GL_TEXTURE8); glBindTexture(GL_TEXTURE_BUFFER,patch.vertexTexture);
     glActiveTexture(GL_TEXTURE9); glBindTexture(GL_TEXTURE_BUFFER,patch.indexTexture);
+    if(patch.morphSource) {
+        glActiveTexture(GL_TEXTURE12);glBindTexture(GL_TEXTURE_BUFFER,patch.morphTextures[0]);
+        glActiveTexture(GL_TEXTURE13);glBindTexture(GL_TEXTURE_BUFFER,patch.morphTextures[1]);
+        c.setInt("uMorphTargets",12);c.setInt("uMorphCorners",13);c.setInt("uMorphSamples",patch.morphSource.samples);
+    }
     glActiveTexture(GL_TEXTURE0);
     c.setFloat3("uPlanetColor",patch.color.x,patch.color.y,patch.color.z);
     c.setFloat3("uLandscapeLevels",patch.landscapeLevels.x,patch.landscapeLevels.y,patch.landscapeLevels.z);

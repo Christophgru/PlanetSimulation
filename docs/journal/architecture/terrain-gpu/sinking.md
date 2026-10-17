@@ -1,5 +1,43 @@
 # Relief-aware terrain sinking
 
+## Immutable cell and root staging — 2026-10-17
+
+The optional immutable source now reaches metadata, canonical cells and root
+generation through resident preparation and publication. Meshes and preparation
+buffers expose borrowed source views. Source identity joins commit and resident
+reuse checks; CPU fallback clears the optional source and its views.
+
+Source-specific cell and placement kernels fetch original float positions from
+two integer texture-buffer views of the existing targets and corner map. Normal
+and color attributes keep using the unchanged VBO fields. Legacy kernels retain
+their original code through includes; separate programs avoid adding the source
+branch to default kernels. Cached programs transfer with prepared scene state.
+
+Preparation validates texture capacity and restores the additional units 12/13,
+active texture and existing buffer/program state. The two views add object
+ownership but allocate no GPU buffer storage. Root generation retains the
+existing limit of four 65,536-slot dispatches per poll, source leases and fences.
+
+A synthetic grid regression builds a frozen seeded reference, prevents prefix
+copies during a fresh sliced build, changes live vertex heights between polls,
+and compares every root/cell record. A shuffled sample map and independent
+triangle-membership checks exercise source indirection. All 303,104 roots and
+74 cells match; RTX uses 18 sliced polls/height updates and Quadro 97. Texture
+restoration, later delta reuse, clear/cancellation and fallback pass too.
+
+The full build and final test rebuild pass. Focused checks pass on RTX (six
+cases, 3.554 s) and Quadro (two cases, 6.161 s). All 35 core groups (42.12 s),
+50 RTX cases (81.50 s), frame/streaming (154.84 s), recovery/reload (143.57 s)
+and the inspected render pass. All fifteen historical captures and overview
+remain exact: 14,779 non-background pixels, bbox (1,1)–(794,598), 3,471 planet
+pixels. Logs are local under detail-immutable-roots-*. These fixture timings
+include validation and are not production frame costs.
+
+This stabilizes staging input. Runtime retention stays disabled until current
+root projection/bounds, conservative area/slot envelopes and animation phase
+invalidation agree with the moving surface. View/capture state, prepared
+streaming and parent rebases remain outstanding; terrain stays **p**.
+
 ## Immutable metadata while live terrain moves — 2026-10-17
 
 Grass staging needs stable inputs while the live VBO changes. Retained target
