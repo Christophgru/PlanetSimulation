@@ -1,5 +1,33 @@
 # Page to document progress of AI Agents working on this Project
 
+## Prepared fine-overlap prerequisite — 2026-10-17
+
+- 9e2fbb4 commits immutable staging below. Continued same terrain p; later TODOs
+  untouched. CPU probe compares exact radial triangle sets within a 1 m active
+  region across .15/.30 m moves, turns and return, with a fixed parent/field.
+- Existing .5 m core changes 1,580–3,532 triangle references there. At 100k cap,
+  1.5 m prepared core preserves every checked interior triangle at oblique and
+  pole poses, all fully fine/unsunk. About 39.1k/29.7k triangles. 2 m core also
+  passes (58.9k/42.4k). No timing gain or universal-budget claim.
+- Added TerrainDetail.PreparedFineOverlapKeepsInteriorTrianglesStableAcrossTurnsAndPoles.
+  Focused case passes (4.05 s); full 13-detail suite passes (8.33 s), log
+  build-f5/resume/detail-overlap-detail-suite.log. No production source changed.
+  Prototype source/CSVs in ignored build-f5/resume/detail-overlap*.
+- Documented in sinking.md. Still need suite result, diff check and commit.
+  Runtime still uses the configured radius for BOTH tessellation and morphing.
+  This is only a prerequisite regression, not an implemented runtime halo.
+- Next design: retain fine/parent targets and exact radial coordinates on GPU
+  rather than rerunning noise per frame. Existing unique scratch is 72 bytes per
+  vertex; after corner expansion it can hold radial double3 + fine float3 in
+  its first 36-byte region, parent double3 in the second 36-byte region. Use a
+  uint SSBO view for exact double bit packing, avoiding float NaN payload issues.
+  Transfer unique scratch and corner-map buffers with Mesh under existing ledger;
+  add optional compute variant/packing phase, then a cheap position-only dispatch.
+  Not implemented. First validate standalone GPU/CPU parity and lifecycle; runtime
+  enablement MUST wait for shared contacts/grass/view/capture phase and prepared
+  overlap, including parent rebases. Preserve all old v4 capture/default paths.
+  Terrain remains p. User config edit remains unstaged.
+
 ## Immutable terrain staging snapshots — 2026-10-17
 
 - dc2d24a records the rejected cache below. TerrainTopologySnapshot now shares

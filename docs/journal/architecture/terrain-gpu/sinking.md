@@ -1,5 +1,32 @@
 # Relief-aware terrain sinking
 
+## Check prepared fine overlap before temporal deformation — 2026-10-17
+
+An isolated CPU probe compares exact radial triangle sets across five short moves,
+turns and a return, using the same parent and field. With the existing 0.5 m fine
+core, 1,580–3,532 triangle references change within the surrounding 1 m region
+in the oblique/pole fixtures. A larger prepared region is needed before moving
+that blend domain independently of topology publication.
+
+With a 1.5 m fine core and a 100,000-triangle cap, every tested triangle in the
+interior 1 m region is preserved in both directions across these moves. All
+checked corners remain fully fine and unsunk; parent/fine policies match and
+quality targets are met. The probe uses about 39,100 triangles at the oblique
+pose and 29,700 at the pole. A 2 m core also preserves the same interior, using
+about 58,900/42,400 triangles. This is a geometry precondition, not a claim that
+larger regions always fit the cap or improve planning speed.
+
+A new automated regression retains the 1.5 m case, exact bit-pattern triangle
+comparison, both locations, turns/return, field-policy equality, unsunk corners
+and budget/quality checks. The focused case passes in 4.05 seconds and the full
+thirteen-case detail suite passes in 8.33 seconds. The runtime
+still uses one radius for tessellation and spatial morphing: this test does not
+activate a preparation halo, moving blend center or temporal publication.
+Contacts, grass, all render views and capture state must share any later
+deformation phase. The existing moving coverage gate and terrain **p** remain.
+Raw probe source/CSVs and test logs stay local under
+`build-f5/resume/detail-overlap*`.
+
 ## Share validated topology with GPU staging — 2026-10-17
 
 One resident generation previously copied its descriptors into the contact oracle,

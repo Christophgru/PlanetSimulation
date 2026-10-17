@@ -4,6 +4,8 @@
 #include "rendering/character/SurfaceContact.h"
 #include <gtest/gtest.h>
 #include <map>
+#include <bit>
+#include <set>
 #include <iostream>
 #include <limits>
 #include <numbers>
@@ -326,4 +328,63 @@ TEST(TerrainDetail, RecordedParentsOverrideDistanceOnceAndRebuildTheExactRequest
     EXPECT_THROW(surface.prepareReplayParent({0,0,0}),std::invalid_argument);
     auto plain=detailLod();plain.local_detail_streaming=false;
     EXPECT_THROW(TerrainSurface({microNoise()},plain,1,1000).prepareReplayParent(parent),std::invalid_argument);
+}
+
+TEST(TerrainDetail, PreparedFineOverlapKeepsInteriorTrianglesStableAcrossTurnsAndPoles) {
+    auto lod=detailLod();lod.local_detail_streaming=true;lod.max_triangle_budget=100000;
+    lod.local_detail_radius_m=1.5;lod.near_surface_distance_m=300;lod.mid_surface_distance_m=1000;
+    using Face=std::array<std::array<std::uint64_t,3>,3>;
+    const auto faceKey=[](const TerrainTopology& t,int face) {
+        Face key;
+        for(int j=0;j<3;++j) for(int k=0;k<3;++k)
+            key[j][k]=std::bit_cast<std::uint64_t>(t.samples[t.indices[3*face+j]].radial[k]);
+        std::sort(key.begin(),key.end());return key;
+    };
+    const auto faces=[&](const TerrainTopology& t) {
+        std::set<Face> result;
+        for(int face=0;face<t.triangleCount();++face) result.insert(faceKey(t,face));
+        return result;
+    };
+    for(const auto anchor:{glm::dvec3(-.21005697617230545,.909856724515421,-.36613409503800903),
+                           glm::dvec3(0,0,1.002)}) {
+        TerrainSurface moving({microNoise()},lod,1,1000);
+        const auto east=glm::normalize(glm::cross(anchor,glm::dvec3(0,1,0)));
+        const auto north=glm::normalize(glm::cross(anchor,east));
+        auto previous=moving.buildTopologyForEye(anchor,{});
+        ASSERT_FALSE(previous.localDetailLimited);
+        auto previousFaces=faces(previous);
+        for(const auto offset:{glm::dvec2(.15,0),glm::dvec2(.3,0),glm::dvec2(.3,.3),
+                              glm::dvec2(0,.3),glm::dvec2(0,0)}) {
+            const auto eye=anchor+(east*offset.x+north*offset.y)/1000.;
+            const auto current=moving.buildTopologyForEye(eye,{});
+            ASSERT_TRUE(current.parentReused);ASSERT_FALSE(current.localDetailLimited);
+            EXPECT_LE(current.triangleCount(),lod.max_triangle_budget);
+            EXPECT_EQ(current.surfacePolicy,previous.surfacePolicy);
+            EXPECT_EQ(current.parentPolicy,previous.parentPolicy);
+            const auto currentFaces=faces(current);const auto radial=glm::normalize(eye);
+            const auto check=[&](const TerrainTopology& t,const std::set<Face>& other) {
+                int checked=0;
+                for(int face=0;face<t.triangleCount();++face) {
+                    bool interior=false;
+                    for(int j=0;j<3;++j) {
+                        const auto& r=t.samples[t.indices[3*face+j]].radial;
+                        interior|=glm::length(glm::dvec3(r[0],r[1],r[2])-radial)*1000<1;
+                    }
+                    if(!interior) continue;
+                    ++checked;ASSERT_TRUE(other.contains(faceKey(t,face)));
+                    for(int j=0;j<3;++j) {
+                        const auto id=t.indices[3*face+j];
+                        EXPECT_DOUBLE_EQ(t.morph[id].blend[0],0);
+                        EXPECT_DOUBLE_EQ(t.samples[id].sinkMeters,0);
+                    }
+                }
+                EXPECT_GT(checked,0);
+            };
+            // A fully prepared overlap is a prerequisite for moving a smaller
+            // blend domain without replacing its active triangles. The runtime
+            // still uses the configured radius for tessellation and morphing.
+            check(current,previousFaces);check(previous,currentFaces);
+            previous=current;previousFaces=currentFaces;
+        }
+    }
 }
