@@ -54,6 +54,7 @@ public:
 
     void destroy();
     rendering::TerrainMorphSource morphSource() const;
+    std::uint64_t deformationRevision() const;
     // Transfer a complete prevalidated generation without allocating or GL work.
     void swap(Mesh& other) noexcept;
 private:

@@ -14,12 +14,16 @@ class TerrainShadowCache {
 public:
     void invalidate() noexcept {valid_=false;}
     std::uint64_t revision() const noexcept {return valid_ ? revision_ : 0;}
-    bool updateNeeded(const glm::dvec3& sun,double extent,int resolution,std::uint64_t revision) {
+    std::uint64_t deformationRevision() const noexcept {return valid_ ? deformationRevision_ : 0;}
+    bool updateNeeded(const glm::dvec3& sun,double extent,int resolution,std::uint64_t revision,
+                      std::uint64_t deformationRevision=0) {
         const auto direction=glm::normalize(sun);
         const bool changed=!valid_ || extent!=extent_ || resolution!=resolution_ || revision!=revision_ ||
+            deformationRevision!=deformationRevision_ ||
             glm::length(direction-direction_) >= 2.0/resolution;
         if (changed) {
             valid_=true; direction_=direction; extent_=extent; resolution_=resolution; revision_=revision;
+            deformationRevision_=deformationRevision;
         }
         return changed;
     }
@@ -29,6 +33,7 @@ private:
     double extent_=0;
     int resolution_=0;
     std::uint64_t revision_=0;
+    std::uint64_t deformationRevision_=0;
 };
 
 // Body-local coordinates keep the shadow depth independent of orbital distance.

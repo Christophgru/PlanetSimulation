@@ -91,7 +91,8 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario, At
             // Coincident centers have no directed sunlight; any map orientation
             // is valid because their diffuse contribution is already zero.
             if (glm::dot(localSun, localSun) == 0.0) localSun = glm::dvec3(0, 0, 1);
-            if (shadows.beginIfNeeded(i, shadowShader, localSun, extent, planetMeshes[i].revision)) {
+            if (shadows.beginIfNeeded(i, shadowShader, localSun, extent, planetMeshes[i].revision,
+                planetMeshes[i].deformationRevision())) {
                 if (profiler) profiler->shadowUpdate();
                 planetMeshes[i].draw();
             } else if (profiler) profiler->shadowReuse();

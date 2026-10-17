@@ -197,7 +197,9 @@ void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalkin
 
 std::vector<std::uint64_t> Renderer::Impl::geometryRevisions() const {
     std::vector<std::uint64_t> result;
-    for (const auto& mesh : meshes.planetMeshes) result.push_back(mesh.revision);
+    for (const auto& mesh : meshes.planetMeshes) {
+        result.push_back(mesh.revision);result.push_back(mesh.deformationRevision());
+    }
     return result;
 }
 }

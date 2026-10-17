@@ -1,5 +1,30 @@
 # Page to document progress of AI Agents working on this Project
 
+## View-cache terrain phase keys — 2026-10-17
+
+- Continued terrain p after b6ea8b6. Mesh.deformationRevision exposes shared state
+  revision (zero without phase). geometryRevisions carries publication/phase
+  pairs, so paused frame reuse misses when only deformation changes. Shadow
+  cache/maps include a separate optional phase revision alongside existing Sun,
+  extent, resolution and mesh revision. revision() retains mesh-only receipt
+  meaning; ScenePass supplies both keys. Same-phase views reuse the map.
+- Extended actual Renderer character-phase integration with fixed camera/time
+  cache reuse before phase change and invalidation afterward, without changing
+  mesh revision. Added pure shadow-cache phase case. Retained GPU surface case
+  renders actual depth through five phases at each pole/oblique fixture, checks
+  changed depth, and confirms same-phase cache hits. Map1024 contains the sampled
+  center pixel of the small triangle; no production readback added.
+- Full70-step build and final no-op pass. Three focused shadow-cache cases pass;
+  runtime integration1.640 s, GPU source/shadow RTX.778 s /Quadro.730 s. All ten
+  phase depth updates/hits pass; root path agreement remains exact, plane error
+  below.231 mm. Full35 core groups42.90 s,52 RTX cases83.62 s, frame+matrix187.12 s,
+  recovery+reload139.43 s and inspected render pass. All fifteen historical PNGs
+  and overview exact:14,779 pixels, bbox(1,1)–(794,598),3,471 planet pixels.
+- Logs detail-phase-views-* ignored/local; diff checks pass. Next CPU explicit
+  phase evaluation/capture replay and complete consumer phase records, then
+  prepared streaming and parent rebases. Runtime retention still Transient;
+  keep terrain p and last native coverage failures. User config remains unstaged.
+
 ## Alternate grass placement on live terrain — 2026-10-17
 
 - Continued terrain p after 5a0b752. Vertex placement reads fine anchors and the

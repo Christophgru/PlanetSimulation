@@ -1,6 +1,8 @@
 #include "rendering/foliage/procedural/ProceduralGrass.h"
 #include "rendering/geometry/Mesh.h"
 #include "rendering/geometry/terrain/detail/TerrainMorph.h"
+#include "rendering/lighting/TerrainShadowMaps.h"
+#include "rendering/runtime/ResourceOwners.h"
 #include "config/Config.h"
 #include <gtest/gtest.h>
 #include <algorithm>
@@ -111,6 +113,10 @@ TEST(GrassCells, MovingSurfaceProjectsFixedRootsAndRefreshesPausedAnimationAcros
             ProgramScope() {glUseProgram(0);}
             ~ProgramScope() {glUseProgram(0);}
         } programScope; // Unbind before destroying this fixture's selected program.
+        rendering::OwnedShader shadowShader("shaders/terrain/terrain_shadow.vert","shaders/terrain/terrain_shadow.frag");
+        rendering::TerrainShadowMaps shadowMaps;config::TerrainShadowConfig shadowSettings;
+        shadowSettings.resolution=1024;shadowMaps.ensure(1,shadowSettings);
+        float previousDepth=1;bool haveDepth=false;
         feedbackProgram(grass);
         auto stage=grass.submitResident(source.vbo,source.ebo,source.terrainStats,p,1000,eye,source.revision,
             0,ProceduralGrass::defaultStageBytes,source.morphSource());
@@ -122,6 +128,13 @@ TEST(GrassCells, MovingSurfaceProjectsFixedRootsAndRefreshesPausedAnimationAcros
         std::map<unsigned,Blade> previous;
         for(const auto band:{glm::dvec2(1000,1),glm::dvec2(9,15),glm::dvec2(5,15),glm::dvec2(0,.1),glm::dvec2(1000,1)}) {
             terrain.deform(source,{radial,1000,band.x,band.y});
+            ASSERT_TRUE(shadowMaps.beginIfNeeded(0,shadowShader,radial,1.01,source.revision,source.deformationRevision()));
+            source.draw();float depth=1;glReadPixels(512,512,1,1,GL_DEPTH_COMPONENT,GL_FLOAT,&depth);
+            EXPECT_LT(depth,1.f);if(haveDepth) EXPECT_NE(depth,previousDepth);
+            previousDepth=depth;haveDepth=true;glBindFramebuffer(GL_FRAMEBUFFER,0);
+            EXPECT_EQ(shadowMaps.revision(0),source.revision);
+            EXPECT_EQ(shadowMaps.deformationRevision(0),source.deformationRevision());
+            EXPECT_FALSE(shadowMaps.beginIfNeeded(0,shadowShader,radial,1.01,source.revision,source.deformationRevision()));
             const auto priorFrame=grass.stats(0).animationFrame;
             const auto visible=draw(grass,pass);ASSERT_EQ(grass.stats(0).animationFrame,priorFrame+1);
             if(band.x==1000) ASSERT_FALSE(visible.empty());

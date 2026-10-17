@@ -103,3 +103,14 @@ TEST(TerrainShadowCache, GeometryExtentAndResolutionAlwaysInvalidate) {
     EXPECT_TRUE(cache.updateNeeded({1,0,0},1.3,1024,2));
     EXPECT_FALSE(cache.updateNeeded({2,0,0},1.3,1024,2)); // Direction, not magnitude.
 }
+TEST(TerrainShadowCache, DeformationInvalidatesWithoutChangingMeshSunOrExtent) {
+    rendering::TerrainShadowCache cache;
+    EXPECT_TRUE(cache.updateNeeded({1,0,0},1.2,2048,7,0));
+    EXPECT_FALSE(cache.updateNeeded({1,0,0},1.2,2048,7,0));
+    EXPECT_TRUE(cache.updateNeeded({1,0,0},1.2,2048,7,1));
+    EXPECT_EQ(cache.revision(),7u);EXPECT_EQ(cache.deformationRevision(),1u);
+    EXPECT_FALSE(cache.updateNeeded({1,0,0},1.2,2048,7,1));
+    EXPECT_TRUE(cache.updateNeeded({1,0,0},1.2,2048,7,2));
+    cache.invalidate();EXPECT_EQ(cache.deformationRevision(),0u);
+    EXPECT_TRUE(cache.updateNeeded({1,0,0},1.2,2048,7,2));
+}

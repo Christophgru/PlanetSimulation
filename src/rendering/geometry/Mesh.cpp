@@ -203,6 +203,7 @@ void Mesh::releaseMorphTargets() {
     morphTargets=morphCorners=0;morphSamples=0;
     morphState.reset();
 }
+std::uint64_t Mesh::deformationRevision() const {return morphState?morphState->revision():0;}
 rendering::TerrainMorphSource Mesh::morphSource() const {
     return morphTargets || morphCorners || morphSamples?
         rendering::TerrainMorphSource{morphTargets,morphCorners,morphSamples,terrainStats.generation}:rendering::TerrainMorphSource{};

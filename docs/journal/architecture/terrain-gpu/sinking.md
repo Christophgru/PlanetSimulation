@@ -1,5 +1,32 @@
 # Relief-aware terrain sinking
 
+## Deformation in view-cache keys, 2026-10-17
+
+A terrain phase can change positions without publishing a new mesh. Paused
+frame reuse now carries each mesh's publication revision and shared deformation
+revision as separate values. Shadow maps also compare both revisions, alongside
+the existing light direction, extent and resolution. Their revision receipt
+keeps its mesh-only meaning; the phase has a separate accessor. An unchanged
+phase remains reusable across views.
+
+The runtime regression changes only a shared phase with fixed camera, clock and
+mesh revision, checking that a previously reusable frame misses. The retained
+GPU fixture renders actual shadow depth through every phase at pole and oblique
+directions, checks depth changes, and verifies a same-phase cache hit. A pure
+CPU shadow-cache case covers the revision semantics too. Full70-step build
+passes. Three pure cache cases pass; paused-frame integration passes (1.640 s).
+The GPU fixture passes on RTX (.778 s) and Quadro (.730 s), including all ten
+phase depth updates and same-phase hits. Root path agreement remains exact and
+plane error stays below .231 mm. All 35 core groups (42.90 s), 52 RTX cases
+(83.62 s), frame/matrix (187.12 s), recovery/reload (139.43 s) and inspected render
+pass. Final no-op build passes too. All fifteen historical captures and overview
+remain exact: 14,779 non-background pixels, bbox (1,1)–(794,598), 3,471 planet
+pixels. Logs detail-phase-views-* stay local.
+
+This fixes cache invalidation; complete consumer/capture phase records, prepared
+streaming and parent rebases remain outstanding. Runtime retention stays off,
+the terrain row stays **p**, and the strict native coverage gate is unchanged.
+
 ## Alternate grass placement, 2026-10-17
 
 The vertex placement path can now use retained fine anchors with current live

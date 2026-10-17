@@ -32,7 +32,13 @@ TEST(TerrainFrame, CharacterRefreshesPlantedFeetForLivePhaseAfterRebindAndPrevie
     phase->set({radial,scale,0,.15});r.prepareAstronaut(0);
     const auto before=r.astronaut.motion.pose().feet;
     const auto previous=r.astronautGroundRevision;
+    const auto geometry=r.geometryRevisions();
+    rendering::FrameReuse frameCache;const glm::mat4 fixedView(1);
+    frameCache.remember(fixedView,60,320,180,0,geometry);
+    ASSERT_TRUE(frameCache.matches(fixedView,60,320,180,0,r.geometryRevisions(),true,false));
     phase->set({radial,scale,1,.5});
+    EXPECT_EQ(mesh.revision,previous.mesh);EXPECT_NE(r.geometryRevisions(),geometry);
+    EXPECT_FALSE(frameCache.matches(fixedView,60,320,180,0,r.geometryRevisions(),true,false));
     r.astronautGround.bind(mesh.contacts,mesh.revision,phase);
     const auto preview=r.previewAstronautEye(0,r.characterTerrainContacts());EXPECT_TRUE(std::isfinite(glm::length(preview)));
     EXPECT_EQ(r.astronautGroundRevision,previous);
