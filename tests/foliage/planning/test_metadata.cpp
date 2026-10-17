@@ -231,9 +231,34 @@ TEST(GrassMetadata, ImmutableMorphSourceMatchesInitialGeometryAcrossLiveDeformat
         }
     };
     compare(initial->readForValidation());
+    auto envelope=compute.generate(mesh.vbo,mesh.ebo,mesh.terrainStats,p,1000,eye,{},nullptr,source,GrassMetadataMode::MorphEnvelope);
+    envelope->waitForCapture();assertState();
+    const auto readBuffer=[](GLuint buffer,auto& values) {
+        GLint previous=0;glGetIntegerv(GL_COPY_READ_BUFFER_BINDING,&previous);
+        glBindBuffer(GL_COPY_READ_BUFFER,buffer);glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
+        glGetBufferSubData(GL_COPY_READ_BUFFER,0,values.size()*sizeof(values[0]),values.data());
+        glBindBuffer(GL_COPY_READ_BUFFER,previous);
+    };
+    std::vector<GrassTriangleMetadata> bounds(topology.triangleCount());
+    readBuffer(envelope->geometry->buffer,bounds); // Unweighted bounds, including distant triangles.
+    std::vector<float> liveVertices(9*topology.indices.size());
+    std::uint64_t bounded=0;
     std::size_t changed=0;
     for(double offset:{0.,.15,.30,0.}) {
         SCOPED_TRACE(offset);terrain.deform(mesh,{glm::normalize(radial+east*(offset/1000)),1000,.5,.5});
+        readBuffer(mesh.vbo,liveVertices);
+        for(std::size_t t=0;t<bounds.size();++t) {
+            const auto& bound=bounds[t];
+            const glm::dvec3 center(bound.centerReach[0],bound.centerReach[1],bound.centerReach[2]);
+            std::array<glm::dvec3,3> positions;
+            for(int c=0;c<3;++c) {
+                // Compute emits one float corner per EBO index, in face order.
+                const auto i=9*(3*t+c);positions[c]={liveVertices[i],liveVertices[i+1],liveVertices[i+2]};
+                ASSERT_LE(glm::length(positions[c]-center),bound.centerReach[3]) << t;
+            }
+            const auto area=.5e6*glm::length(glm::cross(positions[1]-positions[0],positions[2]-positions[0]));
+            ASSERT_LE(area,bound.areaDistance[0]) << t;++bounded;
+        }
         auto fresh=compute.generate(mesh.vbo,mesh.ebo,mesh.terrainStats,p,1000,eye,{},nullptr,source);
         fresh->waitForCapture();EXPECT_FALSE(fresh->geometryReused);compare(fresh->readForValidation());assertState();
         auto reused=compute.generate(mesh.vbo,mesh.ebo,mesh.terrainStats,p,1000,eye,{},initial->geometry,source);
@@ -255,5 +280,5 @@ TEST(GrassMetadata, ImmutableMorphSourceMatchesInitialGeometryAcrossLiveDeformat
     EXPECT_THROW(compute.generate(mesh.vbo,mesh.ebo,mesh.terrainStats,p,1000,eye,{},nullptr,invalid),std::invalid_argument);
     assertState();EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
     std::cout << "IMMUTABLE_MORPH_METADATA triangles=" << expected.size() << " changed_live_triangle_queries=" << changed
-        << " extra_gpu_storage_bytes=0 extra_uniform_bytes=4\n";
+        << " bounded_live_triangle_queries=" << bounded << " extra_gpu_storage_bytes=0 extra_uniform_bytes=4\n";
 }

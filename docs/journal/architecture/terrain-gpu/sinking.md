@@ -1,5 +1,47 @@
 # Relief-aware terrain sinking
 
+## Conservative grass motion envelopes — 2026-10-17
+
+The optional metadata mode `MorphEnvelope` reserves geometry for the complete
+fine/parent motion interval. It requires retained targets and uses a separate
+cached kernel. Geometry cache identity includes the mode, so initial geometry
+and conservative envelopes cannot substitute for each other. Ordinary metadata
+and runtime preparation retain their previous defaults.
+
+For three independently moving vertices, the triangle cross product is affine
+in each vertex separately. Its norm is convex in each interpolation weight, so
+the largest of the eight endpoint combinations bounds every intermediate area.
+The kernel adds a float-conversion allowance using the maximum endpoint norm.
+If each vertex error is at most e, edge errors are at most 2e; the cross-product
+allowance is `2e * (maximum edge AB + maximum edge AC) + 4e²`. A sphere centered
+on the endpoint AABB encloses all six endpoints and is padded by the same e.
+Area is converted to physical square meters before the existing allocator runs.
+
+A temporarily wet, snow-covered or collapsed initial triangle cannot exclude
+possible later grass. This allocation mode therefore reserves potential biome
+coverage and leaves root eligibility to placement. It can reserve more slots
+than an initial-only plan; existing hard bounds and explicit protected-density
+infeasibility still apply. Storage and submitted uniform bytes do not increase.
+This is an allocation primitive; it is not yet selected by resident preparation.
+
+Synthetic coverage includes four orientations, shuffled sample mapping, collapsed
+and collinear endpoints, narrow triangles and independently rounded vertex
+blends. Both GPUs pass 112,192 phase samples and slot checks; sixteen triangles
+have a mixed-endpoint maximum larger than both uniform endpoints. Tests also
+check mode-cache isolation, unchanged original output and explicit per-triangle
+capacity failure. The real retained kernel also keeps all 156,288 triangle
+queries within the predicted bounds through four moving footprints on both
+GPUs. Full build and final test rebuild pass; all 35 core groups (37.75 s),
+51 RTX cases (74.79 s), focused Quadro cases (1.597 s) and frame (82.72 s) pass.
+The streaming matrix passes (49.17 s); all fifteen historical PNGs remain exact.
+The inspected render retains its exact
+overview hash and diagnostics: 14,779 non-background pixels, bbox
+(1,1)–(794,598), 3,471 planet pixels. Logs detail-grass-envelope-* stay local.
+
+Current root projection/bounds, phase animation invalidation, view/capture state,
+prepared streaming and parent-rebase continuity remain outstanding. Keep terrain
+**p**; no new moving-coverage or performance result is claimed.
+
 ## Immutable cell and root staging — 2026-10-17
 
 The optional immutable source now reaches metadata, canonical cells and root

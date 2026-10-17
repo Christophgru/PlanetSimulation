@@ -53,9 +53,9 @@ GrassMetadataLimits GrassMetadataLimits::query() {
 }
 GrassMetadataGeometry::~GrassMetadataGeometry() {glDeleteBuffers(1,&buffer);}
 bool GrassMetadataGeometry::matches(GLuint v,GLuint e,const TerrainBuildStats& terrain,
-    const GrassMetadataParameters& p,const TerrainMorphSource& source) const {
+    const GrassMetadataParameters& p,const TerrainMorphSource& source,GrassMetadataMode requestedMode) const {
     return buffer && vertices==v && indices==e && generation==terrain.generation &&
-        morphSource==source &&
+        morphSource==source && mode==requestedMode &&
         triangles==terrain.gpuCorners/3 && inputs.eyeScale[3]==p.eyeScale[3] &&
         inputs.biome==p.biome && inputs.colorGreen==p.colorGreen &&
         inputs.flags[1]==p.flags[1] && inputs.flags[2]==p.flags[2];
@@ -93,7 +93,10 @@ GrassMetadataCompute::~GrassMetadataCompute() {
 }
 std::unique_ptr<GrassMetadataBuffers> GrassMetadataCompute::generate(GLuint vertices,GLuint indices,
     const TerrainBuildStats& terrain,const config::PlanetConfig& planet,double metersPerWorldUnit,const glm::dvec3& eye,const GrassFalloff& policy,
-    std::shared_ptr<GrassMetadataGeometry> geometry,const TerrainMorphSource& source) {
+    std::shared_ptr<GrassMetadataGeometry> geometry,const TerrainMorphSource& source,GrassMetadataMode mode) {
+    if((mode!=GrassMetadataMode::Original && mode!=GrassMetadataMode::MorphEnvelope) ||
+       (mode==GrassMetadataMode::MorphEnvelope && !source))
+        throw std::invalid_argument("Grass motion envelope requires an immutable morph source and supported mode");
     if(terrain.generation.backend!=TerrainBackend::Compute || !terrain.generation.field || !terrain.generation.topology ||
         terrain.generation.fieldVersion!=PlanetField::version || !supportedTerrainTopology(terrain.generation.topologyVersion) ||
         !vertices || !indices || !glIsBuffer(vertices) || !glIsBuffer(indices) ||
@@ -118,8 +121,9 @@ std::unique_ptr<GrassMetadataBuffers> GrassMetadataCompute::generate(GLuint vert
     for(auto size:bytes) if(size>limits_.blockBytes || size>std::uint64_t(std::numeric_limits<GLsizeiptr>::max()))
         throw std::runtime_error("Grass metadata exceeds SSBO block limit");
     const auto parameters=grassMetadataParameters(planet,metersPerWorldUnit,eye,count,policy);
-    auto& variant=variants_[source?1:0];
-    if(!variant) variant=std::make_unique<Shader>(source?
+    auto& variant=variants_[mode==GrassMetadataMode::MorphEnvelope?2:source?1:0];
+    if(!variant) variant=std::make_unique<Shader>(mode==GrassMetadataMode::MorphEnvelope?
+        "shaders/foliage/planning/metadata_envelope.comp":source?
         "shaders/foliage/planning/metadata_morph.comp":"shaders/foliage/planning/metadata.comp");
     shader_=variant.get();
     // Preserve indexed ranges as well as buffer IDs; caller state can use ranges.
@@ -156,11 +160,11 @@ std::unique_ptr<GrassMetadataBuffers> GrassMetadataCompute::generate(GLuint vert
     auto result=std::make_unique<GrassMetadataBuffers>();
     result->adaptive=policy.enabled;result->generation=terrain.generation;result->planningEye=eye;result->triangles=count;
     result->inputs=parameters;
-    result->geometryReused=geometry && geometry->matches(vertices,indices,terrain,parameters,source);
+    result->geometryReused=geometry && geometry->matches(vertices,indices,terrain,parameters,source,mode);
     if(!result->geometryReused) {
         geometry=std::make_shared<GrassMetadataGeometry>();
         geometry->vertices=vertices;geometry->indices=indices;geometry->generation=terrain.generation;
-        geometry->morphSource=source;
+        geometry->morphSource=source;geometry->mode=mode;
         geometry->inputs=parameters;geometry->triangles=count;
         glGenBuffers(1,&geometry->buffer);glBindBuffer(GL_SHADER_STORAGE_BUFFER,geometry->buffer);
         glBufferData(GL_SHADER_STORAGE_BUFFER,count*64,nullptr,GL_STATIC_DRAW);

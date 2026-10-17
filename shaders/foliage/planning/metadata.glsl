@@ -16,6 +16,9 @@ uniform uint uMorphSamples;
 uint terrainMorphWord(uint offset) {return morphWords[offset];}
 uint terrainMorphCorner(uint corner) {return morphCorners[corner];}
 #include "../../terrain/compute/morph_source.glsl"
+#ifdef GRASS_MORPH_ENVELOPE
+#include "../deformation/envelope.glsl"
+#endif
 #endif
 dvec3 vertex(uint index,uint offset) {
 #ifdef GRASS_MORPH_SOURCE
@@ -48,15 +51,21 @@ void main() {
         double reach=max(max(length(a-center),length(b-center)),length(c-center));
         dvec3 crossed=cross(b-a,c-a);
         double area=length(crossed)*0.5lf*eyeScale.w*eyeScale.w;
+#ifdef GRASS_MORPH_ENVELOPE
+        terrainMorphEnvelope(uvec3(ia,ib,ic),uMorphSamples,center,reach,area);
+        area*=eyeScale.w*eyeScale.w;
+#endif
         dvec3 n=vertex(ia,3)+vertex(ib,3)+vertex(ic,3);
         dvec3 tint=(vertex(ia,6)*colorGreen.xyz+vertex(ib,6)*colorGreen.xyz+vertex(ic,6)*colorGreen.xyz)/3.0lf;
         double radialReach=2.0lf*reach/max(1e-9lf,length(center)-reach);
         double highest=(max(max(length(a),length(b)),length(c))-1.0lf)*eyeScale.w;
         bool valid=!isnan(area) && !isinf(area) && area>1e-10lf && length(center)>=1e-9lf && length(n)>=1e-9lf;
+#ifndef GRASS_MORPH_ENVELOPE
         valid=valid && 1.0lf-dot(normalize(n),normalize(center))-radialReach<biome.z;
         valid=valid && (flags.y==0u || highest>biome.x+biome.y);
         valid=valid && (flags.z==0u || (abs(dot(normalize(crossed),a))-1.0lf)*eyeScale.w<biome.w);
         valid=valid && (flags.z!=0u || tint.y>colorGreen.w*max(tint.x,tint.z));
+#endif
         base.centerReach=dvec4(center,reach);base.areaDistance=dvec2(area,0);
         base.identity=uvec4(t,uint(valid),0,0);geometry[t]=base;
     }

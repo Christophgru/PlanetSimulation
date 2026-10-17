@@ -1,0 +1,4 @@
+#version 430 core
+#define GRASS_MORPH_SOURCE 1
+#define GRASS_MORPH_ENVELOPE 1
+#include "metadata.glsl"

@@ -1,5 +1,35 @@
 # Page to document progress of AI Agents working on this Project
 
+## Conservative grass motion envelopes, 2026-10-17
+
+- 25ddc41 commits immutable cell/root staging below. Continuing same terrain p:
+  GrassMetadataMode::MorphEnvelope is a separate opt-in third kernel/cache mode;
+  requires complete retained source, never aliases original geometry caches.
+  Defaults and runtime preparation remain Original/Transient.
+- Shared decoder exposes fine float and parent double endpoints. Envelope kernel
+  uses maximum cross magnitude over all eight independent corner combinations,
+  plus final float-rounding perturbation bounds. Endpoint sphere similarly pads
+  all six endpoints. Conservative eligibility defers biome filtering to placement
+  so a wet/collapsed initial triangle cannot discard later possible grass.
+  No new GPU buffer storage or uniform bytes; existing allocator/infeasibility
+  diagnostics unchanged. Not yet connected to moving root placement/cell bounds.
+- Added tests/foliage/planning/test_morph_envelope.cpp to existing GPU executable:
+  four orientations, 16 synthetic triangles each, reversed sample mapping,
+  independent endpoint grid/random blends with float-rounded positions, bounds,
+  area and allocated-slot checks, mode-cache isolation, invalid modes/sources and
+  explicit per-triangle capacity failure. Configure and full 26-step build passed, plus final two-step
+  real-terrain test rebuild. Both GPUs pass 112,192 synthetic phases (16 mixed
+  maxima exceed both uniform endpoints) and 156,288 real retained triangle
+  queries through four footprints. RTX full 51 cases passes (74.79 s), Quadro
+  focused two cases 1.597 s; core 35 groups 37.75 s; frame 82.72 s. Streaming
+  matrix passes too (49.17 s; combined frame+matrix 131.90 s). All fifteen PNGs
+  and overview match historical baseline exactly: 14,779 non-background pixels,
+  bbox (1,1)–(794,598), 3,471 planet pixels. Logs detail-grass-envelope-* stay
+  local. Diff checks pass; no moving coverage/FPS claim.
+- Need dynamic root projection/bounds and phase animation invalidation, then
+  view/capture coherence, prepared streaming and parent rebases. Keep terrain p;
+  native coverage last collected still fails. User config remains unstaged.
+
 ## Immutable cell/root staging — 2026-10-17
 
 - Continued terrain p after 08cd634. Optional TerrainMorphSource flows through

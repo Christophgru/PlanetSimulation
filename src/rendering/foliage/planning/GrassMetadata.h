@@ -40,12 +40,16 @@ struct GrassMetadataLimits {
     std::string unavailable;
     static GrassMetadataLimits query();
 };
+// Allocation envelopes cover independent fine/parent motion at all three
+// corners. They reserve potential biome coverage; placement still filters roots.
+enum class GrassMetadataMode { Original, MorphEnvelope };
 // Immutable, generation-owned terrain geometry. Live/staged grass plans may
 // share it; camera parameters and weighted descriptors always remain private.
 struct GrassMetadataGeometry {
     GLuint buffer=0,vertices=0,indices=0;
     TerrainGenerationKey generation;
     TerrainMorphSource morphSource;
+    GrassMetadataMode mode=GrassMetadataMode::Original;
     GrassMetadataParameters inputs;
     std::uint64_t triangles=0;
     ~GrassMetadataGeometry();
@@ -53,7 +57,8 @@ struct GrassMetadataGeometry {
     GrassMetadataGeometry(const GrassMetadataGeometry&)=delete;
     GrassMetadataGeometry& operator=(const GrassMetadataGeometry&)=delete;
     bool matches(GLuint v,GLuint e,const TerrainBuildStats& terrain,
-        const GrassMetadataParameters& parameters,const TerrainMorphSource& source={}) const;
+        const GrassMetadataParameters& parameters,const TerrainMorphSource& source={},
+        GrassMetadataMode requestedMode=GrassMetadataMode::Original) const;
 };
 struct GrassMetadataBuffers {
     GLuint descriptors=0,parameters=0;
@@ -78,7 +83,7 @@ struct GrassMetadataBuffers {
 class GrassMetadataCompute {
     GrassMetadataLimits limits_;
     Shader* shader_=nullptr;
-    std::array<std::unique_ptr<Shader>,2> variants_;
+    std::array<std::unique_ptr<Shader>,3> variants_;
 public:
     explicit GrassMetadataCompute(GrassMetadataLimits limits=GrassMetadataLimits::query()) : limits_(std::move(limits)) {}
     ~GrassMetadataCompute();
@@ -89,7 +94,8 @@ public:
     std::unique_ptr<GrassMetadataBuffers> generate(GLuint vertices,GLuint indices,
         const TerrainBuildStats& terrain,const config::PlanetConfig& planet,
         double metersPerWorldUnit,const glm::dvec3& eye,const GrassFalloff& policy={},
-        std::shared_ptr<GrassMetadataGeometry> geometry={},const TerrainMorphSource& source={});
+        std::shared_ptr<GrassMetadataGeometry> geometry={},const TerrainMorphSource& source={},
+        GrassMetadataMode mode=GrassMetadataMode::Original);
     GLuint program() const { return shader_ ? shader_->id : 0; }
 };
 }
