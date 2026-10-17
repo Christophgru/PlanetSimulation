@@ -213,11 +213,23 @@ void TerrainSurface::emitFace(const GridSample& a,const GridSample& b,
 }
 
 TerrainGeometry TerrainSurface::evaluateTopology(const TerrainTopology& topology) const {
+    return evaluateTopologyImpl(topology,nullptr);
+}
+TerrainGeometry TerrainSurface::evaluateTopology(const TerrainTopology& topology,const TerrainMorphFootprint& phase) const {
+    return evaluateTopologyImpl(topology,&phase);
+}
+TerrainGeometry TerrainSurface::evaluateTopologyImpl(const TerrainTopology& topology,const TerrainMorphFootprint* phase) const {
     CpuTrace::Scope scope("TerrainSurface::evaluateTopology");
     topology.validate();
     if(topology.generation.field!=field_.fingerprint())
         throw std::invalid_argument("Terrain topology belongs to a different planet field");
+    if(phase) {
+        validateTerrainMorphFootprint(*phase);
+        if(topology.morph.empty() || phase->metersPerRadius!=radius_*metersPerUnit_)
+            throw std::invalid_argument("CPU terrain phase requires matching retained topology and physical scale");
+    }
     TerrainQueryCache queries(field_,8192,topology.surfacePolicy);
+    std::uint64_t morphQueries=0;
     std::vector<std::array<float,9>> values;values.reserve(topology.samples.size());
     for(const auto& s:topology.samples) {
         const glm::dvec3 radial(s.radial[0],s.radial[1],s.radial[2]);
@@ -232,19 +244,18 @@ TerrainGeometry TerrainSurface::evaluateTopology(const TerrainTopology& topology
             for(int j=0;j<3;++j) packed[j]=static_cast<float>(sunk[j]);
         }
         if(!topology.morph.empty()) {
-            const auto p=terrainMorphPosition(field_,s,topology.surfacePolicy,topology.morph[values.size()],topology.parentPolicy);
+            const auto& morph=topology.morph[values.size()];
+            const double weight=phase?terrainMorphWeight(radial,*phase):morph.blend[0];
+            const auto p=terrainMorphPosition(field_,s,topology.surfacePolicy,morph,topology.parentPolicy,weight);
             for(int j=0;j<3;++j) packed[j]=p[j];
-
+            morphQueries+=weight==0?1:(morph.parent[0]==morph.parent[1] && morph.parent[0]==morph.parent[2]?2:4);
         }
         values.push_back(packed);
     }
     TerrainGeometry geometry;
     static_cast<TerrainBuildStats&>(geometry)=static_cast<const TerrainBuildStats&>(topology);
     geometry.evaluationQueries=queries.stats();
-    for(const auto& m:topology.morph) {
-        const unsigned count=m.blend[0]==0?1:(m.parent[0]==m.parent[1] && m.parent[0]==m.parent[2]?2:4);
-        geometry.evaluationQueries.requests+=count;geometry.evaluationQueries.evaluations+=count;
-    }
+    geometry.evaluationQueries.requests+=morphQueries;geometry.evaluationQueries.evaluations+=morphQueries;
     geometry.vertices.reserve(topology.indices.size()*9);
     geometry.indices.reserve(topology.indices.size());geometry.lodSinkMeters.reserve(topology.indices.size());
     for(auto index:topology.indices) {

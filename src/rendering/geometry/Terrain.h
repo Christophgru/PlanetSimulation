@@ -12,6 +12,7 @@
 #include "rendering/geometry/terrain/TerrainTopology.h"
 
 namespace rendering {
+struct TerrainMorphFootprint;
 
 // Positions and colors are interleaved as position, face normal, color factor.
 // Faces own vertices, but shared corners receive the same sampled height tint.
@@ -71,8 +72,12 @@ public:
     // exactly and retain it for the next plan. Caller must own an idle planner.
     void prepareReplayParent(const glm::dvec3& parentEyeWorldUnits) const;
     TerrainGeometry evaluateTopology(const TerrainTopology& topology) const;
+    // Bake a live phase into CPU geometry without changing the immutable plan.
+    // Uploading the returned pose advances the normal mesh publication revision.
+    TerrainGeometry evaluateTopology(const TerrainTopology& topology,const TerrainMorphFootprint& phase) const;
 
 private:
+    TerrainGeometry evaluateTopologyImpl(const TerrainTopology& topology,const TerrainMorphFootprint* phase) const;
     static double smoothstep(double low, double high, double value);
     void refineShoreline(TerrainTopology& geometry, const glm::dvec3& eyeBody, TerrainQueryCache& queries, int budget) const;
     struct RefinementParent;

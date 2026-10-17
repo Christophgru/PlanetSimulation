@@ -1,5 +1,30 @@
 # Page to document progress of AI Agents working on this Project
 
+## Explicit CPU phase evaluation — 2026-10-17
+
+- Continued terrain p after459c0ac. TerrainSurface.evaluateTopology(t, footprint)
+  bakes positions without copying/recanonicalizing topology. Shared private
+  evaluator preserves the old adapter. Validate footprint, morph topology and
+  physical scale before field work. Explicit-weight position helper preserves
+  arithmetic; query statistics count effective phase weights. Generation, indices,
+  sinks, cell keys and fine normals/colors stay tied to the immutable plan.
+- Added14th TerrainDetail case: two physical unit scales, three moving masks,
+  independent copy/reweight/canonicalize oracle, exact positions/attributes/IDs,
+  unchanged source fingerprint, diagnostic counts and invalid inputs. Retained
+  GPU test now uses the new CPU phase API; established2mm tolerance unchanged.
+  FocusCPU1.354 s, RTX2.982 s, Quadro2.993 s pass; retained fixture reports zero
+  vertex/contact error on both GPUs, including218NaN-like radial low words.
+- Full117-step build and final no-op pass. Full35 core groups44.38 s,52 RTX cases
+  82.33 s, frame+matrix154.50 s, recovery+reload142.06 s and inspected render pass.
+  All fifteen historical PNGs and overview exact:14,779 pixels,
+  bbox(1,1)–(794,598),3,471 planet pixels. Logs detail-cpu-phase-* ignored/local;
+  diff checks pass. User config remains unstaged.
+- This returns baked geometry only; CPU upload advances mesh revision. No live
+  GPU phase or complete CPU grass/replay pipeline is attached. Next fix retained
+  grass selection with CPU compatibility mirrors, then CPU fine-anchor/grass,
+  capture/consumer phase records, prepared streaming and parent rebases. Runtime
+  retention remains Transient; keep p and last native coverage failures.
+
 ## View-cache terrain phase keys — 2026-10-17
 
 - Continued terrain p after b6ea8b6. Mesh.deformationRevision exposes shared state

@@ -59,10 +59,14 @@ inline glm::dvec3 terrainParentPosition(const PlanetField& field,const TerrainIn
     return glm::dot(normal,normal)==0 ? a : r*(glm::dot(normal,a)/glm::dot(normal,r));
 }
 inline glm::vec3 terrainMorphPosition(const PlanetField& field,const TerrainInputSample& s,
-    const TerrainSurfacePolicy& policy,const TerrainMorphSample& morph,const TerrainSurfacePolicy& parentPolicy) {
+    const TerrainSurfacePolicy& policy,const TerrainMorphSample& morph,const TerrainSurfacePolicy& parentPolicy,double weight) {
     const auto fine=terrainPosition(field,s,policy);
-    if(morph.blend[0]==0) return fine;
+    if(weight==0) return fine;
     const auto parent=terrainParentPosition(field,s,morph,parentPolicy);
-    return glm::vec3(fine+(parent-fine)*morph.blend[0]);
+    return glm::vec3(fine+(parent-fine)*weight);
+}
+inline glm::vec3 terrainMorphPosition(const PlanetField& field,const TerrainInputSample& s,
+    const TerrainSurfacePolicy& policy,const TerrainMorphSample& morph,const TerrainSurfacePolicy& parentPolicy) {
+    return terrainMorphPosition(field,s,policy,morph,parentPolicy,morph.blend[0]);
 }
 }

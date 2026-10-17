@@ -388,3 +388,44 @@ TEST(TerrainDetail, PreparedFineOverlapKeepsInteriorTrianglesStableAcrossTurnsAn
         }
     }
 }
+TEST(TerrainDetail, ExplicitCpuPhaseMatchesIndependentWeightsWithoutChangingThePlanOrAttributes) {
+    for(const auto units:{glm::dvec2(1,1000),glm::dvec2(1000,1)}) {
+        auto lod=detailLod();lod.local_detail_streaming=true;lod.max_triangle_budget=100000;
+        lod.near_surface_distance_m=300;lod.mid_surface_distance_m=1000;
+        const TerrainSurface surface({microNoise()},lod,units.x,units.y);
+        const auto radial=glm::normalize(glm::dvec3(.3,-.7,1)),east=glm::normalize(glm::cross(radial,glm::dvec3(0,1,0)));
+        const auto topology=surface.buildTopologyForEye(radial*(1.002*units.x),{});
+        ASSERT_FALSE(topology.morph.empty());const auto fingerprint=topology.contentFingerprint();
+        const auto initial=surface.evaluateTopology(topology);std::size_t changed=0;
+        for(double offset:{0.,.15,.30}) {
+            const TerrainMorphFootprint phase{glm::normalize(radial+east*(offset/1000)),1000,.2,.4};
+            auto reference=topology;
+            for(std::size_t i=0;i<reference.samples.size();++i) {
+                const auto& r=reference.samples[i].radial;
+                const double distance=glm::length(glm::dvec3(r[0],r[1],r[2])-phase.eyeRadial)*1000;
+                const double blend=std::clamp((distance-.2)/.4,0.,1.);
+                reference.morph[i].blend[0]=blend*blend*(3-2*blend);
+            }
+            reference.canonicalize(surface.field().fingerprint());
+            const auto expected=surface.evaluateTopology(reference),actual=surface.evaluateTopology(topology,phase);
+            EXPECT_EQ(actual.vertices,expected.vertices);EXPECT_EQ(actual.indices,expected.indices);
+            EXPECT_EQ(actual.lodSinkMeters,expected.lodSinkMeters);EXPECT_EQ(actual.grassCellKeys,expected.grassCellKeys);
+            EXPECT_EQ(actual.generation,initial.generation);EXPECT_EQ(topology.contentFingerprint(),fingerprint);
+            EXPECT_EQ(actual.evaluationQueries.requests,expected.evaluationQueries.requests);
+            EXPECT_EQ(actual.evaluationQueries.evaluations,expected.evaluationQueries.evaluations);
+            for(std::size_t i=0;i<actual.vertices.size();++i) {
+                if(i%9>=3) EXPECT_EQ(actual.vertices[i],initial.vertices[i]);
+                else changed+=actual.vertices[i]!=initial.vertices[i];
+            }
+        }
+        EXPECT_GT(changed,0u);EXPECT_EQ(surface.evaluateTopology(topology).vertices,initial.vertices);
+        const TerrainMorphFootprint valid{radial,1000,.2,.4};auto invalid=valid;
+        invalid.metersPerRadius=1001;EXPECT_THROW(surface.evaluateTopology(topology,invalid),std::invalid_argument);
+        invalid=valid;invalid.eyeRadial={0,0,0};EXPECT_THROW(surface.evaluateTopology(topology,invalid),std::invalid_argument);
+        invalid=valid;invalid.transitionMeters=0;EXPECT_THROW(surface.evaluateTopology(topology,invalid),std::invalid_argument);
+        invalid=valid;invalid.radiusMeters=std::numeric_limits<double>::infinity();
+        EXPECT_THROW(surface.evaluateTopology(topology,invalid),std::invalid_argument);
+        const auto legacy=surface.buildTopology(1);ASSERT_TRUE(legacy.morph.empty());
+        EXPECT_THROW(surface.evaluateTopology(legacy,valid),std::invalid_argument);
+    }
+}

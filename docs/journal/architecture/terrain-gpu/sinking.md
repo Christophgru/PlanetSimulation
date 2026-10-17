@@ -1,5 +1,36 @@
 # Relief-aware terrain sinking
 
+## Explicit CPU phase evaluation, 2026-10-17
+
+CPU bulk evaluation can now bake an explicit footprint with
+`evaluateTopology(topology, footprint)`. It validates the footprint, morph
+contract and physical scale, then evaluates current positions while preserving
+the original topology/generation identity. The historical one-argument adapter
+uses the same implementation with its original weights. Neither path mutates
+the shared topology. Fine normals/colors, indices, sink records and canonical
+cell keys keep their existing contract.
+
+An explicit-weight overload shares the existing position arithmetic. Query
+statistics count the effective phase's fine/parent evaluations, including
+vertices that enter or leave the fully fine core. A CPU upload remains a new
+mesh revision; this API returns baked geometry and does not attach a live state
+or complete the grass/capture replay pipeline.
+
+A new CPU regression compares three moving masks at two physical unit scales
+with an independent copy/reweight/canonicalize oracle, checks exact output,
+attributes, diagnostics and immutable source identity, and rejects incompatible
+inputs. The retained GPU parity test now uses this API directly. Build and
+validation pass: full117-step build and final no-op; focused CPU case1.354 s,
+retained GPU case RTX2.982 s /Quadro2.993 s. The retained fixture reports zero
+vertex/contact error on both GPUs. Full35 core groups44.38 s,52 RTX cases82.33 s,
+frame/matrix154.50 s, recovery/reload142.06 s and inspected render pass. All fifteen
+historical captures and overview remain exact:14,779 non-background pixels,
+bbox(1,1)–(794,598),3,471 planet pixels. Logs detail-cpu-phase-* stay local.
+
+Runtime retention stays disabled; CPU fine-anchor grass, complete capture/phase
+records, prepared streaming and parent-rebase continuity remain. Keep terrain
+**p** and preserve the strict native gate and last collected failures.
+
 ## Deformation in view-cache keys, 2026-10-17
 
 A terrain phase can change positions without publishing a new mesh. Paused

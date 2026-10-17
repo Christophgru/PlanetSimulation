@@ -358,15 +358,8 @@ TEST(TerrainCompute, RetainedTargetsDeformWithCpuParityAndPreserveAttributesAndO
             glGetInteger64i_v(GL_SHADER_STORAGE_BUFFER_SIZE,i,&size);
             EXPECT_EQ(buffer,bindings.buffer);EXPECT_EQ(start,alignment);EXPECT_EQ(size,64);
         }
-        auto reference=topology;
-        for(std::size_t i=0;i<reference.samples.size();++i) {
-            const auto& r=reference.samples[i].radial;
-            const double distance=glm::length(glm::dvec3(r[0],r[1],r[2])-footprint.eyeRadial)*1000;
-            const double blend=std::clamp((distance-footprint.radiusMeters)/footprint.transitionMeters,0.,1.);
-            reference.morph[i].blend[0]=blend*blend*(3-2*blend);
-        }
-        reference.canonicalize(surface.field().fingerprint());
-        const auto cpu=surface.evaluateTopology(reference);const auto actual=readMesh();
+        const auto cpu=surface.evaluateTopology(topology,footprint);const auto actual=readMesh();
+        EXPECT_EQ(cpu.generation,topology.generation);
         ASSERT_EQ(actual.size(),cpu.vertices.size());
         std::vector<std::size_t> first(topology.samples.size(),std::numeric_limits<std::size_t>::max());
         double maximum=0;
