@@ -50,6 +50,7 @@ void ProceduralGrass::bindComputedInputs(const Patch& patch) const {
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,2,patch.gpuBlades);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,3,patch.gpuRoots);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,4,patch.gpuBounds);
+    if(patch.morphSource) glBindBufferBase(GL_SHADER_STORAGE_BUFFER,6,patch.cells->cells);
 }
 std::uint64_t ProceduralGrass::dispatchCandidates(const Patch& patch,int maxGroups) const {
     auto& c=*compute_;std::size_t first=0,root=0;std::uint64_t dispatches=0;

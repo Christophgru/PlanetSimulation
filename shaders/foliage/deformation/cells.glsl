@@ -21,7 +21,7 @@ uint cellHash(uvec3 key) {
 }
 vec3 vectorAt(uint v,int offset) {
 #ifdef GRASS_MORPH_SOURCE
-    if(offset==0) return terrainMorphInitialPosition(v,uint(uMorphSamples));
+    if(offset==0) return vec3(terrainMorphFinePosition(v));
 #endif
     int i=int(v)*9+offset;
     return vec3(texelFetch(uTerrainVertices,i).r,texelFetch(uTerrainVertices,i+1).r,texelFetch(uTerrainVertices,i+2).r);

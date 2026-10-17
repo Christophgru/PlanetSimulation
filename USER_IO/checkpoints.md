@@ -1,5 +1,44 @@
 # Page to document progress of AI Agents working on this Project
 
+## Grass roots following live planes, 2026-10-17
+
+- 0cf70f2 commits conservative allocation envelopes below. Continued same terrain
+  p. Source-backed resident grass now selects MorphEnvelope. Cells/root generation
+  use retained fine positions as canonical anchors; metadata Original still reads
+  exact original positions. Source/legacy delta reuse is separated. Existing
+  synthetic staging fixture now fills real fine/parent endpoints too.
+- New deformation/surface.comp and cells/GrassSurface.cpp update current plane,
+  area*density and padded bounds once per shared phase. Plane uses spare cell
+  geometry.w/metric.yzw, preserving immutable fingerprint xyz, key and spans.
+  View compaction projects immutable cached up rays onto that live plane; current
+  area drives density. Root records are never mutated by live updates.
+- Source generation filters fixed tint/slope but retains wet/snow potential roots;
+  compaction checks actual projected height/landscape biome. Patch attaches Mesh
+  phase during no-throw commit; animation cache includes surface revision even
+  at paused wind time. Surface kernel prewarmed before ready; swap/destruct and
+  fallback transfer/reset state. Runtime terrain still Transient (inactive).
+- Added test_grass_surface.cpp in existing GPU executable: synthetic retained
+  triangle, shuffled map, initially submerged parent / dry fine endpoints,
+  production TerrainCompute.deform, pole + oblique direction, plane oracle,
+  fixed up/variation/immutable roots, paused phase refresh and repeat view reuse,
+  wet/dry filtering and delta preparation across phase advancement. Not run yet.
+  Full 66-step build, two-step fixture rebuild and final no-op build pass.
+  Both GPUs pass all seven focused cases: RTX 3.964 s, Quadro 4.001 s. New test
+  checks 2,704 visible roots / 1,104 changed common positions; maximum plane error
+  0.000230846 m RTX / 0.000230894 m Quadro (<1 mm). Staging now reserves 491,520
+  slots in 64 cells under conservative metadata (122/119 sliced polls). Initial
+  new-case allocation error was fixture cleanup: a selected deleted program was
+  restored in the second orientation. Scoped program unbinding fixes the fixture;
+  no production workaround. Full 35 core groups pass (41.77 s), RTX 52 cases
+  pass (82.50 s), inspected render passes and exact overview hash/diagnostics.
+  Frame+streaming (154.64 s), recovery+reload (143.20 s) pass too. All 15 historical
+  PNGs and overview exact: 14,779 pixels, bbox (1,1)–(794,598), 3,471 planet pixels.
+  Logs detail-grass-surface-* stay ignored/local; diff checks pass.
+- Next alternate grass placement and complete view/capture coherence, prepared
+  streaming and parent-rebase continuity. Runtime remains Transient; compute
+  source views are implemented but this is not uninterrupted moving coverage.
+  Keep terrain p and last native gate failures. User config remains unstaged.
+
 ## Conservative grass motion envelopes, 2026-10-17
 
 - 25ddc41 commits immutable cell/root staging below. Continuing same terrain p:

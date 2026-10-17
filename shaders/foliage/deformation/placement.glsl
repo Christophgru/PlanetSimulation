@@ -71,17 +71,17 @@ bool loadTerrainPatch() {
         identity=key.x^(key.y*0x9e3779b9u)^(key.z*0x85ebca6bu);
     }
     #ifdef GRASS_MORPH_SOURCE
-    aPatchA=terrainMorphInitialPosition(uint(indices.x/9),uint(uMorphSamples));
+    aPatchA=vec3(terrainMorphFinePosition(uint(indices.x/9)));
 #else
     aPatchA=terrainVector(indices.x);
 #endif
     #ifdef GRASS_MORPH_SOURCE
-    aPatchB=terrainMorphInitialPosition(uint(indices.y/9),uint(uMorphSamples));
+    aPatchB=vec3(terrainMorphFinePosition(uint(indices.y/9)));
 #else
     aPatchB=terrainVector(indices.y);
 #endif
     #ifdef GRASS_MORPH_SOURCE
-    aPatchC=terrainMorphInitialPosition(uint(indices.z/9),uint(uMorphSamples));
+    aPatchC=vec3(terrainMorphFinePosition(uint(indices.z/9)));
 #else
     aPatchC=terrainVector(indices.z);
 #endif
@@ -134,6 +134,21 @@ float biomeVisibility(vec3 root,vec3 up,uint seed) {
     float slope=1.0-dot(normalize(aPatchNormal),up);
     return grassRandom(seed+17u)<smoothstep(uTerrainRockRange.x,uTerrainRockRange.y,slope) ? 0.0 : 1.0;
 }
+#ifdef GRASS_MORPH_SOURCE
+bool surfaceBiomeVisible(vec3 root) {
+    float height=(length(root)-1.0)*uMetersPerRadius;
+    if(uWaterEnabled && height<=uLandscapeLevels.x+uWaterClearance) return false;
+    if(!uLandscapeEnabled) return true; // Fixed tint/slope were filtered during generation.
+    float water=uLandscapeLevels.x,beachTop=water+uLandscapeLevels.y;
+    float beachFade=max(.15,.15*uLandscapeLevels.y),relief=max(1.0,uLandscapeLevels.z-water);
+    float snowStart=max(beachTop+1.0,water+.25*relief),snowEnd=max(snowStart+1.0,water+.40*relief);
+    if(height>=snowEnd) return false;
+    float beachWeight=1.0-smoothstep(beachTop,beachTop+beachFade,height);
+    vec3 tint=mix(mix(vec3(1.10,1.30,.18),vec3(4.20,1.90,.18),beachWeight),
+        vec3(4.60,2.30,.92),smoothstep(snowStart,snowEnd,height))*uPlanetColor;
+    return tint.y>uGreenRatio*max(tint.x,tint.z);
+}
+#endif
 void main() {
     uint id=gl_GlobalInvocationID.x+uint(uCandidateOffset);
     if (uReset) {
@@ -165,7 +180,15 @@ void main() {
         vec3 up=normalize(root);
         aPatchNormal=normalize(patchNormalA*(1.0-a)+patchNormalB*(a*(1.0-b))+patchNormalC*(a*b));
         aPatchColor=patchColorA*(1.0-a)+patchColorB*(a*(1.0-b))+patchColorC*(a*b);
+#ifdef GRASS_MORPH_SOURCE
+        // Height eligibility changes with the surface. Keep potential roots;
+        // fixed tint and field-normal slope still use their stable source data.
+        if(!uLandscapeEnabled && aPatchColor.y<=uGreenRatio*max(aPatchColor.x,aPatchColor.z)) return;
+        float slope=1.0-dot(normalize(aPatchNormal),up);
+        if(grassRandom(seed+17u)<smoothstep(uTerrainRockRange.x,uTerrainRockRange.y,slope)) return;
+#else
         if (biomeVisibility(root,up,seed)==0.0) return;
+#endif
         vec4 variation=vec4(grassRandom(seed+6u)*6.28318530718,
             mix(uLeanRange.x,uLeanRange.y,grassRandom(seed+7u)),
             mix(uHeightMultiplierRange.x,uHeightMultiplierRange.y,grassRandom(seed+5u)),grassRandom(seed+4u));
@@ -179,9 +202,21 @@ void main() {
     Root cached=roots[index];
     if(cached.normalSlot.w==0.0) return;
     vec3 root=cached.rootExpected.xyz,up=cached.upRank.xyz;
+#ifdef GRASS_MORPH_SOURCE
+    Cell cell=cells[patchIndex];
+    float denominator=dot(cell.metric.yzw,up);
+    if(cell.metric.x<=0.0 || abs(denominator)<1e-9) return;
+    float radius=uintBitsToFloat(cell.geometry.w)/denominator;
+    if(radius<=0.0 || isnan(radius) || isinf(radius)) return;
+    root=up*radius;
+    if(!surfaceBiomeVisible(root)) return;
+#endif
     float d=length(root-uGrassEyeBody)*uMetersPerRadius;
     vec3 center=bound.xyz;float reach=bound.w;
     float expected=cached.rootExpected.w*grassDensityWeight(d);
+#ifdef GRASS_MORPH_SOURCE
+    expected=cell.metric.x*grassDensityWeight(d);
+#endif
     float rank=cached.upRank.w;
     float densityFade=uAdaptiveFalloff?clamp(expected-(cached.normalSlot.w-1.0),0.0,1.0):smoothstep(rank,rank*1.2,expected);
     if (d>=uDrawDistance || densityFade<=0.0) return;

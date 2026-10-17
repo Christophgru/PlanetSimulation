@@ -22,7 +22,7 @@ bool ProceduralGrass::reuseResidentPolicy(std::size_t i,const Mesh& mesh,
     auto& p=*patches_[i];
     if(!p.ready || !p.metadata || !p.falloff.enabled || p.falloff.locked ||
         p.revision!=mesh.revision || p.generation!=mesh.terrainStats.generation || p.settings!=planet.foliage ||
-        p.morphSource!=mesh.morphSource()) return false;
+        p.morphSource!=mesh.morphSource() || p.morphState!=mesh.morphState) return false;
     const auto rock=planet.terrain_material.slopeMetricRange();
     if(p.rockRange!=glm::vec2(rock[0],rock[1])) return false;
     auto requested=p.falloff;
@@ -139,10 +139,12 @@ std::unique_ptr<ProceduralGrass::Preparation> ProceduralGrass::submitResident(GL
     std::shared_ptr<GrassMetadataGeometry> geometry;
     const auto parameters=grassMetadataParameters(planet,metersPerWorldUnit,eyeBody,terrain.gpuCorners/3,patch.falloff);
     for(const auto& live:patches_) if(live && live->metadata && live->metadata->geometry &&
-        live->metadata->geometry->matches(vertices,indices,terrain,parameters,source)) {
+        live->metadata->geometry->matches(vertices,indices,terrain,parameters,source,
+            source?GrassMetadataMode::MorphEnvelope:GrassMetadataMode::Original)) {
         geometry=live->metadata->geometry;break;
     }
-    patch.metadata=metadataCompute_->generate(vertices,indices,terrain,planet,metersPerWorldUnit,eyeBody,patch.falloff,std::move(geometry),source);
+    patch.metadata=metadataCompute_->generate(vertices,indices,terrain,planet,metersPerWorldUnit,eyeBody,patch.falloff,std::move(geometry),source,
+        source?GrassMetadataMode::MorphEnvelope:GrassMetadataMode::Original);
     patch.allocation=allocationCompute_->generate(*patch.metadata,planet.foliage);
     // GPU command order/barriers carry the terrain -> metadata -> allocation
     // dependency. No CPU wait or readback is needed here.
@@ -213,6 +215,8 @@ bool ProceduralGrass::poll(Preparation& p) {
                 glTexBuffer(GL_TEXTURE_BUFFER,GL_R32UI,patch.morphSource.corners);
             }
             if(summary.totals[1]) placementProgram(patch,true);
+            if(summary.totals[1] && patch.morphSource && !surface_)
+                surface_=std::make_unique<Shader>("shaders/foliage/deformation/surface.comp");
             if(summary.totals[1] && !animation_) animation_=std::make_unique<Shader>("shaders/foliage/animation.comp");
             allocateComputed(patch,summary.totals[1]);
             prepareCells(patch,p.previousCells_.get(),p.reuseCells_);
@@ -268,7 +272,8 @@ void ProceduralGrass::validateCommit(std::size_t index,const Preparation& p,cons
        mesh.morphSource()!=p.patch_->morphSource)
         throw std::invalid_argument("Grass commit requires reserved matching ready consumers");
 }
-void ProceduralGrass::commitPrepared(std::size_t index,Preparation& p) noexcept {
+void ProceduralGrass::commitPrepared(std::size_t index,Preparation& p,const Mesh& mesh) noexcept {
+    p.patch_->morphState=mesh.morphState;
     const auto& next=p.patch_->falloff;
     const auto& old=patches_[index]->falloff;
     if(next.nearInfeasible && (!old.nearInfeasible || next.capacity!=old.capacity))
@@ -280,7 +285,7 @@ void ProceduralGrass::commitPrepared(std::size_t index,Preparation& p) noexcept 
 }
 void ProceduralGrass::commit(std::size_t index,Preparation& p,const Mesh& mesh) {
     validateCommit(index,p,mesh);
-    commitPrepared(index,p);
+    commitPrepared(index,p,mesh);
 }
 std::optional<TerrainGenerationKey> ProceduralGrass::residentGeneration(std::size_t index) const {
     if(index>=patches_.size() || !patches_[index] || !patches_[index]->ready ||

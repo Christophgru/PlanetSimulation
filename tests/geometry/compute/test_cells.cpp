@@ -147,8 +147,14 @@ TEST(GrassCells, ImmutableSourceKeepsSlicedRootAndCellPreparationStableWhileLive
     source.morphSamples=source.terrainStats.uniqueSamples;
     std::vector<std::uint32_t> words(18*source.morphSamples,0),corners(source.indexCount);
     std::iota(corners.rbegin(),corners.rend(),0); // Deliberately nonidentity indirection.
-    for(std::size_t i=0;i<source.morphSamples;++i) for(int j=0;j<3;++j)
-        words[9*source.morphSamples+9*corners[i]+6+j]=std::bit_cast<std::uint32_t>(source.vertices[9*i+j]);
+    for(std::size_t i=0;i<source.morphSamples;++i) for(int j=0;j<3;++j) {
+        const auto value=source.vertices[9*i+j];
+        words[9*corners[i]+6+j]=std::bit_cast<std::uint32_t>(value);
+        const auto bits=std::bit_cast<std::uint64_t>(double(value));
+        words[9*source.morphSamples+9*corners[i]+2*j]=std::uint32_t(bits);
+        words[9*source.morphSamples+9*corners[i]+2*j+1]=std::uint32_t(bits>>32);
+        words[9*source.morphSamples+9*corners[i]+6+j]=std::bit_cast<std::uint32_t>(value);
+    }
     glGenBuffers(1,&source.morphTargets);glBindBuffer(GL_ARRAY_BUFFER,source.morphTargets);
     glBufferData(GL_ARRAY_BUFFER,words.size()*4,words.data(),GL_STATIC_DRAW);
     glGenBuffers(1,&source.morphCorners);glBindBuffer(GL_ARRAY_BUFFER,source.morphCorners);

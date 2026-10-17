@@ -176,7 +176,7 @@ bool TerrainPublication::publish(const TerrainBuildIdentity& current,Mesh& liveL
     }
     static_assert(std::is_nothrow_swappable_v<TerrainPublishedGeneration>);
     if(!s.grassOnly) {liveLand.swap(s.land);liveWater.swap(s.water);}
-    grass_.commitPrepared(i,*s.grass);
+    grass_.commitPrepared(i,*s.grass,liveLand);
     using std::swap;swap(body.installed,s.receipt);
     if(s.grassOnly) ++stats_.grassOnlyPublished;
     body.retiring=std::move(staged_);++stats_.published;

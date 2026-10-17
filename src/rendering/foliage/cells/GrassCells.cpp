@@ -15,7 +15,7 @@ std::pair<std::shared_ptr<GrassCellCache>,bool> ProceduralGrass::previousCells(c
         const auto& a=old->settings;const auto& b=next.settings;
         // These inputs affect immutable root/variation/biome records. Density,
         // slot budgets, LOD, dimensions, wind and visibility remain dynamic.
-        const bool reuse=a.seed==b.seed && a.green_ratio==b.green_ratio &&
+        const bool reuse=bool(old->morphSource)==bool(next.morphSource) && a.seed==b.seed && a.green_ratio==b.green_ratio &&
             a.water_clearance_m==b.water_clearance_m &&
             a.height_multiplier_min==b.height_multiplier_min && a.height_multiplier_max==b.height_multiplier_max &&
             a.lean_min==b.lean_min && a.lean_max==b.lean_max &&

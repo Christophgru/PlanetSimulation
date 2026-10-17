@@ -1,5 +1,51 @@
 # Relief-aware terrain sinking
 
+## Grass roots on the live surface, 2026-10-17
+
+Retained-source resident preparation now requests conservative allocation
+metadata. Canonical cells and immutable root rays use the retained fine surface;
+ordinary metadata's original-position mode remains available unchanged. Fixed
+field normals, tint and variation stay attached to those anchors. Source and
+ordinary root prefixes cannot substitute for each other.
+
+A prewarmed compute kernel refreshes each current triangle plane, area times
+density and padded bounding sphere once per shared terrain phase. It stores the
+plane in spare cell fields, leaving canonical keys, immutable fingerprint words,
+slot spans and root records unchanged. Each compute grass view intersects the
+cached up ray with that plane, applies current area/density, and offsets the root
+using its fixed field normal. All compute views share the same current bounds.
+This adds no GPU buffer storage, readback, field evaluations or blocking waits.
+
+Source generation retains potential roots through water and snow height changes;
+fixed tint/slope checks stay in generation, while projected height and landscape
+eligibility run during compaction. Commit attaches the mesh's shared phase using
+existing ownership transfer. Animation invalidation includes the surface phase,
+so paused wind time cannot reuse trail/wind samples from an old root position.
+Repeated views of the same phase still share animation samples.
+
+A new retained triangle fixture starts submerged, moves
+through dry/mixed/wet phases using the production deformation kernel, and checks
+live plane attachment, bounds, immutable rays/variation, paused animation, view
+reuse and a delta commit after phase advancement at pole and oblique directions.
+The existing sliced-staging case now supplies full endpoint data. Seven focused
+cases pass on RTX (3.964 s) and Quadro (4.001 s). The new case checks 2,704 visible
+root queries with 1,104 changed common root positions. Maximum plane error is
+0.000230846 m on RTX and 0.000230894 m on Quadro, below its unchanged 1 mm limit.
+Conservative metadata now reserves 491,520 slots in 64 cells in the sliced test;
+all records stay exact across 122/119 live updates. These are fixtures, not
+production coverage or frame-cost results.
+
+Full build, fixture rebuild and final no-op build pass. All 35 core groups
+(41.77 s), 52 RTX cases (82.50 s), frame/streaming (154.64 s), recovery/reload
+(143.20 s) and inspected overview pass. All fifteen historical captures and the
+overview remain exact: 14,779 non-background pixels, bbox (1,1)–(794,598), 3,471
+planet pixels. Logs detail-grass-surface-* stay local.
+
+Runtime terrain preparation still uses Transient. The source projection path
+currently covers compute grass views; alternate grass placement, complete view
+and capture state, prepared streaming and parent rebases remain outstanding.
+Keep terrain **p** and the last measured failing native coverage results.
+
 ## Conservative grass motion envelopes — 2026-10-17
 
 The optional metadata mode `MorphEnvelope` reserves geometry for the complete

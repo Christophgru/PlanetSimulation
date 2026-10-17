@@ -81,6 +81,7 @@ ProceduralGrass::~ProceduralGrass() {
     for(const auto& program:computeVariants_) if(program) glDeleteProgram(program->id);
     for(const auto& program:cellVariants_) if(program) glDeleteProgram(program->id);
     if(animation_) glDeleteProgram(animation_->id);
+    if(surface_) glDeleteProgram(surface_->id);
     glDeleteProgram(shader.id);
 }
 ProceduralGrass::Patch::~Patch() {
@@ -102,7 +103,7 @@ void ProceduralGrass::clear() {
 void ProceduralGrass::swapState(ProceduralGrass& other) noexcept {
     patches_.swap(other.patches_);trails_.swap(other.trails_);replayPlanEyes_.swap(other.replayPlanEyes_);
     std::swap(compute_,other.compute_);computeVariants_.swap(other.computeVariants_);
-    animation_.swap(other.animation_);metadataCompute_.swap(other.metadataCompute_);
+    animation_.swap(other.animation_);surface_.swap(other.surface_);metadataCompute_.swap(other.metadataCompute_);
     cellVariants_.swap(other.cellVariants_);std::swap(cellIdentity_,other.cellIdentity_);
     allocationCompute_.swap(other.allocationCompute_);
     std::swap(adaptiveBudget_,other.adaptiveBudget_);std::swap(budget_,other.budget_);replayPolicies_.swap(other.replayPolicies_);
@@ -123,8 +124,9 @@ GrassPreparationStats ProceduralGrass::prepare(std::size_t index,const Mesh& mes
         if(planet.foliage.enabled && patch.ready && patch.settings==planet.foliage && patch.revision==mesh.revision &&
            patch.cellKeyOffset==(cellIdentity_?mesh.cellKeyOffset:0) &&
            patch.rockRange==glm::vec2(rock[0],rock[1]) &&
-           patch.metadata && patch.metadata->geometry->matches(mesh.vbo,mesh.ebo,mesh.terrainStats,
-               grassMetadataParameters(planet,metersPerWorldUnit,patch.eye,mesh.indexCount/3,patch.falloff),mesh.morphSource()) &&
+           patch.morphState==mesh.morphState && patch.metadata && patch.metadata->geometry->matches(mesh.vbo,mesh.ebo,mesh.terrainStats,
+               grassMetadataParameters(planet,metersPerWorldUnit,patch.eye,mesh.indexCount/3,patch.falloff),mesh.morphSource(),
+               mesh.morphSource()?GrassMetadataMode::MorphEnvelope:GrassMetadataMode::Original) &&
            saved==replayPlanEyes_.end() && glm::length(eyeBody-patch.eye)*planet.radius*metersPerWorldUnit<grassRebuildDistance(planet.foliage))
             return {};
         const auto planningEye=saved==replayPlanEyes_.end()?eyeBody:saved->second;
@@ -142,6 +144,7 @@ GrassPreparationStats ProceduralGrass::prepare(std::size_t index,const Mesh& mes
     const bool hadMorph=bool(patch.morphSource);
     if(hadMorph) {
         patch.morphSource={};glDeleteTextures(patch.morphTextures.size(),patch.morphTextures.data());patch.morphTextures={};
+        patch.morphState.reset();patch.surfaceRevision=std::numeric_limits<std::uint64_t>::max();
     }
     patch.computeUsed=false;patch.generation={};
     const auto oldSettings=patch.settings;const auto oldColor=patch.color,oldLevels=patch.landscapeLevels;

@@ -1,4 +1,5 @@
 #include "rendering/foliage/procedural/ProceduralGrass.h"
+#include "rendering/geometry/terrain/detail/TerrainMorph.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <algorithm>
 #include <limits>
@@ -78,7 +79,8 @@ void ProceduralGrass::allocateComputed(const Patch& patch,std::size_t count) con
 void ProceduralGrass::animateComputed(std::size_t index,const Patch& patch,const GrassPass& pass,int maxGroups) const {
     const auto found=trails_.find(index);
     const auto revision=found==trails_.end()?0:found->second.history.revision();
-    if(!patch.animationFrame || patch.animationTime!=pass.windTime || patch.animationTrailRevision!=revision) {
+    if(!patch.animationFrame || patch.animationTime!=pass.windTime || patch.animationTrailRevision!=revision ||
+       (patch.morphSource && patch.animationMorphRevision!=patch.surfaceRevision)) {
         if(++patch.animationFrame==0) {
             glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
             glBindBuffer(GL_ARRAY_BUFFER,patch.gpuAnimation);
@@ -86,6 +88,7 @@ void ProceduralGrass::animateComputed(std::size_t index,const Patch& patch,const
             patch.animationFrame=1;
         }
         patch.animationTime=pass.windTime;patch.animationTrailRevision=revision;
+        patch.animationMorphRevision=patch.surfaceRevision;
     }
     if(!animation_) {
         if(patch.allocation) throw std::logic_error("Resident grass animation program was not prepared");
@@ -130,6 +133,7 @@ void ProceduralGrass::drawComputed(std::size_t index,const Patch& patch,const Gr
     } else allocateComputed(patch,count);
     bindComputedInputs(patch);
     if(!patch.rootsReady) generateRoots(patch);
+    if(patch.morphSource) refreshSurface(patch);
     auto& c=*compute_;c.use();c.setInt("uBuildRoots",0);
     c.setMat4("model",glm::value_ptr(pass.model));
     c.setMat4("view",glm::value_ptr(pass.view));

@@ -1,0 +1,29 @@
+#version 430 core
+// One update per live terrain phase, shared by every grass view. Canonical
+// keys, fingerprints, spans and immutable root records remain untouched.
+layout(local_size_x=64) in;
+layout(std430,binding=0) readonly buffer References {uint triangles[];};
+struct Cell {uvec4 key,geometry,span;vec4 metric;};
+layout(std430,binding=1) buffer Cells {Cell cells[];};
+layout(std430,binding=2) writeonly buffer Bounds {vec4 bounds[];};
+uniform samplerBuffer uTerrainVertices;
+uniform usamplerBuffer uTerrainIndices;
+uniform int uFirst,uEnd;
+uniform float uScale,uDensity;
+vec3 positionAt(uint corner) {
+    int i=int(corner)*9;
+    return vec3(texelFetch(uTerrainVertices,i).r,texelFetch(uTerrainVertices,i+1).r,texelFetch(uTerrainVertices,i+2).r);
+}
+void main() {
+    uint id=uint(uFirst)+gl_GlobalInvocationID.x;if(id>=uint(uEnd)) return;
+    uint face=triangles[id];vec3 p[3];
+    for(int i=0;i<3;++i) p[i]=positionAt(texelFetch(uTerrainIndices,int(face)*3+i).r);
+    vec3 center=(p[0]+p[1]+p[2])/3.0;
+    float reach=max(max(length(p[0]-center),length(p[1]-center)),length(p[2]-center));
+    float padding=4.0*1.1920928955078125e-7*max(max(length(p[0]),length(p[1])),length(p[2]));
+    bounds[id]=vec4(center,reach+padding);
+    vec3 normal=cross(p[1]-p[0],p[2]-p[0]);float area=length(normal)*.5;
+    if(area>0.0) normal=normalize(normal);
+    cells[id].geometry.w=floatBitsToUint(dot(normal,p[0]));
+    cells[id].metric=vec4(area*uScale*uScale*uDensity,normal);
+}

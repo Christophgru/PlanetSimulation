@@ -16,6 +16,7 @@
 #include "rendering/geometry/compute/TerrainCompute.h"
 class Mesh;
 namespace rendering {
+class TerrainMorphState;
 class GrassMetadataCompute;
 class GrassAllocationCompute;
 struct CpuGrassTrace {
@@ -60,7 +61,7 @@ public:
     class Preparation;
 private:
     friend class TerrainPublication;
-    void commitPrepared(std::size_t index,Preparation& preparation) noexcept;
+    void commitPrepared(std::size_t index,Preparation& preparation,const Mesh& mesh) noexcept;
     struct Batch { GLuint vao=0; GLsizei count=0; };
     struct Draw { std::size_t first=0, patches=0; int level=0, segments=1; };
     struct Bound { glm::dvec3 center; double radius=0; };
@@ -71,6 +72,9 @@ private:
         std::vector<Draw> draws;
         GLuint buffer=0, vertexTexture=0, indexTexture=0;
         TerrainMorphSource morphSource;
+        std::shared_ptr<const TerrainMorphState> morphState;
+        mutable std::uint64_t surfaceRevision=std::numeric_limits<std::uint64_t>::max();
+        mutable std::uint64_t animationMorphRevision=0;
         std::array<GLuint,2> morphTextures{};
         std::unique_ptr<GrassMetadataBuffers> metadata;
         std::unique_ptr<GrassAllocationBuffers> allocation;
@@ -128,6 +132,7 @@ private:
     mutable Shader* compute_=nullptr;
     mutable std::array<std::unique_ptr<Shader>,2> computeVariants_;
     mutable std::unique_ptr<Shader> animation_;
+    mutable std::unique_ptr<Shader> surface_;
     mutable std::array<std::unique_ptr<Shader>,2> cellVariants_;
     bool cellIdentity_=true;
     std::unique_ptr<GrassMetadataCompute> metadataCompute_;
@@ -137,6 +142,7 @@ private:
     void attributes(std::size_t first,int level) const;
     void drawComputed(std::size_t index,const Patch& patch,const GrassPass& pass) const;
     void animateComputed(std::size_t index,const Patch& patch,const GrassPass& pass,int maxGroups) const;
+    void refreshSurface(const Patch& patch) const;
     void allocateComputed(const Patch& patch,std::size_t count) const;
     void bindComputedInputs(const Patch& patch) const;
     Shader& placementProgram(const Patch& patch,bool preparing=false) const;
