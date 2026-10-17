@@ -15,6 +15,10 @@ void TerrainTopology::validate() const {
     if (generation.topology!=contentFingerprint())
         throw std::invalid_argument("Stale terrain topology generation key");
 }
+TerrainTopologySnapshot::TerrainTopologySnapshot(TerrainTopology topology) {
+    topology.validate();
+    topology_=std::make_shared<const TerrainTopology>(std::move(topology));
+}
 void TerrainTopology::validateStructure() const {
     if(indices.size()%3 || generation.fieldVersion!=PlanetField::version || generation.topologyVersion!=version() ||
        generation.backend!=TerrainBackend::Cpu) throw std::invalid_argument("Invalid terrain topology contract");

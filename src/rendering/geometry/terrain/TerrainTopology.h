@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <utility>
 #include <vector>
 #include "rendering/geometry/terrain/TerrainQueryCache.h"
 namespace rendering {
@@ -74,6 +75,25 @@ private:
     std::vector<unsigned> contactParentFaces_;
     std::uint64_t contactTopology_=0;
     void validateStructure() const;
+};
+// Validated, owned and immutable after construction. Staging may copy this
+// handle without repeating the full fingerprint scan on the context thread.
+// Mutable TerrainTopology entry points continue to validate their inputs.
+class TerrainTopologySnapshot {
+public:
+    TerrainTopologySnapshot()=default;
+    explicit TerrainTopologySnapshot(TerrainTopology topology);
+    explicit operator bool() const {return bool(topology_);}
+    const TerrainTopology& operator*() const {return *topology_;}
+    const TerrainTopology* operator->() const {return topology_.get();}
+    void reset() {topology_.reset();}
+private:
+    friend class SparseTerrainContacts;
+    // The contact oracle already validated its private topology. An aliasing
+    // owner keeps that oracle and its immutable descriptors alive together.
+    explicit TerrainTopologySnapshot(std::shared_ptr<const TerrainTopology> topology)
+        :topology_(std::move(topology)) {}
+    std::shared_ptr<const TerrainTopology> topology_;
 };
 std::uint64_t terrainHashWord(std::uint64_t hash,std::uint64_t word,int bytes=8);
 }

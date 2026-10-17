@@ -43,8 +43,12 @@ public:
     const TerrainComputeLimits& limits() const { return limits_; }
     std::unique_ptr<TerrainComputeBuffers> generate(const PlanetField& field,
         const TerrainTopology& topology,bool diagnostics=false);
+    std::unique_ptr<TerrainComputeBuffers> generate(const PlanetField& field,
+        const TerrainTopologySnapshot& topology,bool diagnostics=false);
     GLuint program() const { return shader_ ? shader_->id : 0; }
 private:
+    std::unique_ptr<TerrainComputeBuffers> generateValidated(const PlanetField& field,
+        const TerrainTopology& topology,bool diagnostics);
     TerrainComputeLimits limits_;
     Shader* shader_=nullptr;
     std::array<std::unique_ptr<Shader>,2> variants_;

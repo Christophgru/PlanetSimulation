@@ -245,6 +245,22 @@ TEST(TerrainCompute, FailedGenerationCannotReplaceAnActiveMeshAndNoCpuVerticesAr
     EXPECT_GT(mesh.terrainStats.evaluationQueries.requests,0u);
     mesh.destroy();EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
 }
+TEST(TerrainCompute, ImmutableSnapshotAndMutableInputsProduceIdenticalBuffersAndRejectStaleFields) {
+    TerrainCompute compute;const TerrainSurface surface({},lod(),1,1000);
+    auto raw=probes(surface.field());const TerrainTopologySnapshot snapshot(raw);
+    auto mutableGpu=compute.generate(surface.field(),raw,true);
+    auto frozenGpu=compute.generate(surface.field(),snapshot,true);
+    mutableGpu->waitForCapture();frozenGpu->waitForCapture();
+    EXPECT_EQ(mutableGpu->readVertices(),frozenGpu->readVertices());
+    EXPECT_EQ(mutableGpu->readIndices(),frozenGpu->readIndices());
+    EXPECT_EQ(mutableGpu->readHeights(),frozenGpu->readHeights());
+    raw.samples[0].sinkMeters+=1;
+    EXPECT_THROW(compute.generate(surface.field(),raw),std::invalid_argument);
+    const TerrainSurface changed({},lod(),1,2000);
+    EXPECT_THROW(compute.generate(changed.field(),snapshot),std::invalid_argument);
+    EXPECT_THROW(compute.generate(surface.field(),TerrainTopologySnapshot{}),std::invalid_argument);
+    EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+}
 TEST(TerrainCompute, SparseContactGenerationMatchesGpuPlanesWithoutReadingTheCpuMirror) {
     TerrainCompute compute;const TerrainSurface surface({},lod(),1,1000,{},0);
     const auto topology=surface.buildTopologyForEye({1.002,0,0},{0,0,0});

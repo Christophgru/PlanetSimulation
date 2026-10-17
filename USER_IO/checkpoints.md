@@ -1,5 +1,32 @@
 # Page to document progress of AI Agents working on this Project
 
+## Immutable terrain staging snapshots — 2026-10-17
+
+- dc2d24a records the rejected cache below. TerrainTopologySnapshot now shares
+  the contact oracle's validated private descriptors with GPU staging. Worker
+  moves rather than copies topology into contacts; alias ownership retains the
+  oracle until the last consumer releases it. Contacts cannot move/copy/assign.
+  Public raw DTO snapshot/compute entry points still validate fully. Water owns
+  a separately validated snapshot; admission keeps identity/consumer/byte checks.
+  No shader, format, GPU allocation, quality or replay changes.
+- Full 121-step build; 35 core groups (30.18 s), 47 RTX cases (77.75 s), frame
+  (147.46 s), 15-render matrix (107.86 s), recovery/reload (162.87 s) pass. New
+  ownership/corruption/lifetime and exact GPU buffer tests pass. All fifteen old
+  images and inspected overview exact: 14,779 pixels, bbox (1,1)–(794,598),
+  3,471 planet pixels. CPU compatibility evaluation keeps existing validation.
+- Fresh isolated native pair, identical input JSON: render-thread full validation
+  AND fingerprint scans 192/210/45→0/0/0. Warm publication medians, initial excluded,
+  141.80→98.09 / 112.85→90.44 / 390.56→354.19 ms (~31/20/9% in one traced pair).
+  RSS mixed: 205.4→206.0 / 143.0→137.6 / 157.5→152.4 MiB; no all-memory/FPS claim.
+- Gate remains 2: after max offsets 1.121/2.282/8.085 m; outside 496/534,
+  672/690, 792/829 frames; wide geometry misses 579. At most one queued/running/
+  ready job, no bulk reads/blocking polls/finishes/server waits; logical overlap
+  <75 MB. Moving/temporal acceptance still incomplete; terrain stays p.
+- Logs/report: build-f5/resume/detail-snapshot-*, native-summary.json; before
+  helper/probe -before-snapshot are 892824f baselines. See terrain-gpu/sinking.md.
+  User config edits untouched and remain unstaged. Final diff review complete;
+  this increment is tested/documented. Moving/temporal work remains next.
+
 ## Retained refinement-value pilot rejected — 2026-10-16
 
 - 892824f is the latest implementation commit. A bounded derived-cache pilot

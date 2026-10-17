@@ -7,7 +7,6 @@
 namespace rendering {
 namespace {
 std::uint64_t terrainBytes(const TerrainTopology& t) {
-    t.validate();
     return t.morph.size()*(sizeof(TerrainMorphSample)+36)+(t.morph.empty()?0:sizeof(TerrainSurfacePolicy))+704+t.samples.size()*68ull+t.indices.size()*44ull+(t.indices.size()/3)*16+8+sizeof(TerrainSurfacePolicy);
 }
 }
@@ -32,8 +31,8 @@ TerrainGpuPreparation::TerrainGpuPreparation(TerrainCpuBuild build,TerrainBuildI
     admittedBytes=requiredBytes(cpu,identity,planet,compute.limits());
     if(admittedBytes>byteLimit) throw std::runtime_error("Terrain consumers exceed logical staging byte limit");
     GpuWorkProfiler::Request timingIdentity(identity.epoch,identity.serial,identity.bodyIndex);
-    land=compute.generate(*cpu.field,*cpu.topology);
-    if(cpu.water) water=compute.generate(*cpu.waterField,*cpu.waterTopology);
+    land=compute.generate(*cpu.field,cpu.topology);
+    if(cpu.water) water=compute.generate(*cpu.waterField,cpu.waterTopology);
     land->contacts=std::move(cpu.contacts);land->stats.gpuStageAdmittedBytes=admittedBytes;
 }
 bool TerrainGpuPreparation::poll() {

@@ -264,7 +264,8 @@ TEST(TerrainJobs, EpochCancellationClosesLogicalAttemptsWithoutWaitingForRunning
 TEST(TerrainJobs, MemorySnapshotRetainsReadySlotAndOnlyCountsStableVectors) {
     TerrainBuildScheduler jobs([](const auto&) {
         TerrainCpuBuild b;b.geometry.vertices.reserve(100);b.geometry.indices.reserve(50);
-        b.topology.emplace();b.topology->samples.reserve(20);return b;
+        TerrainTopology topology;topology.canonicalize(1);topology.samples.reserve(20);
+        b.topology=TerrainTopologySnapshot(std::move(topology));return b;
     });ASSERT_TRUE(jobs.submit(request()));
     const auto deadline=std::chrono::steady_clock::now()+5s;
     std::optional<TerrainMemorySnapshot> snapshot;

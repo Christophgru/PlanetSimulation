@@ -34,12 +34,13 @@ TerrainCpuBuild buildTerrainCpu(const TerrainBuildRequest& request) {
     TerrainCpuBuild result;
     if(compute) {
         result.field=surface.field();
-        result.topology=surface.buildTopologyForEye(k.eye,glm::dvec3(0),zones.empty()?nullptr:&zones,20.0);
+        auto topology=surface.buildTopologyForEye(k.eye,glm::dvec3(0),zones.empty()?nullptr:&zones,20.0);
+        // Contacts validate and own the descriptors. Stage that same immutable
+        // topology rather than copying and revalidating it on the GL thread.
+        result.contacts=std::make_shared<SparseTerrainContacts>(*result.field,std::move(topology));
+        result.topology=SparseTerrainContacts::topologySnapshot(result.contacts);
         if(k.resident) static_cast<TerrainBuildStats&>(result.geometry)=*result.topology;
         else result.geometry=surface.evaluateTopology(*result.topology);
-        // The contact oracle takes its own immutable topology. The staging copy
-        // is released after GPU submission; neither copy holds render vertices.
-        result.contacts=std::make_shared<SparseTerrainContacts>(*result.field,*result.topology);
     } else result.geometry=surface.buildGeometryForEye(k.eye,glm::dvec3(0),zones.empty()?nullptr:&zones,20.0);
     if(planet.water.enabled) {
         auto lod=planet.terrain_lod;
@@ -51,7 +52,8 @@ TerrainCpuBuild buildTerrainCpu(const TerrainBuildRequest& request) {
         const TerrainSurface sea({},lod,planet.radius+planet.water.level_m/request.metersPerUnit,
             request.metersPerUnit,{},0.0);
         if(compute) {
-            result.waterField=sea.field();result.waterTopology=sea.buildTopologyForEye(k.eye,glm::dvec3(0));
+            result.waterField=sea.field();
+            result.waterTopology=TerrainTopologySnapshot(sea.buildTopologyForEye(k.eye,glm::dvec3(0)));
             if(k.resident) {result.water.emplace();static_cast<TerrainBuildStats&>(*result.water)=*result.waterTopology;}
             else result.water=sea.evaluateTopology(*result.waterTopology);
         } else result.water=sea.buildGeometryForEye(k.eye,glm::dvec3(0));

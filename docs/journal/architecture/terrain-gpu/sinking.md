@@ -1,5 +1,65 @@
 # Relief-aware terrain sinking
 
+## Share validated topology with GPU staging — 2026-10-17
+
+One resident generation previously copied its descriptors into the contact oracle,
+then revalidated and rehashed the staging copy during admission, GPU-stage
+construction and compute submission. Those repeated scans run on the render
+thread. In the fresh before cohort they account for 192/210/45 validation and
+fingerprint calls, totaling 1,300/1,425/585 ms across the three native routes.
+
+`TerrainTopologySnapshot` now owns validated immutable descriptors. A compute
+worker moves its topology into `SparseTerrainContacts`, whose constructor still
+performs full validation. It then stages an alias of that private topology under
+the same shared owner. Contacts cannot be copied, moved or assigned, so the
+aliased address and descriptors stay stable; lazy position queries only modify
+the contact cache. The alias retains the oracle through worker/staging lifetimes
+and releases it normally when its final owner retires. Derived contact-parent
+maps are stripped before aliasing, as in the existing oracle construction.
+
+Water gets a separately validated owned snapshot. Admission retains its complete
+identity, consumer and memory checks. A typed compute overload consumes these
+snapshots without repeating full scans. The mutable `TerrainTopology` compute
+entry still validates every input; constructing a snapshot from a raw DTO also
+validates it. Canonicalization still checks structure and fingerprints plans on
+the worker. CPU compatibility evaluation retains its existing validation.
+No descriptor, shader, capture format, quality target or GPU allocation changes.
+One bulk CPU staging copy is removed; no retained value cache is introduced.
+
+An isolated RTX before/after pair uses identical input JSON for each route:
+
+| Route | Warm publication before (ms) | After (ms) | Render-thread validation/fingerprint calls |
+|:--|--:|--:|--:|
+| 0.5 m walking | 141.80 | 98.09 | 192→0 |
+| 0.5 m sprint | 112.85 | 90.44 | 210→0 |
+| 1.5 m sprint | 390.56 | 354.19 | 45→0 |
+
+Medians exclude the initial main-body generation. These improvements are about
+31%, 20% and 9% in this single traced pair, not a sustained FPS claim. Sampled
+process RSS peaks are mixed: 205.4→206.0, 143.0→137.6 and 157.5→152.4 MiB.
+RSS includes driver/allocator pages and does not directly measure descriptor
+ownership. Both cohorts retain at most one queued/running/ready job, zero bulk
+readbacks, blocking polls, finishes and server waits, with logical GPU overlap
+below 75 MB.
+
+The unchanged coverage gate still exits 2. Maximum offsets improve in this pair
+1.605→1.121, 2.411→2.282 and 8.918→8.085 m, but the after cohort remains outside
+its cores in 496/534, 672/690 and 792/829 measured frames; 579 wide-core frames
+miss geometry targets. Frame counts differ, so absolute counts are not a coverage
+speedup metric. This does not complete uninterrupted moving detail or temporal
+publication; terrain remains **p**.
+
+The complete 121-step rebuild, all 35 core groups (30.18 s), all 47 RTX cases
+(77.75 s), frame integration (147.46 s), expanded 15-render replay/fallback matrix
+(107.86 s), and recovery/reload checks (162.87 s combined) pass. New CPU tests
+cover immutable access, corrupt DTO rejection, alias lifetime through producer
+release and lazy contact queries, and final owner destruction. GPU tests compare
+all position/index/diagnostic-height buffers exactly and reject stale fields,
+empty snapshots and mutated DTOs. Existing memory-admission and failure tests
+remain active. All fifteen earlier images and the inspected overview are
+byte-identical: 14,779 non-background pixels, bounds (1,1)–(794,598), 3,471 planet
+pixels. Raw results stay local under `build-f5/resume/detail-snapshot-*`.
+
 ## Rejected retained-value cache pilot — 2026-10-16
 
 A bounded pilot reused fixed fine samples and intrinsic triangle error/edge

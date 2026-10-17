@@ -20,6 +20,12 @@ class SparseTerrainContacts {
 public:
     static constexpr std::size_t positionCapacity=1024;
     SparseTerrainContacts(PlanetField field,TerrainTopology topology);
+    // Snapshot aliases require stable ownership/address and immutable topology.
+    SparseTerrainContacts(const SparseTerrainContacts&)=delete;
+    SparseTerrainContacts& operator=(const SparseTerrainContacts&)=delete;
+    SparseTerrainContacts(SparseTerrainContacts&&)=delete;
+    SparseTerrainContacts& operator=(SparseTerrainContacts&&)=delete;
+    static TerrainTopologySnapshot topologySnapshot(const std::shared_ptr<SparseTerrainContacts>& owner);
     const TerrainGenerationKey& generation() const { return generation_; }
     double radiusMeters() const { return field_.radiusWorld()*field_.metersPerUnit(); }
     std::vector<unsigned> candidates(const glm::dvec3& unitRadial);

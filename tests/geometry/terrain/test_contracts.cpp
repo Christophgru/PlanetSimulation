@@ -1,7 +1,9 @@
 #include "rendering/geometry/Terrain.h"
+#include "rendering/geometry/contacts/SparseTerrainContacts.h"
 #include <gtest/gtest.h>
 #include <bit>
 #include <limits>
+#include <type_traits>
 using namespace rendering;
 namespace {
 std::uint64_t legacyMeshHash(const TerrainGeometry& g) {
@@ -116,4 +118,31 @@ TEST(TerrainContracts, CorruptTopologyAndUnknownBackendAreRejected) {
     bad=good;++bad.generation.topologyVersion;EXPECT_THROW(t.evaluateTopology(bad),std::invalid_argument);
     bad=good;bad.samples[0].sinkMeters+=.5;EXPECT_THROW(t.evaluateTopology(bad),std::invalid_argument);
     bad=good;std::swap(bad.indices[0],bad.indices[1]);EXPECT_THROW(t.evaluateTopology(bad),std::invalid_argument);
+}
+TEST(TerrainContracts, OwnedSnapshotsValidateBeforeFreezingAndOutliveTheirOriginalOwner) {
+    static_assert(std::is_same_v<decltype(*std::declval<TerrainTopologySnapshot&>()),const TerrainTopology&>);
+    static_assert(!std::is_move_constructible_v<SparseTerrainContacts>);
+    static_assert(!std::is_copy_assignable_v<SparseTerrainContacts>);
+    const TerrainSurface surface({},fixtureLod(),1,1000);
+    auto raw=surface.buildTopology(1);
+    TerrainTopologySnapshot frozen(raw);
+    const auto expected=frozen->generation;
+    raw.samples[0].sinkMeters+=.5;
+    EXPECT_THROW((TerrainTopologySnapshot(raw)),std::invalid_argument);
+    EXPECT_EQ(frozen->generation,expected);EXPECT_NO_THROW(frozen->validate());
+    TerrainTopologySnapshot alias;
+    std::weak_ptr<SparseTerrainContacts> weak;
+    {
+        auto owner=std::make_shared<SparseTerrainContacts>(surface.field(),*frozen);
+        weak=owner;alias=SparseTerrainContacts::topologySnapshot(owner);
+        // Contact cache queries can mutate their own lazy positions, never the
+        // immutable topology shared with GPU staging.
+        (void)owner->triangle(0);
+        EXPECT_EQ(alias->generation,expected);
+    }
+    EXPECT_FALSE(weak.expired());EXPECT_NO_THROW(alias->validate());
+    EXPECT_EQ(surface.evaluateTopology(*alias).vertices,surface.evaluateTopology(*frozen).vertices);
+    auto survivor=alias;alias.reset();EXPECT_FALSE(weak.expired());
+    survivor.reset();EXPECT_TRUE(weak.expired());
+    EXPECT_FALSE(SparseTerrainContacts::topologySnapshot({}));
 }

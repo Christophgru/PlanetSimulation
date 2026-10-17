@@ -64,6 +64,10 @@ SparseTerrainContacts::SparseTerrainContacts(PlanetField field,TerrainTopology t
         parentToCurrent_.size()*sizeof(unsigned)+(parent_?parent_->stats().indexBytes:0);
     stats_.buildMilliseconds=std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-start).count();
 }
+TerrainTopologySnapshot SparseTerrainContacts::topologySnapshot(const std::shared_ptr<SparseTerrainContacts>& owner) {
+    if(!owner) return {};
+    return TerrainTopologySnapshot(std::shared_ptr<const TerrainTopology>(owner,&owner->topology_));
+}
 unsigned SparseTerrainContacts::build(unsigned first,unsigned count) {
     // Only build-local scratch: repeated median comparisons used to fetch all
     // three indirect vertices again. Cache exact bounds and unscaled centroid

@@ -29,7 +29,7 @@ struct TerrainBuildRequest {
 struct TerrainCpuBuild {
     TerrainGeometry geometry;
     std::optional<TerrainGeometry> water;
-    std::optional<TerrainTopology> topology,waterTopology;
+    TerrainTopologySnapshot topology,waterTopology;
     std::optional<PlanetField> field,waterField;
     std::shared_ptr<SparseTerrainContacts> contacts;
     double milliseconds=0;

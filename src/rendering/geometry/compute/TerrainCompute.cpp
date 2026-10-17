@@ -83,6 +83,15 @@ TerrainCompute::~TerrainCompute() {
 std::unique_ptr<TerrainComputeBuffers> TerrainCompute::generate(const PlanetField& field,
     const TerrainTopology& topology,bool diagnostics) {
     topology.validate();
+    return generateValidated(field,topology,diagnostics);
+}
+std::unique_ptr<TerrainComputeBuffers> TerrainCompute::generate(const PlanetField& field,
+    const TerrainTopologySnapshot& topology,bool diagnostics) {
+    if(!topology) throw std::invalid_argument("Missing compute terrain snapshot");
+    return generateValidated(field,*topology,diagnostics);
+}
+std::unique_ptr<TerrainComputeBuffers> TerrainCompute::generateValidated(const PlanetField& field,
+    const TerrainTopology& topology,bool diagnostics) {
     if(topology.generation.field!=field.fingerprint()) throw std::invalid_argument("Stale compute planet field");
     if(!limits_.unavailable.empty()) throw std::runtime_error(limits_.unavailable);
     const std::uint64_t samples=topology.samples.size(),corners=topology.indices.size();
