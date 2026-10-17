@@ -17,7 +17,10 @@ vec3 positionAt(uint corner) {
 void main() {
     uint id=uint(uFirst)+gl_GlobalInvocationID.x;if(id>=uint(uEnd)) return;
     uint face=triangles[id];vec3 p[3];
-    for(int i=0;i<3;++i) p[i]=positionAt(texelFetch(uTerrainIndices,int(face)*3+i).r);
+    for(int i=0;i<3;++i) {
+        uint corner=(cells[id].key.w>>uint(2*i))&3u;
+        p[i]=positionAt(texelFetch(uTerrainIndices,int(face)*3+int(corner)).r);
+    }
     vec3 center=(p[0]+p[1]+p[2])/3.0;
     float reach=max(max(length(p[0]-center),length(p[1]-center)),length(p[2]-center));
     float padding=4.0*1.1920928955078125e-7*max(max(length(p[0]),length(p[1])),length(p[2]));

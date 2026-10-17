@@ -97,7 +97,7 @@ std::unique_ptr<ProceduralGrass::Preparation> ProceduralGrass::submitResident(GL
     const auto bytes=stageBytes(terrain.gpuCorners/3,planet.foliage,limits.blockBytes);
     if(otherBytes>byteLimit || bytes>byteLimit-otherBytes)
         throw std::runtime_error("Resident grass exceeds logical staging byte limit");
-    if(planet.foliage.enabled && !planet.foliage.compute_placement)
+    if(planet.foliage.enabled && !planet.foliage.compute_placement && !source)
         throw std::invalid_argument("Resident grass requires compute placement");
     auto result=std::make_unique<Preparation>();auto& patch=*result->patch_;
     result->generation_=terrain.generation;result->vertices_=vertices;result->indices_=indices;
@@ -219,6 +219,15 @@ bool ProceduralGrass::poll(Preparation& p) {
                 surface_=std::make_unique<Shader>("shaders/foliage/deformation/surface.comp");
             if(summary.totals[1] && !animation_) animation_=std::make_unique<Shader>("shaders/foliage/animation.comp");
             allocateComputed(patch,summary.totals[1]);
+            // Resident terrain also supports the vertex placement route. Keep
+            // its descriptor VAOs ready before publication, even if the first
+            // view uses compute placement.
+            glBindBuffer(GL_ARRAY_BUFFER,patch.buffer);
+            for(std::size_t level=0;level<grassCandidateSlots.size();++level) if(patch.batches[level].count) {
+                auto& batch=patch.batches[level];
+                glGenVertexArrays(1,&batch.vao);glBindVertexArray(batch.vao);
+                attributes(summary.first[level],level);
+            }
             prepareCells(patch,p.previousCells_.get(),p.reuseCells_);
             if(!patch.vertexTexture || !patch.indexTexture || glGetError()!=GL_NO_ERROR)
                 throw std::runtime_error("Grass draw resource allocation failed");

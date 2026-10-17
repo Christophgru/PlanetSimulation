@@ -41,8 +41,7 @@ public:
         EXPECT_GT(grass.stats(0).batches,1);
         // Shader releases its attached objects after linking. Reattach the
         // production vertex source before linking the feedback executable.
-        std::ifstream file("shaders/foliage/grass.vert");
-        const std::string source{std::istreambuf_iterator<char>(file), {}};
+        const std::string source=Shader::source("shaders/foliage/grass.vert");
         const char* code=source.c_str();
         const GLuint vertex=glCreateShader(GL_VERTEX_SHADER);
         glShaderSource(vertex,1,&code,nullptr);

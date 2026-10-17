@@ -50,12 +50,42 @@ template<class T> void read(GLuint buffer,std::vector<T>& values) {
     glGetBufferSubData(GL_COPY_READ_BUFFER,0,values.size()*sizeof(T),values.data());
     glBindBuffer(GL_COPY_READ_BUFFER,previous);
 }
-std::map<unsigned,Blade> draw(ProceduralGrass& grass,const GrassPass& pass) {
+void uniforms(ProceduralGrass& grass,const GrassPass& pass) {
     grass.shader.use();grass.shader.setMat4("model",&pass.model[0][0]);
     grass.shader.setMat4("view",&pass.view[0][0]);grass.shader.setMat4("projection",&pass.projection[0][0]);
     grass.shader.setFloat("uMetersPerRadius",1000);grass.shader.setFloat("uGrassHeight",1);
     grass.shader.setFloat("uGrassWidth",.08);grass.shader.setFloat("uDrawDistance",40);
     grass.shader.setFloat3("uGrassEyeBody",pass.mainEyeBody.x,pass.mainEyeBody.y,pass.mainEyeBody.z);
+    grass.shader.setInt("uLandscapeEnabled",0);grass.shader.setInt("uWaterEnabled",1);
+    grass.shader.setFloat3("uLandscapeLevels",0,0,0);grass.shader.setFloat3("uPlanetColor",1,1,1);
+    grass.shader.setFloat2("uTerrainRockRange",.3,.5);grass.shader.setFloat("uWaterClearance",0);
+    grass.shader.setFloat("uRootOffset",0);grass.shader.setFloat("uTime",pass.windTime);
+}
+void feedbackProgram(ProceduralGrass& grass) {
+    const auto source=Shader::source("shaders/foliage/grass.vert");const char* pointer=source.c_str();
+    const GLuint vertex=glCreateShader(GL_VERTEX_SHADER);glShaderSource(vertex,1,&pointer,nullptr);glCompileShader(vertex);
+    GLint ok=0;glGetShaderiv(vertex,GL_COMPILE_STATUS,&ok);ASSERT_TRUE(ok);
+    glAttachShader(grass.shader.id,vertex);const char* outputs[]{"vRoot","vVisible"};
+    glTransformFeedbackVaryings(grass.shader.id,2,outputs,GL_INTERLEAVED_ATTRIBS);glLinkProgram(grass.shader.id);
+    glDetachShader(grass.shader.id,vertex);glDeleteShader(vertex);
+    glGetProgramiv(grass.shader.id,GL_LINK_STATUS,&ok);ASSERT_TRUE(ok);
+}
+std::vector<glm::vec4> vertexRoots(ProceduralGrass& grass,const GrassPass& pass,bool configuredFallback=false) {
+    uniforms(grass,pass);
+    struct Buffer {
+        GLuint id=0;
+        ~Buffer() {glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER,0,0);glDeleteBuffers(1,&id);}
+    } buffer;
+    glGenBuffers(1,&buffer.id);glBindBuffer(GL_TRANSFORM_FEEDBACK_BUFFER,buffer.id);
+    std::vector<glm::vec4> roots(3*grass.stats(0).triangles);
+    glBufferData(GL_TRANSFORM_FEEDBACK_BUFFER,roots.size()*sizeof(roots[0]),nullptr,GL_STREAM_READ);
+    glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER,0,buffer.id);glEnable(GL_RASTERIZER_DISCARD);
+    glBeginTransformFeedback(GL_TRIANGLES);grass.draw(0,configuredFallback?&pass:nullptr);
+    glEndTransformFeedback();glDisable(GL_RASTERIZER_DISCARD);
+    read(buffer.id,roots);EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));return roots;
+}
+std::map<unsigned,Blade> draw(ProceduralGrass& grass,const GrassPass& pass) {
+    uniforms(grass,pass);
     glEnable(GL_RASTERIZER_DISCARD);grass.draw(0,&pass);glDisable(GL_RASTERIZER_DISCARD);
     const auto counts=grass.computedCounts(0);const auto capacity=grass.stats(0).candidates;
     GLint buffer=0;glGetIntegeri_v(GL_SHADER_STORAGE_BUFFER_BINDING,2,&buffer);
@@ -74,13 +104,14 @@ TEST(GrassCells, MovingSurfaceProjectsFixedRootsAndRefreshesPausedAnimationAcros
     auto& f=p.foliage;f.enabled=f.compute_placement=true;f.frustum_culling=false;
     f.draw_distance_m=40;f.quad_distance_m=15;f.density_per_m2=2;f.max_blades=100000;
     f.max_candidates_per_triangle=65536;f.root_offset_m=0;f.water_clearance_m=0;
-    TerrainCompute terrain;std::size_t shown=0,moved=0;double maximumError=0;
+    TerrainCompute terrain;std::size_t shown=0,moved=0,vertexCompared=0;double maximumError=0,maximumPathError=0;
     for(const auto radial:{glm::dvec3(0,0,1),glm::normalize(glm::dvec3(.7,-.2,1))}) {
         SurfaceSource source(radial);ProceduralGrass grass;grass.enableAdaptiveBudget();const auto eye=radial*1.002;
         struct ProgramScope {
             ProgramScope() {glUseProgram(0);}
             ~ProgramScope() {glUseProgram(0);}
         } programScope; // Unbind before destroying this fixture's selected program.
+        feedbackProgram(grass);
         auto stage=grass.submitResident(source.vbo,source.ebo,source.terrainStats,p,1000,eye,source.revision,
             0,ProceduralGrass::defaultStageBytes,source.morphSource());
         grass.waitForCapture(*stage);grass.reserve(0);grass.commit(0,*stage,source);stage.reset();
@@ -123,6 +154,18 @@ TEST(GrassCells, MovingSurfaceProjectsFixedRootsAndRefreshesPausedAnimationAcros
                 EXPECT_EQ(blade.root,visible.at(id).root);EXPECT_EQ(reused[id].frame,animation[id].frame);
                 EXPECT_EQ(reused[id].wind,animation[id].wind);EXPECT_EQ(reused[id].trail,animation[id].trail);
             }
+            const auto vertex=vertexRoots(grass,pass);ASSERT_EQ(vertex.size(),roots.size()*36);
+            std::size_t vertexVisible=0;
+            for(unsigned id=0;id<roots.size();++id) {
+                const auto& point=vertex[id*36];const bool visibleVertex=point.w>0;
+                ASSERT_EQ(visibleVertex,visible.contains(id)) << id;
+                if(!visibleVertex) continue;
+                const auto error=glm::length(glm::dvec3(point)-glm::dvec3(visible.at(id).root))*1000;
+                maximumPathError=std::max(maximumPathError,error);ASSERT_LE(error,.001);
+                for(unsigned v=1;v<36;++v) EXPECT_EQ(vertex[id*36+v],point);
+                ++vertexVisible;++vertexCompared;
+            }
+            EXPECT_EQ(vertexVisible,visible.size());
             previous=visible;
         }
         stage=grass.submitResident(source.vbo,source.ebo,source.terrainStats,p,1000,eye,source.revision,
@@ -135,9 +178,15 @@ TEST(GrassCells, MovingSurfaceProjectsFixedRootsAndRefreshesPausedAnimationAcros
             EXPECT_EQ(after[i].rootExpected,roots[i].rootExpected);EXPECT_EQ(after[i].upRank,roots[i].upRank);
             EXPECT_EQ(after[i].normalSlot,roots[i].normalSlot);EXPECT_EQ(after[i].variation,roots[i].variation);
         }
+        p.foliage.compute_placement=false;grass.prepare(0,source,p,1000,eye);
+        const auto configured=vertexRoots(grass,pass,true);
+        EXPECT_FALSE(grass.usesCompute(0));
+        EXPECT_TRUE(std::any_of(configured.begin(),configured.end(),[](const auto& point){return point.w>0;}));
+        p.foliage.compute_placement=true;
         EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
     }
     EXPECT_GT(shown,0u);EXPECT_GT(moved,0u);
     std::cout << "GRASS_LIVE_SURFACE visible_queries=" << shown << " moved_common_roots=" << moved
-        << " maximum_plane_error_m=" << maximumError << " immutable_roots=1 paused_animation_refresh=1\n";
+        << " maximum_plane_error_m=" << maximumError << " vertex_compared=" << vertexCompared
+        << " maximum_path_error_m=" << maximumPathError << " immutable_roots=1 paused_animation_refresh=1\n";
 }

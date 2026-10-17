@@ -36,10 +36,17 @@ uniform usamplerBuffer uTerrainIndices;
 uniform int uCellFirst=0;
 uniform int uGrassSeed=7321;
 uniform float uPlacementDensity;
+uniform bool uMorphSource=false;
+uniform usamplerBuffer uMorphTargets,uMorphCorners;
+uint terrainMorphWord(uint offset) {return texelFetch(uMorphTargets,int(offset)).r;}
+uint terrainMorphCorner(uint corner) {return texelFetch(uMorphCorners,int(corner)).r;}
+#include "../terrain/compute/morph_fine.glsl"
 vec3 aPatchA,aPatchB,aPatchC,aPatchNormal,aPatchColor;
 vec3 patchNormalA,patchNormalB,patchNormalC,patchColorA,patchColorB,patchColorC;
 float aExpectedCandidates;
 uint aPatchSeed;
+vec3 livePatchNormal;
+float livePatchD;
 vec3 terrainVector(int offset) {
     // R32F buffer views work on core GL 3.3 without RGB32 extensions or
     // repacking the terrain's nine-float interleaved vertex records.
@@ -77,6 +84,16 @@ bool loadTerrainPatch() {
     aPatchB=terrainVector(indices.y);
     aPatchC=terrainVector(indices.z);
     if (uFrustumCull && !patchVisible()) return false;
+    aExpectedCandidates=.5*length(cross(aPatchB-aPatchA,aPatchC-aPatchA))*
+        uMetersPerRadius*uMetersPerRadius*uPlacementDensity;
+    if(uMorphSource) {
+        vec3 normal=cross(aPatchB-aPatchA,aPatchC-aPatchA);
+        if(length(normal)==0.0) return false;
+        livePatchNormal=normalize(normal);livePatchD=dot(livePatchNormal,aPatchA);
+        aPatchA=terrainMorphFinePosition(uint(indices.x/9));
+        aPatchB=terrainMorphFinePosition(uint(indices.y/9));
+        aPatchC=terrainMorphFinePosition(uint(indices.z/9));
+    }
     patchNormalA=terrainVector(indices.x+3);
     patchNormalB=terrainVector(indices.y+3);
     patchNormalC=terrainVector(indices.z+3);
@@ -85,8 +102,6 @@ bool loadTerrainPatch() {
     patchColorC=terrainVector(indices.z+6)*uPlanetColor;
     aPatchNormal=normalize(patchNormalA+patchNormalB+patchNormalC);
     aPatchColor=(patchColorA+patchColorB+patchColorC)/3.0;
-    aExpectedCandidates=.5*length(cross(aPatchB-aPatchA,aPatchC-aPatchA))*
-        uMetersPerRadius*uMetersPerRadius*uPlacementDensity;
     aPatchSeed=identity ^ uint(uGrassSeed);
     return true;
 }
@@ -207,6 +222,13 @@ void main() {
         vBodyPosition=root; vWorldPosition=(model*vec4(root,1)).xyz;
         vNormal=vec3(0,0,1); vUp=vNormal; vColor=vec3(0); vBlade=vec3(0);
         vShadowPosition=vec4(0,0,0,1); gl_Position=vec4(2,2,2,1);
+        if(uMorphSource) {
+            float denominator=dot(livePatchNormal,rootUp);
+            if(abs(denominator)<1e-9) return;
+            float radius=livePatchD/denominator;
+            if(radius<=0.0 || isnan(radius) || isinf(radius)) return;
+            root=rootUp*radius;vRoot=root;
+        }
         // A slot keeps its own density rank when candidate batches grow or
         // shrink. Dividing acceptance by batch size used to reshuffle roots.
         float d=length(root-uGrassEyeBody)*uMetersPerRadius;

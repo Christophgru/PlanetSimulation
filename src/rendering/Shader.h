@@ -12,6 +12,8 @@ public:
            const char* additionalFragmentLibraryPath = nullptr,
            const char* paletteLibraryPath = nullptr);
     explicit Shader(const char* computePath);
+    // Production and validation share relative quoted-include expansion.
+    static std::string source(const char* path);
     
     void use() const;
     

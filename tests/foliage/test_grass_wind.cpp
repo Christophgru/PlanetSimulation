@@ -1,5 +1,6 @@
 #include "rendering/foliage/GrassWind.h"
 #include "rendering/foliage/GrassLod.h"
+#include "rendering/Shader.h"
 #include <gtest/gtest.h>
 #include <GL/glew.h>
 #include <glm/glm.hpp>
@@ -19,8 +20,7 @@ class WindProbe {
     GLuint program_ = 0, vao_ = 0, buffer_ = 0;
 public:
     WindProbe() {
-        std::ifstream file("shaders/foliage/grass.vert");
-        std::string source{std::istreambuf_iterator<char>(file), {}};
+        std::string source=Shader::source("shaders/foliage/grass.vert");
         const auto main = source.find("void main()");
         if (main == std::string::npos) throw std::runtime_error("Missing grass shader main");
         source.replace(main, 11, "void grassMain()");
@@ -57,6 +57,8 @@ public:
         glUseProgram(program_);
         glUniform1i(glGetUniformLocation(program_,"uTerrainVertices"),8);
         glUniform1i(glGetUniformLocation(program_,"uTerrainIndices"),9);
+        glUniform1i(glGetUniformLocation(program_,"uMorphTargets"),12);
+        glUniform1i(glGetUniformLocation(program_,"uMorphCorners"),13);
         uniform("uMetersPerRadius", 100);
         uniform("uGrassHeight", 1.5f);
         uniform("uGrassWidth", .1f);

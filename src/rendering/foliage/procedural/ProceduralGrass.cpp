@@ -312,6 +312,8 @@ void ProceduralGrass::draw(std::size_t index,const GrassPass* pass) const {
     shader.setInt("uBladeAnimation",11);
     shader.setInt("uCellFirst",patch.cellKeyOffset);
     patch.computeUsed=pass && patch.settings.compute_placement && GLEW_VERSION_4_3;
+    shader.setInt("uMorphSource",bool(patch.morphSource) && !patch.computeUsed);
+    shader.setInt("uMorphTargets",12);shader.setInt("uMorphCorners",13);
     if (patch.computeUsed) {
         drawComputed(index,patch,*pass);
         if (culled) glEnable(GL_CULL_FACE);
@@ -326,6 +328,10 @@ void ProceduralGrass::draw(std::size_t index,const GrassPass* pass) const {
     if(patch.falloff.enabled) shader.setFloat("uGaussianSigma",patch.falloff.sigmaMeters);
     glActiveTexture(GL_TEXTURE8); glBindTexture(GL_TEXTURE_BUFFER,patch.vertexTexture);
     glActiveTexture(GL_TEXTURE9); glBindTexture(GL_TEXTURE_BUFFER,patch.indexTexture);
+    if(patch.morphSource) {
+        glActiveTexture(GL_TEXTURE12);glBindTexture(GL_TEXTURE_BUFFER,patch.morphTextures[0]);
+        glActiveTexture(GL_TEXTURE13);glBindTexture(GL_TEXTURE_BUFFER,patch.morphTextures[1]);
+    }
     glActiveTexture(GL_TEXTURE0);
     shader.setInt("uProcedural",1);
     for (const auto& draw:patch.draws) {

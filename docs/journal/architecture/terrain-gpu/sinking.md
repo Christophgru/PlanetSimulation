@@ -1,5 +1,46 @@
 # Relief-aware terrain sinking
 
+## Alternate grass placement, 2026-10-17
+
+The vertex placement path can now use retained fine anchors with current live
+triangle planes. It generates the same fixed root rays as cached compute roots,
+projects before height/biome/density checks, and uses current triangle area.
+The compute plane update uses the same canonical corner permutation. Ordinary
+terrain retains a false source flag and its existing placement inputs.
+
+A shared integer decoder supplies fine anchors in both GLSL 3.30 and compute
+shaders. Vertex loading and transform-feedback probes reuse the existing quoted
+include expander through `Shader::source`. The additional integer samplers always
+receive separate units, including when disabled, to avoid sampler-type aliasing.
+Retained views are bound only for source-backed patches. Resident staging also
+prepares descriptor VAOs for alternate placement before publication; previously
+it created only compute output VAOs. No extra GPU buffer storage, field
+evaluation or CPU geometry transfer is needed.
+
+The surface regression now captures production vertex outputs for every blade
+vertex through dry/mixed/wet transitions and compares per-slot root positions
+and visibility with compute output. All 2,704 visible roots match exactly on RTX,
+Quadro and software, including constant roots across all 36 blade vertices. An
+explicit `compute_placement=false` preparation also passes. Retained sources
+are now admitted for that configuration; the ordinary Transient restriction
+is unchanged. Maximum plane error stays below .231 mm on hardware and .205 mm
+on software, within the unchanged 1 mm fixture limit.
+
+The full build, corrective resource/admission builds and final no-op build pass.
+Final RTX suite passes all 52 cases (65.28 s), Quadro source/envelope cases pass
+(.242 s), and the software source case passes (27.995 s). All 23 existing wind,
+render and compute cases passed (120.405 s) before the VAO/admission-only fixes.
+Default core (35 groups, 39.62 s), frame/matrix (208.42 s), recovery/reload
+(176.23 s) and inspected render pass too; these preceded the final source-only
+admission correction, which the final GPU/software suites validate. All fifteen
+historical captures and overview remain exact: 14,779 non-background pixels,
+bbox (1,1)–(794,598), 3,471 planet pixels. Logs detail-grass-vertex-* stay local.
+
+Runtime terrain retention remains disabled. Full view/capture phase handling,
+prepared streaming and parent-rebase continuity are still outstanding. Keep the
+terrain task **p**, preserve the strict native coverage gate, and make no new
+moving-coverage or frame-cost claim from this increment.
+
 ## Grass roots on the live surface, 2026-10-17
 
 Retained-source resident preparation now requests conservative allocation

@@ -3,11 +3,7 @@
 double terrainMorphDouble(uint offset) {
     return packDouble2x32(uvec2(terrainMorphWord(offset),terrainMorphWord(offset+1u)));
 }
-dvec3 terrainMorphFinePosition(uint corner) {
-    uint base=9u*terrainMorphCorner(corner);
-    return dvec3(uintBitsToFloat(terrainMorphWord(base+6u)),
-        uintBitsToFloat(terrainMorphWord(base+7u)),uintBitsToFloat(terrainMorphWord(base+8u)));
-}
+#include "morph_fine.glsl"
 dvec3 terrainMorphParentPosition(uint corner,uint samples) {
     uint base=9u*samples+9u*terrainMorphCorner(corner);
     return dvec3(terrainMorphDouble(base),terrainMorphDouble(base+2u),terrainMorphDouble(base+4u));

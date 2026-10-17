@@ -1,5 +1,38 @@
 # Page to document progress of AI Agents working on this Project
 
+## Alternate grass placement on live terrain — 2026-10-17
+
+- Continued terrain p after 5a0b752. Vertex placement reads fine anchors and the
+  current live plane/area, projects fixed up rays before height/biome/density
+  checks, and uses the same canonical corner order as compute plane refresh.
+  Fine integer decoder shared through morph_fine.glsl (GLSL3.30 compatible).
+- Shader::source exposes existing relative include expansion for vertex loading
+  and feedback probes; no second loader. Additional integer samplers always use
+  units12/13 to avoid aliasing, views bound only for source patches. No extra
+  GPU buffer storage, field evaluations or CPU geometry transfer.
+- Actual comparison exposed missing descriptor VAOs in resident staging. Now
+  create them before ready alongside compute output VAOs. Explicit configuration
+  check exposed old compute-placement admission guard; retained sources now
+  support compute_placement=false. Ordinary Transient restriction stays the same.
+  No draw-time resource creation is added.
+- Extended production TF test compares visibility/root positions for all slots
+  through dry/mixed/wet phases, all36vertices/blade, plus explicit false-config
+  preparation. All2,704 visible roots agree exactly on RTX, Quadro and software
+  (path error0); GPU plane error <=.231 mm, software <=.205 mm, unchanged1mm
+  test limit. Immutable roots, paused animation, delta commit and views still pass.
+- Full81-step build, VAO19-step +test2-step +final guard19-step builds pass, final
+  no-op build passes. Final RTX52 cases 65.28 s; Quadro source+envelope 0.242 s;
+  software source case27.995 s. Existing23 wind/render/compute cases pass120.405 s
+  before the VAO/admission-only fixes. Default35 core groups39.62 s, frame+matrix
+  208.42 s, recovery+reload176.23 s and inspected render pass. Those broad default
+  checks preceded the final source-only guard correction; final full RTX/focused
+  Quadro/software validate that correction. All15 historical PNGs and overview
+  exact:14,779 pixels, bbox(1,1)–(794,598),3,471 planet pixels.
+- Logs detail-grass-vertex-* ignored/local; diff checks pass. Next complete view
+  cache/capture phase handling, prepared streaming and parent-rebase continuity.
+  Runtime retention still Transient; keep terrain p and last native failures.
+  User config remains unstaged.
+
 ## Grass roots following live planes, 2026-10-17
 
 - 0cf70f2 commits conservative allocation envelopes below. Continued same terrain

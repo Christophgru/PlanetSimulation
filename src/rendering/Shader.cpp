@@ -6,23 +6,24 @@
 #include <filesystem>
 
 namespace {
-// Compute kernels share source without duplicating the noise evaluator. Expand
+// Shader stages share source without duplicating the noise evaluator. Expand
 // quoted includes relative to their owning file before GLSL preprocessing.
-std::string computeSource(const std::filesystem::path& path,unsigned depth=0) {
-    if(depth>16) throw std::runtime_error("Compute shader include depth exceeded: "+path.string());
+std::string shaderSource(const std::filesystem::path& path,unsigned depth=0) {
+    if(depth>16) throw std::runtime_error("Shader include depth exceeded: "+path.string());
     std::ifstream file(path);
-    if(!file) throw std::runtime_error("Failed to open compute shader: "+path.string());
+    if(!file) throw std::runtime_error("Failed to open shader: "+path.string());
     std::ostringstream source;std::string line;
     while(std::getline(file,line)) {
         if(line.starts_with("#include \"") && line.ends_with('"'))
-            source << computeSource(path.parent_path()/line.substr(10,line.size()-11),depth+1);
+            source << shaderSource(path.parent_path()/line.substr(10,line.size()-11),depth+1);
         else source << line << '\n';
     }
     return source.str();
 }
 }
+std::string Shader::source(const char* path) {return shaderSource(path);}
 Shader::Shader(const char* computePath) {
-    const auto code=computeSource(computePath);const char* pointer=code.c_str();
+    const auto code=source(computePath);const char* pointer=code.c_str();
     const GLuint compute=glCreateShader(GL_COMPUTE_SHADER);
     try {
         glShaderSource(compute,1,&pointer,nullptr); glCompileShader(compute);
@@ -40,25 +41,16 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath,
        const char* fragmentLibraryPath,
        const char* additionalFragmentLibraryPath,
        const char* paletteLibraryPath) {
-    std::string vertexCode;
+    const std::string vertexCode=source(vertexPath);
     std::string fragmentCode;
 
     // Read shaders from files
-    std::ifstream vertexStream(vertexPath);
-    if (!vertexStream.is_open()) {
-        throw std::runtime_error("Failed to open vertex shader: " + std::string(vertexPath));
-    }
     std::ifstream fragmentStream(fragmentPath);
     if (!fragmentStream.is_open()) {
         throw std::runtime_error("Failed to open fragment shader: " + std::string(fragmentPath));
     }
 
     // Read shaders into strings
-    vertexStream.seekg(0, std::ios::end);
-    vertexCode.resize(vertexStream.tellg());
-    vertexStream.seekg(0, std::ios::beg);
-    vertexStream.read(&vertexCode[0], vertexCode.size());
-
     fragmentStream.seekg(0, std::ios::end);
     fragmentCode.resize(fragmentStream.tellg());
     fragmentStream.seekg(0, std::ios::beg);
