@@ -1,5 +1,29 @@
 # Relief-aware terrain sinking
 
+## Retained grass and compatibility mirrors, 2026-10-17
+
+A CPU compatibility copy does not remove the GPU terrain's immutable retained
+source. Grass preparation now recognizes that source for compute-backed meshes
+regardless of mirror presence, preserving conservative metadata and fixed root
+anchors instead of falling through the ordinary compatibility path.
+
+The regression starts with a submerged mirror and verifies that potential fine
+roots remain allocated. It drops the mirror before using the production GPU
+update primitive, reattaches the original frozen compatibility copy afterward,
+and checks that preparation reuses without uploads while visible roots follow
+live positions. The mirror remains untouched. Focused RTX (.073 s) and Quadro
+(.460 s) checks pass. Full53-case RTX suite passes (64.10 s), software mirror
+case passes (5.201 s), and inspected render remains exact:14,779 non-background
+pixels, bbox(1,1)–(794,598),3,471 planet pixels. Full20-step build, two-step
+fixture rebuild and final no-op pass. Full default core/runtime/replay/fallback
+matrix passed in the preceding CPU-phase increment; this selector-only change
+does not require repeating those unaffected checks. Logs detail-grass-mirror-*
+stay local.
+
+No default Transient/CPU behavior changes, and runtime retention stays disabled.
+Complete CPU fine-anchor grass, capture/consumer phase records, prepared streaming
+and parent-rebase continuity remain outstanding; terrain remains **p**.
+
 ## Explicit CPU phase evaluation, 2026-10-17
 
 CPU bulk evaluation can now bake an explicit footprint with

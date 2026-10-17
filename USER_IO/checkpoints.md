@@ -1,5 +1,27 @@
 # Page to document progress of AI Agents working on this Project
 
+## Retained grass with compatibility mirrors — 2026-10-17
+
+- Continued terrain p after10e28f3. Grass.prepare selects immutable resident
+  staging for compute terrain with retained source even with a CPU compatibility
+  mirror (residentTerrain=false). Complete validation/ownership stays in existing
+  submit path; ordinary CPU/Transient selection unchanged.
+- New53rd GPU case attaches an initially submerged mirror and verifies potential
+  roots exist. Drop the mirror for production GPU deformation, reattach its old
+  frozen copy, then preparation reuses without uploads and visible roots follow
+  current live positions. Mirror stays unchanged. Primitive's mirror-free update
+  restriction is honored; no new mirror/deformation policy introduced.
+- Full20-step build, two-step fixture rebuild and final no-op pass. FocusRTX.073 s
+  /Quadro.460 s; software5.201 s; fullRTX53 cases64.10 s and inspected render pass.
+  Overview exact:14,779 pixels, bbox(1,1)–(794,598),3,471 planet pixels. Full default
+  core/runtime/replay/fallback matrix passed at10e28f3 immediately before this
+  selector-only change; no unaffected broad rerun. Logs detail-grass-mirror-*
+  ignored/local; diff checks pass. User config remains unstaged.
+- Next CPU fine-anchor/grass phase support, capture/consumer records, prepared
+  streaming and parent rebases. Keep terrain p; retention remains Transient at
+  runtime and last native coverage failure remains unresolved. Completed seven
+  separate tested/documented commits since08cd634 in this continuation.
+
 ## Explicit CPU phase evaluation — 2026-10-17
 
 - Continued terrain p after459c0ac. TerrainSurface.evaluateTopology(t, footprint)

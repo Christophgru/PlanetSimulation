@@ -118,7 +118,7 @@ GrassPreparationStats ProceduralGrass::prepare(std::size_t index,const Mesh& mes
     CpuTrace::Scope scope("ProceduralGrass::prepare");
     reserve(index);
     auto& patch=*patches_[index];
-    if(mesh.residentTerrain) {
+    if(mesh.residentTerrain || (mesh.terrainStats.generation.backend==TerrainBackend::Compute && bool(mesh.morphSource()))) {
         const auto saved=replayPlanEyes_.find(index);
         const auto rock=planet.terrain_material.slopeMetricRange();
         if(planet.foliage.enabled && patch.ready && patch.settings==planet.foliage && patch.revision==mesh.revision &&

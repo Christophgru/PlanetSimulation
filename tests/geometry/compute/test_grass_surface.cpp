@@ -203,3 +203,32 @@ TEST(GrassCells, MovingSurfaceProjectsFixedRootsAndRefreshesPausedAnimationAcros
         << " maximum_plane_error_m=" << maximumError << " vertex_compared=" << vertexCompared
         << " maximum_path_error_m=" << maximumPathError << " immutable_roots=1 paused_animation_refresh=1\n";
 }
+TEST(GrassCells, RetainedCpuCompatibilityMirrorDoesNotHidePotentialRootsOrOverrideLivePositions) {
+    config::ScenarioConfig scene(config::Config::load("configs/scenarios/solar_system.json"));auto p=scene.planets[0];
+    p.radius=1;p.color={1,1,1};p.surface_noise.clear();p.terrain_landscape.enabled=false;p.water.enabled=true;p.water.level_m=0;
+    auto& f=p.foliage;f.enabled=f.compute_placement=true;f.frustum_culling=false;
+    f.draw_distance_m=40;f.quad_distance_m=15;f.density_per_m2=2;f.max_blades=100000;
+    f.max_candidates_per_triangle=65536;f.root_offset_m=f.water_clearance_m=0;
+    const glm::dvec3 radial(0,0,1),eye=radial*1.002;SurfaceSource source(radial);
+    source.vertices.resize(27);read(source.vbo,source.vertices);source.indices={0,1,2};source.residentTerrain=false;
+    const auto frozenMirror=source.vertices;
+    ProceduralGrass grass;grass.enableAdaptiveBudget();
+    struct ProgramScope {~ProgramScope(){glUseProgram(0);}} programScope;
+    grass.prepare(0,source,p,1000,eye);ASSERT_GT(grass.stats(0).candidates,0u);
+    EXPECT_GT(grass.stats(0).metadataBytes,0u);EXPECT_TRUE(grass.residentGeneration(0).has_value());
+    const auto roots=grass.cachedRootsForValidation(0);ASSERT_FALSE(roots.empty());
+    GrassPass pass;pass.mainEyeBody=eye;pass.windTime=.75;
+    EXPECT_TRUE(draw(grass,pass).empty()); // Potential fine roots exist even though the mirror is submerged.
+    // The deformation primitive requires a mirror-free update. Reattach the
+    // optional frozen compatibility copy afterward, as a separate consumer.
+    source.vertices.clear();source.indices.clear();source.residentTerrain=true;
+    TerrainCompute terrain;terrain.deform(source,{radial,1000,1000,1});
+    source.vertices=frozenMirror;source.indices={0,1,2};source.residentTerrain=false;
+    EXPECT_EQ(source.vertices,frozenMirror); // Compatibility data is deliberately still the original pose.
+    EXPECT_EQ(grass.prepare(0,source,p,1000,eye).uploadedBytes,0u);
+    const auto visible=draw(grass,pass);ASSERT_FALSE(visible.empty());
+    for(const auto& [id,blade]:visible) {
+        EXPECT_NEAR(blade.root.z,1.002,.000001);EXPECT_EQ(blade.variation,roots[id].variation);
+    }
+    EXPECT_EQ(source.vertices,frozenMirror);EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+}
