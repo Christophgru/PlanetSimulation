@@ -11,6 +11,15 @@ class Mesh;
 namespace rendering {
 class SparseTerrainContacts;
 enum class TerrainMorphStorage { Transient, Retained };
+// Borrowed immutable source from retained targets and the canonical corner map.
+// The owning generation must outlive submitted consumers.
+struct TerrainMorphSource {
+    GLuint targets=0,corners=0;
+    std::uint64_t samples=0;
+    TerrainGenerationKey generation;
+    explicit operator bool() const {return targets || corners || samples || generation.field || generation.topology;}
+    bool operator==(const TerrainMorphSource&) const = default;
+};
 struct TerrainComputeLimits {
     std::uint64_t blockBytes=0;
     std::uint32_t groups=0;

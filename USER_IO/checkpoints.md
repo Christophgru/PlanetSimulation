@@ -1,5 +1,40 @@
 # Page to document progress of AI Agents working on this Project
 
+## Immutable grass metadata from retained targets — 2026-10-17
+
+- Continued terrain p after 69750f7. Retained packing stores exact original
+  emitted float3 bits in three formerly reserved words/sample. Read original
+  words before overwriting the head; copy fine words out before overwriting tail.
+  Layout stays 72 bytes/sample: head radial double3 + fine float3; tail projected
+  parent double3 + original float3. Same storage, input and dispatch count.
+- TerrainMorphSource borrows targets/corner map/sample count/generation. Shared
+  GLSL decoder fetches original bits directly, avoiding repeated interpolation.
+  Grass metadata accepts it through a separate shader variant. Default shader
+  code stays the same through an include; source identity joins geometry reuse.
+  Validate generation/count/buffer IDs and sizes/seven bindings; restore ranges
+  5/6 too. Four extra uniform bytes per submission; no extra GPU buffer storage.
+- New metadata case compares every fresh/cached record with original geometry
+  through four moving footprints; live VBO metadata changes in 78,766 summed
+  triangle queries while immutable records stay exact. Checks wrong/truncated
+  sources, cache isolation and GL ranges. Retained case checks every original
+  position word plus exact radial bits (218 NaN-like low words), contact/vertex
+  parity, ownership and default output. Both cases pass on RTX 3070 Ti (11.90 s,
+  metadata 1.22 s) and Quadro M1000M (14.61 s, metadata 1.65 s); zero vertex/contact
+  error in this fixture. These include cold compilation and validation reads,
+  not production frame timings. Initial interpolation prototype was simplified
+  to raw positions before this final validation.
+- Final full 60-step build passes. 35 core groups (37.55 s), 49 RTX cases (73.40 s),
+  frame (83.00 s), streaming/replay/fallback matrix (48.58 s), inspected render
+  pass; all fifteen historical PNGs and overview exact: 14,779 non-background
+  pixels, bbox (1,1)–(794,598), 3,471 planet pixels. Logs detail-immutable-bits-*;
+  earlier prototype evidence detail-immutable-source-* stays ignored/local.
+- Runtime source/retention still disabled. Next propagate immutable decoding to
+  cells/root generation, reserve conservative area/slot envelopes, project fixed
+  root rays onto current planes/update bounds and invalidate animation on phase.
+  Then all views/capture, prepared streaming and parent-rebase continuity. Keep
+  the same p row; old native gate failure remains as last measured. No fresh
+  moving coverage/FPS claim. User config untouched and must stay unstaged.
+
 ## Runtime character deformation versions — 2026-10-17
 
 - Continued the same terrain p after 84cbf7c. SurfaceContact::Version exposes
@@ -40,14 +75,11 @@ Continuation notes for the remaining grass consumer (proposal, not implemented):
   among the eight fine/parent endpoint combinations (also cover float rounding).
   Reserve slots from that bound, evaluate visible density from current area;
   preserve explicit infeasible-budget diagnostics. Do not silently undersample.
-- Grass-only sliced staging must read an immutable source while live positions
-  move, and G4 source leases/fingerprints must remain valid. A possible zero-copy
-  source: retained targets already hold fine/parent endpoints and have three
-  reserved uint words/sample in the parent region; store initial blend double
-  there. Reconstruct initial static positions for metadata/cells/root generation
-  via target+corner-map buffer views; normals/colors stay in the unchanged VBO.
-  This would avoid an extra immutable 12 MB VBO per 100k-face mesh. Verify exact
-  reconstruction before adopting it. No implementation or cost claim yet.
+- Immutable original positions and metadata are now implemented above. Extend
+  the shared uint decoder to cell/root generation too, keeping G4 source leases
+  and fingerprints valid while live positions move. Normals/colors remain in
+  the unchanged VBO under the current position-only contract. No extra VBO copy
+  is needed. Metadata stability alone does not complete root/slot/view behavior.
 - Whole-generation grass commit can attach Mesh's shared phase in the existing
   no-throw commitPrepared transfer (pass live Mesh there). Keep mesh generation
   and per-frame phase distinct. Admission/capture/views/prepared streaming/rebase

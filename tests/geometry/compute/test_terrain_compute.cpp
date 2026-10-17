@@ -313,6 +313,10 @@ TEST(TerrainCompute, RetainedTargetsDeformWithCpuParityAndPreserveAttributesAndO
         nanWords+=(lo&0x7f800000u)==0x7f800000u && (lo&0x007fffffu)!=0;
     }
     EXPECT_GT(nanWords,0u);
+    for(std::size_t corner=0;corner<topology.indices.size();++corner) {
+        const auto offset=9*topology.samples.size()+9*topology.indices[corner]+6;
+        for(int j=0;j<3;++j) EXPECT_EQ(packed[offset+j],std::bit_cast<std::uint32_t>(initial[9*corner+j]));
+    }
     struct Bindings {
         GLuint buffer=0;
         ~Bindings() {

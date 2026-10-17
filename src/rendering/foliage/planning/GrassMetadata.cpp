@@ -53,8 +53,9 @@ GrassMetadataLimits GrassMetadataLimits::query() {
 }
 GrassMetadataGeometry::~GrassMetadataGeometry() {glDeleteBuffers(1,&buffer);}
 bool GrassMetadataGeometry::matches(GLuint v,GLuint e,const TerrainBuildStats& terrain,
-    const GrassMetadataParameters& p) const {
+    const GrassMetadataParameters& p,const TerrainMorphSource& source) const {
     return buffer && vertices==v && indices==e && generation==terrain.generation &&
+        morphSource==source &&
         triangles==terrain.gpuCorners/3 && inputs.eyeScale[3]==p.eyeScale[3] &&
         inputs.biome==p.biome && inputs.colorGreen==p.colorGreen &&
         inputs.flags[1]==p.flags[1] && inputs.flags[2]==p.flags[2];
@@ -87,10 +88,12 @@ std::vector<GrassTriangleMetadata> GrassMetadataBuffers::readForValidation() con
     glBindBuffer(GL_COPY_READ_BUFFER,previous);
     diagnosticReadBytes+=triangles*sizeof(GrassTriangleMetadata);return result;
 }
-GrassMetadataCompute::~GrassMetadataCompute() {if(shader_) glDeleteProgram(shader_->id);}
+GrassMetadataCompute::~GrassMetadataCompute() {
+    for(const auto& variant:variants_) if(variant) glDeleteProgram(variant->id);
+}
 std::unique_ptr<GrassMetadataBuffers> GrassMetadataCompute::generate(GLuint vertices,GLuint indices,
     const TerrainBuildStats& terrain,const config::PlanetConfig& planet,double metersPerWorldUnit,const glm::dvec3& eye,const GrassFalloff& policy,
-    std::shared_ptr<GrassMetadataGeometry> geometry) {
+    std::shared_ptr<GrassMetadataGeometry> geometry,const TerrainMorphSource& source) {
     if(terrain.generation.backend!=TerrainBackend::Compute || !terrain.generation.field || !terrain.generation.topology ||
         terrain.generation.fieldVersion!=PlanetField::version || !supportedTerrainTopology(terrain.generation.topologyVersion) ||
         !vertices || !indices || !glIsBuffer(vertices) || !glIsBuffer(indices) ||
@@ -98,50 +101,73 @@ std::unique_ptr<GrassMetadataBuffers> GrassMetadataCompute::generate(GLuint vert
         throw std::invalid_argument("Invalid grass metadata terrain generation");
     if(!limits_.unavailable.empty()) throw std::runtime_error(limits_.unavailable);
     if(!limits_.groups) throw std::runtime_error("Zero grass metadata dispatch capacity");
+    if(source) {
+        if(!source.targets || !source.corners || !source.samples || source.samples!=terrain.uniqueSamples ||
+           source.samples>std::numeric_limits<std::uint32_t>::max()/18 || source.generation!=terrain.generation ||
+           source.generation.topologyVersion!=4 || !glIsBuffer(source.targets) || !glIsBuffer(source.corners))
+            throw std::invalid_argument("Invalid immutable grass morph source");
+        GLint bindings=0,blocks=0;
+        glGetIntegerv(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS,&bindings);
+        glGetIntegerv(GL_MAX_COMPUTE_SHADER_STORAGE_BLOCKS,&blocks);
+        if(bindings<7 || blocks<7) throw std::runtime_error("Immutable grass morph source needs seven storage bindings");
+        if(source.samples*72>limits_.blockBytes)
+            throw std::runtime_error("Immutable grass morph source exceeds SSBO block limit");
+    }
     const auto count=terrain.gpuCorners/3;
     const std::array<std::uint64_t,4> bytes{160,terrain.gpuCorners*36,terrain.gpuCorners*4,count*64};
     for(auto size:bytes) if(size>limits_.blockBytes || size>std::uint64_t(std::numeric_limits<GLsizeiptr>::max()))
         throw std::runtime_error("Grass metadata exceeds SSBO block limit");
     const auto parameters=grassMetadataParameters(planet,metersPerWorldUnit,eye,count,policy);
-    if(!shader_) shader_=std::make_unique<Shader>("shaders/foliage/planning/metadata.comp");
+    auto& variant=variants_[source?1:0];
+    if(!variant) variant=std::make_unique<Shader>(source?
+        "shaders/foliage/planning/metadata_morph.comp":"shaders/foliage/planning/metadata.comp");
+    shader_=variant.get();
     // Preserve indexed ranges as well as buffer IDs; caller state can use ranges.
-    GLint program=0,storage=0;std::array<GLint,5> bindings{};std::array<GLint64,5> starts{},sizes{};
+    const int bindingCount=source?7:5;
+    GLint program=0,storage=0;std::array<GLint,7> bindings{};std::array<GLint64,7> starts{},sizes{};
     glGetIntegerv(GL_CURRENT_PROGRAM,&program);glGetIntegerv(GL_SHADER_STORAGE_BUFFER_BINDING,&storage);
-    for(int i=0;i<5;++i) {
+    for(int i=0;i<bindingCount;++i) {
         glGetIntegeri_v(GL_SHADER_STORAGE_BUFFER_BINDING,i,&bindings[i]);
         glGetInteger64i_v(GL_SHADER_STORAGE_BUFFER_START,i,&starts[i]);
         glGetInteger64i_v(GL_SHADER_STORAGE_BUFFER_SIZE,i,&sizes[i]);
     }
     struct Restore {
-        GLint program,storage;std::array<GLint,5> bindings;std::array<GLint64,5> starts,sizes;
+        GLint program,storage;int count;std::array<GLint,7> bindings;std::array<GLint64,7> starts,sizes;
         ~Restore() {
-            for(int i=0;i<5;++i) {
+            for(int i=0;i<count;++i) {
                 if(bindings[i] && sizes[i]>0) glBindBufferRange(GL_SHADER_STORAGE_BUFFER,i,bindings[i],starts[i],sizes[i]);
                 else glBindBufferBase(GL_SHADER_STORAGE_BUFFER,i,bindings[i]);
             }
             glBindBuffer(GL_SHADER_STORAGE_BUFFER,storage);glUseProgram(program);
         }
-    } restore{program,storage,bindings,starts,sizes};
+    } restore{program,storage,bindingCount,bindings,starts,sizes};
     // Check the actual resident source sizes, before allocating or dispatching.
     for(const auto [buffer,needed]:{std::pair{vertices,bytes[1]},std::pair{indices,bytes[2]}}) {
         glBindBuffer(GL_SHADER_STORAGE_BUFFER,buffer);GLint64 actual=0;
         glGetBufferParameteri64v(GL_SHADER_STORAGE_BUFFER,GL_BUFFER_SIZE,&actual);
         if(actual<0 || std::uint64_t(actual)<needed) throw std::invalid_argument("Truncated grass metadata terrain buffer");
     }
+    if(source) for(const auto [buffer,needed]:{std::pair{source.targets,source.samples*72},
+        std::pair{source.corners,terrain.gpuCorners*4}}) {
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER,buffer);GLint64 actual=0;
+        glGetBufferParameteri64v(GL_SHADER_STORAGE_BUFFER,GL_BUFFER_SIZE,&actual);
+        if(actual<0 || std::uint64_t(actual)<needed) throw std::invalid_argument("Truncated immutable grass morph source");
+    }
     auto result=std::make_unique<GrassMetadataBuffers>();
     result->adaptive=policy.enabled;result->generation=terrain.generation;result->planningEye=eye;result->triangles=count;
     result->inputs=parameters;
-    result->geometryReused=geometry && geometry->matches(vertices,indices,terrain,parameters);
+    result->geometryReused=geometry && geometry->matches(vertices,indices,terrain,parameters,source);
     if(!result->geometryReused) {
         geometry=std::make_shared<GrassMetadataGeometry>();
         geometry->vertices=vertices;geometry->indices=indices;geometry->generation=terrain.generation;
+        geometry->morphSource=source;
         geometry->inputs=parameters;geometry->triangles=count;
         glGenBuffers(1,&geometry->buffer);glBindBuffer(GL_SHADER_STORAGE_BUFFER,geometry->buffer);
         glBufferData(GL_SHADER_STORAGE_BUFFER,count*64,nullptr,GL_STATIC_DRAW);
         if(!geometry->buffer || glGetError()!=GL_NO_ERROR) throw std::runtime_error("Grass geometry cache allocation failed");
     }
     result->geometry=std::move(geometry);
-    result->inputBytes=164;result->workingBytes=160+count*128; // Conservatively charge shared geometry per plan.
+    result->inputBytes=source?168:164;result->workingBytes=160+count*128; // Conservatively charge shared geometry per plan.
     glGenBuffers(1,&result->parameters);glGenBuffers(1,&result->descriptors);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,result->parameters);glBufferData(GL_SHADER_STORAGE_BUFFER,160,&parameters,GL_STATIC_DRAW);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER,result->descriptors);glBufferData(GL_SHADER_STORAGE_BUFFER,count*64,nullptr,GL_STATIC_DRAW);
@@ -150,6 +176,11 @@ std::unique_ptr<GrassMetadataBuffers> GrassMetadataCompute::generate(GLuint vert
     const std::array<GLuint,5> buffers{result->parameters,vertices,indices,result->descriptors,result->geometry->buffer};
     for(int i=0;i<5;++i) glBindBufferBase(GL_SHADER_STORAGE_BUFFER,i,buffers[i]);
     shader_->use();glUniform1ui(glGetUniformLocation(shader_->id,"uReuseGeometry"),result->geometryReused);
+    if(source) {
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER,5,source.targets);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER,6,source.corners);
+        glUniform1ui(glGetUniformLocation(shader_->id,"uMorphSamples"),source.samples);
+    }
     glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     GpuWorkProfiler::Scope timing(GpuWorkStage::GrassMetadata,GpuWorkProfiler::generation(terrain.generation));
     const auto chunk=std::min<std::uint64_t>(std::uint64_t(limits_.groups)*64,65536);

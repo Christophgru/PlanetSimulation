@@ -177,3 +177,83 @@ TEST(GrassMetadata, ProductionResidentBuffersDoNotNeedTheCpuMirrorAndCachedPrepa
     p.foliage.enabled=false;grass.prepare(0,mesh,p,1000,{1.002,0,0});EXPECT_EQ(grass.stats(0).metadataBytes,0u);
     grass.clear();mesh.destroy();EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
 }
+TEST(GrassMetadata, ImmutableMorphSourceMatchesInitialGeometryAcrossLiveDeformationAndCacheReuse) {
+    auto p=planet();p.surface_noise.clear();p.terrain_landscape.enabled=p.water.enabled=false;
+    p.color={1,1,1};p.foliage.draw_distance_m=5;p.foliage.quad_distance_m=2;
+    p.foliage.max_blades=100000;p.foliage.density_per_m2=2;
+    auto& l=p.terrain_lod;l.local_detail_streaming=true;l.local_detail_radius_m=1.5;
+    l.local_edge_m=.05;l.local_error_m=.01;l.local_transition_m=.5;l.relief_sinking=true;
+    l.geometric_error_m=.05;l.max_triangle_budget=100000;l.shoreline_edge_m=0;
+    l.near_surface_distance_m=300;l.mid_surface_distance_m=1000;
+    config::PlanetConfig::SurfaceNoiseFunction noise;
+    noise.amplitude_m=.01;noise.wavelength_m=.25;noise.octaves=1;noise.seed=-71;p.surface_noise={noise};
+    auto s=surface(p);const auto radial=glm::normalize(glm::dvec3(.7,-.2,1));
+    const auto eye=radial*1.002,east=glm::normalize(glm::cross(radial,glm::dvec3(0,0,1)));
+    const auto topology=s.buildTopologyForEye(eye,{});ASSERT_FALSE(topology.localDetailLimited);
+    TerrainCompute terrain;auto gpu=terrain.generate(s.field(),topology,false,TerrainMorphStorage::Retained);
+    gpu->waitForCapture();
+    struct Owner {
+        Mesh mesh;GLuint sentinel=0;
+        ~Owner() {
+            for(int i:{5,6}) glBindBufferBase(GL_SHADER_STORAGE_BUFFER,i,0);
+            glBindBuffer(GL_SHADER_STORAGE_BUFFER,0);glUseProgram(0);
+            glDeleteBuffers(1,&sentinel);mesh.destroy();
+        }
+    } owner;
+    TerrainGeometry metadata;static_cast<TerrainBuildStats&>(metadata)=topology;
+    owner.mesh.loadComputedTerrain(std::move(metadata),*gpu,false);gpu.reset();auto& mesh=owner.mesh;
+    const TerrainMorphSource source{mesh.morphTargets,mesh.morphCorners,mesh.morphSamples,mesh.terrainStats.generation};
+    GLint alignment=0;glGetIntegerv(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT,&alignment);
+    glGenBuffers(1,&owner.sentinel);glBindBuffer(GL_SHADER_STORAGE_BUFFER,owner.sentinel);
+    glBufferData(GL_SHADER_STORAGE_BUFFER,alignment+64,nullptr,GL_STATIC_DRAW);
+    for(int i:{5,6}) glBindBufferRange(GL_SHADER_STORAGE_BUFFER,i,owner.sentinel,alignment,64);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER,0);
+    const auto assertState=[&] {
+        GLint storage=0;glGetIntegerv(GL_SHADER_STORAGE_BUFFER_BINDING,&storage);EXPECT_EQ(storage,0);
+        for(int i:{5,6}) {
+            GLint buffer=0;GLint64 start=0,size=0;
+            glGetIntegeri_v(GL_SHADER_STORAGE_BUFFER_BINDING,i,&buffer);
+            glGetInteger64i_v(GL_SHADER_STORAGE_BUFFER_START,i,&start);glGetInteger64i_v(GL_SHADER_STORAGE_BUFFER_SIZE,i,&size);
+            EXPECT_EQ(buffer,owner.sentinel);EXPECT_EQ(start,alignment);EXPECT_EQ(size,64);
+        }
+    };
+    GrassMetadataCompute compute;
+    auto original=compute.generate(mesh.vbo,mesh.ebo,mesh.terrainStats,p,1000,eye);
+    original->waitForCapture();const auto expected=original->readForValidation();
+    auto initial=compute.generate(mesh.vbo,mesh.ebo,mesh.terrainStats,p,1000,eye,{},original->geometry,source);
+    initial->waitForCapture();EXPECT_FALSE(initial->geometryReused);assertState();
+    const auto compare=[&](const auto& actual) {
+        ASSERT_EQ(actual.size(),expected.size());
+        for(std::size_t i=0;i<actual.size();++i) {
+            ASSERT_EQ(actual[i].centerReach,expected[i].centerReach) << i;
+            ASSERT_EQ(actual[i].areaDistance,expected[i].areaDistance) << i;
+            ASSERT_EQ(actual[i].identity,expected[i].identity) << i;
+        }
+    };
+    compare(initial->readForValidation());
+    std::size_t changed=0;
+    for(double offset:{0.,.15,.30,0.}) {
+        SCOPED_TRACE(offset);terrain.deform(mesh,{glm::normalize(radial+east*(offset/1000)),1000,.5,.5});
+        auto fresh=compute.generate(mesh.vbo,mesh.ebo,mesh.terrainStats,p,1000,eye,{},nullptr,source);
+        fresh->waitForCapture();EXPECT_FALSE(fresh->geometryReused);compare(fresh->readForValidation());assertState();
+        auto reused=compute.generate(mesh.vbo,mesh.ebo,mesh.terrainStats,p,1000,eye,{},initial->geometry,source);
+        reused->waitForCapture();EXPECT_TRUE(reused->geometryReused);compare(reused->readForValidation());assertState();
+        EXPECT_EQ(fresh->workingBytes,original->workingBytes);EXPECT_EQ(fresh->inputBytes,original->inputBytes+4);
+        auto live=compute.generate(mesh.vbo,mesh.ebo,mesh.terrainStats,p,1000,eye,{},initial->geometry);
+        live->waitForCapture();EXPECT_FALSE(live->geometryReused);
+        const auto actual=live->readForValidation();
+        for(std::size_t i=0;i<actual.size();++i) changed+=actual[i].centerReach!=expected[i].centerReach;
+    }
+    EXPECT_GT(changed,0u);
+    auto invalid=source;invalid.generation.topology++;
+    EXPECT_THROW(compute.generate(mesh.vbo,mesh.ebo,mesh.terrainStats,p,1000,eye,{},nullptr,invalid),std::invalid_argument);
+    invalid=source;invalid.samples++;
+    EXPECT_THROW(compute.generate(mesh.vbo,mesh.ebo,mesh.terrainStats,p,1000,eye,{},nullptr,invalid),std::invalid_argument);
+    invalid=source;invalid.targets=0;
+    EXPECT_THROW(compute.generate(mesh.vbo,mesh.ebo,mesh.terrainStats,p,1000,eye,{},nullptr,invalid),std::invalid_argument);
+    invalid=source;invalid.targets=owner.sentinel;
+    EXPECT_THROW(compute.generate(mesh.vbo,mesh.ebo,mesh.terrainStats,p,1000,eye,{},nullptr,invalid),std::invalid_argument);
+    assertState();EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+    std::cout << "IMMUTABLE_MORPH_METADATA triangles=" << expected.size() << " changed_live_triangle_queries=" << changed
+        << " extra_gpu_storage_bytes=0 extra_uniform_bytes=4\n";
+}

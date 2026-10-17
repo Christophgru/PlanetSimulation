@@ -1,0 +1,73 @@
+layout(local_size_x=64) in;
+layout(std430,binding=0) readonly buffer Parameters {
+    dvec4 eyeScale; dvec4 ranges; dvec4 biome; dvec4 colorGreen;
+    uvec4 flags; uvec4 padding;
+};
+layout(std430,binding=1) readonly buffer Vertices { float vertices[]; };
+layout(std430,binding=2) readonly buffer Indices { uint indices[]; };
+struct Metadata { dvec4 centerReach; dvec2 areaDistance; uvec4 identity; };
+layout(std430,binding=3) writeonly buffer Descriptors { Metadata descriptors[]; };
+layout(std430,binding=4) buffer Geometry { Metadata geometry[]; };
+uniform uint uFirst,uEnd,uReuseGeometry;
+#ifdef GRASS_MORPH_SOURCE
+layout(std430,binding=5) readonly buffer MorphTargets {uint morphWords[];};
+layout(std430,binding=6) readonly buffer MorphCorners {uint morphCorners[];};
+uniform uint uMorphSamples;
+uint terrainMorphWord(uint offset) {return morphWords[offset];}
+uint terrainMorphCorner(uint corner) {return morphCorners[corner];}
+#include "../../terrain/compute/morph_source.glsl"
+#endif
+dvec3 vertex(uint index,uint offset) {
+#ifdef GRASS_MORPH_SOURCE
+    if(offset==0u) return dvec3(terrainMorphInitialPosition(index,uMorphSamples));
+#endif
+    uint i=index*9u+offset;return dvec3(vertices[i],vertices[i+1u],vertices[i+2u]);
+}
+// GLSL 4.30 exposes exp for floats only. Reduce a nonpositive double exponent
+// to [-ln(2)/2,ln(2)/2], evaluate 18 Taylor terms, then apply exact binary scale.
+// For eligible Gaussian patches x is normally >= -200; below -700 its
+// contribution cannot meet the planner's 1e-6 threshold with supported budgets.
+double gaussianExp(double x) {
+    if(x < -700.0lf) return 0.0lf;
+    const double ln2=0.693147180559945309417232121458176568lf;
+    int power=int(roundEven(x/ln2));
+    double r=x-double(power)*ln2,term=1.0lf,sum=1.0lf;
+    for(int i=1;i<=18;++i) {term*=r/double(i);sum+=term;}
+    return ldexp(sum,power);
+}
+void main() {
+    uint t=uFirst+gl_GlobalInvocationID.x;if(t>=uEnd || t>=flags.w) return;
+    Metadata m; m.centerReach=dvec4(0);m.areaDistance=dvec2(0);m.identity=uvec4(t,0,0,0);
+    descriptors[t]=m;
+    Metadata base;
+    if(uReuseGeometry!=0u) base=geometry[t];
+    else {
+        uint ia=indices[t*3u],ib=indices[t*3u+1u],ic=indices[t*3u+2u];
+        dvec3 a=vertex(ia,0),b=vertex(ib,0),c=vertex(ic,0);
+        dvec3 center=(a+b+c)/3.0lf;
+        double reach=max(max(length(a-center),length(b-center)),length(c-center));
+        dvec3 crossed=cross(b-a,c-a);
+        double area=length(crossed)*0.5lf*eyeScale.w*eyeScale.w;
+        dvec3 n=vertex(ia,3)+vertex(ib,3)+vertex(ic,3);
+        dvec3 tint=(vertex(ia,6)*colorGreen.xyz+vertex(ib,6)*colorGreen.xyz+vertex(ic,6)*colorGreen.xyz)/3.0lf;
+        double radialReach=2.0lf*reach/max(1e-9lf,length(center)-reach);
+        double highest=(max(max(length(a),length(b)),length(c))-1.0lf)*eyeScale.w;
+        bool valid=!isnan(area) && !isinf(area) && area>1e-10lf && length(center)>=1e-9lf && length(n)>=1e-9lf;
+        valid=valid && 1.0lf-dot(normalize(n),normalize(center))-radialReach<biome.z;
+        valid=valid && (flags.y==0u || highest>biome.x+biome.y);
+        valid=valid && (flags.z==0u || (abs(dot(normalize(crossed),a))-1.0lf)*eyeScale.w<biome.w);
+        valid=valid && (flags.z!=0u || tint.y>colorGreen.w*max(tint.x,tint.z));
+        base.centerReach=dvec4(center,reach);base.areaDistance=dvec2(area,0);
+        base.identity=uvec4(t,uint(valid),0,0);geometry[t]=base;
+    }
+    if(flags.x==0u) return;
+    double reach=base.centerReach.w;
+    double distance=length(base.centerReach.xyz-eyeScale.xyz)*eyeScale.w;
+    m.centerReach=base.centerReach;m.areaDistance.y=distance;descriptors[t]=m;
+    if(distance-reach*eyeScale.w>ranges.x+ranges.y || base.identity.y==0u) return;
+    double area=base.areaDistance.x;
+    double minimumDistance=max(0.0lf,distance-reach*eyeScale.w-ranges.y);
+    double weighted=padding.x!=0u ? area : area*gaussianExp(-minimumDistance*minimumDistance/ranges.z);
+    if(padding.x!=0u ? weighted<1e-12lf : weighted*ranges.w<1e-6lf) return;
+    m.areaDistance.x=weighted;m.identity.y=1u;descriptors[t]=m;
+}

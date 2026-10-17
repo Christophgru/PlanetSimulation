@@ -213,11 +213,15 @@ void main() {
 #ifdef TERRAIN_RETAIN_TARGETS
     if(uPhase==3) {
         uint base=9u*i,tail=9u*uint(uSamples)+base;
+        uvec3 initialPosition=uvec3(uniqueWords[base],uniqueWords[base+1u],uniqueWords[base+2u]);
         for(uint j=0u;j<3u;++j) {
             uvec2 bits=unpackDouble2x32(inputs[i][j]);
             uniqueWords[base+2u*j]=bits.x;uniqueWords[base+2u*j+1u]=bits.y;
             uniqueWords[base+6u+j]=uniqueWords[tail+6u+j];
         }
+        // Preserve exact emitted float bits for immutable downstream planning;
+        // no interpolation arithmetic needs to be repeated by another shader.
+        for(uint j=0u;j<3u;++j) uniqueWords[tail+6u+j]=initialPosition[j];
         return;
     }
 #endif

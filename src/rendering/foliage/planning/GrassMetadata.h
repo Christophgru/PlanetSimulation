@@ -7,6 +7,7 @@
 #include <vector>
 #include "rendering/geometry/terrain/TerrainTopology.h"
 #include "rendering/Shader.h"
+#include "rendering/geometry/compute/TerrainCompute.h"
 #include "rendering/foliage/planning/GrassBudget.h"
 namespace config { struct PlanetConfig; }
 namespace rendering {
@@ -44,6 +45,7 @@ struct GrassMetadataLimits {
 struct GrassMetadataGeometry {
     GLuint buffer=0,vertices=0,indices=0;
     TerrainGenerationKey generation;
+    TerrainMorphSource morphSource;
     GrassMetadataParameters inputs;
     std::uint64_t triangles=0;
     ~GrassMetadataGeometry();
@@ -51,7 +53,7 @@ struct GrassMetadataGeometry {
     GrassMetadataGeometry(const GrassMetadataGeometry&)=delete;
     GrassMetadataGeometry& operator=(const GrassMetadataGeometry&)=delete;
     bool matches(GLuint v,GLuint e,const TerrainBuildStats& terrain,
-        const GrassMetadataParameters& parameters) const;
+        const GrassMetadataParameters& parameters,const TerrainMorphSource& source={}) const;
 };
 struct GrassMetadataBuffers {
     GLuint descriptors=0,parameters=0;
@@ -75,7 +77,8 @@ struct GrassMetadataBuffers {
 };
 class GrassMetadataCompute {
     GrassMetadataLimits limits_;
-    std::unique_ptr<Shader> shader_;
+    Shader* shader_=nullptr;
+    std::array<std::unique_ptr<Shader>,2> variants_;
 public:
     explicit GrassMetadataCompute(GrassMetadataLimits limits=GrassMetadataLimits::query()) : limits_(std::move(limits)) {}
     ~GrassMetadataCompute();
@@ -86,7 +89,7 @@ public:
     std::unique_ptr<GrassMetadataBuffers> generate(GLuint vertices,GLuint indices,
         const TerrainBuildStats& terrain,const config::PlanetConfig& planet,
         double metersPerWorldUnit,const glm::dvec3& eye,const GrassFalloff& policy={},
-        std::shared_ptr<GrassMetadataGeometry> geometry={});
+        std::shared_ptr<GrassMetadataGeometry> geometry={},const TerrainMorphSource& source={});
     GLuint program() const { return shader_ ? shader_->id : 0; }
 };
 }

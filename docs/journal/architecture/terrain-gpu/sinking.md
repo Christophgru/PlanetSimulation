@@ -1,5 +1,51 @@
 # Relief-aware terrain sinking
 
+## Immutable metadata while live terrain moves — 2026-10-17
+
+Grass staging needs stable inputs while the live VBO changes. Retained target
+packing now preserves the original emitted float3 position in the three
+previously reserved parent-region words. It reads those exact uint bits before
+repacking the head, and copies out the fine float positions before overwriting
+the tail. Radial, fine and parent values keep their existing layout;
+allocated bytes, counted terrain input and dispatch count remain unchanged.
+
+A shared GLSL decoder fetches the exact original float bits, so another shader
+does not need to repeat interpolation arithmetic. `TerrainMorphSource` borrows
+those immutable targets and the canonical corner map, with sample count and
+generation.
+The owner must retain the buffers through consumers' submitted work, as with the
+existing VBO/EBO inputs.
+
+Grass metadata accepts this optional source. A separate shader variant reads
+positions from the decoder and unchanged normals/colors from the VBO. Default
+metadata uses its original code; cached geometry includes source identity in its
+reuse checks. The optional path validates generation, detail version, sample
+count, live buffer IDs/sizes and seven storage bindings, restoring all affected
+indexed ranges. It adds four uniform bytes per metadata submission, and no GPU
+buffer storage or CPU field evaluations. Shader programs are cached separately.
+
+The new GPU test compares every initial, freshly recomputed and reused metadata
+record across moving footprints, proves that metadata from the live VBO changes,
+and exercises invalid/truncated sources and binding-range restoration. The
+retained-target test checks every saved original position bit as well as radial
+bits. Both focused cases pass on the RTX 3070 Ti (11.90 s total, metadata 1.22 s)
+and Quadro M1000M (14.61 s total, metadata 1.65 s). Across four footprints,
+78,766 summed live triangle queries change while every immutable metadata record
+stays exact. The retained fixture reports zero vertex/contact error. These test
+times include cold compilation and validation reads; they are not frame timings.
+
+The final full 60-step build passes. All 35 core groups (37.55 s), 49 RTX cases
+(73.40 s), frame integration (83.00 s), streaming/replay/fallback matrix (48.58 s),
+and render inspection pass. All fifteen historical PNGs and the overview remain
+byte-identical: 14,779 non-background pixels, bounds (1,1)–(794,598), 3,471 planet
+pixels. Evidence stays local under `build-f5/resume/detail-immutable-bits-*`.
+
+This enables stable metadata input; cells/root staging, conservative area/slot
+envelopes, root reprojection, bounds and animation phase invalidation still need
+to be connected. Runtime retention and this source remain disabled. Prepared
+streaming, view/capture state and parent rebases remain outstanding; terrain stays
+**p**, with no new coverage or performance claim.
+
 ## Character contact versions — 2026-10-17
 
 Runtime character bindings now carry the mesh's optional shared deformation
@@ -95,7 +141,7 @@ after ordinary corner expansion. The existing 72 bytes per canonical sample hold
 | Region | Data |
 |:--|:--|
 | First 36 bytes/sample | Radial double3 and fine float3 |
-| Second 36 bytes/sample | Projected parent double3 and reserved words |
+| Second 36 bytes/sample | Projected parent double3, original float3 position |
 
 The storage uses uint words for double packing. This preserves low words that
 would be NaNs if treated as numeric floats. The test verifies every radial bit,
