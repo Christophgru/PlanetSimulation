@@ -4,6 +4,8 @@
 #include <unordered_map>
 
 namespace rendering {
+class TerrainMorphState;
+struct TerrainMorphFootprint;
 struct SparseContactStats {
     std::uint64_t queries=0, nodesVisited=0, candidateTriangles=0, heightEvaluations=0;
     std::size_t residentPositions=0, topologyBytes=0, indexBytes=0;
@@ -30,6 +32,7 @@ public:
     double radiusMeters() const { return field_.radiusWorld()*field_.metersPerUnit(); }
     std::vector<unsigned> candidates(const glm::dvec3& unitRadial);
     std::array<glm::dvec3,3> triangle(unsigned id);
+    std::array<glm::dvec3,3> triangle(unsigned id,const TerrainMorphState& state);
     SparseContactStats stats() const;
 private:
     struct Node {
@@ -41,6 +44,8 @@ private:
         SparseContactStats& stats) const;
     bool intersects(const Node& node,const glm::dvec3& radial) const;
     glm::vec3 position(unsigned id);
+    glm::vec3 position(unsigned id,const TerrainMorphFootprint& footprint);
+    void fitPositionCache();
     PlanetField field_;
     TerrainTopology topology_;
     TerrainGenerationKey generation_;
@@ -49,6 +54,8 @@ private:
     std::shared_ptr<const SparseTerrainContacts> parent_;
     std::vector<unsigned> parentToCurrent_;
     std::unordered_map<unsigned,glm::vec3> positions_;
+    struct MorphTarget {glm::vec3 fine{0};glm::dvec3 parent{0};bool parentReady=false;};
+    std::unordered_map<unsigned,MorphTarget> morphTargets_;
     SparseContactStats stats_;
 };
 }

@@ -173,8 +173,33 @@ glm::vec3 SparseTerrainContacts::position(unsigned id) {
         stats_.heightEvaluations+=m.blend[0]==0?1:
             (m.parent[0]==m.parent[1] && m.parent[0]==m.parent[2]?2:4);
     }
-    if(positions_.size()==positionCapacity) positions_.clear();
+    fitPositionCache();
     positions_.emplace(id,p);return p;
+}
+void SparseTerrainContacts::fitPositionCache() {
+    if(positions_.size()+morphTargets_.size()>=positionCapacity) {
+        positions_.clear();morphTargets_.clear();
+    }
+}
+glm::vec3 SparseTerrainContacts::position(unsigned id,const TerrainMorphFootprint& footprint) {
+    auto it=morphTargets_.find(id);
+    if(it==morphTargets_.end()) {
+        const auto fine=terrainPosition(field_,topology_.samples.at(id),topology_.surfacePolicy);
+        ++stats_.heightEvaluations;
+        fitPositionCache();
+        it=morphTargets_.emplace(id,MorphTarget{glm::vec3(fine)}).first;
+    }
+    auto& target=it->second;
+    const auto& s=topology_.samples[id];
+    const auto weight=terrainMorphWeight(radial(s),footprint);
+    if(weight==0) return target.fine;
+    if(!target.parentReady) {
+        const auto& m=topology_.morph[id];
+        target.parent=terrainParentPosition(field_,s,m,topology_.parentPolicy);
+        stats_.heightEvaluations+=m.parent[0]==m.parent[1] && m.parent[0]==m.parent[2]?1:3;
+        target.parentReady=true;
+    }
+    return glm::vec3(glm::dvec3(target.fine)+(target.parent-glm::dvec3(target.fine))*weight);
 }
 std::array<glm::dvec3,3> SparseTerrainContacts::triangle(unsigned id) {
     if(id>=topology_.indices.size()/3) throw std::out_of_range("Contact triangle outside topology");
@@ -182,7 +207,17 @@ std::array<glm::dvec3,3> SparseTerrainContacts::triangle(unsigned id) {
     for(int j=0;j<3;++j) result[j]=position(topology_.indices[3*id+j]);
     return result;
 }
+std::array<glm::dvec3,3> SparseTerrainContacts::triangle(unsigned id,const TerrainMorphState& state) {
+    const auto* footprint=state.footprint();
+    if(!footprint) return triangle(id);
+    if(id>=topology_.indices.size()/3) throw std::out_of_range("Contact triangle outside topology");
+    if(topology_.morph.empty() || footprint->metersPerRadius!=radiusMeters())
+        throw std::invalid_argument("Contact deformation requires detail terrain at its physical scale");
+    std::array<glm::dvec3,3> result;
+    for(int j=0;j<3;++j) result[j]=position(topology_.indices[3*id+j],*footprint);
+    return result;
+}
 SparseContactStats SparseTerrainContacts::stats() const {
-    auto result=stats_;result.residentPositions=positions_.size();return result;
+    auto result=stats_;result.residentPositions=positions_.size()+morphTargets_.size();return result;
 }
 }

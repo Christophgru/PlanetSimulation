@@ -1,5 +1,6 @@
 #include "rendering/geometry/compute/TerrainCompute.h"
 #include "rendering/geometry/Mesh.h"
+#include "rendering/geometry/contacts/SparseTerrainContacts.h"
 #include "rendering/diagnostics/timing/GpuWorkProfiler.h"
 #include <algorithm>
 #include <cmath>
@@ -217,19 +218,17 @@ std::unique_ptr<TerrainComputeBuffers> TerrainCompute::generateValidated(const P
     return result;
 }
 void TerrainCompute::deform(Mesh& mesh,const TerrainMorphFootprint& footprint) {
-    if(!mesh.residentTerrain || !mesh.vbo || !mesh.morphTargets || !mesh.morphCorners ||
+    if(!mesh.residentTerrain || !mesh.vbo || !mesh.morphTargets || !mesh.morphCorners || !mesh.morphState ||
        !mesh.indexCount || !mesh.morphSamples || mesh.morphSamples!=mesh.terrainStats.uniqueSamples ||
        mesh.indexCount>std::numeric_limits<GLsizei>::max()/9 ||
        mesh.morphSamples>std::numeric_limits<std::uint32_t>::max()/18)
         throw std::invalid_argument("Terrain mesh has no complete retained morph targets");
-    if(mesh.contacts) throw std::logic_error("Bound terrain contacts need a shared deformation phase");
+    validateTerrainMorphFootprint(footprint);
+    if(mesh.contacts && (mesh.contacts->generation()!=mesh.terrainStats.generation ||
+       mesh.contacts->radiusMeters()!=footprint.metersPerRadius))
+        throw std::invalid_argument("Incompatible terrain contact deformation source");
     const auto& eye=footprint.eyeRadial;
-    if(!std::isfinite(eye.x) || !std::isfinite(eye.y) || !std::isfinite(eye.z) ||
-       std::abs(glm::dot(eye,eye)-1)>1e-12 ||
-       !std::isfinite(footprint.metersPerRadius) || footprint.metersPerRadius<=0 ||
-       !std::isfinite(footprint.radiusMeters) || footprint.radiusMeters<0 ||
-       !std::isfinite(footprint.transitionMeters) || footprint.transitionMeters<=0)
-        throw std::invalid_argument("Invalid terrain morph footprint");
+    auto nextPhase=*mesh.morphState;nextPhase.set(footprint);
     if(!limits_.unavailable.empty() || !limits_.groups) throw std::runtime_error("Terrain deformation compute unavailable");
     if(!morphShader_) morphShader_=std::make_unique<Shader>("shaders/terrain/compute/morph.comp");
     GLint previousProgram=0,previousStorage=0;
@@ -265,5 +264,6 @@ void TerrainCompute::deform(Mesh& mesh,const TerrainMorphFootprint& footprint) {
     }
     glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT|GL_SHADER_STORAGE_BARRIER_BIT|GL_TEXTURE_FETCH_BARRIER_BIT);
     if(glGetError()!=GL_NO_ERROR) throw std::runtime_error("Terrain deformation submission failed");
+    *mesh.morphState=std::move(nextPhase);
 }
 }

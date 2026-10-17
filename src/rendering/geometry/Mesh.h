@@ -8,6 +8,7 @@
 namespace rendering { struct TerrainGeometry; }
 namespace rendering { struct TerrainComputeBuffers; }
 namespace rendering { class SparseTerrainContacts; }
+namespace rendering { class TerrainMorphState; }
 
 class Mesh {
 public:
@@ -16,6 +17,7 @@ public:
     GLuint ebo = 0;
     GLuint morphTargets=0,morphCorners=0;
     std::size_t morphSamples=0;
+    std::shared_ptr<rendering::TerrainMorphState> morphState;
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
     std::vector<std::array<std::uint32_t,4>> grassCellKeys;

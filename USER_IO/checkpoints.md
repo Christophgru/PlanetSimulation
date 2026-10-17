@@ -1,5 +1,32 @@
 # Page to document progress of AI Agents working on this Project
 
+## Shared contact deformation phase — 2026-10-17
+
+- Continued the same terrain p after a48cc4d. Retained Mesh now owns pure-CPU
+  TerrainMorphState separately from immutable topology/generation. Validated
+  footprint changes advance a monotonic revision. GPU deformation publishes the
+  next phase after successful submission; bad input/backend leaves it unchanged.
+- SurfaceContact optionally shares the phase and clears its triangle-ID cache on
+  changes, including same-source rebinding. Explicit phase-aware sparse triangles
+  cache fine/parent endpoints lazily; total static positions + dynamic target
+  records remains ≤1024. Dynamic records are larger; no memory-saving claim.
+  Warm endpoints need no field evaluations for phase-only queries. Static APIs
+  and aliased snapshots remain unchanged and validated after deformation queries.
+- Phase ownership follows Mesh swap/fallback/destruction; a contact wrapper can
+  retain CPU state/source after GPU buffers retire. Wrong source generation or
+  physical scale is rejected by the deformer. No live runtime retention enabled.
+- Full 102-step rebuild + final rebind fix rebuild pass. Nine focused contact
+  cases pass (6.70 s); focused RTX retained-target case (3.00 s) reports zero
+  position/contact error. Full 35 core groups (42.41 s), 48 RTX cases (77.15 s),
+  frame integration (90.31 s), 15-render replay/fallback matrix (67.68 s) pass.
+  All fifteen historical PNGs and inspected overview match exactly: 14,779 pixels,
+  bbox (1,1)–(794,598), 3,471 planet pixels. Evidence detail-contact-phase-*.
+- Report sinking.md; todo remains p. Next connect runtime contact bindings and
+  planted-foot refresh to phase changes; then grass roots/animation, all views/
+  capture, prepared streaming and parent-rebase continuity. Old native gate still
+  fails as last collected; no fresh moving-coverage or FPS claim. User production
+  config untouched and must stay unstaged. Later todo rows still queued.
+
 ## Retained GPU morph targets — 2026-10-17
 
 - 65a4187 commits prepared-overlap proof below. Added standalone optional retained

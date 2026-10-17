@@ -1,11 +1,12 @@
 #include "rendering/character/SurfaceContact.h"
 #include "rendering/geometry/contacts/SparseTerrainContacts.h"
+#include "rendering/geometry/terrain/detail/TerrainMorph.h"
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
 
 namespace rendering {
-void SurfaceContact::clear() { vertices_=nullptr; indices_=nullptr; sparse_.reset();cached_=next_=0; }
+void SurfaceContact::clear() { vertices_=nullptr; indices_=nullptr; sparse_.reset();morph_.reset();morphRevision_=0;cached_=next_=0; }
 void SurfaceContact::bind(const std::vector<float>& vertices,const std::vector<unsigned>& indices,
                          std::uint64_t revision,double radiusMeters,int stride) {
     if (!std::isfinite(radiusMeters) || radiusMeters<=0 || stride<3)
@@ -13,12 +14,16 @@ void SurfaceContact::bind(const std::vector<float>& vertices,const std::vector<u
     if (sparse_ || vertices_!=&vertices || indices_!=&indices || revision_!=revision || stride_!=stride || radiusMeters_!=radiusMeters)
         cached_=next_=0;
     sparse_.reset();
+    morph_.reset();morphRevision_=0;
     vertices_=&vertices; indices_=&indices; revision_=revision;
     radiusMeters_=radiusMeters; stride_=stride;
 }
-void SurfaceContact::bind(std::shared_ptr<SparseTerrainContacts> source,std::uint64_t revision) {
+void SurfaceContact::bind(std::shared_ptr<SparseTerrainContacts> source,std::uint64_t revision,
+    std::shared_ptr<const TerrainMorphState> morph) {
     if(!source) throw std::invalid_argument("Missing sparse contact generation");
-    if(sparse_!=source || revision_!=revision) cached_=next_=0;
+    const auto morphRevision=morph?morph->revision():0;
+    if(sparse_!=source || revision_!=revision || morph_!=morph || morphRevision_!=morphRevision) cached_=next_=0;
+    morph_=std::move(morph);morphRevision_=morphRevision;
     sparse_=std::move(source);vertices_=nullptr;indices_=nullptr;revision_=revision;
     radiusMeters_=sparse_->radiusMeters();
 }
@@ -26,7 +31,8 @@ bool SurfaceContact::hit(unsigned triangle,const glm::dvec3& radial,GroundContac
     const std::size_t first=std::size_t(triangle)*3;
     glm::dvec3 p[3];
     if(sparse_) {
-        const auto positions=sparse_->triangle(triangle);for(int j=0;j<3;++j) p[j]=positions[j];
+        const auto positions=morph_?sparse_->triangle(triangle,*morph_):sparse_->triangle(triangle);
+        for(int j=0;j<3;++j) p[j]=positions[j];
     } else {
       if (!indices_ || first+2>=indices_->size()) return false;
       for (int j=0;j<3;++j) {
@@ -51,6 +57,8 @@ GroundContact SurfaceContact::sample(const glm::dvec3& direction,const GroundQue
     if (!std::isfinite(length) || length<1e-12)
         throw std::invalid_argument("Ground query requires a finite radial direction");
     const auto radial=direction/length;
+    const auto morphRevision=morph_?morph_->revision():0;
+    if(morphRevision!=morphRevision_) {cached_=next_=0;morphRevision_=morphRevision;}
     GroundContact result;
     for (unsigned i=0;i<cached_;++i) if (hit(cache_[i],radial,result)) return result;
     if(sparse_) for(const auto triangle:sparse_->candidates(radial)) {

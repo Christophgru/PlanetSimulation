@@ -1,5 +1,49 @@
 # Relief-aware terrain sinking
 
+## Shared CPU contact deformation state — 2026-10-17
+
+Retained terrain now owns a small `TerrainMorphState` independent of the immutable
+field/topology generation. It starts inactive, validates physical footprints,
+and increments its revision only when the footprint changes. The GPU deformer
+prepares the next state before submission and publishes it only after successful
+submission. Bound contacts must match the mesh generation and physical scale.
+Mesh swap transfers the state alongside its target buffers; upload/fallback and
+destruction release ownership. A contact wrapper can retain its CPU state after
+the GPU mesh retires without holding OpenGL resources.
+
+`SurfaceContact::bind` accepts this optional shared state and clears its triangle
+ID cache when the phase changes. Its source has an explicit phase-aware triangle
+query; existing static queries and aliased topology snapshots retain their
+original geometry and identity. A bounded lazy cache stores fine float positions
+and projected parent double targets. Phase changes interpolate these targets
+without repeating field work once both endpoints are resident. Static positions
+and dynamic target records together remain bounded to 1,024 entries. A dynamic
+target record contains two endpoints and is larger than a static position;
+this is a bounded working-set addition, not a memory-saving claim.
+
+Tests compare moving contacts with independently reweighted CPU topology and
+actual deformed GPU vertex planes, including the transition annulus, turns and
+return. They also exercise static snapshot immutability, combined cache bounds,
+endpoint reuse, invalid/legacy/scale rejection, revisions and retirement lifetime.
+The focused CPU suite passes all nine cases (6.70 s). The RTX case passes in
+3.00 s with zero vertex and contact-plane error; its unavailable-backend check
+also confirms that unsuccessful submission leaves the active CPU phase intact.
+Rebinding the same source/state observes revision changes rather than silently
+retaining a stale edge-tie cache.
+
+The full 102-step build plus the final rebinding rebuild pass. All 35 core groups
+(42.41 s), 48 RTX cases (77.15 s), frame integration (90.31 s), and the 15-render
+replay/fallback matrix (67.68 s) pass. All fifteen historical PNGs remain exact.
+The separately inspected 800×600 overview is also byte-identical: 14,779
+non-background pixels, bounds (1,1)–(794,598), 3,471 planet pixels. Local evidence:
+`build-f5/resume/detail-contact-phase-*`.
+
+Every runtime GPU preparation still uses transient storage. Runtime character
+phase refresh, persistent grass roots and animation, all views/capture, prepared
+streaming and parent-rebase continuity remain to be connected before enabling
+moving deformation. The existing native coverage failure remains open; terrain
+stays **p** and no frame-time improvement is claimed.
+
 ## Retained GPU position targets — 2026-10-17
 
 A standalone, opt-in compute primitive can now move a detail blend footprint
@@ -36,9 +80,9 @@ and preserves normals, colors, indices and cell identities. It restores program,
 SSBO ranges and generic binding, with barriers for vertex, storage and texture
 consumers. The shader is warmed during retained generation on the same compute
 instance. Invalid footprints, legacy/nonretained meshes and CPU mirrors are
-rejected. Meshes with bound contacts are also rejected until a shared deformation
-phase is implemented; the application therefore cannot accidentally enable this
-partial path for its live terrain consumers.
+rejected. At this checkpoint meshes with bound contacts were also rejected; the
+shared CPU state section above records the subsequent explicit contact path.
+Runtime retention remains disabled pending the remaining consumers.
 
 The focused RTX test moves the center through 0/0.05/0.15/0.30/0.15/0 m, comparing
 every output position with independently reweighted CPU topology. This fixture
@@ -58,7 +102,7 @@ production code changed after the full suite. The first GPU attempt caught a
 reserved GLSL identifier, corrected before these passing checks.
 
 This is a position-deformation primitive, **not runtime temporal publication**.
-Shared contacts/grass/view/capture phase, prepared-patch streaming, and parent
+The shared runtime grass/view/capture phase, prepared-patch streaming, and parent
 rebase continuity remain required. No new live-coverage or FPS result is claimed;
 the previous moving gate failure remains open and terrain stays **p**. Raw logs
 and counters remain local under `build-f5/resume/detail-targets-*`.

@@ -163,12 +163,14 @@ void Mesh::loadComputedTerrain(rendering::TerrainGeometry geometry,
        (buffers.retainedMorph && (!buffers.scratch[1] || !buffers.scratch[2] || !buffers.stats.uniqueSamples)) ||
        (buffers.contacts && buffers.contacts->generation()!=buffers.stats.generation))
         throw std::invalid_argument("Incomplete or incompatible computed terrain generation");
+    auto phase=buffers.retainedMorph?std::make_shared<rendering::TerrainMorphState>():nullptr;
     // Caller publishes only after the whole land/water pair has completed.
     destroy();
     vao=std::exchange(buffers.vao,0);vbo=std::exchange(buffers.vbo,0);ebo=std::exchange(buffers.ebo,0);
     if(buffers.retainedMorph) {
         morphTargets=std::exchange(buffers.scratch[1],0);morphCorners=std::exchange(buffers.scratch[2],0);
         morphSamples=buffers.stats.uniqueSamples;
+        morphState=std::move(phase);
     }
     terrainStats=std::move(buffers.stats);
     contacts=std::move(buffers.contacts);
@@ -199,6 +201,7 @@ void Mesh::releaseMorphTargets() {
         const GLuint buffers[]{morphTargets,morphCorners};glDeleteBuffers(2,buffers);
     }
     morphTargets=morphCorners=0;morphSamples=0;
+    morphState.reset();
 }
 void Mesh::destroy() {
     contacts.reset();
@@ -214,6 +217,7 @@ void Mesh::swap(Mesh& other) noexcept {
     using std::swap;
     swap(vao,other.vao);swap(vbo,other.vbo);swap(ebo,other.ebo);
     swap(morphTargets,other.morphTargets);swap(morphCorners,other.morphCorners);swap(morphSamples,other.morphSamples);
+    morphState.swap(other.morphState);
     vertices.swap(other.vertices);indices.swap(other.indices);
     grassCellKeys.swap(other.grassCellKeys);swap(cellKeyOffset,other.cellKeyOffset);
     swap(hasVertexColors,other.hasVertexColors);swap(residentTerrain,other.residentTerrain);

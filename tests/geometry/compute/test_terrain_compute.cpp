@@ -291,8 +291,12 @@ TEST(TerrainCompute, RetainedTargetsDeformWithCpuParityAndPreserveAttributesAndO
     struct Owner {Mesh mesh;~Owner(){mesh.destroy();}} owner;
     auto& mesh=owner.mesh;
     TerrainGeometry metadata;static_cast<TerrainBuildStats&>(metadata)=topology;
+    retained->contacts=std::make_shared<SparseTerrainContacts>(surface.field(),topology);
     const auto targets=retained->scratch[1],corners=retained->scratch[2];
     mesh.loadComputedTerrain(std::move(metadata),*retained,false);
+    ASSERT_TRUE(mesh.morphState);EXPECT_EQ(mesh.morphState->revision(),0u);
+    SurfaceContact sharedContact;sharedContact.bind(mesh.contacts,mesh.revision,mesh.morphState);
+    std::weak_ptr<TerrainMorphState> phaseLifetime=mesh.morphState;
     EXPECT_EQ(retained->scratch[1],0u);EXPECT_EQ(retained->scratch[2],0u);
     retained.reset();ordinary.reset(); // Preparation scratch is gone; retained views still own their buffers.
     EXPECT_TRUE(glIsBuffer(targets));EXPECT_TRUE(glIsBuffer(corners));
@@ -329,10 +333,15 @@ TEST(TerrainCompute, RetainedTargetsDeformWithCpuParityAndPreserveAttributesAndO
         glBindBuffer(GL_COPY_READ_BUFFER,previous);return result;
     };
     const auto east=glm::normalize(glm::cross(eye,glm::dvec3(0,0,1)));
-    double maximumPositionError=0;
+    const auto north=glm::normalize(glm::cross(eye,east));
+    const GroundQuery missing=[](const auto&) -> GroundContact {throw std::logic_error("Missing deformed contact plane");};
+    double maximumPositionError=0,maximumContactError=0;
     for(double offset:{0.,.05,.15,.30,.15,0.}) {
         const TerrainMorphFootprint footprint{glm::normalize(eye+east*(offset/1000)),1000,.5,.5};
+        const auto previousPhase=mesh.morphState->revision();
         compute.deform(mesh,footprint);
+        EXPECT_EQ(mesh.morphState->revision(),previousPhase+1);
+        compute.deform(mesh,footprint);EXPECT_EQ(mesh.morphState->revision(),previousPhase+1);
         GLint program=0,storage=0;glGetIntegerv(GL_CURRENT_PROGRAM,&program);
         glGetIntegerv(GL_SHADER_STORAGE_BUFFER_BINDING,&storage);
         EXPECT_EQ(program,compute.program());EXPECT_EQ(storage,0);
@@ -367,14 +376,36 @@ TEST(TerrainCompute, RetainedTargetsDeformWithCpuParityAndPreserveAttributesAndO
         }
         EXPECT_LE(maximum,.002); // Preserve the established CPU/GPU position tolerance.
         maximumPositionError=std::max(maximumPositionError,maximum);
+        SurfaceContact rendered;rendered.bind(actual,outputIndices,1,1000);
+        for(double radius:{.35,.55,.75,.95,1.1}) for(int i=0;i<9;++i) {
+            const double angle=(i+.317)*2*std::acos(-1.)/9;
+            const auto ray=glm::normalize(footprint.eyeRadial+(east*std::cos(angle)+north*std::sin(angle))*(radius/1000));
+            const auto expected=rendered.sample(ray,missing),contact=sharedContact.sample(ray,missing);
+            const auto error=glm::length(contact.position-expected.position);
+            EXPECT_LE(error,.002);EXPECT_LE(glm::length(contact.normal-expected.normal),1e-5);
+            maximumContactError=std::max(maximumContactError,error);
+        }
     }
     const TerrainMorphFootprint valid{glm::normalize(eye),1000,.5,.5};
+    const auto validRevision=mesh.morphState->revision();
+    TerrainComputeLimits disabled;disabled.unavailable="Test unavailable deformation backend";
+    TerrainCompute unavailable(disabled);
+    auto next=valid;next.radiusMeters=.4;
+    EXPECT_THROW(unavailable.deform(mesh,next),std::runtime_error);
+    EXPECT_EQ(mesh.morphState->revision(),validRevision);EXPECT_EQ(*mesh.morphState->footprint(),valid);
     auto invalid=valid;invalid.eyeRadial={0,0,0};EXPECT_THROW(compute.deform(mesh,invalid),std::invalid_argument);
     invalid=valid;invalid.transitionMeters=0;EXPECT_THROW(compute.deform(mesh,invalid),std::invalid_argument);
-    mesh.contacts=std::make_shared<SparseTerrainContacts>(surface.field(),topology);
-    EXPECT_THROW(compute.deform(mesh,valid),std::logic_error);mesh.contacts.reset();
+    invalid=valid;invalid.metersPerRadius=2000;EXPECT_THROW(compute.deform(mesh,invalid),std::invalid_argument);
+    auto source=mesh.contacts;
+    const TerrainSurface wrongField({},lod(),1,1000);
+    mesh.contacts=std::make_shared<SparseTerrainContacts>(wrongField.field(),wrongField.buildTopology(1));
+    EXPECT_THROW(compute.deform(mesh,valid),std::invalid_argument);mesh.contacts=std::move(source);
+    EXPECT_EQ(mesh.morphState->revision(),validRevision);
     Mesh exchanged;mesh.swap(exchanged);EXPECT_EQ(exchanged.morphTargets,targets);EXPECT_EQ(mesh.morphTargets,0u);
+    EXPECT_EQ(exchanged.morphState,phaseLifetime.lock());EXPECT_FALSE(mesh.morphState);
     exchanged.swap(mesh);mesh.destroy();EXPECT_FALSE(glIsBuffer(targets));EXPECT_FALSE(glIsBuffer(corners));
+    EXPECT_FALSE(mesh.morphState);EXPECT_FALSE(phaseLifetime.expired());
+    sharedContact.sample(glm::normalize(eye),missing);sharedContact.clear();EXPECT_TRUE(phaseLifetime.expired());
     EXPECT_THROW(compute.deform(mesh,valid),std::invalid_argument);
     auto replacement=compute.generate(surface.field(),topology,false,TerrainMorphStorage::Retained);
     replacement->waitForCapture();metadata={};static_cast<TerrainBuildStats&>(metadata)=topology;
@@ -383,13 +414,14 @@ TEST(TerrainCompute, RetainedTargetsDeformWithCpuParityAndPreserveAttributesAndO
     mesh.loadTerrain(surface.evaluateTopology(topology));
     EXPECT_FALSE(glIsBuffer(fallbackTargets));EXPECT_FALSE(glIsBuffer(fallbackCorners));
     EXPECT_FALSE(mesh.residentTerrain);EXPECT_EQ(mesh.morphSamples,0u);
+    EXPECT_FALSE(mesh.morphState);
     EXPECT_THROW(compute.deform(mesh,valid),std::invalid_argument);
     const TerrainSurface legacy({},lod(),1,1000);
     EXPECT_THROW(compute.generate(legacy.field(),legacy.buildTopology(1),false,TerrainMorphStorage::Retained),std::invalid_argument);
     std::cout << "MORPH_TARGETS samples=" << topology.samples.size() << " corners=" << topology.indices.size()
         << " retained_bytes=" << 72*topology.samples.size()+4*topology.indices.size()
         << " nan_low_words=" << nanWords << " initial_difference=" << initialDifference
-        << " maximum_position_error_m=" << maximumPositionError << '\n';
+        << " maximum_position_error_m=" << maximumPositionError << " maximum_contact_error_m=" << maximumContactError << '\n';
     EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
 }
 TEST(TerrainCompute, SparseContactGenerationMatchesGpuPlanesWithoutReadingTheCpuMirror) {
