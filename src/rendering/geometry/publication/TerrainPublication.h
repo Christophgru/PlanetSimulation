@@ -16,6 +16,7 @@ struct TerrainPublishedGeneration {
     std::array<int,3> zoneFaces{};
     int triangles=0,steepRefinedFaces=0;
     bool waterEnabled=false;
+    double preparedRadiusMeters=0;
 };
 struct TerrainPublicationStats {
     std::uint64_t submitted=0,published=0,failed=0,obsolete=0,retired=0,peakReservedBytes=0;
@@ -54,6 +55,10 @@ public:
         const Mesh& liveLand,const Mesh& liveWater);
     bool poll();
     void waitForCapture();
+    // Ready prepared land only; false for absent, unfinished, static/replayed or
+    // grass-only work. Invalid coverage leaves staging/live consumers intact.
+    // GPU submission failure discards staging. Caller keeps compute/context alive.
+    bool updatePreparedPhase(std::size_t body,const TerrainMorphFootprint& phase,TerrainCompute& compute);
     // Returns false for stale work. All validation/fence creation precedes the
     // no-throw land/water/grass/contact/receipt exchange. Old resources retire
     // together after the last-use fence signals.

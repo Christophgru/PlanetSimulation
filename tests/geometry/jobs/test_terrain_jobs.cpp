@@ -342,9 +342,11 @@ TEST(TerrainJobs, PreparedPhaseSealsNewPlansAndRejectsUncoveredOrInfeasibleFineH
         SCOPED_TRACE(mode);r.identity.backend=mode?TerrainBackend::Compute:TerrainBackend::Cpu;r.identity.resident=mode==2;
         ASSERT_NO_THROW(r.validate());auto built=buildTerrainCpu(r);ASSERT_TRUE(built.deformation);
         sealed=built.deformation;EXPECT_EQ(sealed->phase,r.preparedPhase);
+        EXPECT_DOUBLE_EQ(built.preparedRadiusMeters,1.5);
         EXPECT_TRUE(sealed->matches(built.geometry.generation,1000));EXPECT_NO_THROW(sealed->validate());
         auto replay=r;replay.preparedPhase.reset();replay.deformation=sealed;
         auto restored=buildTerrainCpu(replay);EXPECT_EQ(restored.geometry.generation,built.geometry.generation);
+        EXPECT_DOUBLE_EQ(restored.preparedRadiusMeters,0);
         if(mode==0) {
             ASSERT_TRUE(built.geometry.morphData);EXPECT_EQ(built.geometry.morphData->phase,r.preparedPhase);
             EXPECT_EQ(restored.geometry.vertices,built.geometry.vertices);EXPECT_EQ(restored.geometry.indices,built.geometry.indices);
@@ -361,10 +363,15 @@ TEST(TerrainJobs, PreparedPhaseSealsNewPlansAndRejectsUncoveredOrInfeasibleFineH
     invalid=r;invalid.preparedPhase->metersPerRadius=999;EXPECT_THROW(invalid.validate(),std::invalid_argument);
     invalid=r;invalid.preparedPhase->eyeRadial={0,0,2};EXPECT_THROW(invalid.validate(),std::invalid_argument);
     invalid=r;invalid.preparedPhase->transitionMeters=2;EXPECT_THROW(invalid.validate(),std::invalid_argument);
+    invalid=r;invalid.planet.terrain_lod.local_detail_radius_m=2;EXPECT_THROW(invalid.validate(),std::invalid_argument);
     invalid=r;invalid.preparedPhase->eyeRadial=glm::normalize(anchor+east*.001);
     EXPECT_THROW(invalid.validate(),std::invalid_argument);
     invalid=request();invalid.preparedPhase=TerrainMorphFootprint{{1,0,0},1000,.2,.4};
     EXPECT_THROW(invalid.validate(),std::invalid_argument);
+    EXPECT_FALSE(terrainPhaseFitsPreparation(*r.preparedPhase,{0,0,0},1000,1.5));
+    EXPECT_FALSE(terrainPhaseFitsPreparation(*r.preparedPhase,r.identity.eye,999,1.5));
+    EXPECT_FALSE(terrainPhaseFitsPreparation(*r.preparedPhase,r.identity.eye,1000,-1));
+    EXPECT_FALSE(terrainPhaseFitsPreparation(*r.preparedPhase,r.identity.eye,1000,std::numeric_limits<double>::quiet_NaN()));
     auto limited=r;limited.planet.terrain_lod.max_triangle_budget=10000;limited.planet.terrain_lod.local_detail_radius_m=5;
     limited.surface=TerrainSurface(limited.planet.surface_noise,limited.planet.terrain_lod,1,1000,
         limited.planet.terrain_landscape,std::nullopt,limited.planet.terrain_material);

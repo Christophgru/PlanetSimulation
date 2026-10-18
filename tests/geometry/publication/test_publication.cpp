@@ -100,6 +100,14 @@ struct BufferProbe {
     BufferProbe(){generated.clear();originalGenBuffers=__glewGenBuffers;__glewGenBuffers=recordBuffers;}
     ~BufferProbe(){__glewGenBuffers=originalGenBuffers;}
 };
+PFNGLDISPATCHCOMPUTEPROC originalDispatch=nullptr;
+void GLAPIENTRY failDispatch(GLuint x,GLuint y,GLuint z) {
+    originalDispatch(x,y,z);glBindBuffer(GLenum(0),0); // GL_INVALID_ENUM after actual private writes.
+}
+struct DispatchFault {
+    DispatchFault(){originalDispatch=__glewDispatchCompute;__glewDispatchCompute=failDispatch;}
+    ~DispatchFault(){__glewDispatchCompute=originalDispatch;}
+};
 }
 TEST(TerrainPublication, CompleteTransferChangesEveryConsumerOnceAndRetiresTheirOldBuffersTogether) {
     auto r=request();TerrainCompute compute;ProceduralGrass grass;OwnedMesh land,water;
@@ -351,6 +359,7 @@ TEST(TerrainPublication, ReplayPhaseStagesPrivatelyAndPublishesSharedLandGrassAn
         ASSERT_TRUE(publication.submit(std::move(built),r.identity,p,1000,r.identity.eye,land,water,compute));
         EXPECT_EQ(land.revision,oldRevision);EXPECT_EQ(land.morphState,oldState);
         publication.waitForCapture();EXPECT_EQ(land.revision,oldRevision);EXPECT_EQ(land.morphState,oldState);
+        EXPECT_FALSE(publication.updatePreparedPhase(0,phase,compute)); // Static replay has no moving halo admission.
         ASSERT_TRUE(publication.publish(r.identity,land,water));retire(publication,0);
         ASSERT_TRUE(land.morphState);EXPECT_EQ(land.deformationRevision(),active?1u:0u);
         EXPECT_EQ(grass.residentDeformationRevision(0),land.deformationRevision());
@@ -408,20 +417,34 @@ TEST(TerrainPublication, PreparedMovingPhaseTransfersGpuPlanesGrassAndContactsTo
             if(land.morphState) {compute.deform(land,footprint);before=gpuMesh(land);}
             const auto oldBuffer=land.vbo,oldTargets=land.morphTargets;const auto oldRevision=land.revision;
             const auto oldState=land.morphState;const auto oldPhase=land.deformationRevision();
-            r.preparedPhase=footprint;
+            auto initial=footprint;initial.eyeRadial=glm::normalize(footprint.eyeRadial-east*.0001);
+            r.preparedPhase=initial;
             auto built=buildTerrainCpu(r);ASSERT_FALSE(built.topology->localDetailLimited);
             if(before) ASSERT_TRUE(built.topology->parentReused);
-            ASSERT_TRUE(built.deformation);EXPECT_EQ(built.deformation->phase,footprint);
+            ASSERT_TRUE(built.deformation);EXPECT_EQ(built.deformation->phase,initial);
             EXPECT_TRUE(built.deformation->matches(built.topology->generation,1000));
             ASSERT_TRUE(publication.submit(std::move(built),r.identity,r.planet,1000,r.identity.eye,land,water,compute));
+            EXPECT_FALSE(publication.updatePreparedPhase(0,footprint,compute));
             publication.waitForCapture();
             EXPECT_EQ(land.vbo,oldBuffer);EXPECT_EQ(land.morphTargets,oldTargets);EXPECT_EQ(land.revision,oldRevision);
             EXPECT_EQ(land.morphState,oldState);EXPECT_EQ(land.deformationRevision(),oldPhase);
+            auto outside=footprint;outside.transitionMeters=2;
+            EXPECT_THROW(publication.updatePreparedPhase(0,outside,compute),std::invalid_argument);
+            EXPECT_THROW(publication.updatePreparedPhase(1,footprint,compute),std::out_of_range);
+            ASSERT_TRUE(publication.ready());
+            {BufferProbe buffers;FenceDelay noWait;FenceFault noFence(1);
+                EXPECT_TRUE(publication.updatePreparedPhase(0,footprint,compute));
+                {DispatchFault noDispatch;EXPECT_TRUE(publication.updatePreparedPhase(0,footprint,compute));}
+                EXPECT_TRUE(generated.empty());EXPECT_EQ(pollCalls,0u);EXPECT_EQ(fenceCalls,0u);
+            }
+            EXPECT_EQ(land.morphState,oldState);EXPECT_EQ(land.deformationRevision(),oldPhase);
+            if(before) EXPECT_EQ(grass.residentDeformationRevision(0),oldPhase);
             ASSERT_TRUE(publication.publish(r.identity,land,water));
             EXPECT_EQ(land.revision,oldRevision+1);ASSERT_TRUE(land.morphState);
-            EXPECT_EQ(*land.morphState->footprint(),footprint);EXPECT_EQ(land.deformationRevision(),1u);
+            EXPECT_EQ(*land.morphState->footprint(),footprint);EXPECT_EQ(land.deformationRevision(),2u);
+            EXPECT_DOUBLE_EQ(publication.installed(0).preparedRadiusMeters,1.5);
             EXPECT_EQ(grass.residentGeneration(0),land.terrainStats.generation);
-            EXPECT_EQ(grass.residentRevision(0),land.revision);EXPECT_EQ(grass.residentDeformationRevision(0),1u);
+            EXPECT_EQ(grass.residentRevision(0),land.revision);EXPECT_EQ(grass.residentDeformationRevision(0),2u);
             if(oldState) {EXPECT_EQ(oldState->revision(),oldPhase);EXPECT_EQ(*oldState->footprint(),footprint);}
             const auto after=gpuMesh(land);SurfaceContact contact,rendered,previous;
             contact.bind(land.contacts,land.revision,land.morphState);
@@ -442,7 +465,7 @@ TEST(TerrainPublication, PreparedMovingPhaseTransfersGpuPlanesGrassAndContactsTo
             grass.shader.setFloat("uGrassWidth",.08);grass.shader.setFloat("uWindStrength",0);
             GrassPass pass;pass.mainEyeBody=r.identity.eye;
             glEnable(GL_RASTERIZER_DISCARD);grass.draw(0,&pass);glDisable(GL_RASTERIZER_DISCARD);
-            EXPECT_EQ(grass.drawnDeformationRevision(0),1u);
+            EXPECT_EQ(grass.drawnDeformationRevision(0),2u);
             struct Blade {glm::vec4 root,up,variation;glm::vec3 wind;unsigned index;};static_assert(sizeof(Blade)==64);
             GLint buffer=0;glGetIntegeri_v(GL_SHADER_STORAGE_BUFFER_BINDING,2,&buffer);
             const auto counts=grass.computedCounts(0);ASSERT_GT(counts[0]+counts[1],0u);
@@ -462,10 +485,60 @@ TEST(TerrainPublication, PreparedMovingPhaseTransfersGpuPlanesGrassAndContactsTo
             if(before) ++swaps;retire(publication,0);++r.identity.serial;
             std::cout<<"PREPARED_GPU_STEP publications="<<r.identity.serial-1<<" sampled_roots="<<roots<<std::endl;
         }
+        ASSERT_TRUE(publication.submitGrass(0,r.planet,1000,r.identity.eye,land,water));
+        publication.waitForCapture();
+        EXPECT_FALSE(publication.updatePreparedPhase(0,*land.morphState->footprint(),compute));
+        publication.cancel();EXPECT_EQ(land.deformationRevision(),2u);
     }
     EXPECT_EQ(swaps,10u);EXPECT_EQ(probes,1260u);EXPECT_GT(roots,0u);
     EXPECT_LE(maxSwap,.001);EXPECT_LE(maxContact,.002);EXPECT_LE(maxRoot,.002);
     std::cout<<"PREPARED_GPU swaps="<<swaps<<" probes="<<probes<<" sampled_roots="<<roots<<" visible_roots="<<visibleRoots
         <<" max_swap_m="<<maxSwap<<" max_contact_m="<<maxContact<<" max_root_m="<<maxRoot<<'\n';
+    EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+}
+
+TEST(TerrainPublication, PreparedPhaseDispatchFailureDiscardsPrivateWritesAndKeepsLiveConsumersUsable) {
+    auto r=preparedRequest({.3,-.7,1});const auto anchor=glm::normalize(r.identity.eye);
+    const auto east=glm::normalize(glm::cross(anchor,glm::dvec3(0,1,0)));
+    r.preparedPhase=TerrainMorphFootprint{anchor,1000,.2,.4};
+    TerrainCompute compute;ProceduralGrass grass;grass.enableAdaptiveBudget();TerrainPublication publication(grass,1);
+    OwnedMesh land,water;EXPECT_FALSE(publication.updatePreparedPhase(0,*r.preparedPhase,compute));
+    ASSERT_TRUE(submit(publication,r,land,water,compute,r.identity.eye));publication.waitForCapture();
+    ASSERT_TRUE(publication.publish(r.identity,land,water));retire(publication,0);
+    const Snapshot old(publication,grass,land,water);const auto state=land.morphState;
+    const auto livePositions=[&] {
+        GLint previous=0;glGetIntegerv(GL_COPY_READ_BUFFER_BINDING,&previous);
+        glBindBuffer(GL_COPY_READ_BUFFER,land.vbo);glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
+        std::vector<float> values(land.indexCount*9);
+        glGetBufferSubData(GL_COPY_READ_BUFFER,0,values.size()*sizeof(float),values.data());
+        glBindBuffer(GL_COPY_READ_BUFFER,previous);return values;
+    };
+    const auto oldPositions=livePositions();
+    ASSERT_TRUE(state);EXPECT_EQ(state->revision(),1u);
+    ++r.identity.serial;r.identity.eye+=east*.00015;
+    auto latest=*r.preparedPhase;latest.eyeRadial=glm::normalize(r.identity.eye+east*.0001);
+    {BufferProbe buffers;
+        const auto original=buildTerrainCpu(r);
+        for(const double radius:{std::numeric_limits<double>::quiet_NaN(),4.0}) {
+            auto malformed=original;malformed.preparedRadiusMeters=radius;
+            EXPECT_THROW(publication.submit(std::move(malformed),r.identity,r.planet,1000,r.identity.eye,land,water,compute),std::invalid_argument);
+        }
+        EXPECT_TRUE(generated.empty());old.unchanged(publication,grass,land,water);
+        ASSERT_TRUE(submit(publication,r,land,water,compute,r.identity.eye));publication.waitForCapture();
+        {DispatchFault fault;EXPECT_THROW(publication.updatePreparedPhase(0,latest,compute),std::runtime_error);}
+        EXPECT_FALSE(publication.pending());EXPECT_TRUE(publication.canSubmit(0));
+        old.unchanged(publication,grass,land,water);EXPECT_EQ(land.morphState,state);
+        EXPECT_EQ(livePositions(),oldPositions);
+        EXPECT_EQ(state->revision(),1u);EXPECT_EQ(*state->footprint(),*r.preparedPhase);
+        EXPECT_EQ(publication.reservedBytes(),old.bytes);
+        for(const auto buffer:generated) EXPECT_FALSE(glIsBuffer(buffer));
+    }
+    EXPECT_EQ(publication.stats().failed,3u);EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+    ASSERT_TRUE(submit(publication,r,land,water,compute,r.identity.eye));publication.waitForCapture();
+    ASSERT_TRUE(publication.updatePreparedPhase(0,latest,compute));
+    ASSERT_TRUE(publication.publish(r.identity,land,water));retire(publication,0);
+    EXPECT_EQ(land.revision,old.landRevision+1);ASSERT_TRUE(land.morphState);
+    EXPECT_EQ(land.deformationRevision(),2u);EXPECT_EQ(*land.morphState->footprint(),latest);
+    EXPECT_EQ(grass.residentDeformationRevision(0),2u);EXPECT_EQ(state->revision(),1u);
     EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
 }

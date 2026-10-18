@@ -25,6 +25,12 @@ std::uint64_t TerrainGpuPreparation::requiredBytes(const TerrainCpuBuild& cpu,co
         if(!cpu.deformation->matches(cpu.topology->generation,cpu.field->radiusWorld()*cpu.field->metersPerUnit()))
             throw std::invalid_argument("Staged terrain replay does not match immutable source");
     }
+    if(cpu.preparedRadiusMeters!=0 && (cpu.preparedRadiusMeters!=planet.terrain_lod.local_detail_radius_m ||
+       !cpu.deformation || !cpu.deformation->phase ||
+       cpu.topology->localDetailLimited || !cpu.topology->localDetailTriangles ||
+       !terrainPhaseFitsPreparation(*cpu.deformation->phase,identity.eye,
+            cpu.field->radiusWorld()*cpu.field->metersPerUnit(),cpu.preparedRadiusMeters)))
+        throw std::invalid_argument("Staged terrain phase has no matching fine preparation coverage");
     auto bytes=terrainBytes(*cpu.topology);
     if(cpu.water) bytes+=terrainBytes(*cpu.waterTopology);
     if(identity.resident) bytes+=ProceduralGrass::stageBytes(cpu.topology->triangleCount(),planet.foliage,limits.blockBytes);

@@ -7,6 +7,13 @@
 #include <stdexcept>
 
 namespace rendering {
+bool terrainPhaseFitsPreparation(const TerrainMorphFootprint& f,const glm::dvec3& planEye,
+    double metersPerRadius,double preparedRadiusMeters) {
+    validateTerrainMorphFootprint(f);const double length=glm::length(planEye);
+    return f.metersPerRadius==metersPerRadius && std::isfinite(preparedRadiusMeters) && preparedRadiusMeters>0 &&
+        std::isfinite(length) && length>0 &&
+        glm::length(planEye/length-f.eyeRadial)*metersPerRadius+f.radiusMeters+f.transitionMeters<=preparedRadiusMeters;
+}
 void TerrainBuildRequest::validate() const {
     const auto& k=identity;
     if(!k.epoch || !k.serial || k.bodyName.empty() || k.bodyName!=planet.name ||
@@ -19,12 +26,10 @@ void TerrainBuildRequest::validate() const {
        metersPerUnit!=surface.field().metersPerUnit() || planet.radius!=surface.field().radiusWorld())
         throw std::invalid_argument("Invalid terrain worker snapshot");
     if(preparedPhase) {
-        validateTerrainMorphFootprint(*preparedPhase);
-        const auto& f=*preparedPhase;const auto& lod=surface.lodSettings();
+        const auto& lod=surface.lodSettings();
         if(deformation || k.topologyVersion!=4 || !lod.local_detail_streaming ||
-           f.metersPerRadius!=planet.radius*metersPerUnit ||
-           glm::length(glm::normalize(k.eye)-f.eyeRadial)*f.metersPerRadius+
-               f.radiusMeters+f.transitionMeters>lod.local_detail_radius_m)
+           lod.local_detail_radius_m!=planet.terrain_lod.local_detail_radius_m ||
+           !terrainPhaseFitsPreparation(*preparedPhase,k.eye,planet.radius*metersPerUnit,lod.local_detail_radius_m))
             throw std::invalid_argument("Prepared terrain phase requires a matching, covering fine halo and no replay record");
     }
     if(deformation) {
@@ -61,6 +66,7 @@ TerrainCpuBuild buildTerrainCpu(const TerrainBuildRequest& request) {
                 throw std::runtime_error("Prepared terrain fine halo cannot meet its geometry targets");
             result.deformation=TerrainMorphReplay{topology.generation,planet.radius*request.metersPerUnit,*request.preparedPhase};
             result.deformation->validate();
+            result.preparedRadiusMeters=surface.lodSettings().local_detail_radius_m;
         }
     };
     if(compute) {

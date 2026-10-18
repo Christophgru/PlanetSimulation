@@ -38,11 +38,16 @@ struct TerrainCpuBuild {
     std::optional<PlanetField> field,waterField;
     std::shared_ptr<SparseTerrainContacts> contacts;
     std::optional<TerrainMorphReplay> deformation;
+    double preparedRadiusMeters=0; // Zero for static/replayed sources.
     double milliseconds=0;
     // Context-thread prospective character query, before GPU staging exists.
     std::shared_ptr<TerrainMorphState> previewPhase() const;
 };
 TerrainCpuBuild buildTerrainCpu(const TerrainBuildRequest& request);
+// Tests the whole phase domain against the plan's fine preparation sphere.
+// Malformed phases throw; incompatible or insufficient coverage returns false.
+bool terrainPhaseFitsPreparation(const TerrainMorphFootprint& phase,const glm::dvec3& planEye,
+    double metersPerRadius,double preparedRadiusMeters);
 // Eye motion may require a follow-up without starving a useful completed anchor.
 // Epoch/body/field/mode mismatches and older installed serials never publish.
 bool terrainBuildMatches(const TerrainBuildIdentity& completed,

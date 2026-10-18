@@ -1,5 +1,48 @@
 # Relief-aware terrain sinking
 
+## Advance a ready private phase before publication, 2026-10-18
+
+Prepared worker results carry their fine preparation radius into publication
+receipts; static and replayed results use zero. The shared
+`terrainPhaseFitsPreparation` helper validates footprint shape and tests finite
+plan/scale/radius values and complete phase-domain coverage. Worker admission,
+GPU staging admission and private phase updates use the same bound. The radius
+must match the worker and staging planet configuration; non-finite or forged
+coverage is rejected before GPU staging. Phase timing retains the staged request
+identity.
+
+`TerrainPublication.updatePreparedPhase` updates only ready prepared land. It
+returns false for absent, unfinished, static/replayed and grass-only work.
+Invalid coverage preserves both staging and live consumers; a GPU submission
+failure discards only staging and increments the failure count. An unchanged
+footprint skips dispatch. Immutable roots remain valid; publication attaches the
+updated shared state and first draw refreshes current planes and animation.
+
+The moving GPU regression now starts its private mask 0.1 m behind the desired
+footprint, advances it before each swap and verifies phase 2 across land, grass
+and contacts. It retains the same surface/root error bounds and checks untouched
+live state, no buffer creation/fence operations/client waits during updates,
+coverage/body rejection, and unsupported static/replayed/grass-only updates.
+A new failure regression injects a GL error after actual private dispatch writes,
+then checks preserved live consumers and vertex data, released staging buffers
+and budget, and a successful retry. Worker tests check coverage metadata propagation, replay reset
+and invalid helper inputs.
+
+All build rounds (70, 34 and 19 steps) and final no-op pass. Focused worker/replay
+tests pass in 7.060 s. Three GPU cases pass on RTX (19.408 s) and Quadro
+(20.709 s); two software cases pass in 34.679 s. All ten swaps retain the
+0.0312387 mm maximum surface difference and exact GPU/contact parity. For 768
+sampled roots, maximum errors are RTX 0.146162 mm, Quadro 0.157761 mm and
+software 0.131971 mm. All 35 core groups pass (72.16 s) and all 57 RTX cases
+pass (95.012 s). The headless overview was inspected/decoded and remains
+byte-exact: 14,779 non-background pixels, bounds `(1,1)–(794,598)`, 3,471 planet
+pixels. Recovery, frame, reload and streaming integration pass in 280.95 s;
+all 15 historical PNGs remain byte-exact.
+Logs stay local under `build-f5/resume/detail-prepared-update-*`; timings are
+validation receipts, not FPS measurements. Runtime coverage policy, live CPU
+phase handling and parent-rebase continuity
+remain before activation; terrain stays **p** and default storage is `Transient`.
+
 ## Seal prepared worker requests before staging, 2026-10-18
 
 `TerrainBuildRequest.preparedPhase` supplies an initial footprint for a new

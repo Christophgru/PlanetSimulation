@@ -113,6 +113,7 @@ bool TerrainPublication::submit(TerrainCpuBuild build,const TerrainBuildIdentity
         next->receipt.grassEye=grassEye;next->receipt.foliage=effective.foliage;next->receipt.faceZones=build.geometry.faceZones;
         next->receipt.zoneFaces=build.geometry.zoneFaces;next->receipt.steepRefinedFaces=build.geometry.steepRefinedFaces;
         next->receipt.waterEnabled=bool(build.water);
+        next->receipt.preparedRadiusMeters=build.preparedRadiusMeters;
         next->terrain=std::make_unique<TerrainGpuPreparation>(std::move(build),k,effective,compute,perSetLimit_);
         auto& t=*next->terrain;
         next->grass=grass_.submitResident(t.land->vbo,t.land->ebo,t.land->stats,effective,metersPerUnit,grassEye,
@@ -156,6 +157,23 @@ void TerrainPublication::waitForCapture() {
         grass_.waitForCapture(*staged_->grass);
     } catch(...) {staged_.reset();++stats_.failed;throw;}
     if(!poll()) throw std::logic_error("Incomplete capture publication");
+}
+bool TerrainPublication::updatePreparedPhase(std::size_t body,const TerrainMorphFootprint& phase,TerrainCompute& compute) {
+    if(body>=bodies_.size()) throw std::out_of_range("Terrain publication body");
+    if(!staged_ || !staged_->ready || staged_->grassOnly || staged_->receipt.identity.bodyIndex!=body ||
+       staged_->receipt.preparedRadiusMeters==0) return false;
+    auto& s=*staged_;
+    if(!s.land.contacts || !terrainPhaseFitsPreparation(phase,s.receipt.identity.eye,
+       s.land.contacts->radiusMeters(),s.receipt.preparedRadiusMeters))
+        throw std::invalid_argument("Updated terrain phase is outside its prepared fine halo");
+    if(s.land.morphState && s.land.morphState->footprint() && *s.land.morphState->footprint()==phase) return true;
+    const auto& identity=s.receipt.identity;
+    GpuWorkProfiler::Request timingIdentity(identity.epoch,identity.serial,body);
+    try {compute.deform(s.land,phase);}
+    catch(...) {staged_.reset();++stats_.failed;throw;}
+    // Immutable roots remain valid. commitPrepared attaches this shared state;
+    // its first draw refreshes current planes/animation using the new revision.
+    return true;
 }
 bool TerrainPublication::publish(const TerrainBuildIdentity& current,Mesh& liveLand,Mesh& liveWater) {
     if(!staged_ || !staged_->ready) throw std::logic_error("Publication is not ready");
