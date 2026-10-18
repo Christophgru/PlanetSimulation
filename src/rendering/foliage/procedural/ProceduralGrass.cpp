@@ -36,10 +36,17 @@ void ProceduralGrass::upload(Patch& patch,const GrassPlan& plan) {
     // and wind rules are uniforms. No grass vertices, roots or noise fields.
     std::vector<std::uint32_t> references;
     references.reserve(plan.patches.size());
+    if(!plan.morphBounds.empty() && plan.morphBounds.size()!=plan.patches.size())
+        throw std::invalid_argument("Grass morph bounds require matching patch order");
     patch.bounds.clear();
     patch.bounds.reserve(plan.patches.size());
-    for (const auto& descriptor:plan.patches) {
+    for (std::size_t i=0;i<plan.patches.size();++i) {
+        const auto& descriptor=plan.patches[i];
         references.push_back(descriptor.triangle);
+        if(!plan.morphBounds.empty()) {
+            patch.bounds.push_back({glm::dvec3(plan.morphBounds[i]),plan.morphBounds[i].w});
+            continue;
+        }
         const auto center=(glm::dvec3(descriptor.a)+glm::dvec3(descriptor.b)+glm::dvec3(descriptor.c))/3.0;
         const auto radius=std::max({glm::length(glm::dvec3(descriptor.a)-center),
             glm::length(glm::dvec3(descriptor.b)-center),glm::length(glm::dvec3(descriptor.c)-center)});
@@ -59,6 +66,7 @@ void ProceduralGrass::upload(Patch& patch,const GrassPlan& plan) {
     }
     glBindVertexArray(0);
     patch.patches=plan.patches.size(); patch.distanceMeters=plan.distanceMeters;
+    if(patch.morphSource) patch.surfaceRevision=std::numeric_limits<std::uint64_t>::max();
 }
 void ProceduralGrass::updateDraws(Patch& patch,double scale,double nearDistance,const glm::dvec3& eyeBody) {
     // Select geometry from current triangle bounds every frame, without
@@ -143,12 +151,19 @@ GrassPreparationStats ProceduralGrass::prepare(std::size_t index,const Mesh& mes
     }
     if(patch.cells && patch.cells.use_count()>1)
         throw std::logic_error("CPU grass source is leased by a pending delta preparation");
-    const bool hadMorph=bool(patch.morphSource);
-    if(hadMorph) {
-        patch.morphSource={};glDeleteTextures(patch.morphTextures.size(),patch.morphTextures.data());patch.morphTextures={};
+    const auto source=mesh.morphData?mesh.morphSource():TerrainMorphSource{};
+    if(mesh.morphData && (!source.targets || !source.corners || !source.samples ||
+        !glIsBuffer(source.targets) || !glIsBuffer(source.corners)))
+        throw std::logic_error("CPU grass requires its uploaded retained source");
+    const bool sourceChanged=patch.morphSource!=source || (source && patch.morphState!=mesh.morphState);
+    if(sourceChanged) {
+        patch.morphSource=source;
+        if(!source) {glDeleteTextures(patch.morphTextures.size(),patch.morphTextures.data());patch.morphTextures={};}
         patch.morphState.reset();patch.surfaceRevision=std::numeric_limits<std::uint64_t>::max();
+        patch.drawnDeformationRevision.reset();
     }
-    patch.computeUsed=false;patch.generation={};
+    patch.morphState=source?mesh.morphState:nullptr;
+    patch.computeUsed=false;patch.generation=source?mesh.terrainStats.generation:TerrainGenerationKey{};
     const auto oldSettings=patch.settings;const auto oldColor=patch.color,oldLevels=patch.landscapeLevels;
     const auto oldCellOffset=patch.cellKeyOffset;
     const auto oldRock=patch.rockRange;const auto oldScale=patch.scale;
@@ -166,7 +181,7 @@ GrassPreparationStats ProceduralGrass::prepare(std::size_t index,const Mesh& mes
     // Without adaptive density, quad distance only selects the output queue.
     // It does not change candidate selection or any cached root property.
     if(!patch.falloff.enabled) placementSettings.quad_distance_m=oldSettings.quad_distance_m;
-    const bool changed=hadMorph || oldSettings!=placementSettings || oldCellOffset!=patch.cellKeyOffset || oldColor!=patch.color || oldLevels!=patch.landscapeLevels ||
+    const bool changed=sourceChanged || oldSettings!=placementSettings || oldCellOffset!=patch.cellKeyOffset || oldColor!=patch.color || oldLevels!=patch.landscapeLevels ||
         oldRock!=patch.rockRange || oldScale!=patch.scale || oldWater!=patch.water || oldLandscape!=patch.landscape;
     if(changed) patch.rootsReady=false;
     if(!GLEW_VERSION_4_3 || !planet.foliage.compute_placement || !planet.foliage.enabled) {
@@ -206,6 +221,15 @@ GrassPreparationStats ProceduralGrass::prepare(std::size_t index,const Mesh& mes
     glTexBuffer(GL_TEXTURE_BUFFER,GL_R32F,mesh.vbo);
     glActiveTexture(GL_TEXTURE9); glBindTexture(GL_TEXTURE_BUFFER,patch.indexTexture);
     glTexBuffer(GL_TEXTURE_BUFFER,GL_R32UI,mesh.ebo);
+    if(source) {
+        if(!patch.morphTextures[0]) glGenTextures(patch.morphTextures.size(),patch.morphTextures.data());
+        for(int i=0;i<2;++i) {
+            glActiveTexture(GL_TEXTURE12+i);glBindTexture(GL_TEXTURE_BUFFER,patch.morphTextures[i]);
+            glTexBuffer(GL_TEXTURE_BUFFER,GL_R32UI,i?source.corners:source.targets);
+        }
+        if(GLEW_VERSION_4_3 && planet.foliage.compute_placement && !surface_)
+            surface_=std::make_unique<Shader>("shaders/foliage/deformation/surface.comp");
+    }
     glActiveTexture(GL_TEXTURE0);
     patch.seed=planet.foliage.seed;
     const auto start=std::chrono::steady_clock::now();
@@ -221,7 +245,7 @@ GrassPreparationStats ProceduralGrass::prepare(std::size_t index,const Mesh& mes
     }
     patch.allocation.reset();
     const auto policy=cpuPolicy(planet,mesh.indices.size()/3);
-    const auto plan=planGrass(mesh.vertices,mesh.indices,planet,metersPerWorldUnit,planningEye,policy);
+    const auto plan=planGrass(mesh.vertices,mesh.indices,planet,metersPerWorldUnit,planningEye,policy,mesh.morphData.get());
     const auto planned=std::chrono::steady_clock::now();
     if(plan.falloff.nearInfeasible && (!patch.falloff.nearInfeasible || plan.falloff.capacity!=patch.falloff.capacity))
         std::fprintf(stderr,"Foliage near density infeasible: capacity=%u density=%.6g protected_m=%.6g\n",
@@ -307,9 +331,10 @@ bool ProceduralGrass::usesCompute(std::size_t index) const {
 void ProceduralGrass::draw(std::size_t index,const GrassPass* pass) const {
     CpuTrace::Scope scope("ProceduralGrass::draw");
     if (index>=patches_.size() || !patches_[index]) return;
-    const bool culled=glIsEnabled(GL_CULL_FACE); glDisable(GL_CULL_FACE);
     const auto& patch=*patches_[index];
     patch.drawnDeformationRevision.reset();
+    if(!patch.patches) return;
+    const bool culled=glIsEnabled(GL_CULL_FACE); glDisable(GL_CULL_FACE);
     bindTrail(index,patch.scale);
     shader.setFloat("uQuadDistance",patch.settings.quadDistanceMeters());
     shader.setInt("uBladeAnimation",11);

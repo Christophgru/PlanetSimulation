@@ -3,6 +3,7 @@
 #include "rendering/geometry/Mesh.h"
 #include "rendering/geometry/Terrain.h"
 #include "rendering/runtime/ResourceOwners.h"
+#include "rendering/foliage/cells/CellIdentity.h"
 #include "config/ScenarioConfig.h"
 #include "rendering/quality/OfflineQuality.h"
 #include <gtest/gtest.h>
@@ -12,6 +13,8 @@
 #include <fstream>
 #include <iterator>
 #include <map>
+#include <set>
+#include <iostream>
 #include <stdexcept>
 
 namespace {
@@ -706,4 +709,117 @@ TEST(TerrainMesh, CpuRetainedUploadPreservesIntegerSourceAndBakedPoseThroughSwap
         exchanged=Mesh{};mesh=Mesh{};
         EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
     }
+}
+
+TEST(ProceduralGrassRender, RetainedCpuSourceKeepsRootsOnBakedPlanesAcrossViewsAndPlacementPaths) {
+    using namespace rendering;
+    std::size_t checked=0,moved=0,recordComparisons=0;double maximumPlaneError=0;
+    for(const auto radial:{glm::dvec3(0,0,1),glm::normalize(glm::dvec3(.7,-.2,1))}) {
+        glUseProgram(0);GrassProbe probe;
+        struct ProgramScope {~ProgramScope(){glUseProgram(0);}} programScope;
+        auto& p=probe.planet;p.radius=1;p.color={1,1,1};p.surface_noise.clear();
+        p.terrain_landscape.enabled=false;p.water.enabled=true;p.water.level_m=0;
+        auto& f=p.foliage;f.enabled=f.compute_placement=true;f.frustum_culling=false;
+        f.draw_distance_m=100;f.quad_distance_m=50;f.density_per_m2=2;
+        f.max_blades=f.max_candidates_per_triangle=4096;f.root_offset_m=f.water_clearance_m=0;
+        probe.grass.enableAdaptiveBudget();const auto eye=radial*1.002;
+        auto& shader=probe.grass.shader;shader.use();
+        shader.setFloat("uMetersPerRadius",1000);shader.setFloat("uDrawDistance",100);
+        shader.setFloat3("uGrassEyeBody",eye.x,eye.y,eye.z);shader.setFloat3("uFacingEyeBody",eye.x,eye.y,eye.z);
+        shader.setFloat3("uPlanetColor",1,1,1);shader.setInt("uWaterEnabled",1);shader.setInt("uLandscapeEnabled",0);
+        shader.setFloat3("uLandscapeLevels",0,.1,0);shader.setFloat("uWaterClearance",0);
+        shader.setFloat("uGreenRatio",f.green_ratio);
+        shader.setFloat2("uHeightMultiplierRange",f.height_multiplier_min,f.height_multiplier_max);
+        shader.setFloat2("uLeanRange",f.lean_min,f.lean_max);
+        const auto east=glm::normalize(glm::cross(radial,glm::dvec3(0,1,0)));
+        const glm::dmat3 rotation(east,glm::cross(radial,east),radial);
+        TerrainMorphData base;base.generation={123,456,PlanetField::version,4,TerrainBackend::Cpu};
+        base.metersPerRadius=1000;base.targets.resize(54);base.corners={2,0,1};
+        const std::array<glm::dvec3,3> triangle{{{-.01,-.01,1.002},{.01,-.01,1.002},{0,.01,1.002}}};
+        std::array<std::array<double,3>,3> directions;
+        for(int i=0;i<3;++i) {
+            const glm::dvec3 fine(glm::vec3(rotation*triangle[i])),parent=fine*(.998/1.002);
+            const auto r=glm::normalize(fine);const auto sample=base.corners[i];
+            for(int j=0;j<3;++j) {
+                directions[i][j]=r[j];const auto rb=std::bit_cast<std::uint64_t>(r[j]),pb=std::bit_cast<std::uint64_t>(parent[j]);
+                base.targets[9*sample+2*j]=unsigned(rb);base.targets[9*sample+2*j+1]=unsigned(rb>>32);
+                base.targets[9*sample+6+j]=std::bit_cast<unsigned>(float(fine[j]));
+                base.targets[27+9*sample+2*j]=unsigned(pb);base.targets[27+9*sample+2*j+1]=unsigned(pb>>32);
+                base.targets[27+9*sample+6+j]=std::bit_cast<unsigned>(float(parent[j]));
+            }
+        }
+        const auto geometry=[&](std::optional<TerrainMorphFootprint> phase) {
+            TerrainGeometry g;g.generation=base.generation;g.uniqueSamples=3;g.indices={0,1,2};
+            g.grassCellKeys={grassCellIdentity(directions)};
+            auto data=std::make_shared<TerrainMorphData>(base);data->phase=phase;g.morphData=data;
+            for(auto sample:base.corners) {
+                auto position=base.original(sample);
+                if(phase) {
+                    const auto fine=glm::dvec3(base.fine(sample));const auto weight=terrainMorphWeight(base.radial(sample),*phase);
+                    position=weight==0?glm::vec3(fine):glm::vec3(fine+(base.parent(sample)-fine)*weight);
+                }
+                for(const auto v:{position,glm::vec3(radial),glm::vec3(.2,.8,.2)})
+                    for(int j=0;j<3;++j) g.vertices.push_back(v[j]);
+            }
+            return g;
+        };
+        using Roots=std::set<std::array<float,3>>;
+        const auto roots=[&](const std::vector<float>& capture) {
+            EXPECT_EQ(capture.size()%360,0u);Roots result;
+            for(std::size_t first=0;first<capture.size();first+=360) if(capture[first+9]>0) {
+                const std::array<float,3> root{capture[first],capture[first+1],capture[first+2]};
+                EXPECT_TRUE(result.insert(root).second);
+                for(int vertex=1;vertex<36;++vertex) for(int j=0;j<3;++j) EXPECT_EQ(capture[first+10*vertex+j],root[j]);
+            }
+            return result;
+        };
+        GrassPass pass;pass.mainEyeBody=eye;pass.windTime=.75;
+        probe.mesh.loadTerrain(geometry({}));
+        EXPECT_EQ(probe.grass.prepare(0,probe.mesh,p,1000,eye).rebuilds,1u);
+        const auto candidates=probe.grass.stats(0).candidates;ASSERT_GT(candidates,0u);
+        EXPECT_TRUE(roots(probe.capture(.75,false,&pass)).empty());
+        std::vector<GrassRootRecord> cached;Roots originalFine,last;TerrainGeometry latest;
+        for(const auto band:{glm::dvec2(1000,1),glm::dvec2(9,15),glm::dvec2(5,15),glm::dvec2(0,.1),glm::dvec2(1000,1)}) {
+            latest=geometry(TerrainMorphFootprint{radial,1000,band.x,band.y});probe.mesh.loadTerrain(latest);
+            EXPECT_EQ(probe.grass.prepare(0,probe.mesh,p,1000,eye).rebuilds,1u);
+            EXPECT_EQ(probe.grass.stats(0).candidates,candidates);
+            const auto visible=roots(probe.capture(.75,false,&pass));
+            if(band.x==1000) {ASSERT_FALSE(visible.empty());if(originalFine.empty()) originalFine=visible;else EXPECT_EQ(visible,originalFine);}
+            if(band.x==0) EXPECT_TRUE(visible.empty());
+            const auto& v=probe.mesh.vertices;const glm::dvec3 a(v[0],v[1],v[2]),b(v[9],v[10],v[11]),c(v[18],v[19],v[20]);
+            const auto normal=glm::normalize(glm::cross(b-a,c-a));const auto plane=glm::dot(normal,a);
+            for(const auto& root:visible) {
+                const double error=std::abs(glm::dot(normal,glm::dvec3(root[0],root[1],root[2]))-plane)*1000;
+                maximumPlaneError=std::max(maximumPlaneError,error);EXPECT_LE(error,.001);++checked;
+            }
+            moved+=!last.empty() && visible!=last;last=visible;
+            if(GLEW_VERSION_4_3) {
+                const auto before=probe.grass.stats(0).animationFrame;
+                EXPECT_EQ(roots(probe.capture(.75,true,&pass)),visible);EXPECT_TRUE(probe.grass.usesCompute(0));
+                EXPECT_EQ(probe.grass.computedCounts(0)[1],0u);EXPECT_EQ(probe.grass.stats(0).animationFrame,before+1);
+                const auto records=probe.grass.cachedRootsForValidation(0);ASSERT_EQ(records.size(),candidates);
+                if(cached.empty()) cached=records;
+                for(std::size_t i=0;i<cached.size();++i) {
+                    EXPECT_EQ(records[i].rootExpected,cached[i].rootExpected);EXPECT_EQ(records[i].upRank,cached[i].upRank);
+                    EXPECT_EQ(records[i].normalSlot,cached[i].normalSlot);EXPECT_EQ(records[i].variation,cached[i].variation);
+                    ++recordComparisons;
+                }
+                auto reflection=pass;reflection.view[0][0]=-1;
+                const auto frame=probe.grass.stats(0).animationFrame;
+                EXPECT_EQ(roots(probe.capture(.75,true,&reflection)),visible);
+                EXPECT_EQ(probe.grass.stats(0).animationFrame,frame);
+            }
+            EXPECT_EQ(probe.grass.prepare(0,probe.mesh,p,1000,eye).rebuilds,0u);
+        }
+        f.compute_placement=false;probe.grass.prepare(0,probe.mesh,p,1000,eye);
+        EXPECT_EQ(roots(probe.capture(.75,true,&pass)),originalFine);EXPECT_FALSE(probe.grass.usesCompute(0));
+        latest.morphData.reset();probe.mesh.loadTerrain(latest);probe.grass.prepare(0,probe.mesh,p,1000,eye);
+        EXPECT_FALSE(probe.mesh.morphSource());EXPECT_FALSE(roots(probe.capture(.75,false,&pass)).empty());
+        f.enabled=false;probe.grass.prepare(0,probe.mesh,p,1000,eye);probe.grass.draw(0,&pass);
+        EXPECT_FALSE(probe.grass.drawnDeformationRevision(0));EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+    }
+    EXPECT_GT(checked,0u);EXPECT_GT(moved,0u);
+    std::cout << "CPU_GRASS_SOURCE visible_queries=" << checked << " changed_views=" << moved
+        << " cached_record_comparisons=" << recordComparisons << " maximum_plane_error_m=" << maximumPlaneError
+        << " compute_available=" << bool(GLEW_VERSION_4_3) << '\n';
 }

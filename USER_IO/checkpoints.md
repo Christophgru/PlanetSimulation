@@ -1,5 +1,31 @@
 # Page to document progress of AI Agents working on this Project
 
+## CPU grass on baked deformation — 2026-10-18
+
+- Continued terrain p after82e1d77. CPU.prepare binds mesh-owned source through
+  integer texture views, passes morphData into conservative plan and consumes
+  sorted envelope bounds for vertex LOD. Source changes reset live surface;
+  existing root regeneration NaNs animation time to refresh paused samples.
+  Prewarm surface program for compute-capable CPU grass. Defaults unchanged;
+  ordinary fallback clears source/views. Empty draw has no phase receipt.
+- New real-upload rendering case: pole/oblique, shuffled map, stored keys, five
+  dry/mixed/wet poses. Candidate count/cached root records stable; vertex and
+  compute visible roots exact; plane error<1mm; paused phase refresh/reflection
+  reuse, repeated fine roots, explicit placement disablement, fallback/disabled
+  cleanup pass. First focus GL3.3 10.958 s/RTX3.961 s/Quadro3.917 s. Added scalar
+  diagnostics:2,681 visible queries exact on eachGPU,5,120 cached records
+  immutable,six changed views. MaxplaneRTX.230774 mm/Quadro.230762 mm/forced
+  GL3.3.194173 mm. Final focused RTX.497/Quadro.389/GL3.3.571 s pass. Full20-step
+  build+two-step diagnostics/final no-op pass;35 core groups42.03 s,53 RTX cases
+  73.970 s,25 software wind/render/compute/upload55.464 s,frame+streaming125.52 s
+  pass. All15 PNGs and overview exact:14,779 pixels,bbox(1,1)–(794,598),3,471 planet.
+  Raw PNG whiteSun/11,040 bright pixels confirms preview artifact. Concurrent
+  durations validation,notFPS. Recovery/reload passed at4128298 before these
+  adapters. Logs detail-cpu-grass-* ignored/local; diff checks pass.
+- No source copying/readback in adapter; CPU upload keeps mesh revision rather
+  than fake phase. Next capture footprint replay, prepared streaming and parent
+  rebases. Keep p/Transient/native failures. User config remains unstaged.
+
 ## Conservative CPU grass planning — 2026-10-18
 
 - Continued terrain p after4128298. planGrass optional retained source uses fine

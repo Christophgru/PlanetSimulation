@@ -1,5 +1,43 @@
 # Relief-aware terrain sinking
 
+## CPU grass attached to baked deformation, 2026-10-18
+
+CPU grass preparation now recognizes the mesh-owned source, borrows integer
+texture views and uses the conservative CPU plan. Sorted envelope spheres feed
+vertex-path LOD selection. Fine targets and canonical keys keep root inputs
+stable as CPU geometry uploads a new baked pose. Source changes invalidate the
+surface cache; existing root regeneration invalidates paused wind samples.
+Compute-capable CPU grass prewarms its live-plane program and uses the same
+surface/compaction path as retained compute terrain. GL3.3 uses vertex placement.
+No new target copy or production readback is added by this adapter.
+
+CPU poses still advance mesh revision and carry no synthetic live deformation
+state. Same-source preparation reuses its plan; placement disablement, ordinary
+CPU fallback and disabled foliage retain their existing paths. Empty draws now
+leave no phase receipt, avoiding an uninitialized surface-version sentinel.
+
+A rendering regression uses real CPU uploads at pole and oblique orientations,
+shuffled target maps and stored canonical keys. Five dry/mixed/wet poses verify
+constant candidate counts, fixed cached records, exact vertex/compute root sets,
+current-plane error below1mm, paused animation refresh and reflection reuse.
+It also checks repeated fine roots, explicit compute disablement and fallback.
+All2,681 visible root queries match across paths on each GPU;5,120 cached
+records stay exact and six views change with the baked pose. Maximum plane
+error:RTX.230774 mm,Quadro.230762 mm,forcedGL3.3.194173 mm. Final focused
+RTX/Quadro/GL3.3 checks pass (.497/.389/.571 s); initial cold checks also pass.
+
+Full20-step build, two-step diagnostic rebuild and final no-op pass.35 core
+groups42.03 s,53 RTX cases73.970 s,25 software wind/render/compute/upload cases
+55.464 s and frame+streaming125.52 s pass. All fifteen historical PNGs and
+overview exact:14,779 pixels,bbox(1,1)–(794,598),3,471 planet pixels. PNG decoding
+confirms white Sun/11,040 bright pixels despite a dark tool preview. Concurrent
+durations are validation, not FPS evidence. Recovery/reload passed at4128298;
+no unaffected lifecycle rerun. Logs detail-cpu-grass-* remain ignored/local.
+
+Runtime retention remains Transient. Capture footprint replay, prepared moving
+coverage and parent rebases remain; keep terrain **p** and old native failures.
+No FPS improvement is claimed, and retained CPU/GPU storage remains charged.
+
 ## Conservative CPU grass planning, 2026-10-18
 
 The CPU planner can accept the retained source explicitly. It uses fine anchors
