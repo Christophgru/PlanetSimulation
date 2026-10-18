@@ -1,5 +1,48 @@
 # Relief-aware terrain sinking
 
+## Private CPU grass preparation, 2026-10-18
+
+`ProceduralGrass::submitCpu` uses the existing preparation/commit object for
+synchronous CPU descriptor staging on OpenGL 3.3 and newer. It builds a separate
+patch through the ordinary CPU planner. The published patch, fixed roots,
+planning eye and policy remain intact on cancellation, allocation failure and
+budget rejection. The old patch remains fully charged while the new policy is
+chosen, together with caller-supplied replacement terrain bytes. The returned
+`admittedBytes` covers the new patch and caller-supplied replacement bytes;
+the publication owner must reserve it alongside all live/retiring bytes until
+commit or cancellation.
+
+Recorded CPU planning eyes are read without consumption during staging. Commit
+rejects a changed eye or destination and consumes the recorded eye exactly
+once. Complete old patch ownership transfers to the consumed preparation, so
+the caller can retire its grass views before deleting the old mesh. Retained
+sources keep their immutable root anchors and attach the current shared phase
+at commit. Disabled foliage follows the same validated commit path. Descriptor
+preparation is synchronous; ordinary CPU draw-time compute caches remain lazy.
+
+Three focused cases pass on forced GL3.3 (2.226 s), RTX (1.848 s) and
+Quadro (1.851 s). The staging regression compares exact drawn output before
+commit, checks failed-upload buffer deletion, rejects insufficient overlap,
+cancels successfully staged work, rejects stale mesh/replay destinations, and
+consumes the replay eye once on valid commit. Initial test review corrected the
+expected public receipt: queuing a replay eye intentionally marks that receipt
+unready while the old patch remains drawable. Retained CPU/root cases now use
+private staging and retain 5,362 root queries across baked/live modes, 10,240
+unchanged cached records per native run, and maximum plane errors below
+0.231 mm through wet/dry/return phases and both placement paths.
+
+All 35 core groups pass (73.61 s), all 58 RTX compute cases (102.156 s), and
+all 26 software grass/render cases (15.660 s). The inspected headless overview
+is byte-exact: 14,779 non-background pixels, bounds `(1,1)–(794,598)`, and
+3,471 planet pixels. Recovery/frame/reload/streaming pass (297.09 s), and all
+15 historical PNGs stay exact. The strengthened overlap oracle also passes on
+GL3.3/RTX/Quadro after its final test rebuild: terrain-only admission succeeds
+while combined old/new foliage is rejected at that cap. Timings are concurrent
+validation, not FPS.
+Logs/captures remain local under ignored `build-f5/resume/detail-cpu-stage-*`.
+This is the private CPU foliage step needed for complete prepared CPU terrain
+publication; runtime coverage and parent rebases remain.
+
 ## Coverage-checked installed GPU phases, 2026-10-18
 
 `TerrainPublication::updateInstalledPhase` advances an installed prepared GPU

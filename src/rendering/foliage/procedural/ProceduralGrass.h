@@ -188,6 +188,9 @@ public:
         std::shared_ptr<GrassCellCache> previousCells_;
         bool reuseCells_=false;
         std::size_t rootLevel_=0,rootOffset_=0;
+        bool cpu_=false;
+        std::size_t cpuIndex_=0;
+        std::optional<glm::dvec3> cpuReplayEye_;
     public:
         ~Preparation();
         Preparation();
@@ -203,6 +206,11 @@ public:
         const config::PlanetConfig& planet,double metersPerWorldUnit,const glm::dvec3& eyeBody,
         std::uint64_t revision,std::uint64_t otherBytes=0,std::uint64_t byteLimit=defaultStageBytes,
         const TerrainMorphSource& source={});
+    // Synchronous CPU descriptor staging, including GL3.3. Live patches and
+    // replay eyes remain intact until commit; caller charges admitted overlap.
+    std::unique_ptr<Preparation> submitCpu(std::size_t index,const Mesh& mesh,
+        const config::PlanetConfig& planet,double metersPerWorldUnit,const glm::dvec3& eyeBody,
+        std::uint64_t otherBytes=0);
     bool poll(Preparation& preparation);
     void waitForCapture(Preparation& preparation);
     void reserve(std::size_t index);

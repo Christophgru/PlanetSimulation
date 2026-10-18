@@ -29,6 +29,19 @@ struct CpuUploadFault {
     CpuUploadFault(){calls=0;original=__glewBufferSubData;__glewBufferSubData=upload;}
     ~CpuUploadFault(){__glewBufferSubData=original;}
 };
+struct CpuDescriptorFault {
+    static inline PFNGLBUFFERDATAPROC original=nullptr;
+    static inline GLuint written=0;
+    static void GLAPIENTRY upload(GLenum target,GLsizeiptr bytes,const void* data,GLenum usage) {
+        original(target,bytes,data,usage);
+        if(target==GL_ARRAY_BUFFER) {
+            GLint buffer=0;glGetIntegerv(GL_ARRAY_BUFFER_BINDING,&buffer);written=buffer;
+            glBindBuffer(GL_TEXTURE_2D,0);
+        }
+    }
+    CpuDescriptorFault(){written=0;original=__glewBufferData;__glewBufferData=upload;}
+    ~CpuDescriptorFault(){__glewBufferData=original;}
+};
 // Link the production vertex source for feedback, then use the production
 // descriptor VAOs/divisors/draws. This checks real fetch rates and GPU roots.
 class GrassProbe {
@@ -654,6 +667,62 @@ TEST(ProceduralGrassRender, CpuAdmissionChargesLiveTerrainAndReplacementBeforeLo
     EXPECT_EQ(probe.grass.reservedBytes(),3072+probe.grass.ownedBytes());
 }
 
+TEST(ProceduralGrassRender, CpuPreparationKeepsLiveDrawsBudgetAndReplayEyesUntilCommit) {
+    GrassProbe probe;
+    struct ProgramScope {~ProgramScope(){glUseProgram(0);}} programScope;
+    probe.planet.foliage.compute_placement=false;probe.grass.enableAdaptiveBudget();
+    probe.grass.prepare(0,probe.mesh,probe.planet,100,{0,0,1.02});
+    const auto original=probe.capture(.75);const auto policy=probe.grass.policy(0);
+    const auto oldStats=probe.grass.stats(0);auto oldEye=probe.grass.planningEye(0);
+    const auto reserved=probe.grass.reservedBytes();
+    Mesh candidate;struct Cleanup {Mesh& mesh;~Cleanup(){mesh.destroy();}} cleanup{candidate};
+    rendering::TerrainGeometry geometry;geometry.vertices=probe.mesh.vertices;geometry.indices=probe.mesh.indices;
+    for(std::size_t i=2;i<geometry.vertices.size();i+=9) geometry.vertices[i]+=.01f;
+    candidate.loadTerrain(std::move(geometry));candidate.revision=probe.mesh.revision+1;
+    const glm::dvec3 replayEye(.001,0,1.02);
+    const auto unchanged=[&] {
+        EXPECT_EQ(probe.grass.reservedBytes(),reserved);EXPECT_EQ(probe.grass.policy(0),policy);
+        EXPECT_EQ(probe.grass.stats(0).candidates,oldStats.candidates);EXPECT_EQ(probe.grass.planningEye(0),oldEye);
+        EXPECT_EQ(probe.capture(.75),original);
+    };
+    {CpuDescriptorFault fault;
+        EXPECT_THROW(probe.grass.submitCpu(0,candidate,probe.planet,100,{0,0,1.02},1024),std::runtime_error);
+        EXPECT_NE(CpuDescriptorFault::written,0u);EXPECT_FALSE(glIsBuffer(CpuDescriptorFault::written));
+    }
+    unchanged();
+    const auto signals=probe.grass.budgetSignals();auto tight=signals;tight.capBytes=reserved+1024;
+    probe.grass.observeBudget(tight);
+    EXPECT_NO_THROW(probe.grass.admitCpuTerrain(1024)); // Terrain fits; old plus new foliage must not.
+    EXPECT_THROW(probe.grass.submitCpu(0,candidate,probe.planet,100,{0,0,1.02},1024),std::runtime_error);
+    probe.grass.observeBudget(signals);unchanged();
+    auto cancelled=probe.grass.submitCpu(0,candidate,probe.planet,100,{0,0,1.02},1024);
+    ASSERT_TRUE(cancelled->ready());EXPECT_TRUE(probe.grass.poll(*cancelled));unchanged();
+    EXPECT_GE(cancelled->admittedBytes,1024u+oldStats.candidates*128);
+    cancelled.reset();unchanged();
+    probe.grass.restorePlanningEye(0,replayEye);oldEye=probe.grass.planningEye(0);
+    EXPECT_FALSE(oldEye); // Queuing a replay invalidates the public planning receipt.
+    {CpuDescriptorFault fault;
+        EXPECT_THROW(probe.grass.submitCpu(0,candidate,probe.planet,100,{0,0,1.02},1024),std::runtime_error);
+    }
+    unchanged();
+    auto staged=probe.grass.submitCpu(0,candidate,probe.planet,100,{0,0,1.02},1024);
+    EXPECT_THROW(probe.grass.commit(0,*staged,probe.mesh),std::invalid_argument);unchanged();
+    probe.grass.restorePlanningEye(0,{.002,0,1.02});
+    EXPECT_THROW(probe.grass.commit(0,*staged,candidate),std::invalid_argument);unchanged();
+    probe.grass.restorePlanningEye(0,replayEye);
+    ASSERT_NO_THROW(probe.grass.validateCommit(0,*staged,candidate));
+    probe.mesh.swap(candidate);probe.grass.commit(0,*staged,probe.mesh);staged.reset();
+    EXPECT_EQ(probe.grass.planningEye(0),replayEye);EXPECT_NE(probe.capture(.75),original);
+    EXPECT_THROW(probe.grass.submitCpu(0,candidate,probe.planet,0,{0,0,1.02}),std::invalid_argument);
+    ++probe.mesh.revision;
+    EXPECT_EQ(probe.grass.prepare(0,probe.mesh,probe.planet,100,{0,0,1.02}).rebuilds,1u);
+    EXPECT_EQ(probe.grass.planningEye(0),glm::dvec3(0,0,1.02)); // Replay eye was consumed exactly once.
+    probe.planet.foliage.enabled=false;
+    auto disabled=probe.grass.submitCpu(0,probe.mesh,probe.planet,100,{0,0,1.02});
+    probe.grass.commit(0,*disabled,probe.mesh);EXPECT_EQ(probe.grass.stats(0).candidates,0u);
+    EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+}
+
 TEST(TerrainMesh, CpuRetainedUploadPreservesIntegerSourceAndBakedPoseThroughSwapAndFallback) {
     using namespace rendering;
     config::PlanetConfig::TerrainLod lod;
@@ -834,7 +903,8 @@ TEST(ProceduralGrassRender, RetainedCpuSourceKeepsRootsOnBakedPlanesAcrossViewsA
         GrassPass pass;pass.mainEyeBody=eye;pass.windTime=.75;
         probe.mesh.loadTerrain(geometry({}));
         if(live) probe.mesh.prepareCpuDeformation();
-        EXPECT_EQ(probe.grass.prepare(0,probe.mesh,p,1000,eye).rebuilds,1u);
+        {auto stage=probe.grass.submitCpu(0,probe.mesh,p,1000,eye);probe.grass.commit(0,*stage,probe.mesh);}
+        EXPECT_EQ(probe.grass.prepare(0,probe.mesh,p,1000,eye).rebuilds,0u);
         const auto revision=probe.mesh.revision;
         SurfaceContact contact;contact.bind(probe.mesh.vertices,probe.mesh.indices,revision,1000,9,probe.mesh.morphState);
         const auto candidates=probe.grass.stats(0).candidates;ASSERT_GT(candidates,0u);

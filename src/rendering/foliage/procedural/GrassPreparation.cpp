@@ -151,6 +151,49 @@ std::unique_ptr<ProceduralGrass::Preparation> ProceduralGrass::submitResident(GL
     // dependency. No CPU wait or readback is needed here.
     return result;
 }
+std::unique_ptr<ProceduralGrass::Preparation> ProceduralGrass::submitCpu(std::size_t index,const Mesh& mesh,
+    const config::PlanetConfig& planet,double metersPerWorldUnit,const glm::dvec3& eyeBody,std::uint64_t otherBytes) {
+    if(mesh.residentTerrain || mesh.terrainStats.generation.backend!=TerrainBackend::Cpu || !mesh.hasVertexColors ||
+       !mesh.vbo || !mesh.ebo || mesh.vertices.size()%9 || mesh.indices.empty() || mesh.indices.size()%3)
+        throw std::invalid_argument("CPU grass staging requires uploaded CPU terrain");
+    grassMetadataParameters(planet,metersPerWorldUnit,eyeBody,mesh.indices.size()/3);
+    admitCpuTerrain(otherBytes);
+    if(glGetError()!=GL_NO_ERROR) throw std::runtime_error("CPU grass staging requires a clean GL context");
+    reserve(index);
+    auto result=std::make_unique<Preparation>();
+    result->cpu_=true;result->cpuIndex_=index;
+    result->generation_=mesh.terrainStats.generation;result->vertices_=mesh.vbo;result->indices_=mesh.ebo;
+    if(const auto saved=replayPlanEyes_.find(index);saved!=replayPlanEyes_.end()) result->cpuReplayEye_=saved->second;
+    const auto liveBytes=ownedBytes(),external=externalBudgetBytes_;
+    auto savedEye=replayPlanEyes_.extract(index);
+    patches_[index].swap(result->patch_);
+    struct Restore {
+        ProceduralGrass& owner;Preparation& stage;std::size_t index;std::uint64_t external;
+        decltype(replayPlanEyes_)::node_type& eye;
+        ~Restore() {
+            owner.patches_[index].swap(stage.patch_);owner.externalBudgetBytes_=external;
+            if(!eye.empty()) owner.replayPlanEyes_.insert(std::move(eye));
+        }
+    } restore{*this,*result,index,external,savedEye};
+    const auto heldBytes=liveBytes-ownedBytes();
+    if(otherBytes>std::numeric_limits<std::uint64_t>::max()-external ||
+       heldBytes>std::numeric_limits<std::uint64_t>::max()-external-otherBytes)
+        throw std::overflow_error("CPU grass staging overlap overflow");
+    // The temporarily detached live patch still owns its complete allocation.
+    // Include it and replacement terrain in the normal CPU policy admission.
+    externalBudgetBytes_=external+heldBytes+otherBytes;
+    prepare(index,mesh,planet,metersPerWorldUnit,result->cpuReplayEye_.value_or(eyeBody));
+    auto& patch=*patches_[index];
+    patch.revision=mesh.revision;patch.generation=mesh.terrainStats.generation;
+    updateDraws(patch,planet.radius*metersPerWorldUnit,planet.foliage.quadDistanceMeters(),eyeBody);
+    if(glGetError()!=GL_NO_ERROR) throw std::runtime_error("CPU grass draw resource allocation failed");
+    const auto stageBytes=ownedBytes()-(liveBytes-heldBytes);
+    if(otherBytes>std::numeric_limits<std::uint64_t>::max()-stageBytes)
+        throw std::overflow_error("CPU grass staging allocation overflow");
+    result->admittedBytes=otherBytes+stageBytes;
+    result->ready_=true;
+    return result;
+}
 bool ProceduralGrass::poll(Preparation& p) {
     if(p.failed_) throw std::logic_error("Failed or consumed grass preparation");
     if(p.ready_) return true;
@@ -281,8 +324,15 @@ void ProceduralGrass::validateCommit(std::size_t index,const Preparation& p,cons
        mesh.terrainStats.generation!=p.generation_ || mesh.vbo!=p.vertices_ || mesh.ebo!=p.indices_ || mesh.revision!=p.patch_->revision ||
        mesh.morphSource()!=p.patch_->morphSource)
         throw std::invalid_argument("Grass commit requires reserved matching ready consumers");
+    if(p.cpu_) {
+        const auto found=replayPlanEyes_.find(index);
+        const auto eye=found==replayPlanEyes_.end()?std::nullopt:std::optional(found->second);
+        if(index!=p.cpuIndex_ || eye!=p.cpuReplayEye_)
+            throw std::invalid_argument("CPU grass replay eye changed during preparation");
+    }
 }
 void ProceduralGrass::commitPrepared(std::size_t index,Preparation& p,const Mesh& mesh) noexcept {
+    if(p.cpu_) replayPlanEyes_.erase(index);
     p.patch_->morphState=mesh.morphState;
     const auto& next=p.patch_->falloff;
     const auto& old=patches_[index]->falloff;

@@ -1,5 +1,41 @@
 # Page to document progress of AI Agents working on this Project
 
+## Private CPU grass preparation — 2026-10-18
+
+- Continuing terrain **p** after `b1b969e`. Added
+  `ProceduralGrass::submitCpu` through existing preparation/commit ownership.
+  A scoped private patch runs the ordinary CPU planner, keeping the published
+  patch/policy/draws intact. Admission charges the detached old patch and new
+  terrain bytes. Returned admitted bytes cover the replacement, to be held by
+  its publication owner alongside live/retiring resources. No runtime activation.
+- Replay eyes stay queued across stage failures/cancellation. Commit validates
+  body/mesh/source/replay identity, consumes the eye once and transfers the old
+  patch to preparation ownership for retirement. Disabled CPU foliage is valid;
+  current retained phase attaches on commit. Descriptor preparation is synchronous
+  and ordinary CPU draw-time compute caches remain lazy.
+- New regression tests exact live output, policy/budget/eye preservation, errors
+  after real descriptor writes and buffer deletion, overlap rejection, cancellation,
+  stale mesh/replay commits, successful transfer and disabled foliage. Corrected
+  an initial test expectation: restorePlanningEye intentionally invalidates the
+  public planning receipt while keeping old draw data. Existing retained CPU
+  tests now prepare privately on GL3.3/vertex and native compute routes.
+- Focused three cases pass GL3.3 2.226 / RTX 1.848 / Quadro 1.851 s. Across
+  baked/live modes: 5,362 root queries, 10,240 unchanged native cache records,
+  max plane errors below 0.231 mm. All 35 core groups pass (73.61 s), 58 RTX
+  cases (102.156 s), and 26 software grass/render cases (15.660 s). Build
+  (67 steps) and test correction rebuild (2 steps) pass. Headless inspected and
+  exact: 14,779 non-background pixels, bounds `(1,1)–(794,598)`, 3,471 planet
+  pixels. Recovery/frame/reload/streaming all pass (297.09 s), with 15 historical
+  PNGs byte-exact. Final two-step test rebuild and strengthened overlap oracle
+  pass on GL3.3/RTX/Quadro: terrain-only admission succeeds while combined
+  old/new foliage fails at the same cap.
+  Logs: `build-f5/resume/detail-cpu-stage-*`; timings are validation, not FPS.
+- User also queued mode 2 astronaut steering/view 2 trails/camera 4 zoom as
+  the last feature row, separately committed in `5529b38`.
+- Keep **p**, default `Transient` and prior native coverage failures. Next:
+  complete CPU terrain/water/grass publication, coverage policy, live runtime
+  scheduling and parent-rebase continuity. User scenario edits remain unstaged.
+
 ## Installed prepared GPU phases with rollback — 2026-10-18
 
 - Continuing terrain **p** after CPU adapter commit `ab17035`.
