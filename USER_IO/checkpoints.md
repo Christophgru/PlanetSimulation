@@ -1,5 +1,22 @@
 # Page to document progress of AI Agents working on this Project
 
+## Prepared surface publication probe — 2026-10-18
+
+- Continuing terrain **p** after `47105c9`. Added a CPU surface regression that
+  compares successive prepared plans under one common moving footprint, at both
+  oblique and polar locations through five moves/turns/return. It probes the
+  active core, blend edges, both preparation boundaries and shared coarse parent.
+- Uses actual baked float meshes as independent ray-hit oracles for the shared
+  sparse contact phase; compares pre/post-publication surface positions rather
+  than relying only on common triangle IDs. There are 3,040 radial probes, a
+  1 mm swap bound and a separate oracle-parity check. Build and focused test
+  pass (22.306 s): all 10 plans change topology, maximum swap difference
+  0.0379581 mm and exact sparse/baked oracle parity. All 35 core groups pass
+  (52.43 s), including the 16 detail cases.
+  Logs stay local in `build-f5/resume/detail-prepared-surface-*`.
+- Runtime still uses `Transient`; no moving activation or parent-rebase claim.
+  User scenario edits remain unstaged. Snapshot increment is committed.
+
 ## Application deformation snapshots — 2026-10-18
 
 - Continued the terrain **p** task after `6d96ba6`. Capture emits per-body

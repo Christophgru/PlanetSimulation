@@ -1,5 +1,32 @@
 # Relief-aware terrain sinking
 
+## Compare prepared surfaces at publication, 2026-10-18
+
+The earlier overlap check proves that the interior triangle sets match. A new
+regression compares actual pre/post-publication radial intersections under one
+common moving footprint. It uses a 1.5 m preparation core, a 0.2 m active core
+and a 0.4 m transition, with a 100,000-triangle cap and unchanged shared parent.
+Both oblique and polar fixtures traverse five moves, turns and a return.
+
+There are 3,040 probes from the core through both sides of the blend band, both
+preparation boundaries and the distant parent (up to 10 m). For each plan, a
+full baked float mesh supplies an independent oracle for sparse shared-phase
+contacts. All contact positions match the corresponding baked mesh exactly.
+Across all 10 changed topologies, the largest surface difference at publication
+is 0.0379581 mm, below the unchanged 1 mm bound. This includes independently
+rounded parent intersections outside the common fine triangles.
+
+The focused regression passes in 22.306 s. All 35 core test groups pass in
+52.43 s, including all 16 detail cases.
+Production rendering code is unchanged from `47105c9`, whose exact capture,
+replay/reload and inspected headless overview checks passed. Raw output remains
+local under `build-f5/resume/detail-prepared-surface-*`.
+
+This establishes a same-parent surface precondition for these bounded fixtures.
+It does not establish moving coverage at arbitrary speed, activate a preparation
+halo in the runtime or resolve parent rebases. Terrain remains **p** and runtime
+storage stays `Transient`.
+
 ## Capture and reload deformation snapshots, 2026-10-18
 
 Capture sidecars emit a per-body `terrain_deformation` array when any mesh has

@@ -1,6 +1,7 @@
 #include "config/Config.h"
 #include "rendering/geometry/Terrain.h"
 #include "rendering/geometry/terrain/detail/TerrainMorph.h"
+#include "rendering/geometry/contacts/SparseTerrainContacts.h"
 #include "rendering/character/SurfaceContact.h"
 #include <gtest/gtest.h>
 #include <map>
@@ -387,6 +388,61 @@ TEST(TerrainDetail, PreparedFineOverlapKeepsInteriorTrianglesStableAcrossTurnsAn
             previous=current;previousFaces=currentFaces;
         }
     }
+}
+TEST(TerrainDetail, PreparedPublicationPreservesTheSurfaceAcrossMovingPhasesAndCoarseBoundaries) {
+    auto lod=detailLod();lod.local_detail_streaming=true;lod.max_triangle_budget=100000;
+    lod.local_detail_radius_m=1.5;lod.near_surface_distance_m=300;lod.mid_surface_distance_m=1000;
+    const GroundQuery missing=[](const auto&) -> GroundContact {throw std::logic_error("Missing prepared triangle");};
+    double maxSwapError=0,maxOracleError=0;std::size_t probes=0,changedPlans=0;
+    for(const auto anchor:{glm::dvec3(-.21005697617230545,.909856724515421,-.36613409503800903),
+                           glm::dvec3(0,0,1.002)}) {
+        TerrainSurface surface({microNoise()},lod,1,1000);
+        const auto east=glm::normalize(glm::cross(anchor,glm::dvec3(0,1,0)));
+        const auto north=glm::normalize(glm::cross(anchor,east));
+        auto previous=surface.buildTopologyForEye(anchor,{});
+        auto previousSource=std::make_shared<SparseTerrainContacts>(surface.field(),previous);
+        for(const auto offset:{glm::dvec2(.15,0),glm::dvec2(.3,0),glm::dvec2(.3,.3),
+                              glm::dvec2(0,.3),glm::dvec2(0,0)}) {
+            const auto eye=anchor+(east*offset.x+north*offset.y)/1000.;
+            auto current=surface.buildTopologyForEye(eye,{});
+            ASSERT_TRUE(current.parentReused);ASSERT_FALSE(current.localDetailLimited);
+            ASSERT_EQ(current.parentPolicy,previous.parentPolicy);
+            ASSERT_EQ(current.surfacePolicy,previous.surfacePolicy);
+            changedPlans+=current.generation.topology!=previous.generation.topology;
+            const TerrainMorphFootprint footprint{glm::normalize(eye),1000,.2,.4};
+            auto phase=std::make_shared<TerrainMorphState>();phase->set(footprint);
+            auto currentSource=std::make_shared<SparseTerrainContacts>(surface.field(),current);
+            SurfaceContact oldContact,newContact;
+            oldContact.bind(previousSource,1,phase);newContact.bind(currentSource,2,phase);
+            const auto oldMesh=surface.evaluateTopology(previous,footprint);
+            const auto newMesh=surface.evaluateTopology(current,footprint);
+            SurfaceContact oldOracle,newOracle;
+            oldOracle.bind(oldMesh.vertices,oldMesh.indices,1,1000);
+            newOracle.bind(newMesh.vertices,newMesh.indices,2,1000);
+            // Off-grid radial rays cross the fine core, the moving blend band,
+            // both prepared boundaries and the distant shared parent. Comparing
+            // only common triangle IDs cannot establish publication continuity.
+            for(const double distance:{0.,.137,.199,.201,.317,.499,.599,.601,.83,1.13,1.49,1.51,1.83,2.1,3.17,10.})
+                for(int i=0;i<19;++i) {
+                    const double angle=(i+.317)*2*std::numbers::pi/19;
+                    const auto radial=glm::normalize(footprint.eyeRadial+
+                        (east*std::cos(angle)+north*std::sin(angle))*(distance/1000));
+                    const auto before=oldContact.sample(radial,missing),after=newContact.sample(radial,missing);
+                    const auto oracleBefore=oldOracle.sample(radial,missing),oracleAfter=newOracle.sample(radial,missing);
+                    maxSwapError=std::max(maxSwapError,glm::length(before.position-after.position));
+                    maxOracleError=std::max({maxOracleError,glm::length(before.position-oracleBefore.position),
+                        glm::length(after.position-oracleAfter.position)});++probes;
+                }
+            previous=std::move(current);previousSource=std::move(currentSource);
+        }
+    }
+    EXPECT_EQ(probes,3040u);EXPECT_GT(changedPlans,0u);
+    EXPECT_LE(maxOracleError,1e-9);
+    // Float-rounded parent intersections can differ between subdivisions. Keep
+    // the existing sub-millimetre surface tolerance; do not require bit identity.
+    EXPECT_LE(maxSwapError,.001);
+    std::cout<<"PREPARED_SURFACE probes="<<probes<<" changed_plans="<<changedPlans
+        <<" max_swap_m="<<maxSwapError<<" max_oracle_m="<<maxOracleError<<'\n';
 }
 TEST(TerrainDetail, ExplicitCpuPhaseMatchesIndependentWeightsWithoutChangingThePlanOrAttributes) {
     for(const auto units:{glm::dvec2(1,1000),glm::dvec2(1000,1)}) {
