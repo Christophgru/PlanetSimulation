@@ -262,17 +262,27 @@ TEST(TerrainJobs, EpochCancellationClosesLogicalAttemptsWithoutWaitingForRunning
     EXPECT_EQ(occurrences(traceText(out),",obsolete,"),4u);
 }
 TEST(TerrainJobs, MemorySnapshotRetainsReadySlotAndOnlyCountsStableVectors) {
-    TerrainBuildScheduler jobs([](const auto&) {
-        TerrainCpuBuild b;b.geometry.vertices.reserve(100);b.geometry.indices.reserve(50);
-        TerrainTopology topology;topology.canonicalize(1);topology.samples.reserve(20);
-        b.topology=TerrainTopologySnapshot(std::move(topology));return b;
-    });ASSERT_TRUE(jobs.submit(request()));
-    const auto deadline=std::chrono::steady_clock::now()+5s;
-    std::optional<TerrainMemorySnapshot> snapshot;
-    do {snapshot=jobs.memorySnapshot();if(snapshot && snapshot->ready) break;std::this_thread::sleep_for(1ms);}
-    while(std::chrono::steady_clock::now()<deadline);
-    ASSERT_TRUE(snapshot);ASSERT_EQ(snapshot->ready,1u);
-    EXPECT_EQ(snapshot->readyVectorBytes,100*sizeof(float)+50*sizeof(unsigned)+20*sizeof(TerrainInputSample));
-    EXPECT_TRUE(jobs.readyIdentity());EXPECT_EQ(jobs.memorySnapshot()->readyVectorBytes,snapshot->readyVectorBytes);
-    ASSERT_TRUE(jobs.poll());EXPECT_EQ(jobs.memorySnapshot()->readyVectorBytes,0u);
+    for(const bool retained:{false,true}) {
+        SCOPED_TRACE(retained);
+        TerrainBuildScheduler jobs([retained](const auto&) {
+            TerrainCpuBuild b;b.geometry.vertices.reserve(100);b.geometry.indices.reserve(50);
+            if(retained) {
+                auto source=std::make_shared<TerrainMorphData>();
+                source->targets.reserve(64);source->targets.resize(54);
+                source->corners.reserve(8);source->corners.resize(3);
+                b.geometry.morphData=std::move(source);
+            }
+            TerrainTopology topology;topology.canonicalize(1);topology.samples.reserve(20);
+            b.topology=TerrainTopologySnapshot(std::move(topology));return b;
+        });ASSERT_TRUE(jobs.submit(request()));
+        const auto deadline=std::chrono::steady_clock::now()+5s;
+        std::optional<TerrainMemorySnapshot> snapshot;
+        do {snapshot=jobs.memorySnapshot();if(snapshot && snapshot->ready) break;std::this_thread::sleep_for(1ms);}
+        while(std::chrono::steady_clock::now()<deadline);
+        ASSERT_TRUE(snapshot);ASSERT_EQ(snapshot->ready,1u);
+        EXPECT_EQ(snapshot->readyVectorBytes,100*sizeof(float)+50*sizeof(unsigned)+20*sizeof(TerrainInputSample)+
+            (retained?72*sizeof(std::uint32_t):0));
+        EXPECT_TRUE(jobs.readyIdentity());EXPECT_EQ(jobs.memorySnapshot()->readyVectorBytes,snapshot->readyVectorBytes);
+        ASSERT_TRUE(jobs.poll());EXPECT_EQ(jobs.memorySnapshot()->readyVectorBytes,0u);
+    }
 }

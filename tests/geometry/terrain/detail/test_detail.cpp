@@ -429,3 +429,54 @@ TEST(TerrainDetail, ExplicitCpuPhaseMatchesIndependentWeightsWithoutChangingTheP
         EXPECT_THROW(surface.evaluateTopology(legacy,valid),std::invalid_argument);
     }
 }
+
+TEST(TerrainDetail, CpuRetainedTargetsPreserveOriginalAnchorsAcrossBakedPhasesAndOwnTheirStorage) {
+    for(const auto units:{glm::dvec2(1,1000),glm::dvec2(1000,1)}) {
+        auto lod=detailLod();lod.local_detail_streaming=true;lod.max_triangle_budget=100000;
+        lod.near_surface_distance_m=300;lod.mid_surface_distance_m=1000;
+        const TerrainSurface surface({microNoise()},lod,units.x,units.y);
+        const auto radial=glm::normalize(glm::dvec3(.3,-.7,1)),east=glm::normalize(glm::cross(radial,glm::dvec3(0,1,0)));
+        auto topology=surface.buildTopologyForEye(radial*(1.002*units.x),{});
+        const auto fingerprint=topology.contentFingerprint();
+        auto original=surface.evaluateTopology(topology),retained=surface.evaluateTopology(topology,TerrainMorphStorage::Retained);
+        EXPECT_FALSE(original.morphData);ASSERT_TRUE(retained.morphData);
+        const auto source=retained.morphData;
+        EXPECT_EQ(retained.vertices,original.vertices);EXPECT_EQ(retained.indices,original.indices);
+        EXPECT_EQ(source->generation,topology.generation);EXPECT_EQ(source->metersPerRadius,1000);
+        EXPECT_FALSE(source->phase);EXPECT_EQ(source->samples(),topology.samples.size());
+        EXPECT_EQ(source->corners,topology.indices);
+        EXPECT_EQ(source->bytes(),72*topology.samples.size()+4*topology.indices.size());
+        EXPECT_GE(retained.evaluationQueries.evaluations,original.evaluationQueries.evaluations);
+        std::size_t nanWords=0;
+        for(std::size_t i=0;i<source->samples();++i) {
+            const auto& sample=topology.samples[i];const auto decoded=source->radial(i);
+            for(int j=0;j<3;++j) {
+                EXPECT_EQ(std::bit_cast<std::uint64_t>(decoded[j]),std::bit_cast<std::uint64_t>(sample.radial[j]));
+                const auto lo=source->targets[9*i+2*j];
+                nanWords+=(lo&0x7f800000u)==0x7f800000u && (lo&0x007fffffu)!=0;
+            }
+            EXPECT_EQ(source->fine(i),glm::vec3(terrainPosition(surface.field(),sample,topology.surfacePolicy)));
+            EXPECT_EQ(source->parent(i),terrainParentPosition(surface.field(),sample,topology.morph[i],topology.parentPolicy));
+        }
+        EXPECT_GT(nanWords,0u);
+        for(std::size_t c=0;c<source->corners.size();++c) for(int j=0;j<3;++j)
+            EXPECT_EQ(source->original(source->corners[c])[j],original.vertices[9*c+j]);
+        for(double offset:{0.,.15,.3}) {
+            const TerrainMorphFootprint phase{glm::normalize(radial+east*(offset/1000)),1000,.2,.4};
+            const auto expected=surface.evaluateTopology(topology,phase);
+            const auto actual=surface.evaluateTopology(topology,phase,TerrainMorphStorage::Retained);
+            ASSERT_TRUE(actual.morphData);ASSERT_TRUE(actual.morphData->phase);
+            EXPECT_EQ(*actual.morphData->phase,phase);EXPECT_EQ(actual.vertices,expected.vertices);
+            EXPECT_EQ(actual.indices,expected.indices);EXPECT_EQ(actual.grassCellKeys,expected.grassCellKeys);
+            EXPECT_EQ(actual.morphData->targets,source->targets);EXPECT_EQ(actual.morphData->corners,source->corners);
+            EXPECT_EQ(actual.evaluationQueries.evaluations,retained.evaluationQueries.evaluations);
+        }
+        EXPECT_EQ(topology.contentFingerprint(),fingerprint);
+        EXPECT_THROW(source->fine(source->samples()),std::out_of_range);
+        EXPECT_THROW(surface.evaluateTopology(topology,static_cast<TerrainMorphStorage>(99)),std::invalid_argument);
+        const auto legacy=surface.buildTopology(1);
+        EXPECT_THROW(surface.evaluateTopology(legacy,TerrainMorphStorage::Retained),std::invalid_argument);
+        topology={};retained={};original={};
+        EXPECT_GT(source->samples(),0u);EXPECT_TRUE(std::isfinite(glm::length(source->parent(0))));
+    }
+}

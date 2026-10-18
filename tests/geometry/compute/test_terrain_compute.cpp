@@ -315,6 +315,22 @@ TEST(TerrainCompute, RetainedTargetsDeformWithCpuParityAndPreserveAttributesAndO
         nanWords+=(lo&0x7f800000u)==0x7f800000u && (lo&0x007fffffu)!=0;
     }
     EXPECT_GT(nanWords,0u);
+    const auto cpuRetained=surface.evaluateTopology(topology,TerrainMorphStorage::Retained);
+    ASSERT_TRUE(cpuRetained.morphData);const auto& cpuSource=*cpuRetained.morphData;
+    EXPECT_EQ(cpuSource.corners,topology.indices);EXPECT_EQ(cpuSource.targets.size(),packed.size());
+    std::vector<std::uint32_t> gpuCorners(topology.indices.size());
+    glBindBuffer(GL_COPY_READ_BUFFER,corners);
+    glGetBufferSubData(GL_COPY_READ_BUFFER,0,gpuCorners.size()*4,gpuCorners.data());glBindBuffer(GL_COPY_READ_BUFFER,0);
+    EXPECT_EQ(cpuSource.corners,gpuCorners);
+    // Raw integer transport and fine anchors must match; projected double
+    // endpoints keep the established CPU/GPU physical tolerance.
+    TerrainMorphData gpuSource;gpuSource.targets=packed;
+    for(std::size_t i=0;i<cpuSource.samples();++i) {
+        for(int j=0;j<6;++j) EXPECT_EQ(cpuSource.targets[9*i+j],packed[9*i+j]);
+        EXPECT_LE(glm::length(glm::dvec3(cpuSource.fine(i))-glm::dvec3(gpuSource.fine(i)))*1000,.002);
+        EXPECT_LE(glm::length(cpuSource.parent(i)-gpuSource.parent(i))*1000,.002);
+        EXPECT_LE(glm::length(glm::dvec3(cpuSource.original(i))-glm::dvec3(gpuSource.original(i)))*1000,.002);
+    }
     for(std::size_t corner=0;corner<topology.indices.size();++corner) {
         const auto offset=9*topology.samples.size()+9*topology.indices[corner]+6;
         for(int j=0;j<3;++j) EXPECT_EQ(packed[offset+j],std::bit_cast<std::uint32_t>(initial[9*corner+j]));

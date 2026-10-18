@@ -1,5 +1,34 @@
 # Page to document progress of AI Agents working on this Project
 
+## CPU-owned immutable deformation source — 2026-10-18
+
+- Continued terrain p after72b3edd. TerrainMorphStorage now belongs to shared
+  geometry. CPU evaluateTopology can opt into Retained for original or explicit
+  phases; returns shared immutable TerrainMorphData alongside baked geometry.
+  Integer layout matches GPU:72 bytes/sample+4/corner, radial double bits, fine
+  floats, projected parent doubles, exact original emitted floats. Baked phase
+  and physical scale are metadata; targets/map never depend on the active phase.
+- Parents are evaluated once per sample even for originally fine samples; query
+  stats count that cost. DefaultTransient has no target allocation. Unknown mode
+  and non-morph retained requests reject. Decoders check bounds; data outlives
+  topology/geometry. Worker ready-slot memory counts actual retained capacities.
+- Added15th detail case with both unit scales, three phases, exact baked/original
+  vertices, identity, raw-bit/NaN-like words, map/bytes/counts, invalid inputs and
+  lifetime. Existing retained GPU case compares all raw radial words/corner IDs
+  and endpoint positions with its unchanged2mm CPU/GPU tolerance. Scheduler
+  memory test exercises retained and ordinary ready slots. Full117-step build,
+  accounting relink, two-step oracle rebuild and final no-op pass.35 core groups
+  40.66 s,53 RTX cases72.042 s, focused retained RTX2.899/Quadro16.662 s and
+  scheduler3 ms pass. Float anchor oracle compares float representation exactly;
+  original CPU/GPU tolerance unchanged. Frame+streaming146.34 s pass. All15 PNGs
+  and overview exact:14,779 pixels,bbox(1,1)–(794,598),3,471 planet. Raw PNG also
+  confirms SunRGBA254,254,254,255 and11,040 bright pixels despite tool preview.
+  Independent concurrent timings are validation, not FPS evidence. Recovery and
+  reload passed in preceding72b3edd. Logs detail-cpu-source-* ignored/local.
+- This is CPU-owned source only. Mesh upload/CPU grass/capture adapters remain,
+  then prepared streaming and parent rebases. Runtime retention stays Transient,
+  keep terrain p and old native coverage failures. User config stays unstaged.
+
 ## Consumer phase receipts — 2026-10-18
 
 - Continued terrain p after f6f7455. SceneTerrainConsumers tracks independent

@@ -212,23 +212,34 @@ void TerrainSurface::emitFace(const GridSample& a,const GridSample& b,
     geometry.indices.insert(geometry.indices.end(),{start,start+1,start+2});
 }
 
-TerrainGeometry TerrainSurface::evaluateTopology(const TerrainTopology& topology) const {
-    return evaluateTopologyImpl(topology,nullptr);
+TerrainGeometry TerrainSurface::evaluateTopology(const TerrainTopology& topology,TerrainMorphStorage storage) const {
+    return evaluateTopologyImpl(topology,nullptr,storage);
 }
-TerrainGeometry TerrainSurface::evaluateTopology(const TerrainTopology& topology,const TerrainMorphFootprint& phase) const {
-    return evaluateTopologyImpl(topology,&phase);
+TerrainGeometry TerrainSurface::evaluateTopology(const TerrainTopology& topology,const TerrainMorphFootprint& phase,TerrainMorphStorage storage) const {
+    return evaluateTopologyImpl(topology,&phase,storage);
 }
-TerrainGeometry TerrainSurface::evaluateTopologyImpl(const TerrainTopology& topology,const TerrainMorphFootprint* phase) const {
+TerrainGeometry TerrainSurface::evaluateTopologyImpl(const TerrainTopology& topology,const TerrainMorphFootprint* phase,TerrainMorphStorage storage) const {
     CpuTrace::Scope scope("TerrainSurface::evaluateTopology");
     topology.validate();
     if(topology.generation.field!=field_.fingerprint())
         throw std::invalid_argument("Terrain topology belongs to a different planet field");
+    if(storage!=TerrainMorphStorage::Transient && storage!=TerrainMorphStorage::Retained)
+        throw std::invalid_argument("Invalid terrain morph storage mode");
+    if(storage==TerrainMorphStorage::Retained && topology.morph.empty())
+        throw std::invalid_argument("Retained targets require detail terrain");
     if(phase) {
         validateTerrainMorphFootprint(*phase);
         if(topology.morph.empty() || phase->metersPerRadius!=radius_*metersPerUnit_)
             throw std::invalid_argument("CPU terrain phase requires matching retained topology and physical scale");
     }
     TerrainQueryCache queries(field_,8192,topology.surfacePolicy);
+    std::shared_ptr<TerrainMorphData> targets;
+    if(storage==TerrainMorphStorage::Retained) {
+        targets=std::make_shared<TerrainMorphData>();targets->generation=topology.generation;
+        targets->metersPerRadius=radius_*metersPerUnit_;
+        if(phase) targets->phase=*phase;
+        targets->targets.resize(topology.samples.size()*18);targets->corners=topology.indices;
+    }
     std::uint64_t morphQueries=0;
     std::vector<std::array<float,9>> values;values.reserve(topology.samples.size());
     for(const auto& s:topology.samples) {
@@ -246,13 +257,28 @@ TerrainGeometry TerrainSurface::evaluateTopologyImpl(const TerrainTopology& topo
         if(!topology.morph.empty()) {
             const auto& morph=topology.morph[values.size()];
             const double weight=phase?terrainMorphWeight(radial,*phase):morph.blend[0];
-            const auto p=terrainMorphPosition(field_,s,topology.surfacePolicy,morph,topology.parentPolicy,weight);
+            glm::vec3 p;
+            if(targets) {
+                const auto fine=terrainPosition(field_,s,topology.surfacePolicy);
+                const auto parent=terrainParentPosition(field_,s,morph,topology.parentPolicy);
+                const auto position=[&](double w) {return w==0?glm::vec3(fine):glm::vec3(fine+(parent-fine)*w);};
+                p=position(weight);const auto original=position(morph.blend[0]);
+                const auto head=9*values.size(),tail=9*topology.samples.size()+head;
+                for(int j=0;j<3;++j) {
+                    const auto r=std::bit_cast<std::uint64_t>(radial[j]),b=std::bit_cast<std::uint64_t>(parent[j]);
+                    targets->targets[head+2*j]=std::uint32_t(r);targets->targets[head+2*j+1]=std::uint32_t(r>>32);
+                    targets->targets[head+6+j]=std::bit_cast<std::uint32_t>(float(fine[j]));
+                    targets->targets[tail+2*j]=std::uint32_t(b);targets->targets[tail+2*j+1]=std::uint32_t(b>>32);
+                    targets->targets[tail+6+j]=std::bit_cast<std::uint32_t>(original[j]);
+                }
+            } else p=terrainMorphPosition(field_,s,topology.surfacePolicy,morph,topology.parentPolicy,weight);
             for(int j=0;j<3;++j) packed[j]=p[j];
-            morphQueries+=weight==0?1:(morph.parent[0]==morph.parent[1] && morph.parent[0]==morph.parent[2]?2:4);
+            morphQueries+=!targets && weight==0?1:(morph.parent[0]==morph.parent[1] && morph.parent[0]==morph.parent[2]?2:4);
         }
         values.push_back(packed);
     }
     TerrainGeometry geometry;
+    geometry.morphData=std::move(targets);
     static_cast<TerrainBuildStats&>(geometry)=static_cast<const TerrainBuildStats&>(topology);
     geometry.evaluationQueries=queries.stats();
     geometry.evaluationQueries.requests+=morphQueries;geometry.evaluationQueries.evaluations+=morphQueries;

@@ -3,7 +3,8 @@ namespace rendering {
 namespace {
 template<class T> std::uint64_t bytes(const std::vector<T>& v) {return v.capacity()*sizeof(T);}
 std::uint64_t geometryBytes(const TerrainGeometry& g) {
-    return bytes(g.vertices)+bytes(g.indices)+bytes(g.grassCellKeys)+bytes(g.lodSinkMeters)+bytes(g.faceZones);
+    return bytes(g.vertices)+bytes(g.indices)+bytes(g.grassCellKeys)+bytes(g.lodSinkMeters)+bytes(g.faceZones)+
+        (g.morphData?bytes(g.morphData->targets)+bytes(g.morphData->corners):0);
 }
 std::uint64_t topologyBytes(const TerrainTopology& t) {
     return bytes(t.morph)+bytes(t.samples)+bytes(t.indices)+bytes(t.planningPositions)+bytes(t.faceZones);

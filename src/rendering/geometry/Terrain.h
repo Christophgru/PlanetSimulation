@@ -10,9 +10,9 @@
 #include <glm/glm.hpp>
 #include "config/ScenarioConfig.h"
 #include "rendering/geometry/terrain/TerrainTopology.h"
+#include "rendering/geometry/terrain/detail/TerrainMorph.h"
 
 namespace rendering {
-struct TerrainMorphFootprint;
 
 // Positions and colors are interleaved as position, face normal, color factor.
 // Faces own vertices, but shared corners receive the same sampled height tint.
@@ -22,6 +22,7 @@ struct TerrainGeometry : TerrainBuildStats {
     std::vector<unsigned int> indices;
     std::vector<float> lodSinkMeters;
     std::vector<std::array<std::uint32_t,4>> grassCellKeys;
+    std::shared_ptr<const TerrainMorphData> morphData;
     int triangleCount() const { return static_cast<int>(indices.size()/3); }
 };
 
@@ -71,13 +72,14 @@ public:
     // Capture adapter: rebuild this recorded body-local parent (world units)
     // exactly and retain it for the next plan. Caller must own an idle planner.
     void prepareReplayParent(const glm::dvec3& parentEyeWorldUnits) const;
-    TerrainGeometry evaluateTopology(const TerrainTopology& topology) const;
+    TerrainGeometry evaluateTopology(const TerrainTopology& topology,TerrainMorphStorage storage=TerrainMorphStorage::Transient) const;
     // Bake a live phase into CPU geometry without changing the immutable plan.
     // Uploading the returned pose advances the normal mesh publication revision.
-    TerrainGeometry evaluateTopology(const TerrainTopology& topology,const TerrainMorphFootprint& phase) const;
+    TerrainGeometry evaluateTopology(const TerrainTopology& topology,const TerrainMorphFootprint& phase,
+        TerrainMorphStorage storage=TerrainMorphStorage::Transient) const;
 
 private:
-    TerrainGeometry evaluateTopologyImpl(const TerrainTopology& topology,const TerrainMorphFootprint* phase) const;
+    TerrainGeometry evaluateTopologyImpl(const TerrainTopology& topology,const TerrainMorphFootprint* phase,TerrainMorphStorage storage) const;
     static double smoothstep(double low, double high, double value);
     void refineShoreline(TerrainTopology& geometry, const glm::dvec3& eyeBody, TerrainQueryCache& queries, int budget) const;
     struct RefinementParent;

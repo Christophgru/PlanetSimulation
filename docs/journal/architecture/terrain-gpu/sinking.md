@@ -1,5 +1,48 @@
 # Relief-aware terrain sinking
 
+## CPU-owned immutable deformation source, 2026-10-18
+
+CPU topology evaluation can opt into the same retained-source contract as the
+compute evaluator. The storage mode now belongs to the shared geometry contract.
+`evaluateTopology(topology, Retained)` and its explicit-phase overload return
+an immutable shared CPU source alongside the baked geometry. Defaults remain
+Transient. Retained mode requires a morph topology and rejects unknown modes.
+
+The payload has the existing layout:72 bytes per unique sample plus4 bytes per
+expanded corner. Integer words preserve radial double bits, fine float anchors,
+projected parent doubles and the original plan-emitted float position. The baked
+phase and physical scale are separate metadata; changing phase never changes
+target/corner payloads or topology identity. Fine/parent positions are evaluated
+once per sample, including parents outside the original transition, and query
+statistics count that additional work. Decoders check sample bounds. Worker
+ready-slot memory telemetry includes retained vector capacities; its scheduler
+regression covers both ordinary and retained ownership without draining the slot.
+
+A CPU regression covers both physical unit conventions, three moving phases,
+exact original/baked vertices and attributes, target identity, raw radial bits,
+corner maps, payload bytes, query counts, invalid inputs and source lifetime.
+The retained GPU regression also compares all CPU/GPU radial words, corner IDs
+and physical endpoints with its existing2mm tolerance.
+
+Full117-step build, accounting relink, two-step oracle rebuild and final no-op
+pass. All35 core groups pass (40.66 s), including15 detail cases. Full53-case
+RTX suite passes (72.042 s); retained endpoint/contact checks pass on RTX
+(2.899 s focused) and Quadro (16.662 s), with zero reported rendered/contact
+error. Scheduler capacity check passes (3 ms). The float-anchor oracle compares
+the declared float representation exactly; no geometric tolerance was loosened.
+Frame+streaming integration pass (146.34 s); all fifteen historical PNGs and
+overview are exact:14,779 pixels,bbox(1,1)–(794,598),3,471 planet pixels. PNG
+decoding confirms11,040 bright pixels and Sun RGBA(254,254,254,255) despite a
+dark tool preview. Independent checks ran concurrently; times are validation,
+not FPS evidence. Logs detail-cpu-source-* remain ignored/local. Full recovery
+and reload passed at72b3edd immediately before this source-only increment.
+
+This increment provides owned CPU data only. Mesh upload,
+CPU grass admission/anchors and capture replay still need their adapters; no
+runtime source selection changes and no FPS improvement is claimed. Retaining
+these targets adds live memory. Terrain remains **p**, with prepared coverage
+and parent-rebase continuity still unresolved.
+
 ## Consumer phase receipts, 2026-10-18
 
 Terrain publication checks now require the live deformation phase alongside

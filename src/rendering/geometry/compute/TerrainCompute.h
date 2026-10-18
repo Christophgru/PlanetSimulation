@@ -10,7 +10,6 @@
 class Mesh;
 namespace rendering {
 class SparseTerrainContacts;
-enum class TerrainMorphStorage { Transient, Retained };
 // Borrowed immutable source from retained targets and the canonical corner map.
 // The owning generation must outlive submitted consumers.
 struct TerrainMorphSource {
