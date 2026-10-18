@@ -26,6 +26,9 @@ struct TerrainBuildRequest {
     double metersPerUnit=1;
     std::uint64_t traceAttempt=0; // Diagnostic identity; excluded from matching/replay.
     std::optional<TerrainMorphReplay> deformation;
+    // Live preparation has no topology fingerprint yet. The worker seals its
+    // retained source/initial phase after planning and checking the fine halo.
+    std::optional<TerrainMorphFootprint> preparedPhase;
     void validate() const;
 };
 struct TerrainCpuBuild {

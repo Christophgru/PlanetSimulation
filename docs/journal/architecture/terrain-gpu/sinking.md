@@ -1,5 +1,42 @@
 # Relief-aware terrain sinking
 
+## Seal prepared worker requests before staging, 2026-10-18
+
+`TerrainBuildRequest.preparedPhase` supplies an initial footprint for a new
+retained preparation without requiring its future topology fingerprint. It is
+exclusive with an existing replay record and requires streaming V4 and matching
+physical scale. Admission uses chord distance in metres: the plan-to-phase
+centre distance plus phase radius and transition must fit inside the configured
+fine preparation radius. This keeps the whole requested moving domain inside
+the initial fine halo.
+
+After planning, the worker rejects a limited or absent local fine region before
+bulk evaluation or GPU staging. It seals the exact topology identity and phase
+into the existing replay record. CPU requests bake retained geometry; compute
+requests keep only topology, sparse contacts and metadata, including the
+nonresident route. Existing initial-phase generation, publication, prospective
+contact and capture/replay code consumes the sealed result. Default requests and
+water preserve their existing behavior.
+
+The worker regression covers CPU, nonresident compute and resident compute,
+prepared/replay parity, prospective contact state, conflicting records, malformed
+phases, scale mismatch, an uncovered footprint, an infeasible fine halo and a
+nonlocal plan. The original value request must remain usable after failures.
+The prepared GPU publication regression now uses this normal worker request
+rather than attaching the replay record to its result in the test.
+
+Full 70-step build and final no-op pass. Focused worker/replay tests pass in
+6.116 s. GPU publication/replay passes on RTX (15.430 s) and Quadro (16.044 s):
+max swap 0.0312387 mm, exact GPU/contact parity, sampled roots below 0.163 mm.
+All 35 core groups pass in 71.16 s; all 56 RTX cases pass in 93.769 s.
+The headless overview was inspected/decoded and remains byte-exact: 14,779
+non-background pixels, bounds `(1,1)–(794,598)`, 3,471 planet pixels. Recovery,
+frame, reload and streaming integration all pass in 281.89 s; all 15 historical
+PNGs remain byte-exact. Timings are validation,
+not FPS evidence. Logs stay local under
+`build-f5/resume/detail-prepared-worker-*`. This is preparation plumbing; runtime coverage admission, phase advance and
+parent rebases remain. Terrain stays **p**, with default `Transient` storage.
+
 ## Stage prepared GPU surfaces under a moving footprint, 2026-10-18
 
 A GPU publication regression now advances the live retained footprint, stages a

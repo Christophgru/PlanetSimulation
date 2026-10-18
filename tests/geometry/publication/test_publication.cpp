@@ -408,9 +408,11 @@ TEST(TerrainPublication, PreparedMovingPhaseTransfersGpuPlanesGrassAndContactsTo
             if(land.morphState) {compute.deform(land,footprint);before=gpuMesh(land);}
             const auto oldBuffer=land.vbo,oldTargets=land.morphTargets;const auto oldRevision=land.revision;
             const auto oldState=land.morphState;const auto oldPhase=land.deformationRevision();
+            r.preparedPhase=footprint;
             auto built=buildTerrainCpu(r);ASSERT_FALSE(built.topology->localDetailLimited);
             if(before) ASSERT_TRUE(built.topology->parentReused);
-            built.deformation=TerrainMorphReplay{built.topology->generation,1000,footprint};
+            ASSERT_TRUE(built.deformation);EXPECT_EQ(built.deformation->phase,footprint);
+            EXPECT_TRUE(built.deformation->matches(built.topology->generation,1000));
             ASSERT_TRUE(publication.submit(std::move(built),r.identity,r.planet,1000,r.identity.eye,land,water,compute));
             publication.waitForCapture();
             EXPECT_EQ(land.vbo,oldBuffer);EXPECT_EQ(land.morphTargets,oldTargets);EXPECT_EQ(land.revision,oldRevision);

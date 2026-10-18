@@ -1,5 +1,33 @@
 # Page to document progress of AI Agents working on this Project
 
+## Prepared worker requests — 2026-10-18
+
+- Continuing terrain **p** after `c362269`. `TerrainBuildRequest.preparedPhase`
+  requests a retained live-preparation build before its topology identity exists.
+  It is exclusive with a replay record. Admission validates the phase/physical
+  scale, streaming V4 and the chord-distance triangle-inequality bound placing
+  the entire phase core/transition inside the configured fine preparation halo.
+- Worker seals the new replay record after planning, rejects limited/absent fine
+  geometry before bulk evaluation/contacts/GPU staging, and uses the existing
+  retained CPU bake or mirror-free compute paths. Defaults and water unchanged.
+- New worker case exercises CPU, nonresident compute and resident compute;
+  prepared/replay parity, prospective contacts, malformed/ambiguous/uncovered
+  requests, an infeasible halo and distant geometry, then request reuse. Shared
+  microrelief setup extracted from existing worker replay test. The prepared GPU
+  publication regression now uses this normal worker request instead of adding
+  a replay record to its result after the fact.
+- Full 70-step build and final no-op pass. Focused worker/replay tests pass
+  (6.116 s); updated GPU publication/replay passes on RTX (15.430 s) and Quadro
+  (16.044 s), max swap 0.0312387 mm, exact GPU/contact parity, sampled roots
+  below 0.163 mm. All 35 core groups pass (71.16 s) and all 56 RTX cases
+  pass (93.769 s). Headless overview inspected/decoded and byte-exact: 14,779
+  non-background pixels, bounds `(1,1)–(794,598)`, 3,471 planet pixels.
+  Recovery, frame, reload and streaming integration all pass (281.89 s);
+  all 15 historical PNGs remain byte-exact. Logs:
+  `build-f5/resume/detail-prepared-worker-*`. No runtime activation; user scenario edits remain unstaged.
+  After this increment: runtime coverage admission/phase advance and parent
+  rebases remain. Keep **p**, default `Transient` and previous native failures.
+
 ## Prepared GPU publication probe — 2026-10-18
 
 - Continuing terrain **p** after `b045c38`. Added a staged GPU regression to

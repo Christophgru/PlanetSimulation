@@ -21,6 +21,19 @@ TerrainBuildRequest request(std::uint64_t serial=1,std::uint64_t epoch=1) {
     k.eye={1.01,0,0};k.localMask=1;
     return {k,std::move(surface),std::move(p),{},1000};
 }
+TerrainBuildRequest preparedRequest() {
+    auto r=request();auto& p=r.planet;p.water.enabled=false;
+    auto& l=p.terrain_lod;l.local_detail_streaming=true;l.local_detail_radius_m=1.5;
+    l.local_edge_m=.05;l.local_error_m=.01;l.local_transition_m=.5;
+    l.relief_sinking=true;l.geometric_error_m=.05;l.max_triangle_budget=100000;
+    l.max_edge_segments=l.steep_edge_segments=8;l.medium_edge_segments=4;
+    l.near_surface_distance_m=300;l.mid_surface_distance_m=1000;l.shoreline_edge_m=0;
+    config::PlanetConfig::SurfaceNoiseFunction noise;
+    noise.amplitude_m=.01;noise.wavelength_m=.25;noise.octaves=1;noise.seed=-71;p.surface_noise={noise};
+    r.surface=TerrainSurface(p.surface_noise,l,1,1000,p.terrain_landscape,std::nullopt,p.terrain_material);
+    r.identity.field=r.surface.field().fingerprint();r.identity.topologyVersion=4;
+    r.identity.eye=glm::normalize(glm::dvec3(.3,-.7,1))*1.002;return r;
+}
 struct Gate {
     std::mutex mutex;std::condition_variable changed;bool open=false;
     void wait() {std::unique_lock lock(mutex);changed.wait(lock,[&]{return open;});}
@@ -288,17 +301,7 @@ TEST(TerrainJobs, MemorySnapshotRetainsReadySlotAndOnlyCountsStableVectors) {
 }
 
 TEST(TerrainJobs, ReplayBuildBindsImmutablePlanAndBakesCpuOrStagesComputeWithoutCompatibilityMirror) {
-    auto r=request();auto& p=r.planet;p.water.enabled=false;
-    auto& l=p.terrain_lod;l.local_detail_streaming=true;l.local_detail_radius_m=1.5;
-    l.local_edge_m=.05;l.local_error_m=.01;l.local_transition_m=.5;
-    l.relief_sinking=true;l.geometric_error_m=.05;l.max_triangle_budget=100000;
-    l.max_edge_segments=l.steep_edge_segments=8;l.medium_edge_segments=4;
-    l.near_surface_distance_m=300;l.mid_surface_distance_m=1000;l.shoreline_edge_m=0;
-    config::PlanetConfig::SurfaceNoiseFunction noise;
-    noise.amplitude_m=.01;noise.wavelength_m=.25;noise.octaves=1;noise.seed=-71;p.surface_noise={noise};
-    r.surface=TerrainSurface(p.surface_noise,l,1,1000,p.terrain_landscape,std::nullopt,p.terrain_material);
-    r.identity.field=r.surface.field().fingerprint();r.identity.topologyVersion=4;
-    r.identity.eye=glm::normalize(glm::dvec3(.3,-.7,1))*1.002;
+    auto r=preparedRequest();
     const auto topology=r.surface.buildTopologyForEye(r.identity.eye,{},nullptr,20);
     const TerrainMorphFootprint phase{glm::normalize(r.identity.eye),1000,.2,.4};
     for(const bool active:{false,true}) for(int mode=0;mode<3;++mode) {
@@ -328,4 +331,46 @@ TEST(TerrainJobs, ReplayBuildBindsImmutablePlanAndBakesCpuOrStagesComputeWithout
     invalid=r;invalid.deformation->generation.topology++;
     EXPECT_NO_THROW(invalid.validate());EXPECT_THROW(buildTerrainCpu(invalid),std::invalid_argument);
     r.deformation.reset();EXPECT_TRUE(buildTerrainCpu(r).geometry.vertices.empty());
+}
+
+TEST(TerrainJobs, PreparedPhaseSealsNewPlansAndRejectsUncoveredOrInfeasibleFineHalos) {
+    auto r=preparedRequest();const auto anchor=glm::normalize(r.identity.eye);
+    const auto east=glm::normalize(glm::cross(anchor,glm::dvec3(0,1,0)));
+    r.preparedPhase=TerrainMorphFootprint{glm::normalize(anchor+east*.00025),1000,.2,.4};
+    std::optional<TerrainMorphReplay> sealed;
+    for(int mode=0;mode<3;++mode) {
+        SCOPED_TRACE(mode);r.identity.backend=mode?TerrainBackend::Compute:TerrainBackend::Cpu;r.identity.resident=mode==2;
+        ASSERT_NO_THROW(r.validate());auto built=buildTerrainCpu(r);ASSERT_TRUE(built.deformation);
+        sealed=built.deformation;EXPECT_EQ(sealed->phase,r.preparedPhase);
+        EXPECT_TRUE(sealed->matches(built.geometry.generation,1000));EXPECT_NO_THROW(sealed->validate());
+        auto replay=r;replay.preparedPhase.reset();replay.deformation=sealed;
+        auto restored=buildTerrainCpu(replay);EXPECT_EQ(restored.geometry.generation,built.geometry.generation);
+        if(mode==0) {
+            ASSERT_TRUE(built.geometry.morphData);EXPECT_EQ(built.geometry.morphData->phase,r.preparedPhase);
+            EXPECT_EQ(restored.geometry.vertices,built.geometry.vertices);EXPECT_EQ(restored.geometry.indices,built.geometry.indices);
+            EXPECT_FALSE(built.previewPhase());
+        } else {
+            EXPECT_TRUE(built.geometry.vertices.empty());EXPECT_TRUE(built.geometry.indices.empty());
+            ASSERT_TRUE(built.contacts);ASSERT_TRUE(built.topology);
+            EXPECT_TRUE(sealed->matches(built.topology->generation,1000));
+            const auto preview=built.previewPhase();ASSERT_TRUE(preview);EXPECT_EQ(preview->revision(),1u);
+            EXPECT_EQ(*preview->footprint(),*r.preparedPhase);
+        }
+    }
+    auto invalid=r;invalid.deformation=sealed;EXPECT_THROW(invalid.validate(),std::invalid_argument);
+    invalid=r;invalid.preparedPhase->metersPerRadius=999;EXPECT_THROW(invalid.validate(),std::invalid_argument);
+    invalid=r;invalid.preparedPhase->eyeRadial={0,0,2};EXPECT_THROW(invalid.validate(),std::invalid_argument);
+    invalid=r;invalid.preparedPhase->transitionMeters=2;EXPECT_THROW(invalid.validate(),std::invalid_argument);
+    invalid=r;invalid.preparedPhase->eyeRadial=glm::normalize(anchor+east*.001);
+    EXPECT_THROW(invalid.validate(),std::invalid_argument);
+    invalid=request();invalid.preparedPhase=TerrainMorphFootprint{{1,0,0},1000,.2,.4};
+    EXPECT_THROW(invalid.validate(),std::invalid_argument);
+    auto limited=r;limited.planet.terrain_lod.max_triangle_budget=10000;limited.planet.terrain_lod.local_detail_radius_m=5;
+    limited.surface=TerrainSurface(limited.planet.surface_noise,limited.planet.terrain_lod,1,1000,
+        limited.planet.terrain_landscape,std::nullopt,limited.planet.terrain_material);
+    EXPECT_NO_THROW(limited.validate());EXPECT_THROW(buildTerrainCpu(limited),std::runtime_error);
+    auto distant=r;distant.identity.eye*=4;
+    EXPECT_NO_THROW(distant.validate());EXPECT_THROW(buildTerrainCpu(distant),std::runtime_error);
+    // Failure leaves the original value request usable, including its replay key.
+    EXPECT_TRUE(buildTerrainCpu(r).deformation->matches(sealed->generation,1000));
 }
