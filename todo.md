@@ -29,6 +29,7 @@ document checkpoints in USER_IO/checkpoints.md the User might move also finished
 |Implement beneficial BSON persistence selected by the storage evaluation, with explicit application/cache versions and steadily maintained program version increments. Erase or rebuild cached storage when a newer/incompatible program version invalidates it so stored results remain consistent.| |Depends on the storage evaluation. Validate version, schema, scene/noise/quality inputs and relevant backend dependencies; handle missing/corrupt files and interrupted writes safely. Document the version-bump policy and test cache invalidation and exact restored results.|
 |Make the Jetpack emit a fire coming out the back, with modulation based on how long it runs and speed of the astronaut relative to the local planets atmosphere (first some smoke, then when faster make a blueish flame) shader with some particle smoke coming out the back that slowly diffuses into the amosphere based on the wind.|||
 |Lets create a shader for the Sand around the water, that creates actually noise, based on the wind that looks like the image USER_IO/user_artifacts/image copy 2.png  |||
+|Improve astronaut steering in mode 2, add grass trails in view 2, and allow camera 4 to zoom closer to or farther from the astronaut.| |Queued on user request. Check mode 2 steering/input behavior, show astronaut grass trails in view 2, and support closer/farther astronaut camera distance in camera 4.|
 
 ### Proposed scope: centimeter-scale terrain
 
