@@ -1,5 +1,30 @@
 # Page to document progress of AI Agents working on this Project
 
+## Prepared GPU publication probe — 2026-10-18
+
+- Continuing terrain **p** after `b045c38`. Added a staged GPU regression to
+  `tests/geometry/publication/test_publication.cpp`. Shared microrelief request
+  setup was extracted from the existing replay-phase test without changing it.
+- New case advances the live footprint, stages the next prepared topology with
+  that initial phase, checks that live buffers/revision/state remain unchanged
+  before publication, then compares actual GPU mesh intersections, sparse
+  contacts and drawn compute grass roots. Two locations, five moving swaps each;
+  shared grass generation/revision/phase receipts and old state lifetime checked.
+- Build first exposed GLM double-vector times integer in test code; corrected to
+  a double scalar. Initial RTX/Quadro runs were stopped after the unbounded
+  grass-root oracle proved too costly. The test now samples up to 64 roots per
+  draw queue and seven angles per radial band (1,260 plane probes), preserving
+  all bands/locations and error bounds. Per-publication progress is logged.
+  Build and focused replay/new case pass on RTX (16.458 s), Quadro
+  (17.024 s); new software case passes (30.311 s). Ten swaps, 1,260 probes,
+  768 sampled roots: max swap 0.0312387 mm, exact GPU-plane/contact parity,
+  max root errors RTX 0.145909 / Quadro 0.160110 / software 0.142474 mm.
+  All 56 RTX cases pass (68.095 s); final no-op build passes. Headless
+  overview inspected/decoded and byte-exact: 14,779 non-background pixels,
+  bounds `(1,1)–(794,598)`, 3,471 planet pixels. Logs:
+  `build-f5/resume/detail-prepared-gpu-*`. Production/activation unchanged.
+  User scenario edits remain unstaged.
+
 ## Prepared surface publication probe — 2026-10-18
 
 - Continuing terrain **p** after `47105c9`. Added a CPU surface regression that

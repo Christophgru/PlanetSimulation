@@ -1,5 +1,40 @@
 # Relief-aware terrain sinking
 
+## Stage prepared GPU surfaces under a moving footprint, 2026-10-18
+
+A GPU publication regression now advances the live retained footprint, stages a
+successive prepared topology with the same initial phase, then publishes its
+land, grass and contacts together. The oblique and polar fixtures each perform
+five moving swaps. Private preparation must preserve the old vertex/target
+buffers, mesh revision, state pointer and deformation revision. After publication,
+generation/revision/phase receipts agree, the old state remains valid through
+retirement, and actual GPU buffer positions supply the comparison surface.
+
+All 1,260 radial probes cover the core, blend edges, preparation boundaries and
+distant parent. The largest pre/post-publication difference is 0.0312387 mm on
+RTX, Quadro and software OpenGL. Sparse contact positions match the GPU float
+mesh exactly. Across 768 evenly sampled drawn roots, maximum root-to-surface
+errors are 0.145909 mm on RTX, 0.160110 mm on Quadro and 0.142474 mm on software;
+the unchanged limits are 1 mm for swaps and 2 mm for contacts/roots.
+
+The initial exhaustive root-oracle runs were stopped because full-mesh searches
+for every root made the test too slow. The automated case retains every radial
+band and both locations, uses seven angles per band and samples up to 64 roots
+from each draw queue. It observes 162,588 total drawn root instances on each
+native GPU and 162,585 on software across the twelve publications; it checks a
+bounded spread of those instances. The separate dense CPU oracle remains intact.
+Shared request setup was extracted from the existing replay test. An initial
+GLM scalar-type compilation error in test code was corrected.
+
+Focused replay/publication tests pass on RTX (16.458 s) and Quadro (17.024 s);
+the new software case passes in 30.311 s. All 56 RTX cases pass in 68.095 s,
+and the final no-op build passes. The headless overview was inspected/decoded
+and remains byte-exact: 14,779 non-background pixels, bounds `(1,1)–(794,598)`,
+3,471 planet pixels. Logs stay local under
+`build-f5/resume/detail-prepared-gpu-*`. These timings are validation, not FPS
+measurements. Production code is unchanged. Runtime preparation policy, moving
+coverage and parent-rebase continuity still gate activation; terrain remains **p**.
+
 ## Compare prepared surfaces at publication, 2026-10-18
 
 The earlier overlap check proves that the interior triangle sets match. A new

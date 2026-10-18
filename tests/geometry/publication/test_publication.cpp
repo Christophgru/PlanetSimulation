@@ -5,6 +5,8 @@
 #include <gtest/gtest.h>
 #include <chrono>
 #include <thread>
+#include <iostream>
+#include <numbers>
 
 using namespace rendering;
 namespace {
@@ -18,6 +20,21 @@ TerrainBuildRequest request(bool water=true,bool foliage=true,std::size_t body=0
     TerrainBuildIdentity key;key.serial=1;key.bodyIndex=body;key.bodyName=p.name;key.field=surface.field().fingerprint();
     key.backend=TerrainBackend::Compute;key.resident=true;key.eye={1.012,0,0};key.localMask=1;
     return {key,std::move(surface),p,{},scene.metersPerWorldUnit()};
+}
+TerrainBuildRequest preparedRequest(const glm::dvec3& radial) {
+    auto r=request(false,true);auto& p=r.planet;p.radius=1;p.color={.2,.6,.1};p.terrain_landscape.enabled=false;
+    auto& l=p.terrain_lod;l.local_detail_streaming=true;l.local_detail_radius_m=1.5;
+    l.local_edge_m=.05;l.local_error_m=.01;l.local_transition_m=.5;
+    l.relief_sinking=true;l.geometric_error_m=.05;l.max_triangle_budget=100000;
+    l.base_edge_segments=1;l.max_edge_segments=l.steep_edge_segments=8;l.medium_edge_segments=4;
+    l.near_surface_distance_m=300;l.mid_surface_distance_m=1000;l.shoreline_edge_m=0;
+    config::PlanetConfig::SurfaceNoiseFunction noise;
+    noise.amplitude_m=.01;noise.wavelength_m=.25;noise.octaves=1;noise.seed=-71;p.surface_noise={noise};
+    auto& f=p.foliage;f.enabled=f.compute_placement=true;f.frustum_culling=false;
+    f.draw_distance_m=5;f.quad_distance_m=1;f.max_blades=100000;f.max_candidates_per_triangle=65536;f.density_per_m2=2;
+    r.metersPerUnit=1000;r.surface=TerrainSurface(p.surface_noise,l,1,1000,{},std::nullopt,p.terrain_material);
+    r.identity.field=r.surface.field().fingerprint();r.identity.topologyVersion=4;
+    r.identity.eye=glm::normalize(radial)*1.002;return r;
 }
 struct OwnedMesh:Mesh {~OwnedMesh(){destroy();}};
 bool submit(TerrainPublication& p,const TerrainBuildRequest& r,const Mesh& land,const Mesh& water,TerrainCompute& compute,
@@ -321,19 +338,7 @@ TEST(TerrainPublication, EquivalentTelemetryPolicyReusesLivePlanButChangedBudget
 }
 
 TEST(TerrainPublication, ReplayPhaseStagesPrivatelyAndPublishesSharedLandGrassAndContactVersion) {
-    auto r=request(false,true);auto& p=r.planet;p.radius=1;p.color={.2,.6,.1};p.terrain_landscape.enabled=false;
-    auto& l=p.terrain_lod;l.local_detail_streaming=true;l.local_detail_radius_m=1.5;
-    l.local_edge_m=.05;l.local_error_m=.01;l.local_transition_m=.5;
-    l.relief_sinking=true;l.geometric_error_m=.05;l.max_triangle_budget=100000;
-    l.base_edge_segments=1;l.max_edge_segments=l.steep_edge_segments=8;l.medium_edge_segments=4;
-    l.near_surface_distance_m=300;l.mid_surface_distance_m=1000;l.shoreline_edge_m=0;
-    config::PlanetConfig::SurfaceNoiseFunction noise;
-    noise.amplitude_m=.01;noise.wavelength_m=.25;noise.octaves=1;noise.seed=-71;p.surface_noise={noise};
-    auto& f=p.foliage;f.enabled=f.compute_placement=true;f.frustum_culling=false;
-    f.draw_distance_m=5;f.quad_distance_m=1;f.max_blades=100000;f.max_candidates_per_triangle=65536;f.density_per_m2=2;
-    r.metersPerUnit=1000;r.surface=TerrainSurface(p.surface_noise,l,1,1000,{},std::nullopt,p.terrain_material);
-    r.identity.field=r.surface.field().fingerprint();r.identity.topologyVersion=4;
-    r.identity.eye=glm::normalize(glm::dvec3(.3,-.7,1))*1.002;
+    auto r=preparedRequest({.3,-.7,1});auto& p=r.planet;
     const auto topology=r.surface.buildTopologyForEye(r.identity.eye,{},nullptr,20);
     const TerrainMorphFootprint phase{glm::normalize(r.identity.eye),1000,.2,.4};
     TerrainCompute compute;ProceduralGrass grass;grass.enableAdaptiveBudget();
@@ -374,5 +379,91 @@ TEST(TerrainPublication, ReplayPhaseStagesPrivatelyAndPublishesSharedLandGrassAn
     const auto state=land.morphState;const auto revision=land.revision;
     EXPECT_THROW(publication.submit(std::move(invalid),r.identity,p,1000,r.identity.eye,land,water,compute),std::invalid_argument);
     EXPECT_EQ(land.morphState,state);EXPECT_EQ(land.revision,revision);EXPECT_FALSE(publication.pending());
+    EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+}
+
+TEST(TerrainPublication, PreparedMovingPhaseTransfersGpuPlanesGrassAndContactsTogether) {
+    const auto read=[](GLuint buffer,void* data,GLsizeiptr bytes,GLintptr offset=0) {
+        GLint previous=0;glGetIntegerv(GL_COPY_READ_BUFFER_BINDING,&previous);
+        glBindBuffer(GL_COPY_READ_BUFFER,buffer);glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
+        glGetBufferSubData(GL_COPY_READ_BUFFER,offset,bytes,data);glBindBuffer(GL_COPY_READ_BUFFER,previous);
+    };
+    const auto gpuMesh=[&](const Mesh& mesh) {
+        TerrainGeometry geometry;geometry.vertices.resize(mesh.indexCount*9);geometry.indices.resize(mesh.indexCount);
+        read(mesh.vbo,geometry.vertices.data(),geometry.vertices.size()*sizeof(float));
+        read(mesh.ebo,geometry.indices.data(),geometry.indices.size()*sizeof(unsigned));return geometry;
+    };
+    const GroundQuery missing=[](const auto&) -> GroundContact {throw std::logic_error("Missing prepared GPU plane");};
+    std::size_t swaps=0,probes=0,roots=0,visibleRoots=0;double maxSwap=0,maxContact=0,maxRoot=0;
+    TerrainCompute compute;
+    for(const auto anchor:{glm::dvec3(-.21005697617230545,.909856724515421,-.36613409503800903),glm::dvec3(0,0,1.002)}) {
+        auto r=preparedRequest(anchor);r.planet.foliage.root_offset_m=0;
+        const auto east=glm::normalize(glm::cross(anchor,glm::dvec3(0,1,0))),north=glm::normalize(glm::cross(anchor,east));
+        ProceduralGrass grass;grass.enableAdaptiveBudget();TerrainPublication publication(grass,1);OwnedMesh land,water;
+        struct ProgramScope {~ProgramScope(){glUseProgram(0);}} programScope;
+        for(const auto offset:{glm::dvec2(0,0),glm::dvec2(.15,0),glm::dvec2(.3,0),glm::dvec2(.3,.3),glm::dvec2(0,.3),glm::dvec2(0,0)}) {
+            r.identity.eye=anchor+(east*offset.x+north*offset.y)/1000.;
+            const TerrainMorphFootprint footprint{glm::normalize(r.identity.eye),1000,.2,.4};
+            std::optional<TerrainGeometry> before;
+            if(land.morphState) {compute.deform(land,footprint);before=gpuMesh(land);}
+            const auto oldBuffer=land.vbo,oldTargets=land.morphTargets;const auto oldRevision=land.revision;
+            const auto oldState=land.morphState;const auto oldPhase=land.deformationRevision();
+            auto built=buildTerrainCpu(r);ASSERT_FALSE(built.topology->localDetailLimited);
+            if(before) ASSERT_TRUE(built.topology->parentReused);
+            built.deformation=TerrainMorphReplay{built.topology->generation,1000,footprint};
+            ASSERT_TRUE(publication.submit(std::move(built),r.identity,r.planet,1000,r.identity.eye,land,water,compute));
+            publication.waitForCapture();
+            EXPECT_EQ(land.vbo,oldBuffer);EXPECT_EQ(land.morphTargets,oldTargets);EXPECT_EQ(land.revision,oldRevision);
+            EXPECT_EQ(land.morphState,oldState);EXPECT_EQ(land.deformationRevision(),oldPhase);
+            ASSERT_TRUE(publication.publish(r.identity,land,water));
+            EXPECT_EQ(land.revision,oldRevision+1);ASSERT_TRUE(land.morphState);
+            EXPECT_EQ(*land.morphState->footprint(),footprint);EXPECT_EQ(land.deformationRevision(),1u);
+            EXPECT_EQ(grass.residentGeneration(0),land.terrainStats.generation);
+            EXPECT_EQ(grass.residentRevision(0),land.revision);EXPECT_EQ(grass.residentDeformationRevision(0),1u);
+            if(oldState) {EXPECT_EQ(oldState->revision(),oldPhase);EXPECT_EQ(*oldState->footprint(),footprint);}
+            const auto after=gpuMesh(land);SurfaceContact contact,rendered,previous;
+            contact.bind(land.contacts,land.revision,land.morphState);
+            rendered.bind(after.vertices,after.indices,land.revision,1000);
+            if(before) previous.bind(before->vertices,before->indices,oldRevision,1000);
+            for(const double distance:{.137,.199,.201,.317,.499,.599,.601,.83,1.13,1.49,1.51,1.83,2.1,3.17,10.})
+                for(int i=0;i<7;++i) {
+                    const double angle=(i+.317)*2*std::numbers::pi/7;
+                    const auto radial=glm::normalize(footprint.eyeRadial+
+                        (east*std::cos(angle)+north*std::sin(angle))*(distance/1000));
+                    const auto actual=rendered.sample(radial,missing);
+                    maxContact=std::max(maxContact,glm::length(actual.position-contact.sample(radial,missing).position));
+                    if(before) maxSwap=std::max(maxSwap,glm::length(actual.position-previous.sample(radial,missing).position));++probes;
+                }
+            grass.shader.use();const glm::mat4 identity(1);
+            for(const char* name:{"model","view","projection"}) grass.shader.setMat4(name,&identity[0][0]);
+            grass.shader.setFloat("uMetersPerRadius",1000);grass.shader.setFloat("uGrassHeight",1);
+            grass.shader.setFloat("uGrassWidth",.08);grass.shader.setFloat("uWindStrength",0);
+            GrassPass pass;pass.mainEyeBody=r.identity.eye;
+            glEnable(GL_RASTERIZER_DISCARD);grass.draw(0,&pass);glDisable(GL_RASTERIZER_DISCARD);
+            EXPECT_EQ(grass.drawnDeformationRevision(0),1u);
+            struct Blade {glm::vec4 root,up,variation;glm::vec3 wind;unsigned index;};static_assert(sizeof(Blade)==64);
+            GLint buffer=0;glGetIntegeri_v(GL_SHADER_STORAGE_BUFFER_BINDING,2,&buffer);
+            const auto counts=grass.computedCounts(0);ASSERT_GT(counts[0]+counts[1],0u);
+            visibleRoots+=counts[0]+counts[1];
+            for(unsigned queue=0;queue<2;++queue) {
+                std::vector<Blade> blades(counts[queue]);if(blades.empty()) continue;
+                read(buffer,blades.data(),blades.size()*sizeof(Blade),queue*grass.stats(0).candidates*sizeof(Blade));
+                // Bound full-mesh ray searches, with a spread across both draw
+                // queues rather than only checking their first patch.
+                const auto sampled=std::min<std::size_t>(64,blades.size());
+                for(std::size_t i=0;i<sampled;++i) {
+                    const auto& blade=blades[i*blades.size()/sampled];
+                    const glm::dvec3 root(blade.root);maxRoot=std::max(maxRoot,
+                        glm::length(root*1000.0-rendered.sample(glm::normalize(root),missing).position));++roots;
+                }
+            }
+            if(before) ++swaps;retire(publication,0);++r.identity.serial;
+            std::cout<<"PREPARED_GPU_STEP publications="<<r.identity.serial-1<<" sampled_roots="<<roots<<std::endl;
+        }
+    }
+    EXPECT_EQ(swaps,10u);EXPECT_EQ(probes,1260u);EXPECT_GT(roots,0u);
+    EXPECT_LE(maxSwap,.001);EXPECT_LE(maxContact,.002);EXPECT_LE(maxRoot,.002);
+    std::cout<<"PREPARED_GPU swaps="<<swaps<<" probes="<<probes<<" sampled_roots="<<roots<<" visible_roots="<<visibleRoots
+        <<" max_swap_m="<<maxSwap<<" max_contact_m="<<maxContact<<" max_root_m="<<maxRoot<<'\n';
     EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
 }
