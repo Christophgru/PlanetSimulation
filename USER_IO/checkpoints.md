@@ -1,5 +1,31 @@
 # Page to document progress of AI Agents working on this Project
 
+## Conservative CPU grass planning — 2026-10-18
+
+- Continued terrain p after4128298. planGrass optional retained source uses fine
+  descriptors plus conservative8-endpoint cross-product area and padded sphere,
+  matching GPU envelope math. Sorted output has optional morphBounds; default
+  vector stays empty and historical arithmetic/selection preserved. Coarse biome
+  rejection postponed for source mode, so wet/collapsed poses retain potential
+  roots. Existing hard caps/protected infeasibility unchanged. Validate shape,
+  corner IDs, scale and finite endpoints.
+- Added CPU plan regression:1,000 independently weighted/float-rounded poses,
+  pole/oblique, collapsed/translated parents, protected/ordinary policies. Checks
+  stable counts/anchors/bounds, area fits, mixed areas>2x both uniform endpoints,
+  infeasibility and invalid inputs. Full82-step build/final no-op pass. FocusCPU
+  6 ms,35 core groups39.86 s,53 RTX cases70.895 s,frame+streaming118.22 s pass.
+  Added64 CPU/GPU triangle slot/bounds comparisons to existing envelope case;
+  two-step rebuild and focusRTX71/Quadro668 ms pass, including112,192 existing
+  phase checks. Slots exact; sphere components agree within1e-12. All15 PNGs
+  and overview exact:14,779 pixels,bbox(1,1)–(794,598),3,471 planet. PNG decoder
+  confirms white Sun/11,040 bright pixels despite tool preview. Concurrent times
+  are validation, not FPS evidence. Recovery/reload/software grass passed in
+  preceding4128298. Logs detail-cpu-grass-plan-* ignored/local; diff checks pass.
+- Planner API only; CPU grass preparation does not yet bind source/consume bounds.
+  Next wire adapter and actual root parity onGL3.3/compute, then phase replay,
+  prepared streaming and parent rebases. Keep p/Transient and native failures.
+  User config remains unstaged.
+
 ## CPU retained-source mesh upload — 2026-10-18
 
 - Continued terrain p afterdf8d2c2. CPU Mesh.loadTerrain retains CPU owner plus

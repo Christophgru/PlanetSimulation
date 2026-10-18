@@ -1,5 +1,42 @@
 # Relief-aware terrain sinking
 
+## Conservative CPU grass planning, 2026-10-18
+
+The CPU planner can accept the retained source explicitly. It uses fine anchors
+for stable descriptors and reserves area across all eight independent fine/parent
+corner combinations, with the same float padding as the GPU envelope. Endpoint
+spheres drive distance and allocation bounds. Optional spheres follow the final
+sorted patch order; ordinary plans keep that vector empty and preserve their
+existing arithmetic and selection.
+
+Retained planning postpones coarse water/snow/cliff/tint rejection so an initial
+wet or collapsed pose cannot erase potential roots. Actual-root eligibility
+remains a draw concern. Both existing allocation policies keep their hard caps;
+protected density deficits are reported rather than hidden by the envelope.
+Source shape, corner IDs, scale and finite endpoints are checked.
+
+A CPU regression checks1,000 independent float-rounded corner poses at pole and
+oblique orientations, collapsed and translated parents, and both allocation
+policies. Candidate counts, fine anchors and spheres stay stable; all sampled
+areas fit reserved work. Translation cases exceed both uniform endpoint areas
+by more than2x. It also checks infeasibility, malformed inputs and empty default
+bounds. Existing GPU envelope fixture now also compares all64 CPU/GPU per-
+triangle slot counts exactly and sorted sphere components within1e-12.
+
+Full82-step build and final no-op pass. Focused1,000-phase CPU case passes
+(6 ms); all35 core groups pass (39.86 s), full53-case RTX suite passes
+(70.895 s), frame+streaming pass (118.22 s). After a two-step GPU-oracle rebuild,
+focused RTX/Quadro comparisons pass (71/668 ms), including the existing112,192
+phase bound checks. All fifteen historical PNGs and overview are exact:14,779
+pixels,bbox(1,1)–(794,598),3,471 planet. Raw PNG confirms11,040 bright pixels
+and the white Sun despite a dark tool preview. Independent concurrent durations
+are validation, not FPS evidence. Logs detail-cpu-grass-plan-* remain local.
+Recovery/reload and full software grass passed at4128298 before this API step.
+
+This adds the planner API only; the CPU grass
+preparation adapter still needs to bind its source and consume these bounds.
+Runtime retention stays Transient; keep terrain **p** and prior coverage failures.
+
 ## CPU retained-source mesh upload, 2026-10-18
 
 CPU mesh upload now preserves the optional immutable source and uploads its

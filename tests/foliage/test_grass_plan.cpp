@@ -5,6 +5,7 @@
 #include <limits>
 #include <map>
 #include "rendering/foliage/planning/GrassBudget.h"
+#include "rendering/geometry/terrain/detail/TerrainMorph.h"
 
 namespace {
 struct Fixture {
@@ -221,4 +222,84 @@ TEST(GrassBudget, CpuProtectedAllocationPreservesNearDensityAndReportsPhysicalDe
     p.capacity=p.budget=128;p.locked=true;p.sigmaMeters=0;p.nearInfeasible=false;
     f.max_candidates_per_triangle=2;
     EXPECT_TRUE(allocateProtectedGrass(triangles,f,p).falloff.nearInfeasible);
+}
+
+TEST(ProceduralGrassPlan, RetainedEnvelopePreservesPotentialFineAnchorsAndBoundsIndependentBakedCorners) {
+    using namespace rendering;
+    config::PlanetConfig planet;planet.radius=1;planet.color={1,1,1};planet.foliage.enabled=true;
+    planet.foliage.draw_distance_m=100;planet.foliage.quad_distance_m=15;
+    planet.foliage.density_per_m2=2;planet.foliage.max_blades=4096;
+    planet.foliage.max_candidates_per_triangle=4096;planet.water.enabled=true;planet.water.level_m=0;
+    const std::vector<unsigned> indices{0,1,2};
+    std::size_t phases=0;
+    for(const auto radial:{glm::dvec3(0,0,1),glm::normalize(glm::dvec3(.7,-.2,1))}) {
+        const auto east=glm::normalize(glm::cross(radial,glm::dvec3(0,1,0)));
+        const glm::dmat3 rotation(east,glm::cross(radial,east),radial);
+        for(const bool collapsed:{false,true}) {
+            std::array<glm::dvec3,3> fine,parent;
+            TerrainMorphData source;source.generation={123,456,PlanetField::version,4,TerrainBackend::Cpu};
+            source.metersPerRadius=1000;source.targets.resize(54);source.corners={2,0,1};
+            const std::array<glm::dvec3,3> triangle{{{-.01,-.01,1.002},{.01,-.01,1.002},{0,.01,1.002}}};
+            for(int i=0;i<3;++i) {
+                fine[i]=glm::vec3(rotation*triangle[i]);
+                parent[i]=rotation*(collapsed?glm::dvec3(.03,-.01,.998):triangle[i]+glm::dvec3(.03,0,-.004));
+                const auto direction=glm::normalize(fine[i]);const auto sample=source.corners[i];
+                for(int j=0;j<3;++j) {
+                    const auto r=std::bit_cast<std::uint64_t>(direction[j]),p=std::bit_cast<std::uint64_t>(parent[i][j]);
+                    source.targets[9*sample+2*j]=unsigned(r);source.targets[9*sample+2*j+1]=unsigned(r>>32);
+                    source.targets[9*sample+6+j]=std::bit_cast<unsigned>(float(fine[i][j]));
+                    source.targets[27+9*sample+2*j]=unsigned(p);source.targets[27+9*sample+2*j+1]=unsigned(p>>32);
+                    source.targets[27+9*sample+6+j]=std::bit_cast<unsigned>(float(parent[i][j]));
+                }
+            }
+            const auto vertices=[&](const glm::dvec3& weights) {
+                std::vector<float> values;
+                for(int i=0;i<3;++i) for(const auto v:{glm::vec3(fine[i]+(parent[i]-fine[i])*weights[i]),glm::vec3(radial),glm::vec3(.2,.8,.2)})
+                    for(int j=0;j<3;++j) values.push_back(v[j]);
+                return values;
+            };
+            const auto submerged=vertices(glm::dvec3(1));const auto eye=radial*1.002;
+            EXPECT_EQ(planGrass(submerged,indices,planet,1000,eye).candidates,0u);
+            for(const bool protectedPolicy:{false,true}) {
+                GrassFalloff policy;policy.enabled=protectedPolicy;policy.capacity=policy.budget=4096;
+                policy.protectedMeters=100;policy.sigmaMeters=40;policy.density=2;
+                const auto baseline=planGrass(submerged,indices,planet,1000,eye,policy,&source);
+                ASSERT_EQ(baseline.patches.size(),1u);ASSERT_EQ(baseline.morphBounds.size(),1u);
+                ASSERT_GT(baseline.candidates,0u);EXPECT_FALSE(baseline.falloff.nearInfeasible);
+                EXPECT_EQ(baseline.patches[0].a,glm::vec3(fine[0]));EXPECT_EQ(baseline.patches[0].b,glm::vec3(fine[1]));
+                EXPECT_EQ(baseline.patches[0].c,glm::vec3(fine[2]));
+                double largest=0;
+                for(double a:{0.,.125,.5,.875,1.}) for(double b:{0.,.125,.5,.875,1.}) for(double c:{0.,.125,.5,.875,1.}) {
+                    const auto current=vertices({a,b,c});const auto plan=planGrass(current,indices,planet,1000,eye,policy,&source);
+                    EXPECT_EQ(plan.candidates,baseline.candidates);EXPECT_EQ(plan.density,baseline.density);
+                    ASSERT_EQ(plan.patches.size(),1u);EXPECT_EQ(plan.morphBounds,baseline.morphBounds);
+                    EXPECT_EQ(plan.patches[0].a,baseline.patches[0].a);EXPECT_EQ(plan.patches[0].expectedCandidates,baseline.patches[0].expectedCandidates);
+                    glm::dvec3 p[3];for(int i=0;i<3;++i) {
+                        p[i]={current[9*i],current[9*i+1],current[9*i+2]};
+                        EXPECT_LE(glm::length(p[i]-glm::dvec3(plan.morphBounds[0])),plan.morphBounds[0].w);
+                    }
+                    const double area=.5*glm::length(glm::cross(p[1]-p[0],p[2]-p[0]))*1000000;
+                    largest=std::max(largest,area);
+                    EXPECT_LE(area*plan.density,plan.patches[0].expectedCandidates);
+                    EXPECT_LE(plan.candidates,4096u);++phases;
+                }
+                if(!collapsed) {
+                    const double fineArea=.5*glm::length(glm::cross(fine[1]-fine[0],fine[2]-fine[0]))*1000000;
+                    const double parentArea=.5*glm::length(glm::cross(parent[1]-parent[0],parent[2]-parent[0]))*1000000;
+                    EXPECT_GT(largest,2*std::max(fineArea,parentArea)); // Uniform endpoints alone are insufficient.
+                }
+            }
+            GrassFalloff tiny;tiny.enabled=true;tiny.capacity=tiny.budget=1;tiny.protectedMeters=100;tiny.sigmaMeters=40;tiny.density=2;
+            const auto capped=planGrass(submerged,indices,planet,1000,eye,tiny,&source);
+            EXPECT_TRUE(capped.falloff.nearInfeasible);EXPECT_LE(capped.candidates,1u);
+            auto bad=source;bad.metersPerRadius=999;
+            EXPECT_THROW(planGrass(submerged,indices,planet,1000,eye,{},&bad),std::invalid_argument);
+            bad=source;bad.corners[0]=source.samples();
+            EXPECT_THROW(planGrass(submerged,indices,planet,1000,eye,{},&bad),std::invalid_argument);
+            bad=source;bad.targets.pop_back();
+            EXPECT_THROW(planGrass(submerged,indices,planet,1000,eye,{},&bad),std::invalid_argument);
+        }
+    }
+    EXPECT_EQ(phases,1000u);
+    Fixture ordinary;EXPECT_TRUE(ordinary.plan().morphBounds.empty());
 }

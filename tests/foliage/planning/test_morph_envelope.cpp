@@ -1,4 +1,5 @@
 #include "rendering/foliage/planning/GrassAllocation.h"
+#include "rendering/foliage/procedural/GrassPlan.h"
 #include "config/Config.h"
 #include <gtest/gtest.h>
 #include <bit>
@@ -85,6 +86,20 @@ TEST(GrassMetadata, MorphEnvelopeBoundsIndependentRoundedCornerMotionAndReserves
         std::array<unsigned,triangles> slots{};
         for(unsigned level=0;level<summary.counts.size();++level)
             for(unsigned i=0;i<summary.counts[level];++i) slots[references[summary.first[level]+i]]=1u<<level;
+        TerrainMorphData cpuSource;cpuSource.targets=words;cpuSource.corners=mapping;
+        cpuSource.generation=stats.generation;cpuSource.metersPerRadius=1000;
+        auto cpuPolicy=policy;cpuPolicy.capacity=f.max_blades;cpuPolicy.density=f.density_per_m2;
+        const auto cpuPlan=planGrass(vertices,indices,p,1000,eye,cpuPolicy,&cpuSource);
+        ASSERT_EQ(cpuPlan.patches.size(),triangles);ASSERT_EQ(cpuPlan.morphBounds.size(),triangles);
+        std::array<unsigned,triangles> cpuSlots{};
+        for(unsigned level=0;level<cpuPlan.batches.size();++level)
+            for(unsigned i=0;i<cpuPlan.batches[level].count;++i)
+                cpuSlots[cpuPlan.patches[cpuPlan.batches[level].first+i].triangle]=1u<<level;
+        EXPECT_EQ(cpuSlots,slots);
+        for(unsigned i=0;i<cpuPlan.patches.size();++i) {
+            const auto& gpuBounds=metadata[cpuPlan.patches[i].triangle].centerReach;
+            for(int j=0;j<4;++j) EXPECT_NEAR(cpuPlan.morphBounds[i][j],gpuBounds[j],1e-12);
+        }
         for(unsigned t=0;t<triangles;++t) {
             SCOPED_TRACE(t);const auto& m=metadata[t];ASSERT_EQ(m.identity[1],1u);
             originalRejected+=legacy[t].identity[1]==0;

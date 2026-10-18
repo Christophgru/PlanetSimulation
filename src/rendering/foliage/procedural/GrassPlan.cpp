@@ -2,10 +2,12 @@
 #include "rendering/foliage/GrassPlacement.h"
 #include "rendering/diagnostics/tracing/CpuTrace.h"
 #include "config/ScenarioConfig.h"
+#include "rendering/geometry/terrain/detail/TerrainMorph.h"
 #include <algorithm>
 #include <bit>
 #include <cmath>
 #include <stdexcept>
+#include <limits>
 
 namespace rendering {
 namespace {
@@ -19,11 +21,42 @@ int bucket(double expected,int maxSlots) {
     while (level+1<int(grassCandidateSlots.size()) && grassCandidateSlots[level]<maxSlots && grassCandidateSlots[level]<expected) ++level;
     return level;
 }
+struct MorphEnvelope {glm::dvec3 center;double reach,area;};
+// CPU counterpart of deformation/envelope.glsl. The eight independent corner
+// endpoints bound every intermediate cross product; padding covers float casts.
+MorphEnvelope morphEnvelope(const TerrainMorphData& source,const std::vector<unsigned>& indices,std::size_t first) {
+    std::array<glm::dvec3,6> endpoint;
+    glm::dvec3 low(std::numeric_limits<double>::max()),high=-low;
+    double magnitude=0;
+    for(int i=0;i<3;++i) {
+        const auto sample=source.corners.at(indices.at(first+i));
+        endpoint[2*i]=source.fine(sample);endpoint[2*i+1]=source.parent(sample);
+        for(int j=0;j<2;++j) {
+            const auto p=endpoint[2*i+j];
+            if(!std::isfinite(p.x) || !std::isfinite(p.y) || !std::isfinite(p.z))
+                throw std::invalid_argument("CPU grass requires finite retained endpoints");
+            low=glm::min(low,p);high=glm::max(high,p);
+            magnitude=std::max(magnitude,glm::length(p));
+        }
+    }
+    const double error=std::max(1e-30,magnitude*(4*std::numeric_limits<float>::epsilon()));
+    MorphEnvelope result{(low+high)*.5,0,0};
+    for(const auto& p:endpoint) result.reach=std::max(result.reach,glm::length(p-result.center));
+    result.reach+=error;
+    double crossed=0,ab=0,ac=0;
+    for(int a=0;a<2;++a) for(int b=0;b<2;++b) for(int c=0;c<2;++c) {
+        const auto x=endpoint[2+b]-endpoint[a],y=endpoint[4+c]-endpoint[a];
+        crossed=std::max(crossed,glm::length(glm::cross(x,y)));
+        ab=std::max(ab,glm::length(x));ac=std::max(ac,glm::length(y));
+    }
+    result.area=.5*(crossed+2*error*(ab+ac)+4*error*error);
+    return result;
+}
 }
 
 GrassPlan planGrass(const std::vector<float>& vertices,
     const std::vector<unsigned>& indices, const config::PlanetConfig& planet,
-    double metersPerWorldUnit, const glm::dvec3& eyeBody,const GrassFalloff& policy) {
+    double metersPerWorldUnit, const glm::dvec3& eyeBody,const GrassFalloff& policy,const TerrainMorphData* source) {
     CpuTrace::Scope scope("planGrass");
     GrassPlan result;
     result.falloff=policy;
@@ -33,6 +66,24 @@ GrassPlan planGrass(const std::vector<float>& vertices,
     const double scale=planet.radius*metersPerWorldUnit;
     if (!std::isfinite(scale) || scale<=0 || !std::isfinite(glm::length(eyeBody)) || glm::length(eyeBody)<=0)
         throw std::invalid_argument("Invalid grass scale or eye");
+    if(source) {
+        if(!source->samples() || source->targets.size()!=18*source->samples() ||
+           source->corners.size()!=indices.size() || vertices.size()!=9*indices.size() ||
+           source->metersPerRadius!=scale || indices.size()%3)
+            throw std::invalid_argument("CPU grass requires a matching retained source");
+        for(auto index:indices) if(index>=source->corners.size() || source->corners[index]>=source->samples())
+            throw std::invalid_argument("CPU grass retained corner outside source");
+    }
+    const auto withBounds=[&](GrassPlan plan) {
+        if(source) {
+            plan.morphBounds.reserve(plan.patches.size());
+            for(const auto& patch:plan.patches) {
+                const auto bounds=morphEnvelope(*source,indices,3*std::size_t(patch.triangle));
+                plan.morphBounds.emplace_back(bounds.center,bounds.reach);
+            }
+        }
+        return plan;
+    };
     result.distanceMeters=settings.draw_distance_m;
     const double margin=grassRebuildDistance(settings);
     const double variance2=2*std::pow(settings.draw_distance_m*settings.gaussian_sigma_fraction,2);
@@ -46,7 +97,7 @@ GrassPlan planGrass(const std::vector<float>& vertices,
     const double relief=std::max(1.0,maximumHeight-water);
     const double snowStart=std::max(water+1.1,water+.25*relief);
     const double snowEnd=std::max(snowStart+1,water+.4*relief);
-    if ((glm::length(eyeBody)-1)*scale-maximumHeight>result.distanceMeters+margin) return result;
+    if (!source && (glm::length(eyeBody)-1)*scale-maximumHeight>result.distanceMeters+margin) return result;
     using Candidate=GrassPlanTriangle;
     std::vector<Candidate> candidates;
     double totalArea=0;
@@ -54,15 +105,18 @@ GrassPlan planGrass(const std::vector<float>& vertices,
         glm::dvec3 p[3], n[3], color[3];
         for (int i=0;i<3;++i) {
             const std::size_t v=std::size_t(indices[t+i])*9;
-            for (int c=0;c<3;++c) {
+            if(source) p[i]=source->fine(source->corners[indices[t+i]]);
+            else for (int c=0;c<3;++c) {
                 p[i][c]=vertices.at(v+c);
             }
         }
-        const auto center=(p[0]+p[1]+p[2])/3.0;
-        const double reach=std::max({glm::length(p[0]-center),glm::length(p[1]-center),glm::length(p[2]-center)});
+        auto center=(p[0]+p[1]+p[2])/3.0;
+        double reach=std::max({glm::length(p[0]-center),glm::length(p[1]-center),glm::length(p[2]-center)});
+        double area=glm::length(glm::cross(p[1]-p[0],p[2]-p[0]))*.5;
+        if(source) {const auto envelope=morphEnvelope(*source,indices,t);center=envelope.center;reach=envelope.reach;area=envelope.area;}
         const double distance=glm::length(center-eyeBody)*scale;
         if (distance-reach*scale>result.distanceMeters+margin) continue;
-        const double area=glm::length(glm::cross(p[1]-p[0],p[2]-p[0]))*.5*scale*scale;
+        area=area*scale*scale;
         if (!std::isfinite(area) || area<=1e-10 || glm::length(center)<1e-9) continue;
         for (int i=0;i<3;++i) {
             const std::size_t v=std::size_t(indices[t+i])*9;
@@ -77,17 +131,17 @@ GrassPlan planGrass(const std::vector<float>& vertices,
         const double radialReach=2*reach/std::max(1e-9,glm::length(center)-reach);
         // Conservative patch bounds avoid paying one descriptor per tiny
         // water/snow/cliff triangle. Remaining mixed patches reject per root.
-        if (1-glm::dot(normal,radial)-radialReach>=rockRange[1]) continue;
+        if (!source && 1-glm::dot(normal,radial)-radialReach>=rockRange[1]) continue;
         const double highest=(std::max({glm::length(p[0]),glm::length(p[1]),glm::length(p[2])})-1)*scale;
-        if (planet.water.enabled && highest<=planet.water.level_m+settings.water_clearance_m) continue;
-        if (planet.terrain_landscape.enabled) {
+        if (!source && planet.water.enabled && highest<=planet.water.level_m+settings.water_clearance_m) continue;
+        if (!source && planet.terrain_landscape.enabled) {
             const auto faceNormal=glm::normalize(glm::cross(p[1]-p[0],p[2]-p[0]));
             const double lowest=(std::abs(glm::dot(faceNormal,p[0]))-1)*scale;
             if (lowest>=snowEnd) continue;
         }
         // Landscape biome/altitude rejection is per GPU root. For bodies
         // without a landscape, their triangle tint is the coarse classifier.
-        if (!planet.terrain_landscape.enabled && tint.y<=settings.green_ratio*std::max(tint.x,tint.z)) continue;
+        if (!source && !planet.terrain_landscape.enabled && tint.y<=settings.green_ratio*std::max(tint.x,tint.z)) continue;
         ProceduralGrassPatch patch{glm::vec3(p[0]),glm::vec3(p[1]),glm::vec3(p[2]),
             glm::vec3(normal),glm::vec3(tint),0,
             std::uint32_t(t/3)};
@@ -98,7 +152,7 @@ GrassPlan planGrass(const std::vector<float>& vertices,
         if (policy.enabled ? weighted<1e-12 : weighted*requestedDensity<1e-6) continue;
         candidates.push_back({patch,weighted,distance,0,minimumDistance}); totalArea+=weighted;
     }
-    if(policy.enabled) return allocateProtectedGrass(std::move(candidates),settings,policy);
+    if(policy.enabled) return withBounds(allocateProtectedGrass(std::move(candidates),settings,policy));
     const std::size_t budget=std::size_t(settings.max_blades);
     if (candidates.size()>budget) {
         // A very small explicit budget cannot represent every triangle. Keep
@@ -155,6 +209,6 @@ GrassPlan planGrass(const std::vector<float>& vertices,
     }
     result.density=high;
     if (result.candidates>budget) throw std::logic_error("Grass candidate budget exceeded");
-    return result;
+    return withBounds(std::move(result));
 }
 } // namespace rendering

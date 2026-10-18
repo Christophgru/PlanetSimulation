@@ -7,6 +7,7 @@
 namespace config { struct PlanetConfig; }
 
 namespace rendering {
+struct TerrainMorphData;
 // CPU-only patch geometry supports budgets, bounds and test oracles. The GPU
 // receives only triangle IDs and reads geometry from the existing terrain.
 struct ProceduralGrassPatch {
@@ -24,6 +25,9 @@ struct GrassPlan {
     double distanceMeters=0;
     double density=0;
     GrassFalloff falloff;
+    // Optional conservative spheres for retained fine/parent motion, in the
+    // same order as patches. Ordinary plans keep this vector empty.
+    std::vector<glm::dvec4> morphBounds;
 };
 // CPU geometry collected with the same conservative reach/movement bounds as
 // resident metadata. Allocation consumes raw area in protected mode.
@@ -37,5 +41,6 @@ GrassPlan allocateProtectedGrass(std::vector<GrassPlanTriangle> triangles,
     const config::FoliageConfig& settings,GrassFalloff policy);
 GrassPlan planGrass(const std::vector<float>& vertices,
     const std::vector<unsigned>& indices, const config::PlanetConfig& planet,
-    double metersPerWorldUnit, const glm::dvec3& eyeBody,const GrassFalloff& policy={});
+    double metersPerWorldUnit, const glm::dvec3& eyeBody,const GrassFalloff& policy={},
+    const TerrainMorphData* source=nullptr);
 } // namespace rendering
