@@ -34,6 +34,8 @@ struct TerrainComputeBuffers {
     GLsync fence=nullptr;
     TerrainBuildStats stats;
     std::shared_ptr<SparseTerrainContacts> contacts;
+    // Context-owned phase transfers with the retained buffers into the mesh.
+    std::shared_ptr<TerrainMorphState> morphState;
     bool complete=false,diagnostics=false;
     bool retainedMorph=false;
     TerrainMorphSource morphSource() const {
@@ -57,17 +59,23 @@ public:
     TerrainCompute(const TerrainCompute&)=delete;
     TerrainCompute& operator=(const TerrainCompute&)=delete;
     const TerrainComputeLimits& limits() const { return limits_; }
+    // Optional initial deformation is included in the generation's fence and
+    // timestamps. Original immutable target positions retain their plan pose.
     std::unique_ptr<TerrainComputeBuffers> generate(const PlanetField& field,
-        const TerrainTopology& topology,bool diagnostics=false,TerrainMorphStorage morph=TerrainMorphStorage::Transient);
+        const TerrainTopology& topology,bool diagnostics=false,TerrainMorphStorage morph=TerrainMorphStorage::Transient,
+        const TerrainMorphFootprint* initialPhase=nullptr);
     std::unique_ptr<TerrainComputeBuffers> generate(const PlanetField& field,
-        const TerrainTopologySnapshot& topology,bool diagnostics=false,TerrainMorphStorage morph=TerrainMorphStorage::Transient);
+        const TerrainTopologySnapshot& topology,bool diagnostics=false,TerrainMorphStorage morph=TerrainMorphStorage::Transient,
+        const TerrainMorphFootprint* initialPhase=nullptr);
     // Standalone deformation primitive. Runtime consumers must share a phase
     // before this may be used on a mesh with bound sparse contacts.
     void deform(Mesh& mesh,const TerrainMorphFootprint& footprint);
     GLuint program() const { return shader_ ? shader_->id : 0; }
 private:
     std::unique_ptr<TerrainComputeBuffers> generateValidated(const PlanetField& field,
-        const TerrainTopology& topology,bool diagnostics,TerrainMorphStorage morph);
+        const TerrainTopology& topology,bool diagnostics,TerrainMorphStorage morph,const TerrainMorphFootprint* initialPhase);
+    std::uint64_t deformSource(GLuint vertices,std::uint64_t corners,const TerrainMorphSource& source,
+        TerrainMorphState& state,const TerrainMorphFootprint& footprint);
     TerrainComputeLimits limits_;
     Shader* shader_=nullptr;
     std::array<std::unique_ptr<Shader>,3> variants_;

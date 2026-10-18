@@ -1,5 +1,35 @@
 # Relief-aware terrain sinking
 
+## Initial GPU phase inside generation readiness, 2026-10-18
+
+Retained compute generation accepts an optional initial footprint. It validates
+the footprint and physical scale before GPU allocation, evaluates and packs the
+original targets, then applies the requested pose before the generation's end
+timestamp and completion fence. Readiness therefore covers the initial pose.
+Dispatch statistics include that work; buffer/input storage stays unchanged.
+
+The retained buffers now own the shared phase state from creation. Mesh upload
+transfers that same state with their GPU targets and sparse contacts, preserving
+revision and footprint instead of creating a fresh original-pose state. A common
+private dispatch helper serves initial generation and live mesh deformation;
+the latter keeps its mirror-free and contact-scale checks and state restoration.
+
+A new GPU test checks incomplete/readback rejection, CPU initial-pose parity,
+unchanged attributes/indices/target words/storage, shared-state transfer and
+contact samples, subsequent live revision changes and invalid mode/scale/phase.
+Full72-step build/final no-op pass. Focused existing/live plus initial cases
+pass on RTX3.713 s/Quadro3.792 s. Initial pose changes62,572 corners with zero
+measured CPU position error on RTX/Quadro/software; software case6.868 s passes.
+All35 core groups40.12 s,54 RTX cases73.697 s, forcedGL3.3 CPU source/upload
+cases2.136 s and recovery/frame/reload/streaming211.49 s pass. All fifteen
+historical PNGs and inspected/decoded overview exact:14,779 pixels,
+bbox(1,1)–(794,598),3,471 planet pixels. Concurrent timings are validation, not
+FPS evidence. Logs detail-initial-phase-* remain ignored/local.
+
+Runtime callers still use Transient/no initial phase; capture
+record adapters remain next, followed by prepared coverage and parent rebases.
+Terrain stays **p** and the recorded native coverage failures remain unresolved.
+
 ## Versioned deformation replay record, 2026-10-18
 
 TerrainMorphReplay defines a pure CPU version1 record for one retained body.

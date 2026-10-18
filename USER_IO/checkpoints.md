@@ -1,5 +1,28 @@
 # Page to document progress of AI Agents working on this Project
 
+## Initial GPU phase within generation fence — 2026-10-18
+
+- Continued terrain p afterbfc01b2. TerrainCompute.generate optional initialPhase
+  requires Retained/matching physical scale, validates before GPU allocation,
+  applies pose after immutable target packing and before end timestamp/fence.
+  Added dispatches counted; no extra GPU buffer/input storage. Shared private
+  deformSource helper used by initial and live APIs. Live mirror-free/contact
+  scale restrictions and GL binding/program restoration preserved.
+- TerrainComputeBuffers creates retained morphState at revision0, initial pose
+  makes1; Mesh.loadComputedTerrain transfers same state/targets/contacts instead
+  of recreating state0. No post-ready phase allocation. New54th GPU case checks
+  fence/readiness/readback, CPU parity, unchanged attrs/indices/raw target words/
+  storage, state transfer, contacts, live follow-up and invalid inputs. Full72-step
+  build/final no-op pass. Focus2 casesRTX3.713/Quadro3.792 s; initial pose changes
+  62,572 corners with zero CPU position error, also software6.868 s.35 core groups
+  40.12 s,54 RTX cases73.697 s,forcedGL3.3 CPU source/upload2.136 s and full
+  recovery/frame/reload/streaming211.49 s pass. All15 PNGs and inspected/decoded
+  overview exact:14,779 pixels,bbox(1,1)–(794,598),3,471 planet. Concurrent times
+  validation,notFPS. Logs detail-initial-phase-* local; diff checks pass.
+- No runtime caller selects Retained or initial phase yet. Next wire versioned
+  records through capture/CPU/compute/reload, then prepared streaming/parent
+  rebases. Keep p and old native failures. User config remains unstaged.
+
 ## Versioned deformation replay record — 2026-10-18
 
 - Continued terrain p aftere37c40a. Pure CPU TerrainMorphReplay version1 stores

@@ -238,10 +238,10 @@ void Mesh::loadComputedTerrain(rendering::TerrainGeometry geometry,
     if(!buffers.complete || !buffers.vao || !buffers.vbo || !buffers.ebo || key!=buffers.stats.generation ||
        (keepCpuMirror && (geometry.indices.size()!=buffers.stats.gpuCorners || geometry.vertices.size()!=9*buffers.stats.gpuCorners)) ||
        (!keepCpuMirror && (!geometry.indices.empty() || !geometry.vertices.empty())) ||
-       (buffers.retainedMorph && (!buffers.scratch[1] || !buffers.scratch[2] || !buffers.stats.uniqueSamples)) ||
+       (buffers.retainedMorph && (!buffers.scratch[1] || !buffers.scratch[2] || !buffers.stats.uniqueSamples || !buffers.morphState)) ||
        (buffers.contacts && buffers.contacts->generation()!=buffers.stats.generation))
         throw std::invalid_argument("Incomplete or incompatible computed terrain generation");
-    auto phase=buffers.retainedMorph?std::make_shared<rendering::TerrainMorphState>():nullptr;
+    auto phase=buffers.retainedMorph?buffers.morphState:nullptr;
     // Caller publishes only after the whole land/water pair has completed.
     destroy();
     vao=std::exchange(buffers.vao,0);vbo=std::exchange(buffers.vbo,0);ebo=std::exchange(buffers.ebo,0);
@@ -249,6 +249,7 @@ void Mesh::loadComputedTerrain(rendering::TerrainGeometry geometry,
         morphTargets=std::exchange(buffers.scratch[1],0);morphCorners=std::exchange(buffers.scratch[2],0);
         morphSamples=buffers.stats.uniqueSamples;
         morphState=std::move(phase);
+        buffers.morphState.reset();
     }
     terrainStats=std::move(buffers.stats);
     contacts=std::move(buffers.contacts);

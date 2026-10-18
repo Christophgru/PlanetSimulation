@@ -539,6 +539,71 @@ TEST(TerrainCompute, VerticalRebasesAndRecordedHighParentsMatchCpuAndContacts) {
         }
     }
 }
+TEST(TerrainCompute, InitialRetainedPhaseCompletesInsideGenerationFenceAndTransfersSharedContactState) {
+    auto l=lod();l.local_detail_streaming=true;l.local_detail_radius_m=1.5;
+    l.local_edge_m=.05;l.local_error_m=.01;l.local_transition_m=.5;
+    l.relief_sinking=true;l.geometric_error_m=.05;l.max_triangle_budget=100000;
+    l.near_surface_distance_m=300;l.mid_surface_distance_m=1000;l.shoreline_edge_m=0;
+    config::PlanetConfig::SurfaceNoiseFunction noise;
+    noise.amplitude_m=.01;noise.wavelength_m=.25;noise.octaves=1;noise.seed=-71;
+    const TerrainSurface surface({noise},l,1,1000);
+    const auto eye=glm::normalize(glm::dvec3(.3,-.7,1))*1.002;
+    const auto east=glm::normalize(glm::cross(eye,glm::dvec3(0,1,0)));
+    const auto topology=surface.buildTopologyForEye(eye,{});ASSERT_FALSE(topology.morph.empty());
+    const TerrainMorphFootprint initial{glm::normalize(eye+east*.00015),1000,.2,.4};
+    TerrainCompute compute;
+    auto ordinary=compute.generate(surface.field(),topology,false,TerrainMorphStorage::Retained);
+    auto generated=compute.generate(surface.field(),TerrainTopologySnapshot(topology),false,TerrainMorphStorage::Retained,&initial);
+    ASSERT_TRUE(generated->morphState);const auto state=generated->morphState;
+    EXPECT_EQ(state->revision(),1u);ASSERT_TRUE(state->footprint());EXPECT_EQ(*state->footprint(),initial);
+    ASSERT_TRUE(ordinary->morphState);EXPECT_EQ(ordinary->morphState->revision(),0u);EXPECT_FALSE(ordinary->morphState->footprint());
+    EXPECT_FALSE(generated->complete);EXPECT_TRUE(generated->fence);
+    EXPECT_THROW(generated->readVertices(),std::logic_error);
+    generated->waitForCapture();ordinary->waitForCapture();EXPECT_TRUE(generated->complete);EXPECT_FALSE(generated->fence);
+    EXPECT_EQ(generated->stats.gpuWorkingBytes,ordinary->stats.gpuWorkingBytes);
+    EXPECT_GT(generated->stats.gpuDispatches,ordinary->stats.gpuDispatches);
+    const auto current=generated->readVertices(),original=ordinary->readVertices();
+    const auto expected=surface.evaluateTopology(topology,initial);ASSERT_EQ(current.size(),expected.vertices.size());
+    double maximum=0;std::size_t changed=0;
+    for(std::size_t c=0;c<topology.indices.size();++c) {
+        const auto offset=9*c;
+        maximum=std::max(maximum,glm::length(glm::dvec3(current[offset]-expected.vertices[offset],
+            current[offset+1]-expected.vertices[offset+1],current[offset+2]-expected.vertices[offset+2]))*1000);
+        changed+=current[offset]!=original[offset] || current[offset+1]!=original[offset+1] || current[offset+2]!=original[offset+2];
+        for(int j=3;j<9;++j) EXPECT_EQ(current[offset+j],original[offset+j]);
+    }
+    EXPECT_LE(maximum,.002);EXPECT_GT(changed,0u);EXPECT_EQ(generated->readIndices(),ordinary->readIndices());
+    const auto targets=[&](GLuint buffer) {
+        GLint previous=0;glGetIntegerv(GL_COPY_READ_BUFFER_BINDING,&previous);
+        std::vector<std::uint32_t> words(18*topology.samples.size());glBindBuffer(GL_COPY_READ_BUFFER,buffer);
+        glGetBufferSubData(GL_COPY_READ_BUFFER,0,words.size()*4,words.data());glBindBuffer(GL_COPY_READ_BUFFER,previous);return words;
+    };
+    EXPECT_EQ(targets(generated->scratch[1]),targets(ordinary->scratch[1]));
+    generated->contacts=std::make_shared<SparseTerrainContacts>(surface.field(),topology);
+    struct Owner {Mesh mesh;~Owner(){mesh.destroy();}} owner;
+    TerrainGeometry metadata;static_cast<TerrainBuildStats&>(metadata)=topology;
+    owner.mesh.loadComputedTerrain(std::move(metadata),*generated,false);
+    EXPECT_EQ(owner.mesh.morphState,state);EXPECT_FALSE(generated->morphState);EXPECT_EQ(owner.mesh.deformationRevision(),1u);
+    SurfaceContact phased,rendered;phased.bind(owner.mesh.contacts,owner.mesh.revision,owner.mesh.morphState);
+    rendered.bind(expected.vertices,expected.indices,owner.mesh.revision,1000);
+    const auto missing=[](const auto&) -> GroundContact {throw std::logic_error("Missing initial terrain contact");};
+    for(double offset:{0.,.25,.5}) {
+        const auto radial=glm::normalize(initial.eyeRadial+east*(offset/1000));
+        EXPECT_LE(glm::length(phased.sample(radial,missing).position-rendered.sample(radial,missing).position),.002);
+    }
+    compute.deform(owner.mesh,initial);EXPECT_EQ(state->revision(),1u);
+    auto next=initial;next.radiusMeters=.4;compute.deform(owner.mesh,next);
+    EXPECT_EQ(state->revision(),2u);EXPECT_EQ(phased.version().deformation,2u);
+    EXPECT_THROW(compute.generate(surface.field(),topology,false,TerrainMorphStorage::Transient,&initial),std::invalid_argument);
+    auto invalid=initial;invalid.metersPerRadius=999;
+    EXPECT_THROW(compute.generate(surface.field(),topology,false,TerrainMorphStorage::Retained,&invalid),std::invalid_argument);
+    invalid=initial;invalid.transitionMeters=0;
+    EXPECT_THROW(compute.generate(surface.field(),topology,false,TerrainMorphStorage::Retained,&invalid),std::invalid_argument);
+    std::cout << "INITIAL_MORPH_PHASE changed_corners=" << changed << " maximum_position_error_m=" << maximum
+        << " shared_state_transferred=1 targets_immutable=1\n";
+    EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+}
+
 int main(int argc,char** argv) {
     ::testing::InitGoogleTest(&argc,argv);if(!glfwInit()) return 1;
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,4);glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);

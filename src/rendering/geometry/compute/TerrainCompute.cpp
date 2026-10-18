@@ -84,23 +84,28 @@ TerrainCompute::~TerrainCompute() {
     if(morphShader_) glDeleteProgram(morphShader_->id);
 }
 std::unique_ptr<TerrainComputeBuffers> TerrainCompute::generate(const PlanetField& field,
-    const TerrainTopology& topology,bool diagnostics,TerrainMorphStorage morph) {
+    const TerrainTopology& topology,bool diagnostics,TerrainMorphStorage morph,const TerrainMorphFootprint* initialPhase) {
     topology.validate();
-    return generateValidated(field,topology,diagnostics,morph);
+    return generateValidated(field,topology,diagnostics,morph,initialPhase);
 }
 std::unique_ptr<TerrainComputeBuffers> TerrainCompute::generate(const PlanetField& field,
-    const TerrainTopologySnapshot& topology,bool diagnostics,TerrainMorphStorage morph) {
+    const TerrainTopologySnapshot& topology,bool diagnostics,TerrainMorphStorage morph,const TerrainMorphFootprint* initialPhase) {
     if(!topology) throw std::invalid_argument("Missing compute terrain snapshot");
-    return generateValidated(field,*topology,diagnostics,morph);
+    return generateValidated(field,*topology,diagnostics,morph,initialPhase);
 }
 std::unique_ptr<TerrainComputeBuffers> TerrainCompute::generateValidated(const PlanetField& field,
-    const TerrainTopology& topology,bool diagnostics,TerrainMorphStorage morph) {
+    const TerrainTopology& topology,bool diagnostics,TerrainMorphStorage morph,const TerrainMorphFootprint* initialPhase) {
     if(topology.generation.field!=field.fingerprint()) throw std::invalid_argument("Stale compute planet field");
     if(!limits_.unavailable.empty()) throw std::runtime_error(limits_.unavailable);
     if(morph!=TerrainMorphStorage::Transient && morph!=TerrainMorphStorage::Retained)
         throw std::invalid_argument("Invalid terrain morph storage mode");
     const bool retained=morph==TerrainMorphStorage::Retained;
     if(retained && topology.morph.empty()) throw std::invalid_argument("Retained targets require detail terrain");
+    if(initialPhase) {
+        validateTerrainMorphFootprint(*initialPhase);
+        if(!retained || initialPhase->metersPerRadius!=field.radiusWorld()*field.metersPerUnit())
+            throw std::invalid_argument("Initial terrain phase requires retained targets and matching scale");
+    }
     const std::uint64_t samples=topology.samples.size(),corners=topology.indices.size();
     if(!samples || !corners || corners>std::numeric_limits<GLsizei>::max()/9)
         throw std::runtime_error("Terrain generation exceeds addressable output");
@@ -141,6 +146,7 @@ std::unique_ptr<TerrainComputeBuffers> TerrainCompute::generateValidated(const P
     result->stats.generation.backend=TerrainBackend::Compute;
     result->stats.evaluationQueries={};result->stats.gpuCorners=corners;result->stats.gpuCellKeys=corners/3;result->diagnostics=diagnostics;
     result->retainedMorph=retained;
+    if(retained) result->morphState=std::make_shared<TerrainMorphState>();
     result->stats.gpuInputBytes=bytes[1]+corners*4+20+bytes[7]; // source descriptors + rock range/corner count
     result->stats.gpuWorkingBytes=0;for(auto b:bytes) result->stats.gpuWorkingBytes+=b;
     if(!fields_.contains(field.fingerprint())) {
@@ -205,6 +211,9 @@ std::unique_ptr<TerrainComputeBuffers> TerrainCompute::generateValidated(const P
         dispatch(3,samples);glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     }
     expansionTiming.stop();
+    // Ordered before the generation timestamp/fence: readiness covers the
+    // requested pose, while immutable original/fine/parent targets stay intact.
+    if(initialPhase) result->stats.gpuDispatches+=deformSource(result->vbo,corners,result->morphSource(),*result->morphState,*initialPhase);
     glQueryCounter(result->timers[1],GL_TIMESTAMP);
     result->fence=glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE,0);
     if(!result->fence || glGetError()!=GL_NO_ERROR) throw std::runtime_error("Terrain compute submission failed");
@@ -218,17 +227,22 @@ std::unique_ptr<TerrainComputeBuffers> TerrainCompute::generateValidated(const P
     return result;
 }
 void TerrainCompute::deform(Mesh& mesh,const TerrainMorphFootprint& footprint) {
-    if(!mesh.residentTerrain || !mesh.vbo || !mesh.morphTargets || !mesh.morphCorners || !mesh.morphState ||
-       !mesh.indexCount || !mesh.morphSamples || mesh.morphSamples!=mesh.terrainStats.uniqueSamples ||
-       mesh.indexCount>std::numeric_limits<GLsizei>::max()/9 ||
-       mesh.morphSamples>std::numeric_limits<std::uint32_t>::max()/18)
+    if(!mesh.residentTerrain || !mesh.morphState || mesh.morphSamples!=mesh.terrainStats.uniqueSamples)
         throw std::invalid_argument("Terrain mesh has no complete retained morph targets");
     validateTerrainMorphFootprint(footprint);
     if(mesh.contacts && (mesh.contacts->generation()!=mesh.terrainStats.generation ||
        mesh.contacts->radiusMeters()!=footprint.metersPerRadius))
         throw std::invalid_argument("Incompatible terrain contact deformation source");
+    deformSource(mesh.vbo,mesh.indexCount,mesh.morphSource(),*mesh.morphState,footprint);
+}
+std::uint64_t TerrainCompute::deformSource(GLuint vertices,std::uint64_t corners,const TerrainMorphSource& source,
+    TerrainMorphState& state,const TerrainMorphFootprint& footprint) {
+    if(!vertices || !source.targets || !source.corners || !source.samples || !corners ||
+       corners>std::numeric_limits<GLsizei>::max()/9 || source.samples>std::numeric_limits<std::uint32_t>::max()/18)
+        throw std::invalid_argument("Terrain source has no complete retained morph targets");
+    validateTerrainMorphFootprint(footprint);
     const auto& eye=footprint.eyeRadial;
-    auto nextPhase=*mesh.morphState;nextPhase.set(footprint);
+    auto nextPhase=state;nextPhase.set(footprint);
     if(!limits_.unavailable.empty() || !limits_.groups) throw std::runtime_error("Terrain deformation compute unavailable");
     if(!morphShader_) morphShader_=std::make_unique<Shader>("shaders/terrain/compute/morph.comp");
     GLint previousProgram=0,previousStorage=0;
@@ -250,20 +264,21 @@ void TerrainCompute::deform(Mesh& mesh,const TerrainMorphFootprint& footprint) {
             glBindBuffer(GL_SHADER_STORAGE_BUFFER,storage);glUseProgram(program);
         }
     } restore{previousProgram,previousStorage,previousBindings,previousStarts,previousSizes};
-    const GLuint buffers[]{mesh.morphTargets,mesh.morphCorners,mesh.vbo};
+    const GLuint buffers[]{source.targets,source.corners,vertices};
     for(int i=0;i<3;++i) glBindBufferBase(GL_SHADER_STORAGE_BUFFER,i,buffers[i]);
-    morphShader_->use();morphShader_->setInt("uSamples",mesh.morphSamples);
+    morphShader_->use();morphShader_->setInt("uSamples",source.samples);
     glUniform3dv(glGetUniformLocation(morphShader_->id,"uEye"),1,&eye.x);
     glUniform3d(glGetUniformLocation(morphShader_->id,"uFootprint"),
         footprint.metersPerRadius,footprint.radiusMeters,footprint.transitionMeters);
-    GpuWorkProfiler::Scope timing(GpuWorkStage::TerrainExpansion,GpuWorkProfiler::generation(mesh.terrainStats.generation));
+    GpuWorkProfiler::Scope timing(GpuWorkStage::TerrainExpansion,GpuWorkProfiler::generation(source.generation));
     const auto chunk=std::min<std::uint64_t>(std::uint64_t(limits_.groups)*64,65536);
-    for(std::uint64_t first=0;first<mesh.indexCount;first+=chunk) {
-        morphShader_->setInt("uFirst",first);morphShader_->setInt("uCount",std::min(mesh.indexCount,first+chunk));
-        glDispatchCompute((std::min<std::uint64_t>(chunk,mesh.indexCount-first)+63)/64,1,1);
+    std::uint64_t dispatches=0;
+    for(std::uint64_t first=0;first<corners;first+=chunk) {
+        morphShader_->setInt("uFirst",first);morphShader_->setInt("uCount",std::min(corners,first+chunk));
+        glDispatchCompute((std::min<std::uint64_t>(chunk,corners-first)+63)/64,1,1);++dispatches;
     }
     glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT|GL_SHADER_STORAGE_BARRIER_BIT|GL_TEXTURE_FETCH_BARRIER_BIT);
     if(glGetError()!=GL_NO_ERROR) throw std::runtime_error("Terrain deformation submission failed");
-    *mesh.morphState=std::move(nextPhase);
+    state=std::move(nextPhase);return dispatches;
 }
 }
