@@ -37,7 +37,7 @@ struct TerrainCpuBuild {
     std::optional<TerrainMorphReplay> deformation;
     double milliseconds=0;
     // Context-thread prospective character query, before GPU staging exists.
-    std::shared_ptr<const TerrainMorphState> previewPhase() const;
+    std::shared_ptr<TerrainMorphState> previewPhase() const;
 };
 TerrainCpuBuild buildTerrainCpu(const TerrainBuildRequest& request);
 // Eye motion may require a follow-up without starving a useful completed anchor.

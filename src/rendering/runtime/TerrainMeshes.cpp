@@ -11,7 +11,10 @@ void Renderer::Impl::installLandMesh(std::size_t index, TerrainGeometry geometry
     meshTriangles[index] = computed ? computed->stats.gpuCorners/3 : geometry.triangleCount();
     meshSteepRefinedFaces[index] = geometry.steepRefinedFaces;
     lastFaceZones[index] = geometry.faceZones;
-    if(computed) meshes.planetMeshes[index].loadComputedTerrain(std::move(geometry),*computed,options.terrainGrassPlanner=="cpu");
+    if(computed) {
+        const bool keepMirror=options.terrainGrassPlanner=="cpu" && !geometry.vertices.empty();
+        meshes.planetMeshes[index].loadComputedTerrain(std::move(geometry),*computed,keepMirror);
+    }
     else meshes.planetMeshes[index].loadTerrain(std::move(geometry));
     profiler.meshUpload();
     meshReady[index] = true;
@@ -90,6 +93,7 @@ void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalkin
     double candidateDistance=std::numeric_limits<double>::infinity();
     for (std::size_t i = 0; i < scene.scenario.planets.size(); ++i) {
         const auto& planet = scene.scenario.planets[i];
+        const auto deformation=options.renderTestMode && !meshReady[i]?source.deformation(i):std::nullopt;
         glm::dvec3 localEye = scene.bodies[i + 1].toLocalPoint(eye);
         if(options.renderTestMode && !meshReady[i] && planet.terrain_lod.local_detail_streaming &&
            source.replayDocument.contains("render") && source.replayDocument["render"].contains("terrain_parent_eyes_world_units")) {
@@ -102,6 +106,7 @@ void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalkin
             const auto& saved=source.replayDocument["render"]["terrain_plan_eyes_world_units"].at(i);
             localEye={saved.at(0).get<double>(),saved.at(1).get<double>(),saved.at(2).get<double>()};
         }
+        if(deformation) if(const auto anchor=source.terrainAnchor(i)) localEye=*anchor;
         if (options.renderTestMode && options.thirdPersonRenderMode && !meshReady[i] && !options.replayPath.empty()) {
             const auto& replay=source.replayDocument;
             if (replay.contains("astronaut_pose")) {
@@ -154,6 +159,7 @@ void Renderer::Impl::preparePlanetMeshes(const glm::dvec3& eye, bool asyncWalkin
         identity.serial=++terrainRequestSerial;
         TerrainBuildRequest request{identity,scene.terrainSurfaces[i],planet,lastFaceZones[i],
             scene.scenario.metersPerWorldUnit()};
+        request.deformation=deformation;
         if(asyncWalking && meshReady[i] && localMask==lastLocalMask[i]) {
             // Queue one closest-body request after examining every body. Moving
             // beyond a pending anchor coalesces a follow-up without starving it.

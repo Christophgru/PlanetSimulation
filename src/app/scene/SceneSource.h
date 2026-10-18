@@ -1,6 +1,7 @@
 #pragma once
 #include "config/Config.h"
 #include "app/CommandLineOptions.h"
+#include "rendering/geometry/terrain/detail/TerrainMorphReplay.h"
 
 namespace app {
 // Config and replay validation complete before a window or GPU resources exist.
@@ -10,6 +11,8 @@ public:
     // Reload retains the resident pipeline while validating a fresh snapshot.
     static SceneSource forResidentReload(CommandLineOptions& options);
     nlohmann::json load() const;
+    std::optional<rendering::TerrainMorphReplay> deformation(std::size_t body) const;
+    std::optional<glm::dvec3> terrainAnchor(std::size_t body,bool parent=false) const;
     const std::string watchedScenePath;
     nlohmann::json document;
     nlohmann::json replayDocument;

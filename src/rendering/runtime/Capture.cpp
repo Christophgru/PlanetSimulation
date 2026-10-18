@@ -407,6 +407,18 @@ int Renderer::Impl::capture() {
             {"peak_running",workerStats.peakRunning},{"peak_queued",workerStats.peakQueued},
             {"pending",terrainJobs.pending(terrainSceneEpoch)},{"rejected_completions",terrainRejectedBuilds}};
         metadata["render"]["terrain_publication"]=terrainPublicationState();
+        auto deformationRecords=nlohmann::json::array();bool retained=false;
+        for(std::size_t i=0;i<meshes.planetMeshes.size();++i) {
+            const auto& mesh=meshes.planetMeshes[i];
+            if(!mesh.morphSource()) {deformationRecords.push_back(nullptr);continue;}
+            TerrainMorphReplay record;record.generation=mesh.terrainStats.generation;
+            record.metersPerRadius=scene.scenario.planets[i].radius*scene.scenario.metersPerWorldUnit();
+            if(mesh.morphState && mesh.morphState->footprint()) record.phase=*mesh.morphState->footprint();
+            else if(mesh.morphData) record.phase=mesh.morphData->phase;
+            auto entry=record.json();entry["body"]=scene.scenario.planets[i].name;
+            deformationRecords.push_back(std::move(entry));retained=true;
+        }
+        if(retained) metadata["render"]["terrain_deformation"]=std::move(deformationRecords);
         metadata["render"]["scene_reload"]=sceneReloadState();
         metadata["render"]["terrain_fallback"]=terrainFallback;
         const auto& terrain=meshes.planetMeshes[scene.orbitPlanetIndex].terrainStats;

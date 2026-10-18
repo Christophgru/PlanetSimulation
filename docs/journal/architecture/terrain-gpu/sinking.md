@@ -1,5 +1,40 @@
 # Relief-aware terrain sinking
 
+## Capture and reload deformation snapshots, 2026-10-18
+
+Capture sidecars emit a per-body `terrain_deformation` array when any mesh has
+retained targets. Entries include the body name, immutable replay record and
+optional active footprint; bodies without retained sources are null. An original
+retained pose has an explicit record with a null footprint, preserving its fine
+anchors for grass. CPU baked poses and shared GPU phases use the same format.
+
+`SceneSource` validates array length, body, schema and physical scale before
+renderer creation. Snapshots currently require capture mode; interactive moving
+retention remains gated. Capture builds consume the record and recorded planning
+and parent anchors. Compute snapshots install mirror-free retained land,
+including the CPU grass planner route. Character previews bind the prospective
+phase. Reload restores the same anchors and phases in private staging before
+publication. Default captures without retained sources keep their existing format.
+
+Application tests cover invalid records and eight mode/phase combinations: CPU,
+managed compute, compute/CPU planner and third-person, each original and active.
+Retained mode, emitted records and fresh replay/reload PNGs match exactly. A
+stale-topology reload throws and preserves the live epoch, vertex buffer and
+shared state. The first run exposed an incorrect no-throw test expectation;
+it was corrected to match the existing reload API.
+
+Full build and focused tests (59.523 s), all 35 core groups (39.68 s) and all 55
+RTX cases (71.585 s) pass. Forced OpenGL 3.3 active CPU replay PNG and record
+match exactly. Recovery, frame, reload and streaming integration all pass (264.12 s).
+All 15 historical streaming PNGs remain byte-exact. The third-person capture was
+inspected (39,435 terrain pixels); the overview remains byte-exact with 14,779
+non-background pixels, bounds `(1,1)–(794,598)` and 3,471 planet pixels. Timings
+are validation receipts, not FPS evidence. Logs stay local under
+`build-f5/resume/detail-phase-capture-*`.
+
+Runtime defaults remain `Transient`. Prepared moving coverage and parent
+continuity remain before terrain can leave **p**.
+
 ## Replay records through worker and GPU staging, 2026-10-18
 
 Terrain build requests/results can carry the validated deformation record. Worker

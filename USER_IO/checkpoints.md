@@ -1,5 +1,36 @@
 # Page to document progress of AI Agents working on this Project
 
+## Application deformation snapshots — 2026-10-18
+
+- Continued the terrain **p** task after `6d96ba6`. Capture emits per-body
+  `terrain_deformation` only for retained sources. An original pose has a null
+  footprint; an absent source has a null array entry. `SceneSource` validates
+  body labels, array length, schema and physical scale before renderer creation.
+  Snapshot replay requires capture mode; moving runtime activation remains gated.
+- Initial capture requests carry records and restore plan/parent anchors.
+  Computed snapshots install mirror-free land even with the CPU grass planner.
+  Character previews bind the prospective phase. Reload restores the same
+  anchors and phases in private staging before publication. `previewPhase()`
+  returns mutable context-owned state for temporary mesh storage; contact
+  wrappers continue to borrow const state.
+- New `test_deformation_replay.cpp` covers invalid records and eight combinations:
+  CPU, resident compute, compute/CPU planner and third-person, each with original
+  and active phases. Fresh replay/reload PNGs and emitted records match exactly.
+  Stale-topology reload throws `invalid_argument` and preserves the live epoch,
+  vertex buffer and shared state. An incorrect initial no-throw test expectation
+  was corrected to match the existing API.
+- Full build passes. Focused tests: 59.523 s; all 35 core groups: 39.68 s; all
+  55 RTX cases: 71.585 s. The focused replay tests also pass on Quadro (see local log).
+  Forced OpenGL 3.3 active CPU replay PNG and record match
+  exactly. Recovery, frame, reload and streaming integration all pass (264.12 s).
+  All 15 historical streaming PNGs remain byte-exact. Third-person capture inspected:
+  39,435 terrain pixels. Overview remains byte-exact: 14,779 non-background
+  pixels, bounds `(1,1)–(794,598)`, 3,471 planet pixels. These are validation
+  timings, not FPS measurements. Logs: `build-f5/resume/detail-phase-capture-*`.
+- Next: prepared streaming, uninterrupted coverage and parent rebases. Keep **p**,
+  default `Transient` storage and the previous native failures until those checks
+  pass. User scenario edits remain unstaged.
+
 ## Worker/staging deformation replay — 2026-10-18
 
 - Continued terrain p afterdaeaae5. Build request/result optional deformation

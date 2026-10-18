@@ -89,6 +89,11 @@ void Renderer::Impl::reloadScene() {
         SceneMeshes previewMeshes(count);
         for(std::size_t i=0;i<count;++i) {
             const auto& planet=stagedScene.scenario.planets[i];auto eye=stagedScene.bodies[i+1].toLocalPoint(terrainEye);
+            const auto deformation=nextSource.deformation(i);
+            if(deformation) {
+                if(const auto parent=nextSource.terrainAnchor(i,true)) stagedScene.terrainSurfaces[i].prepareReplayParent(*parent);
+                if(const auto anchor=nextSource.terrainAnchor(i)) eye=*anchor;
+            }
             std::vector<int> zones;
             if(pose) {
                 if(pose->contains("terrain_plan_eyes_world_units")) {
@@ -107,6 +112,7 @@ void Renderer::Impl::reloadScene() {
             k.backend=terrainCompute ? TerrainBackend::Compute : TerrainBackend::Cpu;k.resident=bool(resident);
             auto request=resident ? resident->requestLocal(i,eye,k.serial,std::move(zones)) :
                 TerrainBuildRequest{k,stagedScene.terrainSurfaces[i],planet,std::move(zones),stagedScene.scenario.metersPerWorldUnit()};
+            request.deformation=deformation;
             k=request.identity;identities[i]=k;
             request.traceAttempt=attempt ? publications.begin(PublicationProfiler::Key::from(k),PublicationProfiler::Kind::Terrain,attempt) : 0;
             const auto child=request.traceAttempt;GpuWorkProfiler::Attempt timing(child);
@@ -121,6 +127,7 @@ void Renderer::Impl::reloadScene() {
             tracking.record(i,built,k);
             if(resident) {
                 previewMeshes.planetMeshes[i].contacts=built.contacts;previewMeshes.planetMeshes[i].revision=1;
+                previewMeshes.planetMeshes[i].morphState=built.previewPhase();
                 builds[i]=std::move(built);
             } else {
                 if(terrainCompute) {
@@ -128,7 +135,8 @@ void Renderer::Impl::reloadScene() {
                     TerrainGpuPreparation stage(std::move(built),k,planet,*terrainCompute);stage.waitForCapture();
                     publications.phase(child,PublicationProfiler::Phase::GpuReady);
                     built=std::move(stage.cpu);
-                    legacy->meshes.planetMeshes[i].loadComputedTerrain(std::move(built.geometry),*stage.land,true);
+                    const bool keepMirror=!built.deformation;
+                    legacy->meshes.planetMeshes[i].loadComputedTerrain(std::move(built.geometry),*stage.land,keepMirror);
                     if(stage.water) legacy->meshes.waterMeshes[i].loadComputedTerrain(std::move(*built.water),*stage.water,true);
                 } else {
                     observeMemory(MemoryPhase::ReloadPreparing,false,nullptr,legacy.get(),attempt,epoch);

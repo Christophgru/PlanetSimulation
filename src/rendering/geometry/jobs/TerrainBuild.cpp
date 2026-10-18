@@ -26,7 +26,7 @@ void TerrainBuildRequest::validate() const {
             throw std::invalid_argument("Terrain replay does not match worker field, version or scale");
     }
 }
-std::shared_ptr<const TerrainMorphState> TerrainCpuBuild::previewPhase() const {
+std::shared_ptr<TerrainMorphState> TerrainCpuBuild::previewPhase() const {
     if(!contacts || !deformation || !deformation->phase) return {};
     auto phase=std::make_shared<TerrainMorphState>();phase->set(*deformation->phase);return phase;
 }

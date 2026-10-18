@@ -15,9 +15,23 @@ SceneSource::SceneSource(CommandLineOptions& options)
     try {
         replayDocument=replayPath.empty() ? nlohmann::json() : config::Config::load(replayPath).data();
         document = documentFor(replayDocument);
-        (void)config::ScenarioConfig(config::Config(nlohmann::json(document)));
+        const config::ScenarioConfig checked{config::Config(nlohmann::json(document))};
         if (!replayPath.empty()) {
             const auto& replay = replayDocument;
+            if(replay.contains("render") && replay["render"].contains("terrain_deformation")) {
+                const auto& records=replay["render"]["terrain_deformation"];
+                if(!records.is_array() || records.size()!=checked.planets.size())
+                    throw std::invalid_argument("Terrain deformation replay requires one entry per body");
+                for(std::size_t i=0;i<records.size();++i) if(!records[i].is_null()) {
+                    if(!options.renderTestMode)
+                        throw std::invalid_argument("Terrain deformation snapshots require --render-test");
+                    if(!records[i].is_object() || !records[i].contains("body") || records[i]["body"]!=checked.planets[i].name)
+                        throw std::invalid_argument("Terrain deformation replay body mismatch");
+                    const auto record=rendering::TerrainMorphReplay::fromJson(records[i]);
+                    if(record.metersPerRadius!=checked.planets[i].radius*checked.metersPerWorldUnit())
+                        throw std::invalid_argument("Terrain deformation replay physical scale mismatch");
+                }
+            }
             for(const auto name:{"terrain_plan_eyes_world_units","terrain_parent_eyes_world_units"})
             if(replay.contains("render") && replay["render"].contains(name)) {
                 const auto& anchors=replay["render"][name];
@@ -106,6 +120,17 @@ nlohmann::json SceneSource::load() const {
     // A full image sidecar is self-contained; a console snippet uses --config.
     const nlohmann::json replay = replayPath.empty() ? nlohmann::json() : config::Config::load(replayPath).data();
     return documentFor(replay);
+}
+std::optional<rendering::TerrainMorphReplay> SceneSource::deformation(std::size_t body) const {
+    if(!replayDocument.contains("render") || !replayDocument["render"].contains("terrain_deformation")) return {};
+    const auto& record=replayDocument["render"]["terrain_deformation"].at(body);
+    return record.is_null()?std::nullopt:std::optional(rendering::TerrainMorphReplay::fromJson(record));
+}
+std::optional<glm::dvec3> SceneSource::terrainAnchor(std::size_t body,bool parent) const {
+    const char* name=parent?"terrain_parent_eyes_world_units":"terrain_plan_eyes_world_units";
+    if(!replayDocument.contains("render") || !replayDocument["render"].contains(name)) return {};
+    const auto& eye=replayDocument["render"][name].at(body);
+    return glm::dvec3(eye.at(0).get<double>(),eye.at(1).get<double>(),eye.at(2).get<double>());
 }
 nlohmann::json SceneSource::documentFor(const nlohmann::json& replay) const {
     auto document = replay.is_object() && replay.contains("scenario") ? replay.at("scenario") :

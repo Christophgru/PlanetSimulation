@@ -17,7 +17,7 @@ void Renderer::Impl::publishResidentBuilds(std::vector<std::optional<TerrainCpuB
     if(characterElapsed) {
         auto contacts=characterTerrainContacts();
         for(std::size_t i=0;i<builds.size();++i) if(builds[i])
-            contacts[i].bind(builds[i]->contacts,meshes.planetMeshes[i].revision+1);
+            contacts[i].bind(builds[i]->contacts,meshes.planetMeshes[i].revision+1,builds[i]->previewPhase());
         grassEyeWorld=previewAstronautEye(*characterElapsed,std::move(contacts));
         plannedCharacterEye=grassEyeWorld;
         if(!astronautReplayRestored && !options.replayPath.empty()) {
