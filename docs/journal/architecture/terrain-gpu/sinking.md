@@ -1,5 +1,40 @@
 # Relief-aware terrain sinking
 
+## CPU retained-source mesh upload, 2026-10-18
+
+CPU mesh upload now preserves the optional immutable source and uploads its
+integer target/corner buffers using OpenGL3.3 buffer operations. It validates
+identity, versions, scale, optional baked phase, target finiteness, unit radial
+directions, expanded corner ownership and pose agreement before changing the
+live mesh. Original positions compare exactly; explicit-phase comparisons
+allow four float epsilons for the stored float endpoint representation. Texture
+buffer capacity and allocation failures reject with temporary buffers cleaned.
+No compute shader or production readback is required.
+
+Baked CPU geometry keeps mesh revision as its position version; no synthetic
+live phase is attached. Mesh swaps, destruction, ordinary uploads and fallback
+transfer or release both GPU buffers and the CPU owner together. CPU vector
+capacity and GPU payload bytes have separate accessors. Logical terrain storage,
+CPU staging admission and renderer CPU memory telemetry include the new source.
+Compute terrain retains its existing accounting and shared live-state contract.
+
+A context-backed regression checks original and explicit poses, raw target/map
+and VBO readback, structural/pose rejection preserving the previous mesh, swap,
+source lifetime, buffer deletion and fallback byte totals. Full67-step build,
+19-step relink and final no-op pass. All35 core groups pass (40.90 s), all53
+RTX compute cases pass (75.173 s), all24 software wind/render/compute/upload
+cases pass (140.879 s), and recovery/frame/reload/streaming pass (230.23 s).
+All fifteen historical PNGs and inspected overview are exact:14,779 pixels,
+bbox(1,1)–(794,598),3,471 planet pixels. A final preflight guard rejects
+malformed grass cell-key counts; after its20-step rebuild, focused GL3.3/RTX/
+Quadro tests pass (.997/1.106/1.108 s). The default path skips this opt-in guard;
+unaffected broad checks were not repeated. Concurrent durations are validation,
+not FPS measurements. Logs detail-cpu-upload-* remain ignored/local.
+
+Runtime still requests Transient. CPU fine-anchor grass selection and capture
+replay remain outstanding, followed by prepared coverage and parent rebases.
+Keep terrain **p**; this adapter alone does not fix the recorded native failures.
+
 ## CPU-owned immutable deformation source, 2026-10-18
 
 CPU topology evaluation can opt into the same retained-source contract as the

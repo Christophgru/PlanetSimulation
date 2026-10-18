@@ -10,6 +10,7 @@ namespace rendering { struct TerrainComputeBuffers; }
 namespace rendering { class SparseTerrainContacts; }
 namespace rendering { class TerrainMorphState; }
 namespace rendering { struct TerrainMorphSource; }
+namespace rendering { struct TerrainMorphData; }
 
 class Mesh {
 public:
@@ -19,6 +20,7 @@ public:
     GLuint morphTargets=0,morphCorners=0;
     std::size_t morphSamples=0;
     std::shared_ptr<rendering::TerrainMorphState> morphState;
+    std::shared_ptr<const rendering::TerrainMorphData> morphData;
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
     std::vector<std::array<std::uint32_t,4>> grassCellKeys;
@@ -55,6 +57,8 @@ public:
     void destroy();
     rendering::TerrainMorphSource morphSource() const;
     std::uint64_t deformationRevision() const;
+    std::uint64_t cpuMorphBytes() const;
+    std::uint64_t gpuMorphBytes() const;
     // Transfer a complete prevalidated generation without allocating or GL work.
     void swap(Mesh& other) noexcept;
 private:

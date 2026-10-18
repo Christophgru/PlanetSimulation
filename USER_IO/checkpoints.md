@@ -1,5 +1,31 @@
 # Page to document progress of AI Agents working on this Project
 
+## CPU retained-source mesh upload — 2026-10-18
+
+- Continued terrain p afterdf8d2c2. CPU Mesh.loadTerrain retains CPU owner plus
+  integer target/map GPU buffers, using onlyGL3.3 operations. Validate identity,
+  version, scale/phase, finite targets/unit radial, expanded map and baked pose
+  before changing live mesh. Original positions exact; explicit phase bounded
+  by4 float epsilons for stored endpoints. Capacity/allocation reject cleanly.
+- Baked CPU poses keep mesh revision; no fake live morph state. Swap/release/
+  ordinary upload/fallback handle source ownership together. New CPU-capacity
+  and GPU-payload accessors feed vector telemetry, terrain logical storage and
+  CPU staging/reload admission. Existing compute accounting unchanged.
+- Added context-backed TerrainMesh regression in test_grass_render.cpp for both
+  poses: raw words/map/VBO, byte totals, malformed data/pose rejection preserving
+  live buffers/revision, swap, fallback, buffer deletion and last-owner lifetime.
+  Full67-step build+19-step relink/final no-op pass.35 core groups40.90 s,
+  53 RTX cases75.173 s,24 software wind/render/compute/upload cases140.879 s
+  and recovery/frame/reload/streaming230.23 s pass. All15 PNGs and inspected
+  overview exact:14,779 pixels,bbox(1,1)–(794,598),3,471 planet. Final cell-key
+  count preflight guard has20-step rebuild and focused GL3.3/RTX/Quadro passes
+  .997/1.106/1.108 s. Unaffected broad checks precede that opt-in guard. Concurrent
+  durations are validation, not FPS evidence. Logs detail-cpu-upload-* local;
+  diff checks pass.
+- Still no runtime Retained selection. Next CPU fine-anchor grass, capture phase
+  replay, prepared streaming and parent rebases; keep p and last native failures.
+  User config remains unstaged.
+
 ## CPU-owned immutable deformation source — 2026-10-18
 
 - Continued terrain p after72b3edd. TerrainMorphStorage now belongs to shared

@@ -1,6 +1,8 @@
 #include "rendering/foliage/procedural/ProceduralGrass.h"
 #include "rendering/foliage/GrassWind.h"
 #include "rendering/geometry/Mesh.h"
+#include "rendering/geometry/Terrain.h"
+#include "rendering/runtime/ResourceOwners.h"
 #include "config/ScenarioConfig.h"
 #include "rendering/quality/OfflineQuality.h"
 #include <gtest/gtest.h>
@@ -636,4 +638,72 @@ TEST(ProceduralGrassRender, CpuAdmissionChargesLiveTerrainAndReplacementBeforeLo
     EXPECT_THROW(probe.grass.prepare(0,probe.mesh,probe.planet,100,{0,0,1.02}),std::runtime_error);
     EXPECT_EQ(probe.grass.policy(0),before);
     EXPECT_EQ(probe.grass.reservedBytes(),3072+probe.grass.ownedBytes());
+}
+
+TEST(TerrainMesh, CpuRetainedUploadPreservesIntegerSourceAndBakedPoseThroughSwapAndFallback) {
+    using namespace rendering;
+    config::PlanetConfig::TerrainLod lod;
+    lod.base_edge_segments=1;lod.medium_edge_segments=4;lod.max_edge_segments=lod.steep_edge_segments=8;
+    lod.max_triangle_budget=100000;lod.shoreline_edge_m=0;
+    lod.near_surface_distance_m=300;lod.mid_surface_distance_m=1000;
+    lod.relief_sinking=lod.local_detail_streaming=true;lod.geometric_error_m=.05;
+    lod.local_detail_radius_m=1.5;lod.local_edge_m=.05;lod.local_error_m=.01;lod.local_transition_m=.5;
+    config::PlanetConfig::SurfaceNoiseFunction noise;
+    noise.amplitude_m=.01;noise.wavelength_m=.25;noise.octaves=1;noise.seed=-71;
+    const TerrainSurface surface({noise},lod,1,1000);
+    const auto radial=glm::normalize(glm::dvec3(.3,-.7,1));
+    auto topology=surface.buildTopologyForEye(radial*1.002,{});
+    SceneMeshes meshes(2);auto& mesh=meshes.planetMeshes[0];
+    for(const bool explicitPhase:{false,true}) {
+        SCOPED_TRACE(explicitPhase);
+        const TerrainMorphFootprint phase{radial,1000,.2,.4};
+        auto geometry=explicitPhase?surface.evaluateTopology(topology,phase,TerrainMorphStorage::Retained):
+            surface.evaluateTopology(topology,TerrainMorphStorage::Retained);
+        auto source=geometry.morphData;ASSERT_TRUE(source);
+        std::weak_ptr<const TerrainMorphData> lifetime=source;
+        const auto expected=geometry.vertices;const auto revision=mesh.revision;
+        mesh.loadTerrain(geometry);EXPECT_EQ(mesh.revision,revision+1);EXPECT_EQ(mesh.morphData,source);
+        EXPECT_FALSE(mesh.residentTerrain);EXPECT_FALSE(mesh.morphState);EXPECT_EQ(mesh.deformationRevision(),0u);
+        EXPECT_EQ(mesh.vertices,expected);EXPECT_TRUE(mesh.morphSource());
+        EXPECT_EQ(mesh.morphSource().generation,source->generation);
+        EXPECT_EQ(mesh.cpuMorphBytes(),(source->targets.capacity()+source->corners.capacity())*4);
+        EXPECT_EQ(mesh.gpuMorphBytes(),source->bytes());
+        const auto storage=geometry.vertices.size()*4+geometry.indices.size()*4+geometry.grassCellKeys.size()*16+source->bytes();
+        EXPECT_EQ(terrainStorageBytes(meshes.planetMeshes),storage);
+        const auto read=[&](GLuint buffer,const auto& input) {
+            using Values=std::decay_t<decltype(input)>;Values actual(input.size());
+            GLint previous=0;glGetIntegerv(GL_COPY_READ_BUFFER_BINDING,&previous);
+            glBindBuffer(GL_COPY_READ_BUFFER,buffer);glGetBufferSubData(GL_COPY_READ_BUFFER,0,actual.size()*sizeof(actual[0]),actual.data());
+            glBindBuffer(GL_COPY_READ_BUFFER,previous);EXPECT_EQ(actual,input);
+        };
+        read(mesh.morphTargets,source->targets);read(mesh.morphCorners,source->corners);read(mesh.vbo,expected);
+        const auto targetBuffer=mesh.morphTargets,cornerBuffer=mesh.morphCorners;
+        const auto liveRevision=mesh.revision;const auto liveVbo=mesh.vbo;
+        const auto rejected=[&](auto corrupt) {
+            auto bad=geometry;auto data=std::make_shared<TerrainMorphData>(*source);bad.morphData=data;
+            corrupt(bad,*data);EXPECT_THROW(mesh.loadTerrain(std::move(bad)),std::invalid_argument);
+            EXPECT_EQ(mesh.revision,liveRevision);EXPECT_EQ(mesh.vbo,liveVbo);EXPECT_EQ(mesh.morphTargets,targetBuffer);
+        };
+        rejected([](auto&,auto& d){d.targets.pop_back();});
+        rejected([](auto&,auto& d){d.corners[0]=d.samples();});
+        rejected([](auto& g,auto&){g.indices[0]=1;});
+        rejected([](auto& g,auto&){g.grassCellKeys.pop_back();});
+        rejected([](auto&,auto& d){++d.generation.topology;});
+        rejected([](auto& g,auto&){g.vertices[0]+=.01f;});
+        rejected([](auto&,auto& d){d.metersPerRadius=0;});
+        rejected([&](auto&,auto& d){d.phase=phase;d.phase->metersPerRadius=999;});
+        mesh.swap(meshes.planetMeshes[1]);EXPECT_FALSE(mesh.morphData);EXPECT_FALSE(mesh.morphSource());
+        auto& exchanged=meshes.planetMeshes[1];EXPECT_EQ(exchanged.morphData,source);
+        EXPECT_EQ(exchanged.morphTargets,targetBuffer);EXPECT_EQ(exchanged.morphCorners,cornerBuffer);
+        EXPECT_EQ(terrainStorageBytes(meshes.planetMeshes),storage);
+        exchanged.loadTerrain(surface.evaluateTopology(topology));
+        EXPECT_FALSE(exchanged.morphData);EXPECT_FALSE(exchanged.morphSource());
+        EXPECT_EQ(exchanged.cpuMorphBytes(),0u);EXPECT_EQ(exchanged.gpuMorphBytes(),0u);
+        EXPECT_FALSE(glIsBuffer(targetBuffer));EXPECT_FALSE(glIsBuffer(cornerBuffer));
+        geometry={};EXPECT_FALSE(lifetime.expired()); // Local owner still holds this source.
+        source.reset();EXPECT_TRUE(lifetime.expired());
+        exchanged.destroy();mesh.destroy();
+        exchanged=Mesh{};mesh=Mesh{};
+        EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+    }
 }

@@ -7,6 +7,55 @@
 #include <stdexcept>
 #include <utility>
 #include <type_traits>
+#include <limits>
+#include <algorithm>
+
+namespace {
+void validateCpuMorph(const rendering::TerrainGeometry& g) {
+    if(!g.morphData) return;
+    const auto& d=*g.morphData;const auto n=d.samples();
+    if(!n || d.targets.size()!=18*n || d.corners.size()!=g.indices.size() ||
+       g.indices.empty() || g.indices.size()%3 || g.vertices.size()!=9*g.indices.size() ||
+       (!g.grassCellKeys.empty() && g.grassCellKeys.size()*3!=g.indices.size()) ||
+       g.indices.size()>std::size_t(std::numeric_limits<GLsizei>::max()) ||
+       d.generation!=g.generation || g.generation.backend!=rendering::TerrainBackend::Cpu ||
+       !g.generation.field || !g.generation.topology || g.generation.topologyVersion!=4 ||
+       g.generation.fieldVersion!=rendering::PlanetField::version || g.uniqueSamples!=n ||
+       !std::isfinite(d.metersPerRadius) || d.metersPerRadius<=0)
+        throw std::invalid_argument("Invalid retained CPU terrain source");
+    if(d.phase) {
+        rendering::validateTerrainMorphFootprint(*d.phase);
+        if(d.phase->metersPerRadius!=d.metersPerRadius)
+            throw std::invalid_argument("Retained CPU terrain phase scale mismatch");
+    }
+    for(std::size_t i=0;i<n;++i) {
+        const auto radial=d.radial(i),fine=glm::dvec3(d.fine(i)),parent=d.parent(i),original=glm::dvec3(d.original(i));
+        for(int j=0;j<3;++j) if(!std::isfinite(radial[j]) || !std::isfinite(fine[j]) ||
+            !std::isfinite(parent[j]) || !std::isfinite(original[j]))
+            throw std::invalid_argument("Retained CPU terrain requires finite targets");
+        if(std::abs(glm::dot(radial,radial)-1)>1e-12)
+            throw std::invalid_argument("Retained CPU terrain requires unit directions");
+    }
+    for(std::size_t c=0;c<g.indices.size();++c) {
+        if(g.indices[c]!=c || d.corners[c]>=n)
+            throw std::invalid_argument("Retained CPU terrain requires matching expanded corners");
+        const auto sample=d.corners[c];auto expected=d.original(sample);
+        if(d.phase) {
+            const auto fine=glm::dvec3(d.fine(sample));
+            const double w=rendering::terrainMorphWeight(d.radial(sample),*d.phase);
+            expected=w==0?glm::vec3(fine):glm::vec3(fine+(d.parent(sample)-fine)*w);
+        }
+        for(int j=0;j<3;++j) {
+            const double value=g.vertices[9*c+j];
+            // The retained fine endpoint is float, while the CPU helper can
+            // keep intermediates at double precision before its final cast.
+            const double rounding=d.phase?4*std::numeric_limits<float>::epsilon()*std::max(1.,std::abs(double(expected[j]))):0;
+            if(!std::isfinite(value) || std::abs(value-expected[j])>rounding)
+                throw std::invalid_argument("Retained CPU terrain pose does not match its source");
+        }
+    }
+}
+}
 
 void Mesh::addVertex(float x, float y, float z, float nx, float ny, float nz) {
     vertices.push_back(x);
@@ -100,12 +149,41 @@ void Mesh::generateCube() {
 }
 
 void Mesh::loadTerrain(rendering::TerrainGeometry geometry) {
+    validateCpuMorph(geometry);
+    auto source=std::move(geometry.morphData);
+    struct SourceBuffers {
+        std::array<GLuint,2> ids{};
+        ~SourceBuffers() {if(ids[0] || ids[1]) glDeleteBuffers(2,ids.data());}
+    } buffers;
+    if(source) {
+        GLint texels=0,previous=0;glGetIntegerv(GL_MAX_TEXTURE_BUFFER_SIZE,&texels);
+        if(texels<=0 || source->targets.size()>std::size_t(texels) || source->corners.size()>std::size_t(texels))
+            throw std::runtime_error("Retained CPU terrain exceeds texture buffer capacity");
+        glGetIntegerv(GL_ARRAY_BUFFER_BINDING,&previous);
+        try {
+            glGenBuffers(2,buffers.ids.data());
+            const std::array<const std::vector<std::uint32_t>*,2> data{&source->targets,&source->corners};
+            for(int i=0;i<2;++i) {
+                glBindBuffer(GL_ARRAY_BUFFER,buffers.ids[i]);
+                glBufferData(GL_ARRAY_BUFFER,data[i]->size()*sizeof(std::uint32_t),data[i]->data(),GL_STATIC_DRAW);
+            }
+            if(!buffers.ids[0] || !buffers.ids[1] || glGetError()!=GL_NO_ERROR)
+                throw std::runtime_error("Retained CPU terrain buffer allocation failed");
+        } catch(...) {glBindBuffer(GL_ARRAY_BUFFER,previous);throw;}
+        glBindBuffer(GL_ARRAY_BUFFER,previous);
+    }
     terrainStats=static_cast<const rendering::TerrainBuildStats&>(geometry);
     vertices = std::move(geometry.vertices);
     indices = std::move(geometry.indices);
     grassCellKeys=std::move(geometry.grassCellKeys);
     hasVertexColors = true;
     upload();
+    if(source) {
+        morphTargets=std::exchange(buffers.ids[0],0);morphCorners=std::exchange(buffers.ids[1],0);
+        morphSamples=source->samples();morphData=std::move(source);
+        // CPU poses are baked: their mesh revision identifies the positions.
+        // The shared live state is reserved for an actual deformation adapter.
+    }
 }
 
 void Mesh::upload() {
@@ -202,8 +280,13 @@ void Mesh::releaseMorphTargets() {
     }
     morphTargets=morphCorners=0;morphSamples=0;
     morphState.reset();
+    morphData.reset();
 }
 std::uint64_t Mesh::deformationRevision() const {return morphState?morphState->revision():0;}
+std::uint64_t Mesh::cpuMorphBytes() const {
+    return morphData?(morphData->targets.capacity()+morphData->corners.capacity())*sizeof(std::uint32_t):0;
+}
+std::uint64_t Mesh::gpuMorphBytes() const {return morphTargets?72*morphSamples+4*indexCount:0;}
 rendering::TerrainMorphSource Mesh::morphSource() const {
     return morphTargets || morphCorners || morphSamples?
         rendering::TerrainMorphSource{morphTargets,morphCorners,morphSamples,terrainStats.generation}:rendering::TerrainMorphSource{};
@@ -223,6 +306,7 @@ void Mesh::swap(Mesh& other) noexcept {
     swap(vao,other.vao);swap(vbo,other.vbo);swap(ebo,other.ebo);
     swap(morphTargets,other.morphTargets);swap(morphCorners,other.morphCorners);swap(morphSamples,other.morphSamples);
     morphState.swap(other.morphState);
+    morphData.swap(other.morphData);
     vertices.swap(other.vertices);indices.swap(other.indices);
     grassCellKeys.swap(other.grassCellKeys);swap(cellKeyOffset,other.cellKeyOffset);
     swap(hasVertexColors,other.hasVertexColors);swap(residentTerrain,other.residentTerrain);

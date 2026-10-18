@@ -27,7 +27,8 @@ void Renderer::Impl::installTerrainBuild(TerrainCpuBuild built,const TerrainBuil
         // CPU generation can occupy the first native frame. Consume the
         // worker's current cache before admission, not only at frame end.
         observeMemory(memoryPhase);
-        const auto bytes=[](const TerrainGeometry& g) {return g.vertices.size()*sizeof(float)+g.indices.size()*sizeof(unsigned);};
+        const auto bytes=[](const TerrainGeometry& g) {return g.vertices.size()*sizeof(float)+g.indices.size()*sizeof(unsigned)+
+            (g.morphData?g.morphData->bytes():0);};
         grass.procedural.admitCpuTerrain(bytes(built.geometry)+(built.water?bytes(*built.water):0));
     }
     std::unique_ptr<TerrainComputeBuffers> computed,computedWater;

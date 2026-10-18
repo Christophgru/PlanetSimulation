@@ -4,7 +4,7 @@
 namespace rendering {
 namespace {
 std::uint64_t meshBytes(const Mesh& m) {
-    return m.vertices.capacity()*sizeof(float)+m.indices.capacity()*sizeof(unsigned)+m.terrainStats.faceZones.capacity()*sizeof(int);
+    return m.vertices.capacity()*sizeof(float)+m.indices.capacity()*sizeof(unsigned)+m.terrainStats.faceZones.capacity()*sizeof(int)+m.cpuMorphBytes();
 }
 std::uint64_t meshBytes(const std::vector<Mesh>& meshes) {
     std::uint64_t result=0;for(const auto& m:meshes) result+=meshBytes(m);return result;
