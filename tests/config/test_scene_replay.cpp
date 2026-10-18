@@ -3,6 +3,7 @@
 #include "config/SceneReplay.h"
 #include "rendering/camera/SurfaceCameraTelemetry.h"
 #include "simulation/OrbitalSystem.h"
+#include "rendering/geometry/terrain/detail/TerrainMorphReplay.h"
 
 namespace {
 nlohmann::json sceneJson() {
@@ -95,4 +96,59 @@ TEST(SceneReplay, RejectsMalformedSnapshotsAndNonfiniteTime) {
     auto legacy = savedCamera();
     legacy.erase("simulation_time_seconds");
     EXPECT_NO_THROW(config::applyCameraReplay(sceneJson(), legacy));
+}
+
+TEST(TerrainMorphReplay, RoundTripsOriginalAndMovingPhasesWithoutLosingFingerprintOrCoordinateBits) {
+    using namespace rendering;
+    TerrainMorphReplay record;
+    record.generation={std::numeric_limits<std::uint64_t>::max(),9007199254740993ull,PlanetField::version,4,TerrainBackend::Compute};
+    record.metersPerRadius=6371000.123456789;
+    auto original=record.json();ASSERT_TRUE(original["footprint"].is_null());
+    EXPECT_EQ(original["field"],"18446744073709551615");EXPECT_EQ(original["topology"],"9007199254740993");
+    auto restored=TerrainMorphReplay::fromJson(nlohmann::json::parse(original.dump()));
+    EXPECT_FALSE(restored.phase);EXPECT_TRUE(restored.matches(record.generation,record.metersPerRadius));
+    EXPECT_EQ(restored.json(),original);
+    for(const auto eye:{glm::dvec3(0,0,1),glm::dvec3(0,0,-1),glm::normalize(glm::dvec3(.7,-.2,1))}) {
+        record.phase=TerrainMorphFootprint{eye,record.metersPerRadius,.0123456789012345,.987654321098765};
+        const auto parsed=TerrainMorphReplay::fromJson(nlohmann::json::parse(record.json().dump()));
+        ASSERT_TRUE(parsed.phase);EXPECT_EQ(*parsed.phase,*record.phase);
+        for(int j=0;j<3;++j) EXPECT_EQ(std::bit_cast<std::uint64_t>(parsed.phase->eyeRadial[j]),std::bit_cast<std::uint64_t>(eye[j]));
+        EXPECT_EQ(parsed.json(),record.json());
+        auto cpu=record.generation;cpu.backend=TerrainBackend::Cpu;
+        EXPECT_TRUE(parsed.matches(cpu,record.metersPerRadius));
+        ++cpu.topology;EXPECT_FALSE(parsed.matches(cpu,record.metersPerRadius));
+        cpu=record.generation;++cpu.field;EXPECT_FALSE(parsed.matches(cpu,record.metersPerRadius));
+        EXPECT_FALSE(parsed.matches(record.generation,std::nextafter(record.metersPerRadius,0.)));
+    }
+}
+
+TEST(TerrainMorphReplay, RejectsMalformedVersionsFingerprintsNumbersAndFootprints) {
+    using namespace rendering;
+    TerrainMorphReplay record{{123,456,PlanetField::version,4,TerrainBackend::Cpu},1000,
+        TerrainMorphFootprint{glm::dvec3(0,0,1),1000,.2,.4}};
+    const auto valid=record.json();
+    for(const auto& key:{"version","field","topology","field_version","topology_version","meters_per_radius","footprint"}) {
+        auto missing=valid;missing.erase(key);EXPECT_THROW(TerrainMorphReplay::fromJson(missing),std::invalid_argument)<<key;
+    }
+    for(const auto& key:{"version","field_version","topology_version"}) for(const auto& value:std::vector<nlohmann::json>{0,-1,99,1.0,true,"1"}) {
+        auto bad=valid;bad[key]=value;EXPECT_THROW(TerrainMorphReplay::fromJson(bad),std::invalid_argument)<<key<<value;
+    }
+    for(const auto& key:{"field","topology"}) for(const auto& value:std::vector<nlohmann::json>{0,123.0,true,"","0","01","-1","+1"," 1","1 ","1x","0x10","18446744073709551616"}) {
+        auto bad=valid;bad[key]=value;EXPECT_THROW(TerrainMorphReplay::fromJson(bad),std::invalid_argument)<<key<<value;
+    }
+    for(const auto& value:std::vector<nlohmann::json>{0,-1,true,"1000",nullptr,std::numeric_limits<double>::infinity()}) {
+        auto bad=valid;bad["meters_per_radius"]=value;EXPECT_THROW(TerrainMorphReplay::fromJson(bad),std::invalid_argument);
+    }
+    for(const auto& value:std::vector<nlohmann::json>{0,true,nlohmann::json::array(),
+        {{"eye_radial",{0,0,0}},{"radius_m",.2},{"transition_m",.4}},
+        {{"eye_radial",{0,0,2}},{"radius_m",.2},{"transition_m",.4}},
+        {{"eye_radial",{0,0,1}},{"radius_m",-1},{"transition_m",.4}},
+        {{"eye_radial",{0,0,1}},{"radius_m",.2},{"transition_m",0}},
+        {{"eye_radial",{0,true,1}},{"radius_m",.2},{"transition_m",.4}}}) {
+        auto bad=valid;bad["footprint"]=value;EXPECT_THROW(TerrainMorphReplay::fromJson(bad),std::invalid_argument);
+    }
+    EXPECT_THROW(TerrainMorphReplay::fromJson(nlohmann::json::array()),std::invalid_argument);
+    auto invalid=record;invalid.generation.topologyVersion=3;EXPECT_THROW(invalid.json(),std::invalid_argument);
+    invalid=record;invalid.phase->metersPerRadius=999;EXPECT_THROW(invalid.json(),std::invalid_argument);
+    invalid=record;invalid.phase->eyeRadial.x=std::numeric_limits<double>::quiet_NaN();EXPECT_THROW(invalid.json(),std::invalid_argument);
 }

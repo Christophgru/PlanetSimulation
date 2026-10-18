@@ -1,5 +1,32 @@
 # Relief-aware terrain sinking
 
+## Versioned deformation replay record, 2026-10-18
+
+TerrainMorphReplay defines a pure CPU version1 record for one retained body.
+It stores field/topology fingerprints as canonical decimal strings, contract
+versions, physical radius scale and an optional footprint. A retained original
+pose has a null footprint; the eventual body array can distinguish this from a
+body without retained targets. This distinction preserves fine-anchor grass even
+when no explicit deformation has occurred.
+
+The record binds immutable field/topology identity and physical scale while
+allowing an explicit CPU/compute replay override. Parsing rejects unsupported
+versions, missing fields, malformed/overflowing fingerprints, nonnumeric or
+nonfinite scalars, nonunit eye vectors and invalid transition/radius values.
+Serialization validates before JSON could turn nonfinite values into null.
+No target buffers are serialized.
+
+Two tests cover original and moving footprints, exact64-bit identities beyond
+JSON's common53-bit numeric range, coordinate bit round trips, backend-neutral
+identity matching and malformed data. Two-step build/final no-op pass; focused
+cases2 ms and all35 core groups27.83 s pass. This changes data code only; renderer
+binaries/capture output remain unchanged from e37c40a, whose complete render and
+replay checks passed immediately before it. Logs detail-phase-codec-* local.
+
+Capture emission and application replay are not connected yet. Next stage an
+initial GPU phase inside the generation completion fence, then wire the record
+through CPU/compute capture and reload. Runtime stays Transient; terrain **p**.
+
 ## CPU grass attached to baked deformation, 2026-10-18
 
 CPU grass preparation now recognizes the mesh-owned source, borrows integer

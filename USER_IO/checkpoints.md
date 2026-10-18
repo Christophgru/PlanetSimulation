@@ -1,5 +1,24 @@
 # Page to document progress of AI Agents working on this Project
 
+## Versioned deformation replay record — 2026-10-18
+
+- Continued terrain p aftere37c40a. Pure CPU TerrainMorphReplay version1 stores
+  immutable field/topology IDs as canonical decimal strings, contract versions,
+  physical scale and optional footprint. Original retained pose has null phase;
+  distinguish it from no retained source in the eventual per-body array. Allows
+  CPU/compute override while binding field/topology/scale. No buffer payload.
+- Reject missing/unsupported versions, malformed/overflowing hashes, nonnumeric/
+  nonfinite values, nonunit eyes and invalid radii/transitions; writer validates
+  before JSON can replace nonfinite values with null. Two tests cover original/
+  moving exact bits, IDs beyond53 bits, backend-neutral match and bad inputs.
+  Two-step build/final no-op, focused2 ms,35 core groups27.83 s pass. Data-only;
+  renderer unchanged sincee37c40a render/replay validation. Logs detail-phase-codec-*
+  ignored/local; diff checks pass. User config stays unstaged.
+- Not yet connected to capture emission or CLI replay. Next add optional initial
+  phase to retained compute generation within its completion fence and transfer
+  shared phase state through buffers to Mesh; then wire capture/reload records.
+  After replay, prepared streaming and parent rebases remain. Keep p/Transient.
+
 ## CPU grass on baked deformation — 2026-10-18
 
 - Continued terrain p after82e1d77. CPU.prepare binds mesh-owned source through
