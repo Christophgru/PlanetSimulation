@@ -19,16 +19,24 @@ void Renderer::Impl::recordRenderedPublications(bool character) {
     for(std::size_t i=0;i<meshReady.size();++i) {
         if(!meshReady[i]) continue;
         const auto& land=meshes.planetMeshes[i];const auto& water=meshes.waterMeshes[i];
-        if(character && i==scene.scenario.surface_camera.planet_index && astronautGround.revision()!=land.revision) continue;
+        if(character && i==scene.scenario.surface_camera.planet_index &&
+           (astronautGround.version()!=SurfaceContact::Version{land.revision,land.deformationRevision()} ||
+            astronautGroundRevision!=astronautGround.version())) continue;
         if(terrainPublication) {
             if(i>=terrainConsumers.size()) continue;
             const auto& c=terrainConsumers[i];
             if(c.land!=land.terrainStats.generation || c.contacts!=c.land || c.grass!=c.land ||
                c.water!=water.terrainStats.generation || c.landRevision!=land.revision ||
                c.mainRevision!=land.revision || c.grassRevision!=land.revision ||
+               c.landPhase!=land.deformationRevision() || c.contactsPhase!=c.landPhase || c.grassPhase!=c.landPhase ||
+               c.mainPhase!=c.landPhase ||
                (c.shadowRevision && c.shadowRevision!=land.revision) ||
+               (c.shadowRevision && c.shadowPhase!=c.landPhase) ||
                (c.reflectionRevision && c.reflectionRevision!=land.revision) ||
+               (c.reflectionRevision && c.reflectionPhase!=c.landPhase) ||
                (c.grassDrawRevision && c.grassDrawRevision!=land.revision) ||
+               (c.grassDrawRevision && c.grassDrawPhase!=c.landPhase) ||
+               (c.reflectionGrassRevision && (c.reflectionGrassRevision!=land.revision || c.reflectionGrassPhase!=c.landPhase)) ||
                (scene.scenario.planets[i].water.enabled && c.waterDrawRevision!=water.revision)) continue;
         }
         trace.rendered(terrainSceneEpoch,i,installedTerrainSerial[i],publicationGeneration(i),character && i==scene.scenario.surface_camera.planet_index);

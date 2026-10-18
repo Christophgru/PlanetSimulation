@@ -1,4 +1,5 @@
 #include "FrameTestSupport.h"
+#include "rendering/geometry/terrain/detail/TerrainMorph.h"
 #include <map>
 #include <sstream>
 
@@ -124,3 +125,51 @@ void runPublicationCase(bool compute) {
 }
 TEST(TerrainFrame, PublicationTraceMatchesComputeDrawsAndGrassFailureRecovery) {runPublicationCase(true);}
 TEST(TerrainFrame, PublicationTraceMatchesDefaultCpuStartupAndWorkerReplacement) {runPublicationCase(false);}
+
+TEST(TerrainFrame, PublicationReceiptsRejectStaleConsumerPhasesAndUnrefreshedCharacterPose) {
+    auto o=options("publication-phases");o.performanceTrace=o.configPath+".frames.csv";
+    rendering::Renderer renderer(o);auto& r=Probe::state(renderer);
+    r.options.renderTestMode=false;
+    ASSERT_TRUE(until([&]{tick(r);},[&]{return idle(r);}));draw(r);
+    auto& trace=r.profiler.publications();trace.collect();
+    const auto i=r.scene.scenario.surface_camera.planet_index;
+    auto& mesh=r.meshes.planetMeshes[i];auto& c=r.terrainConsumers[i];
+    ASSERT_GT(c.shadowRevision,0u);ASSERT_GT(c.reflectionRevision,0u);
+    ASSERT_GT(c.grassDrawRevision,0u);ASSERT_GT(c.reflectionGrassRevision,0u);
+    const auto key=rendering::PublicationProfiler::Key::from(r.terrainPublication->installed(i).identity);
+    const auto begin=[&] {
+        const auto attempt=trace.begin(key);trace.prepared(attempt,r.publicationGeneration(i));
+        return attempt;
+    };
+    using Consumers=rendering::SceneTerrainConsumers;
+    for(auto field:{&Consumers::landPhase,&Consumers::contactsPhase,&Consumers::grassPhase,
+                    &Consumers::mainPhase,&Consumers::reflectionPhase,&Consumers::shadowPhase,
+                    &Consumers::grassDrawPhase,&Consumers::reflectionGrassPhase}) {
+        const auto attempt=begin();ASSERT_GT(attempt,0u);const auto active=trace.stats().active;
+        ++(c.*field);r.recordRenderedPublications(false);
+        EXPECT_EQ(trace.stats().active,active); // Same mesh, stale actual-consumer receipt.
+        --(c.*field);r.recordRenderedPublications(false);
+        EXPECT_EQ(trace.stats().active,active-1);trace.collect();
+    }
+    {
+        const auto attempt=begin();ASSERT_GT(attempt,0u);const auto active=trace.stats().active;
+        ++r.astronautGroundRevision.deformation;r.recordRenderedPublications(true);
+        EXPECT_EQ(trace.stats().active,active); // A rebound contact is not a refreshed pose.
+        --r.astronautGroundRevision.deformation;r.recordRenderedPublications(true);
+        EXPECT_EQ(trace.stats().active,active-1);trace.collect();
+    }
+    {
+        const auto attempt=begin();ASSERT_GT(attempt,0u);const auto active=trace.stats().active;
+        // Synthetic state only tests rejection. No draw/parity is claimed for
+        // this unmodified VBO; real moving planes are covered by the GPU case.
+        auto phase=std::make_shared<rendering::TerrainMorphState>();
+        phase->set({glm::normalize(r.scene.bodies[i+1].toLocalPoint(eye(r))),mesh.contacts->radiusMeters(),1,.5});
+        mesh.morphState=phase;r.recordRenderedPublications(false);
+        EXPECT_EQ(trace.stats().active,active);
+        // A grass patch without the matching phase is rejected before rendering.
+        EXPECT_THROW(draw(r,false),std::logic_error);
+        trace.finish(attempt,rendering::PublicationProfiler::Outcome::PreparationFailed);
+        mesh.morphState.reset();
+    }
+    EXPECT_EQ(trace.stats().dropped,0u);EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+}

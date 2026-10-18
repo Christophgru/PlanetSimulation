@@ -19,6 +19,11 @@ struct SceneTerrainConsumers {
     TerrainGenerationKey land,water,grass,contacts;
     std::uint64_t landRevision=0,waterRevision=0,grassRevision=0;
     std::uint64_t mainRevision=0,reflectionRevision=0,shadowRevision=0,waterDrawRevision=0,grassDrawRevision=0;
+    // Mesh identities survive a live deformation. Record each view's consumed
+    // phase independently, including reflection grass before its queue is reused.
+    std::uint64_t landPhase=0,contactsPhase=0,grassPhase=0;
+    std::uint64_t mainPhase=0,reflectionPhase=0,shadowPhase=0,grassDrawPhase=0;
+    std::uint64_t reflectionGrassRevision=0,reflectionGrassPhase=0;
 };
 rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario, AtmosphereOpticsCache& opticsCache,
                  const std::vector<simulation::BodyState>& bodies,

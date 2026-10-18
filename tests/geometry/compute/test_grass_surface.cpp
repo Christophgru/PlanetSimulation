@@ -121,13 +121,19 @@ TEST(GrassCells, MovingSurfaceProjectsFixedRootsAndRefreshesPausedAnimationAcros
         auto stage=grass.submitResident(source.vbo,source.ebo,source.terrainStats,p,1000,eye,source.revision,
             0,ProceduralGrass::defaultStageBytes,source.morphSource());
         grass.waitForCapture(*stage);grass.reserve(0);grass.commit(0,*stage,source);stage.reset();
+        EXPECT_EQ(grass.residentDeformationRevision(0),0u);
+        EXPECT_FALSE(grass.drawnDeformationRevision(0));
         const auto roots=grass.cachedRootsForValidation(0);ASSERT_FALSE(roots.empty());
         ASSERT_TRUE(std::any_of(roots.begin(),roots.end(),[](const auto& r){return r.normalSlot.w!=0;}));
         GrassPass pass;pass.mainEyeBody=eye;pass.windTime=.75f;
         EXPECT_TRUE(draw(grass,pass).empty()); // Initial parent is submerged, potential roots still exist.
         std::map<unsigned,Blade> previous;
         for(const auto band:{glm::dvec2(1000,1),glm::dvec2(9,15),glm::dvec2(5,15),glm::dvec2(0,.1),glm::dvec2(1000,1)}) {
+            const auto lastDraw=grass.drawnDeformationRevision(0);
             terrain.deform(source,{radial,1000,band.x,band.y});
+            EXPECT_EQ(grass.residentDeformationRevision(0),source.deformationRevision());
+            EXPECT_EQ(grass.drawnDeformationRevision(0),lastDraw);
+            EXPECT_NE(grass.drawnDeformationRevision(0),grass.residentDeformationRevision(0));
             ASSERT_TRUE(shadowMaps.beginIfNeeded(0,shadowShader,radial,1.01,source.revision,source.deformationRevision()));
             source.draw();float depth=1;glReadPixels(512,512,1,1,GL_DEPTH_COMPONENT,GL_FLOAT,&depth);
             EXPECT_LT(depth,1.f);if(haveDepth) EXPECT_NE(depth,previousDepth);
@@ -137,6 +143,7 @@ TEST(GrassCells, MovingSurfaceProjectsFixedRootsAndRefreshesPausedAnimationAcros
             EXPECT_FALSE(shadowMaps.beginIfNeeded(0,shadowShader,radial,1.01,source.revision,source.deformationRevision()));
             const auto priorFrame=grass.stats(0).animationFrame;
             const auto visible=draw(grass,pass);ASSERT_EQ(grass.stats(0).animationFrame,priorFrame+1);
+            EXPECT_EQ(grass.drawnDeformationRevision(0),source.deformationRevision());
             if(band.x==1000) ASSERT_FALSE(visible.empty());
             if(band.x==0) EXPECT_TRUE(visible.empty());
             std::vector<float> vertices(27);read(source.vbo,vertices);
@@ -168,6 +175,7 @@ TEST(GrassCells, MovingSurfaceProjectsFixedRootsAndRefreshesPausedAnimationAcros
                 EXPECT_EQ(reused[id].wind,animation[id].wind);EXPECT_EQ(reused[id].trail,animation[id].trail);
             }
             const auto vertex=vertexRoots(grass,pass);ASSERT_EQ(vertex.size(),roots.size()*36);
+            EXPECT_EQ(grass.drawnDeformationRevision(0),source.deformationRevision());
             std::size_t vertexVisible=0;
             for(unsigned id=0;id<roots.size();++id) {
                 const auto& point=vertex[id*36];const bool visibleVertex=point.w>0;
@@ -185,7 +193,11 @@ TEST(GrassCells, MovingSurfaceProjectsFixedRootsAndRefreshesPausedAnimationAcros
             0,ProceduralGrass::defaultStageBytes,source.morphSource());
         terrain.deform(source,{radial,1000,9,15}); // Phase advances while immutable delta staging is pending.
         grass.waitForCapture(*stage);EXPECT_GT(stage->stats().cellUpdates[4],0u);
-        grass.commit(0,*stage,source);stage.reset();ASSERT_FALSE(draw(grass,pass).empty());
+        grass.commit(0,*stage,source);stage.reset();
+        EXPECT_FALSE(grass.drawnDeformationRevision(0));
+        EXPECT_EQ(grass.residentDeformationRevision(0),source.deformationRevision());
+        ASSERT_FALSE(draw(grass,pass).empty());
+        EXPECT_EQ(grass.drawnDeformationRevision(0),source.deformationRevision());
         const auto after=grass.cachedRootsForValidation(0);ASSERT_EQ(after.size(),roots.size());
         for(std::size_t i=0;i<roots.size();++i) {
             EXPECT_EQ(after[i].rootExpected,roots[i].rootExpected);EXPECT_EQ(after[i].upRank,roots[i].upRank);
@@ -194,6 +206,7 @@ TEST(GrassCells, MovingSurfaceProjectsFixedRootsAndRefreshesPausedAnimationAcros
         p.foliage.compute_placement=false;grass.prepare(0,source,p,1000,eye);
         const auto configured=vertexRoots(grass,pass,true);
         EXPECT_FALSE(grass.usesCompute(0));
+        EXPECT_EQ(grass.drawnDeformationRevision(0),source.deformationRevision());
         EXPECT_TRUE(std::any_of(configured.begin(),configured.end(),[](const auto& point){return point.w>0;}));
         p.foliage.compute_placement=true;
         EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));

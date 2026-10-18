@@ -1,5 +1,43 @@
 # Relief-aware terrain sinking
 
+## Consumer phase receipts, 2026-10-18
+
+Terrain publication checks now require the live deformation phase alongside
+mesh identity. Main terrain, reflection terrain, shadow maps, grass availability,
+main/reflection grass draws and sparse contact bindings expose separate phase
+receipts in capture telemetry. Character publication also requires the planted
+pose to have observed the bound contact version. Water keeps its independent
+mesh identity because this deformation changes only land.
+
+Grass exposes its available phase separately from its last completed draw.
+A phase change leaves the old draw receipt intact; a newly committed patch has
+no draw receipt. Compute draws report the surface cache phase they consumed;
+vertex draws report the shared phase of their live source. Scene admission
+rejects a patch with a different available phase, and publication profiling
+cannot close an interval from stale consumer or character-pose receipts.
+These are scalar records; they add no GPU allocation, readback or wait.
+
+The existing moving-surface GPU regression now checks available/consumed phases,
+same-phase views, both placement paths and delta publication. A renderer test
+injects each of eight stale consumer phase records into a real completed frame,
+checks rejection and recovery, then checks stale character pose and unmatched
+mesh/grass phases. Its synthetic state is used only for rejection; it does not
+claim geometry parity. Integration frame helpers compare all emitted phases.
+
+Full66-step build and final no-op pass; all35 core groups pass (32.88 s),
+all53 RTX cases pass (88.009 s), and focused RTX/Quadro/software live-surface
+cases pass (11.979/6.152/31.393 s). All2,704 vertex/compute roots still match
+exactly; maximum plane errors remain below.231 mm. Focused two-case renderer
+check passes (35.943 s). Recovery/frame/reload/streaming integration all pass
+(304.13 s combined). All fifteen historical PNGs and the inspected overview
+are exact:14,779 non-background pixels, bbox(1,1)–(794,598),3,471 planet pixels.
+Checks ran concurrently where independent; these durations are validation,
+not performance measurements. Logs detail-consumer-phase-* remain local.
+
+Runtime retention remains Transient; replaying the footprint,
+CPU fine-anchor grass, prepared streaming and parent rebases remain outstanding.
+Keep terrain **p** and the previously recorded native coverage failures.
+
 ## Retained grass and compatibility mirrors, 2026-10-17
 
 A CPU compatibility copy does not remove the GPU terrain's immutable retained

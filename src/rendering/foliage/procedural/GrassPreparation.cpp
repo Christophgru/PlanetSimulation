@@ -2,6 +2,7 @@
 #include "rendering/foliage/planning/GrassMetadata.h"
 #include "rendering/foliage/planning/GrassAllocation.h"
 #include "rendering/geometry/Mesh.h"
+#include "rendering/geometry/terrain/detail/TerrainMorph.h"
 #include <algorithm>
 #include <limits>
 #include <utility>
@@ -304,5 +305,14 @@ std::optional<TerrainGenerationKey> ProceduralGrass::residentGeneration(std::siz
 std::optional<std::uint64_t> ProceduralGrass::residentRevision(std::size_t index) const {
     if(!residentGeneration(index)) return std::nullopt;
     return patches_[index]->revision;
+}
+std::optional<std::uint64_t> ProceduralGrass::residentDeformationRevision(std::size_t index) const {
+    if(!residentGeneration(index)) return std::nullopt;
+    const auto& patch=*patches_[index];
+    return patch.morphSource && patch.morphState ? patch.morphState->revision() : 0;
+}
+std::optional<std::uint64_t> ProceduralGrass::drawnDeformationRevision(std::size_t index) const {
+    if(index>=patches_.size() || !patches_[index] || !patches_[index]->ready) return std::nullopt;
+    return patches_[index]->drawnDeformationRevision;
 }
 }

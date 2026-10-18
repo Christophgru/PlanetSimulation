@@ -1,5 +1,33 @@
 # Page to document progress of AI Agents working on this Project
 
+## Consumer phase receipts — 2026-10-18
+
+- Continued terrain p after f6f7455. SceneTerrainConsumers tracks independent
+  land/contact/grass availability and main/reflection/shadow/grass draw phases.
+  Reflection grass now has its own mesh/phase receipt. Sidecar telemetry exposes
+  these plus bound character contact and observed planted-pose phases.
+- Grass exposes available versus last-drawn phase. New commits start undrawn;
+  advancing shared state preserves the old draw receipt. Compute reports the
+  refreshed surface cache; vertex placement reports its live source phase.
+  Scene preflight rejects mismatched grass, and publication profiling requires
+  phase agreement plus a refreshed character pose. Scalar-only; no GPU storage,
+  readback or waits added. Defaults still Transient.
+- Moving GPU test checks draw/preparation separation, both paths and delta commit.
+  New real-frame publication test rejects each of eight stale consumer phases,
+  stale planted-pose version and synthetic unmatched mesh/grass state. Synthetic
+  phase only proves rejection; actual plane parity remains in the GPU fixture.
+  Frame helpers compare every emitted phase. Full66-step build/final no-op pass;
+  35 core groups32.88 s,53 RTX cases88.009 s, focused RTX/Quadro/software live
+  surface11.979/6.152/31.393 s, focused renderer2 cases35.943 s pass. All2,704
+  root path comparisons remain exact and plane errors below.231 mm. Recovery,
+  frame, reload and streaming integration pass304.13 s combined. Fifteen PNGs
+  plus inspected overview exact:14,779 pixels,bbox(1,1)–(794,598),3,471 planet.
+  Validation durations include independent concurrent jobs, not FPS evidence.
+  Logs detail-consumer-phase-* ignored/local; diff checks pass.
+- Next CPU immutable fine-anchor source/grass, capture footprint replay, prepared
+  streaming and parent rebases. Keep p and the recorded native coverage failures.
+  User config stays unstaged.
+
 ## Retained grass with compatibility mirrors — 2026-10-17
 
 - Continued terrain p after10e28f3. Grass.prepare selects immutable resident

@@ -92,7 +92,9 @@ nlohmann::json Renderer::Impl::terrainPublicationState() const {
         {"peak_reserved_bytes",s.peakReservedBytes},{"character_previews",characterPreviews},
         {"interactive_frames",residentFrames},{"interactive_failures",residentFrameFailures},
         {"loading",!residentSceneReady()},
-        {"astronaut_contact_revision",astronautGround.revision()},{"consumers",nlohmann::json::array()}});
+        {"astronaut_contact_revision",astronautGround.revision()},
+        {"astronaut_contact_phase",astronautGround.version().deformation},
+        {"astronaut_pose_phase",astronautGroundRevision.deformation},{"consumers",nlohmann::json::array()}});
     const auto key=[](const TerrainGenerationKey& k) {
         return nlohmann::json{{"field",std::to_string(k.field)},{"topology",std::to_string(k.topology)},
             {"field_version",k.fieldVersion},{"topology_version",k.topologyVersion}};
@@ -105,6 +107,10 @@ nlohmann::json Renderer::Impl::terrainPublicationState() const {
             {"land_revision",c.landRevision},{"water_revision",c.waterRevision},{"grass_revision",c.grassRevision},
             {"main_revision",c.mainRevision},{"reflection_revision",c.reflectionRevision},{"shadow_revision",c.shadowRevision},
             {"water_draw_revision",c.waterDrawRevision},{"grass_draw_revision",c.grassDrawRevision},
+            {"land_phase",c.landPhase},{"contacts_phase",c.contactsPhase},{"grass_phase",c.grassPhase},
+            {"main_phase",c.mainPhase},{"reflection_phase",c.reflectionPhase},{"shadow_phase",c.shadowPhase},
+            {"grass_draw_phase",c.grassDrawPhase},{"reflection_grass_revision",c.reflectionGrassRevision},
+            {"reflection_grass_phase",c.reflectionGrassPhase},
             {"land_buffer",meshes.planetMeshes[i].vbo},{"water_buffer",meshes.waterMeshes[i].vbo},
             {"grass_plan_eye",{receipt.grassEye.x,receipt.grassEye.y,receipt.grassEye.z}},
             {"water_enabled",receipt.waterEnabled},{"shadows_enabled",scene.scenario.lighting.shadows.enabled}});

@@ -95,6 +95,7 @@ private:
         mutable std::array<GLuint,2> gpuVaos{};
         mutable std::size_t gpuCapacity=0;
         mutable bool computeUsed=false;
+        mutable std::optional<std::uint64_t> drawnDeformationRevision;
         GrassFalloff falloff;
         std::uint64_t policyRevision=0;
         config::FoliageConfig settings;
@@ -211,6 +212,10 @@ public:
     std::optional<glm::dvec3> planningEye(std::size_t index) const;
     std::optional<TerrainGenerationKey> residentGeneration(std::size_t index) const;
     std::optional<std::uint64_t> residentRevision(std::size_t index) const;
+    // Available phase and last completed draw are separate: preparation/phase
+    // changes must never manufacture a receipt for a view that has not drawn.
+    std::optional<std::uint64_t> residentDeformationRevision(std::size_t index) const;
+    std::optional<std::uint64_t> drawnDeformationRevision(std::size_t index) const;
     void restorePlanningEye(std::size_t index,const glm::dvec3& eye);
     GrassTrail& trail(std::size_t index) { return trails_[index].history; }
     const GrassTrail* existingTrail(std::size_t index) const {

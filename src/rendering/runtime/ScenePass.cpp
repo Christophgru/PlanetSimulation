@@ -62,6 +62,7 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario, At
             if(!receipt.identity.serial || mesh.terrainStats.generation!=receipt.land || water.terrainStats.generation!=receipt.water ||
                mesh.revision!=receipt.landRevision || water.revision!=receipt.waterRevision ||
                grass->procedural.residentGeneration(i)!=receipt.land || grass->procedural.residentRevision(i)!=mesh.revision ||
+               grass->procedural.residentDeformationRevision(i)!=mesh.deformationRevision() ||
                grass->procedural.planningEye(i)!=receipt.grassEye ||
                !mesh.contacts || mesh.contacts->generation()!=receipt.land)
                 throw std::logic_error("Scene draw requires matching published terrain consumers");
@@ -69,6 +70,8 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario, At
                 auto& c=(*consumers)[i];c.land=mesh.terrainStats.generation;c.water=water.terrainStats.generation;
                 c.grass=*grass->procedural.residentGeneration(i);c.contacts=mesh.contacts->generation();
                 c.landRevision=mesh.revision;c.waterRevision=water.revision;c.grassRevision=*grass->procedural.residentRevision(i);
+                c.landPhase=c.contactsPhase=mesh.deformationRevision();
+                c.grassPhase=*grass->procedural.residentDeformationRevision(i);
             }
             continue; // Managed resident patches are prepared before character/scene consumption.
         }
@@ -96,7 +99,10 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario, At
                 if (profiler) profiler->shadowUpdate();
                 planetMeshes[i].draw();
             } else if (profiler) profiler->shadowReuse();
-            if(publication && consumers) (*consumers)[i].shadowRevision=shadows.revision(i);
+            if(publication && consumers) {
+                (*consumers)[i].shadowRevision=shadows.revision(i);
+                (*consumers)[i].shadowPhase=shadows.deformationRevision(i);
+            }
         }
     }
     shadowScope.stop();
@@ -223,8 +229,8 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario, At
             planetMeshes[i].draw();
             if(publication && consumers) {
                 auto& c=(*consumers)[i];
-                if(mainPass) c.mainRevision=planetMeshes[i].revision;
-                else c.reflectionRevision=planetMeshes[i].revision;
+                if(mainPass) {c.mainRevision=planetMeshes[i].revision;c.mainPhase=planetMeshes[i].deformationRevision();}
+                else {c.reflectionRevision=planetMeshes[i].revision;c.reflectionPhase=planetMeshes[i].deformationRevision();}
             }
             if (grass && grass->count(i)) {
                 const auto& settings=planet.foliage;
@@ -263,7 +269,13 @@ rendering::CameraExposure renderScene(const config::ScenarioConfig& scenario, At
                 const GrassPass grassPass{model,passView,passProjection,bodies[i+1].toLocalPoint(eyeWorld)/planet.radius,
                     grassWindTime(sceneTime*settings.wind_noise.speed_multiplier),false,mainPass ? GpuWorkView::Main : GpuWorkView::Reflection};
                 grass->draw(i,&grassPass);
-                if(publication && consumers && mainPass) (*consumers)[i].grassDrawRevision=*grass->procedural.residentRevision(i);
+                if(publication && consumers) {
+                    const auto phase=grass->procedural.drawnDeformationRevision(i);
+                    if(!phase) throw std::logic_error("Grass draw did not produce a terrain phase receipt");
+                    auto& c=(*consumers)[i];
+                    if(mainPass) {c.grassDrawRevision=*grass->procedural.residentRevision(i);c.grassDrawPhase=*phase;}
+                    else {c.reflectionGrassRevision=*grass->procedural.residentRevision(i);c.reflectionGrassPhase=*phase;}
+                }
                 // Capture telemetry must be sampled before reflections reuse
                 // the indirect queues. Interactive views avoid this readback.
                 if (mainPass && mainGrassCounts)

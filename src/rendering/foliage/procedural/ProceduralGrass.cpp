@@ -1,6 +1,7 @@
 #include "rendering/foliage/procedural/ProceduralGrass.h"
 #include "rendering/foliage/GrassPlacement.h"
 #include "rendering/geometry/Mesh.h"
+#include "rendering/geometry/terrain/detail/TerrainMorph.h"
 #include "rendering/foliage/planning/GrassMetadata.h"
 #include "rendering/foliage/planning/GrassAllocation.h"
 #include <utility>
@@ -27,6 +28,7 @@ void ProceduralGrass::attributes(std::size_t first,int level) const {
 }
 void ProceduralGrass::upload(Patch& patch,const GrassPlan& plan) {
     CpuTrace::Scope scope("ProceduralGrass::upload");
+    patch.drawnDeformationRevision.reset();
     patch.rootsReady=false;
     if (!patch.buffer) glGenBuffers(1,&patch.buffer);
     glBindBuffer(GL_ARRAY_BUFFER,patch.buffer);
@@ -307,6 +309,7 @@ void ProceduralGrass::draw(std::size_t index,const GrassPass* pass) const {
     if (index>=patches_.size() || !patches_[index]) return;
     const bool culled=glIsEnabled(GL_CULL_FACE); glDisable(GL_CULL_FACE);
     const auto& patch=*patches_[index];
+    patch.drawnDeformationRevision.reset();
     bindTrail(index,patch.scale);
     shader.setFloat("uQuadDistance",patch.settings.quadDistanceMeters());
     shader.setInt("uBladeAnimation",11);
@@ -316,6 +319,7 @@ void ProceduralGrass::draw(std::size_t index,const GrassPass* pass) const {
     shader.setInt("uMorphTargets",12);shader.setInt("uMorphCorners",13);
     if (patch.computeUsed) {
         drawComputed(index,patch,*pass);
+        patch.drawnDeformationRevision=patch.morphSource ? patch.surfaceRevision : 0;
         if (culled) glEnable(GL_CULL_FACE);
         return;
     }
@@ -343,5 +347,6 @@ void ProceduralGrass::draw(std::size_t index,const GrassPass* pass) const {
             GLsizei(draw.patches*grassCandidateSlots[draw.level]));
     }
     glBindVertexArray(0); if (culled) glEnable(GL_CULL_FACE);
+    patch.drawnDeformationRevision=patch.morphSource && patch.morphState ? patch.morphState->revision() : 0;
 }
 }

@@ -92,8 +92,21 @@ void draw(auto& r,bool character=true) {
         if(c["reflection_revision"]!=0) EXPECT_EQ(c["land_revision"],c["reflection_revision"]);
         if(c["water_enabled"].get<bool>()) EXPECT_EQ(c["water_revision"],c["water_draw_revision"]);
         if(c["grass_draw_revision"]!=0) EXPECT_EQ(c["grass_revision"],c["grass_draw_revision"]);
+        EXPECT_EQ(c["land_phase"],c["contacts_phase"]);EXPECT_EQ(c["land_phase"],c["grass_phase"]);
+        EXPECT_EQ(c["land_phase"],c["main_phase"]);
+        if(c["shadow_revision"]!=0) EXPECT_EQ(c["land_phase"],c["shadow_phase"]);
+        if(c["reflection_revision"]!=0) EXPECT_EQ(c["land_phase"],c["reflection_phase"]);
+        if(c["grass_draw_revision"]!=0) EXPECT_EQ(c["land_phase"],c["grass_draw_phase"]);
+        if(c["reflection_grass_revision"]!=0) {
+            EXPECT_EQ(c["land_revision"],c["reflection_grass_revision"]);
+            EXPECT_EQ(c["land_phase"],c["reflection_grass_phase"]);
+        }
     }
-    if(character) EXPECT_EQ(r.astronautGround.revision(),r.meshes.planetMeshes[r.scene.scenario.surface_camera.planet_index].revision);
+    if(character) {
+        const auto& mesh=r.meshes.planetMeshes[r.scene.scenario.surface_camera.planet_index];
+        EXPECT_EQ(r.astronautGround.version(),(rendering::SurfaceContact::Version{mesh.revision,mesh.deformationRevision()}));
+        EXPECT_EQ(r.astronautGroundRevision,r.astronautGround.version());
+    }
     EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
 }
 void save(const app::CommandLineOptions& o,const json& trace,const GlAudit& audit,auto& r) {
