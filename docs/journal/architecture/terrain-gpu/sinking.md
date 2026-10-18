@@ -1,5 +1,51 @@
 # Relief-aware terrain sinking
 
+## Complete CPU terrain publication, 2026-10-18
+
+`TerrainPublication::submitCpu` stages CPU land, optional water, grass and the
+shared prepared phase through the existing complete publication transaction.
+Submission is synchronous and works on OpenGL 3.3. Publication exchanges all
+consumers and the receipt only after a last-use retirement fence succeeds;
+old grass views, mesh buffers and retained CPU scratch survive until that fence
+completes. Cancellation, stale identities and failures discard private work.
+
+Admission validates CPU identities, finite expanded geometry, configured land/
+water fields, retained phase/scale and complete prepared-halo coverage. Enabled
+foliage requires protected CPU admission. Complete terrain/grass size is bounded
+before buffer creation, including current live/retiring/external reservations.
+CPU planning and staging share the same reservation formula. Locked replay
+capacity still rejects insufficient space; scratch capacity stays in CPU memory
+accounting. A prepared build prewarms its live state before private grass is
+created; static replay stays baked without live state. Recorded grass eyes are
+stored in the receipt and consumed only at publication. Disabled water/grass
+publish as part of the same exchange. GPU-only grass policy reuse returns false
+for CPU land before querying compute limits.
+
+Six focused cases pass on forced GL3.3 (16.542 s), RTX (12.363 s) and
+Quadro (12.054 s). Six same-parent CPU swaps at pole/oblique orientations retain
+42 contact probes, with maximum swap difference 0.0196404 mm. Tests check
+private/live isolation, shared mesh/contact/drawn-grass phase 1, capacity
+accounting, delayed retirement and retained-source lifetime. Invalid fields,
+geometry and halos reject before buffer allocation. Errors after both mesh
+uploads and during descriptor creation free all new buffers; retirement-fence
+failure, stale epochs and cancellation preserve live consumers before retry.
+Replay keeps its baked pose without synthetic live state; its recorded grass
+eye reaches the receipt, and disabling water/grass exchanges them together.
+
+All 35 core groups pass (73.88 s), all 58 RTX compute cases (102.312 s), and
+all 29 software grass/render cases (25.502 s). The headless overview was
+inspected and remains byte-exact: 14,779 non-background pixels, bounds
+`(1,1)–(794,598)`, 3,471 planet pixels. Recovery/frame/reload/streaming all
+pass (300.77 s), with all 15 historical PNGs byte-exact. The final
+complete-budget oracle also passes on GL3.3 (1.387 s), RTX (1.401 s), and
+Quadro (1.384 s): a terrain-only allowance rejects the combined replacement
+without buffer allocations. Timings are validation
+under concurrent load, not FPS measurements. Logs/captures remain local under
+ignored `build-f5/resume/detail-cpu-publication-*`.
+
+This is complete CPU publication plumbing; renderer wiring, coverage-driven
+scheduling and parent-rebase continuity remain outstanding.
+
 ## Private CPU grass preparation, 2026-10-18
 
 `ProceduralGrass::submitCpu` uses the existing preparation/commit object for

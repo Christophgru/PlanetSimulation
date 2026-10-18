@@ -2,6 +2,7 @@
 #include "rendering/foliage/GrassWind.h"
 #include "rendering/geometry/Mesh.h"
 #include "rendering/geometry/Terrain.h"
+#include "rendering/geometry/publication/TerrainPublication.h"
 #include "rendering/character/SurfaceContact.h"
 #include "rendering/runtime/ResourceOwners.h"
 #include "rendering/foliage/cells/CellIdentity.h"
@@ -32,16 +33,55 @@ struct CpuUploadFault {
 struct CpuDescriptorFault {
     static inline PFNGLBUFFERDATAPROC original=nullptr;
     static inline GLuint written=0;
+    static inline unsigned skip=0;
     static void GLAPIENTRY upload(GLenum target,GLsizeiptr bytes,const void* data,GLenum usage) {
         original(target,bytes,data,usage);
         if(target==GL_ARRAY_BUFFER) {
+            if(skip) {--skip;return;}
             GLint buffer=0;glGetIntegerv(GL_ARRAY_BUFFER_BINDING,&buffer);written=buffer;
             glBindBuffer(GL_TEXTURE_2D,0);
         }
     }
-    CpuDescriptorFault(){written=0;original=__glewBufferData;__glewBufferData=upload;}
+    explicit CpuDescriptorFault(unsigned skipUploads=0){written=0;skip=skipUploads;original=__glewBufferData;__glewBufferData=upload;}
     ~CpuDescriptorFault(){__glewBufferData=original;}
 };
+struct CpuFenceFault {
+    PFNGLFENCESYNCPROC original=__glewFenceSync;
+    static GLsync GLAPIENTRY fail(GLenum,GLbitfield){return nullptr;}
+    CpuFenceFault(){__glewFenceSync=fail;}
+    ~CpuFenceFault(){__glewFenceSync=original;}
+};
+struct CpuRetirementDelay {
+    PFNGLCLIENTWAITSYNCPROC original=__glewClientWaitSync;
+    static GLenum GLAPIENTRY pending(GLsync,GLbitfield,GLuint64){return GL_TIMEOUT_EXPIRED;}
+    CpuRetirementDelay(){__glewClientWaitSync=pending;}
+    ~CpuRetirementDelay(){__glewClientWaitSync=original;}
+};
+struct CpuBufferAudit {
+    static inline PFNGLGENBUFFERSPROC original=nullptr;
+    static inline std::vector<GLuint> buffers;
+    static void GLAPIENTRY allocate(GLsizei count,GLuint* ids){original(count,ids);buffers.insert(buffers.end(),ids,ids+count);}
+    CpuBufferAudit(){buffers.clear();original=__glewGenBuffers;__glewGenBuffers=allocate;}
+    ~CpuBufferAudit(){__glewGenBuffers=original;}
+};
+rendering::TerrainBuildRequest cpuPublicationRequest(const glm::dvec3& radial) {
+    using namespace rendering;
+    config::PlanetConfig p;p.name="Earth";p.radius=1;p.color={.2,.6,.1};p.terrain_landscape.enabled=false;
+    p.water.enabled=true;p.water.level_m=-.02;
+    auto& l=p.terrain_lod;l.base_edge_segments=1;l.medium_edge_segments=4;l.max_edge_segments=l.steep_edge_segments=8;
+    l.max_triangle_budget=100000;l.shoreline_edge_m=0;l.near_surface_distance_m=300;l.mid_surface_distance_m=1000;
+    l.relief_sinking=l.local_detail_streaming=true;l.geometric_error_m=.05;
+    l.local_detail_radius_m=1.5;l.local_edge_m=.05;l.local_error_m=.01;l.local_transition_m=.5;
+    config::PlanetConfig::SurfaceNoiseFunction noise;noise.amplitude_m=.01;noise.wavelength_m=.25;noise.octaves=1;noise.seed=-71;
+    p.surface_noise={noise};auto& f=p.foliage;f.enabled=true;f.compute_placement=true;f.frustum_culling=false;
+    f.draw_distance_m=5;f.quad_distance_m=1;f.max_blades=4096;f.max_candidates_per_triangle=65536;f.density_per_m2=2;
+    f.water_clearance_m=f.root_offset_m=0;
+    TerrainSurface surface(p.surface_noise,l,1,1000,{},p.water.level_m,p.terrain_material);
+    TerrainBuildIdentity key;key.serial=1;key.bodyName=p.name;key.field=surface.field().fingerprint();key.topologyVersion=4;
+    key.eye=glm::normalize(radial)*1.002;key.localMask=1;
+    TerrainBuildRequest request{key,std::move(surface),p,{},1000};
+    request.preparedPhase=TerrainMorphFootprint{glm::normalize(radial),1000,.2,.4};return request;
+}
 // Link the production vertex source for feedback, then use the production
 // descriptor VAOs/divisors/draws. This checks real fetch rates and GPU roots.
 class GrassProbe {
@@ -720,6 +760,151 @@ TEST(ProceduralGrassRender, CpuPreparationKeepsLiveDrawsBudgetAndReplayEyesUntil
     probe.planet.foliage.enabled=false;
     auto disabled=probe.grass.submitCpu(0,probe.mesh,probe.planet,100,{0,0,1.02});
     probe.grass.commit(0,*disabled,probe.mesh);EXPECT_EQ(probe.grass.stats(0).candidates,0u);
+    EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+}
+
+TEST(TerrainMesh, PreparedCpuPublicationTransfersLandWaterGrassAndPhaseThenRetiresOldOwnership) {
+    using namespace rendering;double maximumSwap=0;std::size_t probes=0;
+    for(const auto radial:{glm::dvec3(0,0,1),glm::normalize(glm::dvec3(.3,-.7,1))}) {
+        auto r=cpuPublicationRequest(radial);SceneMeshes meshes(1);ProceduralGrass grass;grass.enableAdaptiveBudget();
+        TerrainPublication publication(grass,1);auto& land=meshes.planetMeshes[0];auto& water=meshes.waterMeshes[0];
+        struct ProgramScope {~ProgramScope(){glUseProgram(0);}} programScope;
+        const auto east=glm::normalize(glm::cross(radial,glm::dvec3(0,1,0)));
+        for(double distance:{0.,.15,.3,0.}) {
+            r.identity.eye=glm::normalize(radial+east*(distance/1000))*1.002;
+            r.preparedPhase->eyeRadial=glm::normalize(r.identity.eye);
+            if(land.morphState) land.deformCpu(*r.preparedPhase);
+            const auto oldVertices=land.vertices;const auto oldIndices=land.indices;
+            const auto oldLand=land.vbo,oldWater=water.vbo,oldTargets=land.morphTargets;
+            const auto oldRevision=land.revision,oldPhase=land.deformationRevision();const auto oldState=land.morphState;
+            std::weak_ptr<const TerrainMorphData> oldSource=land.morphData;
+            const auto oldBytes=publication.reservedBytes(),oldCandidates=grass.stats(0).candidates;
+            auto built=buildTerrainCpu(r);ASSERT_FALSE(built.geometry.localDetailLimited);ASSERT_TRUE(built.water);
+            ASSERT_TRUE(publication.submitCpu(std::move(built),r.identity,r.planet,1000,r.identity.eye,land,water));
+            ASSERT_TRUE(publication.ready());EXPECT_TRUE(publication.poll());
+            EXPECT_EQ(land.vbo,oldLand);EXPECT_EQ(water.vbo,oldWater);EXPECT_EQ(land.vertices,oldVertices);
+            EXPECT_EQ(land.morphState,oldState);EXPECT_EQ(grass.stats(0).candidates,oldCandidates);
+            EXPECT_FALSE(publication.submitCpu(buildTerrainCpu(r),r.identity,r.planet,1000,r.identity.eye,land,water));
+            ASSERT_TRUE(publication.publish(r.identity,land,water));
+            const auto& receipt=publication.installed(0);EXPECT_EQ(receipt.identity,r.identity);
+            EXPECT_EQ(land.revision,oldRevision+1);EXPECT_EQ(water.revision,receipt.waterRevision);
+            EXPECT_EQ(land.terrainStats.generation,receipt.land);EXPECT_EQ(water.terrainStats.generation,receipt.water);
+            ASSERT_TRUE(land.morphState);EXPECT_NE(land.morphState,oldState);EXPECT_EQ(land.deformationRevision(),1u);
+            EXPECT_EQ(*land.morphState->footprint(),*r.preparedPhase);EXPECT_EQ(receipt.preparedRadiusMeters,1.5);
+            EXPECT_EQ(receipt.admittedBytes,meshes.terrainBytes()+grass.ownedBytes());
+            EXPECT_EQ(publication.reservedBytes(),oldBytes+receipt.admittedBytes);
+            EXPECT_EQ(land.cpuMorphBytes(),(land.morphData->targets.capacity()+land.morphData->corners.capacity())*sizeof(std::uint32_t)+
+                land.vertices.capacity()*sizeof(float));
+            SurfaceContact actual,previous;actual.bind(land.vertices,land.indices,land.revision,1000,9,land.morphState);
+            EXPECT_EQ(actual.version(),(SurfaceContact::Version{land.revision,1}));
+            if(oldState) {
+                EXPECT_EQ(oldState->revision(),oldPhase);previous.bind(oldVertices,oldIndices,oldRevision,1000);
+                for(double offset:{-.83,-.317,0.,.137,.599,1.51,3.17}) {
+                    const auto ray=glm::normalize(r.preparedPhase->eyeRadial+east*(offset/1000));
+                    maximumSwap=std::max(maximumSwap,glm::length(actual.sample(ray,{}).position-previous.sample(ray,{}).position));++probes;
+                }
+            }
+            grass.shader.use();const glm::mat4 identity(1);
+            for(const char* name:{"model","view","projection"}) grass.shader.setMat4(name,&identity[0][0]);
+            grass.shader.setInt("uShadowMap",1);grass.shader.setInt("uAtmColumns",7);grass.shader.setInt("uTrailTree",10);
+            grass.shader.setInt("uTerrainVertices",8);grass.shader.setInt("uTerrainIndices",9);
+            grass.shader.setFloat("uMetersPerRadius",1000);grass.shader.setFloat("uGrassHeight",1);grass.shader.setFloat("uGrassWidth",.08);
+            GrassPass pass;pass.mainEyeBody=r.identity.eye;
+            glEnable(GL_RASTERIZER_DISCARD);grass.draw(0,&pass);glDisable(GL_RASTERIZER_DISCARD);
+            ASSERT_GT(grass.stats(0).candidates,0u);EXPECT_EQ(grass.drawnDeformationRevision(0),1u);
+            {CpuRetirementDelay delayed;publication.pollRetired();EXPECT_FALSE(publication.canSubmit(0));
+                if(oldLand) {EXPECT_TRUE(glIsBuffer(oldLand));EXPECT_TRUE(glIsBuffer(oldWater));EXPECT_TRUE(glIsBuffer(oldTargets));EXPECT_FALSE(oldSource.expired());}
+            }
+            publication.waitRetiredForCapture(0);EXPECT_TRUE(publication.canSubmit(0));EXPECT_TRUE(oldSource.expired());
+            if(oldLand) {EXPECT_FALSE(glIsBuffer(oldLand));EXPECT_FALSE(glIsBuffer(oldWater));EXPECT_FALSE(glIsBuffer(oldTargets));}
+            EXPECT_EQ(publication.reservedBytes(),receipt.admittedBytes);++r.identity.serial;
+            EXPECT_FALSE(publication.reuseGrassPolicy(0,r.planet,1000,land,water));
+        }
+        EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+    }
+    EXPECT_EQ(probes,42u);EXPECT_LE(maximumSwap,.001);
+    std::cout<<"CPU_PUBLICATION probes="<<probes<<" max_swap_m="<<maximumSwap<<'\n';
+}
+
+TEST(TerrainMesh, CpuPublicationRejectsInvalidBudgetAndFailedStagingWithoutTouchingLiveConsumers) {
+    using namespace rendering;auto r=cpuPublicationRequest({.3,-.7,1});
+    SceneMeshes meshes(1);ProceduralGrass grass;grass.enableAdaptiveBudget();TerrainPublication publication(grass,1);
+    auto& land=meshes.planetMeshes[0];auto& water=meshes.waterMeshes[0];
+    struct ProgramScope {~ProgramScope(){glUseProgram(0);}} programScope;
+    const auto built=buildTerrainCpu(r);
+    const auto storage=[](const TerrainGeometry& g) {
+        return g.vertices.size()*sizeof(float)+g.indices.size()*sizeof(unsigned)+g.grassCellKeys.size()*16+
+            (g.morphData?g.morphData->bytes():0);
+    };
+    const std::uint64_t terrainOnly=storage(built.geometry)+storage(*built.water);
+    for(std::uint64_t limit:{std::uint64_t(32),terrainOnly}) {
+        TerrainPublication tiny(grass,1,2*limit,limit);CpuBufferAudit audit;
+        EXPECT_THROW(tiny.submitCpu(built,r.identity,r.planet,1000,r.identity.eye,land,water),std::runtime_error);
+        EXPECT_TRUE(CpuBufferAudit::buffers.empty());
+    }
+    ASSERT_TRUE(publication.submitCpu(built,r.identity,r.planet,1000,r.identity.eye,land,water));
+    ASSERT_TRUE(publication.publish(r.identity,land,water));publication.waitRetiredForCapture(0);
+    const auto buffer=land.vbo,sea=water.vbo;const auto vertices=land.vertices;const auto state=land.morphState;
+    const auto bytes=publication.reservedBytes(),candidates=grass.stats(0).candidates;
+    const auto unchanged=[&] {
+        EXPECT_EQ(land.vbo,buffer);EXPECT_EQ(water.vbo,sea);EXPECT_EQ(land.vertices,vertices);EXPECT_EQ(land.morphState,state);
+        EXPECT_EQ(state->revision(),1u);EXPECT_EQ(grass.stats(0).candidates,candidates);EXPECT_EQ(publication.reservedBytes(),bytes);
+    };
+    ++r.identity.serial;
+    {CpuBufferAudit audit;
+        for(int problem=0;problem<5;++problem) {
+            auto bad=built;
+            if(problem==0) bad.preparedRadiusMeters=std::numeric_limits<double>::quiet_NaN();
+            if(problem==1) bad.deformation->phase->metersPerRadius=999;
+            if(problem==2) bad.water->generation.field++;
+            if(problem==3) bad.geometry.indices[0]=1;
+            if(problem==4) bad.geometry.vertices[0]=std::numeric_limits<float>::infinity();
+            EXPECT_THROW(publication.submitCpu(std::move(bad),r.identity,r.planet,1000,r.identity.eye,land,water),std::invalid_argument);
+            unchanged();EXPECT_FALSE(publication.pending());
+        }
+        EXPECT_TRUE(CpuBufferAudit::buffers.empty());
+    }
+    {CpuBufferAudit audit;CpuDescriptorFault fault(4); // Land targets/VBO and water VBO succeed first.
+        EXPECT_THROW(publication.submitCpu(built,r.identity,r.planet,1000,r.identity.eye,land,water),std::runtime_error);
+        EXPECT_NE(CpuDescriptorFault::written,0u);EXPECT_FALSE(publication.pending());unchanged();
+        for(auto id:CpuBufferAudit::buffers) EXPECT_FALSE(glIsBuffer(id));
+    }
+    ASSERT_TRUE(publication.submitCpu(built,r.identity,r.planet,1000,r.identity.eye,land,water));
+    {CpuFenceFault fault;EXPECT_THROW(publication.publish(r.identity,land,water),std::runtime_error);}
+    EXPECT_FALSE(publication.pending());unchanged();
+    ASSERT_TRUE(publication.submitCpu(built,r.identity,r.planet,1000,r.identity.eye,land,water));
+    auto stale=r.identity;++stale.epoch;EXPECT_FALSE(publication.publish(stale,land,water));unchanged();
+    ASSERT_TRUE(publication.submitCpu(built,r.identity,r.planet,1000,r.identity.eye,land,water));publication.cancel();unchanged();
+    ASSERT_TRUE(publication.submitCpu(built,r.identity,r.planet,1000,r.identity.eye,land,water));
+    ASSERT_TRUE(publication.publish(r.identity,land,water));publication.waitRetiredForCapture(0);
+    EXPECT_NE(land.vbo,buffer);EXPECT_EQ(land.revision,2u);EXPECT_EQ(land.deformationRevision(),1u);
+    EXPECT_FALSE(glIsBuffer(buffer));EXPECT_FALSE(glIsBuffer(sea));
+    EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+}
+
+TEST(TerrainMesh, CpuPublicationKeepsReplayBakedAndRemovesDisabledWaterAndGrassTogether) {
+    using namespace rendering;auto r=cpuPublicationRequest({.3,-.7,1});
+    const auto prepared=buildTerrainCpu(r);r.deformation=prepared.deformation;r.preparedPhase.reset();
+    SceneMeshes meshes(1);ProceduralGrass grass;grass.enableAdaptiveBudget();TerrainPublication publication(grass,1);
+    auto& land=meshes.planetMeshes[0];auto& water=meshes.waterMeshes[0];
+    struct ProgramScope {~ProgramScope(){glUseProgram(0);}} programScope;
+    const glm::dvec3 savedEye=r.identity.eye+glm::dvec3(.0001,0,0);grass.restorePlanningEye(0,savedEye);
+    ASSERT_TRUE(publication.submitCpu(buildTerrainCpu(r),r.identity,r.planet,1000,r.identity.eye,land,water));
+    ASSERT_TRUE(publication.publish(r.identity,land,water));publication.waitRetiredForCapture(0);
+    ASSERT_TRUE(land.morphData);EXPECT_FALSE(land.morphState);EXPECT_EQ(land.deformationRevision(),0u);
+    EXPECT_EQ(land.morphData->phase,r.deformation->phase);EXPECT_EQ(publication.installed(0).preparedRadiusMeters,0);
+    EXPECT_EQ(publication.installed(0).grassEye,savedEye);EXPECT_EQ(grass.planningEye(0),savedEye);
+    const auto oldWater=water.vbo,oldLand=land.vbo;const auto oldCandidates=grass.stats(0).candidates;
+    ++r.identity.serial;r.planet.water.enabled=r.planet.foliage.enabled=false;
+    r.surface=TerrainSurface(r.planet.surface_noise,r.planet.terrain_lod,1,1000,{},std::nullopt,r.planet.terrain_material);
+    r.identity.field=r.surface.field().fingerprint();r.preparedPhase=r.deformation->phase;r.deformation.reset();
+    ASSERT_TRUE(publication.submitCpu(buildTerrainCpu(r),r.identity,r.planet,1000,r.identity.eye,land,water));
+    EXPECT_EQ(land.vbo,oldLand);EXPECT_EQ(water.vbo,oldWater);EXPECT_EQ(grass.stats(0).candidates,oldCandidates);
+    ASSERT_TRUE(publication.publish(r.identity,land,water));
+    EXPECT_EQ(water.vbo,0u);EXPECT_EQ(water.indexCount,0u);EXPECT_EQ(water.revision,2u);
+    EXPECT_EQ(grass.stats(0).candidates,0u);EXPECT_EQ(land.deformationRevision(),1u);
+    EXPECT_FALSE(publication.installed(0).waterEnabled);EXPECT_EQ(publication.installed(0).grassEye,r.identity.eye);
+    EXPECT_TRUE(glIsBuffer(oldWater));publication.waitRetiredForCapture(0);EXPECT_FALSE(glIsBuffer(oldWater));
     EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
 }
 

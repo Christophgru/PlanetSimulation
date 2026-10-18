@@ -259,8 +259,7 @@ GrassPreparationStats ProceduralGrass::prepare(std::size_t index,const Mesh& mes
     upload(patch,plan);
     patch.policyRevision=budget_.revision();
     const bool cached=GLEW_VERSION_4_3 && planet.foliage.compute_placement;
-    patch.stageAdmittedBytes=policy.enabled?(cached?grassComputedCandidateBytes:128)*policy.capacity+
-        mesh.indices.size()/3*(cached?20:4)+(cached?grassCellBytes(mesh.indices.size()/3):0)+grassComputedCommandBytes:0;
+    patch.stageAdmittedBytes=cpuStageBytes(mesh.indices.size()/3,cached,policy);
     const auto uploaded=std::chrono::steady_clock::now();
     patch.metadata=std::move(metadata);
     patch.eye=planningEye; patch.revision=mesh.revision; patch.ready=true;

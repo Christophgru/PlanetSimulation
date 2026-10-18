@@ -185,6 +185,7 @@ std::unique_ptr<ProceduralGrass::Preparation> ProceduralGrass::submitCpu(std::si
     prepare(index,mesh,planet,metersPerWorldUnit,result->cpuReplayEye_.value_or(eyeBody));
     auto& patch=*patches_[index];
     patch.revision=mesh.revision;patch.generation=mesh.terrainStats.generation;
+    patch.eye=result->cpuReplayEye_.value_or(eyeBody);
     updateDraws(patch,planet.radius*metersPerWorldUnit,planet.foliage.quadDistanceMeters(),eyeBody);
     if(glGetError()!=GL_NO_ERROR) throw std::runtime_error("CPU grass draw resource allocation failed");
     const auto stageBytes=ownedBytes()-(liveBytes-heldBytes);

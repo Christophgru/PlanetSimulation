@@ -1,6 +1,7 @@
 #include "rendering/geometry/publication/TerrainPublication.h"
 #include "rendering/diagnostics/timing/GpuWorkProfiler.h"
 #include "rendering/geometry/contacts/SparseTerrainContacts.h"
+#include "rendering/foliage/planning/GrassMetadata.h"
 #include <algorithm>
 #include <limits>
 #include <type_traits>
@@ -125,6 +126,108 @@ bool TerrainPublication::submit(TerrainCpuBuild build,const TerrainBuildIdentity
         return true;
     } catch(...) {++stats_.failed;throw;}
 }
+bool TerrainPublication::submitCpu(TerrainCpuBuild build,const TerrainBuildIdentity& k,
+    const config::PlanetConfig& planet,double metersPerUnit,const glm::dvec3& grassEye,
+    const Mesh& liveLand,const Mesh& liveWater) {
+    if(k.bodyIndex>=bodies_.size()) throw std::out_of_range("Terrain publication body");
+    if(!canSubmit(k.bodyIndex)) return false;
+    try {
+        const auto& installed=bodies_[k.bodyIndex].installed;const auto& patch=*grass_.patches_[k.bodyIndex];
+        const auto& g=build.geometry.generation;
+        if(k.resident || k.backend!=TerrainBackend::Cpu || !k.epoch || !k.serial || k.serial<=installed.identity.serial ||
+           k.bodyName!=planet.name || k.field!=g.field || !g.field || !g.topology ||
+           k.fieldVersion!=g.fieldVersion || g.fieldVersion!=PlanetField::version ||
+           k.topologyVersion!=g.topologyVersion || !supportedTerrainTopology(g.topologyVersion) || g.backend!=TerrainBackend::Cpu ||
+           !std::isfinite(glm::length(k.eye)) || glm::length(k.eye)<=0 || (k.localMask!=0 && k.localMask!=1) ||
+           !std::isfinite(metersPerUnit) || metersPerUnit<=0 || !std::isfinite(planet.radius*metersPerUnit) || planet.radius<=0 ||
+           bool(build.water)!=planet.water.enabled || (build.water &&
+               (build.water->generation.backend!=TerrainBackend::Cpu || !build.water->generation.field || !build.water->generation.topology)) ||
+           liveLand.revision!=installed.landRevision || liveWater.revision!=installed.waterRevision ||
+           (!installed.identity.serial && (liveLand.vao || liveWater.vao || patch.patches || patch.ready)) ||
+           (installed.identity.serial && (installed.identity.backend!=TerrainBackend::Cpu ||
+               liveLand.terrainStats.generation!=installed.land || liveWater.terrainStats.generation!=installed.water ||
+               patch.generation!=installed.land || patch.revision!=installed.landRevision || patch.eye!=installed.grassEye ||
+               patch.morphSource!=liveLand.morphSource() || patch.morphState!=liveLand.morphState)) ||
+           liveLand.revision==std::numeric_limits<std::uint64_t>::max() || liveWater.revision==std::numeric_limits<std::uint64_t>::max())
+            throw std::invalid_argument("Missing matching CPU publication consumers");
+        const auto validateGeometry=[](const TerrainGeometry& geometry) {
+            if(geometry.indices.empty() || geometry.indices.size()%3 || geometry.vertices.size()!=9*geometry.indices.size() ||
+               (!geometry.grassCellKeys.empty() && geometry.grassCellKeys.size()*3!=geometry.indices.size()) ||
+               geometry.generation.fieldVersion!=PlanetField::version || !supportedTerrainTopology(geometry.generation.topologyVersion))
+                throw std::invalid_argument("Invalid expanded CPU terrain publication geometry");
+            for(std::size_t i=0;i<geometry.indices.size();++i) if(geometry.indices[i]!=i)
+                throw std::invalid_argument("CPU publication requires expanded sequential corners");
+            for(float value:geometry.vertices) if(!std::isfinite(value))
+                throw std::invalid_argument("CPU publication requires finite terrain vertices");
+        };
+        validateGeometry(build.geometry);if(build.water) validateGeometry(*build.water);
+        grassMetadataParameters(planet,metersPerUnit,grassEye,build.geometry.indices.size()/3);
+        if(g.field!=PlanetField(planet.surface_noise,planet.radius,metersPerUnit,planet.terrain_landscape,
+               planet.water.enabled?std::optional(planet.water.level_m):std::nullopt,planet.terrain_material).fingerprint() ||
+           (build.water && build.water->generation.field!=PlanetField({},planet.radius+planet.water.level_m/metersPerUnit,metersPerUnit,{},0.).fingerprint()))
+            throw std::invalid_argument("CPU publication field differs from configured land or water");
+        if(build.deformation) {
+            build.deformation->validate();
+            if(!build.deformation->matches(g,planet.radius*metersPerUnit) || !build.geometry.morphData ||
+               build.geometry.morphData->metersPerRadius!=planet.radius*metersPerUnit ||
+               build.geometry.morphData->phase!=build.deformation->phase)
+                throw std::invalid_argument("CPU publication phase differs from retained source");
+        } else if(build.geometry.morphData) throw std::invalid_argument("CPU retained publication needs a sealed phase record");
+        if(build.preparedRadiusMeters!=0 && (build.preparedRadiusMeters!=planet.terrain_lod.local_detail_radius_m ||
+           !build.deformation || !build.deformation->phase || build.geometry.localDetailLimited || !build.geometry.localDetailTriangles ||
+           !terrainPhaseFitsPreparation(*build.deformation->phase,k.eye,planet.radius*metersPerUnit,build.preparedRadiusMeters)))
+            throw std::invalid_argument("CPU publication phase has no matching fine preparation coverage");
+        if(planet.foliage.enabled && !grass_.adaptiveBudget_)
+            throw std::invalid_argument("CPU publication requires protected foliage admission");
+        const auto bytes=[](const TerrainGeometry& geometry) {
+            return geometry.vertices.size()*sizeof(float)+geometry.indices.size()*sizeof(unsigned)+
+                geometry.grassCellKeys.size()*16+(geometry.morphData?geometry.morphData->bytes():0);
+        };
+        const auto terrainBytes=bytes(build.geometry)+(build.water?bytes(*build.water):0),reserved=reservedBytes();
+        const auto allowance=std::min(perSetLimit_,totalLimit_-std::min(totalLimit_,reserved));
+        if(terrainBytes>allowance) throw std::runtime_error("CPU terrain exceeds complete publication budget");
+        const auto triangles=build.geometry.indices.size()/3;
+        auto effective=planet;
+        const bool cached=GLEW_VERSION_4_3 && effective.foliage.compute_placement;
+        if(effective.foliage.enabled) {
+            GrassFalloff minimum;minimum.enabled=true;
+            const auto fixed=grass_.cpuStageBytes(triangles,cached,minimum),candidateBytes=cached?grassComputedCandidateBytes:128;
+            if(allowance-terrainBytes<fixed+candidateBytes) throw std::runtime_error("CPU foliage exceeds complete publication budget");
+            effective.foliage.max_blades=std::min<std::uint64_t>(effective.foliage.max_blades,(allowance-terrainBytes-fixed)/candidateBytes);
+        }
+        const auto external=grass_.externalBudgetBytes_,grassReserved=grass_.reservedBytes();
+        const auto supplement=reserved>grassReserved?reserved-grassReserved:0;
+        if(terrainBytes>std::numeric_limits<std::uint64_t>::max()-external ||
+           supplement>std::numeric_limits<std::uint64_t>::max()-external-terrainBytes)
+            throw std::overflow_error("CPU publication overlap overflow");
+        struct Restore {ProceduralGrass& grass;std::uint64_t external;~Restore(){grass.externalBudgetBytes(external);}} restore{grass_,external};
+        grass_.externalBudgetBytes_=external+supplement+terrainBytes;
+        const auto policy=grass_.cpuPolicy(effective,triangles);
+        const auto admitted=terrainBytes+grass_.cpuStageBytes(triangles,cached,policy);
+        if(admitted>allowance) throw std::runtime_error("Complete CPU generation exceeds publication budget");
+        auto next=std::make_unique<Stage>(liveLand,liveWater);
+        next->previousGrass=grass_.residentGeneration(k.bodyIndex);next->previousGrassRevision=grass_.residentRevision(k.bodyIndex);
+        next->previousGrassEye=grass_.planningEye(k.bodyIndex);
+        auto& receipt=next->receipt;receipt.identity=k;receipt.admittedBytes=admitted;
+        receipt.landRevision=liveLand.revision+1;receipt.waterRevision=liveWater.revision+1;
+        receipt.foliage=effective.foliage;receipt.faceZones=std::move(build.geometry.faceZones);receipt.zoneFaces=build.geometry.zoneFaces;
+        receipt.steepRefinedFaces=build.geometry.steepRefinedFaces;receipt.waterEnabled=bool(build.water);
+        receipt.preparedRadiusMeters=build.preparedRadiusMeters;
+        next->land.loadTerrain(std::move(build.geometry));
+        if(build.preparedRadiusMeters>0) next->land.prepareCpuDeformation();
+        if(build.water) next->water.loadTerrain(std::move(*build.water));
+        next->land.revision=receipt.landRevision;next->water.revision=receipt.waterRevision;
+        if(glGetError()!=GL_NO_ERROR) throw std::runtime_error("CPU terrain publication upload failed");
+        grass_.externalBudgetBytes_=external+supplement;
+        next->grass=grass_.submitCpu(k.bodyIndex,next->land,effective,metersPerUnit,grassEye,terrainBytes);
+        if(next->grass->admittedBytes!=admitted) throw std::logic_error("CPU grass reservation differs from complete admission");
+        grass_.validateCommit(k.bodyIndex,*next->grass,next->land);
+        receipt.grassEye=next->grass->patch_->eye;receipt.land=next->land.terrainStats.generation;receipt.water=next->water.terrainStats.generation;
+        receipt.triangles=next->land.indexCount/3;next->ready=true;
+        staged_=std::move(next);++stats_.submitted;stats_.peakReservedBytes=std::max(stats_.peakReservedBytes,reservedBytes());
+        return true;
+    } catch(...) {++stats_.failed;throw;}
+}
 bool TerrainPublication::poll() {
     if(!staged_) return false;
     if(staged_->ready) return true;
@@ -243,7 +346,7 @@ bool TerrainPublication::retiring(std::size_t i) const {return bool(bodies_.at(i
 const TerrainPublishedGeneration& TerrainPublication::installed(std::size_t i) const {return bodies_.at(i).installed;}
 bool TerrainPublication::reuseGrassPolicy(std::size_t i,const config::PlanetConfig& planet,double units,
     const Mesh& land,const Mesh& water) {
-    if(!canSubmit(i) || land.terrainStats.generation!=bodies_.at(i).installed.land ||
+    if(!canSubmit(i) || !land.residentTerrain || land.terrainStats.generation!=bodies_.at(i).installed.land ||
         water.terrainStats.generation!=bodies_.at(i).installed.water) return false;
     const auto reserved=reservedBytes(),occupied=land.terrainStats.gpuWorkingBytes+water.terrainStats.gpuWorkingBytes;
     try {

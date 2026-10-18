@@ -156,6 +156,7 @@ private:
     std::pair<std::shared_ptr<GrassCellCache>,bool> previousCells(const Patch& patch) const;
     static ProceduralGrassStats patchStats(const Patch& patch);
     GrassFalloff cpuPolicy(const config::PlanetConfig& planet,std::size_t triangles) const;
+    static std::uint64_t cpuStageBytes(std::size_t triangles,bool cached,const GrassFalloff& policy);
 public:
     bool cellIdentity() const {return cellIdentity_;}
     void enableAdaptiveBudget(bool enabled=true) {adaptiveBudget_=enabled;}
@@ -180,6 +181,7 @@ public:
     // Context-thread ownership. Submission never mutates a published patch.
     class Preparation {
         friend class ProceduralGrass;
+        friend class TerrainPublication;
         std::unique_ptr<Patch> patch_;
         TerrainGenerationKey generation_;
         GLuint vertices_=0,indices_=0;

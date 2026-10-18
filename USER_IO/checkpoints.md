@@ -1,5 +1,39 @@
 # Page to document progress of AI Agents working on this Project
 
+## Complete CPU terrain publication — 2026-10-18
+
+- Continuing terrain **p** after `c02f401`. `TerrainPublication::submitCpu`
+  stages CPU land/water/private grass and a prewarmed prepared phase through
+  the existing complete exchange/retirement owner. GL3.3 supported. No renderer
+  activation yet. Static replay stays baked; recorded eyes reach receipts and
+  are consumed only on commit; disabled water/grass exchange together.
+- Admission checks identities, expanded finite geometry, configured land/water
+  field fingerprints, sealed source phase/scale and fine-halo coverage before
+  uploads. Enabled foliage requires protected CPU admission. Shared CPU grass
+  reservation calculation bounds complete terrain/grass before GPU allocation,
+  including existing live/retiring/external resources. CPU scratch accounting
+  stays separate from GPU reservation. GPU-only policy reuse rejects CPU land
+  before querying compute limits. Preparation stays synchronous with lazy CPU
+  draw-time compute caches, as before.
+- Three new regressions exercise complete exchange/versions, six same-parent
+  swaps at pole/oblique orientations, delayed retirement/source lifetime,
+  invalid preallocation inputs, real descriptor errors after both mesh uploads,
+  cleanup/fence failure/stale/cancel/retry, static replay and disabled resources.
+  Six focused cases pass GL3.3 16.542 / RTX 12.363 / Quadro 12.054 s. Forty-two
+  contact probes retain max swap 0.0196404 mm; land/contact/drawn grass agree.
+- All 35 core groups pass (73.88 s), all 58 RTX cases (102.312 s), and 29
+  software grass/render cases (25.502 s). Build 67 steps plus final source
+  rebuild 19 steps pass. Headless overview inspected and exact: 14,779
+  non-background pixels, bounds `(1,1)–(794,598)`, 3,471 planet pixels.
+  Recovery/frame/reload/streaming all pass (300.77 s), and all 15 historical
+  PNGs remain exact. Final two-step test rebuild and terrain-only budget rejection pass GL3.3
+  1.387 / RTX 1.401 / Quadro 1.384 s, with zero buffer allocations.
+  Logs/captures: `build-f5/resume/detail-cpu-publication-*`; concurrent validation
+  timings are not FPS measurements.
+- Keep **p**, default `Transient` and previous native coverage failures. Next:
+  CPU prepared/live phase guards, renderer wiring, coverage policy/scheduling
+  and parent-rebase continuity. User scenario edits remain unstaged.
+
 ## Private CPU grass preparation — 2026-10-18
 
 - Continuing terrain **p** after `b1b969e`. Added

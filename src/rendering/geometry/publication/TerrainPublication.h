@@ -49,6 +49,11 @@ public:
     bool submit(TerrainCpuBuild build,const TerrainBuildIdentity& request,
         const config::PlanetConfig& planet,double metersPerUnit,const glm::dvec3& grassEye,
         const Mesh& liveLand,const Mesh& liveWater,TerrainCompute& compute);
+    // Synchronous GL3.3 CPU preparation with the same complete exchange and
+    // retirement ownership. Enabled foliage requires protected CPU admission.
+    bool submitCpu(TerrainCpuBuild build,const TerrainBuildIdentity& request,
+        const config::PlanetConfig& planet,double metersPerUnit,const glm::dvec3& grassEye,
+        const Mesh& liveLand,const Mesh& liveWater);
     bool submitGrass(std::size_t index,const config::PlanetConfig& planet,double metersPerUnit,
         const glm::dvec3& grassEye,const Mesh& liveLand,const Mesh& liveWater);
     bool reuseGrassPolicy(std::size_t index,const config::PlanetConfig& planet,double metersPerUnit,

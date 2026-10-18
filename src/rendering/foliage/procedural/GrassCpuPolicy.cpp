@@ -4,6 +4,10 @@
 #include <stdexcept>
 
 namespace rendering {
+std::uint64_t ProceduralGrass::cpuStageBytes(std::size_t triangles,bool cached,const GrassFalloff& policy) {
+    return policy.enabled?(cached?grassComputedCandidateBytes:128)*policy.capacity+
+        triangles*(cached?20:4)+(cached?grassCellBytes(triangles):0)+grassComputedCommandBytes:0;
+}
 void ProceduralGrass::admitCpuTerrain(std::uint64_t bytes) const {
     if(!adaptiveBudget_) return;
     constexpr std::uint64_t totalLimit=1024ull*1024*1024;
