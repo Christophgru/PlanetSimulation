@@ -2,6 +2,7 @@
 #include "rendering/foliage/GrassWind.h"
 #include "rendering/geometry/Mesh.h"
 #include "rendering/geometry/Terrain.h"
+#include "rendering/character/SurfaceContact.h"
 #include "rendering/runtime/ResourceOwners.h"
 #include "rendering/foliage/cells/CellIdentity.h"
 #include "config/ScenarioConfig.h"
@@ -18,6 +19,16 @@
 #include <stdexcept>
 
 namespace {
+struct CpuUploadFault {
+    static inline PFNGLBUFFERSUBDATAPROC original=nullptr;
+    static inline unsigned calls=0;
+    static void GLAPIENTRY upload(GLenum target,GLintptr offset,GLsizeiptr bytes,const void* data) {
+        original(target,offset,bytes,data);
+        if(++calls==1) glBindBuffer(GL_TEXTURE_2D,0); // Error after an actual write.
+    }
+    CpuUploadFault(){calls=0;original=__glewBufferSubData;__glewBufferSubData=upload;}
+    ~CpuUploadFault(){__glewBufferSubData=original;}
+};
 // Link the production vertex source for feedback, then use the production
 // descriptor VAOs/divisors/draws. This checks real fetch rates and GPU roots.
 class GrassProbe {
@@ -695,9 +706,55 @@ TEST(TerrainMesh, CpuRetainedUploadPreservesIntegerSourceAndBakedPoseThroughSwap
         rejected([](auto& g,auto&){g.vertices[0]+=.01f;});
         rejected([](auto&,auto& d){d.metersPerRadius=0;});
         rejected([&](auto&,auto& d){d.phase=phase;d.phase->metersPerRadius=999;});
+        EXPECT_THROW(mesh.deformCpu(phase),std::invalid_argument);
+        mesh.prepareCpuDeformation();const auto state=mesh.morphState;
+        ASSERT_TRUE(state);EXPECT_EQ(mesh.deformationRevision(),explicitPhase?1u:0u);
+        const auto preparedBytes=mesh.cpuMorphBytes();
+        EXPECT_EQ(preparedBytes,(source->targets.capacity()+source->corners.capacity())*sizeof(std::uint32_t)+
+            mesh.vertices.capacity()*sizeof(float));
+        mesh.prepareCpuDeformation();EXPECT_EQ(mesh.morphState,state);EXPECT_EQ(mesh.cpuMorphBytes(),preparedBytes);
+        SurfaceContact contact;contact.bind(mesh.vertices,mesh.indices,mesh.revision,1000,9,state);
+        auto copy=contact;const auto beforeContact=contact.sample(radial,{});
+        auto movedPhase=phase;movedPhase.radiusMeters=0;movedPhase.transitionMeters=.1;
+        movedPhase.eyeRadial=glm::normalize(radial+glm::dvec3(.0003,0,0));
+        GLint binding=0;glGetIntegerv(GL_ARRAY_BUFFER_BINDING,&binding);
+        glBindBuffer(GL_ARRAY_BUFFER,cornerBuffer);
+        mesh.deformCpu(movedPhase);
+        GLint after=0;glGetIntegerv(GL_ARRAY_BUFFER_BINDING,&after);EXPECT_EQ(after,GLint(cornerBuffer));
+        glBindBuffer(GL_ARRAY_BUFFER,binding);
+        EXPECT_EQ(mesh.morphState,state);EXPECT_EQ(mesh.revision,liveRevision);
+        EXPECT_EQ(mesh.deformationRevision(),explicitPhase?2u:1u);EXPECT_EQ(mesh.cpuMorphBytes(),preparedBytes);
+        EXPECT_EQ(contact.version(),(SurfaceContact::Version{liveRevision,mesh.deformationRevision()}));
+        EXPECT_EQ(copy.version(),contact.version());
+        EXPECT_EQ(copy.sample(radial,{}).position,contact.sample(radial,{}).position);
+        EXPECT_NE(contact.sample(radial,{}).position,beforeContact.position);
+        const auto positions=mesh.vertices;
+        for(std::size_t c=0;c<source->corners.size();++c) {
+            const auto sample=source->corners[c];const auto fine=glm::dvec3(source->fine(sample));
+            const auto w=terrainMorphWeight(source->radial(sample),movedPhase);
+            const glm::vec3 pose=w==0?glm::vec3(fine):glm::vec3(fine+(source->parent(sample)-fine)*w);
+            for(int j=0;j<3;++j) EXPECT_EQ(positions[9*c+j],pose[j]);
+            for(int j=3;j<9;++j) EXPECT_EQ(positions[9*c+j],expected[9*c+j]);
+        }
+        read(mesh.vbo,positions);read(mesh.morphTargets,source->targets);read(mesh.morphCorners,source->corners);
+        const auto phaseRevision=mesh.deformationRevision();
+        {
+            CpuUploadFault fault;
+            mesh.deformCpu(movedPhase);EXPECT_EQ(CpuUploadFault::calls,0u);
+            EXPECT_THROW(mesh.deformCpu(phase),std::runtime_error);EXPECT_EQ(CpuUploadFault::calls,2u);
+        }
+        EXPECT_EQ(mesh.deformationRevision(),phaseRevision);EXPECT_EQ(mesh.vertices,positions);read(mesh.vbo,positions);
+        glGetIntegerv(GL_ARRAY_BUFFER_BINDING,&after);EXPECT_EQ(after,binding);
+        auto badPhase=movedPhase;badPhase.metersPerRadius=999;
+        EXPECT_THROW(mesh.deformCpu(badPhase),std::invalid_argument);
+        badPhase=movedPhase;badPhase.eyeRadial={0,0,0};EXPECT_THROW(mesh.deformCpu(badPhase),std::invalid_argument);
+        EXPECT_EQ(mesh.vertices,positions);EXPECT_EQ(mesh.deformationRevision(),phaseRevision);read(mesh.vbo,positions);
         mesh.swap(meshes.planetMeshes[1]);EXPECT_FALSE(mesh.morphData);EXPECT_FALSE(mesh.morphSource());
+        EXPECT_EQ(mesh.cpuMorphBytes(),0u);
         auto& exchanged=meshes.planetMeshes[1];EXPECT_EQ(exchanged.morphData,source);
         EXPECT_EQ(exchanged.morphTargets,targetBuffer);EXPECT_EQ(exchanged.morphCorners,cornerBuffer);
+        EXPECT_EQ(exchanged.morphState,state);EXPECT_EQ(exchanged.cpuMorphBytes(),preparedBytes);
+        exchanged.deformCpu(phase);EXPECT_EQ(exchanged.deformationRevision(),phaseRevision+1);
         EXPECT_EQ(terrainStorageBytes(meshes.planetMeshes),storage);
         exchanged.loadTerrain(surface.evaluateTopology(topology));
         EXPECT_FALSE(exchanged.morphData);EXPECT_FALSE(exchanged.morphSource());
@@ -714,7 +771,8 @@ TEST(TerrainMesh, CpuRetainedUploadPreservesIntegerSourceAndBakedPoseThroughSwap
 TEST(ProceduralGrassRender, RetainedCpuSourceKeepsRootsOnBakedPlanesAcrossViewsAndPlacementPaths) {
     using namespace rendering;
     std::size_t checked=0,moved=0,recordComparisons=0;double maximumPlaneError=0;
-    for(const auto radial:{glm::dvec3(0,0,1),glm::normalize(glm::dvec3(.7,-.2,1))}) {
+    for(const bool live:{false,true}) for(const auto radial:{glm::dvec3(0,0,1),glm::normalize(glm::dvec3(.7,-.2,1))}) {
+        SCOPED_TRACE(live);
         glUseProgram(0);GrassProbe probe;
         struct ProgramScope {~ProgramScope(){glUseProgram(0);}} programScope;
         auto& p=probe.planet;p.radius=1;p.color={1,1,1};p.surface_noise.clear();
@@ -775,19 +833,27 @@ TEST(ProceduralGrassRender, RetainedCpuSourceKeepsRootsOnBakedPlanesAcrossViewsA
         };
         GrassPass pass;pass.mainEyeBody=eye;pass.windTime=.75;
         probe.mesh.loadTerrain(geometry({}));
+        if(live) probe.mesh.prepareCpuDeformation();
         EXPECT_EQ(probe.grass.prepare(0,probe.mesh,p,1000,eye).rebuilds,1u);
+        const auto revision=probe.mesh.revision;
+        SurfaceContact contact;contact.bind(probe.mesh.vertices,probe.mesh.indices,revision,1000,9,probe.mesh.morphState);
         const auto candidates=probe.grass.stats(0).candidates;ASSERT_GT(candidates,0u);
         EXPECT_TRUE(roots(probe.capture(.75,false,&pass)).empty());
         std::vector<GrassRootRecord> cached;Roots originalFine,last;TerrainGeometry latest;
         for(const auto band:{glm::dvec2(1000,1),glm::dvec2(9,15),glm::dvec2(5,15),glm::dvec2(0,.1),glm::dvec2(1000,1)}) {
-            latest=geometry(TerrainMorphFootprint{radial,1000,band.x,band.y});probe.mesh.loadTerrain(latest);
-            EXPECT_EQ(probe.grass.prepare(0,probe.mesh,p,1000,eye).rebuilds,1u);
+            const TerrainMorphFootprint phase{radial,1000,band.x,band.y};latest=geometry(phase);
+            if(live) {
+                probe.mesh.deformCpu(phase);EXPECT_EQ(probe.mesh.vertices,latest.vertices);
+                EXPECT_EQ(probe.mesh.revision,revision);EXPECT_EQ(contact.version().deformation,probe.mesh.deformationRevision());
+            } else probe.mesh.loadTerrain(latest);
+            EXPECT_EQ(probe.grass.prepare(0,probe.mesh,p,1000,eye).rebuilds,live?0u:1u);
             EXPECT_EQ(probe.grass.stats(0).candidates,candidates);
             const auto visible=roots(probe.capture(.75,false,&pass));
             if(band.x==1000) {ASSERT_FALSE(visible.empty());if(originalFine.empty()) originalFine=visible;else EXPECT_EQ(visible,originalFine);}
             if(band.x==0) EXPECT_TRUE(visible.empty());
             const auto& v=probe.mesh.vertices;const glm::dvec3 a(v[0],v[1],v[2]),b(v[9],v[10],v[11]),c(v[18],v[19],v[20]);
             const auto normal=glm::normalize(glm::cross(b-a,c-a));const auto plane=glm::dot(normal,a);
+            if(live) EXPECT_NEAR(glm::dot(normal,contact.sample(radial,{}).position/1000.)-plane,0,1e-12);
             for(const auto& root:visible) {
                 const double error=std::abs(glm::dot(normal,glm::dvec3(root[0],root[1],root[2]))-plane)*1000;
                 maximumPlaneError=std::max(maximumPlaneError,error);EXPECT_LE(error,.001);++checked;
@@ -809,6 +875,7 @@ TEST(ProceduralGrassRender, RetainedCpuSourceKeepsRootsOnBakedPlanesAcrossViewsA
                 EXPECT_EQ(roots(probe.capture(.75,true,&reflection)),visible);
                 EXPECT_EQ(probe.grass.stats(0).animationFrame,frame);
             }
+            if(live) EXPECT_EQ(probe.grass.drawnDeformationRevision(0),probe.mesh.deformationRevision());
             EXPECT_EQ(probe.grass.prepare(0,probe.mesh,p,1000,eye).rebuilds,0u);
         }
         f.compute_placement=false;probe.grass.prepare(0,probe.mesh,p,1000,eye);

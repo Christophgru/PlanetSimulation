@@ -1,5 +1,41 @@
 # Page to document progress of AI Agents working on this Project
 
+## Live CPU deformation with shared contact/grass phases — 2026-10-18
+
+- Continuing terrain **p** after `2dcd8b1`. Explicit
+  `Mesh::prepareCpuDeformation` seeds shared state from the baked phase and
+  preallocates reusable interleaved scratch. `deformCpu` evaluates immutable
+  mapped endpoints, uploads the existing VBO and publishes CPU positions/state
+  together. Generation/revision, attributes, indices/cells and targets stay fixed.
+  Same phases skip upload; invalid shape/scale rejects before writes. Upload
+  errors roll back old GPU contents; rollback failure requires renderer recovery.
+- CPU scratch capacity is accounted, transferred with mesh swaps and released
+  on fallback/destroy. Ordinary CPU uploads remain baked; explicit preparation
+  must precede grass/contact binding. GL3.3 driver synchronization is possible;
+  no FPS/nonblocking claim. Vector contacts now share phase versions through
+  character, preview and reload bindings; grass reuses original roots/envelopes.
+- Extended retained CPU tests cover both baked and live paths at pole/oblique
+  orientations, dry/mixed/wet/return phases, reflection/paused animation,
+  exact vertices/attributes/source buffers, ownership and rejection. A fault
+  after actual VBO writes proves exact rollback and successful retry; identical
+  phases prove zero upload calls. Shared vector contacts cover copies/rebinding.
+- Real renderer CPU replay now advances the live phase while immutable baked
+  metadata stays fixed, captures it, then reloads/replays exact PNGs. All eight
+  existing backend/phase combinations pass (67.295 s). All 35 core groups pass
+  (69.34 s), all 57 RTX compute cases (96.280 s), all 25 software grass/render
+  cases (27.227 s). Two focused cases pass GL3.3 (1.884 s), RTX (1.733 s),
+  Quadro (2.687 s): 5,362 root queries across baked/live modes, maximum plane
+  errors 0.194173 / 0.230774 / 0.230762 mm respectively, and 10,240 unchanged
+  cached records per native run. Validation timings are not FPS measurements.
+- Headless overview inspected and byte-exact: 14,779 non-background pixels,
+  bounds `(1,1)–(794,598)`, 3,471 planet pixels. Recovery/frame/reload/streaming all pass
+  (284.72 s); all 15 historical PNGs remain byte-exact. Full build (87 steps) and final
+  source/test rebuild (20 steps) pass. Logs/captures:
+  `build-f5/resume/detail-cpu-live-*`.
+- No runtime activation. Keep **p**, default `Transient` and previous native
+  coverage failures. Next: coverage policy, installed live GPU phase handling,
+  runtime scheduling and parent rebases. User scenario edits remain unstaged.
+
 ## Advance ready prepared phases before publication — 2026-10-18
 
 - Continuing terrain **p** after `325406d`. Prepared worker results now carry

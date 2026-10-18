@@ -78,10 +78,26 @@ TEST(TerrainFrame, OriginalAndActiveDeformationCapturesReplayAndReloadExactlyOnB
         std::vector<char> expected;
         {
             rendering::Renderer renderer(o);ASSERT_EQ(renderer.run(),0);auto& r=Probe::state(renderer);
-            const auto& mesh=r.meshes.planetMeshes[0];EXPECT_TRUE(mesh.morphSource());
+            auto& mesh=r.meshes.planetMeshes[0];EXPECT_TRUE(mesh.morphSource());
             if(mode=="cpu") {ASSERT_TRUE(mesh.morphData);EXPECT_EQ(mesh.morphData->phase,record.phase);}
             else {ASSERT_TRUE(mesh.morphState);EXPECT_EQ(mesh.deformationRevision(),active?1u:0u);EXPECT_TRUE(mesh.residentTerrain);}
             EXPECT_EQ(replayJson(o.outputImagePath+".json")["render"]["terrain_deformation"],entries);
+            if(mode=="cpu" && active) {
+                const auto generation=mesh.terrainStats.generation;const auto revision=mesh.revision;
+                const auto baked=mesh.morphData->phase;
+                mesh.prepareCpuDeformation();
+                const auto& planet=r.scene.scenario.planets[0];
+                r.grass.procedural.prepare(0,mesh,planet,r.scene.scenario.metersPerWorldUnit(),r.lastTerrainEyes[0]/planet.radius);
+                auto phase=*record.phase;phase.eyeRadial=glm::normalize(radial+glm::dvec3(.00015,0,0));
+                mesh.deformCpu(phase);ASSERT_EQ(renderer.run(),0);
+                EXPECT_EQ(mesh.terrainStats.generation,generation);EXPECT_EQ(mesh.revision,revision);
+                EXPECT_EQ(mesh.morphData->phase,baked);EXPECT_EQ(mesh.deformationRevision(),2u);
+                EXPECT_EQ(r.characterTerrainContacts()[0].version(),(rendering::SurfaceContact::Version{revision,2}));
+                record.phase=phase;entry=record.json();entry["body"]=saved["scenario"]["planets"][0]["name"];
+                entries[0]=entry;saved["render"]["terrain_deformation"]=entries;
+                std::ofstream(o.replayPath)<<saved.dump(2);
+                EXPECT_EQ(replayJson(o.outputImagePath+".json")["render"]["terrain_deformation"],entries);
+            }
             expected=replayBytes(o.outputImagePath);ASSERT_FALSE(expected.empty());
             if(mode=="resident" && active) {
                 auto stale=saved;stale["render"]["terrain_deformation"][0]["topology"]=key.topology==1?"2":"1";

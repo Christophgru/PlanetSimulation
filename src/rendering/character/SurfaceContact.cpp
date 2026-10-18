@@ -11,13 +11,18 @@ SurfaceContact::Version SurfaceContact::version() const noexcept {
 }
 void SurfaceContact::clear() { vertices_=nullptr; indices_=nullptr; sparse_.reset();morph_.reset();morphRevision_=0;cached_=next_=0; }
 void SurfaceContact::bind(const std::vector<float>& vertices,const std::vector<unsigned>& indices,
-                         std::uint64_t revision,double radiusMeters,int stride) {
+                         std::uint64_t revision,double radiusMeters,int stride,
+                         std::shared_ptr<const TerrainMorphState> morph) {
     if (!std::isfinite(radiusMeters) || radiusMeters<=0 || stride<3)
         throw std::invalid_argument("Invalid surface contact mesh scale");
-    if (sparse_ || vertices_!=&vertices || indices_!=&indices || revision_!=revision || stride_!=stride || radiusMeters_!=radiusMeters)
+    if(morph && morph->footprint() && morph->footprint()->metersPerRadius!=radiusMeters)
+        throw std::invalid_argument("Surface contact phase scale mismatch");
+    const auto morphRevision=morph?morph->revision():0;
+    if (sparse_ || vertices_!=&vertices || indices_!=&indices || revision_!=revision || stride_!=stride || radiusMeters_!=radiusMeters ||
+        morph_!=morph || morphRevision_!=morphRevision)
         cached_=next_=0;
     sparse_.reset();
-    morph_.reset();morphRevision_=0;
+    morph_=std::move(morph);morphRevision_=morphRevision;
     vertices_=&vertices; indices_=&indices; revision_=revision;
     radiusMeters_=radiusMeters; stride_=stride;
 }

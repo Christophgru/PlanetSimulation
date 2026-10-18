@@ -181,8 +181,8 @@ void Mesh::loadTerrain(rendering::TerrainGeometry geometry) {
     if(source) {
         morphTargets=std::exchange(buffers.ids[0],0);morphCorners=std::exchange(buffers.ids[1],0);
         morphSamples=source->samples();morphData=std::move(source);
-        // CPU poses are baked: their mesh revision identifies the positions.
-        // The shared live state is reserved for an actual deformation adapter.
+        // CPU uploads start baked; prepareCpuDeformation explicitly enables
+        // shared live versions before grass/contact consumers are attached.
     }
 }
 
@@ -230,6 +230,54 @@ void Mesh::upload() {
     }
 
     glBindVertexArray(0);
+}
+
+void Mesh::prepareCpuDeformation() {
+    if(!morphData || residentTerrain || !vbo || !hasVertexColors ||
+       morphData->generation.backend!=rendering::TerrainBackend::Cpu ||
+       vertices.size()!=9*morphData->corners.size() || indices.size()!=morphData->corners.size())
+        throw std::invalid_argument("CPU deformation requires retained CPU terrain");
+    if(morphState) return;
+    auto state=std::make_shared<rendering::TerrainMorphState>();
+    if(morphData->phase) state->set(*morphData->phase);
+    std::vector<float> scratch;scratch.reserve(vertices.capacity());
+    scratch.assign(vertices.begin(),vertices.end());
+    morphScratch_.swap(scratch);morphState=std::move(state);
+}
+
+void Mesh::deformCpu(const rendering::TerrainMorphFootprint& phase) {
+    rendering::validateTerrainMorphFootprint(phase);
+    if(!morphData || !morphState || morphScratch_.size()!=vertices.size() ||
+       vertices.size()!=9*morphData->corners.size() || phase.metersPerRadius!=morphData->metersPerRadius)
+        throw std::invalid_argument("CPU deformation requires a prepared source with matching scale");
+    auto next=*morphState;next.set(phase); // Validate revision before touching GPU data.
+    if(next.revision()==morphState->revision()) return;
+    std::copy(vertices.begin(),vertices.end(),morphScratch_.begin());
+    for(std::size_t c=0;c<morphData->corners.size();++c) {
+        const auto sample=morphData->corners[c];
+        const auto fine=glm::dvec3(morphData->fine(sample));
+        const double w=rendering::terrainMorphWeight(morphData->radial(sample),phase);
+        const glm::vec3 position=w==0?glm::vec3(fine):glm::vec3(fine+(morphData->parent(sample)-fine)*w);
+        for(int j=0;j<3;++j) morphScratch_[9*c+j]=position[j];
+    }
+    // GL 3.3 fallback: reuse the VBO and preallocated CPU storage. The driver
+    // may synchronize this upload; it is not the asynchronous compute path.
+    if(glGetError()!=GL_NO_ERROR) throw std::runtime_error("CPU deformation requires a clean GL context");
+    GLint previous=0;glGetIntegerv(GL_ARRAY_BUFFER_BINDING,&previous);
+    glBindBuffer(GL_ARRAY_BUFFER,vbo);
+    const auto bytes=vertices.size()*sizeof(float);
+    glBufferSubData(GL_ARRAY_BUFFER,0,bytes,morphScratch_.data());
+    if(glGetError()!=GL_NO_ERROR) {
+        // Keep consumers on the old phase, including a driver that reported an
+        // error after writing. A failed rollback needs renderer recovery.
+        glBufferSubData(GL_ARRAY_BUFFER,0,bytes,vertices.data());
+        const bool restored=glGetError()==GL_NO_ERROR;
+        glBindBuffer(GL_ARRAY_BUFFER,previous);
+        throw std::runtime_error(restored?"CPU deformation upload failed; old pose restored":
+            "CPU deformation rollback failed; renderer recovery required");
+    }
+    glBindBuffer(GL_ARRAY_BUFFER,previous);
+    vertices.swap(morphScratch_);*morphState=next;
 }
 
 void Mesh::loadComputedTerrain(rendering::TerrainGeometry geometry,
@@ -282,10 +330,12 @@ void Mesh::releaseMorphTargets() {
     morphTargets=morphCorners=0;morphSamples=0;
     morphState.reset();
     morphData.reset();
+    std::vector<float>().swap(morphScratch_);
 }
 std::uint64_t Mesh::deformationRevision() const {return morphState?morphState->revision():0;}
 std::uint64_t Mesh::cpuMorphBytes() const {
-    return morphData?(morphData->targets.capacity()+morphData->corners.capacity())*sizeof(std::uint32_t):0;
+    return morphScratch_.capacity()*sizeof(float)+
+        (morphData?(morphData->targets.capacity()+morphData->corners.capacity())*sizeof(std::uint32_t):0);
 }
 std::uint64_t Mesh::gpuMorphBytes() const {return morphTargets?72*morphSamples+4*indexCount:0;}
 rendering::TerrainMorphSource Mesh::morphSource() const {
@@ -308,6 +358,7 @@ void Mesh::swap(Mesh& other) noexcept {
     swap(morphTargets,other.morphTargets);swap(morphCorners,other.morphCorners);swap(morphSamples,other.morphSamples);
     morphState.swap(other.morphState);
     morphData.swap(other.morphData);
+    morphScratch_.swap(other.morphScratch_);
     vertices.swap(other.vertices);indices.swap(other.indices);
     grassCellKeys.swap(other.grassCellKeys);swap(cellKeyOffset,other.cellKeyOffset);
     swap(hasVertexColors,other.hasVertexColors);swap(residentTerrain,other.residentTerrain);

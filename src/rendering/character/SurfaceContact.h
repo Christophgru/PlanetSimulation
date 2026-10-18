@@ -24,7 +24,8 @@ public:
         bool operator==(const Version&) const = default;
     };
     void bind(const std::vector<float>& vertices, const std::vector<unsigned>& indices,
-              std::uint64_t revision, double radiusMeters, int stride = 9);
+              std::uint64_t revision, double radiusMeters, int stride = 9,
+              std::shared_ptr<const TerrainMorphState> morph={});
     void bind(std::shared_ptr<SparseTerrainContacts> source,std::uint64_t revision,
               std::shared_ptr<const TerrainMorphState> morph={});
     GroundContact sample(const glm::dvec3& direction, const GroundQuery& fallback);

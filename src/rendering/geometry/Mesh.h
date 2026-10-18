@@ -11,6 +11,7 @@ namespace rendering { class SparseTerrainContacts; }
 namespace rendering { class TerrainMorphState; }
 namespace rendering { struct TerrainMorphSource; }
 namespace rendering { struct TerrainMorphData; }
+namespace rendering { struct TerrainMorphFootprint; }
 
 class Mesh {
 public:
@@ -49,6 +50,9 @@ public:
     void loadTerrain(rendering::TerrainGeometry geometry);
     void loadComputedTerrain(rendering::TerrainGeometry geometry,
                              rendering::TerrainComputeBuffers& buffers, bool keepCpuMirror=true);
+    // Explicit prewarm before grass/contact binding; static CPU uploads stay baked.
+    void prepareCpuDeformation();
+    void deformCpu(const rendering::TerrainMorphFootprint& phase);
 
     void upload();
     
@@ -62,5 +66,6 @@ public:
     // Transfer a complete prevalidated generation without allocating or GL work.
     void swap(Mesh& other) noexcept;
 private:
+    std::vector<float> morphScratch_;
     void releaseMorphTargets();
 };

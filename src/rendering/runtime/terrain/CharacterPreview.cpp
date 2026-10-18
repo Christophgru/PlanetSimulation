@@ -8,7 +8,7 @@ std::vector<SurfaceContact> Renderer::Impl::characterTerrainContacts() const {
         const auto& mesh=meshes.planetMeshes[i];
         if(mesh.contacts) contacts[i].bind(mesh.contacts,mesh.revision,mesh.morphState);
         else contacts[i].bind(mesh.vertices,mesh.indices,mesh.revision,
-            scene.scenario.planets[i].radius*scene.scenario.metersPerWorldUnit());
+            scene.scenario.planets[i].radius*scene.scenario.metersPerWorldUnit(),9,mesh.morphState);
     }
     return contacts;
 }

@@ -34,7 +34,7 @@ void Renderer::Impl::finishSceneReload(ReloadTracking& tracking,app::CommandLine
             const auto i=scene.scenario.surface_camera.planet_index;captureTerrainEye=lastTerrainEyes[i];astronaut.planetIndex=i;
             if(meshes.planetMeshes[i].contacts) astronautGround.bind(meshes.planetMeshes[i].contacts,meshes.planetMeshes[i].revision,meshes.planetMeshes[i].morphState);
             else astronautGround.bind(meshes.planetMeshes[i].vertices,meshes.planetMeshes[i].indices,meshes.planetMeshes[i].revision,
-                scene.scenario.planets[i].radius*scene.scenario.metersPerWorldUnit());
+                scene.scenario.planets[i].radius*scene.scenario.metersPerWorldUnit(),9,meshes.planetMeshes[i].morphState);
         }
         terrainShadows.destroy();waterReflection.destroy();frameReuse.invalidate();
         orbitTrails.clear();orbitColors.clear();orbitColorRevisions.clear();orbitTrailEpoch=std::numeric_limits<double>::quiet_NaN();

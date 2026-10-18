@@ -1,5 +1,51 @@
 # Relief-aware terrain sinking
 
+## Live CPU deformation adapter, 2026-10-18
+
+`Mesh::prepareCpuDeformation` explicitly enables live updates on a validated
+retained CPU mesh. Call it before preparing grass or binding contacts. It seeds
+the shared phase from the baked source and allocates one interleaved scratch
+vector, including its reserved capacity. Ordinary CPU uploads remain static.
+`deformCpu` evaluates immutable fine/parent targets through the retained corner
+map, updates positions in the existing VBO, and then publishes CPU positions and
+the shared phase together. Mesh generation/revision, normals, colors, cell keys,
+indices and original targets stay fixed. Identical phases skip uploads; invalid
+footprints/scales are rejected before writes. A failed upload restores the old
+VBO before throwing; rollback failure explicitly requires renderer recovery.
+The OpenGL 3.3 upload may synchronize in the driver; no frame-time improvement
+is claimed. Scratch storage is included in CPU memory accounting, transfers
+with the mesh, and is released on fallback/destruction.
+
+Vector-backed character contacts now accept the same shared phase/version as
+sparse contacts. Runtime, preview and reload bindings pass it through. Existing
+grass plane, animation and draw version checks then follow CPU live phases
+without root allocation or topology rebuilding. Explicit prewarming is still
+required; this increment does not activate continuous runtime deformation or
+solve preparation coverage and parent rebases.
+
+The two retained CPU/root regressions pass on forced OpenGL 3.3 (1.884 s),
+RTX (1.733 s) and Quadro (2.687 s). Across baked and live modes, each run
+checks 5,362 visible root queries through dry/mixed/wet/return phases at pole
+and oblique orientations. Maximum plane errors: software 0.194173 mm, RTX
+0.230774 mm, Quadro 0.230762 mm. Each native run also preserves 10,240 cached
+root records and exercises compute/vertex placement, reflections and paused
+animation. Mesh tests check exact target/VBO contents, unchanged attributes,
+source/phase ownership, same-phase upload skipping, malformed inputs, and an
+injected error after a real upload followed by exact GPU rollback and retry.
+Vector contact tests cover shared versions through copies and static rebinding.
+
+The real renderer replay regression advances a CPU phase while immutable baked
+metadata remains fixed, captures the current phase, then reloads and replays
+with byte-exact images (all eight backend/phase combinations pass, 67.295 s).
+All 35 core groups pass (69.34 s), as do all 25 software grass/render cases
+(27.227 s). The headless overview was inspected: 14,779 non-background pixels,
+bounds `(1,1)–(794,598)`, 3,471 planet pixels, unchanged PNG SHA256
+`1bc344b36e071a54843b549c0163b600282637aa476789f22a6d471c45245f55`.
+All 57 RTX compute cases pass (96.280 s), along with recovery/frame/reload/
+streaming integration (284.72 s). All 15 historical capture PNGs remain exact.
+Concurrent validation timings are not FPS measurements. Raw logs/captures stay
+under ignored `build-f5/resume/detail-cpu-live-*`.
+
 ## Advance a ready private phase before publication, 2026-10-18
 
 Prepared worker results carry their fine preparation radius into publication

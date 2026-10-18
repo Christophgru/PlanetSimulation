@@ -102,7 +102,7 @@ void Renderer::Impl::prepareAstronaut(double elapsed,std::vector<SurfaceContact>
     else {
         const auto& mesh=meshes.planetMeshes[index];
         if(mesh.contacts) astronautGround.bind(mesh.contacts,mesh.revision,mesh.morphState);
-        else astronautGround.bind(mesh.vertices,mesh.indices,mesh.revision,radius);
+        else astronautGround.bind(mesh.vertices,mesh.indices,mesh.revision,radius,9,mesh.morphState);
     }
     const GroundQuery fallback=[&](const glm::dvec3& radial) {
         return GroundContact{radial*(radius+scene.terrainSurfaces[index].heightAt(radial)*units),radial};
