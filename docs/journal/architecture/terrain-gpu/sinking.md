@@ -1,5 +1,45 @@
 # Relief-aware terrain sinking
 
+## Coverage-checked installed GPU phases, 2026-10-18
+
+`TerrainPublication::updateInstalledPhase` advances an installed prepared GPU
+mesh at the frame boundary, before character/contact updates and draws. It
+rejects mismatched mesh/grass/contact consumers and footprints outside the
+receipt's admitted fine halo before GPU writes. Static/replayed/absent builds
+and scene-replacement leases return false. Equal phases skip dispatch. The
+immutable source and shared state keep topology, mesh revision, roots and
+memory admission fixed; current grass planes/animation refresh on draw.
+
+A dispatch error can occur after actual live writes. The adapter resubmits the
+previous footprint from immutable GPU targets before propagating that error.
+The low-level evaluator publishes state only after successful submission, so
+rollback preserves the previous contact/grass version. Failure of that rollback
+throws an explicit renderer-recovery error. Normal and rollback work use the
+installed request's GPU timing identity, without CPU mirrors, readback, buffer
+allocation, fences or client waits. A pending terrain stage
+keeps its private state; grass-only staging attaches the current installed phase
+at commit. Both can publish normally after a live update.
+
+Four focused publication cases pass on RTX (20.661 s), Quadro (21.317 s) and
+software (53.902 s). They cover same-phase dispatch skipping, rejected coverage
+and consumer mismatches, scene-replacement leases, exact rollback after real
+writes, retry, persistent rollback failure/recovery, disabled foliage, and live
+updates while terrain/grass-only stages wait to publish. Ten same-parent swaps
+retain 1,260 plane probes and 768 sampled drawn roots: maximum swap difference
+0.0312387 mm, exact GPU/contact parity, root errors RTX 0.175509 mm / Quadro
+0.163132 mm / software 0.137597 mm. Live updates allocate no buffers and submit
+no fences or client waits in the audits. All 35 core groups pass (75.30 s);
+forced GL3.3 CPU/root regressions pass (2.726 s). The headless overview remains
+byte-exact with 14,779 non-background pixels, bounds `(1,1)–(794,598)` and
+3,471 planet pixels; raw decoding confirms 11,040 bright pixels.
+All 58 RTX compute cases pass (103.561 s), along with recovery/frame/reload/
+streaming integration (307.38 s). All 15 historical PNGs remain byte-exact. Timings were
+collected during concurrent validation and are not FPS measurements. Raw logs
+stay under ignored `build-f5/resume/detail-installed-phase-*`.
+
+This API does not activate runtime scheduling; preparation coverage policy and
+parent-rebase continuity remain outstanding.
+
 ## Live CPU deformation adapter, 2026-10-18
 
 `Mesh::prepareCpuDeformation` explicitly enables live updates on a validated

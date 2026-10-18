@@ -175,6 +175,34 @@ bool TerrainPublication::updatePreparedPhase(std::size_t body,const TerrainMorph
     // its first draw refreshes current planes/animation using the new revision.
     return true;
 }
+bool TerrainPublication::updateInstalledPhase(std::size_t body,const TerrainMorphFootprint& phase,Mesh& land,TerrainCompute& compute) {
+    if(body>=bodies_.size()) throw std::out_of_range("Terrain publication body");
+    const auto& installed=bodies_[body].installed;
+    if(sceneReplacementOwned_ || !installed.identity.serial || installed.preparedRadiusMeters==0) return false;
+    const auto& patch=*grass_.patches_[body];
+    if(!land.residentTerrain || !land.contacts || !land.morphState || !land.morphState->footprint() ||
+       land.revision!=installed.landRevision || land.terrainStats.generation!=installed.land ||
+       land.contacts->generation()!=installed.land || land.morphSamples!=land.terrainStats.uniqueSamples ||
+       patch.morphSource!=land.morphSource() || patch.morphState!=land.morphState ||
+       grass_.residentGeneration(body)!=installed.land || grass_.residentRevision(body)!=installed.landRevision)
+        throw std::invalid_argument("Installed deformation consumers do not match their prepared generation");
+    if(!terrainPhaseFitsPreparation(phase,installed.identity.eye,land.contacts->radiusMeters(),installed.preparedRadiusMeters))
+        throw std::invalid_argument("Updated terrain phase is outside its installed fine halo");
+    const auto previous=*land.morphState->footprint();
+    if(previous==phase) return true;
+    const auto& identity=installed.identity;
+    GpuWorkProfiler::Request timingIdentity(identity.epoch,identity.serial,body);
+    try {compute.deform(land,phase);}
+    catch(...) {
+        ++stats_.failed;
+        // deform publishes state only after successful submission. Immutable
+        // targets can restore the old VBO without a mirror, allocation or wait.
+        try {compute.deform(land,previous);}
+        catch(...) {throw std::runtime_error("Installed terrain phase rollback failed; renderer recovery required");}
+        throw;
+    }
+    return true;
+}
 bool TerrainPublication::publish(const TerrainBuildIdentity& current,Mesh& liveLand,Mesh& liveWater) {
     if(!staged_ || !staged_->ready) throw std::logic_error("Publication is not ready");
     auto& s=*staged_;const auto i=s.receipt.identity.bodyIndex;auto& body=bodies_[i];

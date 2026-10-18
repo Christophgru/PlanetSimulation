@@ -1,5 +1,37 @@
 # Page to document progress of AI Agents working on this Project
 
+## Installed prepared GPU phases with rollback — 2026-10-18
+
+- Continuing terrain **p** after CPU adapter commit `ab17035`.
+  `TerrainPublication::updateInstalledPhase` validates installed mesh/contacts/
+  grass identity and complete admitted halo coverage before live dispatch.
+  Missing/static/replayed builds and scene-replacement leases return false;
+  identical phases skip dispatch. Call before character/contact updates/draws.
+- Failed live dispatch resubmits the previous footprint from immutable GPU
+  targets before rethrowing; shared versions stay old. A second failure requires
+  renderer recovery explicitly. Timing keeps the installed request identity.
+  No CPU mirrors/readback, buffer allocation, fences or client waits are added.
+  Pending terrain state remains private; grass-only commit attaches live state.
+- Moving publication test now uses the installed API and paused grass draw
+  before each replacement. New regression checks rejection, lease freeze,
+  exact GPU rollback after real writes, unchanged contacts/version, successful
+  retry, persistent-error recovery, pending terrain/grass-only updates and
+  disabled foliage. Four focused cases pass RTX 20.661 / Quadro 21.317 /
+  software 53.902 s. Ten swaps / 1,260 plane probes / 768 sampled roots retain
+  max swap 0.0312387 mm and exact GPU/contact parity; max root errors RTX
+  0.175509 / Quadro 0.163132 / software 0.137597 mm (unchanged 2 mm gate).
+- All 35 core groups pass (75.30 s), all 58 RTX compute cases (103.561 s),
+  and forced GL3.3 CPU/root regressions (2.726 s). Overview inspected/decoded,
+  byte-exact: 14,779 non-background pixels, bounds `(1,1)–(794,598)`,
+  3,471 planet pixels, 11,040 bright pixels. Validation timings are not FPS.
+  Build (50 steps) and final source/test rebuild (23 steps) pass. Recovery/frame/
+  reload/streaming integration all pass (307.38 s); all 15 historical PNGs stay
+  byte-exact. Logs/captures:
+  `build-f5/resume/detail-installed-phase-*`.
+- Keep **p**, default `Transient` and previous native coverage failures.
+  Runtime activation still needs coverage policy, phase scheduling, CPU prepared
+  publication and parent rebases. User scenario edits remain unstaged.
+
 ## Live CPU deformation with shared contact/grass phases — 2026-10-18
 
 - Continuing terrain **p** after `2dcd8b1`. Explicit

@@ -59,6 +59,11 @@ public:
     // grass-only work. Invalid coverage leaves staging/live consumers intact.
     // GPU submission failure discards staging. Caller keeps compute/context alive.
     bool updatePreparedPhase(std::size_t body,const TerrainMorphFootprint& phase,TerrainCompute& compute);
+    // Installed prepared land only; false for static/replayed/absent work or a
+    // scene replacement lease. Coverage/consumer checks precede live writes.
+    // Call at the frame boundary before character/contact updates and draws.
+    // Failed dispatch restores the previous pose; failed rollback requires recovery.
+    bool updateInstalledPhase(std::size_t body,const TerrainMorphFootprint& phase,Mesh& land,TerrainCompute& compute);
     // Returns false for stale work. All validation/fence creation precedes the
     // no-throw land/water/grass/contact/receipt exchange. Old resources retire
     // together after the last-use fence signals.
