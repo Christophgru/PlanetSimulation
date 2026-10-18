@@ -1,5 +1,6 @@
 #include "rendering/geometry/publication/TerrainPublication.h"
 #include "rendering/geometry/contacts/SparseTerrainContacts.h"
+#include "rendering/character/SurfaceContact.h"
 #include "config/Config.h"
 #include <gtest/gtest.h>
 #include <chrono>
@@ -317,4 +318,61 @@ TEST(TerrainPublication, EquivalentTelemetryPolicyReusesLivePlanButChangedBudget
     signals.nowNs+=3000000000ull;signals.memoryNs=signals.nowNs;signals.freeBytes=0;grass.observeBudget(signals);
     EXPECT_FALSE(p.reuseGrassPolicy(0,r.planet,r.metersPerUnit,land,water));
     old.unchanged(p,grass,land,water);EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+}
+
+TEST(TerrainPublication, ReplayPhaseStagesPrivatelyAndPublishesSharedLandGrassAndContactVersion) {
+    auto r=request(false,true);auto& p=r.planet;p.radius=1;p.color={.2,.6,.1};p.terrain_landscape.enabled=false;
+    auto& l=p.terrain_lod;l.local_detail_streaming=true;l.local_detail_radius_m=1.5;
+    l.local_edge_m=.05;l.local_error_m=.01;l.local_transition_m=.5;
+    l.relief_sinking=true;l.geometric_error_m=.05;l.max_triangle_budget=100000;
+    l.base_edge_segments=1;l.max_edge_segments=l.steep_edge_segments=8;l.medium_edge_segments=4;
+    l.near_surface_distance_m=300;l.mid_surface_distance_m=1000;l.shoreline_edge_m=0;
+    config::PlanetConfig::SurfaceNoiseFunction noise;
+    noise.amplitude_m=.01;noise.wavelength_m=.25;noise.octaves=1;noise.seed=-71;p.surface_noise={noise};
+    auto& f=p.foliage;f.enabled=f.compute_placement=true;f.frustum_culling=false;
+    f.draw_distance_m=5;f.quad_distance_m=1;f.max_blades=100000;f.max_candidates_per_triangle=65536;f.density_per_m2=2;
+    r.metersPerUnit=1000;r.surface=TerrainSurface(p.surface_noise,l,1,1000,{},std::nullopt,p.terrain_material);
+    r.identity.field=r.surface.field().fingerprint();r.identity.topologyVersion=4;
+    r.identity.eye=glm::normalize(glm::dvec3(.3,-.7,1))*1.002;
+    const auto topology=r.surface.buildTopologyForEye(r.identity.eye,{},nullptr,20);
+    const TerrainMorphFootprint phase{glm::normalize(r.identity.eye),1000,.2,.4};
+    TerrainCompute compute;ProceduralGrass grass;grass.enableAdaptiveBudget();
+    TerrainPublication publication(grass,1);OwnedMesh land,water;
+    struct ProgramScope {~ProgramScope(){glUseProgram(0);}} programScope;
+    for(const bool active:{false,true}) {
+        SCOPED_TRACE(active);r.deformation=TerrainMorphReplay{topology.generation,1000,active?std::optional(phase):std::nullopt};
+        const auto oldState=land.morphState;const auto oldRevision=land.revision;
+        auto built=buildTerrainCpu(r);const auto preview=built.previewPhase();EXPECT_EQ(bool(preview),active);
+        ASSERT_TRUE(publication.submit(std::move(built),r.identity,p,1000,r.identity.eye,land,water,compute));
+        EXPECT_EQ(land.revision,oldRevision);EXPECT_EQ(land.morphState,oldState);
+        publication.waitForCapture();EXPECT_EQ(land.revision,oldRevision);EXPECT_EQ(land.morphState,oldState);
+        ASSERT_TRUE(publication.publish(r.identity,land,water));retire(publication,0);
+        ASSERT_TRUE(land.morphState);EXPECT_EQ(land.deformationRevision(),active?1u:0u);
+        EXPECT_EQ(grass.residentDeformationRevision(0),land.deformationRevision());
+        ASSERT_GT(grass.stats(0).candidates,0u);EXPECT_TRUE(land.morphSource());
+        if(active) {
+            EXPECT_EQ(*land.morphState->footprint(),phase);ASSERT_TRUE(oldState);
+            EXPECT_NE(land.morphState,oldState);EXPECT_EQ(oldState->revision(),0u);
+            EXPECT_EQ(*preview->footprint(),*land.morphState->footprint());
+        }
+        grass.shader.use();const glm::mat4 identity(1);
+        for(const char* name:{"model","view","projection"}) grass.shader.setMat4(name,&identity[0][0]);
+        grass.shader.setFloat("uMetersPerRadius",1000);grass.shader.setFloat("uGrassHeight",1);
+        grass.shader.setFloat("uGrassWidth",.08);grass.shader.setFloat("uWindStrength",0);
+        GrassPass pass;pass.mainEyeBody=r.identity.eye;
+        glEnable(GL_RASTERIZER_DISCARD);grass.draw(0,&pass);glDisable(GL_RASTERIZER_DISCARD);
+        EXPECT_EQ(grass.drawnDeformationRevision(0),land.deformationRevision());
+        const auto expected=active?r.surface.evaluateTopology(topology,phase):r.surface.evaluateTopology(topology);
+        SurfaceContact actual,rendered;actual.bind(land.contacts,land.revision,land.morphState);
+        rendered.bind(expected.vertices,expected.indices,land.revision,1000);
+        const auto missing=[](const auto&) -> GroundContact {throw std::logic_error("Missing replay publication contact");};
+        EXPECT_LE(glm::length(actual.sample(glm::normalize(r.identity.eye),missing).position-
+            rendered.sample(glm::normalize(r.identity.eye),missing).position),.002);
+        ++r.identity.serial;
+    }
+    auto invalid=buildTerrainCpu(r);invalid.deformation->generation.topology++;
+    const auto state=land.morphState;const auto revision=land.revision;
+    EXPECT_THROW(publication.submit(std::move(invalid),r.identity,p,1000,r.identity.eye,land,water,compute),std::invalid_argument);
+    EXPECT_EQ(land.morphState,state);EXPECT_EQ(land.revision,revision);EXPECT_FALSE(publication.pending());
+    EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
 }

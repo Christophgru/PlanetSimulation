@@ -18,6 +18,17 @@ void TerrainBuildRequest::validate() const {
        !std::isfinite(metersPerUnit) || metersPerUnit<=0 ||
        metersPerUnit!=surface.field().metersPerUnit() || planet.radius!=surface.field().radiusWorld())
         throw std::invalid_argument("Invalid terrain worker snapshot");
+    if(deformation) {
+        deformation->validate();
+        const auto& g=deformation->generation;
+        if(g.field!=k.field || g.fieldVersion!=k.fieldVersion || g.topologyVersion!=k.topologyVersion ||
+           deformation->metersPerRadius!=planet.radius*metersPerUnit)
+            throw std::invalid_argument("Terrain replay does not match worker field, version or scale");
+    }
+}
+std::shared_ptr<const TerrainMorphState> TerrainCpuBuild::previewPhase() const {
+    if(!contacts || !deformation || !deformation->phase) return {};
+    auto phase=std::make_shared<TerrainMorphState>();phase->set(*deformation->phase);return phase;
 }
 bool terrainBuildMatches(const TerrainBuildIdentity& a,const TerrainBuildIdentity& b,std::uint64_t installed) {
     return a.epoch==b.epoch && a.bodyIndex==b.bodyIndex && a.bodyName==b.bodyName &&
@@ -32,15 +43,27 @@ TerrainCpuBuild buildTerrainCpu(const TerrainBuildRequest& request) {
     const auto& k=request.identity;const auto& zones=request.previousFaceZones;
     const bool compute=k.backend==TerrainBackend::Compute;
     TerrainCpuBuild result;
+    result.deformation=request.deformation;
+    const auto validateReplay=[&](const TerrainTopology& topology) {
+        if(request.deformation && !request.deformation->matches(topology.generation,planet.radius*request.metersPerUnit))
+            throw std::invalid_argument("Terrain replay topology differs from the rebuilt plan");
+    };
     if(compute) {
         result.field=surface.field();
         auto topology=surface.buildTopologyForEye(k.eye,glm::dvec3(0),zones.empty()?nullptr:&zones,20.0);
+        validateReplay(topology);
         // Contacts validate and own the descriptors. Stage that same immutable
         // topology rather than copying and revalidating it on the GL thread.
         result.contacts=std::make_shared<SparseTerrainContacts>(*result.field,std::move(topology));
         result.topology=SparseTerrainContacts::topologySnapshot(result.contacts);
-        if(k.resident) static_cast<TerrainBuildStats&>(result.geometry)=*result.topology;
+        if(k.resident || request.deformation) static_cast<TerrainBuildStats&>(result.geometry)=*result.topology;
         else result.geometry=surface.evaluateTopology(*result.topology);
+    } else if(request.deformation) {
+        auto topology=surface.buildTopologyForEye(k.eye,glm::dvec3(0),zones.empty()?nullptr:&zones,20.0);
+        validateReplay(topology);
+        result.geometry=request.deformation->phase?
+            surface.evaluateTopology(topology,*request.deformation->phase,TerrainMorphStorage::Retained):
+            surface.evaluateTopology(topology,TerrainMorphStorage::Retained);
     } else result.geometry=surface.buildGeometryForEye(k.eye,glm::dvec3(0),zones.empty()?nullptr:&zones,20.0);
     if(planet.water.enabled) {
         auto lod=planet.terrain_lod;

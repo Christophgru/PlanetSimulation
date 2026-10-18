@@ -1,5 +1,37 @@
 # Relief-aware terrain sinking
 
+## Replay records through worker and GPU staging, 2026-10-18
+
+Terrain build requests/results can carry the validated deformation record. Worker
+admission checks field, versions and physical scale; after planning, the exact
+immutable topology fingerprint must match before bulk evaluation or GPU work.
+CPU requests bake the optional phase and retain their original targets. Compute
+requests carry metadata and sparse contacts for a mirror-free retained upload,
+including nonresident capture requests. Water follows its existing independent
+path. A context-thread preview helper exposes the prospective contact phase.
+
+GPU staging validates the record again against its sealed topology/field, then
+selects retained generation with the optional initial footprint. Existing
+completion fences and complete publication own the shared phase. Original
+retained records preserve revision0; explicit footprints publish revision1.
+Logical admission already reserves the same retained peak buffers.
+
+New worker tests cover original/active CPU, nonresident compute and resident
+compute builds, exact CPU vertices, preview state, and stale identity/scale.
+A GPU publication case stages original then active records, checks the old live
+state before publication, shared land/grass/contact versions afterward, actual
+grass draw receipts and contact parity. A corrupted staged record must leave the
+live generation intact. Full build completes after a corrected test trace macro
+(56 successful steps plus14 remaining steps); final no-op pass. Focused worker
+2.975 s and publication RTX1.640/Quadro2.051 s pass. All35 core groups40.09 s,
+55 RTX cases73.383 s and frame+streaming119.24 s pass. All fifteen historical
+PNGs and inspected/decoded overview exact:14,779 pixels,bbox(1,1)–(794,598),
+3,471 planet pixels. Concurrent timings are validation, not FPS evidence. Logs
+detail-replay-builds-* local. Full recovery/reload passed in precedingdaeaae5.
+
+Application capture/CLI/reload record
+adapters remain next; default runtime still Transient and terrain **p**.
+
 ## Initial GPU phase inside generation readiness, 2026-10-18
 
 Retained compute generation accepts an optional initial footprint. It validates

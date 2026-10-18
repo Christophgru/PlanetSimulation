@@ -1,5 +1,29 @@
 # Page to document progress of AI Agents working on this Project
 
+## Worker/staging deformation replay — 2026-10-18
+
+- Continued terrain p afterdaeaae5. Build request/result optional deformation
+  record; admission validates field/version/scale, then exact rebuilt topology
+  before bulk work. CPU bakes/retains original targets; compute emits metadata
+  plus sparse contacts for mirror-free retained upload (also nonresident). Water
+  unchanged. TerrainCpuBuild.previewPhase() creates context-only prospective
+  contact phase. GPU requiredBytes validates record against sealed source and
+  generation selects Retained/initialPhase; existing fences/publication apply.
+- New worker case covers original/active CPU/nonresident compute/resident compute,
+  CPU parity/retention, preview and stale field/scale/topology. New55th GPU case
+  stages original then active record, preserves old live state until publish,
+  checks shared grass/land/contact versions, actual draw receipt/contact parity,
+  and rejects corrupted stage without live mutation. Build completes after test
+  trace macro fix (56+14 steps),final no-op pass. Worker2.975 s,publication focus
+  RTX1.640/Quadro2.051 s,35 core groups40.09 s,55 RTX cases73.383 s and frame+
+  streaming119.24 s pass. Fifteen PNGs/inspected+decoded overview exact:14,779
+  pixels,bbox(1,1)–(794,598),3,471 planet. Concurrent times notFPS. Recovery/reload
+  passed atdaeaae5. Logs detail-replay-builds-* local; diff checks pass. API only;
+  no capture/CLI/source adapters yet.
+- Next connect records through capture, plan/parent anchors and reload, then
+  prepared streaming/parent rebases. Keep p/Transient/native failures. User config
+  remains unstaged.
+
 ## Initial GPU phase within generation fence — 2026-10-18
 
 - Continued terrain p afterbfc01b2. TerrainCompute.generate optional initialPhase

@@ -286,3 +286,46 @@ TEST(TerrainJobs, MemorySnapshotRetainsReadySlotAndOnlyCountsStableVectors) {
         ASSERT_TRUE(jobs.poll());EXPECT_EQ(jobs.memorySnapshot()->readyVectorBytes,0u);
     }
 }
+
+TEST(TerrainJobs, ReplayBuildBindsImmutablePlanAndBakesCpuOrStagesComputeWithoutCompatibilityMirror) {
+    auto r=request();auto& p=r.planet;p.water.enabled=false;
+    auto& l=p.terrain_lod;l.local_detail_streaming=true;l.local_detail_radius_m=1.5;
+    l.local_edge_m=.05;l.local_error_m=.01;l.local_transition_m=.5;
+    l.relief_sinking=true;l.geometric_error_m=.05;l.max_triangle_budget=100000;
+    l.max_edge_segments=l.steep_edge_segments=8;l.medium_edge_segments=4;
+    l.near_surface_distance_m=300;l.mid_surface_distance_m=1000;l.shoreline_edge_m=0;
+    config::PlanetConfig::SurfaceNoiseFunction noise;
+    noise.amplitude_m=.01;noise.wavelength_m=.25;noise.octaves=1;noise.seed=-71;p.surface_noise={noise};
+    r.surface=TerrainSurface(p.surface_noise,l,1,1000,p.terrain_landscape,std::nullopt,p.terrain_material);
+    r.identity.field=r.surface.field().fingerprint();r.identity.topologyVersion=4;
+    r.identity.eye=glm::normalize(glm::dvec3(.3,-.7,1))*1.002;
+    const auto topology=r.surface.buildTopologyForEye(r.identity.eye,{},nullptr,20);
+    const TerrainMorphFootprint phase{glm::normalize(r.identity.eye),1000,.2,.4};
+    for(const bool active:{false,true}) for(int mode=0;mode<3;++mode) {
+        SCOPED_TRACE(active);
+        SCOPED_TRACE(mode);
+        r.identity.backend=mode?TerrainBackend::Compute:TerrainBackend::Cpu;r.identity.resident=mode==2;
+        r.deformation=TerrainMorphReplay{topology.generation,1000,active?std::optional(phase):std::nullopt};
+        auto built=buildTerrainCpu(r);ASSERT_TRUE(built.deformation);
+        EXPECT_TRUE(built.deformation->matches(topology.generation,1000));
+        if(mode==0) {
+            ASSERT_TRUE(built.geometry.morphData);EXPECT_EQ(built.geometry.morphData->phase,r.deformation->phase);
+            const auto expected=active?r.surface.evaluateTopology(topology,phase):r.surface.evaluateTopology(topology);
+            EXPECT_EQ(built.geometry.vertices,expected.vertices);EXPECT_EQ(built.geometry.indices,expected.indices);
+            EXPECT_FALSE(built.previewPhase());
+        } else {
+            EXPECT_TRUE(built.geometry.vertices.empty());EXPECT_TRUE(built.geometry.indices.empty());
+            ASSERT_TRUE(built.contacts);ASSERT_TRUE(built.topology);
+            EXPECT_EQ(built.topology->generation,topology.generation);
+            const auto preview=built.previewPhase();EXPECT_EQ(bool(preview),active);
+            if(preview) {EXPECT_EQ(preview->revision(),1u);EXPECT_EQ(*preview->footprint(),phase);}
+        }
+    }
+    auto invalid=r;invalid.deformation->generation.field++;
+    EXPECT_THROW(invalid.validate(),std::invalid_argument);
+    invalid=r;invalid.deformation->metersPerRadius=999;
+    EXPECT_THROW(invalid.validate(),std::invalid_argument);
+    invalid=r;invalid.deformation->generation.topology++;
+    EXPECT_NO_THROW(invalid.validate());EXPECT_THROW(buildTerrainCpu(invalid),std::invalid_argument);
+    r.deformation.reset();EXPECT_TRUE(buildTerrainCpu(r).geometry.vertices.empty());
+}

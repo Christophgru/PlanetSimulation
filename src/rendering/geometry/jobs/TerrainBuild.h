@@ -1,5 +1,6 @@
 #pragma once
 #include "rendering/geometry/Terrain.h"
+#include "rendering/geometry/terrain/detail/TerrainMorphReplay.h"
 #include <memory>
 #include <string>
 
@@ -24,6 +25,7 @@ struct TerrainBuildRequest {
     std::vector<int> previousFaceZones;
     double metersPerUnit=1;
     std::uint64_t traceAttempt=0; // Diagnostic identity; excluded from matching/replay.
+    std::optional<TerrainMorphReplay> deformation;
     void validate() const;
 };
 struct TerrainCpuBuild {
@@ -32,7 +34,10 @@ struct TerrainCpuBuild {
     TerrainTopologySnapshot topology,waterTopology;
     std::optional<PlanetField> field,waterField;
     std::shared_ptr<SparseTerrainContacts> contacts;
+    std::optional<TerrainMorphReplay> deformation;
     double milliseconds=0;
+    // Context-thread prospective character query, before GPU staging exists.
+    std::shared_ptr<const TerrainMorphState> previewPhase() const;
 };
 TerrainCpuBuild buildTerrainCpu(const TerrainBuildRequest& request);
 // Eye motion may require a follow-up without starving a useful completed anchor.

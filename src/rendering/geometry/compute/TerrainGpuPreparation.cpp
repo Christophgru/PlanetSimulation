@@ -20,6 +20,11 @@ std::uint64_t TerrainGpuPreparation::requiredBytes(const TerrainCpuBuild& cpu,co
         throw std::invalid_argument("Missing matching staged terrain consumers");
     auto key=cpu.topology->generation;key.backend=TerrainBackend::Compute;
     if(cpu.contacts->generation()!=key) throw std::invalid_argument("Stale staged terrain contacts");
+    if(cpu.deformation) {
+        cpu.deformation->validate();
+        if(!cpu.deformation->matches(cpu.topology->generation,cpu.field->radiusWorld()*cpu.field->metersPerUnit()))
+            throw std::invalid_argument("Staged terrain replay does not match immutable source");
+    }
     auto bytes=terrainBytes(*cpu.topology);
     if(cpu.water) bytes+=terrainBytes(*cpu.waterTopology);
     if(identity.resident) bytes+=ProceduralGrass::stageBytes(cpu.topology->triangleCount(),planet.foliage,limits.blockBytes);
@@ -31,7 +36,9 @@ TerrainGpuPreparation::TerrainGpuPreparation(TerrainCpuBuild build,TerrainBuildI
     admittedBytes=requiredBytes(cpu,identity,planet,compute.limits());
     if(admittedBytes>byteLimit) throw std::runtime_error("Terrain consumers exceed logical staging byte limit");
     GpuWorkProfiler::Request timingIdentity(identity.epoch,identity.serial,identity.bodyIndex);
-    land=compute.generate(*cpu.field,cpu.topology);
+    land=compute.generate(*cpu.field,cpu.topology,false,
+        cpu.deformation?TerrainMorphStorage::Retained:TerrainMorphStorage::Transient,
+        cpu.deformation && cpu.deformation->phase?&*cpu.deformation->phase:nullptr);
     if(cpu.water) water=compute.generate(*cpu.waterField,cpu.waterTopology);
     land->contacts=std::move(cpu.contacts);land->stats.gpuStageAdmittedBytes=admittedBytes;
 }
