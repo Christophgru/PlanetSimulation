@@ -1,5 +1,31 @@
 # Page to document progress of AI Agents working on this Project
 
+## Coverage-checked CPU phase updates — 2026-10-19
+
+- Continuing terrain **p** after `539cfa5`. CPU overloads of prepared/installed
+  phase updates use preallocated scratch/VBO storage on GL3.3 and newer. They
+  validate the complete footprint against the admitted fine halo; installed
+  updates also check mesh/grass/source identity and scene-replacement leases.
+  Static/replayed/absent work returns false. Call before simulation/view draws.
+- Repeated phases skip uploads. Private upload failures discard only staging;
+  installed failures preserve CPU/shared phase state and restore the old VBO,
+  or explicitly require recovery if rollback also fails. No new buffers/plans;
+  ordinary CPU driver synchronization remains possible. No runtime activation.
+- Seven focused cases pass GL3.3 13.532 / RTX 13.190 / Quadro 12.729 s.
+  Tests check coverage rejection, lease freeze, exact real-write rollback,
+  versions/copy contacts, failure cleanup/retry, independent live/private poses,
+  and repeated upload skips. Six same-parent swaps / 42 probes retain maximum
+  difference 0.0196404 mm after advancing delayed private masks before commit.
+- All 35 core groups pass (73.99 s), 58 RTX cases (102.509 s), 30 software
+  grass/render cases (21.899 s), and recovery/frame/reload/streaming (269.50 s).
+  All 15 historical PNGs remain byte-exact. Headless overview inspected/exact:
+  14,779 non-background pixels, bounds `(1,1)–(794,598)`, 3,471 planet pixels.
+  Build 51 steps and final no-op build pass. Local logs/captures:
+  `build-f5/resume/detail-cpu-phase-*`; validation timings are not FPS.
+- Keep **p**, default `Transient` and previous native coverage failures. Next:
+  coverage-driven scheduling, renderer wiring and parent-rebase continuity.
+  User scenario edits remain unstaged.
+
 ## Complete CPU terrain publication — 2026-10-18
 
 - Continuing terrain **p** after `c02f401`. `TerrainPublication::submitCpu`

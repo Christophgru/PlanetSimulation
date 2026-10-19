@@ -1,5 +1,43 @@
 # Relief-aware terrain sinking
 
+## Coverage-checked CPU phase updates, 2026-10-19
+
+CPU overloads of `updatePreparedPhase` and `updateInstalledPhase` use the
+preallocated CPU deformation adapter on OpenGL 3.3 and newer. Both check the
+complete footprint against the admitted fine halo. Installed updates verify
+shared mesh/grass/source identities and stop during scene-replacement leases.
+Static/replayed/absent work returns false. Private updates only accept ready
+prepared CPU terrain. Both retain the original request's timing identity.
+
+Repeated footprints skip VBO writes through the CPU adapter. A private upload
+failure discards only private staging; installed upload errors preserve CPU
+positions and phase while the adapter restores old GPU data, or explicitly
+requires renderer recovery if restoration fails. Immutable targets and root
+envelopes remain valid, so phase updates create no buffers or grass plans.
+CPU uploads may synchronize in the driver; no nonblocking or FPS claim is made.
+Call installed updates before character/contact simulation and view draws.
+
+Seven focused cases pass on forced GL3.3 (13.532 s), RTX (13.190 s) and
+Quadro (12.729 s). The CPU publication matrix now starts private masks 0.1 m
+behind the desired footprint, advances them before commit and verifies phase 2
+across land, contacts and drawn grass. Installed moves use the new guarded API.
+Six same-parent swaps / 42 probes retain maximum difference 0.0196404 mm.
+Buffer audits show no allocations during updates; injected uploads prove
+same-phase skipping and exact GPU rollback. New cases cover rejected domains,
+malformed phases/body indices, lease freezing, copied contact versions, private
+failure cleanup/retry, private/live phase independence and unsupported replay.
+
+All 35 core groups pass (73.99 s), all 58 RTX compute cases (102.509 s),
+and all 30 software grass/render cases (21.899 s). Recovery/frame/reload/streaming
+pass (269.50 s); all 15 historical PNGs remain byte-exact. The inspected headless
+overview is unchanged: 14,779 non-background pixels, bounds `(1,1)–(794,598)`,
+3,471 planet pixels. The 51-step build and final no-op build pass. Logs/captures
+remain local under ignored `build-f5/resume/detail-cpu-phase-*`; concurrent
+validation timings are not FPS measurements.
+
+Renderer wiring, coverage scheduling and parent-rebase continuity remain
+outstanding; defaults remain unchanged.
+
 ## Complete CPU terrain publication, 2026-10-18
 
 `TerrainPublication::submitCpu` stages CPU land, optional water, grass and the

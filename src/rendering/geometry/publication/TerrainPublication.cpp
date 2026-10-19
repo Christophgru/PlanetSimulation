@@ -278,6 +278,39 @@ bool TerrainPublication::updatePreparedPhase(std::size_t body,const TerrainMorph
     // its first draw refreshes current planes/animation using the new revision.
     return true;
 }
+bool TerrainPublication::updatePreparedPhase(std::size_t body,const TerrainMorphFootprint& phase) {
+    if(body>=bodies_.size()) throw std::out_of_range("Terrain publication body");
+    if(!staged_ || !staged_->ready || staged_->grassOnly || staged_->receipt.identity.bodyIndex!=body ||
+       staged_->receipt.identity.backend!=TerrainBackend::Cpu || staged_->receipt.preparedRadiusMeters==0) return false;
+    auto& stage=*staged_;
+    if(!stage.land.morphData || !terrainPhaseFitsPreparation(phase,stage.receipt.identity.eye,
+       stage.land.morphData->metersPerRadius,stage.receipt.preparedRadiusMeters))
+        throw std::invalid_argument("Updated CPU terrain phase is outside its prepared fine halo");
+    const auto& identity=stage.receipt.identity;
+    GpuWorkProfiler::Request timingIdentity(identity.epoch,identity.serial,body);
+    try {stage.land.deformCpu(phase);}
+    catch(...) {staged_.reset();++stats_.failed;throw;}
+    return true;
+}
+bool TerrainPublication::updateInstalledPhase(std::size_t body,const TerrainMorphFootprint& phase,Mesh& land) {
+    if(body>=bodies_.size()) throw std::out_of_range("Terrain publication body");
+    const auto& installed=bodies_[body].installed;
+    if(sceneReplacementOwned_ || !installed.identity.serial || installed.identity.backend!=TerrainBackend::Cpu ||
+       installed.preparedRadiusMeters==0) return false;
+    const auto& patch=*grass_.patches_[body];
+    if(land.residentTerrain || land.contacts || !land.morphData || !land.morphState || !land.morphState->footprint() ||
+       land.revision!=installed.landRevision || land.terrainStats.generation!=installed.land ||
+       land.morphData->generation!=installed.land || patch.generation!=installed.land || patch.revision!=installed.landRevision ||
+       patch.morphSource!=land.morphSource() || patch.morphState!=land.morphState)
+        throw std::invalid_argument("Installed CPU deformation consumers do not match their prepared generation");
+    if(!terrainPhaseFitsPreparation(phase,installed.identity.eye,land.morphData->metersPerRadius,installed.preparedRadiusMeters))
+        throw std::invalid_argument("Updated CPU terrain phase is outside its installed fine halo");
+    const auto& identity=installed.identity;
+    GpuWorkProfiler::Request timingIdentity(identity.epoch,identity.serial,body);
+    try {land.deformCpu(phase);}
+    catch(...) {++stats_.failed;throw;} // The CPU adapter restores old data or requests recovery.
+    return true;
+}
 bool TerrainPublication::updateInstalledPhase(std::size_t body,const TerrainMorphFootprint& phase,Mesh& land,TerrainCompute& compute) {
     if(body>=bodies_.size()) throw std::out_of_range("Terrain publication body");
     const auto& installed=bodies_[body].installed;

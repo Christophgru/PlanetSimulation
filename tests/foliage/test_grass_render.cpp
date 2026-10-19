@@ -773,30 +773,42 @@ TEST(TerrainMesh, PreparedCpuPublicationTransfersLandWaterGrassAndPhaseThenRetir
         for(double distance:{0.,.15,.3,0.}) {
             r.identity.eye=glm::normalize(radial+east*(distance/1000))*1.002;
             r.preparedPhase->eyeRadial=glm::normalize(r.identity.eye);
-            if(land.morphState) land.deformCpu(*r.preparedPhase);
+            if(land.morphState) {
+                CpuBufferAudit audit;EXPECT_TRUE(publication.updateInstalledPhase(0,*r.preparedPhase,land));
+                EXPECT_TRUE(CpuBufferAudit::buffers.empty());
+            }
             const auto oldVertices=land.vertices;const auto oldIndices=land.indices;
             const auto oldLand=land.vbo,oldWater=water.vbo,oldTargets=land.morphTargets;
             const auto oldRevision=land.revision,oldPhase=land.deformationRevision();const auto oldState=land.morphState;
             std::weak_ptr<const TerrainMorphData> oldSource=land.morphData;
             const auto oldBytes=publication.reservedBytes(),oldCandidates=grass.stats(0).candidates;
+            const auto current=*r.preparedPhase;
+            r.preparedPhase->eyeRadial=glm::normalize(current.eyeRadial-east*.0001);
             auto built=buildTerrainCpu(r);ASSERT_FALSE(built.geometry.localDetailLimited);ASSERT_TRUE(built.water);
             ASSERT_TRUE(publication.submitCpu(std::move(built),r.identity,r.planet,1000,r.identity.eye,land,water));
+            r.preparedPhase=current;
             ASSERT_TRUE(publication.ready());EXPECT_TRUE(publication.poll());
             EXPECT_EQ(land.vbo,oldLand);EXPECT_EQ(water.vbo,oldWater);EXPECT_EQ(land.vertices,oldVertices);
             EXPECT_EQ(land.morphState,oldState);EXPECT_EQ(grass.stats(0).candidates,oldCandidates);
             EXPECT_FALSE(publication.submitCpu(buildTerrainCpu(r),r.identity,r.planet,1000,r.identity.eye,land,water));
+            {CpuBufferAudit audit;
+                EXPECT_TRUE(publication.updatePreparedPhase(0,current));
+                {CpuUploadFault noUpload;EXPECT_TRUE(publication.updatePreparedPhase(0,current));EXPECT_EQ(CpuUploadFault::calls,0u);}
+                EXPECT_TRUE(CpuBufferAudit::buffers.empty());
+            }
+            EXPECT_EQ(land.vertices,oldVertices);EXPECT_EQ(land.deformationRevision(),oldPhase);
             ASSERT_TRUE(publication.publish(r.identity,land,water));
             const auto& receipt=publication.installed(0);EXPECT_EQ(receipt.identity,r.identity);
             EXPECT_EQ(land.revision,oldRevision+1);EXPECT_EQ(water.revision,receipt.waterRevision);
             EXPECT_EQ(land.terrainStats.generation,receipt.land);EXPECT_EQ(water.terrainStats.generation,receipt.water);
-            ASSERT_TRUE(land.morphState);EXPECT_NE(land.morphState,oldState);EXPECT_EQ(land.deformationRevision(),1u);
+            ASSERT_TRUE(land.morphState);EXPECT_NE(land.morphState,oldState);EXPECT_EQ(land.deformationRevision(),2u);
             EXPECT_EQ(*land.morphState->footprint(),*r.preparedPhase);EXPECT_EQ(receipt.preparedRadiusMeters,1.5);
             EXPECT_EQ(receipt.admittedBytes,meshes.terrainBytes()+grass.ownedBytes());
             EXPECT_EQ(publication.reservedBytes(),oldBytes+receipt.admittedBytes);
             EXPECT_EQ(land.cpuMorphBytes(),(land.morphData->targets.capacity()+land.morphData->corners.capacity())*sizeof(std::uint32_t)+
                 land.vertices.capacity()*sizeof(float));
             SurfaceContact actual,previous;actual.bind(land.vertices,land.indices,land.revision,1000,9,land.morphState);
-            EXPECT_EQ(actual.version(),(SurfaceContact::Version{land.revision,1}));
+            EXPECT_EQ(actual.version(),(SurfaceContact::Version{land.revision,2}));
             if(oldState) {
                 EXPECT_EQ(oldState->revision(),oldPhase);previous.bind(oldVertices,oldIndices,oldRevision,1000);
                 for(double offset:{-.83,-.317,0.,.137,.599,1.51,3.17}) {
@@ -811,7 +823,7 @@ TEST(TerrainMesh, PreparedCpuPublicationTransfersLandWaterGrassAndPhaseThenRetir
             grass.shader.setFloat("uMetersPerRadius",1000);grass.shader.setFloat("uGrassHeight",1);grass.shader.setFloat("uGrassWidth",.08);
             GrassPass pass;pass.mainEyeBody=r.identity.eye;
             glEnable(GL_RASTERIZER_DISCARD);grass.draw(0,&pass);glDisable(GL_RASTERIZER_DISCARD);
-            ASSERT_GT(grass.stats(0).candidates,0u);EXPECT_EQ(grass.drawnDeformationRevision(0),1u);
+            ASSERT_GT(grass.stats(0).candidates,0u);EXPECT_EQ(grass.drawnDeformationRevision(0),2u);
             {CpuRetirementDelay delayed;publication.pollRetired();EXPECT_FALSE(publication.canSubmit(0));
                 if(oldLand) {EXPECT_TRUE(glIsBuffer(oldLand));EXPECT_TRUE(glIsBuffer(oldWater));EXPECT_TRUE(glIsBuffer(oldTargets));EXPECT_FALSE(oldSource.expired());}
             }
@@ -890,10 +902,12 @@ TEST(TerrainMesh, CpuPublicationKeepsReplayBakedAndRemovesDisabledWaterAndGrassT
     struct ProgramScope {~ProgramScope(){glUseProgram(0);}} programScope;
     const glm::dvec3 savedEye=r.identity.eye+glm::dvec3(.0001,0,0);grass.restorePlanningEye(0,savedEye);
     ASSERT_TRUE(publication.submitCpu(buildTerrainCpu(r),r.identity,r.planet,1000,r.identity.eye,land,water));
+    EXPECT_FALSE(publication.updatePreparedPhase(0,*r.deformation->phase));
     ASSERT_TRUE(publication.publish(r.identity,land,water));publication.waitRetiredForCapture(0);
     ASSERT_TRUE(land.morphData);EXPECT_FALSE(land.morphState);EXPECT_EQ(land.deformationRevision(),0u);
     EXPECT_EQ(land.morphData->phase,r.deformation->phase);EXPECT_EQ(publication.installed(0).preparedRadiusMeters,0);
     EXPECT_EQ(publication.installed(0).grassEye,savedEye);EXPECT_EQ(grass.planningEye(0),savedEye);
+    EXPECT_FALSE(publication.updateInstalledPhase(0,*r.deformation->phase,land));
     const auto oldWater=water.vbo,oldLand=land.vbo;const auto oldCandidates=grass.stats(0).candidates;
     ++r.identity.serial;r.planet.water.enabled=r.planet.foliage.enabled=false;
     r.surface=TerrainSurface(r.planet.surface_noise,r.planet.terrain_lod,1,1000,{},std::nullopt,r.planet.terrain_material);
@@ -905,6 +919,69 @@ TEST(TerrainMesh, CpuPublicationKeepsReplayBakedAndRemovesDisabledWaterAndGrassT
     EXPECT_EQ(grass.stats(0).candidates,0u);EXPECT_EQ(land.deformationRevision(),1u);
     EXPECT_FALSE(publication.installed(0).waterEnabled);EXPECT_EQ(publication.installed(0).grassEye,r.identity.eye);
     EXPECT_TRUE(glIsBuffer(oldWater));publication.waitRetiredForCapture(0);EXPECT_FALSE(glIsBuffer(oldWater));
+    EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
+}
+
+TEST(TerrainMesh, CpuPublicationPhaseUpdatesValidateCoverageRollbackAndKeepPrivateStateIndependent) {
+    using namespace rendering;auto r=cpuPublicationRequest({.3,-.7,1});
+    SceneMeshes meshes(1);ProceduralGrass grass;grass.enableAdaptiveBudget();TerrainPublication publication(grass,1);
+    auto& land=meshes.planetMeshes[0];auto& water=meshes.waterMeshes[0];
+    struct ProgramScope {~ProgramScope(){glUseProgram(0);}} programScope;
+    const auto initial=*r.preparedPhase;auto latest=initial;
+    const auto east=glm::normalize(glm::cross(initial.eyeRadial,glm::dvec3(0,1,0)));
+    latest.eyeRadial=glm::normalize(initial.eyeRadial+east*.00015);
+    EXPECT_FALSE(publication.updatePreparedPhase(0,latest));EXPECT_FALSE(publication.updateInstalledPhase(0,latest,land));
+    const auto built=buildTerrainCpu(r);
+    ASSERT_TRUE(publication.submitCpu(built,r.identity,r.planet,1000,r.identity.eye,land,water));
+    ASSERT_TRUE(publication.publish(r.identity,land,water));publication.waitRetiredForCapture(0);
+    const auto state=land.morphState;const auto revision=land.revision,bytes=publication.reservedBytes();
+    const auto original=land.vertices;const auto vbo=land.vbo;
+    const auto read=[&] {
+        GLint previous=0;glGetIntegerv(GL_COPY_READ_BUFFER_BINDING,&previous);glBindBuffer(GL_COPY_READ_BUFFER,land.vbo);
+        std::vector<float> values(land.vertices.size());glGetBufferSubData(GL_COPY_READ_BUFFER,0,values.size()*sizeof(float),values.data());
+        glBindBuffer(GL_COPY_READ_BUFFER,previous);return values;
+    };
+    SurfaceContact contact;contact.bind(land.vertices,land.indices,revision,1000,9,state);auto preview=contact;
+    auto outside=latest;outside.transitionMeters=2;
+    EXPECT_THROW(publication.updateInstalledPhase(0,outside,land),std::invalid_argument);
+    auto malformed=latest;malformed.eyeRadial={0,0,0};
+    EXPECT_THROW(publication.updateInstalledPhase(0,malformed,land),std::invalid_argument);
+    EXPECT_THROW(publication.updateInstalledPhase(1,latest,land),std::out_of_range);
+    EXPECT_THROW(publication.updatePreparedPhase(1,latest),std::out_of_range);
+    ASSERT_TRUE(publication.acquireSceneReplacement());EXPECT_FALSE(publication.updateInstalledPhase(0,latest,land));publication.releaseSceneReplacement();
+    {CpuBufferAudit audit;CpuUploadFault fault;
+        EXPECT_TRUE(publication.updateInstalledPhase(0,initial,land));EXPECT_EQ(CpuUploadFault::calls,0u);
+        EXPECT_THROW(publication.updateInstalledPhase(0,latest,land),std::runtime_error);
+        EXPECT_EQ(CpuUploadFault::calls,2u);EXPECT_TRUE(CpuBufferAudit::buffers.empty());
+    }
+    EXPECT_EQ(land.vertices,original);EXPECT_EQ(read(),original);EXPECT_EQ(state->revision(),1u);
+    EXPECT_EQ(contact.version(),(SurfaceContact::Version{revision,1}));EXPECT_EQ(publication.stats().failed,1u);
+    ASSERT_TRUE(publication.updateInstalledPhase(0,latest,land));const auto moved=land.vertices;
+    EXPECT_EQ(state->revision(),2u);EXPECT_NE(moved,original);EXPECT_EQ(read(),moved);
+    EXPECT_EQ(preview.version(),(SurfaceContact::Version{revision,2}));
+    EXPECT_EQ(preview.sample(initial.eyeRadial,{}).position,contact.sample(initial.eyeRadial,{}).position);
+    EXPECT_EQ(land.vbo,vbo);EXPECT_EQ(land.revision,revision);EXPECT_EQ(publication.reservedBytes(),bytes);
+    ++r.identity.serial;
+    {CpuBufferAudit audit;
+        ASSERT_TRUE(publication.submitCpu(built,r.identity,r.planet,1000,r.identity.eye,land,water));
+        EXPECT_THROW(publication.updatePreparedPhase(0,outside),std::invalid_argument);EXPECT_TRUE(publication.ready());
+        {CpuUploadFault fault;EXPECT_THROW(publication.updatePreparedPhase(0,latest),std::runtime_error);}
+        EXPECT_FALSE(publication.pending());for(auto buffer:CpuBufferAudit::buffers) EXPECT_FALSE(glIsBuffer(buffer));
+    }
+    EXPECT_EQ(land.vertices,moved);EXPECT_EQ(read(),moved);EXPECT_EQ(state->revision(),2u);
+    EXPECT_EQ(publication.reservedBytes(),bytes);EXPECT_EQ(publication.stats().failed,2u);
+    ASSERT_TRUE(publication.submitCpu(built,r.identity,r.planet,1000,r.identity.eye,land,water));
+    ASSERT_TRUE(publication.updateInstalledPhase(0,initial,land));EXPECT_EQ(state->revision(),3u);
+    {CpuBufferAudit audit;
+        ASSERT_TRUE(publication.updatePreparedPhase(0,latest));
+        {CpuUploadFault noUpload;EXPECT_TRUE(publication.updatePreparedPhase(0,latest));EXPECT_EQ(CpuUploadFault::calls,0u);}
+        EXPECT_TRUE(CpuBufferAudit::buffers.empty());
+    }
+    EXPECT_EQ(state->revision(),3u);EXPECT_EQ(land.vertices,original); // Private update cannot touch live state.
+    ASSERT_TRUE(publication.updateInstalledPhase(0,latest,land));EXPECT_EQ(state->revision(),4u);
+    ASSERT_TRUE(publication.publish(r.identity,land,water));publication.waitRetiredForCapture(0);
+    EXPECT_NE(land.morphState,state);EXPECT_EQ(land.deformationRevision(),2u);EXPECT_EQ(state->revision(),4u);
+    EXPECT_EQ(*land.morphState->footprint(),latest);EXPECT_EQ(land.vertices,moved);EXPECT_EQ(read(),moved);
     EXPECT_EQ(glGetError(),GLenum(GL_NO_ERROR));
 }
 
